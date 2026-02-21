@@ -2,7 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@apollo/client';
 import { useState } from 'react';
 import {
-  ArrowLeft, Calendar, Check, Repeat, Clock, MapPin,
+  ArrowLeft, Calendar, Repeat, Clock, MapPin,
   Home, Bath, Ruler, PawPrint, Square, CheckSquare,
   Sparkles, AlertTriangle, User, Phone,
 } from 'lucide-react';
