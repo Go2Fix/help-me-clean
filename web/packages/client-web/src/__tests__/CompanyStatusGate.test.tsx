@@ -294,6 +294,6 @@ describe('CompanyStatusGate', () => {
 
     renderGate();
     expect(screen.getByText('+40 312 345 678')).toBeInTheDocument();
-    expect(screen.getByText('contact@helpmeclean.ro')).toBeInTheDocument();
+    expect(screen.getByText('contact@go2fix.ro')).toBeInTheDocument();
   });
 });

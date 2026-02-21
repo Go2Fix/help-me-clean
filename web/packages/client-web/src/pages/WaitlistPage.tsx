@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery } from '@apollo/client';
 import { CheckCircle, Users, Bell, Star, Zap } from 'lucide-react';
-import { cn } from '@helpmeclean/shared';
+import { cn } from '@go2fix/shared';
 import SEOHead from '@/components/seo/SEOHead';
 import { trackWaitlistSignup } from '@/lib/analytics';
 import Button from '@/components/ui/Button';

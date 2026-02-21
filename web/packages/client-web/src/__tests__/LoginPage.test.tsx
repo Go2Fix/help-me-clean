@@ -152,7 +152,7 @@ describe('LoginPage', () => {
 
   it('redirects GLOBAL_ADMIN to /admin when already authenticated', () => {
     mockUseAuth.mockReturnValue({
-      user: { id: '3', email: 'admin@helpmeclean.ro', fullName: 'Global Admin', role: 'GLOBAL_ADMIN', status: 'ACTIVE' },
+      user: { id: '3', email: 'admin@go2fix.ro', fullName: 'Global Admin', role: 'GLOBAL_ADMIN', status: 'ACTIVE' },
       loading: false,
       loginWithGoogle: mockLoginWithGoogle,
       logout: vi.fn(),

@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import DocumentCard from '@/components/ui/DocumentCard';
 
-vi.mock('@helpmeclean/shared', () => ({
+vi.mock('@go2fix/shared', () => ({
   cn: (...args: unknown[]) =>
     args
       .flat()

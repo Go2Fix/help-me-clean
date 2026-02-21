@@ -5,7 +5,7 @@ import { useQuery, useMutation, useSubscription } from '@apollo/client';
 import CompanyMessagesPage from '@/pages/company/MessagesPage';
 import { COMPANY_CHAT_ROOMS } from '@/graphql/operations';
 
-vi.mock('@helpmeclean/shared', () => ({
+vi.mock('@go2fix/shared', () => ({
   cn: (...args: unknown[]) =>
     args
       .flat()

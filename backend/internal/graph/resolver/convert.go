@@ -7,8 +7,8 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 
-	db "helpmeclean-backend/internal/db/generated"
-	"helpmeclean-backend/internal/graph/model"
+	db "go2fix-backend/internal/db/generated"
+	"go2fix-backend/internal/graph/model"
 )
 
 // UUID helpers

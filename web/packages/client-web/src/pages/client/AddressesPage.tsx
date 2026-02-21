@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { MapPin, Plus, Check, Pencil, Trash2, Star, X } from 'lucide-react';
-import { cn } from '@helpmeclean/shared';
+import { cn } from '@go2fix/shared';
 import { useAuth } from '@/context/AuthContext';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';

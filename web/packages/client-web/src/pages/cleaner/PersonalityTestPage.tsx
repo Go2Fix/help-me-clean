@@ -5,7 +5,7 @@ import { ChevronLeft, CheckCircle, ClipboardList, Info } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import { cn } from '@helpmeclean/shared';
+import { cn } from '@go2fix/shared';
 import {
   PERSONALITY_QUESTIONS,
   MY_PERSONALITY_ASSESSMENT,

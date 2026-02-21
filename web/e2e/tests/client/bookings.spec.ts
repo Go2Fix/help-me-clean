@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { loginAsTestUser, getFutureDate, uniqueEmail } from './helpers';
 
 test.describe.serial('My Bookings page', () => {
-  const testEmail = `e2e-bookings-${Date.now()}@helpmeclean.ro`;
+  const testEmail = `e2e-bookings-${Date.now()}@go2fix.ro`;
 
   test('Login and navigate to bookings page', async ({ page }) => {
     await loginAsTestUser(page, testEmail);
@@ -89,7 +89,7 @@ test.describe.serial('My Bookings page', () => {
 });
 
 test.describe.serial('Create and view booking', () => {
-  const testEmail = `e2e-createview-${Date.now()}@helpmeclean.ro`;
+  const testEmail = `e2e-createview-${Date.now()}@go2fix.ro`;
 
   test('Create a booking as authenticated user, then view it in My Bookings', async ({
     page,

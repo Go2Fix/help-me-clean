@@ -8,7 +8,7 @@ import (
 	"embed"
 	"errors"
 	"fmt"
-	"helpmeclean-backend/internal/graph/model"
+	"go2fix-backend/internal/graph/model"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -6367,7 +6367,7 @@ func (ec *executionContext) field_Mutation_activateCleaner_args(ctx context.Cont
 func (ec *executionContext) field_Mutation_addAddress_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNAddAddressInput2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐAddAddressInput)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNAddAddressInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐAddAddressInput)
 	if err != nil {
 		return nil, err
 	}
@@ -6415,7 +6415,7 @@ func (ec *executionContext) field_Mutation_adminIssueRefund_args(ctx context.Con
 func (ec *executionContext) field_Mutation_adminUpdateCompanyProfile_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNAdminUpdateCompanyInput2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐAdminUpdateCompanyInput)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNAdminUpdateCompanyInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐAdminUpdateCompanyInput)
 	if err != nil {
 		return nil, err
 	}
@@ -6431,7 +6431,7 @@ func (ec *executionContext) field_Mutation_adminUpdateCompanyStatus_args(ctx con
 		return nil, err
 	}
 	args["id"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "status", ec.unmarshalNCompanyStatus2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyStatus)
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "status", ec.unmarshalNCompanyStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyStatus)
 	if err != nil {
 		return nil, err
 	}
@@ -6463,7 +6463,7 @@ func (ec *executionContext) field_Mutation_adminUpdateUserProfile_args(ctx conte
 func (ec *executionContext) field_Mutation_applyAsCompany_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNCompanyApplicationInput2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyApplicationInput)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNCompanyApplicationInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyApplicationInput)
 	if err != nil {
 		return nil, err
 	}
@@ -6610,7 +6610,7 @@ func (ec *executionContext) field_Mutation_createBookingPaymentIntent_args(ctx c
 func (ec *executionContext) field_Mutation_createBookingRequest_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNCreateBookingInput2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCreateBookingInput)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNCreateBookingInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCreateBookingInput)
 	if err != nil {
 		return nil, err
 	}
@@ -6674,7 +6674,7 @@ func (ec *executionContext) field_Mutation_createMonthlyPayout_args(ctx context.
 func (ec *executionContext) field_Mutation_createServiceDefinition_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNCreateServiceDefinitionInput2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCreateServiceDefinitionInput)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNCreateServiceDefinitionInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCreateServiceDefinitionInput)
 	if err != nil {
 		return nil, err
 	}
@@ -6685,7 +6685,7 @@ func (ec *executionContext) field_Mutation_createServiceDefinition_args(ctx cont
 func (ec *executionContext) field_Mutation_createServiceExtra_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNCreateServiceExtraInput2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCreateServiceExtraInput)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNCreateServiceExtraInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCreateServiceExtraInput)
 	if err != nil {
 		return nil, err
 	}
@@ -6816,7 +6816,7 @@ func (ec *executionContext) field_Mutation_generatePersonalityInsights_args(ctx 
 func (ec *executionContext) field_Mutation_inviteCleaner_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNInviteCleanerInput2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInviteCleanerInput)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNInviteCleanerInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInviteCleanerInput)
 	if err != nil {
 		return nil, err
 	}
@@ -6827,7 +6827,7 @@ func (ec *executionContext) field_Mutation_inviteCleaner_args(ctx context.Contex
 func (ec *executionContext) field_Mutation_joinWaitlist_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNJoinWaitlistInput2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐJoinWaitlistInput)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNJoinWaitlistInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐJoinWaitlistInput)
 	if err != nil {
 		return nil, err
 	}
@@ -6963,7 +6963,7 @@ func (ec *executionContext) field_Mutation_requestEmailOtp_args(ctx context.Cont
 		return nil, err
 	}
 	args["email"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "role", ec.unmarshalNUserRole2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUserRole)
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "role", ec.unmarshalNUserRole2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUserRole)
 	if err != nil {
 		return nil, err
 	}
@@ -7164,7 +7164,7 @@ func (ec *executionContext) field_Mutation_signInWithGoogle_args(ctx context.Con
 		return nil, err
 	}
 	args["idToken"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "role", ec.unmarshalNUserRole2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUserRole)
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "role", ec.unmarshalNUserRole2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUserRole)
 	if err != nil {
 		return nil, err
 	}
@@ -7186,7 +7186,7 @@ func (ec *executionContext) field_Mutation_startJob_args(ctx context.Context, ra
 func (ec *executionContext) field_Mutation_submitPersonalityAssessment_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "answers", ec.unmarshalNPersonalityAnswerInput2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityAnswerInputᚄ)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "answers", ec.unmarshalNPersonalityAnswerInput2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityAnswerInputᚄ)
 	if err != nil {
 		return nil, err
 	}
@@ -7197,7 +7197,7 @@ func (ec *executionContext) field_Mutation_submitPersonalityAssessment_args(ctx 
 func (ec *executionContext) field_Mutation_submitReview_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNSubmitReviewInput2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐSubmitReviewInput)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNSubmitReviewInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐSubmitReviewInput)
 	if err != nil {
 		return nil, err
 	}
@@ -7272,7 +7272,7 @@ func (ec *executionContext) field_Mutation_updateAddress_args(ctx context.Contex
 		return nil, err
 	}
 	args["id"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNUpdateAddressInput2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUpdateAddressInput)
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNUpdateAddressInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUpdateAddressInput)
 	if err != nil {
 		return nil, err
 	}
@@ -7283,7 +7283,7 @@ func (ec *executionContext) field_Mutation_updateAddress_args(ctx context.Contex
 func (ec *executionContext) field_Mutation_updateAvailability_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "slots", ec.unmarshalNAvailabilitySlotInput2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐAvailabilitySlotInputᚄ)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "slots", ec.unmarshalNAvailabilitySlotInput2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐAvailabilitySlotInputᚄ)
 	if err != nil {
 		return nil, err
 	}
@@ -7299,7 +7299,7 @@ func (ec *executionContext) field_Mutation_updateCleanerAvailability_args(ctx co
 		return nil, err
 	}
 	args["cleanerId"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "slots", ec.unmarshalNAvailabilitySlotInput2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐAvailabilitySlotInputᚄ)
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "slots", ec.unmarshalNAvailabilitySlotInput2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐAvailabilitySlotInputᚄ)
 	if err != nil {
 		return nil, err
 	}
@@ -7310,7 +7310,7 @@ func (ec *executionContext) field_Mutation_updateCleanerAvailability_args(ctx co
 func (ec *executionContext) field_Mutation_updateCleanerProfile_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNUpdateCleanerProfileInput2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUpdateCleanerProfileInput)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNUpdateCleanerProfileInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUpdateCleanerProfileInput)
 	if err != nil {
 		return nil, err
 	}
@@ -7342,7 +7342,7 @@ func (ec *executionContext) field_Mutation_updateCleanerStatus_args(ctx context.
 		return nil, err
 	}
 	args["id"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "status", ec.unmarshalNCleanerStatus2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerStatus)
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "status", ec.unmarshalNCleanerStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerStatus)
 	if err != nil {
 		return nil, err
 	}
@@ -7353,7 +7353,7 @@ func (ec *executionContext) field_Mutation_updateCleanerStatus_args(ctx context.
 func (ec *executionContext) field_Mutation_updateCompanyProfile_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNUpdateCompanyInput2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUpdateCompanyInput)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNUpdateCompanyInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUpdateCompanyInput)
 	if err != nil {
 		return nil, err
 	}
@@ -7391,7 +7391,7 @@ func (ec *executionContext) field_Mutation_updatePlatformSetting_args(ctx contex
 func (ec *executionContext) field_Mutation_updateProfile_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNUpdateProfileInput2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUpdateProfileInput)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNUpdateProfileInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUpdateProfileInput)
 	if err != nil {
 		return nil, err
 	}
@@ -7402,7 +7402,7 @@ func (ec *executionContext) field_Mutation_updateProfile_args(ctx context.Contex
 func (ec *executionContext) field_Mutation_updateServiceDefinition_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNUpdateServiceDefinitionInput2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUpdateServiceDefinitionInput)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNUpdateServiceDefinitionInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUpdateServiceDefinitionInput)
 	if err != nil {
 		return nil, err
 	}
@@ -7413,7 +7413,7 @@ func (ec *executionContext) field_Mutation_updateServiceDefinition_args(ctx cont
 func (ec *executionContext) field_Mutation_updateServiceExtra_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNUpdateServiceExtraInput2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUpdateServiceExtraInput)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNUpdateServiceExtraInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUpdateServiceExtraInput)
 	if err != nil {
 		return nil, err
 	}
@@ -7429,7 +7429,7 @@ func (ec *executionContext) field_Mutation_updateUserRole_args(ctx context.Conte
 		return nil, err
 	}
 	args["userId"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "role", ec.unmarshalNUserRole2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUserRole)
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "role", ec.unmarshalNUserRole2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUserRole)
 	if err != nil {
 		return nil, err
 	}
@@ -7536,7 +7536,7 @@ func (ec *executionContext) field_Mutation_uploadFile_args(ctx context.Context, 
 func (ec *executionContext) field_Mutation_upsertBillingProfile_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNBillingProfileInput2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBillingProfileInput)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNBillingProfileInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBillingProfileInput)
 	if err != nil {
 		return nil, err
 	}
@@ -7557,7 +7557,7 @@ func (ec *executionContext) field_Mutation_verifyEmailOtp_args(ctx context.Conte
 		return nil, err
 	}
 	args["code"] = arg1
-	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "role", ec.unmarshalNUserRole2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUserRole)
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "role", ec.unmarshalNUserRole2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUserRole)
 	if err != nil {
 		return nil, err
 	}
@@ -7579,7 +7579,7 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 func (ec *executionContext) field_Query_allBookings_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "status", ec.unmarshalOBookingStatus2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingStatus)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "status", ec.unmarshalOBookingStatus2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingStatus)
 	if err != nil {
 		return nil, err
 	}
@@ -7615,12 +7615,12 @@ func (ec *executionContext) field_Query_allBookings_args(ctx context.Context, ra
 func (ec *executionContext) field_Query_allInvoices_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "type", ec.unmarshalOInvoiceType2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceType)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "type", ec.unmarshalOInvoiceType2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceType)
 	if err != nil {
 		return nil, err
 	}
 	args["type"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "status", ec.unmarshalOInvoiceStatus2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceStatus)
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "status", ec.unmarshalOInvoiceStatus2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceStatus)
 	if err != nil {
 		return nil, err
 	}
@@ -7646,7 +7646,7 @@ func (ec *executionContext) field_Query_allInvoices_args(ctx context.Context, ra
 func (ec *executionContext) field_Query_allPaymentTransactions_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "status", ec.unmarshalOPaymentTransactionStatus2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentTransactionStatus)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "status", ec.unmarshalOPaymentTransactionStatus2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentTransactionStatus)
 	if err != nil {
 		return nil, err
 	}
@@ -7672,7 +7672,7 @@ func (ec *executionContext) field_Query_allPayouts_args(ctx context.Context, raw
 		return nil, err
 	}
 	args["companyId"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "status", ec.unmarshalOPayoutStatus2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPayoutStatus)
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "status", ec.unmarshalOPayoutStatus2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPayoutStatus)
 	if err != nil {
 		return nil, err
 	}
@@ -7693,7 +7693,7 @@ func (ec *executionContext) field_Query_allPayouts_args(ctx context.Context, raw
 func (ec *executionContext) field_Query_allRefundRequests_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "status", ec.unmarshalORefundStatus2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐRefundStatus)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "status", ec.unmarshalORefundStatus2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐRefundStatus)
 	if err != nil {
 		return nil, err
 	}
@@ -7855,7 +7855,7 @@ func (ec *executionContext) field_Query_cleanerServiceAreas_args(ctx context.Con
 func (ec *executionContext) field_Query_companies_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "status", ec.unmarshalOCompanyStatus2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyStatus)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "status", ec.unmarshalOCompanyStatus2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyStatus)
 	if err != nil {
 		return nil, err
 	}
@@ -7892,7 +7892,7 @@ func (ec *executionContext) field_Query_companyBookingsByDateRange_args(ctx cont
 func (ec *executionContext) field_Query_companyBookings_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "status", ec.unmarshalOBookingStatus2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingStatus)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "status", ec.unmarshalOBookingStatus2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingStatus)
 	if err != nil {
 		return nil, err
 	}
@@ -7924,7 +7924,7 @@ func (ec *executionContext) field_Query_companyFinancialSummary_args(ctx context
 func (ec *executionContext) field_Query_companyInvoices_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "status", ec.unmarshalOInvoiceStatus2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceStatus)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "status", ec.unmarshalOInvoiceStatus2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceStatus)
 	if err != nil {
 		return nil, err
 	}
@@ -7983,7 +7983,7 @@ func (ec *executionContext) field_Query_company_args(ctx context.Context, rawArg
 func (ec *executionContext) field_Query_estimatePrice_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNPriceEstimateInput2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPriceEstimateInput)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNPriceEstimateInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPriceEstimateInput)
 	if err != nil {
 		return nil, err
 	}
@@ -8043,7 +8043,7 @@ func (ec *executionContext) field_Query_isCitySupported_args(ctx context.Context
 func (ec *executionContext) field_Query_myAssignedJobs_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "status", ec.unmarshalOBookingStatus2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingStatus)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "status", ec.unmarshalOBookingStatus2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingStatus)
 	if err != nil {
 		return nil, err
 	}
@@ -8054,7 +8054,7 @@ func (ec *executionContext) field_Query_myAssignedJobs_args(ctx context.Context,
 func (ec *executionContext) field_Query_myBookings_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "status", ec.unmarshalOBookingStatus2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingStatus)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "status", ec.unmarshalOBookingStatus2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingStatus)
 	if err != nil {
 		return nil, err
 	}
@@ -8310,7 +8310,7 @@ func (ec *executionContext) field_Query_searchBookings_args(ctx context.Context,
 		return nil, err
 	}
 	args["query"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "status", ec.unmarshalOBookingStatus2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingStatus)
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "status", ec.unmarshalOBookingStatus2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingStatus)
 	if err != nil {
 		return nil, err
 	}
@@ -8372,7 +8372,7 @@ func (ec *executionContext) field_Query_searchCompanies_args(ctx context.Context
 		return nil, err
 	}
 	args["query"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "status", ec.unmarshalOCompanyStatus2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyStatus)
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "status", ec.unmarshalOCompanyStatus2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyStatus)
 	if err != nil {
 		return nil, err
 	}
@@ -8434,12 +8434,12 @@ func (ec *executionContext) field_Query_searchUsers_args(ctx context.Context, ra
 		return nil, err
 	}
 	args["query"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "role", ec.unmarshalOUserRole2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUserRole)
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "role", ec.unmarshalOUserRole2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUserRole)
 	if err != nil {
 		return nil, err
 	}
 	args["role"] = arg1
-	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "status", ec.unmarshalOUserStatus2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUserStatus)
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "status", ec.unmarshalOUserStatus2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUserStatus)
 	if err != nil {
 		return nil, err
 	}
@@ -8470,7 +8470,7 @@ func (ec *executionContext) field_Query_suggestCleaners_args(ctx context.Context
 		return nil, err
 	}
 	args["areaId"] = arg1
-	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "timeSlots", ec.unmarshalNTimeSlotInput2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐTimeSlotInputᚄ)
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "timeSlots", ec.unmarshalNTimeSlotInput2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐTimeSlotInputᚄ)
 	if err != nil {
 		return nil, err
 	}
@@ -8518,7 +8518,7 @@ func (ec *executionContext) field_Query_user_args(ctx context.Context, rawArgs m
 func (ec *executionContext) field_Query_waitlistLeads_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "leadType", ec.unmarshalOWaitlistLeadType2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐWaitlistLeadType)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "leadType", ec.unmarshalOWaitlistLeadType2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐWaitlistLeadType)
 	if err != nil {
 		return nil, err
 	}
@@ -8859,7 +8859,7 @@ func (ec *executionContext) _Address_coordinates(ctx context.Context, field grap
 			return obj.Coordinates, nil
 		},
 		nil,
-		ec.marshalOCoordinates2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCoordinates,
+		ec.marshalOCoordinates2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCoordinates,
 		true,
 		false,
 	)
@@ -8981,7 +8981,7 @@ func (ec *executionContext) _AuthPayload_user(ctx context.Context, field graphql
 			return obj.User, nil
 		},
 		nil,
-		ec.marshalNUser2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUser,
+		ec.marshalNUser2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUser,
 		true,
 		true,
 	)
@@ -9264,7 +9264,7 @@ func (ec *executionContext) _Booking_client(ctx context.Context, field graphql.C
 			return obj.Client, nil
 		},
 		nil,
-		ec.marshalOUser2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUser,
+		ec.marshalOUser2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUser,
 		true,
 		false,
 	)
@@ -9315,7 +9315,7 @@ func (ec *executionContext) _Booking_company(ctx context.Context, field graphql.
 			return obj.Company, nil
 		},
 		nil,
-		ec.marshalOCompany2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany,
+		ec.marshalOCompany2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany,
 		true,
 		false,
 	)
@@ -9388,7 +9388,7 @@ func (ec *executionContext) _Booking_cleaner(ctx context.Context, field graphql.
 			return obj.Cleaner, nil
 		},
 		nil,
-		ec.marshalOCleanerProfile2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerProfile,
+		ec.marshalOCleanerProfile2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerProfile,
 		true,
 		false,
 	)
@@ -9453,7 +9453,7 @@ func (ec *executionContext) _Booking_address(ctx context.Context, field graphql.
 			return obj.Address, nil
 		},
 		nil,
-		ec.marshalOAddress2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐAddress,
+		ec.marshalOAddress2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐAddress,
 		true,
 		false,
 	)
@@ -9508,7 +9508,7 @@ func (ec *executionContext) _Booking_serviceType(ctx context.Context, field grap
 			return obj.ServiceType, nil
 		},
 		nil,
-		ec.marshalNServiceType2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceType,
+		ec.marshalNServiceType2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceType,
 		true,
 		true,
 	)
@@ -9972,7 +9972,7 @@ func (ec *executionContext) _Booking_extras(ctx context.Context, field graphql.C
 			return obj.Extras, nil
 		},
 		nil,
-		ec.marshalNBookingExtra2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingExtraᚄ,
+		ec.marshalNBookingExtra2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingExtraᚄ,
 		true,
 		true,
 	)
@@ -10009,7 +10009,7 @@ func (ec *executionContext) _Booking_status(ctx context.Context, field graphql.C
 			return obj.Status, nil
 		},
 		nil,
-		ec.marshalNBookingStatus2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingStatus,
+		ec.marshalNBookingStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingStatus,
 		true,
 		true,
 	)
@@ -10270,7 +10270,7 @@ func (ec *executionContext) _Booking_timeSlots(ctx context.Context, field graphq
 			return obj.TimeSlots, nil
 		},
 		nil,
-		ec.marshalNBookingTimeSlot2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingTimeSlotᚄ,
+		ec.marshalNBookingTimeSlot2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingTimeSlotᚄ,
 		true,
 		true,
 	)
@@ -10311,7 +10311,7 @@ func (ec *executionContext) _Booking_review(ctx context.Context, field graphql.C
 			return obj.Review, nil
 		},
 		nil,
-		ec.marshalOReview2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐReview,
+		ec.marshalOReview2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐReview,
 		true,
 		false,
 	)
@@ -10356,7 +10356,7 @@ func (ec *executionContext) _Booking_chatRoom(ctx context.Context, field graphql
 			return obj.ChatRoom, nil
 		},
 		nil,
-		ec.marshalOChatRoom2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐChatRoom,
+		ec.marshalOChatRoom2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatRoom,
 		true,
 		false,
 	)
@@ -10430,7 +10430,7 @@ func (ec *executionContext) _BookingConnection_edges(ctx context.Context, field 
 			return obj.Edges, nil
 		},
 		nil,
-		ec.marshalNBooking2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingᚄ,
+		ec.marshalNBooking2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingᚄ,
 		true,
 		true,
 	)
@@ -10533,7 +10533,7 @@ func (ec *executionContext) _BookingConnection_pageInfo(ctx context.Context, fie
 			return obj.PageInfo, nil
 		},
 		nil,
-		ec.marshalNPageInfo2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPageInfo,
+		ec.marshalNPageInfo2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPageInfo,
 		true,
 		true,
 	)
@@ -10597,7 +10597,7 @@ func (ec *executionContext) _BookingExtra_extra(ctx context.Context, field graph
 			return obj.Extra, nil
 		},
 		nil,
-		ec.marshalNServiceExtra2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceExtra,
+		ec.marshalNServiceExtra2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceExtra,
 		true,
 		true,
 	)
@@ -10849,7 +10849,7 @@ func (ec *executionContext) _BookingsByStatus_status(ctx context.Context, field 
 			return obj.Status, nil
 		},
 		nil,
-		ec.marshalNBookingStatus2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingStatus,
+		ec.marshalNBookingStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingStatus,
 		true,
 		true,
 	)
@@ -10936,7 +10936,7 @@ func (ec *executionContext) _ChatMessage_sender(ctx context.Context, field graph
 			return obj.Sender, nil
 		},
 		nil,
-		ec.marshalNUser2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUser,
+		ec.marshalNUser2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUser,
 		true,
 		true,
 	)
@@ -11103,7 +11103,7 @@ func (ec *executionContext) _ChatMessageConnection_edges(ctx context.Context, fi
 			return obj.Edges, nil
 		},
 		nil,
-		ec.marshalNChatMessage2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐChatMessageᚄ,
+		ec.marshalNChatMessage2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatMessageᚄ,
 		true,
 		true,
 	)
@@ -11146,7 +11146,7 @@ func (ec *executionContext) _ChatMessageConnection_pageInfo(ctx context.Context,
 			return obj.PageInfo, nil
 		},
 		nil,
-		ec.marshalNPageInfo2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPageInfo,
+		ec.marshalNPageInfo2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPageInfo,
 		true,
 		true,
 	)
@@ -11181,7 +11181,7 @@ func (ec *executionContext) _ChatParticipant_user(ctx context.Context, field gra
 			return obj.User, nil
 		},
 		nil,
-		ec.marshalNUser2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUser,
+		ec.marshalNUser2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUser,
 		true,
 		true,
 	)
@@ -11290,7 +11290,7 @@ func (ec *executionContext) _ChatRoom_booking(ctx context.Context, field graphql
 			return obj.Booking, nil
 		},
 		nil,
-		ec.marshalOBooking2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking,
+		ec.marshalOBooking2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking,
 		true,
 		false,
 	)
@@ -11422,7 +11422,7 @@ func (ec *executionContext) _ChatRoom_participants(ctx context.Context, field gr
 			return obj.Participants, nil
 		},
 		nil,
-		ec.marshalNChatParticipant2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐChatParticipantᚄ,
+		ec.marshalNChatParticipant2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatParticipantᚄ,
 		true,
 		true,
 	)
@@ -11457,7 +11457,7 @@ func (ec *executionContext) _ChatRoom_messages(ctx context.Context, field graphq
 			return obj.Messages, nil
 		},
 		nil,
-		ec.marshalNChatMessageConnection2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐChatMessageConnection,
+		ec.marshalNChatMessageConnection2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatMessageConnection,
 		true,
 		true,
 	)
@@ -11503,7 +11503,7 @@ func (ec *executionContext) _ChatRoom_lastMessage(ctx context.Context, field gra
 			return obj.LastMessage, nil
 		},
 		nil,
-		ec.marshalOChatMessage2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐChatMessage,
+		ec.marshalOChatMessage2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatMessage,
 		true,
 		false,
 	)
@@ -12010,7 +12010,7 @@ func (ec *executionContext) _CleanerDocument_status(ctx context.Context, field g
 			return obj.Status, nil
 		},
 		nil,
-		ec.marshalNDocumentStatus2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐDocumentStatus,
+		ec.marshalNDocumentStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐDocumentStatus,
 		true,
 		true,
 	)
@@ -12387,7 +12387,7 @@ func (ec *executionContext) _CleanerProfile_user(ctx context.Context, field grap
 			return obj.User, nil
 		},
 		nil,
-		ec.marshalOUser2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUser,
+		ec.marshalOUser2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUser,
 		true,
 		false,
 	)
@@ -12438,7 +12438,7 @@ func (ec *executionContext) _CleanerProfile_company(ctx context.Context, field g
 			return obj.Company, nil
 		},
 		nil,
-		ec.marshalOCompany2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany,
+		ec.marshalOCompany2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany,
 		true,
 		false,
 	)
@@ -12627,7 +12627,7 @@ func (ec *executionContext) _CleanerProfile_status(ctx context.Context, field gr
 			return obj.Status, nil
 		},
 		nil,
-		ec.marshalNCleanerStatus2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerStatus,
+		ec.marshalNCleanerStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerStatus,
 		true,
 		true,
 	)
@@ -12772,7 +12772,7 @@ func (ec *executionContext) _CleanerProfile_documents(ctx context.Context, field
 			return obj.Documents, nil
 		},
 		nil,
-		ec.marshalNCleanerDocument2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerDocumentᚄ,
+		ec.marshalNCleanerDocument2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerDocumentᚄ,
 		true,
 		true,
 	)
@@ -12819,7 +12819,7 @@ func (ec *executionContext) _CleanerProfile_personalityAssessment(ctx context.Co
 			return obj.PersonalityAssessment, nil
 		},
 		nil,
-		ec.marshalOPersonalityAssessment2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityAssessment,
+		ec.marshalOPersonalityAssessment2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityAssessment,
 		true,
 		false,
 	)
@@ -12868,7 +12868,7 @@ func (ec *executionContext) _CleanerProfile_availability(ctx context.Context, fi
 			return obj.Availability, nil
 		},
 		nil,
-		ec.marshalNAvailabilitySlot2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐAvailabilitySlotᚄ,
+		ec.marshalNAvailabilitySlot2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐAvailabilitySlotᚄ,
 		true,
 		true,
 	)
@@ -13083,7 +13083,7 @@ func (ec *executionContext) _CleanerSuggestion_cleaner(ctx context.Context, fiel
 			return obj.Cleaner, nil
 		},
 		nil,
-		ec.marshalNCleanerProfile2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerProfile,
+		ec.marshalNCleanerProfile2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerProfile,
 		true,
 		true,
 	)
@@ -13148,7 +13148,7 @@ func (ec *executionContext) _CleanerSuggestion_company(ctx context.Context, fiel
 			return obj.Company, nil
 		},
 		nil,
-		ec.marshalNCompany2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany,
+		ec.marshalNCompany2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany,
 		true,
 		true,
 	)
@@ -13888,7 +13888,7 @@ func (ec *executionContext) _Company_companyType(ctx context.Context, field grap
 			return obj.CompanyType, nil
 		},
 		nil,
-		ec.marshalNCompanyType2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyType,
+		ec.marshalNCompanyType2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyType,
 		true,
 		true,
 	)
@@ -14149,7 +14149,7 @@ func (ec *executionContext) _Company_status(ctx context.Context, field graphql.C
 			return obj.Status, nil
 		},
 		nil,
-		ec.marshalNCompanyStatus2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyStatus,
+		ec.marshalNCompanyStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyStatus,
 		true,
 		true,
 	)
@@ -14294,7 +14294,7 @@ func (ec *executionContext) _Company_documents(ctx context.Context, field graphq
 			return obj.Documents, nil
 		},
 		nil,
-		ec.marshalNCompanyDocument2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyDocumentᚄ,
+		ec.marshalNCompanyDocument2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyDocumentᚄ,
 		true,
 		true,
 	)
@@ -14341,7 +14341,7 @@ func (ec *executionContext) _Company_cleaners(ctx context.Context, field graphql
 			return obj.Cleaners, nil
 		},
 		nil,
-		ec.marshalNCleanerProfile2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerProfileᚄ,
+		ec.marshalNCleanerProfile2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerProfileᚄ,
 		true,
 		true,
 	)
@@ -14406,7 +14406,7 @@ func (ec *executionContext) _Company_admin(ctx context.Context, field graphql.Co
 			return obj.Admin, nil
 		},
 		nil,
-		ec.marshalOUser2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUser,
+		ec.marshalOUser2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUser,
 		true,
 		false,
 	)
@@ -14486,7 +14486,7 @@ func (ec *executionContext) _CompanyApplicationResult_company(ctx context.Contex
 			return obj.Company, nil
 		},
 		nil,
-		ec.marshalNCompany2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany,
+		ec.marshalNCompany2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany,
 		true,
 		true,
 	)
@@ -14588,7 +14588,7 @@ func (ec *executionContext) _CompanyConnection_edges(ctx context.Context, field 
 			return obj.Edges, nil
 		},
 		nil,
-		ec.marshalNCompany2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyᚄ,
+		ec.marshalNCompany2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyᚄ,
 		true,
 		true,
 	)
@@ -14661,7 +14661,7 @@ func (ec *executionContext) _CompanyConnection_pageInfo(ctx context.Context, fie
 			return obj.PageInfo, nil
 		},
 		nil,
-		ec.marshalNPageInfo2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPageInfo,
+		ec.marshalNPageInfo2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPageInfo,
 		true,
 		true,
 	)
@@ -14841,7 +14841,7 @@ func (ec *executionContext) _CompanyDocument_status(ctx context.Context, field g
 			return obj.Status, nil
 		},
 		nil,
-		ec.marshalNDocumentStatus2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐDocumentStatus,
+		ec.marshalNDocumentStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐDocumentStatus,
 		true,
 		true,
 	)
@@ -15247,7 +15247,7 @@ func (ec *executionContext) _CompanyPayout_company(ctx context.Context, field gr
 			return obj.Company, nil
 		},
 		nil,
-		ec.marshalOCompany2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany,
+		ec.marshalOCompany2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany,
 		true,
 		false,
 	)
@@ -15465,7 +15465,7 @@ func (ec *executionContext) _CompanyPayout_status(ctx context.Context, field gra
 			return obj.Status, nil
 		},
 		nil,
-		ec.marshalNPayoutStatus2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPayoutStatus,
+		ec.marshalNPayoutStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPayoutStatus,
 		true,
 		true,
 	)
@@ -15523,7 +15523,7 @@ func (ec *executionContext) _CompanyPayout_lineItems(ctx context.Context, field 
 			return obj.LineItems, nil
 		},
 		nil,
-		ec.marshalNPayoutLineItem2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPayoutLineItemᚄ,
+		ec.marshalNPayoutLineItem2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPayoutLineItemᚄ,
 		true,
 		true,
 	)
@@ -15593,7 +15593,7 @@ func (ec *executionContext) _CompanyPerformance_company(ctx context.Context, fie
 			return obj.Company, nil
 		},
 		nil,
-		ec.marshalNCompany2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany,
+		ec.marshalNCompany2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany,
 		true,
 		true,
 	)
@@ -16246,7 +16246,7 @@ func (ec *executionContext) _EnabledCity_areas(ctx context.Context, field graphq
 			return obj.Areas, nil
 		},
 		nil,
-		ec.marshalNCityArea2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCityAreaᚄ,
+		ec.marshalNCityArea2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCityAreaᚄ,
 		true,
 		true,
 	)
@@ -16285,7 +16285,7 @@ func (ec *executionContext) _ExtraLineItem_extra(ctx context.Context, field grap
 			return obj.Extra, nil
 		},
 		nil,
-		ec.marshalNServiceExtra2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceExtra,
+		ec.marshalNServiceExtra2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceExtra,
 		true,
 		true,
 	)
@@ -16421,7 +16421,7 @@ func (ec *executionContext) _Invoice_invoiceType(ctx context.Context, field grap
 			return obj.InvoiceType, nil
 		},
 		nil,
-		ec.marshalNInvoiceType2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceType,
+		ec.marshalNInvoiceType2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceType,
 		true,
 		true,
 	)
@@ -16479,7 +16479,7 @@ func (ec *executionContext) _Invoice_status(ctx context.Context, field graphql.C
 			return obj.Status, nil
 		},
 		nil,
-		ec.marshalNInvoiceStatus2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceStatus,
+		ec.marshalNInvoiceStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceStatus,
 		true,
 		true,
 	)
@@ -16769,7 +16769,7 @@ func (ec *executionContext) _Invoice_booking(ctx context.Context, field graphql.
 			return obj.Booking, nil
 		},
 		nil,
-		ec.marshalOBooking2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking,
+		ec.marshalOBooking2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking,
 		true,
 		false,
 	)
@@ -16872,7 +16872,7 @@ func (ec *executionContext) _Invoice_company(ctx context.Context, field graphql.
 			return obj.Company, nil
 		},
 		nil,
-		ec.marshalOCompany2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany,
+		ec.marshalOCompany2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany,
 		true,
 		false,
 	)
@@ -17090,7 +17090,7 @@ func (ec *executionContext) _Invoice_lineItems(ctx context.Context, field graphq
 			return obj.LineItems, nil
 		},
 		nil,
-		ec.marshalNInvoiceLineItem2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceLineItemᚄ,
+		ec.marshalNInvoiceLineItem2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceLineItemᚄ,
 		true,
 		true,
 	)
@@ -17255,7 +17255,7 @@ func (ec *executionContext) _InvoiceAnalytics_byStatus(ctx context.Context, fiel
 			return obj.ByStatus, nil
 		},
 		nil,
-		ec.marshalNInvoiceStatusCount2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceStatusCountᚄ,
+		ec.marshalNInvoiceStatusCount2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceStatusCountᚄ,
 		true,
 		true,
 	)
@@ -17292,7 +17292,7 @@ func (ec *executionContext) _InvoiceAnalytics_byType(ctx context.Context, field 
 			return obj.ByType, nil
 		},
 		nil,
-		ec.marshalNInvoiceTypeCount2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceTypeCountᚄ,
+		ec.marshalNInvoiceTypeCount2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceTypeCountᚄ,
 		true,
 		true,
 	)
@@ -17329,7 +17329,7 @@ func (ec *executionContext) _InvoiceConnection_edges(ctx context.Context, field 
 			return obj.Edges, nil
 		},
 		nil,
-		ec.marshalNInvoice2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceᚄ,
+		ec.marshalNInvoice2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceᚄ,
 		true,
 		true,
 	)
@@ -17404,7 +17404,7 @@ func (ec *executionContext) _InvoiceConnection_pageInfo(ctx context.Context, fie
 			return obj.PageInfo, nil
 		},
 		nil,
-		ec.marshalNPageInfo2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPageInfo,
+		ec.marshalNPageInfo2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPageInfo,
 		true,
 		true,
 	)
@@ -17729,7 +17729,7 @@ func (ec *executionContext) _InvoiceStatusCount_status(ctx context.Context, fiel
 			return obj.Status, nil
 		},
 		nil,
-		ec.marshalNInvoiceStatus2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceStatus,
+		ec.marshalNInvoiceStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceStatus,
 		true,
 		true,
 	)
@@ -17816,7 +17816,7 @@ func (ec *executionContext) _InvoiceTypeCount_type(ctx context.Context, field gr
 			return obj.Type, nil
 		},
 		nil,
-		ec.marshalNInvoiceType2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceType,
+		ec.marshalNInvoiceType2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceType,
 		true,
 		true,
 	)
@@ -17904,7 +17904,7 @@ func (ec *executionContext) _Mutation_adminCancelBooking(ctx context.Context, fi
 			return ec.resolvers.Mutation().AdminCancelBooking(ctx, fc.Args["id"].(string), fc.Args["reason"].(string))
 		},
 		nil,
-		ec.marshalNBooking2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking,
+		ec.marshalNBooking2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking,
 		true,
 		true,
 	)
@@ -18019,7 +18019,7 @@ func (ec *executionContext) _Mutation_suspendUser(ctx context.Context, field gra
 			return ec.resolvers.Mutation().SuspendUser(ctx, fc.Args["id"].(string), fc.Args["reason"].(string))
 		},
 		nil,
-		ec.marshalNUser2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUser,
+		ec.marshalNUser2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUser,
 		true,
 		true,
 	)
@@ -18082,7 +18082,7 @@ func (ec *executionContext) _Mutation_reactivateUser(ctx context.Context, field 
 			return ec.resolvers.Mutation().ReactivateUser(ctx, fc.Args["id"].(string))
 		},
 		nil,
-		ec.marshalNUser2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUser,
+		ec.marshalNUser2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUser,
 		true,
 		true,
 	)
@@ -18145,7 +18145,7 @@ func (ec *executionContext) _Mutation_uploadFile(ctx context.Context, field grap
 			return ec.resolvers.Mutation().UploadFile(ctx, fc.Args["file"].(graphql.Upload), fc.Args["purpose"].(string))
 		},
 		nil,
-		ec.marshalNUploadResult2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUploadResult,
+		ec.marshalNUploadResult2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUploadResult,
 		true,
 		true,
 	)
@@ -18192,7 +18192,7 @@ func (ec *executionContext) _Mutation_adminUpdateCompanyProfile(ctx context.Cont
 			return ec.resolvers.Mutation().AdminUpdateCompanyProfile(ctx, fc.Args["input"].(model.AdminUpdateCompanyInput))
 		},
 		nil,
-		ec.marshalNCompany2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany,
+		ec.marshalNCompany2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany,
 		true,
 		true,
 	)
@@ -18277,7 +18277,7 @@ func (ec *executionContext) _Mutation_adminUpdateCompanyStatus(ctx context.Conte
 			return ec.resolvers.Mutation().AdminUpdateCompanyStatus(ctx, fc.Args["id"].(string), fc.Args["status"].(model.CompanyStatus))
 		},
 		nil,
-		ec.marshalNCompany2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany,
+		ec.marshalNCompany2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany,
 		true,
 		true,
 	)
@@ -18403,7 +18403,7 @@ func (ec *executionContext) _Mutation_signInWithGoogle(ctx context.Context, fiel
 			return ec.resolvers.Mutation().SignInWithGoogle(ctx, fc.Args["idToken"].(string), fc.Args["role"].(model.UserRole))
 		},
 		nil,
-		ec.marshalNAuthPayload2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐAuthPayload,
+		ec.marshalNAuthPayload2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐAuthPayload,
 		true,
 		true,
 	)
@@ -18451,7 +18451,7 @@ func (ec *executionContext) _Mutation_refreshToken(ctx context.Context, field gr
 			return ec.resolvers.Mutation().RefreshToken(ctx)
 		},
 		nil,
-		ec.marshalNAuthPayload2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐAuthPayload,
+		ec.marshalNAuthPayload2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐAuthPayload,
 		true,
 		true,
 	)
@@ -18559,7 +18559,7 @@ func (ec *executionContext) _Mutation_requestEmailOtp(ctx context.Context, field
 			return ec.resolvers.Mutation().RequestEmailOtp(ctx, fc.Args["email"].(string), fc.Args["role"].(model.UserRole))
 		},
 		nil,
-		ec.marshalNRequestOtpResponse2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐRequestOtpResponse,
+		ec.marshalNRequestOtpResponse2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐRequestOtpResponse,
 		true,
 		true,
 	)
@@ -18606,7 +18606,7 @@ func (ec *executionContext) _Mutation_verifyEmailOtp(ctx context.Context, field 
 			return ec.resolvers.Mutation().VerifyEmailOtp(ctx, fc.Args["email"].(string), fc.Args["code"].(string), fc.Args["role"].(model.UserRole))
 		},
 		nil,
-		ec.marshalNAuthPayload2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐAuthPayload,
+		ec.marshalNAuthPayload2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐAuthPayload,
 		true,
 		true,
 	)
@@ -18655,7 +18655,7 @@ func (ec *executionContext) _Mutation_createBookingRequest(ctx context.Context, 
 			return ec.resolvers.Mutation().CreateBookingRequest(ctx, fc.Args["input"].(model.CreateBookingInput))
 		},
 		nil,
-		ec.marshalNBooking2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking,
+		ec.marshalNBooking2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking,
 		true,
 		true,
 	)
@@ -18770,7 +18770,7 @@ func (ec *executionContext) _Mutation_cancelBooking(ctx context.Context, field g
 			return ec.resolvers.Mutation().CancelBooking(ctx, fc.Args["id"].(string), fc.Args["reason"].(*string))
 		},
 		nil,
-		ec.marshalNBooking2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking,
+		ec.marshalNBooking2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking,
 		true,
 		true,
 	)
@@ -18885,7 +18885,7 @@ func (ec *executionContext) _Mutation_assignCleanerToBooking(ctx context.Context
 			return ec.resolvers.Mutation().AssignCleanerToBooking(ctx, fc.Args["bookingId"].(string), fc.Args["cleanerId"].(string))
 		},
 		nil,
-		ec.marshalNBooking2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking,
+		ec.marshalNBooking2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking,
 		true,
 		true,
 	)
@@ -19000,7 +19000,7 @@ func (ec *executionContext) _Mutation_confirmBooking(ctx context.Context, field 
 			return ec.resolvers.Mutation().ConfirmBooking(ctx, fc.Args["id"].(string))
 		},
 		nil,
-		ec.marshalNBooking2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking,
+		ec.marshalNBooking2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking,
 		true,
 		true,
 	)
@@ -19115,7 +19115,7 @@ func (ec *executionContext) _Mutation_startJob(ctx context.Context, field graphq
 			return ec.resolvers.Mutation().StartJob(ctx, fc.Args["id"].(string))
 		},
 		nil,
-		ec.marshalNBooking2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking,
+		ec.marshalNBooking2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking,
 		true,
 		true,
 	)
@@ -19230,7 +19230,7 @@ func (ec *executionContext) _Mutation_completeJob(ctx context.Context, field gra
 			return ec.resolvers.Mutation().CompleteJob(ctx, fc.Args["id"].(string))
 		},
 		nil,
-		ec.marshalNBooking2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking,
+		ec.marshalNBooking2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking,
 		true,
 		true,
 	)
@@ -19345,7 +19345,7 @@ func (ec *executionContext) _Mutation_selectBookingTimeSlot(ctx context.Context,
 			return ec.resolvers.Mutation().SelectBookingTimeSlot(ctx, fc.Args["bookingId"].(string), fc.Args["timeSlotId"].(string))
 		},
 		nil,
-		ec.marshalNBooking2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking,
+		ec.marshalNBooking2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking,
 		true,
 		true,
 	)
@@ -19460,7 +19460,7 @@ func (ec *executionContext) _Mutation_sendMessage(ctx context.Context, field gra
 			return ec.resolvers.Mutation().SendMessage(ctx, fc.Args["roomId"].(string), fc.Args["content"].(string), fc.Args["messageType"].(*string))
 		},
 		nil,
-		ec.marshalNChatMessage2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐChatMessage,
+		ec.marshalNChatMessage2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatMessage,
 		true,
 		true,
 	)
@@ -19556,7 +19556,7 @@ func (ec *executionContext) _Mutation_createAdminChatRoom(ctx context.Context, f
 			return ec.resolvers.Mutation().CreateAdminChatRoom(ctx, fc.Args["userIds"].([]string))
 		},
 		nil,
-		ec.marshalNChatRoom2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐChatRoom,
+		ec.marshalNChatRoom2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatRoom,
 		true,
 		true,
 	)
@@ -19613,7 +19613,7 @@ func (ec *executionContext) _Mutation_openBookingChat(ctx context.Context, field
 			return ec.resolvers.Mutation().OpenBookingChat(ctx, fc.Args["bookingId"].(string))
 		},
 		nil,
-		ec.marshalNChatRoom2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐChatRoom,
+		ec.marshalNChatRoom2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatRoom,
 		true,
 		true,
 	)
@@ -19670,7 +19670,7 @@ func (ec *executionContext) _Mutation_inviteCleaner(ctx context.Context, field g
 			return ec.resolvers.Mutation().InviteCleaner(ctx, fc.Args["input"].(model.InviteCleanerInput))
 		},
 		nil,
-		ec.marshalNCleanerProfile2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerProfile,
+		ec.marshalNCleanerProfile2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerProfile,
 		true,
 		true,
 	)
@@ -19746,7 +19746,7 @@ func (ec *executionContext) _Mutation_inviteSelfAsCleaner(ctx context.Context, f
 			return ec.resolvers.Mutation().InviteSelfAsCleaner(ctx)
 		},
 		nil,
-		ec.marshalNCleanerProfile2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerProfile,
+		ec.marshalNCleanerProfile2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerProfile,
 		true,
 		true,
 	)
@@ -19812,7 +19812,7 @@ func (ec *executionContext) _Mutation_updateCleanerStatus(ctx context.Context, f
 			return ec.resolvers.Mutation().UpdateCleanerStatus(ctx, fc.Args["id"].(string), fc.Args["status"].(model.CleanerStatus))
 		},
 		nil,
-		ec.marshalNCleanerProfile2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerProfile,
+		ec.marshalNCleanerProfile2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerProfile,
 		true,
 		true,
 	)
@@ -19889,7 +19889,7 @@ func (ec *executionContext) _Mutation_acceptInvitation(ctx context.Context, fiel
 			return ec.resolvers.Mutation().AcceptInvitation(ctx, fc.Args["token"].(string))
 		},
 		nil,
-		ec.marshalNCleanerProfile2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerProfile,
+		ec.marshalNCleanerProfile2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerProfile,
 		true,
 		true,
 	)
@@ -19966,7 +19966,7 @@ func (ec *executionContext) _Mutation_updateAvailability(ctx context.Context, fi
 			return ec.resolvers.Mutation().UpdateAvailability(ctx, fc.Args["slots"].([]*model.AvailabilitySlotInput))
 		},
 		nil,
-		ec.marshalNAvailabilitySlot2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐAvailabilitySlotᚄ,
+		ec.marshalNAvailabilitySlot2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐAvailabilitySlotᚄ,
 		true,
 		true,
 	)
@@ -20019,7 +20019,7 @@ func (ec *executionContext) _Mutation_updateCleanerAvailability(ctx context.Cont
 			return ec.resolvers.Mutation().UpdateCleanerAvailability(ctx, fc.Args["cleanerId"].(string), fc.Args["slots"].([]*model.AvailabilitySlotInput))
 		},
 		nil,
-		ec.marshalNAvailabilitySlot2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐAvailabilitySlotᚄ,
+		ec.marshalNAvailabilitySlot2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐAvailabilitySlotᚄ,
 		true,
 		true,
 	)
@@ -20072,7 +20072,7 @@ func (ec *executionContext) _Mutation_updateCleanerProfile(ctx context.Context, 
 			return ec.resolvers.Mutation().UpdateCleanerProfile(ctx, fc.Args["input"].(model.UpdateCleanerProfileInput))
 		},
 		nil,
-		ec.marshalNCleanerProfile2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerProfile,
+		ec.marshalNCleanerProfile2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerProfile,
 		true,
 		true,
 	)
@@ -20149,7 +20149,7 @@ func (ec *executionContext) _Mutation_uploadCleanerAvatar(ctx context.Context, f
 			return ec.resolvers.Mutation().UploadCleanerAvatar(ctx, fc.Args["cleanerId"].(string), fc.Args["file"].(graphql.Upload))
 		},
 		nil,
-		ec.marshalNCleanerProfile2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerProfile,
+		ec.marshalNCleanerProfile2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerProfile,
 		true,
 		true,
 	)
@@ -20226,7 +20226,7 @@ func (ec *executionContext) _Mutation_setCleanerDateOverride(ctx context.Context
 			return ec.resolvers.Mutation().SetCleanerDateOverride(ctx, fc.Args["date"].(string), fc.Args["isAvailable"].(bool), fc.Args["startTime"].(string), fc.Args["endTime"].(string))
 		},
 		nil,
-		ec.marshalNCleanerDateOverride2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerDateOverride,
+		ec.marshalNCleanerDateOverride2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerDateOverride,
 		true,
 		true,
 	)
@@ -20279,7 +20279,7 @@ func (ec *executionContext) _Mutation_setCleanerDateOverrideByAdmin(ctx context.
 			return ec.resolvers.Mutation().SetCleanerDateOverrideByAdmin(ctx, fc.Args["cleanerId"].(string), fc.Args["date"].(string), fc.Args["isAvailable"].(bool), fc.Args["startTime"].(string), fc.Args["endTime"].(string))
 		},
 		nil,
-		ec.marshalNCleanerDateOverride2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerDateOverride,
+		ec.marshalNCleanerDateOverride2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerDateOverride,
 		true,
 		true,
 	)
@@ -20332,7 +20332,7 @@ func (ec *executionContext) _Mutation_uploadCleanerDocument(ctx context.Context,
 			return ec.resolvers.Mutation().UploadCleanerDocument(ctx, fc.Args["cleanerId"].(string), fc.Args["documentType"].(string), fc.Args["file"].(graphql.Upload))
 		},
 		nil,
-		ec.marshalNCleanerDocument2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerDocument,
+		ec.marshalNCleanerDocument2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerDocument,
 		true,
 		true,
 	)
@@ -20432,7 +20432,7 @@ func (ec *executionContext) _Mutation_reviewCleanerDocument(ctx context.Context,
 			return ec.resolvers.Mutation().ReviewCleanerDocument(ctx, fc.Args["id"].(string), fc.Args["approved"].(bool), fc.Args["rejectionReason"].(*string))
 		},
 		nil,
-		ec.marshalNCleanerDocument2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerDocument,
+		ec.marshalNCleanerDocument2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerDocument,
 		true,
 		true,
 	)
@@ -20491,7 +20491,7 @@ func (ec *executionContext) _Mutation_activateCleaner(ctx context.Context, field
 			return ec.resolvers.Mutation().ActivateCleaner(ctx, fc.Args["id"].(string))
 		},
 		nil,
-		ec.marshalNCleanerProfile2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerProfile,
+		ec.marshalNCleanerProfile2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerProfile,
 		true,
 		true,
 	)
@@ -20568,7 +20568,7 @@ func (ec *executionContext) _Mutation_addAddress(ctx context.Context, field grap
 			return ec.resolvers.Mutation().AddAddress(ctx, fc.Args["input"].(model.AddAddressInput))
 		},
 		nil,
-		ec.marshalNAddress2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐAddress,
+		ec.marshalNAddress2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐAddress,
 		true,
 		true,
 	)
@@ -20635,7 +20635,7 @@ func (ec *executionContext) _Mutation_updateAddress(ctx context.Context, field g
 			return ec.resolvers.Mutation().UpdateAddress(ctx, fc.Args["id"].(string), fc.Args["input"].(model.UpdateAddressInput))
 		},
 		nil,
-		ec.marshalNAddress2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐAddress,
+		ec.marshalNAddress2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐAddress,
 		true,
 		true,
 	)
@@ -20743,7 +20743,7 @@ func (ec *executionContext) _Mutation_setDefaultAddress(ctx context.Context, fie
 			return ec.resolvers.Mutation().SetDefaultAddress(ctx, fc.Args["id"].(string))
 		},
 		nil,
-		ec.marshalNAddress2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐAddress,
+		ec.marshalNAddress2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐAddress,
 		true,
 		true,
 	)
@@ -20851,7 +20851,7 @@ func (ec *executionContext) _Mutation_setDefaultPaymentMethod(ctx context.Contex
 			return ec.resolvers.Mutation().SetDefaultPaymentMethod(ctx, fc.Args["id"].(string))
 		},
 		nil,
-		ec.marshalNPaymentMethod2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentMethod,
+		ec.marshalNPaymentMethod2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentMethod,
 		true,
 		true,
 	)
@@ -20908,7 +20908,7 @@ func (ec *executionContext) _Mutation_applyAsCompany(ctx context.Context, field 
 			return ec.resolvers.Mutation().ApplyAsCompany(ctx, fc.Args["input"].(model.CompanyApplicationInput))
 		},
 		nil,
-		ec.marshalNCompanyApplicationResult2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyApplicationResult,
+		ec.marshalNCompanyApplicationResult2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyApplicationResult,
 		true,
 		true,
 	)
@@ -20955,7 +20955,7 @@ func (ec *executionContext) _Mutation_claimCompany(ctx context.Context, field gr
 			return ec.resolvers.Mutation().ClaimCompany(ctx, fc.Args["claimToken"].(string))
 		},
 		nil,
-		ec.marshalNCompany2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany,
+		ec.marshalNCompany2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany,
 		true,
 		true,
 	)
@@ -21040,7 +21040,7 @@ func (ec *executionContext) _Mutation_updateCompanyProfile(ctx context.Context, 
 			return ec.resolvers.Mutation().UpdateCompanyProfile(ctx, fc.Args["input"].(model.UpdateCompanyInput))
 		},
 		nil,
-		ec.marshalNCompany2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany,
+		ec.marshalNCompany2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany,
 		true,
 		true,
 	)
@@ -21125,7 +21125,7 @@ func (ec *executionContext) _Mutation_uploadCompanyLogo(ctx context.Context, fie
 			return ec.resolvers.Mutation().UploadCompanyLogo(ctx, fc.Args["file"].(graphql.Upload))
 		},
 		nil,
-		ec.marshalNCompany2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany,
+		ec.marshalNCompany2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany,
 		true,
 		true,
 	)
@@ -21210,7 +21210,7 @@ func (ec *executionContext) _Mutation_uploadCompanyDocument(ctx context.Context,
 			return ec.resolvers.Mutation().UploadCompanyDocument(ctx, fc.Args["companyId"].(string), fc.Args["documentType"].(string), fc.Args["file"].(graphql.Upload))
 		},
 		nil,
-		ec.marshalNCompanyDocument2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyDocument,
+		ec.marshalNCompanyDocument2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyDocument,
 		true,
 		true,
 	)
@@ -21310,7 +21310,7 @@ func (ec *executionContext) _Mutation_approveCompany(ctx context.Context, field 
 			return ec.resolvers.Mutation().ApproveCompany(ctx, fc.Args["id"].(string))
 		},
 		nil,
-		ec.marshalNCompany2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany,
+		ec.marshalNCompany2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany,
 		true,
 		true,
 	)
@@ -21395,7 +21395,7 @@ func (ec *executionContext) _Mutation_rejectCompany(ctx context.Context, field g
 			return ec.resolvers.Mutation().RejectCompany(ctx, fc.Args["id"].(string), fc.Args["reason"].(string))
 		},
 		nil,
-		ec.marshalNCompany2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany,
+		ec.marshalNCompany2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany,
 		true,
 		true,
 	)
@@ -21480,7 +21480,7 @@ func (ec *executionContext) _Mutation_suspendCompany(ctx context.Context, field 
 			return ec.resolvers.Mutation().SuspendCompany(ctx, fc.Args["id"].(string), fc.Args["reason"].(string))
 		},
 		nil,
-		ec.marshalNCompany2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany,
+		ec.marshalNCompany2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany,
 		true,
 		true,
 	)
@@ -21565,7 +21565,7 @@ func (ec *executionContext) _Mutation_reviewCompanyDocument(ctx context.Context,
 			return ec.resolvers.Mutation().ReviewCompanyDocument(ctx, fc.Args["id"].(string), fc.Args["approved"].(bool), fc.Args["rejectionReason"].(*string))
 		},
 		nil,
-		ec.marshalNCompanyDocument2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyDocument,
+		ec.marshalNCompanyDocument2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyDocument,
 		true,
 		true,
 	)
@@ -21624,7 +21624,7 @@ func (ec *executionContext) _Mutation_upsertBillingProfile(ctx context.Context, 
 			return ec.resolvers.Mutation().UpsertBillingProfile(ctx, fc.Args["input"].(model.BillingProfileInput))
 		},
 		nil,
-		ec.marshalNClientBillingProfile2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐClientBillingProfile,
+		ec.marshalNClientBillingProfile2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐClientBillingProfile,
 		true,
 		true,
 	)
@@ -21691,7 +21691,7 @@ func (ec *executionContext) _Mutation_generateBookingInvoice(ctx context.Context
 			return ec.resolvers.Mutation().GenerateBookingInvoice(ctx, fc.Args["bookingId"].(string))
 		},
 		nil,
-		ec.marshalNInvoice2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoice,
+		ec.marshalNInvoice2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoice,
 		true,
 		true,
 	)
@@ -21778,7 +21778,7 @@ func (ec *executionContext) _Mutation_cancelInvoice(ctx context.Context, field g
 			return ec.resolvers.Mutation().CancelInvoice(ctx, fc.Args["id"].(string))
 		},
 		nil,
-		ec.marshalNInvoice2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoice,
+		ec.marshalNInvoice2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoice,
 		true,
 		true,
 	)
@@ -21865,7 +21865,7 @@ func (ec *executionContext) _Mutation_transmitInvoiceToEFactura(ctx context.Cont
 			return ec.resolvers.Mutation().TransmitInvoiceToEFactura(ctx, fc.Args["id"].(string))
 		},
 		nil,
-		ec.marshalNInvoice2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoice,
+		ec.marshalNInvoice2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoice,
 		true,
 		true,
 	)
@@ -21952,7 +21952,7 @@ func (ec *executionContext) _Mutation_generateCommissionInvoice(ctx context.Cont
 			return ec.resolvers.Mutation().GenerateCommissionInvoice(ctx, fc.Args["payoutId"].(string))
 		},
 		nil,
-		ec.marshalNInvoice2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoice,
+		ec.marshalNInvoice2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoice,
 		true,
 		true,
 	)
@@ -22039,7 +22039,7 @@ func (ec *executionContext) _Mutation_generateCreditNote(ctx context.Context, fi
 			return ec.resolvers.Mutation().GenerateCreditNote(ctx, fc.Args["invoiceId"].(string), fc.Args["amount"].(int), fc.Args["reason"].(string))
 		},
 		nil,
-		ec.marshalNInvoice2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoice,
+		ec.marshalNInvoice2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoice,
 		true,
 		true,
 	)
@@ -22126,7 +22126,7 @@ func (ec *executionContext) _Mutation_createCity(ctx context.Context, field grap
 			return ec.resolvers.Mutation().CreateCity(ctx, fc.Args["name"].(string), fc.Args["county"].(string))
 		},
 		nil,
-		ec.marshalNEnabledCity2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐEnabledCity,
+		ec.marshalNEnabledCity2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐEnabledCity,
 		true,
 		true,
 	)
@@ -22179,7 +22179,7 @@ func (ec *executionContext) _Mutation_toggleCityActive(ctx context.Context, fiel
 			return ec.resolvers.Mutation().ToggleCityActive(ctx, fc.Args["id"].(string), fc.Args["isActive"].(bool))
 		},
 		nil,
-		ec.marshalNEnabledCity2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐEnabledCity,
+		ec.marshalNEnabledCity2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐEnabledCity,
 		true,
 		true,
 	)
@@ -22232,7 +22232,7 @@ func (ec *executionContext) _Mutation_createCityArea(ctx context.Context, field 
 			return ec.resolvers.Mutation().CreateCityArea(ctx, fc.Args["cityId"].(string), fc.Args["name"].(string))
 		},
 		nil,
-		ec.marshalNCityArea2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCityArea,
+		ec.marshalNCityArea2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCityArea,
 		true,
 		true,
 	)
@@ -22324,7 +22324,7 @@ func (ec *executionContext) _Mutation_updateCompanyServiceAreas(ctx context.Cont
 			return ec.resolvers.Mutation().UpdateCompanyServiceAreas(ctx, fc.Args["areaIds"].([]string))
 		},
 		nil,
-		ec.marshalNCityArea2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCityAreaᚄ,
+		ec.marshalNCityArea2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCityAreaᚄ,
 		true,
 		true,
 	)
@@ -22375,7 +22375,7 @@ func (ec *executionContext) _Mutation_updateCleanerServiceAreas(ctx context.Cont
 			return ec.resolvers.Mutation().UpdateCleanerServiceAreas(ctx, fc.Args["cleanerId"].(string), fc.Args["areaIds"].([]string))
 		},
 		nil,
-		ec.marshalNCityArea2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCityAreaᚄ,
+		ec.marshalNCityArea2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCityAreaᚄ,
 		true,
 		true,
 	)
@@ -22426,7 +22426,7 @@ func (ec *executionContext) _Mutation_markNotificationRead(ctx context.Context, 
 			return ec.resolvers.Mutation().MarkNotificationRead(ctx, fc.Args["id"].(string))
 		},
 		nil,
-		ec.marshalNNotification2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐNotification,
+		ec.marshalNNotification2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐNotification,
 		true,
 		true,
 	)
@@ -22511,7 +22511,7 @@ func (ec *executionContext) _Mutation_createSetupIntent(ctx context.Context, fie
 			return ec.resolvers.Mutation().CreateSetupIntent(ctx)
 		},
 		nil,
-		ec.marshalNSetupIntentResult2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐSetupIntentResult,
+		ec.marshalNSetupIntentResult2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐSetupIntentResult,
 		true,
 		true,
 	)
@@ -22545,7 +22545,7 @@ func (ec *executionContext) _Mutation_attachPaymentMethod(ctx context.Context, f
 			return ec.resolvers.Mutation().AttachPaymentMethod(ctx, fc.Args["stripePaymentMethodId"].(string))
 		},
 		nil,
-		ec.marshalNPaymentMethod2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentMethod,
+		ec.marshalNPaymentMethod2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentMethod,
 		true,
 		true,
 	)
@@ -22602,7 +22602,7 @@ func (ec *executionContext) _Mutation_createBookingPaymentIntent(ctx context.Con
 			return ec.resolvers.Mutation().CreateBookingPaymentIntent(ctx, fc.Args["bookingId"].(string))
 		},
 		nil,
-		ec.marshalNPaymentIntentResult2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentIntentResult,
+		ec.marshalNPaymentIntentResult2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentIntentResult,
 		true,
 		true,
 	)
@@ -22653,7 +22653,7 @@ func (ec *executionContext) _Mutation_requestRefund(ctx context.Context, field g
 			return ec.resolvers.Mutation().RequestRefund(ctx, fc.Args["bookingId"].(string), fc.Args["reason"].(string))
 		},
 		nil,
-		ec.marshalNRefundRequest2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐRefundRequest,
+		ec.marshalNRefundRequest2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐRefundRequest,
 		true,
 		true,
 	)
@@ -22713,7 +22713,7 @@ func (ec *executionContext) _Mutation_initiateConnectOnboarding(ctx context.Cont
 			return ec.resolvers.Mutation().InitiateConnectOnboarding(ctx)
 		},
 		nil,
-		ec.marshalNConnectOnboardingLink2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐConnectOnboardingLink,
+		ec.marshalNConnectOnboardingLink2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐConnectOnboardingLink,
 		true,
 		true,
 	)
@@ -22746,7 +22746,7 @@ func (ec *executionContext) _Mutation_refreshConnectOnboarding(ctx context.Conte
 			return ec.resolvers.Mutation().RefreshConnectOnboarding(ctx)
 		},
 		nil,
-		ec.marshalNConnectOnboardingLink2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐConnectOnboardingLink,
+		ec.marshalNConnectOnboardingLink2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐConnectOnboardingLink,
 		true,
 		true,
 	)
@@ -22780,7 +22780,7 @@ func (ec *executionContext) _Mutation_createMonthlyPayout(ctx context.Context, f
 			return ec.resolvers.Mutation().CreateMonthlyPayout(ctx, fc.Args["companyId"].(string), fc.Args["periodFrom"].(string), fc.Args["periodTo"].(string))
 		},
 		nil,
-		ec.marshalNCompanyPayout2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyPayout,
+		ec.marshalNCompanyPayout2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyPayout,
 		true,
 		true,
 	)
@@ -22845,7 +22845,7 @@ func (ec *executionContext) _Mutation_processRefund(ctx context.Context, field g
 			return ec.resolvers.Mutation().ProcessRefund(ctx, fc.Args["refundRequestId"].(string), fc.Args["approved"].(bool))
 		},
 		nil,
-		ec.marshalNRefundRequest2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐRefundRequest,
+		ec.marshalNRefundRequest2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐRefundRequest,
 		true,
 		true,
 	)
@@ -22906,7 +22906,7 @@ func (ec *executionContext) _Mutation_adminIssueRefund(ctx context.Context, fiel
 			return ec.resolvers.Mutation().AdminIssueRefund(ctx, fc.Args["bookingId"].(string), fc.Args["amount"].(int), fc.Args["reason"].(string))
 		},
 		nil,
-		ec.marshalNRefundRequest2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐRefundRequest,
+		ec.marshalNRefundRequest2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐRefundRequest,
 		true,
 		true,
 	)
@@ -22967,7 +22967,7 @@ func (ec *executionContext) _Mutation_markBookingPaid(ctx context.Context, field
 			return ec.resolvers.Mutation().MarkBookingPaid(ctx, fc.Args["id"].(string))
 		},
 		nil,
-		ec.marshalNBooking2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking,
+		ec.marshalNBooking2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking,
 		true,
 		true,
 	)
@@ -23082,7 +23082,7 @@ func (ec *executionContext) _Mutation_submitPersonalityAssessment(ctx context.Co
 			return ec.resolvers.Mutation().SubmitPersonalityAssessment(ctx, fc.Args["answers"].([]*model.PersonalityAnswerInput))
 		},
 		nil,
-		ec.marshalNPersonalityAssessment2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityAssessment,
+		ec.marshalNPersonalityAssessment2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityAssessment,
 		true,
 		true,
 	)
@@ -23143,7 +23143,7 @@ func (ec *executionContext) _Mutation_generatePersonalityInsights(ctx context.Co
 			return ec.resolvers.Mutation().GeneratePersonalityInsights(ctx, fc.Args["cleanerId"].(string))
 		},
 		nil,
-		ec.marshalNPersonalityInsights2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityInsights,
+		ec.marshalNPersonalityInsights2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityInsights,
 		true,
 		true,
 	)
@@ -23202,7 +23202,7 @@ func (ec *executionContext) _Mutation_regeneratePersonalityInsights(ctx context.
 			return ec.resolvers.Mutation().RegeneratePersonalityInsights(ctx, fc.Args["cleanerId"].(string))
 		},
 		nil,
-		ec.marshalNPersonalityInsights2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityInsights,
+		ec.marshalNPersonalityInsights2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityInsights,
 		true,
 		true,
 	)
@@ -23261,7 +23261,7 @@ func (ec *executionContext) _Mutation_cancelRecurringGroup(ctx context.Context, 
 			return ec.resolvers.Mutation().CancelRecurringGroup(ctx, fc.Args["id"].(string), fc.Args["reason"].(*string))
 		},
 		nil,
-		ec.marshalNRecurringBookingGroup2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐRecurringBookingGroup,
+		ec.marshalNRecurringBookingGroup2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐRecurringBookingGroup,
 		true,
 		true,
 	)
@@ -23356,7 +23356,7 @@ func (ec *executionContext) _Mutation_pauseRecurringGroup(ctx context.Context, f
 			return ec.resolvers.Mutation().PauseRecurringGroup(ctx, fc.Args["id"].(string))
 		},
 		nil,
-		ec.marshalNRecurringBookingGroup2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐRecurringBookingGroup,
+		ec.marshalNRecurringBookingGroup2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐRecurringBookingGroup,
 		true,
 		true,
 	)
@@ -23451,7 +23451,7 @@ func (ec *executionContext) _Mutation_resumeRecurringGroup(ctx context.Context, 
 			return ec.resolvers.Mutation().ResumeRecurringGroup(ctx, fc.Args["id"].(string))
 		},
 		nil,
-		ec.marshalNRecurringBookingGroup2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐRecurringBookingGroup,
+		ec.marshalNRecurringBookingGroup2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐRecurringBookingGroup,
 		true,
 		true,
 	)
@@ -23546,7 +23546,7 @@ func (ec *executionContext) _Mutation_submitReview(ctx context.Context, field gr
 			return ec.resolvers.Mutation().SubmitReview(ctx, fc.Args["input"].(model.SubmitReviewInput))
 		},
 		nil,
-		ec.marshalNReview2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐReview,
+		ec.marshalNReview2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐReview,
 		true,
 		true,
 	)
@@ -23603,7 +23603,7 @@ func (ec *executionContext) _Mutation_updateServiceDefinition(ctx context.Contex
 			return ec.resolvers.Mutation().UpdateServiceDefinition(ctx, fc.Args["input"].(model.UpdateServiceDefinitionInput))
 		},
 		nil,
-		ec.marshalNServiceDefinition2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceDefinition,
+		ec.marshalNServiceDefinition2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceDefinition,
 		true,
 		true,
 	)
@@ -23678,7 +23678,7 @@ func (ec *executionContext) _Mutation_createServiceDefinition(ctx context.Contex
 			return ec.resolvers.Mutation().CreateServiceDefinition(ctx, fc.Args["input"].(model.CreateServiceDefinitionInput))
 		},
 		nil,
-		ec.marshalNServiceDefinition2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceDefinition,
+		ec.marshalNServiceDefinition2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceDefinition,
 		true,
 		true,
 	)
@@ -23753,7 +23753,7 @@ func (ec *executionContext) _Mutation_updateServiceExtra(ctx context.Context, fi
 			return ec.resolvers.Mutation().UpdateServiceExtra(ctx, fc.Args["input"].(model.UpdateServiceExtraInput))
 		},
 		nil,
-		ec.marshalNServiceExtra2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceExtra,
+		ec.marshalNServiceExtra2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceExtra,
 		true,
 		true,
 	)
@@ -23814,7 +23814,7 @@ func (ec *executionContext) _Mutation_createServiceExtra(ctx context.Context, fi
 			return ec.resolvers.Mutation().CreateServiceExtra(ctx, fc.Args["input"].(model.CreateServiceExtraInput))
 		},
 		nil,
-		ec.marshalNServiceExtra2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceExtra,
+		ec.marshalNServiceExtra2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceExtra,
 		true,
 		true,
 	)
@@ -23875,7 +23875,7 @@ func (ec *executionContext) _Mutation_updatePlatformSetting(ctx context.Context,
 			return ec.resolvers.Mutation().UpdatePlatformSetting(ctx, fc.Args["key"].(string), fc.Args["value"].(string))
 		},
 		nil,
-		ec.marshalNPlatformSetting2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPlatformSetting,
+		ec.marshalNPlatformSetting2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPlatformSetting,
 		true,
 		true,
 	)
@@ -23928,7 +23928,7 @@ func (ec *executionContext) _Mutation_updateProfile(ctx context.Context, field g
 			return ec.resolvers.Mutation().UpdateProfile(ctx, fc.Args["input"].(model.UpdateProfileInput))
 		},
 		nil,
-		ec.marshalNUser2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUser,
+		ec.marshalNUser2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUser,
 		true,
 		true,
 	)
@@ -23991,7 +23991,7 @@ func (ec *executionContext) _Mutation_uploadAvatar(ctx context.Context, field gr
 			return ec.resolvers.Mutation().UploadAvatar(ctx, fc.Args["file"].(graphql.Upload))
 		},
 		nil,
-		ec.marshalNUser2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUser,
+		ec.marshalNUser2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUser,
 		true,
 		true,
 	)
@@ -24054,7 +24054,7 @@ func (ec *executionContext) _Mutation_updateUserRole(ctx context.Context, field 
 			return ec.resolvers.Mutation().UpdateUserRole(ctx, fc.Args["userId"].(string), fc.Args["role"].(model.UserRole))
 		},
 		nil,
-		ec.marshalNUser2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUser,
+		ec.marshalNUser2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUser,
 		true,
 		true,
 	)
@@ -24117,7 +24117,7 @@ func (ec *executionContext) _Mutation_adminUpdateUserProfile(ctx context.Context
 			return ec.resolvers.Mutation().AdminUpdateUserProfile(ctx, fc.Args["userId"].(string), fc.Args["fullName"].(string), fc.Args["phone"].(*string))
 		},
 		nil,
-		ec.marshalNUser2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUser,
+		ec.marshalNUser2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUser,
 		true,
 		true,
 	)
@@ -24180,7 +24180,7 @@ func (ec *executionContext) _Mutation_joinWaitlist(ctx context.Context, field gr
 			return ec.resolvers.Mutation().JoinWaitlist(ctx, fc.Args["input"].(model.JoinWaitlistInput))
 		},
 		nil,
-		ec.marshalNWaitlistLead2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐWaitlistLead,
+		ec.marshalNWaitlistLead2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐWaitlistLead,
 		true,
 		true,
 	)
@@ -24443,7 +24443,7 @@ func (ec *executionContext) _NotificationConnection_edges(ctx context.Context, f
 			return obj.Edges, nil
 		},
 		nil,
-		ec.marshalNNotification2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐNotificationᚄ,
+		ec.marshalNNotification2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐNotificationᚄ,
 		true,
 		true,
 	)
@@ -24488,7 +24488,7 @@ func (ec *executionContext) _NotificationConnection_pageInfo(ctx context.Context
 			return obj.PageInfo, nil
 		},
 		nil,
-		ec.marshalNPageInfo2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPageInfo,
+		ec.marshalNPageInfo2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPageInfo,
 		true,
 		true,
 	)
@@ -24610,7 +24610,7 @@ func (ec *executionContext) _PaymentHistoryConnection_edges(ctx context.Context,
 			return obj.Edges, nil
 		},
 		nil,
-		ec.marshalNPaymentHistoryEntry2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentHistoryEntryᚄ,
+		ec.marshalNPaymentHistoryEntry2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentHistoryEntryᚄ,
 		true,
 		true,
 	)
@@ -24655,7 +24655,7 @@ func (ec *executionContext) _PaymentHistoryConnection_pageInfo(ctx context.Conte
 			return obj.PageInfo, nil
 		},
 		nil,
-		ec.marshalNPageInfo2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPageInfo,
+		ec.marshalNPageInfo2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPageInfo,
 		true,
 		true,
 	)
@@ -24748,7 +24748,7 @@ func (ec *executionContext) _PaymentHistoryEntry_booking(ctx context.Context, fi
 			return obj.Booking, nil
 		},
 		nil,
-		ec.marshalOBooking2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking,
+		ec.marshalOBooking2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking,
 		true,
 		false,
 	)
@@ -24909,7 +24909,7 @@ func (ec *executionContext) _PaymentHistoryEntry_status(ctx context.Context, fie
 			return obj.Status, nil
 		},
 		nil,
-		ec.marshalNPaymentTransactionStatus2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentTransactionStatus,
+		ec.marshalNPaymentTransactionStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentTransactionStatus,
 		true,
 		true,
 	)
@@ -25373,7 +25373,7 @@ func (ec *executionContext) _PaymentTransaction_booking(ctx context.Context, fie
 			return obj.Booking, nil
 		},
 		nil,
-		ec.marshalOBooking2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking,
+		ec.marshalOBooking2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking,
 		true,
 		false,
 	)
@@ -25621,7 +25621,7 @@ func (ec *executionContext) _PaymentTransaction_status(ctx context.Context, fiel
 			return obj.Status, nil
 		},
 		nil,
-		ec.marshalNPaymentTransactionStatus2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentTransactionStatus,
+		ec.marshalNPaymentTransactionStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentTransactionStatus,
 		true,
 		true,
 	)
@@ -25766,7 +25766,7 @@ func (ec *executionContext) _PayoutLineItem_booking(ctx context.Context, field g
 			return obj.Booking, nil
 		},
 		nil,
-		ec.marshalOBooking2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking,
+		ec.marshalOBooking2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking,
 		true,
 		false,
 	)
@@ -26014,7 +26014,7 @@ func (ec *executionContext) _PersonalityAssessment_facetScores(ctx context.Conte
 			return obj.FacetScores, nil
 		},
 		nil,
-		ec.marshalNPersonalityFacetScore2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityFacetScoreᚄ,
+		ec.marshalNPersonalityFacetScore2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityFacetScoreᚄ,
 		true,
 		true,
 	)
@@ -26200,7 +26200,7 @@ func (ec *executionContext) _PersonalityAssessment_insights(ctx context.Context,
 			return ec.resolvers.PersonalityAssessment().Insights(ctx, obj)
 		},
 		nil,
-		ec.marshalOPersonalityInsights2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityInsights,
+		ec.marshalOPersonalityInsights2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityInsights,
 		true,
 		false,
 	)
@@ -27697,7 +27697,7 @@ func (ec *executionContext) _PriceEstimate_extras(ctx context.Context, field gra
 			return obj.Extras, nil
 		},
 		nil,
-		ec.marshalNExtraLineItem2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐExtraLineItemᚄ,
+		ec.marshalNExtraLineItem2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐExtraLineItemᚄ,
 		true,
 		true,
 	)
@@ -27764,7 +27764,7 @@ func (ec *executionContext) _Query_platformStats(ctx context.Context, field grap
 			return ec.resolvers.Query().PlatformStats(ctx, fc.Args["dateFrom"].(*string), fc.Args["dateTo"].(*string))
 		},
 		nil,
-		ec.marshalNPlatformStats2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPlatformStats,
+		ec.marshalNPlatformStats2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPlatformStats,
 		true,
 		true,
 	)
@@ -27828,7 +27828,7 @@ func (ec *executionContext) _Query_bookingsByStatus(ctx context.Context, field g
 			return ec.resolvers.Query().BookingsByStatus(ctx)
 		},
 		nil,
-		ec.marshalNBookingsByStatus2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingsByStatusᚄ,
+		ec.marshalNBookingsByStatus2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingsByStatusᚄ,
 		true,
 		true,
 	)
@@ -27864,7 +27864,7 @@ func (ec *executionContext) _Query_revenueByMonth(ctx context.Context, field gra
 			return ec.resolvers.Query().RevenueByMonth(ctx, fc.Args["months"].(*int))
 		},
 		nil,
-		ec.marshalNRevenueByMonth2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐRevenueByMonthᚄ,
+		ec.marshalNRevenueByMonth2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐRevenueByMonthᚄ,
 		true,
 		true,
 	)
@@ -27915,7 +27915,7 @@ func (ec *executionContext) _Query_companyPerformance(ctx context.Context, field
 			return ec.resolvers.Query().CompanyPerformance(ctx, fc.Args["first"].(*int))
 		},
 		nil,
-		ec.marshalNCompanyPerformance2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyPerformanceᚄ,
+		ec.marshalNCompanyPerformance2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyPerformanceᚄ,
 		true,
 		true,
 	)
@@ -27967,7 +27967,7 @@ func (ec *executionContext) _Query_pendingCompanyApplications(ctx context.Contex
 			return ec.resolvers.Query().PendingCompanyApplications(ctx)
 		},
 		nil,
-		ec.marshalNCompany2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyᚄ,
+		ec.marshalNCompany2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyᚄ,
 		true,
 		true,
 	)
@@ -28040,7 +28040,7 @@ func (ec *executionContext) _Query_allCleaners(ctx context.Context, field graphq
 			return ec.resolvers.Query().AllCleaners(ctx)
 		},
 		nil,
-		ec.marshalNCleanerProfile2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerProfileᚄ,
+		ec.marshalNCleanerProfile2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerProfileᚄ,
 		true,
 		true,
 	)
@@ -28105,7 +28105,7 @@ func (ec *executionContext) _Query_allChatRooms(ctx context.Context, field graph
 			return ec.resolvers.Query().AllChatRooms(ctx)
 		},
 		nil,
-		ec.marshalNChatRoom2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐChatRoomᚄ,
+		ec.marshalNChatRoom2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatRoomᚄ,
 		true,
 		true,
 	)
@@ -28150,7 +28150,7 @@ func (ec *executionContext) _Query_allUsers(ctx context.Context, field graphql.C
 			return ec.resolvers.Query().AllUsers(ctx)
 		},
 		nil,
-		ec.marshalNUser2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUserᚄ,
+		ec.marshalNUser2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUserᚄ,
 		true,
 		true,
 	)
@@ -28202,7 +28202,7 @@ func (ec *executionContext) _Query_searchCompanies(ctx context.Context, field gr
 			return ec.resolvers.Query().SearchCompanies(ctx, fc.Args["query"].(*string), fc.Args["status"].(*model.CompanyStatus), fc.Args["limit"].(*int), fc.Args["offset"].(*int))
 		},
 		nil,
-		ec.marshalNCompanyConnection2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyConnection,
+		ec.marshalNCompanyConnection2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyConnection,
 		true,
 		true,
 	)
@@ -28251,7 +28251,7 @@ func (ec *executionContext) _Query_companyFinancialSummary(ctx context.Context, 
 			return ec.resolvers.Query().CompanyFinancialSummary(ctx, fc.Args["companyId"].(string))
 		},
 		nil,
-		ec.marshalNCompanyFinancialSummary2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyFinancialSummary,
+		ec.marshalNCompanyFinancialSummary2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyFinancialSummary,
 		true,
 		true,
 	)
@@ -28302,7 +28302,7 @@ func (ec *executionContext) _Query_searchBookings(ctx context.Context, field gra
 			return ec.resolvers.Query().SearchBookings(ctx, fc.Args["query"].(*string), fc.Args["status"].(*model.BookingStatus), fc.Args["limit"].(*int), fc.Args["offset"].(*int))
 		},
 		nil,
-		ec.marshalNBookingConnection2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingConnection,
+		ec.marshalNBookingConnection2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingConnection,
 		true,
 		true,
 	)
@@ -28351,7 +28351,7 @@ func (ec *executionContext) _Query_allReviews(ctx context.Context, field graphql
 			return ec.resolvers.Query().AllReviews(ctx, fc.Args["limit"].(*int), fc.Args["offset"].(*int))
 		},
 		nil,
-		ec.marshalNReviewConnection2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐReviewConnection,
+		ec.marshalNReviewConnection2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐReviewConnection,
 		true,
 		true,
 	)
@@ -28398,7 +28398,7 @@ func (ec *executionContext) _Query_revenueByDateRange(ctx context.Context, field
 			return ec.resolvers.Query().RevenueByDateRange(ctx, fc.Args["from"].(string), fc.Args["to"].(string))
 		},
 		nil,
-		ec.marshalNDailyRevenue2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐDailyRevenueᚄ,
+		ec.marshalNDailyRevenue2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐDailyRevenueᚄ,
 		true,
 		true,
 	)
@@ -28449,7 +28449,7 @@ func (ec *executionContext) _Query_revenueByServiceType(ctx context.Context, fie
 			return ec.resolvers.Query().RevenueByServiceType(ctx, fc.Args["from"].(string), fc.Args["to"].(string))
 		},
 		nil,
-		ec.marshalNServiceRevenue2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceRevenueᚄ,
+		ec.marshalNServiceRevenue2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceRevenueᚄ,
 		true,
 		true,
 	)
@@ -28498,7 +28498,7 @@ func (ec *executionContext) _Query_topCompaniesByRevenue(ctx context.Context, fi
 			return ec.resolvers.Query().TopCompaniesByRevenue(ctx, fc.Args["from"].(string), fc.Args["to"].(string), fc.Args["limit"].(*int))
 		},
 		nil,
-		ec.marshalNTopCompany2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐTopCompanyᚄ,
+		ec.marshalNTopCompany2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐTopCompanyᚄ,
 		true,
 		true,
 	)
@@ -28550,7 +28550,7 @@ func (ec *executionContext) _Query_platformTotals(ctx context.Context, field gra
 			return ec.resolvers.Query().PlatformTotals(ctx)
 		},
 		nil,
-		ec.marshalNPlatformTotals2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPlatformTotals,
+		ec.marshalNPlatformTotals2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPlatformTotals,
 		true,
 		true,
 	)
@@ -28594,7 +28594,7 @@ func (ec *executionContext) _Query_companyRevenueByDateRange(ctx context.Context
 			return ec.resolvers.Query().CompanyRevenueByDateRange(ctx, fc.Args["from"].(string), fc.Args["to"].(string))
 		},
 		nil,
-		ec.marshalNDailyRevenue2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐDailyRevenueᚄ,
+		ec.marshalNDailyRevenue2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐDailyRevenueᚄ,
 		true,
 		true,
 	)
@@ -28645,7 +28645,7 @@ func (ec *executionContext) _Query_myBookings(ctx context.Context, field graphql
 			return ec.resolvers.Query().MyBookings(ctx, fc.Args["status"].(*model.BookingStatus), fc.Args["first"].(*int), fc.Args["after"].(*string))
 		},
 		nil,
-		ec.marshalNBookingConnection2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingConnection,
+		ec.marshalNBookingConnection2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingConnection,
 		true,
 		true,
 	)
@@ -28694,7 +28694,7 @@ func (ec *executionContext) _Query_booking(ctx context.Context, field graphql.Co
 			return ec.resolvers.Query().Booking(ctx, fc.Args["id"].(string))
 		},
 		nil,
-		ec.marshalNBooking2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking,
+		ec.marshalNBooking2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking,
 		true,
 		true,
 	)
@@ -28809,7 +28809,7 @@ func (ec *executionContext) _Query_companyBookings(ctx context.Context, field gr
 			return ec.resolvers.Query().CompanyBookings(ctx, fc.Args["status"].(*model.BookingStatus), fc.Args["first"].(*int), fc.Args["after"].(*string))
 		},
 		nil,
-		ec.marshalNBookingConnection2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingConnection,
+		ec.marshalNBookingConnection2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingConnection,
 		true,
 		true,
 	)
@@ -28858,7 +28858,7 @@ func (ec *executionContext) _Query_myAssignedJobs(ctx context.Context, field gra
 			return ec.resolvers.Query().MyAssignedJobs(ctx, fc.Args["status"].(*model.BookingStatus))
 		},
 		nil,
-		ec.marshalNBooking2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingᚄ,
+		ec.marshalNBooking2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingᚄ,
 		true,
 		true,
 	)
@@ -28972,7 +28972,7 @@ func (ec *executionContext) _Query_todaysJobs(ctx context.Context, field graphql
 			return ec.resolvers.Query().TodaysJobs(ctx)
 		},
 		nil,
-		ec.marshalNBooking2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingᚄ,
+		ec.marshalNBooking2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingᚄ,
 		true,
 		true,
 	)
@@ -29076,7 +29076,7 @@ func (ec *executionContext) _Query_allBookings(ctx context.Context, field graphq
 			return ec.resolvers.Query().AllBookings(ctx, fc.Args["status"].(*model.BookingStatus), fc.Args["companyId"].(*string), fc.Args["dateFrom"].(*string), fc.Args["dateTo"].(*string), fc.Args["first"].(*int), fc.Args["after"].(*string))
 		},
 		nil,
-		ec.marshalNBookingConnection2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingConnection,
+		ec.marshalNBookingConnection2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingConnection,
 		true,
 		true,
 	)
@@ -29125,7 +29125,7 @@ func (ec *executionContext) _Query_companyBookingsByDateRange(ctx context.Contex
 			return ec.resolvers.Query().CompanyBookingsByDateRange(ctx, fc.Args["from"].(string), fc.Args["to"].(string))
 		},
 		nil,
-		ec.marshalNBooking2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingᚄ,
+		ec.marshalNBooking2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingᚄ,
 		true,
 		true,
 	)
@@ -29240,7 +29240,7 @@ func (ec *executionContext) _Query_searchCompanyBookings(ctx context.Context, fi
 			return ec.resolvers.Query().SearchCompanyBookings(ctx, fc.Args["query"].(*string), fc.Args["status"].(*string), fc.Args["dateFrom"].(*string), fc.Args["dateTo"].(*string), fc.Args["limit"].(*int), fc.Args["offset"].(*int))
 		},
 		nil,
-		ec.marshalNBookingConnection2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingConnection,
+		ec.marshalNBookingConnection2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingConnection,
 		true,
 		true,
 	)
@@ -29288,7 +29288,7 @@ func (ec *executionContext) _Query_myChatRooms(ctx context.Context, field graphq
 			return ec.resolvers.Query().MyChatRooms(ctx)
 		},
 		nil,
-		ec.marshalNChatRoom2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐChatRoomᚄ,
+		ec.marshalNChatRoom2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatRoomᚄ,
 		true,
 		true,
 	)
@@ -29334,7 +29334,7 @@ func (ec *executionContext) _Query_chatRoom(ctx context.Context, field graphql.C
 			return ec.resolvers.Query().ChatRoom(ctx, fc.Args["id"].(string))
 		},
 		nil,
-		ec.marshalNChatRoom2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐChatRoom,
+		ec.marshalNChatRoom2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatRoom,
 		true,
 		true,
 	)
@@ -29390,7 +29390,7 @@ func (ec *executionContext) _Query_myCleaners(ctx context.Context, field graphql
 			return ec.resolvers.Query().MyCleaners(ctx)
 		},
 		nil,
-		ec.marshalNCleanerProfile2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerProfileᚄ,
+		ec.marshalNCleanerProfile2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerProfileᚄ,
 		true,
 		true,
 	)
@@ -29455,7 +29455,7 @@ func (ec *executionContext) _Query_myCleanerProfile(ctx context.Context, field g
 			return ec.resolvers.Query().MyCleanerProfile(ctx)
 		},
 		nil,
-		ec.marshalNCleanerProfile2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerProfile,
+		ec.marshalNCleanerProfile2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerProfile,
 		true,
 		true,
 	)
@@ -29520,7 +29520,7 @@ func (ec *executionContext) _Query_myCleanerStats(ctx context.Context, field gra
 			return ec.resolvers.Query().MyCleanerStats(ctx)
 		},
 		nil,
-		ec.marshalNCleanerStats2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerStats,
+		ec.marshalNCleanerStats2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerStats,
 		true,
 		true,
 	)
@@ -29562,7 +29562,7 @@ func (ec *executionContext) _Query_cleanerPerformance(ctx context.Context, field
 			return ec.resolvers.Query().CleanerPerformance(ctx, fc.Args["cleanerId"].(string))
 		},
 		nil,
-		ec.marshalNCleanerPerformance2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerPerformance,
+		ec.marshalNCleanerPerformance2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerPerformance,
 		true,
 		true,
 	)
@@ -29618,7 +29618,7 @@ func (ec *executionContext) _Query_myCleanerAvailability(ctx context.Context, fi
 			return ec.resolvers.Query().MyCleanerAvailability(ctx)
 		},
 		nil,
-		ec.marshalNAvailabilitySlot2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐAvailabilitySlotᚄ,
+		ec.marshalNAvailabilitySlot2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐAvailabilitySlotᚄ,
 		true,
 		true,
 	)
@@ -29660,7 +29660,7 @@ func (ec *executionContext) _Query_myCleanerBookingsByDateRange(ctx context.Cont
 			return ec.resolvers.Query().MyCleanerBookingsByDateRange(ctx, fc.Args["from"].(string), fc.Args["to"].(string))
 		},
 		nil,
-		ec.marshalNBooking2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingᚄ,
+		ec.marshalNBooking2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingᚄ,
 		true,
 		true,
 	)
@@ -29775,7 +29775,7 @@ func (ec *executionContext) _Query_cleanerEarningsByDateRange(ctx context.Contex
 			return ec.resolvers.Query().CleanerEarningsByDateRange(ctx, fc.Args["from"].(string), fc.Args["to"].(string))
 		},
 		nil,
-		ec.marshalNCleanerDailyEarnings2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerDailyEarningsᚄ,
+		ec.marshalNCleanerDailyEarnings2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerDailyEarningsᚄ,
 		true,
 		true,
 	)
@@ -29822,7 +29822,7 @@ func (ec *executionContext) _Query_searchCleanerBookings(ctx context.Context, fi
 			return ec.resolvers.Query().SearchCleanerBookings(ctx, fc.Args["query"].(*string), fc.Args["status"].(*string), fc.Args["dateFrom"].(*string), fc.Args["dateTo"].(*string), fc.Args["limit"].(*int), fc.Args["offset"].(*int))
 		},
 		nil,
-		ec.marshalNBookingConnection2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingConnection,
+		ec.marshalNBookingConnection2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingConnection,
 		true,
 		true,
 	)
@@ -29871,7 +29871,7 @@ func (ec *executionContext) _Query_myCleanerReviews(ctx context.Context, field g
 			return ec.resolvers.Query().MyCleanerReviews(ctx, fc.Args["limit"].(*int), fc.Args["offset"].(*int))
 		},
 		nil,
-		ec.marshalNReviewConnection2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐReviewConnection,
+		ec.marshalNReviewConnection2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐReviewConnection,
 		true,
 		true,
 	)
@@ -29917,7 +29917,7 @@ func (ec *executionContext) _Query_myCleanerCompanySchedule(ctx context.Context,
 			return ec.resolvers.Query().MyCleanerCompanySchedule(ctx)
 		},
 		nil,
-		ec.marshalNCompanyWorkSchedule2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyWorkScheduleᚄ,
+		ec.marshalNCompanyWorkSchedule2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyWorkScheduleᚄ,
 		true,
 		true,
 	)
@@ -29959,7 +29959,7 @@ func (ec *executionContext) _Query_myCleanerDateOverrides(ctx context.Context, f
 			return ec.resolvers.Query().MyCleanerDateOverrides(ctx, fc.Args["from"].(string), fc.Args["to"].(string))
 		},
 		nil,
-		ec.marshalNCleanerDateOverride2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerDateOverrideᚄ,
+		ec.marshalNCleanerDateOverride2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerDateOverrideᚄ,
 		true,
 		true,
 	)
@@ -30012,7 +30012,7 @@ func (ec *executionContext) _Query_cleanerDateOverrides(ctx context.Context, fie
 			return ec.resolvers.Query().CleanerDateOverrides(ctx, fc.Args["cleanerId"].(string), fc.Args["from"].(string), fc.Args["to"].(string))
 		},
 		nil,
-		ec.marshalNCleanerDateOverride2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerDateOverrideᚄ,
+		ec.marshalNCleanerDateOverride2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerDateOverrideᚄ,
 		true,
 		true,
 	)
@@ -30065,7 +30065,7 @@ func (ec *executionContext) _Query_cleanerDocuments(ctx context.Context, field g
 			return ec.resolvers.Query().CleanerDocuments(ctx, fc.Args["cleanerId"].(string))
 		},
 		nil,
-		ec.marshalNCleanerDocument2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerDocumentᚄ,
+		ec.marshalNCleanerDocument2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerDocumentᚄ,
 		true,
 		true,
 	)
@@ -30123,7 +30123,7 @@ func (ec *executionContext) _Query_pendingCleanerDocuments(ctx context.Context, 
 			return ec.resolvers.Query().PendingCleanerDocuments(ctx)
 		},
 		nil,
-		ec.marshalNCleanerDocument2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerDocumentᚄ,
+		ec.marshalNCleanerDocument2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerDocumentᚄ,
 		true,
 		true,
 	)
@@ -30170,7 +30170,7 @@ func (ec *executionContext) _Query_myAddresses(ctx context.Context, field graphq
 			return ec.resolvers.Query().MyAddresses(ctx)
 		},
 		nil,
-		ec.marshalNAddress2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐAddressᚄ,
+		ec.marshalNAddress2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐAddressᚄ,
 		true,
 		true,
 	)
@@ -30225,7 +30225,7 @@ func (ec *executionContext) _Query_myPaymentMethods(ctx context.Context, field g
 			return ec.resolvers.Query().MyPaymentMethods(ctx)
 		},
 		nil,
-		ec.marshalNPaymentMethod2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentMethodᚄ,
+		ec.marshalNPaymentMethod2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentMethodᚄ,
 		true,
 		true,
 	)
@@ -30270,7 +30270,7 @@ func (ec *executionContext) _Query_myCompany(ctx context.Context, field graphql.
 			return ec.resolvers.Query().MyCompany(ctx)
 		},
 		nil,
-		ec.marshalNCompany2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany,
+		ec.marshalNCompany2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany,
 		true,
 		true,
 	)
@@ -30343,7 +30343,7 @@ func (ec *executionContext) _Query_myCompanyFinancialSummary(ctx context.Context
 			return ec.resolvers.Query().MyCompanyFinancialSummary(ctx)
 		},
 		nil,
-		ec.marshalNCompanyFinancialSummary2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyFinancialSummary,
+		ec.marshalNCompanyFinancialSummary2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyFinancialSummary,
 		true,
 		true,
 	)
@@ -30382,7 +30382,7 @@ func (ec *executionContext) _Query_myCompanyWorkSchedule(ctx context.Context, fi
 			return ec.resolvers.Query().MyCompanyWorkSchedule(ctx)
 		},
 		nil,
-		ec.marshalNCompanyWorkSchedule2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyWorkScheduleᚄ,
+		ec.marshalNCompanyWorkSchedule2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyWorkScheduleᚄ,
 		true,
 		true,
 	)
@@ -30424,7 +30424,7 @@ func (ec *executionContext) _Query_companies(ctx context.Context, field graphql.
 			return ec.resolvers.Query().Companies(ctx, fc.Args["status"].(*model.CompanyStatus), fc.Args["first"].(*int), fc.Args["after"].(*string))
 		},
 		nil,
-		ec.marshalNCompanyConnection2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyConnection,
+		ec.marshalNCompanyConnection2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyConnection,
 		true,
 		true,
 	)
@@ -30473,7 +30473,7 @@ func (ec *executionContext) _Query_company(ctx context.Context, field graphql.Co
 			return ec.resolvers.Query().Company(ctx, fc.Args["id"].(string))
 		},
 		nil,
-		ec.marshalNCompany2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany,
+		ec.marshalNCompany2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany,
 		true,
 		true,
 	)
@@ -30557,7 +30557,7 @@ func (ec *executionContext) _Query_companyChatRooms(ctx context.Context, field g
 			return ec.resolvers.Query().CompanyChatRooms(ctx)
 		},
 		nil,
-		ec.marshalNChatRoom2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐChatRoomᚄ,
+		ec.marshalNChatRoom2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatRoomᚄ,
 		true,
 		true,
 	)
@@ -30602,7 +30602,7 @@ func (ec *executionContext) _Query_pendingCompanyDocuments(ctx context.Context, 
 			return ec.resolvers.Query().PendingCompanyDocuments(ctx)
 		},
 		nil,
-		ec.marshalNCompanyDocument2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyDocumentᚄ,
+		ec.marshalNCompanyDocument2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyDocumentᚄ,
 		true,
 		true,
 	)
@@ -30690,7 +30690,7 @@ func (ec *executionContext) _Query_myBillingProfile(ctx context.Context, field g
 			return ec.resolvers.Query().MyBillingProfile(ctx)
 		},
 		nil,
-		ec.marshalOClientBillingProfile2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐClientBillingProfile,
+		ec.marshalOClientBillingProfile2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐClientBillingProfile,
 		true,
 		false,
 	)
@@ -30746,7 +30746,7 @@ func (ec *executionContext) _Query_myInvoices(ctx context.Context, field graphql
 			return ec.resolvers.Query().MyInvoices(ctx, fc.Args["first"].(*int), fc.Args["after"].(*string))
 		},
 		nil,
-		ec.marshalNInvoiceConnection2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceConnection,
+		ec.marshalNInvoiceConnection2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceConnection,
 		true,
 		true,
 	)
@@ -30795,7 +30795,7 @@ func (ec *executionContext) _Query_invoiceDetail(ctx context.Context, field grap
 			return ec.resolvers.Query().InvoiceDetail(ctx, fc.Args["id"].(string))
 		},
 		nil,
-		ec.marshalNInvoice2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoice,
+		ec.marshalNInvoice2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoice,
 		true,
 		true,
 	)
@@ -30882,7 +30882,7 @@ func (ec *executionContext) _Query_companyInvoices(ctx context.Context, field gr
 			return ec.resolvers.Query().CompanyInvoices(ctx, fc.Args["status"].(*model.InvoiceStatus), fc.Args["first"].(*int), fc.Args["after"].(*string))
 		},
 		nil,
-		ec.marshalNInvoiceConnection2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceConnection,
+		ec.marshalNInvoiceConnection2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceConnection,
 		true,
 		true,
 	)
@@ -30931,7 +30931,7 @@ func (ec *executionContext) _Query_allInvoices(ctx context.Context, field graphq
 			return ec.resolvers.Query().AllInvoices(ctx, fc.Args["type"].(*model.InvoiceType), fc.Args["status"].(*model.InvoiceStatus), fc.Args["companyId"].(*string), fc.Args["first"].(*int), fc.Args["after"].(*string))
 		},
 		nil,
-		ec.marshalNInvoiceConnection2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceConnection,
+		ec.marshalNInvoiceConnection2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceConnection,
 		true,
 		true,
 	)
@@ -30980,7 +30980,7 @@ func (ec *executionContext) _Query_invoiceAnalytics(ctx context.Context, field g
 			return ec.resolvers.Query().InvoiceAnalytics(ctx, fc.Args["from"].(string), fc.Args["to"].(string))
 		},
 		nil,
-		ec.marshalNInvoiceAnalytics2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceAnalytics,
+		ec.marshalNInvoiceAnalytics2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceAnalytics,
 		true,
 		true,
 	)
@@ -31032,7 +31032,7 @@ func (ec *executionContext) _Query_activeCities(ctx context.Context, field graph
 			return ec.resolvers.Query().ActiveCities(ctx)
 		},
 		nil,
-		ec.marshalNEnabledCity2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐEnabledCityᚄ,
+		ec.marshalNEnabledCity2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐEnabledCityᚄ,
 		true,
 		true,
 	)
@@ -31074,7 +31074,7 @@ func (ec *executionContext) _Query_cityAreas(ctx context.Context, field graphql.
 			return ec.resolvers.Query().CityAreas(ctx, fc.Args["cityId"].(string))
 		},
 		nil,
-		ec.marshalNCityArea2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCityAreaᚄ,
+		ec.marshalNCityArea2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCityAreaᚄ,
 		true,
 		true,
 	)
@@ -31124,7 +31124,7 @@ func (ec *executionContext) _Query_allCities(ctx context.Context, field graphql.
 			return ec.resolvers.Query().AllCities(ctx)
 		},
 		nil,
-		ec.marshalNEnabledCity2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐEnabledCityᚄ,
+		ec.marshalNEnabledCity2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐEnabledCityᚄ,
 		true,
 		true,
 	)
@@ -31165,7 +31165,7 @@ func (ec *executionContext) _Query_myCompanyServiceAreas(ctx context.Context, fi
 			return ec.resolvers.Query().MyCompanyServiceAreas(ctx)
 		},
 		nil,
-		ec.marshalNCityArea2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCityAreaᚄ,
+		ec.marshalNCityArea2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCityAreaᚄ,
 		true,
 		true,
 	)
@@ -31205,7 +31205,7 @@ func (ec *executionContext) _Query_cleanerServiceAreas(ctx context.Context, fiel
 			return ec.resolvers.Query().CleanerServiceAreas(ctx, fc.Args["cleanerId"].(string))
 		},
 		nil,
-		ec.marshalNCityArea2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCityAreaᚄ,
+		ec.marshalNCityArea2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCityAreaᚄ,
 		true,
 		true,
 	)
@@ -31255,7 +31255,7 @@ func (ec *executionContext) _Query_myCleanerServiceAreas(ctx context.Context, fi
 			return ec.resolvers.Query().MyCleanerServiceAreas(ctx)
 		},
 		nil,
-		ec.marshalNCityArea2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCityAreaᚄ,
+		ec.marshalNCityArea2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCityAreaᚄ,
 		true,
 		true,
 	)
@@ -31295,7 +31295,7 @@ func (ec *executionContext) _Query_suggestCleaners(ctx context.Context, field gr
 			return ec.resolvers.Query().SuggestCleaners(ctx, fc.Args["cityId"].(string), fc.Args["areaId"].(string), fc.Args["timeSlots"].([]*model.TimeSlotInput), fc.Args["estimatedDurationHours"].(float64))
 		},
 		nil,
-		ec.marshalNCleanerSuggestion2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerSuggestionᚄ,
+		ec.marshalNCleanerSuggestion2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerSuggestionᚄ,
 		true,
 		true,
 	)
@@ -31399,7 +31399,7 @@ func (ec *executionContext) _Query_myNotifications(ctx context.Context, field gr
 			return ec.resolvers.Query().MyNotifications(ctx, fc.Args["first"].(*int), fc.Args["after"].(*string), fc.Args["unreadOnly"].(*bool))
 		},
 		nil,
-		ec.marshalNNotificationConnection2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐNotificationConnection,
+		ec.marshalNNotificationConnection2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐNotificationConnection,
 		true,
 		true,
 	)
@@ -31477,7 +31477,7 @@ func (ec *executionContext) _Query_myPaymentHistory(ctx context.Context, field g
 			return ec.resolvers.Query().MyPaymentHistory(ctx, fc.Args["first"].(*int), fc.Args["after"].(*string))
 		},
 		nil,
-		ec.marshalNPaymentHistoryConnection2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentHistoryConnection,
+		ec.marshalNPaymentHistoryConnection2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentHistoryConnection,
 		true,
 		true,
 	)
@@ -31526,7 +31526,7 @@ func (ec *executionContext) _Query_bookingPaymentDetails(ctx context.Context, fi
 			return ec.resolvers.Query().BookingPaymentDetails(ctx, fc.Args["bookingId"].(string))
 		},
 		nil,
-		ec.marshalOPaymentTransaction2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentTransaction,
+		ec.marshalOPaymentTransaction2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentTransaction,
 		true,
 		false,
 	)
@@ -31592,7 +31592,7 @@ func (ec *executionContext) _Query_myConnectStatus(ctx context.Context, field gr
 			return ec.resolvers.Query().MyConnectStatus(ctx)
 		},
 		nil,
-		ec.marshalNStripeConnectStatus2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐStripeConnectStatus,
+		ec.marshalNStripeConnectStatus2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐStripeConnectStatus,
 		true,
 		true,
 	)
@@ -31632,7 +31632,7 @@ func (ec *executionContext) _Query_myPayouts(ctx context.Context, field graphql.
 			return ec.resolvers.Query().MyPayouts(ctx, fc.Args["first"].(*int), fc.Args["after"].(*string))
 		},
 		nil,
-		ec.marshalNCompanyPayout2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyPayoutᚄ,
+		ec.marshalNCompanyPayout2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyPayoutᚄ,
 		true,
 		true,
 	)
@@ -31697,7 +31697,7 @@ func (ec *executionContext) _Query_myPayoutDetail(ctx context.Context, field gra
 			return ec.resolvers.Query().MyPayoutDetail(ctx, fc.Args["id"].(string))
 		},
 		nil,
-		ec.marshalNCompanyPayout2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyPayout,
+		ec.marshalNCompanyPayout2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyPayout,
 		true,
 		true,
 	)
@@ -31762,7 +31762,7 @@ func (ec *executionContext) _Query_myCompanyEarnings(ctx context.Context, field 
 			return ec.resolvers.Query().MyCompanyEarnings(ctx, fc.Args["from"].(string), fc.Args["to"].(string))
 		},
 		nil,
-		ec.marshalNCompanyEarningsSummary2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyEarningsSummary,
+		ec.marshalNCompanyEarningsSummary2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyEarningsSummary,
 		true,
 		true,
 	)
@@ -31815,7 +31815,7 @@ func (ec *executionContext) _Query_allPaymentTransactions(ctx context.Context, f
 			return ec.resolvers.Query().AllPaymentTransactions(ctx, fc.Args["status"].(*model.PaymentTransactionStatus), fc.Args["first"].(*int), fc.Args["after"].(*string))
 		},
 		nil,
-		ec.marshalNPaymentTransaction2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentTransactionᚄ,
+		ec.marshalNPaymentTransaction2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentTransactionᚄ,
 		true,
 		true,
 	)
@@ -31882,7 +31882,7 @@ func (ec *executionContext) _Query_allRefundRequests(ctx context.Context, field 
 			return ec.resolvers.Query().AllRefundRequests(ctx, fc.Args["status"].(*model.RefundStatus), fc.Args["first"].(*int), fc.Args["after"].(*string))
 		},
 		nil,
-		ec.marshalNRefundRequest2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐRefundRequestᚄ,
+		ec.marshalNRefundRequest2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐRefundRequestᚄ,
 		true,
 		true,
 	)
@@ -31943,7 +31943,7 @@ func (ec *executionContext) _Query_allPayouts(ctx context.Context, field graphql
 			return ec.resolvers.Query().AllPayouts(ctx, fc.Args["companyId"].(*string), fc.Args["status"].(*model.PayoutStatus), fc.Args["first"].(*int), fc.Args["after"].(*string))
 		},
 		nil,
-		ec.marshalNCompanyPayout2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyPayoutᚄ,
+		ec.marshalNCompanyPayout2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyPayoutᚄ,
 		true,
 		true,
 	)
@@ -32008,7 +32008,7 @@ func (ec *executionContext) _Query_platformRevenueReport(ctx context.Context, fi
 			return ec.resolvers.Query().PlatformRevenueReport(ctx, fc.Args["from"].(string), fc.Args["to"].(string))
 		},
 		nil,
-		ec.marshalNPlatformRevenueReport2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPlatformRevenueReport,
+		ec.marshalNPlatformRevenueReport2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPlatformRevenueReport,
 		true,
 		true,
 	)
@@ -32064,7 +32064,7 @@ func (ec *executionContext) _Query_personalityQuestions(ctx context.Context, fie
 			return ec.resolvers.Query().PersonalityQuestions(ctx)
 		},
 		nil,
-		ec.marshalNPersonalityQuestion2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityQuestionᚄ,
+		ec.marshalNPersonalityQuestion2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityQuestionᚄ,
 		true,
 		true,
 	)
@@ -32101,7 +32101,7 @@ func (ec *executionContext) _Query_myPersonalityAssessment(ctx context.Context, 
 			return ec.resolvers.Query().MyPersonalityAssessment(ctx)
 		},
 		nil,
-		ec.marshalOPersonalityAssessment2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityAssessment,
+		ec.marshalOPersonalityAssessment2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityAssessment,
 		true,
 		false,
 	)
@@ -32151,7 +32151,7 @@ func (ec *executionContext) _Query_cleanerPersonalityAssessment(ctx context.Cont
 			return ec.resolvers.Query().CleanerPersonalityAssessment(ctx, fc.Args["cleanerId"].(string))
 		},
 		nil,
-		ec.marshalOPersonalityAssessment2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityAssessment,
+		ec.marshalOPersonalityAssessment2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityAssessment,
 		true,
 		false,
 	)
@@ -32211,7 +32211,7 @@ func (ec *executionContext) _Query_myRecurringGroups(ctx context.Context, field 
 			return ec.resolvers.Query().MyRecurringGroups(ctx)
 		},
 		nil,
-		ec.marshalNRecurringBookingGroup2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐRecurringBookingGroupᚄ,
+		ec.marshalNRecurringBookingGroup2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐRecurringBookingGroupᚄ,
 		true,
 		true,
 	)
@@ -32295,7 +32295,7 @@ func (ec *executionContext) _Query_recurringGroup(ctx context.Context, field gra
 			return ec.resolvers.Query().RecurringGroup(ctx, fc.Args["id"].(string))
 		},
 		nil,
-		ec.marshalNRecurringBookingGroup2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐRecurringBookingGroup,
+		ec.marshalNRecurringBookingGroup2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐRecurringBookingGroup,
 		true,
 		true,
 	)
@@ -32389,7 +32389,7 @@ func (ec *executionContext) _Query_availableServices(ctx context.Context, field 
 			return ec.resolvers.Query().AvailableServices(ctx)
 		},
 		nil,
-		ec.marshalNServiceDefinition2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceDefinitionᚄ,
+		ec.marshalNServiceDefinition2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceDefinitionᚄ,
 		true,
 		true,
 	)
@@ -32452,7 +32452,7 @@ func (ec *executionContext) _Query_availableExtras(ctx context.Context, field gr
 			return ec.resolvers.Query().AvailableExtras(ctx)
 		},
 		nil,
-		ec.marshalNServiceExtra2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceExtraᚄ,
+		ec.marshalNServiceExtra2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceExtraᚄ,
 		true,
 		true,
 	)
@@ -32502,7 +32502,7 @@ func (ec *executionContext) _Query_estimatePrice(ctx context.Context, field grap
 			return ec.resolvers.Query().EstimatePrice(ctx, fc.Args["input"].(model.PriceEstimateInput))
 		},
 		nil,
-		ec.marshalNPriceEstimate2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPriceEstimate,
+		ec.marshalNPriceEstimate2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPriceEstimate,
 		true,
 		true,
 	)
@@ -32558,7 +32558,7 @@ func (ec *executionContext) _Query_allServices(ctx context.Context, field graphq
 			return ec.resolvers.Query().AllServices(ctx)
 		},
 		nil,
-		ec.marshalNServiceDefinition2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceDefinitionᚄ,
+		ec.marshalNServiceDefinition2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceDefinitionᚄ,
 		true,
 		true,
 	)
@@ -32621,7 +32621,7 @@ func (ec *executionContext) _Query_allExtras(ctx context.Context, field graphql.
 			return ec.resolvers.Query().AllExtras(ctx)
 		},
 		nil,
-		ec.marshalNServiceExtra2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceExtraᚄ,
+		ec.marshalNServiceExtra2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceExtraᚄ,
 		true,
 		true,
 	)
@@ -32670,7 +32670,7 @@ func (ec *executionContext) _Query_platformSettings(ctx context.Context, field g
 			return ec.resolvers.Query().PlatformSettings(ctx)
 		},
 		nil,
-		ec.marshalNPlatformSetting2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPlatformSettingᚄ,
+		ec.marshalNPlatformSetting2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPlatformSettingᚄ,
 		true,
 		true,
 	)
@@ -32711,7 +32711,7 @@ func (ec *executionContext) _Query_me(ctx context.Context, field graphql.Collect
 			return ec.resolvers.Query().Me(ctx)
 		},
 		nil,
-		ec.marshalOUser2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUser,
+		ec.marshalOUser2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUser,
 		true,
 		false,
 	)
@@ -32763,7 +32763,7 @@ func (ec *executionContext) _Query_searchUsers(ctx context.Context, field graphq
 			return ec.resolvers.Query().SearchUsers(ctx, fc.Args["query"].(*string), fc.Args["role"].(*model.UserRole), fc.Args["status"].(*model.UserStatus), fc.Args["limit"].(*int), fc.Args["offset"].(*int))
 		},
 		nil,
-		ec.marshalNUserConnection2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUserConnection,
+		ec.marshalNUserConnection2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUserConnection,
 		true,
 		true,
 	)
@@ -32810,7 +32810,7 @@ func (ec *executionContext) _Query_user(ctx context.Context, field graphql.Colle
 			return ec.resolvers.Query().User(ctx, fc.Args["id"].(string))
 		},
 		nil,
-		ec.marshalNUser2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUser,
+		ec.marshalNUser2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUser,
 		true,
 		true,
 	)
@@ -32902,7 +32902,7 @@ func (ec *executionContext) _Query_waitlistLeads(ctx context.Context, field grap
 			return ec.resolvers.Query().WaitlistLeads(ctx, fc.Args["leadType"].(*model.WaitlistLeadType), fc.Args["limit"].(*int), fc.Args["offset"].(*int))
 		},
 		nil,
-		ec.marshalNWaitlistLead2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐWaitlistLeadᚄ,
+		ec.marshalNWaitlistLead2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐWaitlistLeadᚄ,
 		true,
 		true,
 	)
@@ -32962,7 +32962,7 @@ func (ec *executionContext) _Query_waitlistStats(ctx context.Context, field grap
 			return ec.resolvers.Query().WaitlistStats(ctx)
 		},
 		nil,
-		ec.marshalNWaitlistStats2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐWaitlistStats,
+		ec.marshalNWaitlistStats2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐWaitlistStats,
 		true,
 		true,
 	)
@@ -33136,7 +33136,7 @@ func (ec *executionContext) _RecurringBookingGroup_client(ctx context.Context, f
 			return obj.Client, nil
 		},
 		nil,
-		ec.marshalOUser2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUser,
+		ec.marshalOUser2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUser,
 		true,
 		false,
 	)
@@ -33187,7 +33187,7 @@ func (ec *executionContext) _RecurringBookingGroup_company(ctx context.Context, 
 			return obj.Company, nil
 		},
 		nil,
-		ec.marshalOCompany2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany,
+		ec.marshalOCompany2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany,
 		true,
 		false,
 	)
@@ -33260,7 +33260,7 @@ func (ec *executionContext) _RecurringBookingGroup_preferredCleaner(ctx context.
 			return obj.PreferredCleaner, nil
 		},
 		nil,
-		ec.marshalOCleanerProfile2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerProfile,
+		ec.marshalOCleanerProfile2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerProfile,
 		true,
 		false,
 	)
@@ -33325,7 +33325,7 @@ func (ec *executionContext) _RecurringBookingGroup_address(ctx context.Context, 
 			return obj.Address, nil
 		},
 		nil,
-		ec.marshalOAddress2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐAddress,
+		ec.marshalOAddress2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐAddress,
 		true,
 		false,
 	)
@@ -33380,7 +33380,7 @@ func (ec *executionContext) _RecurringBookingGroup_recurrenceType(ctx context.Co
 			return obj.RecurrenceType, nil
 		},
 		nil,
-		ec.marshalNRecurrenceType2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐRecurrenceType,
+		ec.marshalNRecurrenceType2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐRecurrenceType,
 		true,
 		true,
 	)
@@ -33467,7 +33467,7 @@ func (ec *executionContext) _RecurringBookingGroup_serviceType(ctx context.Conte
 			return obj.ServiceType, nil
 		},
 		nil,
-		ec.marshalNServiceType2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceType,
+		ec.marshalNServiceType2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceType,
 		true,
 		true,
 	)
@@ -33844,7 +33844,7 @@ func (ec *executionContext) _RecurringBookingGroup_occurrences(ctx context.Conte
 			return obj.Occurrences, nil
 		},
 		nil,
-		ec.marshalNBooking2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingᚄ,
+		ec.marshalNBooking2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingᚄ,
 		true,
 		true,
 	)
@@ -33947,7 +33947,7 @@ func (ec *executionContext) _RecurringBookingGroup_upcomingOccurrences(ctx conte
 			return obj.UpcomingOccurrences, nil
 		},
 		nil,
-		ec.marshalNBooking2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingᚄ,
+		ec.marshalNBooking2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingᚄ,
 		true,
 		true,
 	)
@@ -34166,7 +34166,7 @@ func (ec *executionContext) _RefundRequest_booking(ctx context.Context, field gr
 			return obj.Booking, nil
 		},
 		nil,
-		ec.marshalOBooking2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking,
+		ec.marshalOBooking2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking,
 		true,
 		false,
 	)
@@ -34269,7 +34269,7 @@ func (ec *executionContext) _RefundRequest_requestedBy(ctx context.Context, fiel
 			return obj.RequestedBy, nil
 		},
 		nil,
-		ec.marshalOUser2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUser,
+		ec.marshalOUser2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUser,
 		true,
 		false,
 	)
@@ -34320,7 +34320,7 @@ func (ec *executionContext) _RefundRequest_approvedBy(ctx context.Context, field
 			return obj.ApprovedBy, nil
 		},
 		nil,
-		ec.marshalOUser2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUser,
+		ec.marshalOUser2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUser,
 		true,
 		false,
 	)
@@ -34429,7 +34429,7 @@ func (ec *executionContext) _RefundRequest_status(ctx context.Context, field gra
 			return obj.Status, nil
 		},
 		nil,
-		ec.marshalNRefundStatus2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐRefundStatus,
+		ec.marshalNRefundStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐRefundStatus,
 		true,
 		true,
 	)
@@ -34719,7 +34719,7 @@ func (ec *executionContext) _Review_booking(ctx context.Context, field graphql.C
 			return obj.Booking, nil
 		},
 		nil,
-		ec.marshalOBooking2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking,
+		ec.marshalOBooking2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking,
 		true,
 		false,
 	)
@@ -34822,7 +34822,7 @@ func (ec *executionContext) _Review_reviewer(ctx context.Context, field graphql.
 			return obj.Reviewer, nil
 		},
 		nil,
-		ec.marshalOUser2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUser,
+		ec.marshalOUser2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUser,
 		true,
 		false,
 	)
@@ -34989,7 +34989,7 @@ func (ec *executionContext) _ReviewConnection_reviews(ctx context.Context, field
 			return obj.Reviews, nil
 		},
 		nil,
-		ec.marshalNReview2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐReviewᚄ,
+		ec.marshalNReview2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐReviewᚄ,
 		true,
 		true,
 	)
@@ -35092,7 +35092,7 @@ func (ec *executionContext) _ServiceDefinition_serviceType(ctx context.Context, 
 			return obj.ServiceType, nil
 		},
 		nil,
-		ec.marshalNServiceType2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceType,
+		ec.marshalNServiceType2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceType,
 		true,
 		true,
 	)
@@ -35788,7 +35788,7 @@ func (ec *executionContext) _ServiceRevenue_serviceType(ctx context.Context, fie
 			return obj.ServiceType, nil
 		},
 		nil,
-		ec.marshalNServiceType2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceType,
+		ec.marshalNServiceType2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceType,
 		true,
 		true,
 	)
@@ -35933,7 +35933,7 @@ func (ec *executionContext) _StripeConnectStatus_onboardingStatus(ctx context.Co
 			return obj.OnboardingStatus, nil
 		},
 		nil,
-		ec.marshalNConnectOnboardingStatus2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐConnectOnboardingStatus,
+		ec.marshalNConnectOnboardingStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐConnectOnboardingStatus,
 		true,
 		true,
 	)
@@ -36368,7 +36368,7 @@ func (ec *executionContext) _User_role(ctx context.Context, field graphql.Collec
 			return obj.Role, nil
 		},
 		nil,
-		ec.marshalNUserRole2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUserRole,
+		ec.marshalNUserRole2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUserRole,
 		true,
 		true,
 	)
@@ -36397,7 +36397,7 @@ func (ec *executionContext) _User_status(ctx context.Context, field graphql.Coll
 			return obj.Status, nil
 		},
 		nil,
-		ec.marshalNUserStatus2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUserStatus,
+		ec.marshalNUserStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUserStatus,
 		true,
 		true,
 	)
@@ -36484,7 +36484,7 @@ func (ec *executionContext) _User_cleanerProfile(ctx context.Context, field grap
 			return ec.resolvers.User().CleanerProfile(ctx, obj)
 		},
 		nil,
-		ec.marshalOCleanerProfile2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerProfile,
+		ec.marshalOCleanerProfile2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerProfile,
 		true,
 		false,
 	)
@@ -36549,7 +36549,7 @@ func (ec *executionContext) _UserConnection_users(ctx context.Context, field gra
 			return obj.Users, nil
 		},
 		nil,
-		ec.marshalNUser2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUserᚄ,
+		ec.marshalNUser2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUserᚄ,
 		true,
 		true,
 	)
@@ -36658,7 +36658,7 @@ func (ec *executionContext) _WaitlistLead_leadType(ctx context.Context, field gr
 			return obj.LeadType, nil
 		},
 		nil,
-		ec.marshalNWaitlistLeadType2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐWaitlistLeadType,
+		ec.marshalNWaitlistLeadType2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐWaitlistLeadType,
 		true,
 		true,
 	)
@@ -38740,7 +38740,7 @@ func (ec *executionContext) unmarshalInputCompanyApplicationInput(ctx context.Co
 			it.Cui = data
 		case "companyType":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("companyType"))
-			data, err := ec.unmarshalNCompanyType2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyType(ctx, v)
+			data, err := ec.unmarshalNCompanyType2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyType(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -38823,14 +38823,14 @@ func (ec *executionContext) unmarshalInputCreateBookingInput(ctx context.Context
 			it.AddressID = data
 		case "address":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("address"))
-			data, err := ec.unmarshalOAddAddressInput2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐAddAddressInput(ctx, v)
+			data, err := ec.unmarshalOAddAddressInput2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐAddAddressInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.Address = data
 		case "serviceType":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("serviceType"))
-			data, err := ec.unmarshalNServiceType2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceType(ctx, v)
+			data, err := ec.unmarshalNServiceType2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceType(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -38851,7 +38851,7 @@ func (ec *executionContext) unmarshalInputCreateBookingInput(ctx context.Context
 			it.ScheduledStartTime = data
 		case "timeSlots":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeSlots"))
-			data, err := ec.unmarshalOTimeSlotInput2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐTimeSlotInputᚄ(ctx, v)
+			data, err := ec.unmarshalOTimeSlotInput2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐTimeSlotInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -38900,7 +38900,7 @@ func (ec *executionContext) unmarshalInputCreateBookingInput(ctx context.Context
 			it.SpecialInstructions = data
 		case "extras":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("extras"))
-			data, err := ec.unmarshalOExtraInput2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐExtraInputᚄ(ctx, v)
+			data, err := ec.unmarshalOExtraInput2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐExtraInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -38942,7 +38942,7 @@ func (ec *executionContext) unmarshalInputCreateBookingInput(ctx context.Context
 			it.SuggestedStartTime = data
 		case "recurrence":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("recurrence"))
-			data, err := ec.unmarshalORecurrenceInput2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐRecurrenceInput(ctx, v)
+			data, err := ec.unmarshalORecurrenceInput2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐRecurrenceInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -38969,7 +38969,7 @@ func (ec *executionContext) unmarshalInputCreateServiceDefinitionInput(ctx conte
 		switch k {
 		case "serviceType":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("serviceType"))
-			data, err := ec.unmarshalNServiceType2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceType(ctx, v)
+			data, err := ec.unmarshalNServiceType2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceType(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -39217,7 +39217,7 @@ func (ec *executionContext) unmarshalInputJoinWaitlistInput(ctx context.Context,
 		switch k {
 		case "leadType":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("leadType"))
-			data, err := ec.unmarshalNWaitlistLeadType2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐWaitlistLeadType(ctx, v)
+			data, err := ec.unmarshalNWaitlistLeadType2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐWaitlistLeadType(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -39320,7 +39320,7 @@ func (ec *executionContext) unmarshalInputPriceEstimateInput(ctx context.Context
 		switch k {
 		case "serviceType":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("serviceType"))
-			data, err := ec.unmarshalNServiceType2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceType(ctx, v)
+			data, err := ec.unmarshalNServiceType2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceType(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -39362,7 +39362,7 @@ func (ec *executionContext) unmarshalInputPriceEstimateInput(ctx context.Context
 			it.HasPets = data
 		case "extras":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("extras"))
-			data, err := ec.unmarshalOExtraInput2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐExtraInputᚄ(ctx, v)
+			data, err := ec.unmarshalOExtraInput2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐExtraInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -39389,7 +39389,7 @@ func (ec *executionContext) unmarshalInputRecurrenceInput(ctx context.Context, o
 		switch k {
 		case "type":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
-			data, err := ec.unmarshalNRecurrenceType2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐRecurrenceType(ctx, v)
+			data, err := ec.unmarshalNRecurrenceType2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐRecurrenceType(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -39657,7 +39657,7 @@ func (ec *executionContext) unmarshalInputUpdateCompanyInput(ctx context.Context
 			it.MaxServiceRadiusKm = data
 		case "workSchedule":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("workSchedule"))
-			data, err := ec.unmarshalOWorkScheduleDayInput2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐWorkScheduleDayInputᚄ(ctx, v)
+			data, err := ec.unmarshalOWorkScheduleDayInput2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐWorkScheduleDayInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -47914,16 +47914,16 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) unmarshalNAddAddressInput2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐAddAddressInput(ctx context.Context, v any) (model.AddAddressInput, error) {
+func (ec *executionContext) unmarshalNAddAddressInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐAddAddressInput(ctx context.Context, v any) (model.AddAddressInput, error) {
 	res, err := ec.unmarshalInputAddAddressInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNAddress2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐAddress(ctx context.Context, sel ast.SelectionSet, v model.Address) graphql.Marshaler {
+func (ec *executionContext) marshalNAddress2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐAddress(ctx context.Context, sel ast.SelectionSet, v model.Address) graphql.Marshaler {
 	return ec._Address(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNAddress2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐAddressᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Address) graphql.Marshaler {
+func (ec *executionContext) marshalNAddress2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐAddressᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Address) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -47947,7 +47947,7 @@ func (ec *executionContext) marshalNAddress2ᚕᚖhelpmecleanᚑbackendᚋintern
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNAddress2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐAddress(ctx, sel, v[i])
+			ret[i] = ec.marshalNAddress2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐAddress(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -47967,7 +47967,7 @@ func (ec *executionContext) marshalNAddress2ᚕᚖhelpmecleanᚑbackendᚋintern
 	return ret
 }
 
-func (ec *executionContext) marshalNAddress2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐAddress(ctx context.Context, sel ast.SelectionSet, v *model.Address) graphql.Marshaler {
+func (ec *executionContext) marshalNAddress2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐAddress(ctx context.Context, sel ast.SelectionSet, v *model.Address) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -47977,16 +47977,16 @@ func (ec *executionContext) marshalNAddress2ᚖhelpmecleanᚑbackendᚋinternal�
 	return ec._Address(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNAdminUpdateCompanyInput2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐAdminUpdateCompanyInput(ctx context.Context, v any) (model.AdminUpdateCompanyInput, error) {
+func (ec *executionContext) unmarshalNAdminUpdateCompanyInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐAdminUpdateCompanyInput(ctx context.Context, v any) (model.AdminUpdateCompanyInput, error) {
 	res, err := ec.unmarshalInputAdminUpdateCompanyInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNAuthPayload2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐAuthPayload(ctx context.Context, sel ast.SelectionSet, v model.AuthPayload) graphql.Marshaler {
+func (ec *executionContext) marshalNAuthPayload2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐAuthPayload(ctx context.Context, sel ast.SelectionSet, v model.AuthPayload) graphql.Marshaler {
 	return ec._AuthPayload(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNAuthPayload2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐAuthPayload(ctx context.Context, sel ast.SelectionSet, v *model.AuthPayload) graphql.Marshaler {
+func (ec *executionContext) marshalNAuthPayload2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐAuthPayload(ctx context.Context, sel ast.SelectionSet, v *model.AuthPayload) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -47996,7 +47996,7 @@ func (ec *executionContext) marshalNAuthPayload2ᚖhelpmecleanᚑbackendᚋinter
 	return ec._AuthPayload(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNAvailabilitySlot2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐAvailabilitySlotᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.AvailabilitySlot) graphql.Marshaler {
+func (ec *executionContext) marshalNAvailabilitySlot2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐAvailabilitySlotᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.AvailabilitySlot) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -48020,7 +48020,7 @@ func (ec *executionContext) marshalNAvailabilitySlot2ᚕᚖhelpmecleanᚑbackend
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNAvailabilitySlot2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐAvailabilitySlot(ctx, sel, v[i])
+			ret[i] = ec.marshalNAvailabilitySlot2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐAvailabilitySlot(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -48040,7 +48040,7 @@ func (ec *executionContext) marshalNAvailabilitySlot2ᚕᚖhelpmecleanᚑbackend
 	return ret
 }
 
-func (ec *executionContext) marshalNAvailabilitySlot2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐAvailabilitySlot(ctx context.Context, sel ast.SelectionSet, v *model.AvailabilitySlot) graphql.Marshaler {
+func (ec *executionContext) marshalNAvailabilitySlot2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐAvailabilitySlot(ctx context.Context, sel ast.SelectionSet, v *model.AvailabilitySlot) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -48050,14 +48050,14 @@ func (ec *executionContext) marshalNAvailabilitySlot2ᚖhelpmecleanᚑbackendᚋ
 	return ec._AvailabilitySlot(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNAvailabilitySlotInput2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐAvailabilitySlotInputᚄ(ctx context.Context, v any) ([]*model.AvailabilitySlotInput, error) {
+func (ec *executionContext) unmarshalNAvailabilitySlotInput2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐAvailabilitySlotInputᚄ(ctx context.Context, v any) ([]*model.AvailabilitySlotInput, error) {
 	var vSlice []any
 	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.AvailabilitySlotInput, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNAvailabilitySlotInput2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐAvailabilitySlotInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNAvailabilitySlotInput2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐAvailabilitySlotInput(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -48065,21 +48065,21 @@ func (ec *executionContext) unmarshalNAvailabilitySlotInput2ᚕᚖhelpmecleanᚑ
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalNAvailabilitySlotInput2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐAvailabilitySlotInput(ctx context.Context, v any) (*model.AvailabilitySlotInput, error) {
+func (ec *executionContext) unmarshalNAvailabilitySlotInput2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐAvailabilitySlotInput(ctx context.Context, v any) (*model.AvailabilitySlotInput, error) {
 	res, err := ec.unmarshalInputAvailabilitySlotInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNBillingProfileInput2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBillingProfileInput(ctx context.Context, v any) (model.BillingProfileInput, error) {
+func (ec *executionContext) unmarshalNBillingProfileInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBillingProfileInput(ctx context.Context, v any) (model.BillingProfileInput, error) {
 	res, err := ec.unmarshalInputBillingProfileInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNBooking2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking(ctx context.Context, sel ast.SelectionSet, v model.Booking) graphql.Marshaler {
+func (ec *executionContext) marshalNBooking2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking(ctx context.Context, sel ast.SelectionSet, v model.Booking) graphql.Marshaler {
 	return ec._Booking(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNBooking2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Booking) graphql.Marshaler {
+func (ec *executionContext) marshalNBooking2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Booking) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -48103,7 +48103,7 @@ func (ec *executionContext) marshalNBooking2ᚕᚖhelpmecleanᚑbackendᚋintern
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNBooking2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking(ctx, sel, v[i])
+			ret[i] = ec.marshalNBooking2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -48123,7 +48123,7 @@ func (ec *executionContext) marshalNBooking2ᚕᚖhelpmecleanᚑbackendᚋintern
 	return ret
 }
 
-func (ec *executionContext) marshalNBooking2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking(ctx context.Context, sel ast.SelectionSet, v *model.Booking) graphql.Marshaler {
+func (ec *executionContext) marshalNBooking2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking(ctx context.Context, sel ast.SelectionSet, v *model.Booking) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -48133,11 +48133,11 @@ func (ec *executionContext) marshalNBooking2ᚖhelpmecleanᚑbackendᚋinternal�
 	return ec._Booking(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNBookingConnection2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingConnection(ctx context.Context, sel ast.SelectionSet, v model.BookingConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNBookingConnection2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingConnection(ctx context.Context, sel ast.SelectionSet, v model.BookingConnection) graphql.Marshaler {
 	return ec._BookingConnection(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNBookingConnection2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingConnection(ctx context.Context, sel ast.SelectionSet, v *model.BookingConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNBookingConnection2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingConnection(ctx context.Context, sel ast.SelectionSet, v *model.BookingConnection) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -48147,7 +48147,7 @@ func (ec *executionContext) marshalNBookingConnection2ᚖhelpmecleanᚑbackend�
 	return ec._BookingConnection(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNBookingExtra2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingExtraᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.BookingExtra) graphql.Marshaler {
+func (ec *executionContext) marshalNBookingExtra2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingExtraᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.BookingExtra) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -48171,7 +48171,7 @@ func (ec *executionContext) marshalNBookingExtra2ᚕᚖhelpmecleanᚑbackendᚋi
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNBookingExtra2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingExtra(ctx, sel, v[i])
+			ret[i] = ec.marshalNBookingExtra2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingExtra(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -48191,7 +48191,7 @@ func (ec *executionContext) marshalNBookingExtra2ᚕᚖhelpmecleanᚑbackendᚋi
 	return ret
 }
 
-func (ec *executionContext) marshalNBookingExtra2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingExtra(ctx context.Context, sel ast.SelectionSet, v *model.BookingExtra) graphql.Marshaler {
+func (ec *executionContext) marshalNBookingExtra2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingExtra(ctx context.Context, sel ast.SelectionSet, v *model.BookingExtra) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -48201,17 +48201,17 @@ func (ec *executionContext) marshalNBookingExtra2ᚖhelpmecleanᚑbackendᚋinte
 	return ec._BookingExtra(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNBookingStatus2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingStatus(ctx context.Context, v any) (model.BookingStatus, error) {
+func (ec *executionContext) unmarshalNBookingStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingStatus(ctx context.Context, v any) (model.BookingStatus, error) {
 	var res model.BookingStatus
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNBookingStatus2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingStatus(ctx context.Context, sel ast.SelectionSet, v model.BookingStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNBookingStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingStatus(ctx context.Context, sel ast.SelectionSet, v model.BookingStatus) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNBookingTimeSlot2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingTimeSlotᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.BookingTimeSlot) graphql.Marshaler {
+func (ec *executionContext) marshalNBookingTimeSlot2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingTimeSlotᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.BookingTimeSlot) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -48235,7 +48235,7 @@ func (ec *executionContext) marshalNBookingTimeSlot2ᚕᚖhelpmecleanᚑbackend�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNBookingTimeSlot2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingTimeSlot(ctx, sel, v[i])
+			ret[i] = ec.marshalNBookingTimeSlot2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingTimeSlot(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -48255,7 +48255,7 @@ func (ec *executionContext) marshalNBookingTimeSlot2ᚕᚖhelpmecleanᚑbackend�
 	return ret
 }
 
-func (ec *executionContext) marshalNBookingTimeSlot2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingTimeSlot(ctx context.Context, sel ast.SelectionSet, v *model.BookingTimeSlot) graphql.Marshaler {
+func (ec *executionContext) marshalNBookingTimeSlot2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingTimeSlot(ctx context.Context, sel ast.SelectionSet, v *model.BookingTimeSlot) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -48265,7 +48265,7 @@ func (ec *executionContext) marshalNBookingTimeSlot2ᚖhelpmecleanᚑbackendᚋi
 	return ec._BookingTimeSlot(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNBookingsByStatus2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingsByStatusᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.BookingsByStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNBookingsByStatus2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingsByStatusᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.BookingsByStatus) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -48289,7 +48289,7 @@ func (ec *executionContext) marshalNBookingsByStatus2ᚕᚖhelpmecleanᚑbackend
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNBookingsByStatus2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingsByStatus(ctx, sel, v[i])
+			ret[i] = ec.marshalNBookingsByStatus2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingsByStatus(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -48309,7 +48309,7 @@ func (ec *executionContext) marshalNBookingsByStatus2ᚕᚖhelpmecleanᚑbackend
 	return ret
 }
 
-func (ec *executionContext) marshalNBookingsByStatus2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingsByStatus(ctx context.Context, sel ast.SelectionSet, v *model.BookingsByStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNBookingsByStatus2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingsByStatus(ctx context.Context, sel ast.SelectionSet, v *model.BookingsByStatus) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -48335,11 +48335,11 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) marshalNChatMessage2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐChatMessage(ctx context.Context, sel ast.SelectionSet, v model.ChatMessage) graphql.Marshaler {
+func (ec *executionContext) marshalNChatMessage2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatMessage(ctx context.Context, sel ast.SelectionSet, v model.ChatMessage) graphql.Marshaler {
 	return ec._ChatMessage(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNChatMessage2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐChatMessageᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ChatMessage) graphql.Marshaler {
+func (ec *executionContext) marshalNChatMessage2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatMessageᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ChatMessage) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -48363,7 +48363,7 @@ func (ec *executionContext) marshalNChatMessage2ᚕᚖhelpmecleanᚑbackendᚋin
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNChatMessage2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐChatMessage(ctx, sel, v[i])
+			ret[i] = ec.marshalNChatMessage2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatMessage(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -48383,7 +48383,7 @@ func (ec *executionContext) marshalNChatMessage2ᚕᚖhelpmecleanᚑbackendᚋin
 	return ret
 }
 
-func (ec *executionContext) marshalNChatMessage2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐChatMessage(ctx context.Context, sel ast.SelectionSet, v *model.ChatMessage) graphql.Marshaler {
+func (ec *executionContext) marshalNChatMessage2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatMessage(ctx context.Context, sel ast.SelectionSet, v *model.ChatMessage) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -48393,7 +48393,7 @@ func (ec *executionContext) marshalNChatMessage2ᚖhelpmecleanᚑbackendᚋinter
 	return ec._ChatMessage(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNChatMessageConnection2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐChatMessageConnection(ctx context.Context, sel ast.SelectionSet, v *model.ChatMessageConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNChatMessageConnection2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatMessageConnection(ctx context.Context, sel ast.SelectionSet, v *model.ChatMessageConnection) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -48403,7 +48403,7 @@ func (ec *executionContext) marshalNChatMessageConnection2ᚖhelpmecleanᚑbacke
 	return ec._ChatMessageConnection(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNChatParticipant2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐChatParticipantᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ChatParticipant) graphql.Marshaler {
+func (ec *executionContext) marshalNChatParticipant2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatParticipantᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ChatParticipant) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -48427,7 +48427,7 @@ func (ec *executionContext) marshalNChatParticipant2ᚕᚖhelpmecleanᚑbackend�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNChatParticipant2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐChatParticipant(ctx, sel, v[i])
+			ret[i] = ec.marshalNChatParticipant2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatParticipant(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -48447,7 +48447,7 @@ func (ec *executionContext) marshalNChatParticipant2ᚕᚖhelpmecleanᚑbackend�
 	return ret
 }
 
-func (ec *executionContext) marshalNChatParticipant2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐChatParticipant(ctx context.Context, sel ast.SelectionSet, v *model.ChatParticipant) graphql.Marshaler {
+func (ec *executionContext) marshalNChatParticipant2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatParticipant(ctx context.Context, sel ast.SelectionSet, v *model.ChatParticipant) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -48457,11 +48457,11 @@ func (ec *executionContext) marshalNChatParticipant2ᚖhelpmecleanᚑbackendᚋi
 	return ec._ChatParticipant(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNChatRoom2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐChatRoom(ctx context.Context, sel ast.SelectionSet, v model.ChatRoom) graphql.Marshaler {
+func (ec *executionContext) marshalNChatRoom2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatRoom(ctx context.Context, sel ast.SelectionSet, v model.ChatRoom) graphql.Marshaler {
 	return ec._ChatRoom(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNChatRoom2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐChatRoomᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ChatRoom) graphql.Marshaler {
+func (ec *executionContext) marshalNChatRoom2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatRoomᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ChatRoom) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -48485,7 +48485,7 @@ func (ec *executionContext) marshalNChatRoom2ᚕᚖhelpmecleanᚑbackendᚋinter
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNChatRoom2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐChatRoom(ctx, sel, v[i])
+			ret[i] = ec.marshalNChatRoom2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatRoom(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -48505,7 +48505,7 @@ func (ec *executionContext) marshalNChatRoom2ᚕᚖhelpmecleanᚑbackendᚋinter
 	return ret
 }
 
-func (ec *executionContext) marshalNChatRoom2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐChatRoom(ctx context.Context, sel ast.SelectionSet, v *model.ChatRoom) graphql.Marshaler {
+func (ec *executionContext) marshalNChatRoom2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatRoom(ctx context.Context, sel ast.SelectionSet, v *model.ChatRoom) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -48515,11 +48515,11 @@ func (ec *executionContext) marshalNChatRoom2ᚖhelpmecleanᚑbackendᚋinternal
 	return ec._ChatRoom(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNCityArea2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCityArea(ctx context.Context, sel ast.SelectionSet, v model.CityArea) graphql.Marshaler {
+func (ec *executionContext) marshalNCityArea2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCityArea(ctx context.Context, sel ast.SelectionSet, v model.CityArea) graphql.Marshaler {
 	return ec._CityArea(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNCityArea2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCityAreaᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CityArea) graphql.Marshaler {
+func (ec *executionContext) marshalNCityArea2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCityAreaᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CityArea) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -48543,7 +48543,7 @@ func (ec *executionContext) marshalNCityArea2ᚕᚖhelpmecleanᚑbackendᚋinter
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNCityArea2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCityArea(ctx, sel, v[i])
+			ret[i] = ec.marshalNCityArea2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCityArea(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -48563,7 +48563,7 @@ func (ec *executionContext) marshalNCityArea2ᚕᚖhelpmecleanᚑbackendᚋinter
 	return ret
 }
 
-func (ec *executionContext) marshalNCityArea2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCityArea(ctx context.Context, sel ast.SelectionSet, v *model.CityArea) graphql.Marshaler {
+func (ec *executionContext) marshalNCityArea2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCityArea(ctx context.Context, sel ast.SelectionSet, v *model.CityArea) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -48573,7 +48573,7 @@ func (ec *executionContext) marshalNCityArea2ᚖhelpmecleanᚑbackendᚋinternal
 	return ec._CityArea(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNCleanerDailyEarnings2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerDailyEarningsᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CleanerDailyEarnings) graphql.Marshaler {
+func (ec *executionContext) marshalNCleanerDailyEarnings2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerDailyEarningsᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CleanerDailyEarnings) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -48597,7 +48597,7 @@ func (ec *executionContext) marshalNCleanerDailyEarnings2ᚕᚖhelpmecleanᚑbac
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNCleanerDailyEarnings2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerDailyEarnings(ctx, sel, v[i])
+			ret[i] = ec.marshalNCleanerDailyEarnings2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerDailyEarnings(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -48617,7 +48617,7 @@ func (ec *executionContext) marshalNCleanerDailyEarnings2ᚕᚖhelpmecleanᚑbac
 	return ret
 }
 
-func (ec *executionContext) marshalNCleanerDailyEarnings2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerDailyEarnings(ctx context.Context, sel ast.SelectionSet, v *model.CleanerDailyEarnings) graphql.Marshaler {
+func (ec *executionContext) marshalNCleanerDailyEarnings2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerDailyEarnings(ctx context.Context, sel ast.SelectionSet, v *model.CleanerDailyEarnings) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -48627,11 +48627,11 @@ func (ec *executionContext) marshalNCleanerDailyEarnings2ᚖhelpmecleanᚑbacken
 	return ec._CleanerDailyEarnings(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNCleanerDateOverride2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerDateOverride(ctx context.Context, sel ast.SelectionSet, v model.CleanerDateOverride) graphql.Marshaler {
+func (ec *executionContext) marshalNCleanerDateOverride2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerDateOverride(ctx context.Context, sel ast.SelectionSet, v model.CleanerDateOverride) graphql.Marshaler {
 	return ec._CleanerDateOverride(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNCleanerDateOverride2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerDateOverrideᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CleanerDateOverride) graphql.Marshaler {
+func (ec *executionContext) marshalNCleanerDateOverride2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerDateOverrideᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CleanerDateOverride) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -48655,7 +48655,7 @@ func (ec *executionContext) marshalNCleanerDateOverride2ᚕᚖhelpmecleanᚑback
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNCleanerDateOverride2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerDateOverride(ctx, sel, v[i])
+			ret[i] = ec.marshalNCleanerDateOverride2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerDateOverride(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -48675,7 +48675,7 @@ func (ec *executionContext) marshalNCleanerDateOverride2ᚕᚖhelpmecleanᚑback
 	return ret
 }
 
-func (ec *executionContext) marshalNCleanerDateOverride2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerDateOverride(ctx context.Context, sel ast.SelectionSet, v *model.CleanerDateOverride) graphql.Marshaler {
+func (ec *executionContext) marshalNCleanerDateOverride2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerDateOverride(ctx context.Context, sel ast.SelectionSet, v *model.CleanerDateOverride) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -48685,11 +48685,11 @@ func (ec *executionContext) marshalNCleanerDateOverride2ᚖhelpmecleanᚑbackend
 	return ec._CleanerDateOverride(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNCleanerDocument2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerDocument(ctx context.Context, sel ast.SelectionSet, v model.CleanerDocument) graphql.Marshaler {
+func (ec *executionContext) marshalNCleanerDocument2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerDocument(ctx context.Context, sel ast.SelectionSet, v model.CleanerDocument) graphql.Marshaler {
 	return ec._CleanerDocument(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNCleanerDocument2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerDocumentᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CleanerDocument) graphql.Marshaler {
+func (ec *executionContext) marshalNCleanerDocument2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerDocumentᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CleanerDocument) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -48713,7 +48713,7 @@ func (ec *executionContext) marshalNCleanerDocument2ᚕᚖhelpmecleanᚑbackend�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNCleanerDocument2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerDocument(ctx, sel, v[i])
+			ret[i] = ec.marshalNCleanerDocument2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerDocument(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -48733,7 +48733,7 @@ func (ec *executionContext) marshalNCleanerDocument2ᚕᚖhelpmecleanᚑbackend�
 	return ret
 }
 
-func (ec *executionContext) marshalNCleanerDocument2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerDocument(ctx context.Context, sel ast.SelectionSet, v *model.CleanerDocument) graphql.Marshaler {
+func (ec *executionContext) marshalNCleanerDocument2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerDocument(ctx context.Context, sel ast.SelectionSet, v *model.CleanerDocument) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -48743,11 +48743,11 @@ func (ec *executionContext) marshalNCleanerDocument2ᚖhelpmecleanᚑbackendᚋi
 	return ec._CleanerDocument(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNCleanerPerformance2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerPerformance(ctx context.Context, sel ast.SelectionSet, v model.CleanerPerformance) graphql.Marshaler {
+func (ec *executionContext) marshalNCleanerPerformance2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerPerformance(ctx context.Context, sel ast.SelectionSet, v model.CleanerPerformance) graphql.Marshaler {
 	return ec._CleanerPerformance(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNCleanerPerformance2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerPerformance(ctx context.Context, sel ast.SelectionSet, v *model.CleanerPerformance) graphql.Marshaler {
+func (ec *executionContext) marshalNCleanerPerformance2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerPerformance(ctx context.Context, sel ast.SelectionSet, v *model.CleanerPerformance) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -48757,11 +48757,11 @@ func (ec *executionContext) marshalNCleanerPerformance2ᚖhelpmecleanᚑbackend�
 	return ec._CleanerPerformance(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNCleanerProfile2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerProfile(ctx context.Context, sel ast.SelectionSet, v model.CleanerProfile) graphql.Marshaler {
+func (ec *executionContext) marshalNCleanerProfile2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerProfile(ctx context.Context, sel ast.SelectionSet, v model.CleanerProfile) graphql.Marshaler {
 	return ec._CleanerProfile(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNCleanerProfile2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerProfileᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CleanerProfile) graphql.Marshaler {
+func (ec *executionContext) marshalNCleanerProfile2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerProfileᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CleanerProfile) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -48785,7 +48785,7 @@ func (ec *executionContext) marshalNCleanerProfile2ᚕᚖhelpmecleanᚑbackend�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNCleanerProfile2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerProfile(ctx, sel, v[i])
+			ret[i] = ec.marshalNCleanerProfile2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerProfile(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -48805,7 +48805,7 @@ func (ec *executionContext) marshalNCleanerProfile2ᚕᚖhelpmecleanᚑbackend�
 	return ret
 }
 
-func (ec *executionContext) marshalNCleanerProfile2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerProfile(ctx context.Context, sel ast.SelectionSet, v *model.CleanerProfile) graphql.Marshaler {
+func (ec *executionContext) marshalNCleanerProfile2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerProfile(ctx context.Context, sel ast.SelectionSet, v *model.CleanerProfile) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -48815,11 +48815,11 @@ func (ec *executionContext) marshalNCleanerProfile2ᚖhelpmecleanᚑbackendᚋin
 	return ec._CleanerProfile(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNCleanerStats2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerStats(ctx context.Context, sel ast.SelectionSet, v model.CleanerStats) graphql.Marshaler {
+func (ec *executionContext) marshalNCleanerStats2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerStats(ctx context.Context, sel ast.SelectionSet, v model.CleanerStats) graphql.Marshaler {
 	return ec._CleanerStats(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNCleanerStats2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerStats(ctx context.Context, sel ast.SelectionSet, v *model.CleanerStats) graphql.Marshaler {
+func (ec *executionContext) marshalNCleanerStats2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerStats(ctx context.Context, sel ast.SelectionSet, v *model.CleanerStats) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -48829,17 +48829,17 @@ func (ec *executionContext) marshalNCleanerStats2ᚖhelpmecleanᚑbackendᚋinte
 	return ec._CleanerStats(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNCleanerStatus2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerStatus(ctx context.Context, v any) (model.CleanerStatus, error) {
+func (ec *executionContext) unmarshalNCleanerStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerStatus(ctx context.Context, v any) (model.CleanerStatus, error) {
 	var res model.CleanerStatus
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNCleanerStatus2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerStatus(ctx context.Context, sel ast.SelectionSet, v model.CleanerStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNCleanerStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerStatus(ctx context.Context, sel ast.SelectionSet, v model.CleanerStatus) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNCleanerSuggestion2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerSuggestionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CleanerSuggestion) graphql.Marshaler {
+func (ec *executionContext) marshalNCleanerSuggestion2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerSuggestionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CleanerSuggestion) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -48863,7 +48863,7 @@ func (ec *executionContext) marshalNCleanerSuggestion2ᚕᚖhelpmecleanᚑbacken
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNCleanerSuggestion2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerSuggestion(ctx, sel, v[i])
+			ret[i] = ec.marshalNCleanerSuggestion2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerSuggestion(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -48883,7 +48883,7 @@ func (ec *executionContext) marshalNCleanerSuggestion2ᚕᚖhelpmecleanᚑbacken
 	return ret
 }
 
-func (ec *executionContext) marshalNCleanerSuggestion2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerSuggestion(ctx context.Context, sel ast.SelectionSet, v *model.CleanerSuggestion) graphql.Marshaler {
+func (ec *executionContext) marshalNCleanerSuggestion2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerSuggestion(ctx context.Context, sel ast.SelectionSet, v *model.CleanerSuggestion) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -48893,11 +48893,11 @@ func (ec *executionContext) marshalNCleanerSuggestion2ᚖhelpmecleanᚑbackend�
 	return ec._CleanerSuggestion(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNClientBillingProfile2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐClientBillingProfile(ctx context.Context, sel ast.SelectionSet, v model.ClientBillingProfile) graphql.Marshaler {
+func (ec *executionContext) marshalNClientBillingProfile2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐClientBillingProfile(ctx context.Context, sel ast.SelectionSet, v model.ClientBillingProfile) graphql.Marshaler {
 	return ec._ClientBillingProfile(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNClientBillingProfile2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐClientBillingProfile(ctx context.Context, sel ast.SelectionSet, v *model.ClientBillingProfile) graphql.Marshaler {
+func (ec *executionContext) marshalNClientBillingProfile2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐClientBillingProfile(ctx context.Context, sel ast.SelectionSet, v *model.ClientBillingProfile) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -48907,11 +48907,11 @@ func (ec *executionContext) marshalNClientBillingProfile2ᚖhelpmecleanᚑbacken
 	return ec._ClientBillingProfile(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNCompany2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany(ctx context.Context, sel ast.SelectionSet, v model.Company) graphql.Marshaler {
+func (ec *executionContext) marshalNCompany2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany(ctx context.Context, sel ast.SelectionSet, v model.Company) graphql.Marshaler {
 	return ec._Company(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNCompany2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Company) graphql.Marshaler {
+func (ec *executionContext) marshalNCompany2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Company) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -48935,7 +48935,7 @@ func (ec *executionContext) marshalNCompany2ᚕᚖhelpmecleanᚑbackendᚋintern
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNCompany2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany(ctx, sel, v[i])
+			ret[i] = ec.marshalNCompany2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -48955,7 +48955,7 @@ func (ec *executionContext) marshalNCompany2ᚕᚖhelpmecleanᚑbackendᚋintern
 	return ret
 }
 
-func (ec *executionContext) marshalNCompany2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany(ctx context.Context, sel ast.SelectionSet, v *model.Company) graphql.Marshaler {
+func (ec *executionContext) marshalNCompany2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany(ctx context.Context, sel ast.SelectionSet, v *model.Company) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -48965,16 +48965,16 @@ func (ec *executionContext) marshalNCompany2ᚖhelpmecleanᚑbackendᚋinternal�
 	return ec._Company(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNCompanyApplicationInput2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyApplicationInput(ctx context.Context, v any) (model.CompanyApplicationInput, error) {
+func (ec *executionContext) unmarshalNCompanyApplicationInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyApplicationInput(ctx context.Context, v any) (model.CompanyApplicationInput, error) {
 	res, err := ec.unmarshalInputCompanyApplicationInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNCompanyApplicationResult2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyApplicationResult(ctx context.Context, sel ast.SelectionSet, v model.CompanyApplicationResult) graphql.Marshaler {
+func (ec *executionContext) marshalNCompanyApplicationResult2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyApplicationResult(ctx context.Context, sel ast.SelectionSet, v model.CompanyApplicationResult) graphql.Marshaler {
 	return ec._CompanyApplicationResult(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNCompanyApplicationResult2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyApplicationResult(ctx context.Context, sel ast.SelectionSet, v *model.CompanyApplicationResult) graphql.Marshaler {
+func (ec *executionContext) marshalNCompanyApplicationResult2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyApplicationResult(ctx context.Context, sel ast.SelectionSet, v *model.CompanyApplicationResult) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -48984,11 +48984,11 @@ func (ec *executionContext) marshalNCompanyApplicationResult2ᚖhelpmecleanᚑba
 	return ec._CompanyApplicationResult(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNCompanyConnection2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyConnection(ctx context.Context, sel ast.SelectionSet, v model.CompanyConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNCompanyConnection2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyConnection(ctx context.Context, sel ast.SelectionSet, v model.CompanyConnection) graphql.Marshaler {
 	return ec._CompanyConnection(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNCompanyConnection2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyConnection(ctx context.Context, sel ast.SelectionSet, v *model.CompanyConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNCompanyConnection2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyConnection(ctx context.Context, sel ast.SelectionSet, v *model.CompanyConnection) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -48998,11 +48998,11 @@ func (ec *executionContext) marshalNCompanyConnection2ᚖhelpmecleanᚑbackend�
 	return ec._CompanyConnection(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNCompanyDocument2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyDocument(ctx context.Context, sel ast.SelectionSet, v model.CompanyDocument) graphql.Marshaler {
+func (ec *executionContext) marshalNCompanyDocument2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyDocument(ctx context.Context, sel ast.SelectionSet, v model.CompanyDocument) graphql.Marshaler {
 	return ec._CompanyDocument(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNCompanyDocument2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyDocumentᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CompanyDocument) graphql.Marshaler {
+func (ec *executionContext) marshalNCompanyDocument2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyDocumentᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CompanyDocument) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -49026,7 +49026,7 @@ func (ec *executionContext) marshalNCompanyDocument2ᚕᚖhelpmecleanᚑbackend�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNCompanyDocument2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyDocument(ctx, sel, v[i])
+			ret[i] = ec.marshalNCompanyDocument2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyDocument(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -49046,7 +49046,7 @@ func (ec *executionContext) marshalNCompanyDocument2ᚕᚖhelpmecleanᚑbackend�
 	return ret
 }
 
-func (ec *executionContext) marshalNCompanyDocument2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyDocument(ctx context.Context, sel ast.SelectionSet, v *model.CompanyDocument) graphql.Marshaler {
+func (ec *executionContext) marshalNCompanyDocument2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyDocument(ctx context.Context, sel ast.SelectionSet, v *model.CompanyDocument) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -49056,11 +49056,11 @@ func (ec *executionContext) marshalNCompanyDocument2ᚖhelpmecleanᚑbackendᚋi
 	return ec._CompanyDocument(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNCompanyEarningsSummary2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyEarningsSummary(ctx context.Context, sel ast.SelectionSet, v model.CompanyEarningsSummary) graphql.Marshaler {
+func (ec *executionContext) marshalNCompanyEarningsSummary2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyEarningsSummary(ctx context.Context, sel ast.SelectionSet, v model.CompanyEarningsSummary) graphql.Marshaler {
 	return ec._CompanyEarningsSummary(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNCompanyEarningsSummary2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyEarningsSummary(ctx context.Context, sel ast.SelectionSet, v *model.CompanyEarningsSummary) graphql.Marshaler {
+func (ec *executionContext) marshalNCompanyEarningsSummary2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyEarningsSummary(ctx context.Context, sel ast.SelectionSet, v *model.CompanyEarningsSummary) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -49070,11 +49070,11 @@ func (ec *executionContext) marshalNCompanyEarningsSummary2ᚖhelpmecleanᚑback
 	return ec._CompanyEarningsSummary(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNCompanyFinancialSummary2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyFinancialSummary(ctx context.Context, sel ast.SelectionSet, v model.CompanyFinancialSummary) graphql.Marshaler {
+func (ec *executionContext) marshalNCompanyFinancialSummary2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyFinancialSummary(ctx context.Context, sel ast.SelectionSet, v model.CompanyFinancialSummary) graphql.Marshaler {
 	return ec._CompanyFinancialSummary(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNCompanyFinancialSummary2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyFinancialSummary(ctx context.Context, sel ast.SelectionSet, v *model.CompanyFinancialSummary) graphql.Marshaler {
+func (ec *executionContext) marshalNCompanyFinancialSummary2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyFinancialSummary(ctx context.Context, sel ast.SelectionSet, v *model.CompanyFinancialSummary) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -49084,11 +49084,11 @@ func (ec *executionContext) marshalNCompanyFinancialSummary2ᚖhelpmecleanᚑbac
 	return ec._CompanyFinancialSummary(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNCompanyPayout2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyPayout(ctx context.Context, sel ast.SelectionSet, v model.CompanyPayout) graphql.Marshaler {
+func (ec *executionContext) marshalNCompanyPayout2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyPayout(ctx context.Context, sel ast.SelectionSet, v model.CompanyPayout) graphql.Marshaler {
 	return ec._CompanyPayout(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNCompanyPayout2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyPayoutᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CompanyPayout) graphql.Marshaler {
+func (ec *executionContext) marshalNCompanyPayout2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyPayoutᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CompanyPayout) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -49112,7 +49112,7 @@ func (ec *executionContext) marshalNCompanyPayout2ᚕᚖhelpmecleanᚑbackendᚋ
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNCompanyPayout2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyPayout(ctx, sel, v[i])
+			ret[i] = ec.marshalNCompanyPayout2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyPayout(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -49132,7 +49132,7 @@ func (ec *executionContext) marshalNCompanyPayout2ᚕᚖhelpmecleanᚑbackendᚋ
 	return ret
 }
 
-func (ec *executionContext) marshalNCompanyPayout2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyPayout(ctx context.Context, sel ast.SelectionSet, v *model.CompanyPayout) graphql.Marshaler {
+func (ec *executionContext) marshalNCompanyPayout2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyPayout(ctx context.Context, sel ast.SelectionSet, v *model.CompanyPayout) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -49142,7 +49142,7 @@ func (ec *executionContext) marshalNCompanyPayout2ᚖhelpmecleanᚑbackendᚋint
 	return ec._CompanyPayout(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNCompanyPerformance2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyPerformanceᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CompanyPerformance) graphql.Marshaler {
+func (ec *executionContext) marshalNCompanyPerformance2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyPerformanceᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CompanyPerformance) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -49166,7 +49166,7 @@ func (ec *executionContext) marshalNCompanyPerformance2ᚕᚖhelpmecleanᚑbacke
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNCompanyPerformance2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyPerformance(ctx, sel, v[i])
+			ret[i] = ec.marshalNCompanyPerformance2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyPerformance(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -49186,7 +49186,7 @@ func (ec *executionContext) marshalNCompanyPerformance2ᚕᚖhelpmecleanᚑbacke
 	return ret
 }
 
-func (ec *executionContext) marshalNCompanyPerformance2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyPerformance(ctx context.Context, sel ast.SelectionSet, v *model.CompanyPerformance) graphql.Marshaler {
+func (ec *executionContext) marshalNCompanyPerformance2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyPerformance(ctx context.Context, sel ast.SelectionSet, v *model.CompanyPerformance) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -49196,27 +49196,27 @@ func (ec *executionContext) marshalNCompanyPerformance2ᚖhelpmecleanᚑbackend�
 	return ec._CompanyPerformance(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNCompanyStatus2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyStatus(ctx context.Context, v any) (model.CompanyStatus, error) {
+func (ec *executionContext) unmarshalNCompanyStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyStatus(ctx context.Context, v any) (model.CompanyStatus, error) {
 	var res model.CompanyStatus
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNCompanyStatus2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyStatus(ctx context.Context, sel ast.SelectionSet, v model.CompanyStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNCompanyStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyStatus(ctx context.Context, sel ast.SelectionSet, v model.CompanyStatus) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) unmarshalNCompanyType2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyType(ctx context.Context, v any) (model.CompanyType, error) {
+func (ec *executionContext) unmarshalNCompanyType2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyType(ctx context.Context, v any) (model.CompanyType, error) {
 	var res model.CompanyType
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNCompanyType2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyType(ctx context.Context, sel ast.SelectionSet, v model.CompanyType) graphql.Marshaler {
+func (ec *executionContext) marshalNCompanyType2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyType(ctx context.Context, sel ast.SelectionSet, v model.CompanyType) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNCompanyWorkSchedule2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyWorkScheduleᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CompanyWorkSchedule) graphql.Marshaler {
+func (ec *executionContext) marshalNCompanyWorkSchedule2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyWorkScheduleᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CompanyWorkSchedule) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -49240,7 +49240,7 @@ func (ec *executionContext) marshalNCompanyWorkSchedule2ᚕᚖhelpmecleanᚑback
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNCompanyWorkSchedule2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyWorkSchedule(ctx, sel, v[i])
+			ret[i] = ec.marshalNCompanyWorkSchedule2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyWorkSchedule(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -49260,7 +49260,7 @@ func (ec *executionContext) marshalNCompanyWorkSchedule2ᚕᚖhelpmecleanᚑback
 	return ret
 }
 
-func (ec *executionContext) marshalNCompanyWorkSchedule2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyWorkSchedule(ctx context.Context, sel ast.SelectionSet, v *model.CompanyWorkSchedule) graphql.Marshaler {
+func (ec *executionContext) marshalNCompanyWorkSchedule2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyWorkSchedule(ctx context.Context, sel ast.SelectionSet, v *model.CompanyWorkSchedule) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -49270,11 +49270,11 @@ func (ec *executionContext) marshalNCompanyWorkSchedule2ᚖhelpmecleanᚑbackend
 	return ec._CompanyWorkSchedule(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNConnectOnboardingLink2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐConnectOnboardingLink(ctx context.Context, sel ast.SelectionSet, v model.ConnectOnboardingLink) graphql.Marshaler {
+func (ec *executionContext) marshalNConnectOnboardingLink2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐConnectOnboardingLink(ctx context.Context, sel ast.SelectionSet, v model.ConnectOnboardingLink) graphql.Marshaler {
 	return ec._ConnectOnboardingLink(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNConnectOnboardingLink2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐConnectOnboardingLink(ctx context.Context, sel ast.SelectionSet, v *model.ConnectOnboardingLink) graphql.Marshaler {
+func (ec *executionContext) marshalNConnectOnboardingLink2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐConnectOnboardingLink(ctx context.Context, sel ast.SelectionSet, v *model.ConnectOnboardingLink) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -49284,32 +49284,32 @@ func (ec *executionContext) marshalNConnectOnboardingLink2ᚖhelpmecleanᚑbacke
 	return ec._ConnectOnboardingLink(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNConnectOnboardingStatus2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐConnectOnboardingStatus(ctx context.Context, v any) (model.ConnectOnboardingStatus, error) {
+func (ec *executionContext) unmarshalNConnectOnboardingStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐConnectOnboardingStatus(ctx context.Context, v any) (model.ConnectOnboardingStatus, error) {
 	var res model.ConnectOnboardingStatus
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNConnectOnboardingStatus2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐConnectOnboardingStatus(ctx context.Context, sel ast.SelectionSet, v model.ConnectOnboardingStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNConnectOnboardingStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐConnectOnboardingStatus(ctx context.Context, sel ast.SelectionSet, v model.ConnectOnboardingStatus) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) unmarshalNCreateBookingInput2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCreateBookingInput(ctx context.Context, v any) (model.CreateBookingInput, error) {
+func (ec *executionContext) unmarshalNCreateBookingInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCreateBookingInput(ctx context.Context, v any) (model.CreateBookingInput, error) {
 	res, err := ec.unmarshalInputCreateBookingInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNCreateServiceDefinitionInput2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCreateServiceDefinitionInput(ctx context.Context, v any) (model.CreateServiceDefinitionInput, error) {
+func (ec *executionContext) unmarshalNCreateServiceDefinitionInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCreateServiceDefinitionInput(ctx context.Context, v any) (model.CreateServiceDefinitionInput, error) {
 	res, err := ec.unmarshalInputCreateServiceDefinitionInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNCreateServiceExtraInput2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCreateServiceExtraInput(ctx context.Context, v any) (model.CreateServiceExtraInput, error) {
+func (ec *executionContext) unmarshalNCreateServiceExtraInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCreateServiceExtraInput(ctx context.Context, v any) (model.CreateServiceExtraInput, error) {
 	res, err := ec.unmarshalInputCreateServiceExtraInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNDailyRevenue2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐDailyRevenueᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.DailyRevenue) graphql.Marshaler {
+func (ec *executionContext) marshalNDailyRevenue2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐDailyRevenueᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.DailyRevenue) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -49333,7 +49333,7 @@ func (ec *executionContext) marshalNDailyRevenue2ᚕᚖhelpmecleanᚑbackendᚋi
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNDailyRevenue2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐDailyRevenue(ctx, sel, v[i])
+			ret[i] = ec.marshalNDailyRevenue2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐDailyRevenue(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -49353,7 +49353,7 @@ func (ec *executionContext) marshalNDailyRevenue2ᚕᚖhelpmecleanᚑbackendᚋi
 	return ret
 }
 
-func (ec *executionContext) marshalNDailyRevenue2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐDailyRevenue(ctx context.Context, sel ast.SelectionSet, v *model.DailyRevenue) graphql.Marshaler {
+func (ec *executionContext) marshalNDailyRevenue2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐDailyRevenue(ctx context.Context, sel ast.SelectionSet, v *model.DailyRevenue) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -49379,21 +49379,21 @@ func (ec *executionContext) marshalNDateTime2timeᚐTime(ctx context.Context, se
 	return res
 }
 
-func (ec *executionContext) unmarshalNDocumentStatus2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐDocumentStatus(ctx context.Context, v any) (model.DocumentStatus, error) {
+func (ec *executionContext) unmarshalNDocumentStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐDocumentStatus(ctx context.Context, v any) (model.DocumentStatus, error) {
 	var res model.DocumentStatus
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNDocumentStatus2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐDocumentStatus(ctx context.Context, sel ast.SelectionSet, v model.DocumentStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNDocumentStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐDocumentStatus(ctx context.Context, sel ast.SelectionSet, v model.DocumentStatus) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNEnabledCity2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐEnabledCity(ctx context.Context, sel ast.SelectionSet, v model.EnabledCity) graphql.Marshaler {
+func (ec *executionContext) marshalNEnabledCity2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐEnabledCity(ctx context.Context, sel ast.SelectionSet, v model.EnabledCity) graphql.Marshaler {
 	return ec._EnabledCity(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNEnabledCity2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐEnabledCityᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.EnabledCity) graphql.Marshaler {
+func (ec *executionContext) marshalNEnabledCity2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐEnabledCityᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.EnabledCity) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -49417,7 +49417,7 @@ func (ec *executionContext) marshalNEnabledCity2ᚕᚖhelpmecleanᚑbackendᚋin
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNEnabledCity2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐEnabledCity(ctx, sel, v[i])
+			ret[i] = ec.marshalNEnabledCity2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐEnabledCity(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -49437,7 +49437,7 @@ func (ec *executionContext) marshalNEnabledCity2ᚕᚖhelpmecleanᚑbackendᚋin
 	return ret
 }
 
-func (ec *executionContext) marshalNEnabledCity2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐEnabledCity(ctx context.Context, sel ast.SelectionSet, v *model.EnabledCity) graphql.Marshaler {
+func (ec *executionContext) marshalNEnabledCity2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐEnabledCity(ctx context.Context, sel ast.SelectionSet, v *model.EnabledCity) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -49447,12 +49447,12 @@ func (ec *executionContext) marshalNEnabledCity2ᚖhelpmecleanᚑbackendᚋinter
 	return ec._EnabledCity(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNExtraInput2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐExtraInput(ctx context.Context, v any) (*model.ExtraInput, error) {
+func (ec *executionContext) unmarshalNExtraInput2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐExtraInput(ctx context.Context, v any) (*model.ExtraInput, error) {
 	res, err := ec.unmarshalInputExtraInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNExtraLineItem2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐExtraLineItemᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ExtraLineItem) graphql.Marshaler {
+func (ec *executionContext) marshalNExtraLineItem2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐExtraLineItemᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ExtraLineItem) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -49476,7 +49476,7 @@ func (ec *executionContext) marshalNExtraLineItem2ᚕᚖhelpmecleanᚑbackendᚋ
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNExtraLineItem2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐExtraLineItem(ctx, sel, v[i])
+			ret[i] = ec.marshalNExtraLineItem2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐExtraLineItem(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -49496,7 +49496,7 @@ func (ec *executionContext) marshalNExtraLineItem2ᚕᚖhelpmecleanᚑbackendᚋ
 	return ret
 }
 
-func (ec *executionContext) marshalNExtraLineItem2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐExtraLineItem(ctx context.Context, sel ast.SelectionSet, v *model.ExtraLineItem) graphql.Marshaler {
+func (ec *executionContext) marshalNExtraLineItem2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐExtraLineItem(ctx context.Context, sel ast.SelectionSet, v *model.ExtraLineItem) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -49584,16 +49584,16 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
-func (ec *executionContext) unmarshalNInviteCleanerInput2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInviteCleanerInput(ctx context.Context, v any) (model.InviteCleanerInput, error) {
+func (ec *executionContext) unmarshalNInviteCleanerInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInviteCleanerInput(ctx context.Context, v any) (model.InviteCleanerInput, error) {
 	res, err := ec.unmarshalInputInviteCleanerInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNInvoice2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoice(ctx context.Context, sel ast.SelectionSet, v model.Invoice) graphql.Marshaler {
+func (ec *executionContext) marshalNInvoice2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoice(ctx context.Context, sel ast.SelectionSet, v model.Invoice) graphql.Marshaler {
 	return ec._Invoice(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNInvoice2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Invoice) graphql.Marshaler {
+func (ec *executionContext) marshalNInvoice2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Invoice) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -49617,7 +49617,7 @@ func (ec *executionContext) marshalNInvoice2ᚕᚖhelpmecleanᚑbackendᚋintern
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNInvoice2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoice(ctx, sel, v[i])
+			ret[i] = ec.marshalNInvoice2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoice(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -49637,7 +49637,7 @@ func (ec *executionContext) marshalNInvoice2ᚕᚖhelpmecleanᚑbackendᚋintern
 	return ret
 }
 
-func (ec *executionContext) marshalNInvoice2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoice(ctx context.Context, sel ast.SelectionSet, v *model.Invoice) graphql.Marshaler {
+func (ec *executionContext) marshalNInvoice2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoice(ctx context.Context, sel ast.SelectionSet, v *model.Invoice) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -49647,11 +49647,11 @@ func (ec *executionContext) marshalNInvoice2ᚖhelpmecleanᚑbackendᚋinternal�
 	return ec._Invoice(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNInvoiceAnalytics2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceAnalytics(ctx context.Context, sel ast.SelectionSet, v model.InvoiceAnalytics) graphql.Marshaler {
+func (ec *executionContext) marshalNInvoiceAnalytics2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceAnalytics(ctx context.Context, sel ast.SelectionSet, v model.InvoiceAnalytics) graphql.Marshaler {
 	return ec._InvoiceAnalytics(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNInvoiceAnalytics2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceAnalytics(ctx context.Context, sel ast.SelectionSet, v *model.InvoiceAnalytics) graphql.Marshaler {
+func (ec *executionContext) marshalNInvoiceAnalytics2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceAnalytics(ctx context.Context, sel ast.SelectionSet, v *model.InvoiceAnalytics) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -49661,11 +49661,11 @@ func (ec *executionContext) marshalNInvoiceAnalytics2ᚖhelpmecleanᚑbackendᚋ
 	return ec._InvoiceAnalytics(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNInvoiceConnection2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceConnection(ctx context.Context, sel ast.SelectionSet, v model.InvoiceConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNInvoiceConnection2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceConnection(ctx context.Context, sel ast.SelectionSet, v model.InvoiceConnection) graphql.Marshaler {
 	return ec._InvoiceConnection(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNInvoiceConnection2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceConnection(ctx context.Context, sel ast.SelectionSet, v *model.InvoiceConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNInvoiceConnection2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceConnection(ctx context.Context, sel ast.SelectionSet, v *model.InvoiceConnection) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -49675,7 +49675,7 @@ func (ec *executionContext) marshalNInvoiceConnection2ᚖhelpmecleanᚑbackend�
 	return ec._InvoiceConnection(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNInvoiceLineItem2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceLineItemᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.InvoiceLineItem) graphql.Marshaler {
+func (ec *executionContext) marshalNInvoiceLineItem2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceLineItemᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.InvoiceLineItem) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -49699,7 +49699,7 @@ func (ec *executionContext) marshalNInvoiceLineItem2ᚕᚖhelpmecleanᚑbackend�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNInvoiceLineItem2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceLineItem(ctx, sel, v[i])
+			ret[i] = ec.marshalNInvoiceLineItem2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceLineItem(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -49719,7 +49719,7 @@ func (ec *executionContext) marshalNInvoiceLineItem2ᚕᚖhelpmecleanᚑbackend�
 	return ret
 }
 
-func (ec *executionContext) marshalNInvoiceLineItem2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceLineItem(ctx context.Context, sel ast.SelectionSet, v *model.InvoiceLineItem) graphql.Marshaler {
+func (ec *executionContext) marshalNInvoiceLineItem2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceLineItem(ctx context.Context, sel ast.SelectionSet, v *model.InvoiceLineItem) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -49729,17 +49729,17 @@ func (ec *executionContext) marshalNInvoiceLineItem2ᚖhelpmecleanᚑbackendᚋi
 	return ec._InvoiceLineItem(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNInvoiceStatus2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceStatus(ctx context.Context, v any) (model.InvoiceStatus, error) {
+func (ec *executionContext) unmarshalNInvoiceStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceStatus(ctx context.Context, v any) (model.InvoiceStatus, error) {
 	var res model.InvoiceStatus
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNInvoiceStatus2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceStatus(ctx context.Context, sel ast.SelectionSet, v model.InvoiceStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNInvoiceStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceStatus(ctx context.Context, sel ast.SelectionSet, v model.InvoiceStatus) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNInvoiceStatusCount2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceStatusCountᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.InvoiceStatusCount) graphql.Marshaler {
+func (ec *executionContext) marshalNInvoiceStatusCount2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceStatusCountᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.InvoiceStatusCount) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -49763,7 +49763,7 @@ func (ec *executionContext) marshalNInvoiceStatusCount2ᚕᚖhelpmecleanᚑbacke
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNInvoiceStatusCount2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceStatusCount(ctx, sel, v[i])
+			ret[i] = ec.marshalNInvoiceStatusCount2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceStatusCount(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -49783,7 +49783,7 @@ func (ec *executionContext) marshalNInvoiceStatusCount2ᚕᚖhelpmecleanᚑbacke
 	return ret
 }
 
-func (ec *executionContext) marshalNInvoiceStatusCount2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceStatusCount(ctx context.Context, sel ast.SelectionSet, v *model.InvoiceStatusCount) graphql.Marshaler {
+func (ec *executionContext) marshalNInvoiceStatusCount2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceStatusCount(ctx context.Context, sel ast.SelectionSet, v *model.InvoiceStatusCount) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -49793,17 +49793,17 @@ func (ec *executionContext) marshalNInvoiceStatusCount2ᚖhelpmecleanᚑbackend�
 	return ec._InvoiceStatusCount(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNInvoiceType2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceType(ctx context.Context, v any) (model.InvoiceType, error) {
+func (ec *executionContext) unmarshalNInvoiceType2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceType(ctx context.Context, v any) (model.InvoiceType, error) {
 	var res model.InvoiceType
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNInvoiceType2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceType(ctx context.Context, sel ast.SelectionSet, v model.InvoiceType) graphql.Marshaler {
+func (ec *executionContext) marshalNInvoiceType2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceType(ctx context.Context, sel ast.SelectionSet, v model.InvoiceType) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNInvoiceTypeCount2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceTypeCountᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.InvoiceTypeCount) graphql.Marshaler {
+func (ec *executionContext) marshalNInvoiceTypeCount2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceTypeCountᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.InvoiceTypeCount) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -49827,7 +49827,7 @@ func (ec *executionContext) marshalNInvoiceTypeCount2ᚕᚖhelpmecleanᚑbackend
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNInvoiceTypeCount2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceTypeCount(ctx, sel, v[i])
+			ret[i] = ec.marshalNInvoiceTypeCount2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceTypeCount(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -49847,7 +49847,7 @@ func (ec *executionContext) marshalNInvoiceTypeCount2ᚕᚖhelpmecleanᚑbackend
 	return ret
 }
 
-func (ec *executionContext) marshalNInvoiceTypeCount2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceTypeCount(ctx context.Context, sel ast.SelectionSet, v *model.InvoiceTypeCount) graphql.Marshaler {
+func (ec *executionContext) marshalNInvoiceTypeCount2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceTypeCount(ctx context.Context, sel ast.SelectionSet, v *model.InvoiceTypeCount) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -49857,16 +49857,16 @@ func (ec *executionContext) marshalNInvoiceTypeCount2ᚖhelpmecleanᚑbackendᚋ
 	return ec._InvoiceTypeCount(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNJoinWaitlistInput2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐJoinWaitlistInput(ctx context.Context, v any) (model.JoinWaitlistInput, error) {
+func (ec *executionContext) unmarshalNJoinWaitlistInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐJoinWaitlistInput(ctx context.Context, v any) (model.JoinWaitlistInput, error) {
 	res, err := ec.unmarshalInputJoinWaitlistInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNNotification2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐNotification(ctx context.Context, sel ast.SelectionSet, v model.Notification) graphql.Marshaler {
+func (ec *executionContext) marshalNNotification2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐNotification(ctx context.Context, sel ast.SelectionSet, v model.Notification) graphql.Marshaler {
 	return ec._Notification(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNNotification2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐNotificationᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Notification) graphql.Marshaler {
+func (ec *executionContext) marshalNNotification2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐNotificationᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Notification) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -49890,7 +49890,7 @@ func (ec *executionContext) marshalNNotification2ᚕᚖhelpmecleanᚑbackendᚋi
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNNotification2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐNotification(ctx, sel, v[i])
+			ret[i] = ec.marshalNNotification2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐNotification(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -49910,7 +49910,7 @@ func (ec *executionContext) marshalNNotification2ᚕᚖhelpmecleanᚑbackendᚋi
 	return ret
 }
 
-func (ec *executionContext) marshalNNotification2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐNotification(ctx context.Context, sel ast.SelectionSet, v *model.Notification) graphql.Marshaler {
+func (ec *executionContext) marshalNNotification2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐNotification(ctx context.Context, sel ast.SelectionSet, v *model.Notification) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -49920,11 +49920,11 @@ func (ec *executionContext) marshalNNotification2ᚖhelpmecleanᚑbackendᚋinte
 	return ec._Notification(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNNotificationConnection2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐNotificationConnection(ctx context.Context, sel ast.SelectionSet, v model.NotificationConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNNotificationConnection2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐNotificationConnection(ctx context.Context, sel ast.SelectionSet, v model.NotificationConnection) graphql.Marshaler {
 	return ec._NotificationConnection(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNNotificationConnection2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐNotificationConnection(ctx context.Context, sel ast.SelectionSet, v *model.NotificationConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNNotificationConnection2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐNotificationConnection(ctx context.Context, sel ast.SelectionSet, v *model.NotificationConnection) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -49934,7 +49934,7 @@ func (ec *executionContext) marshalNNotificationConnection2ᚖhelpmecleanᚑback
 	return ec._NotificationConnection(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNPageInfo2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v *model.PageInfo) graphql.Marshaler {
+func (ec *executionContext) marshalNPageInfo2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v *model.PageInfo) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -49944,11 +49944,11 @@ func (ec *executionContext) marshalNPageInfo2ᚖhelpmecleanᚑbackendᚋinternal
 	return ec._PageInfo(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNPaymentHistoryConnection2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentHistoryConnection(ctx context.Context, sel ast.SelectionSet, v model.PaymentHistoryConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNPaymentHistoryConnection2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentHistoryConnection(ctx context.Context, sel ast.SelectionSet, v model.PaymentHistoryConnection) graphql.Marshaler {
 	return ec._PaymentHistoryConnection(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNPaymentHistoryConnection2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentHistoryConnection(ctx context.Context, sel ast.SelectionSet, v *model.PaymentHistoryConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNPaymentHistoryConnection2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentHistoryConnection(ctx context.Context, sel ast.SelectionSet, v *model.PaymentHistoryConnection) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -49958,7 +49958,7 @@ func (ec *executionContext) marshalNPaymentHistoryConnection2ᚖhelpmecleanᚑba
 	return ec._PaymentHistoryConnection(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNPaymentHistoryEntry2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentHistoryEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PaymentHistoryEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNPaymentHistoryEntry2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentHistoryEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PaymentHistoryEntry) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -49982,7 +49982,7 @@ func (ec *executionContext) marshalNPaymentHistoryEntry2ᚕᚖhelpmecleanᚑback
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNPaymentHistoryEntry2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentHistoryEntry(ctx, sel, v[i])
+			ret[i] = ec.marshalNPaymentHistoryEntry2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentHistoryEntry(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -50002,7 +50002,7 @@ func (ec *executionContext) marshalNPaymentHistoryEntry2ᚕᚖhelpmecleanᚑback
 	return ret
 }
 
-func (ec *executionContext) marshalNPaymentHistoryEntry2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentHistoryEntry(ctx context.Context, sel ast.SelectionSet, v *model.PaymentHistoryEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNPaymentHistoryEntry2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentHistoryEntry(ctx context.Context, sel ast.SelectionSet, v *model.PaymentHistoryEntry) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -50012,11 +50012,11 @@ func (ec *executionContext) marshalNPaymentHistoryEntry2ᚖhelpmecleanᚑbackend
 	return ec._PaymentHistoryEntry(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNPaymentIntentResult2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentIntentResult(ctx context.Context, sel ast.SelectionSet, v model.PaymentIntentResult) graphql.Marshaler {
+func (ec *executionContext) marshalNPaymentIntentResult2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentIntentResult(ctx context.Context, sel ast.SelectionSet, v model.PaymentIntentResult) graphql.Marshaler {
 	return ec._PaymentIntentResult(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNPaymentIntentResult2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentIntentResult(ctx context.Context, sel ast.SelectionSet, v *model.PaymentIntentResult) graphql.Marshaler {
+func (ec *executionContext) marshalNPaymentIntentResult2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentIntentResult(ctx context.Context, sel ast.SelectionSet, v *model.PaymentIntentResult) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -50026,11 +50026,11 @@ func (ec *executionContext) marshalNPaymentIntentResult2ᚖhelpmecleanᚑbackend
 	return ec._PaymentIntentResult(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNPaymentMethod2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentMethod(ctx context.Context, sel ast.SelectionSet, v model.PaymentMethod) graphql.Marshaler {
+func (ec *executionContext) marshalNPaymentMethod2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentMethod(ctx context.Context, sel ast.SelectionSet, v model.PaymentMethod) graphql.Marshaler {
 	return ec._PaymentMethod(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNPaymentMethod2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentMethodᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PaymentMethod) graphql.Marshaler {
+func (ec *executionContext) marshalNPaymentMethod2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentMethodᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PaymentMethod) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -50054,7 +50054,7 @@ func (ec *executionContext) marshalNPaymentMethod2ᚕᚖhelpmecleanᚑbackendᚋ
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNPaymentMethod2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentMethod(ctx, sel, v[i])
+			ret[i] = ec.marshalNPaymentMethod2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentMethod(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -50074,7 +50074,7 @@ func (ec *executionContext) marshalNPaymentMethod2ᚕᚖhelpmecleanᚑbackendᚋ
 	return ret
 }
 
-func (ec *executionContext) marshalNPaymentMethod2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentMethod(ctx context.Context, sel ast.SelectionSet, v *model.PaymentMethod) graphql.Marshaler {
+func (ec *executionContext) marshalNPaymentMethod2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentMethod(ctx context.Context, sel ast.SelectionSet, v *model.PaymentMethod) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -50084,7 +50084,7 @@ func (ec *executionContext) marshalNPaymentMethod2ᚖhelpmecleanᚑbackendᚋint
 	return ec._PaymentMethod(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNPaymentTransaction2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentTransactionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PaymentTransaction) graphql.Marshaler {
+func (ec *executionContext) marshalNPaymentTransaction2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentTransactionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PaymentTransaction) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -50108,7 +50108,7 @@ func (ec *executionContext) marshalNPaymentTransaction2ᚕᚖhelpmecleanᚑbacke
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNPaymentTransaction2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentTransaction(ctx, sel, v[i])
+			ret[i] = ec.marshalNPaymentTransaction2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentTransaction(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -50128,7 +50128,7 @@ func (ec *executionContext) marshalNPaymentTransaction2ᚕᚖhelpmecleanᚑbacke
 	return ret
 }
 
-func (ec *executionContext) marshalNPaymentTransaction2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentTransaction(ctx context.Context, sel ast.SelectionSet, v *model.PaymentTransaction) graphql.Marshaler {
+func (ec *executionContext) marshalNPaymentTransaction2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentTransaction(ctx context.Context, sel ast.SelectionSet, v *model.PaymentTransaction) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -50138,17 +50138,17 @@ func (ec *executionContext) marshalNPaymentTransaction2ᚖhelpmecleanᚑbackend�
 	return ec._PaymentTransaction(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNPaymentTransactionStatus2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentTransactionStatus(ctx context.Context, v any) (model.PaymentTransactionStatus, error) {
+func (ec *executionContext) unmarshalNPaymentTransactionStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentTransactionStatus(ctx context.Context, v any) (model.PaymentTransactionStatus, error) {
 	var res model.PaymentTransactionStatus
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNPaymentTransactionStatus2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentTransactionStatus(ctx context.Context, sel ast.SelectionSet, v model.PaymentTransactionStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNPaymentTransactionStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentTransactionStatus(ctx context.Context, sel ast.SelectionSet, v model.PaymentTransactionStatus) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNPayoutLineItem2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPayoutLineItemᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PayoutLineItem) graphql.Marshaler {
+func (ec *executionContext) marshalNPayoutLineItem2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPayoutLineItemᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PayoutLineItem) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -50172,7 +50172,7 @@ func (ec *executionContext) marshalNPayoutLineItem2ᚕᚖhelpmecleanᚑbackend�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNPayoutLineItem2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPayoutLineItem(ctx, sel, v[i])
+			ret[i] = ec.marshalNPayoutLineItem2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPayoutLineItem(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -50192,7 +50192,7 @@ func (ec *executionContext) marshalNPayoutLineItem2ᚕᚖhelpmecleanᚑbackend�
 	return ret
 }
 
-func (ec *executionContext) marshalNPayoutLineItem2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPayoutLineItem(ctx context.Context, sel ast.SelectionSet, v *model.PayoutLineItem) graphql.Marshaler {
+func (ec *executionContext) marshalNPayoutLineItem2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPayoutLineItem(ctx context.Context, sel ast.SelectionSet, v *model.PayoutLineItem) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -50202,24 +50202,24 @@ func (ec *executionContext) marshalNPayoutLineItem2ᚖhelpmecleanᚑbackendᚋin
 	return ec._PayoutLineItem(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNPayoutStatus2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPayoutStatus(ctx context.Context, v any) (model.PayoutStatus, error) {
+func (ec *executionContext) unmarshalNPayoutStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPayoutStatus(ctx context.Context, v any) (model.PayoutStatus, error) {
 	var res model.PayoutStatus
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNPayoutStatus2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPayoutStatus(ctx context.Context, sel ast.SelectionSet, v model.PayoutStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNPayoutStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPayoutStatus(ctx context.Context, sel ast.SelectionSet, v model.PayoutStatus) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) unmarshalNPersonalityAnswerInput2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityAnswerInputᚄ(ctx context.Context, v any) ([]*model.PersonalityAnswerInput, error) {
+func (ec *executionContext) unmarshalNPersonalityAnswerInput2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityAnswerInputᚄ(ctx context.Context, v any) ([]*model.PersonalityAnswerInput, error) {
 	var vSlice []any
 	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.PersonalityAnswerInput, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNPersonalityAnswerInput2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityAnswerInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNPersonalityAnswerInput2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityAnswerInput(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -50227,16 +50227,16 @@ func (ec *executionContext) unmarshalNPersonalityAnswerInput2ᚕᚖhelpmeclean�
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalNPersonalityAnswerInput2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityAnswerInput(ctx context.Context, v any) (*model.PersonalityAnswerInput, error) {
+func (ec *executionContext) unmarshalNPersonalityAnswerInput2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityAnswerInput(ctx context.Context, v any) (*model.PersonalityAnswerInput, error) {
 	res, err := ec.unmarshalInputPersonalityAnswerInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNPersonalityAssessment2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityAssessment(ctx context.Context, sel ast.SelectionSet, v model.PersonalityAssessment) graphql.Marshaler {
+func (ec *executionContext) marshalNPersonalityAssessment2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityAssessment(ctx context.Context, sel ast.SelectionSet, v model.PersonalityAssessment) graphql.Marshaler {
 	return ec._PersonalityAssessment(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNPersonalityAssessment2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityAssessment(ctx context.Context, sel ast.SelectionSet, v *model.PersonalityAssessment) graphql.Marshaler {
+func (ec *executionContext) marshalNPersonalityAssessment2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityAssessment(ctx context.Context, sel ast.SelectionSet, v *model.PersonalityAssessment) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -50246,7 +50246,7 @@ func (ec *executionContext) marshalNPersonalityAssessment2ᚖhelpmecleanᚑbacke
 	return ec._PersonalityAssessment(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNPersonalityFacetScore2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityFacetScoreᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PersonalityFacetScore) graphql.Marshaler {
+func (ec *executionContext) marshalNPersonalityFacetScore2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityFacetScoreᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PersonalityFacetScore) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -50270,7 +50270,7 @@ func (ec *executionContext) marshalNPersonalityFacetScore2ᚕᚖhelpmecleanᚑba
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNPersonalityFacetScore2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityFacetScore(ctx, sel, v[i])
+			ret[i] = ec.marshalNPersonalityFacetScore2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityFacetScore(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -50290,7 +50290,7 @@ func (ec *executionContext) marshalNPersonalityFacetScore2ᚕᚖhelpmecleanᚑba
 	return ret
 }
 
-func (ec *executionContext) marshalNPersonalityFacetScore2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityFacetScore(ctx context.Context, sel ast.SelectionSet, v *model.PersonalityFacetScore) graphql.Marshaler {
+func (ec *executionContext) marshalNPersonalityFacetScore2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityFacetScore(ctx context.Context, sel ast.SelectionSet, v *model.PersonalityFacetScore) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -50300,11 +50300,11 @@ func (ec *executionContext) marshalNPersonalityFacetScore2ᚖhelpmecleanᚑbacke
 	return ec._PersonalityFacetScore(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNPersonalityInsights2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityInsights(ctx context.Context, sel ast.SelectionSet, v model.PersonalityInsights) graphql.Marshaler {
+func (ec *executionContext) marshalNPersonalityInsights2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityInsights(ctx context.Context, sel ast.SelectionSet, v model.PersonalityInsights) graphql.Marshaler {
 	return ec._PersonalityInsights(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNPersonalityInsights2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityInsights(ctx context.Context, sel ast.SelectionSet, v *model.PersonalityInsights) graphql.Marshaler {
+func (ec *executionContext) marshalNPersonalityInsights2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityInsights(ctx context.Context, sel ast.SelectionSet, v *model.PersonalityInsights) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -50314,7 +50314,7 @@ func (ec *executionContext) marshalNPersonalityInsights2ᚖhelpmecleanᚑbackend
 	return ec._PersonalityInsights(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNPersonalityQuestion2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityQuestionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PersonalityQuestion) graphql.Marshaler {
+func (ec *executionContext) marshalNPersonalityQuestion2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityQuestionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PersonalityQuestion) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -50338,7 +50338,7 @@ func (ec *executionContext) marshalNPersonalityQuestion2ᚕᚖhelpmecleanᚑback
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNPersonalityQuestion2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityQuestion(ctx, sel, v[i])
+			ret[i] = ec.marshalNPersonalityQuestion2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityQuestion(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -50358,7 +50358,7 @@ func (ec *executionContext) marshalNPersonalityQuestion2ᚕᚖhelpmecleanᚑback
 	return ret
 }
 
-func (ec *executionContext) marshalNPersonalityQuestion2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityQuestion(ctx context.Context, sel ast.SelectionSet, v *model.PersonalityQuestion) graphql.Marshaler {
+func (ec *executionContext) marshalNPersonalityQuestion2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityQuestion(ctx context.Context, sel ast.SelectionSet, v *model.PersonalityQuestion) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -50368,11 +50368,11 @@ func (ec *executionContext) marshalNPersonalityQuestion2ᚖhelpmecleanᚑbackend
 	return ec._PersonalityQuestion(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNPlatformRevenueReport2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPlatformRevenueReport(ctx context.Context, sel ast.SelectionSet, v model.PlatformRevenueReport) graphql.Marshaler {
+func (ec *executionContext) marshalNPlatformRevenueReport2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPlatformRevenueReport(ctx context.Context, sel ast.SelectionSet, v model.PlatformRevenueReport) graphql.Marshaler {
 	return ec._PlatformRevenueReport(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNPlatformRevenueReport2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPlatformRevenueReport(ctx context.Context, sel ast.SelectionSet, v *model.PlatformRevenueReport) graphql.Marshaler {
+func (ec *executionContext) marshalNPlatformRevenueReport2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPlatformRevenueReport(ctx context.Context, sel ast.SelectionSet, v *model.PlatformRevenueReport) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -50382,11 +50382,11 @@ func (ec *executionContext) marshalNPlatformRevenueReport2ᚖhelpmecleanᚑbacke
 	return ec._PlatformRevenueReport(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNPlatformSetting2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPlatformSetting(ctx context.Context, sel ast.SelectionSet, v model.PlatformSetting) graphql.Marshaler {
+func (ec *executionContext) marshalNPlatformSetting2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPlatformSetting(ctx context.Context, sel ast.SelectionSet, v model.PlatformSetting) graphql.Marshaler {
 	return ec._PlatformSetting(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNPlatformSetting2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPlatformSettingᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PlatformSetting) graphql.Marshaler {
+func (ec *executionContext) marshalNPlatformSetting2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPlatformSettingᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PlatformSetting) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -50410,7 +50410,7 @@ func (ec *executionContext) marshalNPlatformSetting2ᚕᚖhelpmecleanᚑbackend�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNPlatformSetting2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPlatformSetting(ctx, sel, v[i])
+			ret[i] = ec.marshalNPlatformSetting2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPlatformSetting(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -50430,7 +50430,7 @@ func (ec *executionContext) marshalNPlatformSetting2ᚕᚖhelpmecleanᚑbackend�
 	return ret
 }
 
-func (ec *executionContext) marshalNPlatformSetting2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPlatformSetting(ctx context.Context, sel ast.SelectionSet, v *model.PlatformSetting) graphql.Marshaler {
+func (ec *executionContext) marshalNPlatformSetting2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPlatformSetting(ctx context.Context, sel ast.SelectionSet, v *model.PlatformSetting) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -50440,11 +50440,11 @@ func (ec *executionContext) marshalNPlatformSetting2ᚖhelpmecleanᚑbackendᚋi
 	return ec._PlatformSetting(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNPlatformStats2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPlatformStats(ctx context.Context, sel ast.SelectionSet, v model.PlatformStats) graphql.Marshaler {
+func (ec *executionContext) marshalNPlatformStats2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPlatformStats(ctx context.Context, sel ast.SelectionSet, v model.PlatformStats) graphql.Marshaler {
 	return ec._PlatformStats(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNPlatformStats2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPlatformStats(ctx context.Context, sel ast.SelectionSet, v *model.PlatformStats) graphql.Marshaler {
+func (ec *executionContext) marshalNPlatformStats2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPlatformStats(ctx context.Context, sel ast.SelectionSet, v *model.PlatformStats) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -50454,11 +50454,11 @@ func (ec *executionContext) marshalNPlatformStats2ᚖhelpmecleanᚑbackendᚋint
 	return ec._PlatformStats(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNPlatformTotals2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPlatformTotals(ctx context.Context, sel ast.SelectionSet, v model.PlatformTotals) graphql.Marshaler {
+func (ec *executionContext) marshalNPlatformTotals2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPlatformTotals(ctx context.Context, sel ast.SelectionSet, v model.PlatformTotals) graphql.Marshaler {
 	return ec._PlatformTotals(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNPlatformTotals2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPlatformTotals(ctx context.Context, sel ast.SelectionSet, v *model.PlatformTotals) graphql.Marshaler {
+func (ec *executionContext) marshalNPlatformTotals2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPlatformTotals(ctx context.Context, sel ast.SelectionSet, v *model.PlatformTotals) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -50468,11 +50468,11 @@ func (ec *executionContext) marshalNPlatformTotals2ᚖhelpmecleanᚑbackendᚋin
 	return ec._PlatformTotals(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNPriceEstimate2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPriceEstimate(ctx context.Context, sel ast.SelectionSet, v model.PriceEstimate) graphql.Marshaler {
+func (ec *executionContext) marshalNPriceEstimate2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPriceEstimate(ctx context.Context, sel ast.SelectionSet, v model.PriceEstimate) graphql.Marshaler {
 	return ec._PriceEstimate(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNPriceEstimate2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPriceEstimate(ctx context.Context, sel ast.SelectionSet, v *model.PriceEstimate) graphql.Marshaler {
+func (ec *executionContext) marshalNPriceEstimate2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPriceEstimate(ctx context.Context, sel ast.SelectionSet, v *model.PriceEstimate) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -50482,26 +50482,26 @@ func (ec *executionContext) marshalNPriceEstimate2ᚖhelpmecleanᚑbackendᚋint
 	return ec._PriceEstimate(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNPriceEstimateInput2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPriceEstimateInput(ctx context.Context, v any) (model.PriceEstimateInput, error) {
+func (ec *executionContext) unmarshalNPriceEstimateInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPriceEstimateInput(ctx context.Context, v any) (model.PriceEstimateInput, error) {
 	res, err := ec.unmarshalInputPriceEstimateInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNRecurrenceType2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐRecurrenceType(ctx context.Context, v any) (model.RecurrenceType, error) {
+func (ec *executionContext) unmarshalNRecurrenceType2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐRecurrenceType(ctx context.Context, v any) (model.RecurrenceType, error) {
 	var res model.RecurrenceType
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNRecurrenceType2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐRecurrenceType(ctx context.Context, sel ast.SelectionSet, v model.RecurrenceType) graphql.Marshaler {
+func (ec *executionContext) marshalNRecurrenceType2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐRecurrenceType(ctx context.Context, sel ast.SelectionSet, v model.RecurrenceType) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNRecurringBookingGroup2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐRecurringBookingGroup(ctx context.Context, sel ast.SelectionSet, v model.RecurringBookingGroup) graphql.Marshaler {
+func (ec *executionContext) marshalNRecurringBookingGroup2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐRecurringBookingGroup(ctx context.Context, sel ast.SelectionSet, v model.RecurringBookingGroup) graphql.Marshaler {
 	return ec._RecurringBookingGroup(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNRecurringBookingGroup2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐRecurringBookingGroupᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.RecurringBookingGroup) graphql.Marshaler {
+func (ec *executionContext) marshalNRecurringBookingGroup2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐRecurringBookingGroupᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.RecurringBookingGroup) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -50525,7 +50525,7 @@ func (ec *executionContext) marshalNRecurringBookingGroup2ᚕᚖhelpmecleanᚑba
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNRecurringBookingGroup2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐRecurringBookingGroup(ctx, sel, v[i])
+			ret[i] = ec.marshalNRecurringBookingGroup2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐRecurringBookingGroup(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -50545,7 +50545,7 @@ func (ec *executionContext) marshalNRecurringBookingGroup2ᚕᚖhelpmecleanᚑba
 	return ret
 }
 
-func (ec *executionContext) marshalNRecurringBookingGroup2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐRecurringBookingGroup(ctx context.Context, sel ast.SelectionSet, v *model.RecurringBookingGroup) graphql.Marshaler {
+func (ec *executionContext) marshalNRecurringBookingGroup2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐRecurringBookingGroup(ctx context.Context, sel ast.SelectionSet, v *model.RecurringBookingGroup) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -50555,11 +50555,11 @@ func (ec *executionContext) marshalNRecurringBookingGroup2ᚖhelpmecleanᚑbacke
 	return ec._RecurringBookingGroup(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNRefundRequest2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐRefundRequest(ctx context.Context, sel ast.SelectionSet, v model.RefundRequest) graphql.Marshaler {
+func (ec *executionContext) marshalNRefundRequest2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐRefundRequest(ctx context.Context, sel ast.SelectionSet, v model.RefundRequest) graphql.Marshaler {
 	return ec._RefundRequest(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNRefundRequest2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐRefundRequestᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.RefundRequest) graphql.Marshaler {
+func (ec *executionContext) marshalNRefundRequest2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐRefundRequestᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.RefundRequest) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -50583,7 +50583,7 @@ func (ec *executionContext) marshalNRefundRequest2ᚕᚖhelpmecleanᚑbackendᚋ
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNRefundRequest2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐRefundRequest(ctx, sel, v[i])
+			ret[i] = ec.marshalNRefundRequest2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐRefundRequest(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -50603,7 +50603,7 @@ func (ec *executionContext) marshalNRefundRequest2ᚕᚖhelpmecleanᚑbackendᚋ
 	return ret
 }
 
-func (ec *executionContext) marshalNRefundRequest2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐRefundRequest(ctx context.Context, sel ast.SelectionSet, v *model.RefundRequest) graphql.Marshaler {
+func (ec *executionContext) marshalNRefundRequest2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐRefundRequest(ctx context.Context, sel ast.SelectionSet, v *model.RefundRequest) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -50613,21 +50613,21 @@ func (ec *executionContext) marshalNRefundRequest2ᚖhelpmecleanᚑbackendᚋint
 	return ec._RefundRequest(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNRefundStatus2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐRefundStatus(ctx context.Context, v any) (model.RefundStatus, error) {
+func (ec *executionContext) unmarshalNRefundStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐRefundStatus(ctx context.Context, v any) (model.RefundStatus, error) {
 	var res model.RefundStatus
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNRefundStatus2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐRefundStatus(ctx context.Context, sel ast.SelectionSet, v model.RefundStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNRefundStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐRefundStatus(ctx context.Context, sel ast.SelectionSet, v model.RefundStatus) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNRequestOtpResponse2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐRequestOtpResponse(ctx context.Context, sel ast.SelectionSet, v model.RequestOtpResponse) graphql.Marshaler {
+func (ec *executionContext) marshalNRequestOtpResponse2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐRequestOtpResponse(ctx context.Context, sel ast.SelectionSet, v model.RequestOtpResponse) graphql.Marshaler {
 	return ec._RequestOtpResponse(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNRequestOtpResponse2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐRequestOtpResponse(ctx context.Context, sel ast.SelectionSet, v *model.RequestOtpResponse) graphql.Marshaler {
+func (ec *executionContext) marshalNRequestOtpResponse2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐRequestOtpResponse(ctx context.Context, sel ast.SelectionSet, v *model.RequestOtpResponse) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -50637,7 +50637,7 @@ func (ec *executionContext) marshalNRequestOtpResponse2ᚖhelpmecleanᚑbackend�
 	return ec._RequestOtpResponse(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNRevenueByMonth2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐRevenueByMonthᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.RevenueByMonth) graphql.Marshaler {
+func (ec *executionContext) marshalNRevenueByMonth2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐRevenueByMonthᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.RevenueByMonth) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -50661,7 +50661,7 @@ func (ec *executionContext) marshalNRevenueByMonth2ᚕᚖhelpmecleanᚑbackend�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNRevenueByMonth2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐRevenueByMonth(ctx, sel, v[i])
+			ret[i] = ec.marshalNRevenueByMonth2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐRevenueByMonth(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -50681,7 +50681,7 @@ func (ec *executionContext) marshalNRevenueByMonth2ᚕᚖhelpmecleanᚑbackend�
 	return ret
 }
 
-func (ec *executionContext) marshalNRevenueByMonth2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐRevenueByMonth(ctx context.Context, sel ast.SelectionSet, v *model.RevenueByMonth) graphql.Marshaler {
+func (ec *executionContext) marshalNRevenueByMonth2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐRevenueByMonth(ctx context.Context, sel ast.SelectionSet, v *model.RevenueByMonth) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -50691,11 +50691,11 @@ func (ec *executionContext) marshalNRevenueByMonth2ᚖhelpmecleanᚑbackendᚋin
 	return ec._RevenueByMonth(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNReview2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐReview(ctx context.Context, sel ast.SelectionSet, v model.Review) graphql.Marshaler {
+func (ec *executionContext) marshalNReview2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐReview(ctx context.Context, sel ast.SelectionSet, v model.Review) graphql.Marshaler {
 	return ec._Review(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNReview2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐReviewᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Review) graphql.Marshaler {
+func (ec *executionContext) marshalNReview2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐReviewᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Review) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -50719,7 +50719,7 @@ func (ec *executionContext) marshalNReview2ᚕᚖhelpmecleanᚑbackendᚋinterna
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNReview2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐReview(ctx, sel, v[i])
+			ret[i] = ec.marshalNReview2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐReview(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -50739,7 +50739,7 @@ func (ec *executionContext) marshalNReview2ᚕᚖhelpmecleanᚑbackendᚋinterna
 	return ret
 }
 
-func (ec *executionContext) marshalNReview2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐReview(ctx context.Context, sel ast.SelectionSet, v *model.Review) graphql.Marshaler {
+func (ec *executionContext) marshalNReview2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐReview(ctx context.Context, sel ast.SelectionSet, v *model.Review) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -50749,11 +50749,11 @@ func (ec *executionContext) marshalNReview2ᚖhelpmecleanᚑbackendᚋinternal�
 	return ec._Review(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNReviewConnection2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐReviewConnection(ctx context.Context, sel ast.SelectionSet, v model.ReviewConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNReviewConnection2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐReviewConnection(ctx context.Context, sel ast.SelectionSet, v model.ReviewConnection) graphql.Marshaler {
 	return ec._ReviewConnection(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNReviewConnection2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐReviewConnection(ctx context.Context, sel ast.SelectionSet, v *model.ReviewConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNReviewConnection2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐReviewConnection(ctx context.Context, sel ast.SelectionSet, v *model.ReviewConnection) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -50763,11 +50763,11 @@ func (ec *executionContext) marshalNReviewConnection2ᚖhelpmecleanᚑbackendᚋ
 	return ec._ReviewConnection(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNServiceDefinition2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceDefinition(ctx context.Context, sel ast.SelectionSet, v model.ServiceDefinition) graphql.Marshaler {
+func (ec *executionContext) marshalNServiceDefinition2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceDefinition(ctx context.Context, sel ast.SelectionSet, v model.ServiceDefinition) graphql.Marshaler {
 	return ec._ServiceDefinition(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNServiceDefinition2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceDefinitionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ServiceDefinition) graphql.Marshaler {
+func (ec *executionContext) marshalNServiceDefinition2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceDefinitionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ServiceDefinition) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -50791,7 +50791,7 @@ func (ec *executionContext) marshalNServiceDefinition2ᚕᚖhelpmecleanᚑbacken
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNServiceDefinition2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceDefinition(ctx, sel, v[i])
+			ret[i] = ec.marshalNServiceDefinition2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceDefinition(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -50811,7 +50811,7 @@ func (ec *executionContext) marshalNServiceDefinition2ᚕᚖhelpmecleanᚑbacken
 	return ret
 }
 
-func (ec *executionContext) marshalNServiceDefinition2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceDefinition(ctx context.Context, sel ast.SelectionSet, v *model.ServiceDefinition) graphql.Marshaler {
+func (ec *executionContext) marshalNServiceDefinition2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceDefinition(ctx context.Context, sel ast.SelectionSet, v *model.ServiceDefinition) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -50821,11 +50821,11 @@ func (ec *executionContext) marshalNServiceDefinition2ᚖhelpmecleanᚑbackend�
 	return ec._ServiceDefinition(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNServiceExtra2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceExtra(ctx context.Context, sel ast.SelectionSet, v model.ServiceExtra) graphql.Marshaler {
+func (ec *executionContext) marshalNServiceExtra2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceExtra(ctx context.Context, sel ast.SelectionSet, v model.ServiceExtra) graphql.Marshaler {
 	return ec._ServiceExtra(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNServiceExtra2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceExtraᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ServiceExtra) graphql.Marshaler {
+func (ec *executionContext) marshalNServiceExtra2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceExtraᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ServiceExtra) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -50849,7 +50849,7 @@ func (ec *executionContext) marshalNServiceExtra2ᚕᚖhelpmecleanᚑbackendᚋi
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNServiceExtra2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceExtra(ctx, sel, v[i])
+			ret[i] = ec.marshalNServiceExtra2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceExtra(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -50869,7 +50869,7 @@ func (ec *executionContext) marshalNServiceExtra2ᚕᚖhelpmecleanᚑbackendᚋi
 	return ret
 }
 
-func (ec *executionContext) marshalNServiceExtra2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceExtra(ctx context.Context, sel ast.SelectionSet, v *model.ServiceExtra) graphql.Marshaler {
+func (ec *executionContext) marshalNServiceExtra2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceExtra(ctx context.Context, sel ast.SelectionSet, v *model.ServiceExtra) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -50879,7 +50879,7 @@ func (ec *executionContext) marshalNServiceExtra2ᚖhelpmecleanᚑbackendᚋinte
 	return ec._ServiceExtra(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNServiceRevenue2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceRevenueᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ServiceRevenue) graphql.Marshaler {
+func (ec *executionContext) marshalNServiceRevenue2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceRevenueᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ServiceRevenue) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -50903,7 +50903,7 @@ func (ec *executionContext) marshalNServiceRevenue2ᚕᚖhelpmecleanᚑbackend�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNServiceRevenue2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceRevenue(ctx, sel, v[i])
+			ret[i] = ec.marshalNServiceRevenue2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceRevenue(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -50923,7 +50923,7 @@ func (ec *executionContext) marshalNServiceRevenue2ᚕᚖhelpmecleanᚑbackend�
 	return ret
 }
 
-func (ec *executionContext) marshalNServiceRevenue2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceRevenue(ctx context.Context, sel ast.SelectionSet, v *model.ServiceRevenue) graphql.Marshaler {
+func (ec *executionContext) marshalNServiceRevenue2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceRevenue(ctx context.Context, sel ast.SelectionSet, v *model.ServiceRevenue) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -50933,21 +50933,21 @@ func (ec *executionContext) marshalNServiceRevenue2ᚖhelpmecleanᚑbackendᚋin
 	return ec._ServiceRevenue(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNServiceType2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceType(ctx context.Context, v any) (model.ServiceType, error) {
+func (ec *executionContext) unmarshalNServiceType2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceType(ctx context.Context, v any) (model.ServiceType, error) {
 	var res model.ServiceType
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNServiceType2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceType(ctx context.Context, sel ast.SelectionSet, v model.ServiceType) graphql.Marshaler {
+func (ec *executionContext) marshalNServiceType2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceType(ctx context.Context, sel ast.SelectionSet, v model.ServiceType) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNSetupIntentResult2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐSetupIntentResult(ctx context.Context, sel ast.SelectionSet, v model.SetupIntentResult) graphql.Marshaler {
+func (ec *executionContext) marshalNSetupIntentResult2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐSetupIntentResult(ctx context.Context, sel ast.SelectionSet, v model.SetupIntentResult) graphql.Marshaler {
 	return ec._SetupIntentResult(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNSetupIntentResult2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐSetupIntentResult(ctx context.Context, sel ast.SelectionSet, v *model.SetupIntentResult) graphql.Marshaler {
+func (ec *executionContext) marshalNSetupIntentResult2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐSetupIntentResult(ctx context.Context, sel ast.SelectionSet, v *model.SetupIntentResult) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -51003,11 +51003,11 @@ func (ec *executionContext) marshalNString2ᚕstringᚄ(ctx context.Context, sel
 	return ret
 }
 
-func (ec *executionContext) marshalNStripeConnectStatus2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐStripeConnectStatus(ctx context.Context, sel ast.SelectionSet, v model.StripeConnectStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNStripeConnectStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐStripeConnectStatus(ctx context.Context, sel ast.SelectionSet, v model.StripeConnectStatus) graphql.Marshaler {
 	return ec._StripeConnectStatus(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNStripeConnectStatus2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐStripeConnectStatus(ctx context.Context, sel ast.SelectionSet, v *model.StripeConnectStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNStripeConnectStatus2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐStripeConnectStatus(ctx context.Context, sel ast.SelectionSet, v *model.StripeConnectStatus) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -51017,19 +51017,19 @@ func (ec *executionContext) marshalNStripeConnectStatus2ᚖhelpmecleanᚑbackend
 	return ec._StripeConnectStatus(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNSubmitReviewInput2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐSubmitReviewInput(ctx context.Context, v any) (model.SubmitReviewInput, error) {
+func (ec *executionContext) unmarshalNSubmitReviewInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐSubmitReviewInput(ctx context.Context, v any) (model.SubmitReviewInput, error) {
 	res, err := ec.unmarshalInputSubmitReviewInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNTimeSlotInput2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐTimeSlotInputᚄ(ctx context.Context, v any) ([]*model.TimeSlotInput, error) {
+func (ec *executionContext) unmarshalNTimeSlotInput2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐTimeSlotInputᚄ(ctx context.Context, v any) ([]*model.TimeSlotInput, error) {
 	var vSlice []any
 	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.TimeSlotInput, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNTimeSlotInput2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐTimeSlotInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNTimeSlotInput2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐTimeSlotInput(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -51037,12 +51037,12 @@ func (ec *executionContext) unmarshalNTimeSlotInput2ᚕᚖhelpmecleanᚑbackend�
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalNTimeSlotInput2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐTimeSlotInput(ctx context.Context, v any) (*model.TimeSlotInput, error) {
+func (ec *executionContext) unmarshalNTimeSlotInput2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐTimeSlotInput(ctx context.Context, v any) (*model.TimeSlotInput, error) {
 	res, err := ec.unmarshalInputTimeSlotInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNTopCompany2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐTopCompanyᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.TopCompany) graphql.Marshaler {
+func (ec *executionContext) marshalNTopCompany2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐTopCompanyᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.TopCompany) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -51066,7 +51066,7 @@ func (ec *executionContext) marshalNTopCompany2ᚕᚖhelpmecleanᚑbackendᚋint
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNTopCompany2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐTopCompany(ctx, sel, v[i])
+			ret[i] = ec.marshalNTopCompany2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐTopCompany(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -51086,7 +51086,7 @@ func (ec *executionContext) marshalNTopCompany2ᚕᚖhelpmecleanᚑbackendᚋint
 	return ret
 }
 
-func (ec *executionContext) marshalNTopCompany2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐTopCompany(ctx context.Context, sel ast.SelectionSet, v *model.TopCompany) graphql.Marshaler {
+func (ec *executionContext) marshalNTopCompany2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐTopCompany(ctx context.Context, sel ast.SelectionSet, v *model.TopCompany) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -51096,32 +51096,32 @@ func (ec *executionContext) marshalNTopCompany2ᚖhelpmecleanᚑbackendᚋintern
 	return ec._TopCompany(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNUpdateAddressInput2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUpdateAddressInput(ctx context.Context, v any) (model.UpdateAddressInput, error) {
+func (ec *executionContext) unmarshalNUpdateAddressInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUpdateAddressInput(ctx context.Context, v any) (model.UpdateAddressInput, error) {
 	res, err := ec.unmarshalInputUpdateAddressInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNUpdateCleanerProfileInput2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUpdateCleanerProfileInput(ctx context.Context, v any) (model.UpdateCleanerProfileInput, error) {
+func (ec *executionContext) unmarshalNUpdateCleanerProfileInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUpdateCleanerProfileInput(ctx context.Context, v any) (model.UpdateCleanerProfileInput, error) {
 	res, err := ec.unmarshalInputUpdateCleanerProfileInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNUpdateCompanyInput2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUpdateCompanyInput(ctx context.Context, v any) (model.UpdateCompanyInput, error) {
+func (ec *executionContext) unmarshalNUpdateCompanyInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUpdateCompanyInput(ctx context.Context, v any) (model.UpdateCompanyInput, error) {
 	res, err := ec.unmarshalInputUpdateCompanyInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNUpdateProfileInput2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUpdateProfileInput(ctx context.Context, v any) (model.UpdateProfileInput, error) {
+func (ec *executionContext) unmarshalNUpdateProfileInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUpdateProfileInput(ctx context.Context, v any) (model.UpdateProfileInput, error) {
 	res, err := ec.unmarshalInputUpdateProfileInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNUpdateServiceDefinitionInput2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUpdateServiceDefinitionInput(ctx context.Context, v any) (model.UpdateServiceDefinitionInput, error) {
+func (ec *executionContext) unmarshalNUpdateServiceDefinitionInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUpdateServiceDefinitionInput(ctx context.Context, v any) (model.UpdateServiceDefinitionInput, error) {
 	res, err := ec.unmarshalInputUpdateServiceDefinitionInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNUpdateServiceExtraInput2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUpdateServiceExtraInput(ctx context.Context, v any) (model.UpdateServiceExtraInput, error) {
+func (ec *executionContext) unmarshalNUpdateServiceExtraInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUpdateServiceExtraInput(ctx context.Context, v any) (model.UpdateServiceExtraInput, error) {
 	res, err := ec.unmarshalInputUpdateServiceExtraInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -51142,11 +51142,11 @@ func (ec *executionContext) marshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋg
 	return res
 }
 
-func (ec *executionContext) marshalNUploadResult2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUploadResult(ctx context.Context, sel ast.SelectionSet, v model.UploadResult) graphql.Marshaler {
+func (ec *executionContext) marshalNUploadResult2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUploadResult(ctx context.Context, sel ast.SelectionSet, v model.UploadResult) graphql.Marshaler {
 	return ec._UploadResult(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNUploadResult2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUploadResult(ctx context.Context, sel ast.SelectionSet, v *model.UploadResult) graphql.Marshaler {
+func (ec *executionContext) marshalNUploadResult2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUploadResult(ctx context.Context, sel ast.SelectionSet, v *model.UploadResult) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -51156,11 +51156,11 @@ func (ec *executionContext) marshalNUploadResult2ᚖhelpmecleanᚑbackendᚋinte
 	return ec._UploadResult(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNUser2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v model.User) graphql.Marshaler {
+func (ec *executionContext) marshalNUser2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v model.User) graphql.Marshaler {
 	return ec._User(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNUser2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUserᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.User) graphql.Marshaler {
+func (ec *executionContext) marshalNUser2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUserᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.User) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -51184,7 +51184,7 @@ func (ec *executionContext) marshalNUser2ᚕᚖhelpmecleanᚑbackendᚋinternal�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNUser2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUser(ctx, sel, v[i])
+			ret[i] = ec.marshalNUser2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUser(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -51204,7 +51204,7 @@ func (ec *executionContext) marshalNUser2ᚕᚖhelpmecleanᚑbackendᚋinternal�
 	return ret
 }
 
-func (ec *executionContext) marshalNUser2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {
+func (ec *executionContext) marshalNUser2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -51214,11 +51214,11 @@ func (ec *executionContext) marshalNUser2ᚖhelpmecleanᚑbackendᚋinternalᚋg
 	return ec._User(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNUserConnection2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUserConnection(ctx context.Context, sel ast.SelectionSet, v model.UserConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNUserConnection2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUserConnection(ctx context.Context, sel ast.SelectionSet, v model.UserConnection) graphql.Marshaler {
 	return ec._UserConnection(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNUserConnection2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUserConnection(ctx context.Context, sel ast.SelectionSet, v *model.UserConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNUserConnection2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUserConnection(ctx context.Context, sel ast.SelectionSet, v *model.UserConnection) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -51228,31 +51228,31 @@ func (ec *executionContext) marshalNUserConnection2ᚖhelpmecleanᚑbackendᚋin
 	return ec._UserConnection(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNUserRole2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUserRole(ctx context.Context, v any) (model.UserRole, error) {
+func (ec *executionContext) unmarshalNUserRole2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUserRole(ctx context.Context, v any) (model.UserRole, error) {
 	var res model.UserRole
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNUserRole2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUserRole(ctx context.Context, sel ast.SelectionSet, v model.UserRole) graphql.Marshaler {
+func (ec *executionContext) marshalNUserRole2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUserRole(ctx context.Context, sel ast.SelectionSet, v model.UserRole) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) unmarshalNUserStatus2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUserStatus(ctx context.Context, v any) (model.UserStatus, error) {
+func (ec *executionContext) unmarshalNUserStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUserStatus(ctx context.Context, v any) (model.UserStatus, error) {
 	var res model.UserStatus
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNUserStatus2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUserStatus(ctx context.Context, sel ast.SelectionSet, v model.UserStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNUserStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUserStatus(ctx context.Context, sel ast.SelectionSet, v model.UserStatus) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNWaitlistLead2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐWaitlistLead(ctx context.Context, sel ast.SelectionSet, v model.WaitlistLead) graphql.Marshaler {
+func (ec *executionContext) marshalNWaitlistLead2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐWaitlistLead(ctx context.Context, sel ast.SelectionSet, v model.WaitlistLead) graphql.Marshaler {
 	return ec._WaitlistLead(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNWaitlistLead2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐWaitlistLeadᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.WaitlistLead) graphql.Marshaler {
+func (ec *executionContext) marshalNWaitlistLead2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐWaitlistLeadᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.WaitlistLead) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -51276,7 +51276,7 @@ func (ec *executionContext) marshalNWaitlistLead2ᚕᚖhelpmecleanᚑbackendᚋi
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNWaitlistLead2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐWaitlistLead(ctx, sel, v[i])
+			ret[i] = ec.marshalNWaitlistLead2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐWaitlistLead(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -51296,7 +51296,7 @@ func (ec *executionContext) marshalNWaitlistLead2ᚕᚖhelpmecleanᚑbackendᚋi
 	return ret
 }
 
-func (ec *executionContext) marshalNWaitlistLead2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐWaitlistLead(ctx context.Context, sel ast.SelectionSet, v *model.WaitlistLead) graphql.Marshaler {
+func (ec *executionContext) marshalNWaitlistLead2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐWaitlistLead(ctx context.Context, sel ast.SelectionSet, v *model.WaitlistLead) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -51306,21 +51306,21 @@ func (ec *executionContext) marshalNWaitlistLead2ᚖhelpmecleanᚑbackendᚋinte
 	return ec._WaitlistLead(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNWaitlistLeadType2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐWaitlistLeadType(ctx context.Context, v any) (model.WaitlistLeadType, error) {
+func (ec *executionContext) unmarshalNWaitlistLeadType2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐWaitlistLeadType(ctx context.Context, v any) (model.WaitlistLeadType, error) {
 	var res model.WaitlistLeadType
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNWaitlistLeadType2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐWaitlistLeadType(ctx context.Context, sel ast.SelectionSet, v model.WaitlistLeadType) graphql.Marshaler {
+func (ec *executionContext) marshalNWaitlistLeadType2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐWaitlistLeadType(ctx context.Context, sel ast.SelectionSet, v model.WaitlistLeadType) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNWaitlistStats2helpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐWaitlistStats(ctx context.Context, sel ast.SelectionSet, v model.WaitlistStats) graphql.Marshaler {
+func (ec *executionContext) marshalNWaitlistStats2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐWaitlistStats(ctx context.Context, sel ast.SelectionSet, v model.WaitlistStats) graphql.Marshaler {
 	return ec._WaitlistStats(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNWaitlistStats2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐWaitlistStats(ctx context.Context, sel ast.SelectionSet, v *model.WaitlistStats) graphql.Marshaler {
+func (ec *executionContext) marshalNWaitlistStats2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐWaitlistStats(ctx context.Context, sel ast.SelectionSet, v *model.WaitlistStats) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -51330,7 +51330,7 @@ func (ec *executionContext) marshalNWaitlistStats2ᚖhelpmecleanᚑbackendᚋint
 	return ec._WaitlistStats(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNWorkScheduleDayInput2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐWorkScheduleDayInput(ctx context.Context, v any) (*model.WorkScheduleDayInput, error) {
+func (ec *executionContext) unmarshalNWorkScheduleDayInput2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐWorkScheduleDayInput(ctx context.Context, v any) (*model.WorkScheduleDayInput, error) {
 	res, err := ec.unmarshalInputWorkScheduleDayInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
@@ -51588,7 +51588,7 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 	return res
 }
 
-func (ec *executionContext) unmarshalOAddAddressInput2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐAddAddressInput(ctx context.Context, v any) (*model.AddAddressInput, error) {
+func (ec *executionContext) unmarshalOAddAddressInput2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐAddAddressInput(ctx context.Context, v any) (*model.AddAddressInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51596,21 +51596,21 @@ func (ec *executionContext) unmarshalOAddAddressInput2ᚖhelpmecleanᚑbackend�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOAddress2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐAddress(ctx context.Context, sel ast.SelectionSet, v *model.Address) graphql.Marshaler {
+func (ec *executionContext) marshalOAddress2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐAddress(ctx context.Context, sel ast.SelectionSet, v *model.Address) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._Address(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOBooking2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking(ctx context.Context, sel ast.SelectionSet, v *model.Booking) graphql.Marshaler {
+func (ec *executionContext) marshalOBooking2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking(ctx context.Context, sel ast.SelectionSet, v *model.Booking) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._Booking(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOBookingStatus2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingStatus(ctx context.Context, v any) (*model.BookingStatus, error) {
+func (ec *executionContext) unmarshalOBookingStatus2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingStatus(ctx context.Context, v any) (*model.BookingStatus, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51619,7 +51619,7 @@ func (ec *executionContext) unmarshalOBookingStatus2ᚖhelpmecleanᚑbackendᚋi
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOBookingStatus2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingStatus(ctx context.Context, sel ast.SelectionSet, v *model.BookingStatus) graphql.Marshaler {
+func (ec *executionContext) marshalOBookingStatus2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingStatus(ctx context.Context, sel ast.SelectionSet, v *model.BookingStatus) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -51656,42 +51656,42 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return res
 }
 
-func (ec *executionContext) marshalOChatMessage2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐChatMessage(ctx context.Context, sel ast.SelectionSet, v *model.ChatMessage) graphql.Marshaler {
+func (ec *executionContext) marshalOChatMessage2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatMessage(ctx context.Context, sel ast.SelectionSet, v *model.ChatMessage) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._ChatMessage(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOChatRoom2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐChatRoom(ctx context.Context, sel ast.SelectionSet, v *model.ChatRoom) graphql.Marshaler {
+func (ec *executionContext) marshalOChatRoom2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatRoom(ctx context.Context, sel ast.SelectionSet, v *model.ChatRoom) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._ChatRoom(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOCleanerProfile2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerProfile(ctx context.Context, sel ast.SelectionSet, v *model.CleanerProfile) graphql.Marshaler {
+func (ec *executionContext) marshalOCleanerProfile2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCleanerProfile(ctx context.Context, sel ast.SelectionSet, v *model.CleanerProfile) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._CleanerProfile(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOClientBillingProfile2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐClientBillingProfile(ctx context.Context, sel ast.SelectionSet, v *model.ClientBillingProfile) graphql.Marshaler {
+func (ec *executionContext) marshalOClientBillingProfile2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐClientBillingProfile(ctx context.Context, sel ast.SelectionSet, v *model.ClientBillingProfile) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._ClientBillingProfile(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOCompany2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany(ctx context.Context, sel ast.SelectionSet, v *model.Company) graphql.Marshaler {
+func (ec *executionContext) marshalOCompany2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany(ctx context.Context, sel ast.SelectionSet, v *model.Company) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._Company(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOCompanyStatus2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyStatus(ctx context.Context, v any) (*model.CompanyStatus, error) {
+func (ec *executionContext) unmarshalOCompanyStatus2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyStatus(ctx context.Context, v any) (*model.CompanyStatus, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51700,14 +51700,14 @@ func (ec *executionContext) unmarshalOCompanyStatus2ᚖhelpmecleanᚑbackendᚋi
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOCompanyStatus2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyStatus(ctx context.Context, sel ast.SelectionSet, v *model.CompanyStatus) graphql.Marshaler {
+func (ec *executionContext) marshalOCompanyStatus2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyStatus(ctx context.Context, sel ast.SelectionSet, v *model.CompanyStatus) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return v
 }
 
-func (ec *executionContext) marshalOCoordinates2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐCoordinates(ctx context.Context, sel ast.SelectionSet, v *model.Coordinates) graphql.Marshaler {
+func (ec *executionContext) marshalOCoordinates2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCoordinates(ctx context.Context, sel ast.SelectionSet, v *model.Coordinates) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -51732,7 +51732,7 @@ func (ec *executionContext) marshalODateTime2ᚖtimeᚐTime(ctx context.Context,
 	return res
 }
 
-func (ec *executionContext) unmarshalOExtraInput2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐExtraInputᚄ(ctx context.Context, v any) ([]*model.ExtraInput, error) {
+func (ec *executionContext) unmarshalOExtraInput2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐExtraInputᚄ(ctx context.Context, v any) ([]*model.ExtraInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51742,7 +51742,7 @@ func (ec *executionContext) unmarshalOExtraInput2ᚕᚖhelpmecleanᚑbackendᚋi
 	res := make([]*model.ExtraInput, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNExtraInput2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐExtraInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNExtraInput2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐExtraInput(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -51803,7 +51803,7 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	return res
 }
 
-func (ec *executionContext) unmarshalOInvoiceStatus2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceStatus(ctx context.Context, v any) (*model.InvoiceStatus, error) {
+func (ec *executionContext) unmarshalOInvoiceStatus2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceStatus(ctx context.Context, v any) (*model.InvoiceStatus, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51812,14 +51812,14 @@ func (ec *executionContext) unmarshalOInvoiceStatus2ᚖhelpmecleanᚑbackendᚋi
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOInvoiceStatus2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceStatus(ctx context.Context, sel ast.SelectionSet, v *model.InvoiceStatus) graphql.Marshaler {
+func (ec *executionContext) marshalOInvoiceStatus2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceStatus(ctx context.Context, sel ast.SelectionSet, v *model.InvoiceStatus) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return v
 }
 
-func (ec *executionContext) unmarshalOInvoiceType2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceType(ctx context.Context, v any) (*model.InvoiceType, error) {
+func (ec *executionContext) unmarshalOInvoiceType2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceType(ctx context.Context, v any) (*model.InvoiceType, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51828,7 +51828,7 @@ func (ec *executionContext) unmarshalOInvoiceType2ᚖhelpmecleanᚑbackendᚋint
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOInvoiceType2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceType(ctx context.Context, sel ast.SelectionSet, v *model.InvoiceType) graphql.Marshaler {
+func (ec *executionContext) marshalOInvoiceType2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceType(ctx context.Context, sel ast.SelectionSet, v *model.InvoiceType) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -51853,14 +51853,14 @@ func (ec *executionContext) marshalOJSON2map(ctx context.Context, sel ast.Select
 	return res
 }
 
-func (ec *executionContext) marshalOPaymentTransaction2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentTransaction(ctx context.Context, sel ast.SelectionSet, v *model.PaymentTransaction) graphql.Marshaler {
+func (ec *executionContext) marshalOPaymentTransaction2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentTransaction(ctx context.Context, sel ast.SelectionSet, v *model.PaymentTransaction) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._PaymentTransaction(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOPaymentTransactionStatus2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentTransactionStatus(ctx context.Context, v any) (*model.PaymentTransactionStatus, error) {
+func (ec *executionContext) unmarshalOPaymentTransactionStatus2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentTransactionStatus(ctx context.Context, v any) (*model.PaymentTransactionStatus, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51869,14 +51869,14 @@ func (ec *executionContext) unmarshalOPaymentTransactionStatus2ᚖhelpmecleanᚑ
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOPaymentTransactionStatus2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentTransactionStatus(ctx context.Context, sel ast.SelectionSet, v *model.PaymentTransactionStatus) graphql.Marshaler {
+func (ec *executionContext) marshalOPaymentTransactionStatus2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentTransactionStatus(ctx context.Context, sel ast.SelectionSet, v *model.PaymentTransactionStatus) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return v
 }
 
-func (ec *executionContext) unmarshalOPayoutStatus2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPayoutStatus(ctx context.Context, v any) (*model.PayoutStatus, error) {
+func (ec *executionContext) unmarshalOPayoutStatus2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPayoutStatus(ctx context.Context, v any) (*model.PayoutStatus, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51885,28 +51885,28 @@ func (ec *executionContext) unmarshalOPayoutStatus2ᚖhelpmecleanᚑbackendᚋin
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOPayoutStatus2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPayoutStatus(ctx context.Context, sel ast.SelectionSet, v *model.PayoutStatus) graphql.Marshaler {
+func (ec *executionContext) marshalOPayoutStatus2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPayoutStatus(ctx context.Context, sel ast.SelectionSet, v *model.PayoutStatus) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return v
 }
 
-func (ec *executionContext) marshalOPersonalityAssessment2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityAssessment(ctx context.Context, sel ast.SelectionSet, v *model.PersonalityAssessment) graphql.Marshaler {
+func (ec *executionContext) marshalOPersonalityAssessment2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityAssessment(ctx context.Context, sel ast.SelectionSet, v *model.PersonalityAssessment) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._PersonalityAssessment(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOPersonalityInsights2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityInsights(ctx context.Context, sel ast.SelectionSet, v *model.PersonalityInsights) graphql.Marshaler {
+func (ec *executionContext) marshalOPersonalityInsights2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPersonalityInsights(ctx context.Context, sel ast.SelectionSet, v *model.PersonalityInsights) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._PersonalityInsights(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalORecurrenceInput2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐRecurrenceInput(ctx context.Context, v any) (*model.RecurrenceInput, error) {
+func (ec *executionContext) unmarshalORecurrenceInput2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐRecurrenceInput(ctx context.Context, v any) (*model.RecurrenceInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51914,7 +51914,7 @@ func (ec *executionContext) unmarshalORecurrenceInput2ᚖhelpmecleanᚑbackend�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalORefundStatus2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐRefundStatus(ctx context.Context, v any) (*model.RefundStatus, error) {
+func (ec *executionContext) unmarshalORefundStatus2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐRefundStatus(ctx context.Context, v any) (*model.RefundStatus, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51923,14 +51923,14 @@ func (ec *executionContext) unmarshalORefundStatus2ᚖhelpmecleanᚑbackendᚋin
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalORefundStatus2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐRefundStatus(ctx context.Context, sel ast.SelectionSet, v *model.RefundStatus) graphql.Marshaler {
+func (ec *executionContext) marshalORefundStatus2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐRefundStatus(ctx context.Context, sel ast.SelectionSet, v *model.RefundStatus) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return v
 }
 
-func (ec *executionContext) marshalOReview2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐReview(ctx context.Context, sel ast.SelectionSet, v *model.Review) graphql.Marshaler {
+func (ec *executionContext) marshalOReview2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐReview(ctx context.Context, sel ast.SelectionSet, v *model.Review) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -51991,7 +51991,7 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	return res
 }
 
-func (ec *executionContext) unmarshalOTimeSlotInput2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐTimeSlotInputᚄ(ctx context.Context, v any) ([]*model.TimeSlotInput, error) {
+func (ec *executionContext) unmarshalOTimeSlotInput2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐTimeSlotInputᚄ(ctx context.Context, v any) ([]*model.TimeSlotInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52001,7 +52001,7 @@ func (ec *executionContext) unmarshalOTimeSlotInput2ᚕᚖhelpmecleanᚑbackend�
 	res := make([]*model.TimeSlotInput, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNTimeSlotInput2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐTimeSlotInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNTimeSlotInput2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐTimeSlotInput(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -52009,14 +52009,14 @@ func (ec *executionContext) unmarshalOTimeSlotInput2ᚕᚖhelpmecleanᚑbackend�
 	return res, nil
 }
 
-func (ec *executionContext) marshalOUser2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {
+func (ec *executionContext) marshalOUser2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._User(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOUserRole2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUserRole(ctx context.Context, v any) (*model.UserRole, error) {
+func (ec *executionContext) unmarshalOUserRole2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUserRole(ctx context.Context, v any) (*model.UserRole, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52025,14 +52025,14 @@ func (ec *executionContext) unmarshalOUserRole2ᚖhelpmecleanᚑbackendᚋintern
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOUserRole2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUserRole(ctx context.Context, sel ast.SelectionSet, v *model.UserRole) graphql.Marshaler {
+func (ec *executionContext) marshalOUserRole2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUserRole(ctx context.Context, sel ast.SelectionSet, v *model.UserRole) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return v
 }
 
-func (ec *executionContext) unmarshalOUserStatus2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUserStatus(ctx context.Context, v any) (*model.UserStatus, error) {
+func (ec *executionContext) unmarshalOUserStatus2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUserStatus(ctx context.Context, v any) (*model.UserStatus, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52041,14 +52041,14 @@ func (ec *executionContext) unmarshalOUserStatus2ᚖhelpmecleanᚑbackendᚋinte
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOUserStatus2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐUserStatus(ctx context.Context, sel ast.SelectionSet, v *model.UserStatus) graphql.Marshaler {
+func (ec *executionContext) marshalOUserStatus2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUserStatus(ctx context.Context, sel ast.SelectionSet, v *model.UserStatus) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return v
 }
 
-func (ec *executionContext) unmarshalOWaitlistLeadType2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐWaitlistLeadType(ctx context.Context, v any) (*model.WaitlistLeadType, error) {
+func (ec *executionContext) unmarshalOWaitlistLeadType2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐWaitlistLeadType(ctx context.Context, v any) (*model.WaitlistLeadType, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52057,14 +52057,14 @@ func (ec *executionContext) unmarshalOWaitlistLeadType2ᚖhelpmecleanᚑbackend�
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOWaitlistLeadType2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐWaitlistLeadType(ctx context.Context, sel ast.SelectionSet, v *model.WaitlistLeadType) graphql.Marshaler {
+func (ec *executionContext) marshalOWaitlistLeadType2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐWaitlistLeadType(ctx context.Context, sel ast.SelectionSet, v *model.WaitlistLeadType) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return v
 }
 
-func (ec *executionContext) unmarshalOWorkScheduleDayInput2ᚕᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐWorkScheduleDayInputᚄ(ctx context.Context, v any) ([]*model.WorkScheduleDayInput, error) {
+func (ec *executionContext) unmarshalOWorkScheduleDayInput2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐWorkScheduleDayInputᚄ(ctx context.Context, v any) ([]*model.WorkScheduleDayInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52074,7 +52074,7 @@ func (ec *executionContext) unmarshalOWorkScheduleDayInput2ᚕᚖhelpmecleanᚑb
 	res := make([]*model.WorkScheduleDayInput, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNWorkScheduleDayInput2ᚖhelpmecleanᚑbackendᚋinternalᚋgraphᚋmodelᚐWorkScheduleDayInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNWorkScheduleDayInput2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐWorkScheduleDayInput(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}

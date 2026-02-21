@@ -1,6 +1,6 @@
 {
   "meta": {
-    "title": "Professional Cleaning Services in Romania | HelpMeClean.ro",
+    "title": "Professional Cleaning Services in Romania | Go2Fix.ro",
     "description": "Romania's first cleaning marketplace. Verified companies, transparent pricing, online payment. Book standard, deep or post-construction cleaning in minutes."
   },
   "preReleaseBanner": "Platform launching soon!",
@@ -70,7 +70,7 @@
   },
   "trust": {
     "sectionLabel": "Why us",
-    "title": "Why HelpMeClean?",
+    "title": "Why Go2Fix?",
     "subtitle": "Safety, transparency and quality in every service.",
     "verified": {
       "title": "Verified companies",
@@ -115,7 +115,7 @@
   "partners": {
     "sectionLabel": "Partners",
     "title": "Are you a cleaning company?",
-    "subtitle": "Join HelpMeClean and receive orders from clients across Romania.",
+    "subtitle": "Join Go2Fix and receive orders from clients across Romania.",
     "step1Title": "Apply online",
     "step1Desc": "Submit your company documents in 5 minutes, directly from the platform.",
     "step2Title": "Get approved",

@@ -58,10 +58,10 @@ describe('Header', () => {
     });
   });
 
-  it('shows logo text "HelpMeClean"', () => {
+  it('shows logo text "Go2Fix"', () => {
     renderHeader();
     // Logo is split across nested spans for color styling — check the link role
-    expect(screen.getByRole('link', { name: /HelpMeClean/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Go2Fix/i })).toBeInTheDocument();
   });
 
   it('shows "Servicii" link', () => {
@@ -182,7 +182,7 @@ describe('Header', () => {
       mockUseAuth.mockReturnValue({
         user: {
           id: '3',
-          email: 'admin@helpmeclean.ro',
+          email: 'admin@go2fix.ro',
           fullName: 'Super Admin',
           role: 'GLOBAL_ADMIN',
           status: 'ACTIVE',

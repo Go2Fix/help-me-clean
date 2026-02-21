@@ -1,6 +1,6 @@
 {
   "meta": {
-    "title": "Servicii de Curățenie la Domiciliu | HelpMeClean.ro",
+    "title": "Servicii de Curățenie la Domiciliu | Go2Fix.ro",
     "description": "Prima platformă de curățenie din România. Firme verificate, prețuri transparente, plată online. Rezervă curățenie standard, generală sau post-construcție."
   },
   "preReleaseBanner": "Platforma se lansează în curând!",
@@ -70,7 +70,7 @@
   },
   "trust": {
     "sectionLabel": "De ce noi",
-    "title": "De ce HelpMeClean?",
+    "title": "De ce Go2Fix?",
     "subtitle": "Siguranță, transparență și calitate în fiecare serviciu.",
     "verified": {
       "title": "Firme verificate",
@@ -115,7 +115,7 @@
   "partners": {
     "sectionLabel": "Parteneri",
     "title": "Ești firmă de curățenie?",
-    "subtitle": "Alătură-te platformei HelpMeClean și primește comenzi de la clienți din toată România.",
+    "subtitle": "Alătură-te platformei Go2Fix și primește comenzi de la clienți din toată România.",
     "step1Title": "Aplici online",
     "step1Desc": "Trimiți documentele firmei în 5 minute, direct din platformă.",
     "step2Title": "Ești aprobat",

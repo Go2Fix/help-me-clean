@@ -7,7 +7,7 @@ import {
 } from 'recharts';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
-import { cn } from '@helpmeclean/shared';
+import { cn } from '@go2fix/shared';
 import {
   MY_CLEANER_STATS, TODAYS_JOBS, CLEANER_EARNINGS_BY_DATE_RANGE, MY_CLEANER_REVIEWS, MY_CLEANER_PROFILE,
 } from '@/graphql/operations';

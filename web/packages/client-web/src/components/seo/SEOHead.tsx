@@ -26,7 +26,7 @@ interface SEOHeadProps {
   alternateUrl?: AlternateUrl;
 }
 
-const BASE_URL = 'https://helpmeclean.ro';
+const BASE_URL = 'https://go2fix.ro';
 const DEFAULT_OG_IMAGE = `${BASE_URL}/og-image.jpg`;
 
 export default function SEOHead({
@@ -41,7 +41,7 @@ export default function SEOHead({
   lang = 'ro',
   alternateUrl,
 }: SEOHeadProps) {
-  const fullTitle = title.includes('HelpMeClean') ? title : `${title} | HelpMeClean`;
+  const fullTitle = title.includes('Go2Fix') ? title : `${title} | Go2Fix`;
   const canonical = canonicalUrl ? `${BASE_URL}${canonicalUrl}` : undefined;
   const ogLocale = lang === 'en' ? 'en_US' : 'ro_RO';
 
@@ -67,7 +67,7 @@ export default function SEOHead({
       <meta property="og:image" content={ogImage} />
       {canonical && <meta property="og:url" content={canonical} />}
       <meta property="og:locale" content={ogLocale} />
-      <meta property="og:site_name" content="HelpMeClean" />
+      <meta property="og:site_name" content="Go2Fix" />
 
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={fullTitle} />

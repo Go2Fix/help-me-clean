@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Navigate } from 'react-router-dom';
 import { useQuery, useMutation, useSubscription } from '@apollo/client';
 import { MessageCircle, Send, Loader2 } from 'lucide-react';
-import { cn } from '@helpmeclean/shared';
+import { cn } from '@go2fix/shared';
 import { useAuth } from '@/context/AuthContext';
 import {
   MY_CHAT_ROOMS,

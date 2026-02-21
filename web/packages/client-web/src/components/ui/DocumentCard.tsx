@@ -7,7 +7,7 @@ import {
   Clock,
 } from 'lucide-react';
 import Badge from './Badge';
-import { cn } from '@helpmeclean/shared';
+import { cn } from '@go2fix/shared';
 
 const apiBase =
   (import.meta.env.VITE_GRAPHQL_ENDPOINT as string | undefined)?.replace('/query', '') ??

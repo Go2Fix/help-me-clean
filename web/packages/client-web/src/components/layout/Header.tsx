@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Menu, X, LogOut, Building2, Shield, User, ChevronDown } from 'lucide-react';
-import { cn } from '@helpmeclean/shared';
+import { cn } from '@go2fix/shared';
 import { useAuth } from '@/context/AuthContext';
 import { usePlatform } from '@/context/PlatformContext';
 import { useLanguage } from '@/context/LanguageContext';
@@ -97,7 +97,7 @@ export default function Header() {
           {/* Logo — wordmark style */}
           <Link to="/" className="flex items-center group">
             <span className="text-xl font-black tracking-tight text-gray-900 group-hover:opacity-80 transition-opacity">
-              HelpMe<span className="text-primary">Clean</span>
+              Go2<span className="text-primary">Fix</span>
             </span>
           </Link>
 

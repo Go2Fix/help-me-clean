@@ -5,4 +5,4 @@ Disallow: /cont/
 Disallow: /firma/
 Disallow: /worker/
 
-Sitemap: https://helpmeclean.ro/sitemap.xml
+Sitemap: https://go2fix.ro/sitemap.xml

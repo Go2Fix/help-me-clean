@@ -2,7 +2,7 @@ import { Shield, Sparkles, AlertTriangle, Info, Check } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
-import { cn } from '@helpmeclean/shared';
+import { cn } from '@go2fix/shared';
 
 interface PersonalityFacetScore {
   facetCode: string;

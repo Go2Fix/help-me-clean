@@ -1,6 +1,6 @@
 import { useEffect, useCallback, type ReactNode } from 'react';
 import { X } from 'lucide-react';
-import { cn } from '@helpmeclean/shared';
+import { cn } from '@go2fix/shared';
 
 interface ModalProps {
   open: boolean;

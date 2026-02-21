@@ -49,12 +49,12 @@ func (s *Service) SendOTP(to, code string) (skipped bool, err error) {
 		return false, fmt.Errorf("email service not configured: set SMTP_HOST in environment")
 	}
 
-	subject := "Codul tău de autentificare HelpMeClean"
+	subject := "Codul tău de autentificare Go2Fix"
 	body := buildOTPEmail(code)
 
 	addr := s.host + ":" + s.port
 	msg := []byte(strings.Join([]string{
-		"From: HelpMeClean <" + s.from + ">",
+		"From: Go2Fix <" + s.from + ">",
 		"To: " + to,
 		"Subject: " + subject,
 		"MIME-Version: 1.0",
@@ -82,13 +82,13 @@ func buildOTPEmail(code string) string {
 <body style="margin:0;padding:0;background:#FAFBFC;font-family:'Inter',Arial,sans-serif;">
 <div style="max-width:480px;margin:40px auto;background:#ffffff;border-radius:12px;padding:40px;border:1px solid #e5e7eb;">
   <div style="margin-bottom:24px;">
-    <span style="font-size:24px;font-weight:800;color:#2563EB;">HelpMeClean</span>
+    <span style="font-size:24px;font-weight:800;color:#2563EB;">Go2Fix</span>
   </div>
   <h2 style="color:#111827;font-size:20px;font-weight:700;margin:0 0 8px 0;">
     Codul tău de autentificare
   </h2>
   <p style="color:#6B7280;font-size:14px;margin:0 0 24px 0;">
-    Folosește codul de mai jos pentru a te autentifica pe HelpMeClean.ro.<br>
+    Folosește codul de mai jos pentru a te autentifica pe Go2Fix.ro.<br>
     Codul este valabil <strong>10 minute</strong>.
   </p>
   <div style="background:#EFF6FF;border:2px solid #2563EB;border-radius:12px;padding:28px 24px;text-align:center;margin-bottom:24px;">

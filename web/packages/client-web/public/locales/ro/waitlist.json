@@ -1,7 +1,7 @@
 {
   "meta": {
-    "title": "Lista de Așteptare | HelpMeClean.ro",
-    "description": "Înscrie-te pe lista de așteptare și fii primul care află când HelpMeClean se lansează în orașul tău."
+    "title": "Lista de Așteptare | Go2Fix.ro",
+    "description": "Înscrie-te pe lista de așteptare și fii primul care află când Go2Fix se lansează în orașul tău."
   },
   "badge": "Lansare în curând",
   "title": "Fii primul care știe când ne lansăm",
@@ -58,7 +58,7 @@
   "success": {
     "title": "Te-ai înscris cu succes!",
     "clientMsg": "Te vom contacta când platforma se lansează în {{city}} și te vom anunța primul.",
-    "companyMsg": "Te vom contacta în curând pentru a discuta despre parteneriatul cu HelpMeClean.",
+    "companyMsg": "Te vom contacta în curând pentru a discuta despre parteneriatul cu Go2Fix.",
     "confirmEmail": "Verifică emailul pentru confirmare"
   },
   "alreadyRegistered": {

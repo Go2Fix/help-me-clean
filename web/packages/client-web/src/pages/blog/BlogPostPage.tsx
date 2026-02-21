@@ -43,14 +43,14 @@ export default function BlogPostPage() {
     '@type': 'Article',
     headline: post.title,
     description: post.excerpt,
-    author: { '@type': 'Organization', name: 'HelpMeClean' },
+    author: { '@type': 'Organization', name: 'Go2Fix' },
     publisher: {
       '@type': 'Organization',
-      name: 'HelpMeClean',
-      url: 'https://helpmeclean.ro',
+      name: 'Go2Fix',
+      url: 'https://go2fix.ro',
     },
     datePublished: post.publishedAt,
-    url: `https://helpmeclean.ro${canonicalPath}`,
+    url: `https://go2fix.ro${canonicalPath}`,
     keywords: post.tags.join(', '),
   };
 

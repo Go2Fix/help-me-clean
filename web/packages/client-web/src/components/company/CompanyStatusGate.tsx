@@ -7,7 +7,7 @@ import { useCompany } from '@/context/CompanyContext';
 import { useAuth } from '@/context/AuthContext';
 
 const CONTACT_PHONE = '+40 312 345 678';
-const CONTACT_EMAIL = 'contact@helpmeclean.ro';
+const CONTACT_EMAIL = 'contact@go2fix.ro';
 
 function ContactInfo() {
   return (

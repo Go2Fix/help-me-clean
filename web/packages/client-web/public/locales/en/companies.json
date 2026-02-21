@@ -1,16 +1,16 @@
 {
   "meta": {
-    "title": "For Cleaning Companies | HelpMeClean.ro",
-    "description": "Partner with HelpMeClean: get new clients online, manage bookings digitally and grow your cleaning business in Romania."
+    "title": "For Cleaning Companies | Go2Fix.ro",
+    "description": "Partner with Go2Fix: get new clients online, manage bookings digitally and grow your cleaning business in Romania."
   },
   "hero": {
-    "title": "Grow your business with HelpMeClean",
+    "title": "Grow your business with Go2Fix",
     "subtitle": "We bring new clients directly to your door. No hidden fees, no hassle — just verified orders and guaranteed payments.",
     "ctaApply": "Apply now",
     "ctaWaitlist": "Join the waitlist"
   },
   "benefits": {
-    "title": "Why choose HelpMeClean?",
+    "title": "Why choose Go2Fix?",
     "subtitle": "The platform built specifically for cleaning companies in Romania.",
     "b1Title": "New clients online",
     "b1Desc": "We reach thousands of households in Bucharest and major cities. You focus on cleaning, we handle marketing.",
@@ -32,7 +32,7 @@
     "s2Desc": "Our team verifies your company documents (registration certificate, civil insurance) within 48 hours.",
     "s3Step": "03",
     "s3Title": "Receive orders",
-    "s3Desc": "Your account is activated and you start receiving bookings from HelpMeClean directly on your phone."
+    "s3Desc": "Your account is activated and you start receiving bookings from Go2Fix directly on your phone."
   },
   "requirements": {
     "title": "Partner requirements",
@@ -45,7 +45,7 @@
   },
   "cta": {
     "title": "Ready to grow?",
-    "subtitle": "Join the first partner companies and get priority access to orders in the HelpMeClean platform.",
+    "subtitle": "Join the first partner companies and get priority access to orders in the Go2Fix platform.",
     "ctaApply": "Apply now",
     "ctaWaitlist": "Join the waitlist"
   }

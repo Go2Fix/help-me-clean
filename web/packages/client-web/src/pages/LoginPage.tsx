@@ -70,7 +70,7 @@ export default function LoginPage() {
         {/* Logo */}
         <Link to="/" className="relative z-10">
           <span className="text-2xl font-black text-white tracking-tight">
-            HelpMe<span className="text-secondary">Clean</span>
+            Go2<span className="text-secondary">Fix</span>
           </span>
         </Link>
 
@@ -111,7 +111,7 @@ export default function LoginPage() {
           {/* Mobile-only logo */}
           <Link to="/" className="lg:hidden">
             <span className="text-lg font-black text-gray-900 tracking-tight">
-              HelpMe<span className="text-primary">Clean</span>
+              Go2<span className="text-primary">Fix</span>
             </span>
           </Link>
           <div className="hidden lg:block" />

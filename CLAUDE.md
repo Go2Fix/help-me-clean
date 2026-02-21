@@ -1,12 +1,13 @@
-# HelpMeClean.ro - AI Development Guide
+# Go2Fix.ro - AI Development Guide
 
 ## Project Overview
 
-**HelpMeClean.ro** is Romania's first "Uber for cleaning" marketplace MVP.
+**Go2Fix.ro** is Romania's first home services marketplace MVP. Starting with cleaning, expanding to all home services.
 
 - **Purpose:** Functional prototype for investor demonstration
-- **Core Value:** Formalize Romania's informal cleaning sector through compliance
+- **Core Value:** Formalize Romania's informal services sector through compliance
 - **Architecture:** Go monolith backend + React web platform (client, company, admin) + iOS native app
+- **Domains:** go2fix.ro (web), api.go2fix.ro (API), dev.go2fix.ro (staging), dev.api.go2fix.ro (staging API)
 
 ## Technology Stack
 
@@ -91,7 +92,7 @@ Use specialized agents for different parts of the codebase:
 
 | Name | Hex | Tailwind | Use |
 |------|-----|----------|-----|
-| Primary | #2563EB | blue-600 | Trust, cleanliness, CTAs |
+| Primary | #2563EB | blue-600 | Trust, reliability, CTAs |
 | Secondary | #10B981 | emerald-500 | Freshness, success states |
 | Accent | #F59E0B | amber-500 | Ratings, highlights |
 | Danger | #EF4444 | red-500 | Errors, cancellations |
@@ -216,6 +217,7 @@ Each service has a `.env.example` file. Copy to `.env` and fill in values:
 - Rich analytics/reporting
 - Multi-payment methods
 - Automated invoicing
+- Additional service categories (plumbing, electrical, etc.)
 
 ---
 

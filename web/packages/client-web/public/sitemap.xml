@@ -4,200 +4,200 @@
 
   <!-- Home -->
   <url>
-    <loc>https://helpmeclean.ro/</loc>
+    <loc>https://go2fix.ro/</loc>
     <priority>1.0</priority>
     <changefreq>weekly</changefreq>
-    <xhtml:link rel="alternate" hreflang="ro" href="https://helpmeclean.ro/"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://helpmeclean.ro/en/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://helpmeclean.ro/"/>
+    <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://go2fix.ro/en/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://go2fix.ro/"/>
   </url>
   <url>
-    <loc>https://helpmeclean.ro/en/</loc>
+    <loc>https://go2fix.ro/en/</loc>
     <priority>1.0</priority>
     <changefreq>weekly</changefreq>
-    <xhtml:link rel="alternate" hreflang="ro" href="https://helpmeclean.ro/"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://helpmeclean.ro/en/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://helpmeclean.ro/"/>
+    <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://go2fix.ro/en/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://go2fix.ro/"/>
   </url>
 
   <!-- Waitlist -->
   <url>
-    <loc>https://helpmeclean.ro/lista-asteptare</loc>
+    <loc>https://go2fix.ro/lista-asteptare</loc>
     <priority>0.9</priority>
     <changefreq>monthly</changefreq>
-    <xhtml:link rel="alternate" hreflang="ro" href="https://helpmeclean.ro/lista-asteptare"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://helpmeclean.ro/en/waitlist"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://helpmeclean.ro/lista-asteptare"/>
+    <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/lista-asteptare"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://go2fix.ro/en/waitlist"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://go2fix.ro/lista-asteptare"/>
   </url>
   <url>
-    <loc>https://helpmeclean.ro/en/waitlist</loc>
+    <loc>https://go2fix.ro/en/waitlist</loc>
     <priority>0.9</priority>
     <changefreq>monthly</changefreq>
-    <xhtml:link rel="alternate" hreflang="ro" href="https://helpmeclean.ro/lista-asteptare"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://helpmeclean.ro/en/waitlist"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://helpmeclean.ro/lista-asteptare"/>
+    <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/lista-asteptare"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://go2fix.ro/en/waitlist"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://go2fix.ro/lista-asteptare"/>
   </url>
 
   <!-- About -->
   <url>
-    <loc>https://helpmeclean.ro/despre-noi</loc>
+    <loc>https://go2fix.ro/despre-noi</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
-    <xhtml:link rel="alternate" hreflang="ro" href="https://helpmeclean.ro/despre-noi"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://helpmeclean.ro/en/about-us"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://helpmeclean.ro/despre-noi"/>
+    <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/despre-noi"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://go2fix.ro/en/about-us"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://go2fix.ro/despre-noi"/>
   </url>
   <url>
-    <loc>https://helpmeclean.ro/en/about-us</loc>
+    <loc>https://go2fix.ro/en/about-us</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
-    <xhtml:link rel="alternate" hreflang="ro" href="https://helpmeclean.ro/despre-noi"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://helpmeclean.ro/en/about-us"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://helpmeclean.ro/despre-noi"/>
+    <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/despre-noi"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://go2fix.ro/en/about-us"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://go2fix.ro/despre-noi"/>
   </url>
 
   <!-- For Companies -->
   <url>
-    <loc>https://helpmeclean.ro/pentru-firme</loc>
+    <loc>https://go2fix.ro/pentru-firme</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
-    <xhtml:link rel="alternate" hreflang="ro" href="https://helpmeclean.ro/pentru-firme"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://helpmeclean.ro/en/for-companies"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://helpmeclean.ro/pentru-firme"/>
+    <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/pentru-firme"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://go2fix.ro/en/for-companies"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://go2fix.ro/pentru-firme"/>
   </url>
   <url>
-    <loc>https://helpmeclean.ro/en/for-companies</loc>
+    <loc>https://go2fix.ro/en/for-companies</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
-    <xhtml:link rel="alternate" hreflang="ro" href="https://helpmeclean.ro/pentru-firme"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://helpmeclean.ro/en/for-companies"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://helpmeclean.ro/pentru-firme"/>
+    <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/pentru-firme"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://go2fix.ro/en/for-companies"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://go2fix.ro/pentru-firme"/>
   </url>
 
   <!-- Contact -->
   <url>
-    <loc>https://helpmeclean.ro/contact</loc>
+    <loc>https://go2fix.ro/contact</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
-    <xhtml:link rel="alternate" hreflang="ro" href="https://helpmeclean.ro/contact"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://helpmeclean.ro/en/contact"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://helpmeclean.ro/contact"/>
+    <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/contact"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://go2fix.ro/en/contact"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://go2fix.ro/contact"/>
   </url>
   <url>
-    <loc>https://helpmeclean.ro/en/contact</loc>
+    <loc>https://go2fix.ro/en/contact</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
-    <xhtml:link rel="alternate" hreflang="ro" href="https://helpmeclean.ro/contact"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://helpmeclean.ro/en/contact"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://helpmeclean.ro/contact"/>
+    <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/contact"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://go2fix.ro/en/contact"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://go2fix.ro/contact"/>
   </url>
 
   <!-- Blog list -->
   <url>
-    <loc>https://helpmeclean.ro/blog</loc>
+    <loc>https://go2fix.ro/blog</loc>
     <priority>0.9</priority>
     <changefreq>weekly</changefreq>
-    <xhtml:link rel="alternate" hreflang="ro" href="https://helpmeclean.ro/blog"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://helpmeclean.ro/en/blog"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://helpmeclean.ro/blog"/>
+    <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/blog"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://go2fix.ro/en/blog"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://go2fix.ro/blog"/>
   </url>
   <url>
-    <loc>https://helpmeclean.ro/en/blog</loc>
+    <loc>https://go2fix.ro/en/blog</loc>
     <priority>0.9</priority>
     <changefreq>weekly</changefreq>
-    <xhtml:link rel="alternate" hreflang="ro" href="https://helpmeclean.ro/blog"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://helpmeclean.ro/en/blog"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://helpmeclean.ro/blog"/>
+    <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/blog"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://go2fix.ro/en/blog"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://go2fix.ro/blog"/>
   </url>
 
   <!-- Blog post: How to choose a cleaning company -->
   <url>
-    <loc>https://helpmeclean.ro/blog/cum-sa-alegi-firma-curatenie-bucuresti</loc>
+    <loc>https://go2fix.ro/blog/cum-sa-alegi-firma-curatenie-bucuresti</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
-    <xhtml:link rel="alternate" hreflang="ro" href="https://helpmeclean.ro/blog/cum-sa-alegi-firma-curatenie-bucuresti"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://helpmeclean.ro/en/blog/how-to-choose-a-cleaning-company-in-bucharest"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://helpmeclean.ro/blog/cum-sa-alegi-firma-curatenie-bucuresti"/>
+    <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/blog/cum-sa-alegi-firma-curatenie-bucuresti"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://go2fix.ro/en/blog/how-to-choose-a-cleaning-company-in-bucharest"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://go2fix.ro/blog/cum-sa-alegi-firma-curatenie-bucuresti"/>
   </url>
   <url>
-    <loc>https://helpmeclean.ro/en/blog/how-to-choose-a-cleaning-company-in-bucharest</loc>
+    <loc>https://go2fix.ro/en/blog/how-to-choose-a-cleaning-company-in-bucharest</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
-    <xhtml:link rel="alternate" hreflang="ro" href="https://helpmeclean.ro/blog/cum-sa-alegi-firma-curatenie-bucuresti"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://helpmeclean.ro/en/blog/how-to-choose-a-cleaning-company-in-bucharest"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://helpmeclean.ro/blog/cum-sa-alegi-firma-curatenie-bucuresti"/>
+    <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/blog/cum-sa-alegi-firma-curatenie-bucuresti"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://go2fix.ro/en/blog/how-to-choose-a-cleaning-company-in-bucharest"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://go2fix.ro/blog/cum-sa-alegi-firma-curatenie-bucuresti"/>
   </url>
 
   <!-- Blog post: Apartment cleaning guide -->
   <url>
-    <loc>https://helpmeclean.ro/blog/curatenie-apartament-ghid-complet</loc>
+    <loc>https://go2fix.ro/blog/curatenie-apartament-ghid-complet</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
-    <xhtml:link rel="alternate" hreflang="ro" href="https://helpmeclean.ro/blog/curatenie-apartament-ghid-complet"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://helpmeclean.ro/en/blog/apartment-cleaning-complete-guide"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://helpmeclean.ro/blog/curatenie-apartament-ghid-complet"/>
+    <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/blog/curatenie-apartament-ghid-complet"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://go2fix.ro/en/blog/apartment-cleaning-complete-guide"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://go2fix.ro/blog/curatenie-apartament-ghid-complet"/>
   </url>
   <url>
-    <loc>https://helpmeclean.ro/en/blog/apartment-cleaning-complete-guide</loc>
+    <loc>https://go2fix.ro/en/blog/apartment-cleaning-complete-guide</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
-    <xhtml:link rel="alternate" hreflang="ro" href="https://helpmeclean.ro/blog/curatenie-apartament-ghid-complet"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://helpmeclean.ro/en/blog/apartment-cleaning-complete-guide"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://helpmeclean.ro/blog/curatenie-apartament-ghid-complet"/>
+    <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/blog/curatenie-apartament-ghid-complet"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://go2fix.ro/en/blog/apartment-cleaning-complete-guide"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://go2fix.ro/blog/curatenie-apartament-ghid-complet"/>
   </url>
 
   <!-- Blog post: Benefits of professional office cleaning -->
   <url>
-    <loc>https://helpmeclean.ro/blog/beneficiile-curatenie-profesionala-birou</loc>
+    <loc>https://go2fix.ro/blog/beneficiile-curatenie-profesionala-birou</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
-    <xhtml:link rel="alternate" hreflang="ro" href="https://helpmeclean.ro/blog/beneficiile-curatenie-profesionala-birou"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://helpmeclean.ro/en/blog/benefits-professional-office-cleaning"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://helpmeclean.ro/blog/beneficiile-curatenie-profesionala-birou"/>
+    <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/blog/beneficiile-curatenie-profesionala-birou"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://go2fix.ro/en/blog/benefits-professional-office-cleaning"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://go2fix.ro/blog/beneficiile-curatenie-profesionala-birou"/>
   </url>
   <url>
-    <loc>https://helpmeclean.ro/en/blog/benefits-professional-office-cleaning</loc>
+    <loc>https://go2fix.ro/en/blog/benefits-professional-office-cleaning</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
-    <xhtml:link rel="alternate" hreflang="ro" href="https://helpmeclean.ro/blog/beneficiile-curatenie-profesionala-birou"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://helpmeclean.ro/en/blog/benefits-professional-office-cleaning"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://helpmeclean.ro/blog/beneficiile-curatenie-profesionala-birou"/>
+    <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/blog/beneficiile-curatenie-profesionala-birou"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://go2fix.ro/en/blog/benefits-professional-office-cleaning"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://go2fix.ro/blog/beneficiile-curatenie-profesionala-birou"/>
   </url>
 
   <!-- Terms -->
   <url>
-    <loc>https://helpmeclean.ro/termeni</loc>
+    <loc>https://go2fix.ro/termeni</loc>
     <priority>0.3</priority>
     <changefreq>yearly</changefreq>
-    <xhtml:link rel="alternate" hreflang="ro" href="https://helpmeclean.ro/termeni"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://helpmeclean.ro/en/terms"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://helpmeclean.ro/termeni"/>
+    <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/termeni"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://go2fix.ro/en/terms"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://go2fix.ro/termeni"/>
   </url>
   <url>
-    <loc>https://helpmeclean.ro/en/terms</loc>
+    <loc>https://go2fix.ro/en/terms</loc>
     <priority>0.3</priority>
     <changefreq>yearly</changefreq>
-    <xhtml:link rel="alternate" hreflang="ro" href="https://helpmeclean.ro/termeni"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://helpmeclean.ro/en/terms"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://helpmeclean.ro/termeni"/>
+    <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/termeni"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://go2fix.ro/en/terms"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://go2fix.ro/termeni"/>
   </url>
 
   <!-- Privacy -->
   <url>
-    <loc>https://helpmeclean.ro/confidentialitate</loc>
+    <loc>https://go2fix.ro/confidentialitate</loc>
     <priority>0.3</priority>
     <changefreq>yearly</changefreq>
-    <xhtml:link rel="alternate" hreflang="ro" href="https://helpmeclean.ro/confidentialitate"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://helpmeclean.ro/en/privacy"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://helpmeclean.ro/confidentialitate"/>
+    <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/confidentialitate"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://go2fix.ro/en/privacy"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://go2fix.ro/confidentialitate"/>
   </url>
   <url>
-    <loc>https://helpmeclean.ro/en/privacy</loc>
+    <loc>https://go2fix.ro/en/privacy</loc>
     <priority>0.3</priority>
     <changefreq>yearly</changefreq>
-    <xhtml:link rel="alternate" hreflang="ro" href="https://helpmeclean.ro/confidentialitate"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://helpmeclean.ro/en/privacy"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://helpmeclean.ro/confidentialitate"/>
+    <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/confidentialitate"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://go2fix.ro/en/privacy"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://go2fix.ro/confidentialitate"/>
   </url>
 
 </urlset>

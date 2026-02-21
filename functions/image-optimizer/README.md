@@ -1,6 +1,6 @@
 # Image Optimizer Cloud Function
 
-Automated image optimization service for HelpMeClean.ro profile images and company logos.
+Automated image optimization service for Go2Fix.ro profile images and company logos.
 
 ## Overview
 
@@ -53,6 +53,8 @@ apk add vips-dev
 ```
 
 ### GCP Configuration
+
+> **Note:** The GCP project ID (`helpmeclean-dev`) and bucket names (`helpmeclean-dev-uploads`) below are legacy infrastructure names. They will be migrated to `go2fix-*` when the GCP projects are reconfigured.
 
 1. **Enable APIs**:
    ```bash

@@ -1,5 +1,5 @@
 {
-  "name": "@helpmeclean/shared",
+  "name": "@go2fix/shared",
   "version": "0.0.0",
   "private": true,
   "main": "./src/index.ts",

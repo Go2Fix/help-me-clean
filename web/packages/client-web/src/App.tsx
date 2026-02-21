@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ApolloProvider } from '@apollo/client';
-import { createApolloClient } from '@helpmeclean/shared';
+import { createApolloClient } from '@go2fix/shared';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { CompanyProvider } from '@/context/CompanyContext';
 import { PlatformProvider, usePlatform } from '@/context/PlatformContext';

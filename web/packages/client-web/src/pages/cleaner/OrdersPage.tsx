@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@apollo/client';
 import { Link } from 'react-router-dom';
 import { Search, ChevronLeft, ChevronRight, ClipboardList, Repeat } from 'lucide-react';
-import { cn } from '@helpmeclean/shared';
+import { cn } from '@go2fix/shared';
 import Badge from '@/components/ui/Badge';
 import Card from '@/components/ui/Card';
 import Input from '@/components/ui/Input';

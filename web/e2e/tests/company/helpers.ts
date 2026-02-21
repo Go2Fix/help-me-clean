@@ -6,7 +6,7 @@ import { type Page, expect } from '@playwright/test';
  */
 export async function loginAsCompanyAdmin(
   page: Page,
-  email = 'company-admin@helpmeclean.ro',
+  email = 'company-admin@go2fix.ro',
 ): Promise<void> {
   await page.goto('/autentificare');
   await page.getByLabel('Adresa de email').fill(email);
@@ -27,5 +27,5 @@ export async function loginAsCompanyAdmin(
  */
 export function uniqueEmail(): string {
   const ts = Date.now();
-  return `company-e2e-${ts}@helpmeclean.ro`;
+  return `company-e2e-${ts}@go2fix.ro`;
 }

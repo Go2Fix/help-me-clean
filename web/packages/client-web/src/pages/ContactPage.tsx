@@ -13,8 +13,8 @@ export default function ContactPage() {
     {
       icon: Mail,
       label: t('info.email'),
-      value: 'contact@helpmeclean.ro',
-      href: 'mailto:contact@helpmeclean.ro',
+      value: 'contact@go2fix.ro',
+      href: 'mailto:contact@go2fix.ro',
     },
     {
       icon: Phone,
@@ -57,8 +57,8 @@ export default function ContactPage() {
     const body = encodeURIComponent(
       `Nume: ${formData.name}\nEmail: ${formData.email}\n\n${formData.message}`,
     );
-    const subject = encodeURIComponent(`[HelpMeClean] ${formData.subject}`);
-    window.location.href = `mailto:contact@helpmeclean.ro?subject=${subject}&body=${body}`;
+    const subject = encodeURIComponent(`[Go2Fix] ${formData.subject}`);
+    window.location.href = `mailto:contact@go2fix.ro?subject=${subject}&body=${body}`;
   }
 
   return (

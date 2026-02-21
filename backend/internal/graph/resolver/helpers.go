@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	db "helpmeclean-backend/internal/db/generated"
+	db "go2fix-backend/internal/db/generated"
 )
 
 // microsecondsToHHMM converts PostgreSQL TIME microseconds to "HH:MM" string.

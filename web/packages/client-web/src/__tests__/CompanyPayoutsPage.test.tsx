@@ -11,7 +11,7 @@ import {
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
-vi.mock('@helpmeclean/shared', () => ({
+vi.mock('@go2fix/shared', () => ({
   cn: (...args: unknown[]) =>
     args
       .flat()

@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { loginAsTestUser } from './helpers';
 
 test.describe('Profile page', () => {
-  const testEmail = `e2e-profile-${Date.now()}@helpmeclean.ro`;
+  const testEmail = `e2e-profile-${Date.now()}@go2fix.ro`;
 
   test('Shows user info after login', async ({ page }) => {
     await loginAsTestUser(page, testEmail);

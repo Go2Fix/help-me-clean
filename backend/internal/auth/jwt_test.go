@@ -108,8 +108,8 @@ func TestValidateToken(t *testing.T) {
 		if claims.Role != "client" {
 			t.Errorf("expected Role 'client', got %q", claims.Role)
 		}
-		if claims.Issuer != "helpmeclean" {
-			t.Errorf("expected Issuer 'helpmeclean', got %q", claims.Issuer)
+		if claims.Issuer != "go2fix" {
+			t.Errorf("expected Issuer 'go2fix', got %q", claims.Issuer)
 		}
 	})
 
@@ -221,7 +221,7 @@ func TestValidateToken(t *testing.T) {
 			RegisteredClaims: jwt.RegisteredClaims{
 				ExpiresAt: jwt.NewNumericDate(time.Now().Add(-1 * time.Hour)),
 				IssuedAt:  jwt.NewNumericDate(time.Now().Add(-25 * time.Hour)),
-				Issuer:    "helpmeclean",
+				Issuer:    "go2fix",
 			},
 		}
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -288,7 +288,7 @@ func TestValidateToken(t *testing.T) {
 			RegisteredClaims: jwt.RegisteredClaims{
 				ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
 				IssuedAt:  jwt.NewNumericDate(time.Now()),
-				Issuer:    "helpmeclean",
+				Issuer:    "go2fix",
 			},
 		})
 		// jwt.UnsafeAllowNoneSignatureType is required to sign with "none".

@@ -7,7 +7,7 @@ import CleanerLayout from '@/components/layout/CleanerLayout';
 import { useAuth } from '@/context/AuthContext';
 import { MY_CLEANER_PROFILE } from '@/graphql/operations';
 
-vi.mock('@helpmeclean/shared', () => ({
+vi.mock('@go2fix/shared', () => ({
   cn: (...args: unknown[]) =>
     args
       .flat()
@@ -90,9 +90,9 @@ describe('CleanerLayout sidebar', () => {
       </MemoryRouter>,
     );
 
-  it('shows "HelpMeClean" text', () => {
+  it('shows "Go2Fix" text', () => {
     renderLayout();
-    expect(screen.getAllByText('HelpMeClean').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Go2Fix').length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows "Worker Dashboard" subtitle', () => {

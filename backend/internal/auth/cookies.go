@@ -7,7 +7,7 @@ import (
 
 const (
 	// AuthCookieName is the name of the httpOnly cookie storing the JWT token
-	AuthCookieName = "helpmeclean_token"
+	AuthCookieName = "go2fix_token"
 
 	// jwtExpirySeconds is the cookie expiry time (24 hours = 86400 seconds)
 	// This must match the JWT token expiry in jwt.go (24 * time.Hour)
@@ -29,7 +29,7 @@ func SetAuthCookie(w http.ResponseWriter, token string) {
 		MaxAge:   jwtExpirySeconds,
 	}
 
-	// Set domain for cross-subdomain access in production (e.g., .helpmeclean.ro)
+	// Set domain for cross-subdomain access in production (e.g., .go2fix.ro)
 	if isProduction {
 		if domain := os.Getenv("COOKIE_DOMAIN"); domain != "" {
 			cookie.Domain = domain

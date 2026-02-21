@@ -22,18 +22,18 @@ import (
 	chimiddleware "github.com/go-chi/cors"
 	"github.com/joho/godotenv"
 
-	"helpmeclean-backend/internal/auth"
-	internaldb "helpmeclean-backend/internal/db"
-	db "helpmeclean-backend/internal/db/generated"
-	"helpmeclean-backend/internal/graph"
-	"helpmeclean-backend/internal/graph/resolver"
-	dochandler "helpmeclean-backend/internal/handler"
-	custommiddleware "helpmeclean-backend/internal/middleware"
-	"helpmeclean-backend/internal/service/email"
-	"helpmeclean-backend/internal/service/invoice"
-	"helpmeclean-backend/internal/service/payment"
-	"helpmeclean-backend/internal/storage"
-	"helpmeclean-backend/internal/webhook"
+	"go2fix-backend/internal/auth"
+	internaldb "go2fix-backend/internal/db"
+	db "go2fix-backend/internal/db/generated"
+	"go2fix-backend/internal/graph"
+	"go2fix-backend/internal/graph/resolver"
+	dochandler "go2fix-backend/internal/handler"
+	custommiddleware "go2fix-backend/internal/middleware"
+	"go2fix-backend/internal/service/email"
+	"go2fix-backend/internal/service/invoice"
+	"go2fix-backend/internal/service/payment"
+	"go2fix-backend/internal/storage"
+	"go2fix-backend/internal/webhook"
 )
 
 // NewHandler builds and returns the HTTP handler for the application plus a shutdown
@@ -151,7 +151,7 @@ func NewHandler(ctx context.Context) (http.Handler, func(), error) {
 	srv.SetRecoverFunc(custommiddleware.RecoverFunc())
 
 	if env != "production" {
-		r.Handle("/graphql", playground.Handler("HelpMeClean GraphQL", "/query"))
+		r.Handle("/graphql", playground.Handler("Go2Fix GraphQL", "/query"))
 	}
 
 	r.With(
@@ -161,7 +161,7 @@ func NewHandler(ctx context.Context) (http.Handler, func(), error) {
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
-		fmt.Fprintf(w, `<h1>HelpMeClean API</h1><p>GraphQL playground: <a href="/graphql">/graphql</a></p>`)
+		fmt.Fprintf(w, `<h1>Go2Fix API</h1><p>GraphQL playground: <a href="/graphql">/graphql</a></p>`)
 	})
 
 	return r, shutdown, nil

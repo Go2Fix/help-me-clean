@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { cn } from '@helpmeclean/shared';
+import { cn } from '@go2fix/shared';
 import { useLanguage } from '@/context/LanguageContext';
 import { usePageAlternate } from '@/context/PageAlternateContext';
 import { getAlternatePath, type SupportedLanguage } from '@/i18n/routes';

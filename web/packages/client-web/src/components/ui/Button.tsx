@@ -1,5 +1,5 @@
 import { forwardRef, type ButtonHTMLAttributes } from 'react';
-import { cn } from '@helpmeclean/shared';
+import { cn } from '@go2fix/shared';
 import { Loader2 } from 'lucide-react';
 
 // ─── Types ───────────────────────────────────────────────────────────────────

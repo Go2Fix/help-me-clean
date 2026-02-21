@@ -5,7 +5,7 @@ import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import AdminLayout from '@/components/layout/AdminLayout';
 import { useAuth } from '@/context/AuthContext';
 
-vi.mock('@helpmeclean/shared', () => ({
+vi.mock('@go2fix/shared', () => ({
   cn: (...args: unknown[]) =>
     args
       .flat()
@@ -53,9 +53,9 @@ describe('AdminLayout sidebar', () => {
     vi.mocked(useAuth).mockReturnValue({ ...defaultAuth });
   });
 
-  it('shows "HelpMeClean" text', () => {
+  it('shows "Go2Fix" text', () => {
     renderLayout();
-    expect(screen.getAllByText('HelpMeClean').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Go2Fix').length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows "Admin Panel" subtitle', () => {
@@ -79,7 +79,7 @@ describe('AdminLayout sidebar', () => {
       isAuthenticated: true,
       user: {
         id: '1',
-        email: 'admin@helpmeclean.ro',
+        email: 'admin@go2fix.ro',
         fullName: 'Admin User',
         role: 'GLOBAL_ADMIN',
         status: 'ACTIVE',
@@ -87,7 +87,7 @@ describe('AdminLayout sidebar', () => {
     });
     renderLayout();
     expect(screen.getAllByText('Admin User').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('admin@helpmeclean.ro').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('admin@go2fix.ro').length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows Deconectare button', () => {

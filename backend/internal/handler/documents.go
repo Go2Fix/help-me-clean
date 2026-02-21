@@ -9,8 +9,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
-	db "helpmeclean-backend/internal/db/generated"
-	"helpmeclean-backend/internal/storage"
+	db "go2fix-backend/internal/db/generated"
+	"go2fix-backend/internal/storage"
 )
 
 // NewDocumentHandler returns an HTTP handler that streams private documents from storage.

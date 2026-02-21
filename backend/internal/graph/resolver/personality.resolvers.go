@@ -8,12 +8,12 @@ package resolver
 import (
 	"context"
 	"fmt"
-	"helpmeclean-backend/internal/auth"
-	db "helpmeclean-backend/internal/db/generated"
-	"helpmeclean-backend/internal/graph"
-	"helpmeclean-backend/internal/graph/model"
-	"helpmeclean-backend/internal/personality"
-	personalityService "helpmeclean-backend/internal/service/personality"
+	"go2fix-backend/internal/auth"
+	db "go2fix-backend/internal/db/generated"
+	"go2fix-backend/internal/graph"
+	"go2fix-backend/internal/graph/model"
+	"go2fix-backend/internal/personality"
+	personalityService "go2fix-backend/internal/service/personality"
 )
 
 // SubmitPersonalityAssessment is the resolver for the submitPersonalityAssessment field.

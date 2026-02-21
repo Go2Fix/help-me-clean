@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	db "helpmeclean-backend/internal/db/generated"
-	"helpmeclean-backend/internal/graph/model"
+	db "go2fix-backend/internal/db/generated"
+	"go2fix-backend/internal/graph/model"
 )
 
 // dbCityToGQL converts a db.EnabledCity to a GQL model with areas loaded.

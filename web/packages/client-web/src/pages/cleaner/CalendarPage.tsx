@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Clock, User, Calendar, Building2 } from 'lucide-react';
-import { cn } from '@helpmeclean/shared';
+import { cn } from '@go2fix/shared';
 import {
   MY_CLEANER_AVAILABILITY,
   MY_CLEANER_BOOKINGS_BY_DATE_RANGE,

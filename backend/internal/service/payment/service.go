@@ -19,10 +19,10 @@ import (
 	"github.com/stripe/stripe-go/v81/setupintent"
 	"github.com/stripe/stripe-go/v81/webhook"
 
-	db "helpmeclean-backend/internal/db/generated"
+	db "go2fix-backend/internal/db/generated"
 )
 
-// Service handles Stripe payment processing for HelpMeClean.
+// Service handles Stripe payment processing for Go2Fix.
 type Service struct {
 	queries           *db.Queries
 	stripeKey         string

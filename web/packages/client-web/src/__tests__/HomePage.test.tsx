@@ -147,9 +147,9 @@ describe('HomePage', () => {
     expect(screen.getByText('Bucură-te de rezultat')).toBeInTheDocument();
   });
 
-  it('shows "De ce HelpMeClean?" section', () => {
+  it('shows "De ce Go2Fix?" section', () => {
     renderHomePage();
-    expect(screen.getByText('De ce HelpMeClean?')).toBeInTheDocument();
+    expect(screen.getByText('De ce Go2Fix?')).toBeInTheDocument();
   });
 
   it('shows trust items', () => {

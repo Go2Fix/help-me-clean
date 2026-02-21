@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { useQuery } from '@apollo/client';
 import UsersPage from '@/pages/admin/UsersPage';
 
-vi.mock('@helpmeclean/shared', () => ({
+vi.mock('@go2fix/shared', () => ({
   cn: (...args: unknown[]) =>
     args
       .flat()

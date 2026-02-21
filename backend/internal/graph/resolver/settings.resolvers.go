@@ -8,9 +8,9 @@ package resolver
 import (
 	"context"
 	"fmt"
-	"helpmeclean-backend/internal/auth"
-	db "helpmeclean-backend/internal/db/generated"
-	"helpmeclean-backend/internal/graph/model"
+	"go2fix-backend/internal/auth"
+	db "go2fix-backend/internal/db/generated"
+	"go2fix-backend/internal/graph/model"
 )
 
 // UpdatePlatformSetting is the resolver for the updatePlatformSetting field.

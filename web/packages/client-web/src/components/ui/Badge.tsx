@@ -1,4 +1,4 @@
-import { cn } from '@helpmeclean/shared';
+import { cn } from '@go2fix/shared';
 
 interface BadgeProps {
   children: React.ReactNode;

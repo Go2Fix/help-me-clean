@@ -5,7 +5,7 @@ import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import CompanyLayout from '@/components/layout/CompanyLayout';
 import { useAuth } from '@/context/AuthContext';
 
-vi.mock('@helpmeclean/shared', () => ({
+vi.mock('@go2fix/shared', () => ({
   cn: (...args: unknown[]) =>
     args
       .flat()
@@ -62,9 +62,9 @@ describe('CompanyLayout sidebar', () => {
       </MemoryRouter>,
     );
 
-  it('shows "HelpMeClean" text', () => {
+  it('shows "Go2Fix" text', () => {
     renderLayout();
-    expect(screen.getAllByText('HelpMeClean').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Go2Fix').length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows "Company Dashboard" subtitle', () => {

@@ -5,8 +5,8 @@ import (
 	"log"
 	"strconv"
 
-	db "helpmeclean-backend/internal/db/generated"
-	"helpmeclean-backend/internal/service/matching"
+	db "go2fix-backend/internal/db/generated"
+	"go2fix-backend/internal/service/matching"
 )
 
 // loadMatchConfig reads matchmaking settings from platform_settings KV table,

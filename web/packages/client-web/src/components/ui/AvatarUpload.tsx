@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { User, Camera, Loader2 } from 'lucide-react';
-import { cn } from '@helpmeclean/shared';
+import { cn } from '@go2fix/shared';
 
 interface AvatarUploadProps {
   currentUrl?: string | null;

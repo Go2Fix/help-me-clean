@@ -1,6 +1,15 @@
-# HelpMeClean.ro
+# Go2Fix.ro
 
-Romania's first "Uber for cleaning" marketplace — an investor-ready MVP that formalizes the informal cleaning sector through compliance, trust, and technology.
+Romania's first home services marketplace — an investor-ready MVP that formalizes the informal services sector through compliance, trust, and technology. Starting with cleaning, expanding to all home services.
+
+## Domain Structure
+
+| Purpose | URL |
+|---------|-----|
+| Website | go2fix.ro |
+| Dev website | dev.go2fix.ro |
+| API | api.go2fix.ro |
+| Dev API | dev.api.go2fix.ro |
 
 ## Architecture
 
@@ -10,7 +19,7 @@ Romania's first "Uber for cleaning" marketplace — an investor-ready MVP that f
 | Client Web | React 19, Vite 6, Shadcn/ui, TailwindCSS v4 | :3000 |
 | Client iOS | SwiftUI, Apollo iOS, Liquid Glass (iOS 16+) | Xcode |
 
-All frontends communicate with the backend via **GraphQL** (Apollo Client) and **WebSocket** for real-time features.
+All frontends communicate with the backend via **GraphQL** (Apollo Client).
 
 ## Project Structure
 
@@ -23,17 +32,12 @@ help-me-clean/
 │       ├── db/             # Migrations, sqlc queries, seeds
 │       ├── graph/          # GraphQL schema (14 domains) + resolvers
 │       ├── middleware/      # CORS, logging
-│       ├── pubsub/         # Real-time pub/sub
 │       ├── service/        # Business logic (9 services)
-│       ├── storage/        # File uploads
-│       └── ws/             # WebSocket handling
+│       └── storage/        # File uploads
 ├── web/                    # Turborepo monorepo
 │   └── packages/
 │       ├── client-web/     # Client booking app (:3000)
 │       └── shared/         # Shared GraphQL, types, utils
-├── ios/                    # SwiftUI native client app
-│   ├── HelpMeClean/        # App source (views, viewmodels, GraphQL)
-│   └── project.yml         # XcodeGen project config
 ├── docker-compose.yml      # PostgreSQL 16
 └── help_me_clean.pdf       # Full MVP spec (46 pages)
 ```
@@ -103,16 +107,6 @@ npm run dev
 
 - **GraphQL Playground:** http://localhost:8080/graphql
 - **Client Web:** http://localhost:3000
-
-### iOS Development
-
-```bash
-cd ios
-# Generate Xcode project (requires XcodeGen)
-xcodegen generate
-open HelpMeClean.xcodeproj
-# Build & Run in Xcode
-```
 
 ## Development Commands
 

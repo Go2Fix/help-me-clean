@@ -1,7 +1,7 @@
 {
   "meta": {
-    "title": "Waitlist | HelpMeClean.ro",
-    "description": "Join the waitlist and be the first to know when HelpMeClean launches in your city."
+    "title": "Waitlist | Go2Fix.ro",
+    "description": "Join the waitlist and be the first to know when Go2Fix launches in your city."
   },
   "badge": "Launching soon",
   "title": "Be the first to know when we launch",
@@ -58,7 +58,7 @@
   "success": {
     "title": "Successfully joined!",
     "clientMsg": "We'll contact you when the platform launches in {{city}} and notify you first.",
-    "companyMsg": "We'll contact you soon to discuss the partnership with HelpMeClean.",
+    "companyMsg": "We'll contact you soon to discuss the partnership with Go2Fix.",
     "confirmEmail": "Check your email for confirmation"
   },
   "alreadyRegistered": {

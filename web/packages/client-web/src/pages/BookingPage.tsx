@@ -40,7 +40,7 @@ import {
   Info,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { cn } from '@helpmeclean/shared';
+import { cn } from '@go2fix/shared';
 import { useAuth } from '@/context/AuthContext';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';

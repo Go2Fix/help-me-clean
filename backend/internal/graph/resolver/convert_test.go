@@ -7,8 +7,8 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 
-	db "helpmeclean-backend/internal/db/generated"
-	"helpmeclean-backend/internal/graph/model"
+	db "go2fix-backend/internal/db/generated"
+	"go2fix-backend/internal/graph/model"
 )
 
 // ---------------------------------------------------------------------------
@@ -2542,7 +2542,7 @@ func TestDbInvoiceToGQL(t *testing.T) {
 			InvoiceType:           db.InvoiceTypePlatformCommission,
 			InvoiceNumber:         pgtype.Text{Valid: false},
 			Status:                db.InvoiceStatusDraft,
-			SellerCompanyName:     "HelpMeClean SRL",
+			SellerCompanyName:     "Go2Fix SRL",
 			SellerCui:             "RO99999999",
 			BuyerName:             "Test Corp",
 			BuyerCui:              pgtype.Text{Valid: false},

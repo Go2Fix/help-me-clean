@@ -1,4 +1,4 @@
-module helpmeclean-functions/image-optimizer
+module go2fix-functions/image-optimizer
 
 go 1.22
 

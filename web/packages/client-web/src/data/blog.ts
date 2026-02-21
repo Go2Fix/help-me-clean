@@ -40,10 +40,10 @@ export const BLOG_POSTS: BlogPost[] = [
       'Un ghid complet pentru alegerea unei firme de curățenie de încredere în capitală. De la verificarea documentelor la evaluarea recenziilor.',
     category: 'sfaturi',
     tags: ['firma curatenie bucuresti', 'servicii curatenie', 'curatenie apartament'],
-    author: 'Echipa HelpMeClean',
+    author: 'Echipa Go2Fix',
     publishedAt: '2026-01-15',
     readTimeMinutes: 6,
-    metaTitle: 'Cum alegi firma de curățenie în București | HelpMeClean',
+    metaTitle: 'Cum alegi firma de curățenie în București | Go2Fix',
     metaDescription:
       'Ghid complet pentru alegerea firmei de curățenie potrivite în București. Verifică documentele, recenziile și prețurile înainte să rezervi.',
     content: `
@@ -57,7 +57,7 @@ export const BLOG_POSTS: BlogPost[] = [
   <li><strong>Dovada asigurării de răspundere civilă</strong> — esențială dacă un angajat sparge un obiect de valoare sau provoacă daune accidentale. Fără această asigurare, recuperarea pagubei devine un coșmar juridic.</li>
   <li><strong>Contractul scris</strong> — orice firmă serioasă oferă un contract care specifică serviciile incluse, prețul total, condițiile de anulare și politica în caz de daune. Evită acordurile verbale.</li>
 </ul>
-<p>Firmele din rețeaua HelpMeClean trec printr-un proces de verificare a documentelor înainte de a putea primi comenzi. Îți economisim efortul de a verifica fiecare firmă individual — <a href="/lista-asteptare">înscrie-te pe lista de așteptare</a> pentru acces timpuriu.</p>
+<p>Firmele din rețeaua Go2Fix trec printr-un proces de verificare a documentelor înainte de a putea primi comenzi. Îți economisim efortul de a verifica fiecare firmă individual — <a href="/lista-asteptare">înscrie-te pe lista de așteptare</a> pentru acces timpuriu.</p>
 
 <h2>2. Analizează recenziile cu ochi critic</h2>
 <p>Recenziile online sunt valoroase, dar trebuie citite inteligent. Câteva semne de alarmă:</p>
@@ -98,7 +98,7 @@ export const BLOG_POSTS: BlogPost[] = [
 <p>Abia după această primă experiență poți decide dacă merită un abonament lunar sau dacă cauți altă firmă.</p>
 
 <h2>Concluzie</h2>
-<p>Alegerea unei firme de curățenie în București nu trebuie să fie o loterie. Cu documentele verificate, recenziile citite corect, un deviz detaliat și un test inițial, reduci dramatic riscul de a fi dezamăgit. Pe <a href="/lista-asteptare">HelpMeClean</a> colectăm toate aceste informații pentru tine și afișăm doar firme verificate, cu recenzii reale și prețuri transparente.</p>
+<p>Alegerea unei firme de curățenie în București nu trebuie să fie o loterie. Cu documentele verificate, recenziile citite corect, un deviz detaliat și un test inițial, reduci dramatic riscul de a fi dezamăgit. Pe <a href="/lista-asteptare">Go2Fix</a> colectăm toate aceste informații pentru tine și afișăm doar firme verificate, cu recenzii reale și prețuri transparente.</p>
 `,
   },
   {
@@ -110,10 +110,10 @@ export const BLOG_POSTS: BlogPost[] = [
       'Tot ce trebuie să știi despre curățenia profesională a apartamentului: ordine, produse, frecvență și cât durează.',
     category: 'cum-sa',
     tags: ['curatenie apartament', 'curatenie generala', 'curatenie profesionala'],
-    author: 'Echipa HelpMeClean',
+    author: 'Echipa Go2Fix',
     publishedAt: '2026-01-22',
     readTimeMinutes: 8,
-    metaTitle: 'Curățenie Apartament: Ghid Complet Pas cu Pas | HelpMeClean',
+    metaTitle: 'Curățenie Apartament: Ghid Complet Pas cu Pas | Go2Fix',
     metaDescription:
       'Ghid complet pentru curățenia apartamentului: ordinea corectă, produse profesionale, durata estimată și frecvența recomandată.',
     content: `
@@ -175,7 +175,7 @@ export const BLOG_POSTS: BlogPost[] = [
 </ul>
 
 <h2>Concluzie</h2>
-<p>O curățenie profesională bine executată nu înseamnă să freci mai tare, ci să urmezi un protocol logic cu produsele potrivite. Dacă vrei să externalizezi această activitate, <a href="/lista-asteptare">HelpMeClean</a> conectează clienții din România cu firme de curățenie verificate, cu prețuri transparente și recenzii reale de la alți clienți.</p>
+<p>O curățenie profesională bine executată nu înseamnă să freci mai tare, ci să urmezi un protocol logic cu produsele potrivite. Dacă vrei să externalizezi această activitate, <a href="/lista-asteptare">Go2Fix</a> conectează clienții din România cu firme de curățenie verificate, cu prețuri transparente și recenzii reale de la alți clienți.</p>
 `,
   },
   {
@@ -187,10 +187,10 @@ export const BLOG_POSTS: BlogPost[] = [
       'Un birou curat crește productivitatea cu 15% și reduce absenteismul. Descoperă beneficiile curățeniei profesionale pentru afacerea ta.',
     category: 'sfaturi',
     tags: ['curatenie birou', 'firma curatenie', 'curatenie profesionala birou'],
-    author: 'Echipa HelpMeClean',
+    author: 'Echipa Go2Fix',
     publishedAt: '2026-02-01',
     readTimeMinutes: 5,
-    metaTitle: 'Beneficii Curățenie Profesională Birou | HelpMeClean',
+    metaTitle: 'Beneficii Curățenie Profesională Birou | Go2Fix',
     metaDescription:
       'Descoperă de ce curățenia profesională a biroului este o investiție rentabilă pentru productivitate, sănătate și imaginea firmei.',
     content: `
@@ -240,7 +240,7 @@ export const BLOG_POSTS: BlogPost[] = [
 <p>Raportul cost-beneficiu devine favorabil chiar și pentru birouri mici când se ia în calcul productivitatea recuperată și reducerea absenteismului.</p>
 
 <h2>Concluzie</h2>
-<p>Curățenia profesională a biroului nu este un lux rezervat corporațiilor mari — este o decizie de business rațională pentru orice companie care vrea să reducă absenteismul, să atragă și să rețină talente și să lase o impresie bună partenerilor. Dacă ești antreprenor sau manager în căutarea unui furnizor verificat, <a href="/lista-asteptare">HelpMeClean</a> se lansează cu o rețea de firme de curățenie certificate, cu recenzii reale și prețuri transparente.</p>
+<p>Curățenia profesională a biroului nu este un lux rezervat corporațiilor mari — este o decizie de business rațională pentru orice companie care vrea să reducă absenteismul, să atragă și să rețină talente și să lase o impresie bună partenerilor. Dacă ești antreprenor sau manager în căutarea unui furnizor verificat, <a href="/lista-asteptare">Go2Fix</a> se lansează cu o rețea de firme de curățenie certificate, cu recenzii reale și prețuri transparente.</p>
 `,
   },
   {
@@ -252,10 +252,10 @@ export const BLOG_POSTS: BlogPost[] = [
       'A complete guide to choosing a reliable cleaning company in Bucharest. Learn what documents to check, how to read reviews, and what questions to ask.',
     category: 'sfaturi',
     tags: ['cleaning company bucharest', 'cleaning services', 'professional cleaning'],
-    author: 'HelpMeClean Team',
+    author: 'Go2Fix Team',
     publishedAt: '2026-01-15',
     readTimeMinutes: 6,
-    metaTitle: 'How to Choose a Cleaning Company in Bucharest | HelpMeClean',
+    metaTitle: 'How to Choose a Cleaning Company in Bucharest | Go2Fix',
     metaDescription:
       'Complete guide to choosing the right cleaning company in Bucharest. Check documents, read reviews and know what to ask before booking.',
     content: `<h2>Why choosing the right cleaning company matters</h2>
@@ -285,10 +285,10 @@ export const BLOG_POSTS: BlogPost[] = [
 </ul>
 
 <h2>4. Compare prices transparently</h2>
-<p>Reputable companies provide clear pricing — either per hour or per service type. Be wary of unusually low prices, which often indicate either poor quality or hidden additional costs. On HelpMeClean, all prices are transparent and displayed before you book.</p>
+<p>Reputable companies provide clear pricing — either per hour or per service type. Be wary of unusually low prices, which often indicate either poor quality or hidden additional costs. On Go2Fix, all prices are transparent and displayed before you book.</p>
 
 <h2>5. Use a verified marketplace</h2>
-<p>The safest way to find a cleaning company in Bucharest is through a platform that pre-screens all companies. HelpMeClean verifies every partner company's documents, insurance, and reviews before approving them on the platform.</p>
+<p>The safest way to find a cleaning company in Bucharest is through a platform that pre-screens all companies. Go2Fix verifies every partner company's documents, insurance, and reviews before approving them on the platform.</p>
 <p>This means you can book with confidence, knowing every company you see has passed our verification process.</p>`,
   },
   {
@@ -300,10 +300,10 @@ export const BLOG_POSTS: BlogPost[] = [
       'Everything you need to know about apartment cleaning — from choosing the right service to preparing your home and what to expect from professional cleaners.',
     category: 'cum-sa',
     tags: ['apartment cleaning', 'house cleaning guide', 'professional cleaning'],
-    author: 'HelpMeClean Team',
+    author: 'Go2Fix Team',
     publishedAt: '2026-01-22',
     readTimeMinutes: 8,
-    metaTitle: 'Apartment Cleaning: Complete Step-by-Step Guide | HelpMeClean',
+    metaTitle: 'Apartment Cleaning: Complete Step-by-Step Guide | Go2Fix',
     metaDescription:
       'Complete guide to apartment cleaning — how to prepare, what to expect, and how to get the best results from professional cleaning services.',
     content: `<h2>Types of apartment cleaning services</h2>
@@ -358,10 +358,10 @@ export const BLOG_POSTS: BlogPost[] = [
       'Discover the real benefits of professional office cleaning — from employee productivity and health to client impressions and cost savings.',
     category: 'sfaturi',
     tags: ['office cleaning', 'professional cleaning', 'workplace hygiene'],
-    author: 'HelpMeClean Team',
+    author: 'Go2Fix Team',
     publishedAt: '2026-02-01',
     readTimeMinutes: 5,
-    metaTitle: 'Why Hire a Professional Office Cleaning Company | HelpMeClean',
+    metaTitle: 'Why Hire a Professional Office Cleaning Company | Go2Fix',
     metaDescription:
       "Professional office cleaning improves employee health, productivity and client impressions. Find out why it's worth the investment.",
     content: `<h2>The true cost of a dirty office</h2>
@@ -384,7 +384,7 @@ export const BLOG_POSTS: BlogPost[] = [
 <p>Many companies assume hiring in-house cleaning staff is cheaper. When you factor in employment costs, equipment, supplies, supervision time, holiday cover, and sick pay, professional cleaning services often prove more cost-effective — with the added benefit of accountability and consistent quality standards.</p>
 
 <h2>Choosing the right office cleaning partner</h2>
-<p>Look for a company that offers flexible scheduling (after hours or at weekends), uses eco-friendly products, has verifiable insurance, and provides a dedicated account manager. On HelpMeClean, all partner companies are pre-verified for exactly these criteria.</p>`,
+<p>Look for a company that offers flexible scheduling (after hours or at weekends), uses eco-friendly products, has verifiable insurance, and provides a dedicated account manager. On Go2Fix, all partner companies are pre-verified for exactly these criteria.</p>`,
   },
 ];
 

@@ -1,5 +1,5 @@
 // Package invoice implements invoice generation, Factureaza.ro API integration,
-// and e-factura transmission for the HelpMeClean platform.
+// and e-factura transmission for the Go2Fix platform.
 package invoice
 
 import (
@@ -18,7 +18,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 
-	db "helpmeclean-backend/internal/db/generated"
+	db "go2fix-backend/internal/db/generated"
 )
 
 // vatRatePct is the standard Romanian VAT rate (21%).
@@ -280,7 +280,7 @@ func (s *Service) GenerateCommissionInvoice(
 	vatAmount := subtotalNet * vatRatePct / 100
 	totalAmount := subtotalNet + vatAmount
 
-	invoiceNumber, err := s.NewInvoiceNumber(ctx, pgtype.UUID{}, "HMC")
+	invoiceNumber, err := s.NewInvoiceNumber(ctx, pgtype.UUID{}, "G2F")
 	if err != nil {
 		return db.Invoice{}, fmt.Errorf("invoice: generate number: %w", err)
 	}
@@ -324,14 +324,14 @@ func (s *Service) GenerateCommissionInvoice(
 		ClientUserID:         pgtype.UUID{},
 		Status:               db.InvoiceStatusIssued,
 		DueDate:              dueDate,
-		Notes:                pgText(fmt.Sprintf("Comision platforma HelpMeClean - %s pana la %s", periodFrom, periodTo)),
+		Notes:                pgText(fmt.Sprintf("Comision platforma Go2Fix - %s pana la %s", periodFrom, periodTo)),
 	})
 	if err != nil {
 		return db.Invoice{}, fmt.Errorf("invoice: create commission invoice: %w", err)
 	}
 
-	descRo := fmt.Sprintf("Comision platforma HelpMeClean - %d rezervari (%s - %s)", bookingCount, periodFrom, periodTo)
-	descEn := fmt.Sprintf("HelpMeClean platform commission - %d bookings (%s - %s)", bookingCount, periodFrom, periodTo)
+	descRo := fmt.Sprintf("Comision platforma Go2Fix - %d rezervari (%s - %s)", bookingCount, periodFrom, periodTo)
+	descEn := fmt.Sprintf("Go2Fix platform commission - %d bookings (%s - %s)", bookingCount, periodFrom, periodTo)
 
 	_, err = s.queries.CreateInvoiceLineItem(ctx, db.CreateInvoiceLineItemParams{
 		InvoiceID:        inv.ID,

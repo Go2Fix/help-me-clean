@@ -20,7 +20,7 @@ import {
 } from 'recharts';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
-import { cn } from '@helpmeclean/shared';
+import { cn } from '@go2fix/shared';
 import {
   MY_COMPANY,
   MY_COMPANY_FINANCIAL_SUMMARY,

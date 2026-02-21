@@ -3,17 +3,17 @@ version: '3.8'
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: helpmeclean-db
+    container_name: go2fix-db
     environment:
-      POSTGRES_DB: helpmeclean
-      POSTGRES_USER: helpmeclean
+      POSTGRES_DB: go2fix
+      POSTGRES_USER: go2fix
       POSTGRES_PASSWORD: password
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U helpmeclean"]
+      test: ["CMD-SHELL", "pg_isready -U go2fix"]
       interval: 10s
       timeout: 5s
       retries: 5

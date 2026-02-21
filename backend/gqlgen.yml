@@ -16,7 +16,7 @@ resolver:
   filename_template: "{name}.resolvers.go"
 
 autobind:
-  - "helpmeclean-backend/internal/graph/model"
+  - "go2fix-backend/internal/graph/model"
 
 models:
   ID:

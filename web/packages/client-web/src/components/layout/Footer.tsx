@@ -16,7 +16,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-6 gap-8">
           {/* Brand */}
           <div className="md:col-span-2">
-            <span className="text-2xl font-bold text-white">HelpMeClean</span>
+            <span className="text-2xl font-bold text-white">Go2Fix</span>
             <p className="mt-3 text-sm leading-relaxed max-w-md">
               {t('footer.tagline')}
             </p>
@@ -111,7 +111,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-10 pt-6 border-t border-gray-800 text-sm text-center">
-          &copy; {currentYear} HelpMeClean. {t('footer.rights')}
+          &copy; {currentYear} Go2Fix. {t('footer.rights')}
         </div>
       </div>
     </footer>

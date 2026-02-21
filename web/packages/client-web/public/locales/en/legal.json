@@ -1,17 +1,17 @@
 {
   "terms": {
     "meta": {
-      "title": "Terms and Conditions | HelpMeClean.ro",
-      "description": "Terms and conditions for using the HelpMeClean.ro platform."
+      "title": "Terms and Conditions | Go2Fix.ro",
+      "description": "Terms and conditions for using the Go2Fix.ro platform."
     },
     "title": "Terms and Conditions",
     "lastUpdated": "Last updated: January 1, 2024",
-    "intro": "Please read these Terms and Conditions carefully before using the HelpMeClean.ro platform. By accessing or using our services, you agree to these terms.",
+    "intro": "Please read these Terms and Conditions carefully before using the Go2Fix.ro platform. By accessing or using our services, you agree to these terms.",
     "s1": {
       "title": "1. Definitions",
       "intro": "In this document, the terms below have the following meanings:",
       "platform": "Platform",
-      "platformDef": "the helpmeclean.ro website and associated applications, operated by HelpMeClean SRL",
+      "platformDef": "the go2fix.ro website and associated applications, operated by Go2Fix SRL",
       "user": "User",
       "userDef": "any natural or legal person who accesses or uses the Platform",
       "client": "Client",
@@ -25,9 +25,9 @@
     },
     "s2": {
       "title": "2. Use of the platform",
-      "p1": "HelpMeClean.ro is an intermediary platform that facilitates the connection between Clients and partner cleaning companies. The Platform is not the direct provider of cleaning services.",
+      "p1": "Go2Fix.ro is an intermediary platform that facilitates the connection between Clients and partner cleaning companies. The Platform is not the direct provider of cleaning services.",
       "p2": "Use of the Platform is permitted to persons aged at least 18 years. By creating an account, you confirm that you have full legal capacity.",
-      "p3": "Bookings made through the Platform constitute direct contracts between the Client and the Partner company. HelpMeClean SRL acts exclusively as an intermediary and is not a party to the cleaning services contract."
+      "p3": "Bookings made through the Platform constitute direct contracts between the Client and the Partner company. Go2Fix SRL acts exclusively as an intermediary and is not a party to the cleaning services contract."
     },
     "s3": {
       "title": "3. User obligations",
@@ -35,7 +35,7 @@
       "o1": "Provide accurate and complete information when registering and placing orders;",
       "o2": "Not use the Platform for illegal purposes or contrary to public order;",
       "o3": "Not disrupt the normal operation of the Platform or other users;",
-      "o4": "Not reproduce, distribute or modify Platform content without HelpMeClean SRL's written consent;",
+      "o4": "Not reproduce, distribute or modify Platform content without Go2Fix SRL's written consent;",
       "o5": "Maintain the confidentiality of account access credentials;",
       "o6": "Pay for booked services at the displayed prices;",
       "o7": "Allow the cleaning team access to the address specified at the scheduled date."
@@ -43,39 +43,39 @@
     "s4": {
       "title": "4. Prices and payments",
       "p1": "All prices displayed on the Platform include VAT where applicable and are expressed in Romanian lei (RON). The final service price is calculated automatically based on the area, number of rooms and selected additional services.",
-      "p2": "Payment is made electronically, by bank card, through the Stripe payment processor. HelpMeClean SRL does not store your card data.",
-      "p3": "HelpMeClean SRL charges an intermediary commission from the value of each transaction. The commission is included in the final price displayed to the Client."
+      "p2": "Payment is made electronically, by bank card, through the Stripe payment processor. Go2Fix SRL does not store your card data.",
+      "p3": "Go2Fix SRL charges an intermediary commission from the value of each transaction. The commission is included in the final price displayed to the Client."
     },
     "s5": {
       "title": "5. Cancellation and refund",
       "p1": "The Client may cancel a booking free of charge at least 24 hours before the scheduled time. Cancellations made less than 24 hours in advance may be subject to a cancellation fee according to the Partner company's policy.",
-      "p2": "If the service was not provided as contracted, the Client may request a partial or full refund through the Platform within 48 hours of the scheduled service completion. Refund requests are reviewed individually by the HelpMeClean team."
+      "p2": "If the service was not provided as contracted, the Client may request a partial or full refund through the Platform within 48 hours of the scheduled service completion. Refund requests are reviewed individually by the Go2Fix team."
     },
     "s6": {
       "title": "6. Liability",
-      "p1": "HelpMeClean SRL is not liable for direct or indirect damages caused by Partner companies' failure to fulfil their contractual obligations. Our liability as intermediary is limited to the value of the intermediary commission charged for that transaction.",
-      "p2": "Partner companies are required to maintain active professional civil liability insurance throughout the entire collaboration with HelpMeClean. Insurance documents are verified during each company's onboarding and periodically thereafter."
+      "p1": "Go2Fix SRL is not liable for direct or indirect damages caused by Partner companies' failure to fulfil their contractual obligations. Our liability as intermediary is limited to the value of the intermediary commission charged for that transaction.",
+      "p2": "Partner companies are required to maintain active professional civil liability insurance throughout the entire collaboration with Go2Fix. Insurance documents are verified during each company's onboarding and periodically thereafter."
     },
     "s7": {
       "title": "7. Changes to the terms",
-      "p1": "HelpMeClean SRL reserves the right to modify these Terms and Conditions at any time. Changes take effect on the date of publication on the Platform. Continued use of the Platform after publication of changes constitutes acceptance of the new terms. We recommend checking this page periodically."
+      "p1": "Go2Fix SRL reserves the right to modify these Terms and Conditions at any time. Changes take effect on the date of publication on the Platform. Continued use of the Platform after publication of changes constitutes acceptance of the new terms. We recommend checking this page periodically."
     },
     "s8": {
       "title": "8. Contact",
-      "p1": "For any questions regarding these Terms and Conditions, you can contact us at contact@helpmeclean.ro or at HelpMeClean SRL's registered office, Bucharest, Romania."
+      "p1": "For any questions regarding these Terms and Conditions, you can contact us at contact@go2fix.ro or at Go2Fix SRL's registered office, Bucharest, Romania."
     }
   },
   "privacy": {
     "meta": {
-      "title": "Privacy Policy | HelpMeClean.ro",
-      "description": "Privacy policy and personal data protection on the HelpMeClean.ro platform, in compliance with GDPR."
+      "title": "Privacy Policy | Go2Fix.ro",
+      "description": "Privacy policy and personal data protection on the Go2Fix.ro platform, in compliance with GDPR."
     },
     "title": "Privacy Policy",
     "lastUpdated": "Last updated: January 1, 2024",
-    "intro": "HelpMeClean SRL respects users' right to privacy and is committed to protecting personal data in accordance with Regulation (EU) 2016/679 (GDPR) and applicable national legislation. This policy describes the types of data collected, the purpose of processing, and your rights.",
+    "intro": "Go2Fix SRL respects users' right to privacy and is committed to protecting personal data in accordance with Regulation (EU) 2016/679 (GDPR) and applicable national legislation. This policy describes the types of data collected, the purpose of processing, and your rights.",
     "s1": {
       "title": "1. Data controller",
-      "p1": "The personal data controller is HelpMeClean SRL, registered in Bucharest, Romania. You can contact us for any aspect related to data processing at: dpo@helpmeclean.ro."
+      "p1": "The personal data controller is Go2Fix SRL, registered in Bucharest, Romania. You can contact us for any aspect related to data processing at: dpo@go2fix.ro."
     },
     "s2": {
       "title": "2. Data collected",
@@ -128,7 +128,7 @@
       "r5Desc": "You may object to processing based on legitimate interest.",
       "r6": "Right to restriction",
       "r6Desc": "You may request restriction of processing in certain circumstances.",
-      "contact": "To exercise your rights, contact us at dpo@helpmeclean.ro. You will receive a response within 30 days. You also have the right to lodge a complaint with the National Supervisory Authority for Personal Data Processing (ANSPDCP)."
+      "contact": "To exercise your rights, contact us at dpo@go2fix.ro. You will receive a response within 30 days. You also have the right to lodge a complaint with the National Supervisory Authority for Personal Data Processing (ANSPDCP)."
     },
     "s6": {
       "title": "6. Cookies",
@@ -146,7 +146,7 @@
     },
     "s8": {
       "title": "8. DPO contact",
-      "p1": "Our Data Protection Officer can be contacted at: dpo@helpmeclean.ro. Any question, request or complaint relating to the processing of personal data can be addressed to this address."
+      "p1": "Our Data Protection Officer can be contacted at: dpo@go2fix.ro. Any question, request or complaint relating to the processing of personal data can be addressed to this address."
     }
   }
 }

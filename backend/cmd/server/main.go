@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 
-	"helpmeclean-backend/app"
+	"go2fix-backend/app"
 )
 
 func main() {
@@ -21,7 +21,7 @@ func main() {
 	}
 	defer shutdown()
 
-	log.Printf("HelpMeClean backend starting on port %s", port)
+	log.Printf("Go2Fix backend starting on port %s", port)
 	log.Printf("GraphQL playground: http://localhost:%s/graphql", port)
 	if err := http.ListenAndServe(":"+port, handler); err != nil {
 		log.Fatalf("Failed to start server: %v", err)

@@ -1,17 +1,17 @@
 {
   "terms": {
     "meta": {
-      "title": "Termeni și Condiții | HelpMeClean.ro",
-      "description": "Termenii și condițiile de utilizare ale platformei HelpMeClean.ro."
+      "title": "Termeni și Condiții | Go2Fix.ro",
+      "description": "Termenii și condițiile de utilizare ale platformei Go2Fix.ro."
     },
     "title": "Termeni și Condiții",
     "lastUpdated": "Ultima actualizare: 1 ianuarie 2024",
-    "intro": "Vă rugăm să citiți cu atenție acești Termeni și Condiții înainte de a utiliza platforma HelpMeClean.ro. Prin accesarea sau utilizarea serviciilor noastre, sunteți de acord cu acești termeni.",
+    "intro": "Vă rugăm să citiți cu atenție acești Termeni și Condiții înainte de a utiliza platforma Go2Fix.ro. Prin accesarea sau utilizarea serviciilor noastre, sunteți de acord cu acești termeni.",
     "s1": {
       "title": "1. Definiții",
       "intro": "În cuprinsul prezentului document, termenii de mai jos au următoarele semnificații:",
       "platform": "Platforma",
-      "platformDef": "site-ul web helpmeclean.ro și aplicațiile asociate, operate de HelpMeClean SRL",
+      "platformDef": "site-ul web go2fix.ro și aplicațiile asociate, operate de Go2Fix SRL",
       "user": "Utilizator",
       "userDef": "orice persoană fizică sau juridică care accesează sau utilizează Platforma",
       "client": "Client",
@@ -25,9 +25,9 @@
     },
     "s2": {
       "title": "2. Utilizarea platformei",
-      "p1": "HelpMeClean.ro este o platformă de intermediere care facilitează legătura între Clienți și Firmele partenere de curățenie. Platforma nu este furnizorul direct al serviciilor de curățenie.",
+      "p1": "Go2Fix.ro este o platformă de intermediere care facilitează legătura între Clienți și Firmele partenere de curățenie. Platforma nu este furnizorul direct al serviciilor de curățenie.",
       "p2": "Utilizarea Platformei este permisă persoanelor cu vârsta de cel puțin 18 ani. Prin crearea unui cont, confirmați că aveți capacitate juridică deplină.",
-      "p3": "Rezervările efectuate prin Platformă constituie contracte directe între Client și Firma parteneră. HelpMeClean SRL acționează exclusiv ca intermediar și nu este parte în contractul de prestare a serviciilor de curățenie."
+      "p3": "Rezervările efectuate prin Platformă constituie contracte directe între Client și Firma parteneră. Go2Fix SRL acționează exclusiv ca intermediar și nu este parte în contractul de prestare a serviciilor de curățenie."
     },
     "s3": {
       "title": "3. Obligațiile utilizatorului",
@@ -35,7 +35,7 @@
       "o1": "Să furnizeze informații corecte și complete la înregistrare și la plasarea comenzilor;",
       "o2": "Să nu utilizeze Platforma în scopuri ilegale sau contrare ordinii publice;",
       "o3": "Să nu perturbe funcționarea normală a Platformei sau a altor utilizatori;",
-      "o4": "Să nu reproducă, distribuie sau modifice conținutul Platformei fără acordul scris al HelpMeClean SRL;",
+      "o4": "Să nu reproducă, distribuie sau modifice conținutul Platformei fără acordul scris al Go2Fix SRL;",
       "o5": "Să respecte confidențialitatea datelor de acces la cont;",
       "o6": "Să achite contravaloarea serviciilor rezervate conform prețurilor afișate;",
       "o7": "Să permită accesul echipei de curățenie la adresa specificată la data rezervată."
@@ -43,39 +43,39 @@
     "s4": {
       "title": "4. Prețuri și plăți",
       "p1": "Toate prețurile afișate pe Platformă includ TVA acolo unde este aplicabil și sunt exprimate în lei românești (RON). Prețul final al serviciului se calculează automat pe baza suprafeței, numărului de camere și serviciilor suplimentare alese.",
-      "p2": "Plata se efectuează electronic, prin card bancar, prin intermediul procesorului de plăți Stripe. HelpMeClean SRL nu stochează datele cardului dumneavoastră.",
-      "p3": "HelpMeClean SRL percepe un comision de intermediere din valoarea fiecărei tranzacții. Comisionul este inclus în prețul final afișat Clientului."
+      "p2": "Plata se efectuează electronic, prin card bancar, prin intermediul procesorului de plăți Stripe. Go2Fix SRL nu stochează datele cardului dumneavoastră.",
+      "p3": "Go2Fix SRL percepe un comision de intermediere din valoarea fiecărei tranzacții. Comisionul este inclus în prețul final afișat Clientului."
     },
     "s5": {
       "title": "5. Anulare și rambursare",
       "p1": "Clientul poate anula o rezervare gratuit cu cel puțin 24 de ore înainte de ora programată. Anulările efectuate cu mai puțin de 24 de ore pot fi supuse unei taxe de anulare conform politicii Firmei partenere.",
-      "p2": "În cazul în care serviciul nu a fost prestat conform contractului, Clientul poate solicita o rambursare parțială sau totală prin intermediul Platformei, în termen de 48 de ore de la finalizarea programată a serviciului. Cererile de rambursare sunt analizate individual de echipa HelpMeClean."
+      "p2": "În cazul în care serviciul nu a fost prestat conform contractului, Clientul poate solicita o rambursare parțială sau totală prin intermediul Platformei, în termen de 48 de ore de la finalizarea programată a serviciului. Cererile de rambursare sunt analizate individual de echipa Go2Fix."
     },
     "s6": {
       "title": "6. Răspundere",
-      "p1": "HelpMeClean SRL nu răspunde pentru prejudiciile directe sau indirecte cauzate de neîndeplinirea obligațiilor contractuale de către Firmele partenere. Răspunderea noastră în calitate de intermediar este limitată la valoarea comisionului de intermediere perceput pentru tranzacția respectivă.",
-      "p2": "Firmele partenere sunt obligate să dețină asigurare civilă profesională activă pe durata întregii colaborări cu HelpMeClean. Verificarea documentelor de asigurare se efectuează la onboardingul fiecărei firme și periodic ulterior."
+      "p1": "Go2Fix SRL nu răspunde pentru prejudiciile directe sau indirecte cauzate de neîndeplinirea obligațiilor contractuale de către Firmele partenere. Răspunderea noastră în calitate de intermediar este limitată la valoarea comisionului de intermediere perceput pentru tranzacția respectivă.",
+      "p2": "Firmele partenere sunt obligate să dețină asigurare civilă profesională activă pe durata întregii colaborări cu Go2Fix. Verificarea documentelor de asigurare se efectuează la onboardingul fiecărei firme și periodic ulterior."
     },
     "s7": {
       "title": "7. Modificări ale termenilor",
-      "p1": "HelpMeClean SRL își rezervă dreptul de a modifica acești Termeni și Condiții în orice moment. Modificările intră în vigoare la data publicării pe Platformă. Continuarea utilizării Platformei după publicarea modificărilor constituie acceptul noilor termeni. Vă recomandăm să verificați periodic această pagină."
+      "p1": "Go2Fix SRL își rezervă dreptul de a modifica acești Termeni și Condiții în orice moment. Modificările intră în vigoare la data publicării pe Platformă. Continuarea utilizării Platformei după publicarea modificărilor constituie acceptul noilor termeni. Vă recomandăm să verificați periodic această pagină."
     },
     "s8": {
       "title": "8. Contact",
-      "p1": "Pentru orice întrebări referitoare la acești Termeni și Condiții, ne puteți contacta la adresa de email contact@helpmeclean.ro sau la sediul social al HelpMeClean SRL, București, România."
+      "p1": "Pentru orice întrebări referitoare la acești Termeni și Condiții, ne puteți contacta la adresa de email contact@go2fix.ro sau la sediul social al Go2Fix SRL, București, România."
     }
   },
   "privacy": {
     "meta": {
-      "title": "Politica de Confidențialitate | HelpMeClean.ro",
-      "description": "Politica de confidențialitate și protecția datelor cu caracter personal pe platforma HelpMeClean.ro, conform GDPR."
+      "title": "Politica de Confidențialitate | Go2Fix.ro",
+      "description": "Politica de confidențialitate și protecția datelor cu caracter personal pe platforma Go2Fix.ro, conform GDPR."
     },
     "title": "Politica de Confidențialitate",
     "lastUpdated": "Ultima actualizare: 1 ianuarie 2024",
-    "intro": "HelpMeClean SRL respectă dreptul la confidențialitate al utilizatorilor și se angajează să protejeze datele cu caracter personal în conformitate cu Regulamentul (UE) 2016/679 (GDPR) și legislația națională aplicabilă. Această politică descrie tipurile de date colectate, scopul prelucrării și drepturile dumneavoastră.",
+    "intro": "Go2Fix SRL respectă dreptul la confidențialitate al utilizatorilor și se angajează să protejeze datele cu caracter personal în conformitate cu Regulamentul (UE) 2016/679 (GDPR) și legislația națională aplicabilă. Această politică descrie tipurile de date colectate, scopul prelucrării și drepturile dumneavoastră.",
     "s1": {
       "title": "1. Operatorul de date",
-      "p1": "Operatorul de date cu caracter personal este HelpMeClean SRL, cu sediul în București, România. Ne puteți contacta pentru orice aspect legat de prelucrarea datelor la adresa: dpo@helpmeclean.ro."
+      "p1": "Operatorul de date cu caracter personal este Go2Fix SRL, cu sediul în București, România. Ne puteți contacta pentru orice aspect legat de prelucrarea datelor la adresa: dpo@go2fix.ro."
     },
     "s2": {
       "title": "2. Datele colectate",
@@ -128,7 +128,7 @@
       "r5Desc": "Puteți obiecta la prelucrarea datelor bazată pe interes legitim.",
       "r6": "Dreptul la restricție",
       "r6Desc": "Puteți solicita limitarea prelucrării în anumite circumstanțe.",
-      "contact": "Pentru a vă exercita drepturile, contactați-ne la dpo@helpmeclean.ro. Veți primi un răspuns în termen de 30 de zile. Aveți de asemenea dreptul de a depune o plângere la Autoritatea Națională de Supraveghere a Prelucrării Datelor cu Caracter Personal (ANSPDCP)."
+      "contact": "Pentru a vă exercita drepturile, contactați-ne la dpo@go2fix.ro. Veți primi un răspuns în termen de 30 de zile. Aveți de asemenea dreptul de a depune o plângere la Autoritatea Națională de Supraveghere a Prelucrării Datelor cu Caracter Personal (ANSPDCP)."
     },
     "s6": {
       "title": "6. Cookies",
@@ -146,7 +146,7 @@
     },
     "s8": {
       "title": "8. Contact DPO",
-      "p1": "Responsabilul nostru cu protecția datelor (Data Protection Officer) poate fi contactat la adresa: dpo@helpmeclean.ro. Orice întrebare, solicitare sau plângere legată de prelucrarea datelor cu caracter personal poate fi adresată la această adresă."
+      "p1": "Responsabilul nostru cu protecția datelor (Data Protection Officer) poate fi contactat la adresa: dpo@go2fix.ro. Orice întrebare, solicitare sau plângere legată de prelucrarea datelor cu caracter personal poate fi adresată la această adresă."
     }
   }
 }

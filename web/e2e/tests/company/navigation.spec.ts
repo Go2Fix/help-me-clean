@@ -43,7 +43,7 @@ test.describe('Navigation', () => {
     const sidebar = page.locator('aside');
     // Should show user email
     await expect(
-      sidebar.getByText('company-admin@helpmeclean.ro'),
+      sidebar.getByText('company-admin@go2fix.ro'),
     ).toBeVisible();
   });
 

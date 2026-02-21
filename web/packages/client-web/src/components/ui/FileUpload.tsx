@@ -1,6 +1,6 @@
 import { useState, useRef, type DragEvent, type ChangeEvent } from 'react';
 import { Upload, X } from 'lucide-react';
-import { cn } from '@helpmeclean/shared';
+import { cn } from '@go2fix/shared';
 
 interface FileUploadProps {
   onFileSelect: (file: File) => void;

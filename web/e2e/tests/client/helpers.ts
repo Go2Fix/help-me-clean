@@ -9,7 +9,7 @@ import { type Page, expect } from '@playwright/test';
  */
 export async function loginAsTestUser(
   page: Page,
-  email = 'test-e2e@helpmeclean.ro',
+  email = 'test-e2e@go2fix.ro',
   role: 'CLIENT' | 'COMPANY_ADMIN' | 'CLEANER' | 'GLOBAL_ADMIN' = 'CLIENT',
 ): Promise<void> {
   // Mock the signInWithGoogle mutation
@@ -98,5 +98,5 @@ export function getFutureDate(daysFromNow = 3): string {
  */
 export function uniqueEmail(): string {
   const ts = Date.now();
-  return `e2e-${ts}@helpmeclean.ro`;
+  return `e2e-${ts}@go2fix.ro`;
 }

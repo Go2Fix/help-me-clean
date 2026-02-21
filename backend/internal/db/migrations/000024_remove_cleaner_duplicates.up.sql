@@ -44,7 +44,7 @@ BEGIN
         WHERE user_id IS NULL
     LOOP
         -- Generate unique email from cleaner ID
-        generated_email := 'cleaner-' || cleaner_record.id::text || '@pending.helpmeclean.ro';
+        generated_email := 'cleaner-' || cleaner_record.id::text || '@pending.go2fix.ro';
 
         -- Create user
         INSERT INTO users (email, full_name, phone, role, status, created_at, updated_at)

@@ -10,7 +10,7 @@ import {
   ALL_EXTRAS,
 } from '@/graphql/operations';
 
-vi.mock('@helpmeclean/shared', () => ({
+vi.mock('@go2fix/shared', () => ({
   cn: (...args: unknown[]) =>
     args
       .flat()
@@ -37,13 +37,13 @@ function renderSettingsPage() {
 
 const mockSettings = [
   { key: 'platform_commission_pct', value: '15', description: 'Procentul comisionului platformei' },
-  { key: 'support_email', value: 'support@helpmeclean.ro', description: 'Adresa email pentru suport' },
+  { key: 'support_email', value: 'support@go2fix.ro', description: 'Adresa email pentru suport' },
   { key: 'support_phone', value: '0800123456', description: 'Numarul de telefon suport' },
   { key: 'min_booking_hours', value: '2', description: 'Numarul minim de ore' },
   { key: 'max_booking_hours', value: '12', description: 'Numarul maxim de ore' },
   { key: 'default_hourly_rate', value: '50', description: 'Tariful orar implicit' },
-  { key: 'privacy_policy_url', value: 'https://helpmeclean.ro/privacy', description: '' },
-  { key: 'terms_url', value: 'https://helpmeclean.ro/terms', description: '' },
+  { key: 'privacy_policy_url', value: 'https://go2fix.ro/privacy', description: '' },
+  { key: 'terms_url', value: 'https://go2fix.ro/terms', description: '' },
   { key: 'cancellation_policy_url', value: '', description: '' },
   { key: 'refund_policy_url', value: '', description: '' },
 ];
@@ -99,7 +99,7 @@ describe('Admin SettingsPage', () => {
   it('shows settings values from API on General tab', () => {
     renderSettingsPage();
     expect(screen.getByText('15')).toBeInTheDocument();
-    expect(screen.getByText('support@helpmeclean.ro')).toBeInTheDocument();
+    expect(screen.getByText('support@go2fix.ro')).toBeInTheDocument();
     expect(screen.getByText('Comision platforma (%)')).toBeInTheDocument();
     expect(screen.getByText('Email suport')).toBeInTheDocument();
   });

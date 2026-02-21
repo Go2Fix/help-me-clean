@@ -72,7 +72,7 @@ test.describe('Navigation and page rendering', () => {
     const header = page.locator('header');
 
     // Logo
-    await expect(header.getByText('HelpMeClean')).toBeVisible();
+    await expect(header.getByText('Go2Fix')).toBeVisible();
 
     // Desktop nav links
     await expect(
@@ -93,7 +93,7 @@ test.describe('Navigation and page rendering', () => {
     const currentYear = new Date().getFullYear();
 
     await expect(
-      footer.getByText(`${currentYear} HelpMeClean`),
+      footer.getByText(`${currentYear} Go2Fix`),
     ).toBeVisible();
     await expect(
       footer.getByText('Toate drepturile rezervate'),

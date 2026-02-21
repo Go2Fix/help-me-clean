@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"helpmeclean-backend/internal/service/payment"
+	"go2fix-backend/internal/service/payment"
 )
 
 // maxBodySize is the maximum allowed request body size for Stripe webhooks.

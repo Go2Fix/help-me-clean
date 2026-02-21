@@ -1,16 +1,16 @@
 {
   "meta": {
-    "title": "Despre Noi | HelpMeClean.ro",
-    "description": "HelpMeClean este prima platformă de servicii de curățenie din România. Misiunea noastră este să conectăm clienții cu firme de curățenie verificate."
+    "title": "Despre Noi | Go2Fix.ro",
+    "description": "Go2Fix este prima platformă de servicii la domiciliu din România. Misiunea noastră este să conectăm clienții cu firme verificate de curățenie și mentenanță."
   },
   "hero": {
-    "title": "Prima platformă de curățenie din România",
-    "subtitle": "Conectăm clienții cu firme de curățenie verificate, transparent și rapid."
+    "title": "Prima platformă de servicii la domiciliu din România",
+    "subtitle": "Conectăm clienții cu firme verificate de servicii la domiciliu, transparent și rapid."
   },
   "mission": {
     "title": "Misiunea noastră",
-    "p1": "Sectorul de curățenie din România este în mare parte informal — milioane de tranzacții se fac fără factură, fără garanții și fără protecție. HelpMeClean schimbă asta.",
-    "p2": "Creăm prima piață digitală de servicii de curățenie din România, unde firmele sunt verificate, plățile sunt sigure și calitatea este garantată."
+    "p1": "Sectorul de curățenie din România este în mare parte informal — milioane de tranzacții se fac fără factură, fără garanții și fără protecție. Go2Fix schimbă asta.",
+    "p2": "Creăm prima piață digitală de servicii la domiciliu din România, unde firmele sunt verificate, plățile sunt sigure și calitatea este garantată."
   },
   "stats": {
     "households": "Gospodării în București",

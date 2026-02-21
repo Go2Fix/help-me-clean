@@ -144,14 +144,14 @@ export default function HomePage() {
         structuredData={{
           '@context': 'https://schema.org',
           '@type': 'Organization',
-          name: 'HelpMeClean',
-          url: 'https://helpmeclean.ro',
+          name: 'Go2Fix',
+          url: 'https://go2fix.ro',
           description: 'Prima platformă marketplace de servicii de curățenie din România',
           areaServed: 'Romania',
           contactPoint: {
             '@type': 'ContactPoint',
             contactType: 'customer service',
-            email: 'contact@helpmeclean.ro',
+            email: 'contact@go2fix.ro',
           },
         }}
       />
@@ -465,7 +465,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Why HelpMeClean ──────────────────────────────────────────────────── */}
+      {/* ── Why Go2Fix ──────────────────────────────────────────────────── */}
       <section className="py-20 sm:py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="mb-12">

@@ -9,7 +9,7 @@ import Input from '@/components/ui/Input';
 import FileUpload from '@/components/ui/FileUpload';
 import DocumentCard from '@/components/ui/DocumentCard';
 import AvatarUpload from '@/components/ui/AvatarUpload';
-import { cn } from '@helpmeclean/shared';
+import { cn } from '@go2fix/shared';
 import {
   MY_COMPANY,
   UPDATE_COMPANY_PROFILE,

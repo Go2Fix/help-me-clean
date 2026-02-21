@@ -92,16 +92,17 @@ describe('Cleaner JobDetailPage', () => {
     renderPage();
     expect(screen.getByText('Str. Exemplu 10')).toBeInTheDocument();
     expect(screen.getByText(/Bucuresti.*Ilfov/)).toBeInTheDocument();
-    expect(screen.getByText(/Etaj: 2/)).toBeInTheDocument();
-    expect(screen.getByText(/Ap: 5/)).toBeInTheDocument();
+    expect(screen.getByText(/Etaj 2/)).toBeInTheDocument();
+    expect(screen.getByText(/Ap\. 5/)).toBeInTheDocument();
   });
 
   it('shows property details', () => {
     mockUseQuery.mockReturnValue({ data: { booking: mockBooking() }, loading: false });
     renderPage();
-    expect(screen.getByText(/Apartament/)).toBeInTheDocument();
-    expect(screen.getByText(/Camere: 3/)).toBeInTheDocument();
-    expect(screen.getByText(/80 mp/)).toBeInTheDocument();
+    expect(screen.getByText('3')).toBeInTheDocument();
+    expect(screen.getByText('Camere')).toBeInTheDocument();
+    expect(screen.getByText('80')).toBeInTheDocument();
+    expect(screen.getByText('mp')).toBeInTheDocument();
   });
 
   it('shows special instructions', () => {

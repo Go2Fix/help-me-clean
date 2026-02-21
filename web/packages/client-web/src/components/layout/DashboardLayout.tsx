@@ -8,7 +8,7 @@ import {
   PanelLeftOpen,
   type LucideIcon,
 } from 'lucide-react';
-import { cn } from '@helpmeclean/shared';
+import { cn } from '@go2fix/shared';
 import { useAuth } from '@/context/AuthContext';
 import { useSidebar } from '@/hooks/useSidebar';
 
@@ -71,7 +71,7 @@ export default function DashboardLayout({
             {!collapsed && (
               <div>
                 <span className="text-lg font-bold text-primary block leading-tight">
-                  HelpMeClean
+                  Go2Fix
                 </span>
                 <span className="text-[10px] text-gray-400 uppercase tracking-wider">
                   {subtitle}
@@ -201,7 +201,7 @@ export default function DashboardLayout({
           </button>
           <NavLink to={homeRoute} className="flex items-center gap-2">
             <LogoIcon className={cn('h-6 w-6', logoIconColor)} />
-            <span className="text-lg font-bold text-primary">HelpMeClean</span>
+            <span className="text-lg font-bold text-primary">Go2Fix</span>
           </NavLink>
         </header>
 

@@ -1,4 +1,4 @@
-# E2E Tests - HelpMeClean.ro
+# E2E Tests - Go2Fix.ro
 
 Consolidated end-to-end tests for the unified web platform.
 

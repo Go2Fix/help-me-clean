@@ -37,7 +37,7 @@ INSERT INTO platform_legal_entity (
     bank_name,
     iban
 ) VALUES (
-    'HelpMeClean SRL',
+    'Go2Fix SRL',
     'RO12345678',
     'J40/1234/2024',
     'Str. Exemplu nr. 1',

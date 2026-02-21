@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useMutation } from '@apollo/client';
 import { CheckCircle, Copy, Check, CheckCheck, Loader2, Search } from 'lucide-react';
 import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
-import { cn } from '@helpmeclean/shared';
+import { cn } from '@go2fix/shared';
 import { useAuth } from '@/context/AuthContext';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
@@ -184,7 +184,7 @@ export default function RegisterCompanyPage() {
           <div className="text-center mb-8">
             <Link to="/" className="inline-block">
               <span className="text-2xl font-black tracking-tight text-gray-900">
-                HelpMe<span className="text-primary">Clean</span>
+                Go2<span className="text-primary">Clean</span>
               </span>
             </Link>
           </div>
@@ -265,13 +265,13 @@ export default function RegisterCompanyPage() {
 
         <div className="relative z-10">
           <Link to="/" className="inline-block">
-            <span className="text-2xl font-black tracking-tight text-white">HelpMeClean</span>
+            <span className="text-2xl font-black tracking-tight text-white">Go2Fix</span>
           </Link>
         </div>
 
         <div className="relative z-10">
           <h2 className="text-3xl font-bold text-white leading-snug mb-4">
-            Crește-ți afacerea<br />cu HelpMeClean
+            Crește-ți afacerea<br />cu Go2Fix
           </h2>
           <p className="text-emerald-100 mb-8 leading-relaxed">
             Accesează mii de clienți care caută servicii de curățenie profesionale.
@@ -322,7 +322,7 @@ export default function RegisterCompanyPage() {
             <div className="lg:hidden mb-6">
               <Link to="/">
                 <span className="text-xl font-black tracking-tight text-gray-900">
-                  HelpMe<span className="text-primary">Clean</span>
+                  Go2<span className="text-primary">Clean</span>
                 </span>
               </Link>
             </div>
@@ -331,7 +331,7 @@ export default function RegisterCompanyPage() {
               Înregistrează-ți firma
             </h1>
             <p className="text-gray-500 text-sm mb-8">
-              Completează datele firmei pentru a deveni partener HelpMeClean.
+              Completează datele firmei pentru a deveni partener Go2Fix.
             </p>
 
             <form onSubmit={handleSubmit} noValidate className="space-y-6">

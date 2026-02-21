@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"helpmeclean-backend/internal/auth"
-	db "helpmeclean-backend/internal/db/generated"
+	"go2fix-backend/internal/auth"
+	db "go2fix-backend/internal/db/generated"
 
 	"github.com/jackc/pgx/v5/pgtype"
 )

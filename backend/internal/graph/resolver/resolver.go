@@ -8,13 +8,13 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	db "helpmeclean-backend/internal/db/generated"
-	"helpmeclean-backend/internal/graph/model"
-	"helpmeclean-backend/internal/middleware"
-	"helpmeclean-backend/internal/service/email"
-	"helpmeclean-backend/internal/service/invoice"
-	"helpmeclean-backend/internal/service/payment"
-	"helpmeclean-backend/internal/storage"
+	db "go2fix-backend/internal/db/generated"
+	"go2fix-backend/internal/graph/model"
+	"go2fix-backend/internal/middleware"
+	"go2fix-backend/internal/service/email"
+	"go2fix-backend/internal/service/invoice"
+	"go2fix-backend/internal/service/payment"
+	"go2fix-backend/internal/storage"
 )
 
 // Resolver is the root resolver struct.

@@ -1,5 +1,5 @@
 import { useRef, useEffect } from 'react';
-import { cn } from '@helpmeclean/shared';
+import { cn } from '@go2fix/shared';
 import { useGoogleMapsLoader } from '@/hooks/useGoogleMapsLoader';
 
 export interface ParsedAddress {
