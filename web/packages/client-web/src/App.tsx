@@ -10,6 +10,7 @@ import { ROUTE_MAP } from '@/i18n/routes';
 
 // Layouts
 import PublicLayout from '@/components/layout/PublicLayout';
+import BookingLayout from '@/components/layout/BookingLayout';
 import ClientLayout from '@/components/layout/ClientLayout';
 import CompanyLayout from '@/components/layout/CompanyLayout';
 import CleanerLayout from '@/components/layout/CleanerLayout';
@@ -158,11 +159,16 @@ function AppRoutes() {
       <Route path="/inregistrare-firma" element={<RegisterCompanyPage />} />
       <Route path="/invitare" element={<AcceptInvitePage />} />
 
+      {/* ── Booking flow (Header only, no Footer) ── */}
+      <Route element={<BookingLayout />}>
+        <Route path="/rezervare" element={<BookingGateRoute />} />
+        <Route path="/en/booking" element={<BookingGateRoute />} />
+      </Route>
+
       {/* ── Romanian public routes (no prefix) ── */}
       <Route element={<PublicLayout />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/servicii" element={<Navigate to="/#servicii" replace />} />
-        <Route path="/rezervare" element={<BookingGateRoute />} />
         <Route path="/claim-firma/:token" element={<ClaimCompanyPage />} />
         <Route path="/lista-asteptare" element={<WaitlistPage />} />
         <Route path="/despre-noi" element={<AboutPage />} />
@@ -185,7 +191,6 @@ function AppRoutes() {
         <Route path="privacy" element={<PrivacyPage />} />
         <Route path="blog" element={<BlogListPage />} />
         <Route path="blog/:slug" element={<BlogPostPage />} />
-        <Route path="booking" element={<BookingGateRoute />} />
       </Route>
 
       {/* Client routes - Sidebar layout, auth + CLIENT role */}

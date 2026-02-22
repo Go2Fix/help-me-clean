@@ -398,6 +398,13 @@ export default function BookingPage() {
   const savedAddresses: SavedAddress[] = addressesData?.myAddresses ?? [];
   const estimate = estimateData?.estimatePrice;
 
+  // Auto-select first service when data loads and none is preselected
+  useEffect(() => {
+    if (!form.serviceType && services.length > 0) {
+      setForm((prev) => ({ ...prev, serviceType: services[0].serviceType }));
+    }
+  }, [services, form.serviceType]);
+
   // ---- Reactive price estimation (debounced 400ms) --------------------------
 
   const estimateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
