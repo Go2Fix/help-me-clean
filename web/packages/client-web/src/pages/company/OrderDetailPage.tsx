@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation } from '@apollo/client';
 import {
-  ArrowLeft, MapPin, User, Phone, Mail, Clock, Calendar, Search, Loader2,
+  ArrowLeft, MapPin, Phone, Mail, Clock, Calendar, Search, Loader2,
   Star, Check, Repeat, FileText, CheckCircle, XCircle, AlertCircle, Home,
   UserPlus, Download, ExternalLink, MessageSquare, Receipt, CreditCard,
   ChevronDown, Eye,

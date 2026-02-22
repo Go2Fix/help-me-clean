@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Calendar, AlertTriangle } from 'lucide-react';
 import { cn } from '@go2fix/shared';
 import Card from '@/components/ui/Card';
-import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Modal from '@/components/ui/Modal';
@@ -31,7 +30,7 @@ interface Cleaner {
   id: string;
   fullName: string;
   status: string;
-  avatarUrl: string | null;
+  user: { id: string; avatarUrl: string | null } | null;
   availability: AvailabilitySlot[];
 }
 
@@ -87,12 +86,17 @@ interface ModalState {
 const DAY_SHORT = ['Lun', 'Mar', 'Mie', 'Joi', 'Vin', 'Sam', 'Dum'];
 const DAY_FULL = ['Luni', 'Marti', 'Miercuri', 'Joi', 'Vineri', 'Sambata', 'Duminica'];
 
-const statusVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
-  ACTIVE: 'success', INVITED: 'info', PENDING: 'warning', SUSPENDED: 'danger', INACTIVE: 'default',
-};
-const statusLabel: Record<string, string> = {
-  ACTIVE: 'Activ', INVITED: 'Invitat', PENDING: 'In asteptare', SUSPENDED: 'Suspendat', INACTIVE: 'Inactiv',
-};
+function canEditSchedule(status: string): boolean {
+  return status !== 'PENDING_REVIEW';
+}
+
+function isPastDate(d: Date): boolean {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const check = new Date(d);
+  check.setHours(0, 0, 0, 0);
+  return check < today;
+}
 
 function getMonday(d: Date): Date {
   const date = new Date(d);
@@ -131,7 +135,10 @@ function addHoursToTime(time: string, hours: number): string {
 export default function CalendarPage() {
   const navigate = useNavigate();
   const [weekStart, setWeekStart] = useState<Date>(() => getMonday(new Date()));
-  const [mobileDay, setMobileDay] = useState(0);
+  const [mobileDay, setMobileDay] = useState(() => {
+    const today = new Date().getDay();
+    return today === 0 ? 6 : today - 1; // Convert Sun=0..Sat=6 to Mon=0..Sun=6
+  });
   const [modal, setModal] = useState<ModalState>({
     open: false, cleanerId: '', cleanerName: '',
     date: '', dayLabel: '', startTime: '08:00', endTime: '16:00',
@@ -342,7 +349,7 @@ export default function CalendarPage() {
           {/* Desktop Grid */}
           <div className="hidden lg:block overflow-x-auto">
             <div className="min-w-[800px]">
-              <div className="grid grid-cols-8 gap-px bg-gray-200 rounded-t-xl overflow-hidden">
+              <div className="grid gap-px bg-gray-200 rounded-t-xl overflow-hidden" style={{ gridTemplateColumns: '160px repeat(7, 1fr)' }}>
                 <div className="bg-gray-50 p-3 text-xs font-medium text-gray-500 uppercase">Cleaner</div>
                 {weekDates.map((date, idx) => {
                   const isToday = fmtYMD(date) === fmtYMD(new Date());
@@ -356,17 +363,19 @@ export default function CalendarPage() {
               </div>
 
               {cleaners.map((cleaner) => (
-                <div key={cleaner.id} className="grid grid-cols-8 gap-px bg-gray-200">
+                <div key={cleaner.id} className="grid gap-px bg-gray-200" style={{ gridTemplateColumns: '160px repeat(7, 1fr)' }}>
                   <div className="bg-white p-3 flex items-center gap-2.5">
-                    <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                      <span className="text-sm font-semibold text-primary">{cleaner.fullName?.charAt(0)?.toUpperCase()}</span>
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">{cleaner.fullName}</p>
-                      <Badge variant={statusVariant[cleaner.status] ?? 'default'}>{statusLabel[cleaner.status] ?? cleaner.status}</Badge>
-                    </div>
+                    {cleaner.user?.avatarUrl ? (
+                      <img src={cleaner.user?.avatarUrl} alt={cleaner.fullName} className="h-9 w-9 rounded-full object-cover shrink-0" />
+                    ) : (
+                      <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                        <span className="text-sm font-semibold text-primary">{cleaner.fullName?.charAt(0)?.toUpperCase()}</span>
+                      </div>
+                    )}
+                    <p className="text-sm font-medium text-gray-900 min-w-0 line-clamp-2 leading-tight">{cleaner.fullName}</p>
                   </div>
                   {weekDates.map((date, idx) => {
+                    const editable = canEditSchedule(cleaner.status) && !isPastDate(date);
                     const eff = getEffectiveAvailability(cleaner, idx, date);
                     const cb = cellBookings(cleaner.id, date);
                     const conflict = hasConflict(cb);
@@ -375,9 +384,10 @@ export default function CalendarPage() {
                     return (
                       <div
                         key={idx}
-                        onClick={() => openModal(cleaner, idx, date)}
+                        onClick={editable ? () => openModal(cleaner, idx, date) : undefined}
                         className={cn(
-                          'relative p-2 min-h-[72px] cursor-pointer transition-colors hover:bg-opacity-80',
+                          'relative p-2 min-h-[72px] transition-colors',
+                          editable ? 'cursor-pointer hover:bg-opacity-80' : 'opacity-50 cursor-not-allowed',
                           eff.isAvailable && isOverride && 'bg-emerald-50 border border-emerald-200',
                           eff.isAvailable && eff.source === 'weekly' && 'bg-emerald-50/50 border border-dashed border-emerald-200',
                           eff.isAvailable && isDefault && 'bg-emerald-50/50 border border-dashed border-emerald-200',
@@ -448,23 +458,27 @@ export default function CalendarPage() {
             </div>
             <div className="space-y-3">
               {cleaners.map((cleaner) => {
+                const editable = canEditSchedule(cleaner.status) && !isPastDate(weekDates[mobileDay]);
                 const eff = getEffectiveAvailability(cleaner, mobileDay, weekDates[mobileDay]);
                 const cb = cellBookings(cleaner.id, weekDates[mobileDay]);
                 const conflict = hasConflict(cb);
                 const isDefault = eff.source === 'company' || eff.source === 'default';
                 return (
-                  <Card key={cleaner.id} className={cn(conflict && 'ring-2 ring-red-400')}>
+                  <Card key={cleaner.id} className={cn(conflict && 'ring-2 ring-red-400', !editable && 'opacity-50')}>
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2.5">
-                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                          <span className="text-base font-semibold text-primary">{cleaner.fullName?.charAt(0)?.toUpperCase()}</span>
-                        </div>
-                        <div>
-                          <p className="text-sm font-semibold text-gray-900">{cleaner.fullName}</p>
-                          <Badge variant={statusVariant[cleaner.status] ?? 'default'}>{statusLabel[cleaner.status] ?? cleaner.status}</Badge>
-                        </div>
+                        {cleaner.user?.avatarUrl ? (
+                          <img src={cleaner.user?.avatarUrl} alt={cleaner.fullName} className="h-10 w-10 rounded-full object-cover" />
+                        ) : (
+                          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                            <span className="text-base font-semibold text-primary">{cleaner.fullName?.charAt(0)?.toUpperCase()}</span>
+                          </div>
+                        )}
+                        <p className="text-sm font-semibold text-gray-900">{cleaner.fullName}</p>
                       </div>
-                      <Button variant="ghost" size="sm" onClick={() => openModal(cleaner, mobileDay, weekDates[mobileDay])}>Editeaza</Button>
+                      {canEditSchedule(cleaner.status) && (
+                        <Button variant="ghost" size="sm" onClick={() => openModal(cleaner, mobileDay, weekDates[mobileDay])}>Editeaza</Button>
+                      )}
                     </div>
                     {eff.isAvailable ? (
                       <div className={cn(
