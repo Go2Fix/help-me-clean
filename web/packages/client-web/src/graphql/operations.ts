@@ -239,6 +239,7 @@ export const CLIENT_BOOKING_DETAIL = gql`
         id
         companyName
         contactPhone
+        logoUrl
       }
       client {
         id
@@ -250,6 +251,10 @@ export const CLIENT_BOOKING_DETAIL = gql`
         id
         fullName
         phone
+        user {
+          id
+          avatarUrl
+        }
       }
       timeSlots {
         id

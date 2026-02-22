@@ -21,6 +21,11 @@ import {
   Check,
   Repeat,
   Sparkles,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  KeyRound,
+  Timer,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import Button from '@/components/ui/Button';
@@ -40,18 +45,25 @@ interface BookingAddress {
   county: string;
   floor?: string;
   apartment?: string;
+  entryCode?: string;
+  notes?: string;
 }
 
 interface BookingCompany {
   id: string;
   companyName: string;
   contactPhone?: string;
+  logoUrl?: string;
 }
 
 interface BookingCleaner {
   id: string;
   fullName: string;
   phone?: string;
+  user?: {
+    id: string;
+    avatarUrl?: string;
+  };
 }
 
 interface BookingTimeSlot {
@@ -81,15 +93,19 @@ interface BookingData {
   finalTotal?: number;
   status: string;
   specialInstructions?: string;
+  propertyType?: string;
   numRooms: number;
   numBathrooms: number;
   areaSqm?: number;
   hasPets?: boolean;
+  estimatedDurationHours: number;
   paymentStatus?: string;
   paidAt?: string;
   recurringGroupId?: string;
   occurrenceNumber?: number;
   createdAt: string;
+  startedAt?: string;
+  completedAt?: string;
   address: BookingAddress;
   company?: BookingCompany;
   cleaner?: BookingCleaner;
@@ -139,6 +155,27 @@ function formatAddress(address: BookingAddress): string {
   if (address.apartment) parts.push(`Ap. ${address.apartment}`);
   parts.push(`${address.city}, ${address.county}`);
   return parts.join(', ');
+}
+
+const propertyTypeLabel: Record<string, string> = {
+  APARTMENT: 'Apartament',
+  HOUSE: 'Casa',
+  OFFICE: 'Birou',
+  STUDIO: 'Garsoniera',
+};
+
+function formatDateTime(dateStr: string): string {
+  try {
+    return new Date(dateStr).toLocaleString('ro-RO', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  } catch {
+    return dateStr;
+  }
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -217,7 +254,78 @@ export default function BookingDetailPage() {
   }
 
   if (loading) {
-    return <LoadingSpinner text="Se incarca detaliile comenzii..." />;
+    return (
+      <div className="py-10 sm:py-16">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 animate-pulse">
+          {/* Back button skeleton */}
+          <div className="h-4 w-32 bg-gray-200 rounded mb-6" />
+          {/* Header skeleton */}
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
+            <div className="space-y-2">
+              <div className="h-8 w-64 bg-gray-200 rounded" />
+              <div className="h-4 w-32 bg-gray-200 rounded" />
+            </div>
+            <div className="space-y-2 sm:text-right">
+              <div className="h-8 w-24 bg-gray-200 rounded sm:ml-auto" />
+              <div className="h-4 w-20 bg-gray-200 rounded sm:ml-auto" />
+            </div>
+          </div>
+          {/* Grid skeleton */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
+              <Card>
+                <div className="h-5 w-40 bg-gray-200 rounded mb-4" />
+                <div className="space-y-4">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="flex gap-3">
+                      <div className="w-[30px] h-[30px] rounded-full bg-gray-200 shrink-0" />
+                      <div className="space-y-1.5 flex-1">
+                        <div className="h-4 w-32 bg-gray-200 rounded" />
+                        <div className="h-3 w-24 bg-gray-200 rounded" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+              <Card>
+                <div className="h-5 w-40 bg-gray-200 rounded mb-4" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-gray-200 shrink-0" />
+                      <div className="space-y-1.5 flex-1">
+                        <div className="h-3 w-16 bg-gray-200 rounded" />
+                        <div className="h-4 w-24 bg-gray-200 rounded" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            </div>
+            <div className="space-y-6">
+              <Card>
+                <div className="h-5 w-36 bg-gray-200 rounded mb-4" />
+                <div className="space-y-3">
+                  {[1, 2].map((i) => (
+                    <div key={i} className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-gray-200 shrink-0" />
+                      <div className="space-y-1.5 flex-1">
+                        <div className="h-4 w-28 bg-gray-200 rounded" />
+                        <div className="h-3 w-20 bg-gray-200 rounded" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+              <Card>
+                <div className="h-5 w-20 bg-gray-200 rounded mb-4" />
+                <div className="h-10 w-full bg-gray-200 rounded-xl" />
+              </Card>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (error || !data?.booking) {
@@ -237,7 +345,24 @@ export default function BookingDetailPage() {
   }
 
   const booking = data.booking;
-  const canCancel = booking.status === 'ASSIGNED';
+  const isCancelled = booking.status.startsWith('CANCELLED');
+  const canCancel = booking.status === 'ASSIGNED' || booking.status === 'CONFIRMED';
+
+  // Timeline
+  const timelineSteps: { label: string; date: string | null; icon: typeof FileText; done: boolean }[] = [
+    { label: 'Comanda plasata', date: booking.createdAt, icon: FileText, done: true },
+    { label: 'Platita & Confirmata', date: booking.paidAt ?? null, icon: CheckCircle, done: !!booking.paidAt },
+    { label: 'In desfasurare', date: booking.startedAt ?? null, icon: Clock, done: !!booking.startedAt },
+    { label: 'Finalizata', date: booking.completedAt ?? null, icon: CheckCircle, done: booking.status === 'COMPLETED' },
+  ];
+  if (isCancelled) {
+    timelineSteps.push({
+      label: 'Anulata',
+      date: booking.completedAt ?? null,
+      icon: XCircle,
+      done: true,
+    });
+  }
 
   const handleCancel = async () => {
     await cancelBooking({
@@ -292,15 +417,61 @@ export default function BookingDetailPage() {
           </div>
           <div className="text-right">
             <div className="text-2xl font-bold text-gray-900">
-              {booking.estimatedTotal} lei
+              {booking.finalTotal ?? booking.estimatedTotal} lei
             </div>
-            <span className="text-sm text-gray-400">Total estimat</span>
+            <span className="text-sm text-gray-400">
+              {booking.finalTotal ? 'Total final' : 'Total estimat'}
+            </span>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Details */}
           <div className="lg:col-span-2 space-y-6">
+            {/* Status Timeline */}
+            <Card>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                Progresul comenzii
+              </h2>
+              <div className="relative">
+                {timelineSteps.map((step, idx) => {
+                  const IconComp = step.icon;
+                  const isLast = idx === timelineSteps.length - 1;
+                  const isCancelStep = step.icon === XCircle;
+                  return (
+                    <div key={idx} className="flex gap-3 relative">
+                      {!isLast && (
+                        <div
+                          className={`absolute left-[15px] top-[30px] w-0.5 h-[calc(100%-14px)] ${
+                            step.done ? (isCancelStep ? 'bg-red-200' : 'bg-blue-200') : 'bg-gray-200'
+                          }`}
+                        />
+                      )}
+                      <div
+                        className={`relative z-10 flex items-center justify-center w-[30px] h-[30px] rounded-full shrink-0 ${
+                          step.done
+                            ? isCancelStep
+                              ? 'bg-red-100 text-red-600'
+                              : 'bg-blue-100 text-blue-600'
+                            : 'bg-gray-100 text-gray-400'
+                        }`}
+                      >
+                        <IconComp className="h-4 w-4" />
+                      </div>
+                      <div className={isLast ? 'pb-0' : 'pb-5'}>
+                        <p className={`text-sm font-medium ${step.done ? 'text-gray-900' : 'text-gray-400'}`}>
+                          {step.label}
+                        </p>
+                        {step.date && (
+                          <p className="text-xs text-gray-500 mt-0.5">{formatDateTime(step.date)}</p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </Card>
+
             {/* Schedule & Property */}
             <Card>
               <h2 className="text-lg font-semibold text-gray-900 mb-4">
@@ -326,6 +497,30 @@ export default function BookingDetailPage() {
                     <div className="text-xs text-gray-400">Ora</div>
                     <div className="text-sm font-medium text-gray-900">
                       {formatTime(booking.scheduledStartTime)}
+                    </div>
+                  </div>
+                </div>
+                {booking.propertyType && (
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center shrink-0">
+                      <Home className="h-5 w-5 text-secondary" />
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-400">Tip proprietate</div>
+                      <div className="text-sm font-medium text-gray-900">
+                        {propertyTypeLabel[booking.propertyType] ?? booking.propertyType}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                    <Timer className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-400">Durata estimata</div>
+                    <div className="text-sm font-medium text-gray-900">
+                      {booking.estimatedDurationHours} {booking.estimatedDurationHours === 1 ? 'ora' : 'ore'}
                     </div>
                   </div>
                 </div>
@@ -482,13 +677,41 @@ export default function BookingDetailPage() {
               <h2 className="text-lg font-semibold text-gray-900 mb-4">
                 Adresa
               </h2>
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                  <MapPin className="h-5 w-5 text-primary" />
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                    <MapPin className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="text-sm text-gray-700">
+                    {formatAddress(booking.address)}
+                  </div>
                 </div>
-                <div className="text-sm text-gray-700">
-                  {formatAddress(booking.address)}
-                </div>
+                {booking.address.entryCode && (
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
+                      <KeyRound className="h-5 w-5 text-amber-600" />
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-400">Cod acces</div>
+                      <div className="text-sm font-mono font-semibold text-gray-900">
+                        {booking.address.entryCode}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {booking.address.notes && (
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
+                      <FileText className="h-5 w-5 text-gray-500" />
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-400">Note adresa</div>
+                      <p className="text-sm text-gray-700 mt-0.5 whitespace-pre-wrap">
+                        {booking.address.notes}
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             </Card>
 
@@ -521,9 +744,17 @@ export default function BookingDetailPage() {
                 <div className="space-y-4">
                   {booking.company && (
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center shrink-0">
-                        <Building2 className="h-5 w-5 text-secondary" />
-                      </div>
+                      {booking.company.logoUrl ? (
+                        <img
+                          src={booking.company.logoUrl}
+                          alt={booking.company.companyName}
+                          className="w-10 h-10 rounded-xl object-cover shrink-0"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center shrink-0">
+                          <Building2 className="h-5 w-5 text-secondary" />
+                        </div>
+                      )}
                       <div>
                         <div className="text-sm font-medium text-gray-900">
                           {booking.company.companyName}
@@ -539,9 +770,24 @@ export default function BookingDetailPage() {
                   )}
                   {booking.cleaner && (
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                        <User className="h-5 w-5 text-primary" />
-                      </div>
+                      {booking.cleaner.user?.avatarUrl ? (
+                        <img
+                          src={booking.cleaner.user.avatarUrl}
+                          alt={booking.cleaner.fullName}
+                          className="w-10 h-10 rounded-full object-cover shrink-0"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                          <span className="text-sm font-semibold text-primary">
+                            {booking.cleaner.fullName
+                              .split(' ')
+                              .map((w) => w.charAt(0))
+                              .slice(0, 2)
+                              .join('')
+                              .toUpperCase()}
+                          </span>
+                        </div>
+                      )}
                       <div>
                         <div className="text-sm font-medium text-gray-900">
                           {booking.cleaner.fullName}
@@ -746,7 +992,7 @@ export default function BookingDetailPage() {
             )}
 
             {/* Refund Request (for cancelled bookings that were paid) */}
-            {booking.status === 'CANCELLED' && booking.paymentStatus === 'paid' && (
+            {isCancelled && booking.paymentStatus === 'paid' && (
               <Card>
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">
                   Rambursare
