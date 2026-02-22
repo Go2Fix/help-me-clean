@@ -756,6 +756,26 @@ export const UPDATE_COMPANY_PROFILE = gql`
 
 // ─── Cleaners ────────────────────────────────────────────────────────────────
 
+export const MY_CLEANERS_LIST = gql`
+  query MyCleanersList {
+    myCleaners {
+      id
+      fullName
+      phone
+      email
+      status
+      isCompanyAdmin
+      user {
+        id
+        avatarUrl
+      }
+      ratingAvg
+      totalJobsCompleted
+      createdAt
+    }
+  }
+`;
+
 export const MY_CLEANERS = gql`
   query MyCleaners {
     myCleaners {

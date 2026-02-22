@@ -907,7 +907,7 @@ export default function OrderDetailPage() {
             {booking.cleaner ? (
               <div>
                 <Link
-                  to="/firma/echipa"
+                  to={`/firma/echipa/${booking.cleaner.id}`}
                   className="flex items-center gap-3 mb-3 p-2 -mx-2 rounded-lg hover:bg-gray-50 transition-colors group"
                 >
                   <Avatar src={booking.cleaner.user?.avatarUrl} name={booking.cleaner.fullName} color="emerald" />
@@ -915,7 +915,7 @@ export default function OrderDetailPage() {
                     <p className="text-sm font-medium text-gray-900 truncate group-hover:text-blue-600 transition-colors">
                       {booking.cleaner.fullName}
                     </p>
-                    <p className="text-xs text-gray-400">Vezi in echipa &rarr;</p>
+                    <p className="text-xs text-gray-400">Vezi profil &rarr;</p>
                   </div>
                 </Link>
                 {(booking.cleaner.phone || booking.cleaner.email) && (

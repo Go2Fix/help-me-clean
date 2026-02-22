@@ -49,6 +49,7 @@ import DocumentUploadPage from '@/pages/company/DocumentUploadPage';
 import CompanyOrdersPage from '@/pages/company/OrdersPage';
 import CompanyOrderDetailPage from '@/pages/company/OrderDetailPage';
 import TeamPage from '@/pages/company/TeamPage';
+import WorkerDetailPage from '@/pages/company/WorkerDetailPage';
 import CompanySettingsPage from '@/pages/company/SettingsPage';
 import CompanyMessagesPage from '@/pages/company/MessagesPage';
 import CompanyCalendarPage from '@/pages/company/CalendarPage';
@@ -232,6 +233,7 @@ function AppRoutes() {
         <Route path="mesaje" element={<CompanyMessagesPage />} />
         <Route path="mesaje/:roomId" element={<CompanyMessagesPage />} />
         <Route path="echipa" element={<TeamPage />} />
+        <Route path="echipa/:id" element={<WorkerDetailPage />} />
         <Route path="plati" element={<CompanyPayoutsPage />} />
         <Route path="facturi" element={<CompanyInvoicesPage />} />
         <Route path="setari" element={<CompanySettingsPage />} />

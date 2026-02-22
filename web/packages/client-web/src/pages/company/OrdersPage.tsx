@@ -165,15 +165,6 @@ export default function OrdersPage() {
 
       {/* Table Card */}
       <Card padding={false}>
-        {/* Card header */}
-        {!loading && (
-          <div className="flex items-center gap-3 px-3 md:px-6 pt-5 pb-4">
-            <ClipboardList className="h-5 w-5 text-primary" />
-            <h3 className="text-lg font-semibold text-gray-900">Comenzi</h3>
-            {totalCount > 0 && <Badge variant="info">{totalCount}</Badge>}
-          </div>
-        )}
-
         {loading ? (
           <LoadingSpinner text="Se incarca comenzile..." />
         ) : bookings.length === 0 ? (
