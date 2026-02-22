@@ -1,11 +1,20 @@
 import { useState } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useQuery } from '@apollo/client';
-import { Calendar, Hash, Clock, Package, Repeat } from 'lucide-react';
+import {
+  Calendar,
+  Hash,
+  Clock,
+  Repeat,
+  ChevronRight,
+  ChevronLeft,
+  CalendarX2,
+} from 'lucide-react';
 import { cn } from '@go2fix/shared';
 import { useAuth } from '@/context/AuthContext';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
+import Select from '@/components/ui/Select';
 import Badge from '@/components/ui/ClientBadge';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { MY_BOOKINGS, MY_RECURRING_GROUPS } from '@/graphql/operations';
@@ -21,6 +30,8 @@ interface Booking {
   scheduledStartTime: string;
   estimatedTotal: number;
   status: string;
+  recurringGroupId?: string;
+  occurrenceNumber?: number;
   createdAt: string;
 }
 
@@ -35,20 +46,40 @@ interface BookingsData {
   };
 }
 
-// ─── Filter tabs ─────────────────────────────────────────────────────────────
+interface RecurringGroup {
+  id: string;
+  recurrenceType: string;
+  serviceName: string;
+  isActive: boolean;
+  cancelledAt: string | null;
+  estimatedTotalPerOccurrence: number;
+  totalOccurrences: number;
+  completedOccurrences: number;
+  preferredCleaner: { fullName: string } | null;
+  upcomingOccurrences: { scheduledDate: string }[];
+}
 
-const FILTER_TABS = [
-  { key: 'ALL', label: 'Toate' },
-  { key: 'ACTIVE', label: 'Active' },
-  { key: 'COMPLETED', label: 'Finalizate' },
-  { key: 'CANCELLED', label: 'Anulate' },
-  { key: 'RECURRING', label: 'Recurente' },
-] as const;
+// ─── Constants ───────────────────────────────────────────────────────────────
 
-type FilterKey = (typeof FILTER_TABS)[number]['key'];
+const PAGE_SIZE = 8;
 
-const ACTIVE_STATUSES = ['ASSIGNED', 'CONFIRMED', 'IN_PROGRESS'];
-const CANCELLED_STATUSES = ['CANCELLED_BY_CLIENT', 'CANCELLED_BY_COMPANY', 'CANCELLED_BY_ADMIN'];
+const STATUS_OPTIONS = [
+  { value: '', label: 'Toate comenzile' },
+  { value: 'CONFIRMED', label: 'Confirmate' },
+  { value: 'IN_PROGRESS', label: 'In desfasurare' },
+  { value: 'COMPLETED', label: 'Finalizate' },
+  { value: 'CANCELLED_BY_CLIENT', label: 'Anulate' },
+  { value: 'RECURRING', label: 'Recurente' },
+];
+
+const SERVICE_ICONS: Record<string, string> = {
+  STANDARD_CLEANING: '\u{1F9F9}',
+  DEEP_CLEANING: '\u2728',
+  MOVE_IN_OUT_CLEANING: '\u{1F4E6}',
+  POST_CONSTRUCTION: '\u{1F3D7}\uFE0F',
+  OFFICE_CLEANING: '\u{1F3E2}',
+  WINDOW_CLEANING: '\u{1FA9F}',
+};
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -67,7 +98,6 @@ function formatDate(dateStr: string): string {
 
 function formatTime(timeStr: string): string {
   if (!timeStr) return '';
-  // Handle both "HH:MM" and "HH:MM:SS" formats
   return timeStr.slice(0, 5);
 }
 
@@ -76,20 +106,26 @@ function formatTime(timeStr: string): string {
 export default function MyBookingsPage() {
   const navigate = useNavigate();
   const { isAuthenticated, loading: authLoading } = useAuth();
-  const [activeFilter, setActiveFilter] = useState<FilterKey>('ALL');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [page, setPage] = useState(0);
 
-  // Fetch all bookings — backend ignores status param, so we filter client-side
+  // Server-side filtered + paginated query
+  const isRecurring = statusFilter === 'RECURRING';
   const { data, loading, error } = useQuery<BookingsData>(MY_BOOKINGS, {
-    variables: { first: 50 },
+    variables: {
+      status: statusFilter || undefined,
+      first: PAGE_SIZE,
+      after: page > 0 ? String(page * PAGE_SIZE) : undefined,
+    },
     fetchPolicy: 'cache-and-network',
-    skip: !isAuthenticated,
+    skip: !isAuthenticated || isRecurring,
   });
 
-  const { data: recurringData } = useQuery(MY_RECURRING_GROUPS, {
-    skip: !isAuthenticated,
+  const { data: recurringData, loading: recurringLoading } = useQuery(MY_RECURRING_GROUPS, {
+    skip: !isAuthenticated || !isRecurring,
     fetchPolicy: 'cache-and-network',
   });
-  const recurringGroups = recurringData?.myRecurringGroups ?? [];
+  const recurringGroups: RecurringGroup[] = recurringData?.myRecurringGroups ?? [];
 
   // Auth guard
   if (authLoading) {
@@ -100,35 +136,27 @@ export default function MyBookingsPage() {
     return <Navigate to="/autentificare" state={{ from: '/cont/comenzi' }} replace />;
   }
 
-  const allBookings = data?.myBookings?.edges ?? [];
+  const bookings = data?.myBookings?.edges ?? [];
+  const totalCount = data?.myBookings?.totalCount ?? 0;
+  const hasNextPage = data?.myBookings?.pageInfo?.hasNextPage ?? false;
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
-  // Client-side filtering (backend returns all bookings)
-  const filteredBookings = allBookings.filter((b) => {
-    switch (activeFilter) {
-      case 'ALL':
-        return true;
-      case 'ACTIVE':
-        return ACTIVE_STATUSES.includes(b.status);
-      case 'COMPLETED':
-        return b.status === 'COMPLETED';
-      case 'CANCELLED':
-        return CANCELLED_STATUSES.includes(b.status);
-      default:
-        return true;
-    }
-  });
+  const handleFilterChange = (value: string) => {
+    setStatusFilter(value);
+    setPage(0);
+  };
 
   return (
-    <div className="py-10 sm:py-16">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6">
+    <div>
+      <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
               Comenzile mele
             </h1>
-            <p className="text-gray-500 mt-1">
-              Vezi istoricul si starea rezervarilor tale.
+            <p className="text-sm text-gray-500 mt-1">
+              Istoricul si starea rezervarilor tale.
             </p>
           </div>
           <Button onClick={() => navigate('/rezervare')}>
@@ -136,109 +164,41 @@ export default function MyBookingsPage() {
           </Button>
         </div>
 
-        {/* Filter Tabs */}
-        <div className="flex gap-1 mb-8 overflow-x-auto pb-2">
-          {FILTER_TABS.map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveFilter(tab.key)}
-              className={cn(
-                'px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-colors cursor-pointer',
-                activeFilter === tab.key
-                  ? 'bg-primary text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200',
-              )}
-            >
-              {tab.label}
-            </button>
-          ))}
+        {/* Filter */}
+        <div className="mb-6 sm:w-64">
+          <Select
+            options={STATUS_OPTIONS}
+            value={statusFilter}
+            onChange={(e) => handleFilterChange(e.target.value)}
+          />
         </div>
 
-        {/* Recurring Groups */}
-        {activeFilter === 'RECURRING' && (
+        {/* ── Booking cards ── */}
+        {!isRecurring && (
           <>
-            {recurringGroups.length > 0 ? (
-              <div className="space-y-4">
-                {recurringGroups.map((group: { id: string; serviceName: string; recurrenceType: string; isActive: boolean; cancelledAt: string | null; estimatedTotalPerOccurrence: number; totalOccurrences: number; completedOccurrences: number; preferredCleaner: { fullName: string } | null; upcomingOccurrences: { scheduledDate: string }[] }) => {
-                  const nextDate = group.upcomingOccurrences[0]?.scheduledDate;
-                  const freqLabel = group.recurrenceType === 'WEEKLY' ? 'Saptamanal' : group.recurrenceType === 'BIWEEKLY' ? 'Bisaptamanal' : 'Lunar';
-
-                  return (
-                    <Card
-                      key={group.id}
-                      className="cursor-pointer hover:shadow-md transition-shadow"
-                      onClick={() => navigate(`/cont/recurente/${group.id}`)}
-                    >
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-3 mb-2">
-                            <Repeat className="h-5 w-5 text-blue-600 shrink-0" />
-                            <h3 className="text-lg font-semibold text-gray-900 truncate">
-                              {group.serviceName}
-                            </h3>
-                            <span className={cn(
-                              'text-xs font-semibold px-2 py-0.5 rounded-full',
-                              group.isActive
-                                ? 'bg-emerald-50 text-emerald-700'
-                                : group.cancelledAt
-                                  ? 'bg-red-50 text-red-600'
-                                  : 'bg-gray-100 text-gray-500',
-                            )}>
-                              {group.isActive ? 'Activa' : group.cancelledAt ? 'Anulata' : 'Pauza'}
-                            </span>
-                            <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
-                              {freqLabel}
-                            </span>
-                          </div>
-                          <div className="flex flex-wrap gap-4 text-sm text-gray-500">
-                            {group.preferredCleaner && (
-                              <span>Curatator: {group.preferredCleaner.fullName}</span>
-                            )}
-                            {nextDate && (
-                              <span className="flex items-center gap-1">
-                                <Calendar className="h-3.5 w-3.5" />
-                                Urmatoarea: {formatDate(nextDate)}
-                              </span>
-                            )}
-                            <span>
-                              {group.completedOccurrences}/{group.totalOccurrences} finalizate
-                            </span>
-                          </div>
+            {/* Loading skeleton */}
+            {loading && !data && (
+              <div className="space-y-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <Card key={i}>
+                    <div className="animate-pulse flex items-start gap-4">
+                      <div className="w-12 h-12 bg-gray-200 rounded-xl shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="h-4 bg-gray-200 rounded w-36" />
+                          <div className="h-5 w-20 bg-gray-200 rounded-full" />
                         </div>
-                        <div className="text-right shrink-0">
-                          <div className="text-xl font-bold text-gray-900">
-                            {group.estimatedTotalPerOccurrence} lei/sesiune
-                          </div>
+                        <div className="h-3 bg-gray-200 rounded w-24 mb-1.5" />
+                        <div className="flex gap-3">
+                          <div className="h-3 bg-gray-200 rounded w-28" />
+                          <div className="h-3 bg-gray-200 rounded w-16" />
                         </div>
                       </div>
-                    </Card>
-                  );
-                })}
+                      <div className="h-5 w-16 bg-gray-200 rounded shrink-0" />
+                    </div>
+                  </Card>
+                ))}
               </div>
-            ) : (
-              <div className="text-center py-16">
-                <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-5">
-                  <Repeat className="h-8 w-8 text-gray-400" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Nu ai serii recurente
-                </h3>
-                <p className="text-gray-500 mb-6">
-                  Programeaza o curatenie recurenta pentru a o vedea aici.
-                </p>
-                <Button onClick={() => navigate('/rezervare')}>
-                  Rezerva o curatenie
-                </Button>
-              </div>
-            )}
-          </>
-        )}
-
-        {activeFilter !== 'RECURRING' && (
-          <>
-            {/* Loading */}
-            {loading && !data && (
-              <LoadingSpinner text="Se incarca comenzile..." />
             )}
 
             {/* Error */}
@@ -257,41 +217,58 @@ export default function MyBookingsPage() {
             )}
 
             {/* Bookings List */}
-            {!loading && !error && filteredBookings.length > 0 && (
-              <div className="space-y-4">
-                {filteredBookings.map((booking) => (
+            {!loading && !error && bookings.length > 0 && (
+              <div className="space-y-3">
+                {bookings.map((booking) => (
                   <Card
                     key={booking.id}
-                    className="cursor-pointer hover:shadow-md transition-shadow"
+                    className="cursor-pointer hover:shadow-md hover:border-gray-300 active:scale-[0.99] transition-all duration-150"
                     onClick={() => navigate(`/cont/comenzi/${booking.id}`)}
                   >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-start gap-4">
+                      {/* Service Icon */}
+                      <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center shrink-0 text-xl select-none">
+                        {SERVICE_ICONS[booking.serviceType] ?? '\u{1F9F9}'}
+                      </div>
+
+                      {/* Content */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="text-lg font-semibold text-gray-900 truncate">
+                        <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                          <h3 className="text-sm font-semibold text-gray-900 truncate">
                             {booking.serviceName}
                           </h3>
                           <Badge status={booking.status} />
+                          {booking.recurringGroupId && (
+                            <span className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
+                              <Repeat className="h-3 w-3" />
+                              Recurent
+                            </span>
+                          )}
                         </div>
-                        <div className="flex flex-wrap gap-4 text-sm text-gray-500">
-                          <div className="flex items-center gap-1.5">
-                            <Hash className="h-4 w-4" />
-                            <span>{booking.referenceCode}</span>
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                            <Calendar className="h-4 w-4" />
-                            <span>{formatDate(booking.scheduledDate)}</span>
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                            <Clock className="h-4 w-4" />
-                            <span>{formatTime(booking.scheduledStartTime)}</span>
-                          </div>
+                        <div className="flex items-center gap-1.5 text-xs text-gray-400 mb-1.5">
+                          <Hash className="h-3 w-3" />
+                          <span className="font-mono">{booking.referenceCode}</span>
+                        </div>
+                        <div className="flex flex-wrap gap-3 text-xs text-gray-500">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="h-3.5 w-3.5" />
+                            {formatDate(booking.scheduledDate)}
+                          </span>
+                          {booking.scheduledStartTime && (
+                            <span className="flex items-center gap-1">
+                              <Clock className="h-3.5 w-3.5" />
+                              {formatTime(booking.scheduledStartTime)}
+                            </span>
+                          )}
                         </div>
                       </div>
-                      <div className="text-right shrink-0">
-                        <div className="text-xl font-bold text-gray-900">
+
+                      {/* Price + Chevron */}
+                      <div className="flex items-center gap-2 shrink-0 pl-2">
+                        <div className="text-sm font-bold text-gray-900 whitespace-nowrap">
                           {booking.estimatedTotal} lei
                         </div>
+                        <ChevronRight className="h-4 w-4 text-gray-400" />
                       </div>
                     </div>
                   </Card>
@@ -300,20 +277,174 @@ export default function MyBookingsPage() {
             )}
 
             {/* Empty State */}
-            {!loading && !error && filteredBookings.length === 0 && (
+            {!loading && !error && bookings.length === 0 && (
               <div className="text-center py-16">
                 <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-5">
-                  <Package className="h-8 w-8 text-gray-400" />
+                  <CalendarX2 className="h-8 w-8 text-gray-400" />
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  {activeFilter === 'ALL'
+                  {statusFilter === ''
                     ? 'Nu ai nicio rezervare'
                     : 'Nicio rezervare in aceasta categorie'}
                 </h3>
-                <p className="text-gray-500 mb-6">
-                  {activeFilter === 'ALL'
+                <p className="text-gray-500 text-sm mb-6 max-w-xs mx-auto">
+                  {statusFilter === ''
                     ? 'Rezerva primul tau serviciu de curatenie acum.'
                     : 'Schimba filtrul sau creeaza o noua rezervare.'}
+                </p>
+                {statusFilter === '' && (
+                  <Button onClick={() => navigate('/rezervare')}>
+                    Rezerva o curatenie
+                  </Button>
+                )}
+              </div>
+            )}
+
+            {/* Pagination */}
+            {!loading && !error && totalCount > PAGE_SIZE && (
+              <div className="flex flex-wrap items-center justify-between gap-3 mt-6">
+                <p className="text-sm text-gray-500">
+                  Pagina {page + 1} din {totalPages}
+                </p>
+                <div className="flex items-center gap-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={page === 0}
+                    onClick={() => setPage((p) => Math.max(0, p - 1))}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Anterior
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={!hasNextPage}
+                    onClick={() => setPage((p) => p + 1)}
+                  >
+                    Urmator
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ── Recurring groups ── */}
+        {isRecurring && (
+          <>
+            {/* Loading skeleton */}
+            {recurringLoading && !recurringData && (
+              <div className="space-y-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Card key={i}>
+                    <div className="animate-pulse flex items-start gap-4">
+                      <div className="w-12 h-12 bg-gray-200 rounded-xl shrink-0" />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="h-4 bg-gray-200 rounded w-40" />
+                          <div className="h-5 w-16 bg-gray-200 rounded-full" />
+                        </div>
+                        <div className="h-3 bg-gray-200 rounded w-32" />
+                      </div>
+                      <div className="h-5 w-20 bg-gray-200 rounded shrink-0" />
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+
+            {/* Recurring groups list */}
+            {!recurringLoading && recurringGroups.length > 0 && (
+              <div className="space-y-3">
+                {recurringGroups.map((group) => {
+                  const nextDate = group.upcomingOccurrences[0]?.scheduledDate;
+                  const freqLabel =
+                    group.recurrenceType === 'WEEKLY'
+                      ? 'Saptamanal'
+                      : group.recurrenceType === 'BIWEEKLY'
+                        ? 'Bisaptamanal'
+                        : 'Lunar';
+
+                  return (
+                    <Card
+                      key={group.id}
+                      className="cursor-pointer hover:shadow-md hover:border-gray-300 active:scale-[0.99] transition-all duration-150"
+                      onClick={() => navigate(`/cont/recurente/${group.id}`)}
+                    >
+                      <div className="flex items-start gap-4">
+                        {/* Icon */}
+                        <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
+                          <Repeat className="h-6 w-6 text-blue-500" />
+                        </div>
+
+                        {/* Content */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                            <h3 className="text-sm font-semibold text-gray-900 truncate">
+                              {group.serviceName}
+                            </h3>
+                            <span
+                              className={cn(
+                                'text-xs font-semibold px-2 py-0.5 rounded-full',
+                                group.isActive
+                                  ? 'bg-emerald-50 text-emerald-700'
+                                  : group.cancelledAt
+                                    ? 'bg-red-50 text-red-600'
+                                    : 'bg-gray-100 text-gray-500',
+                              )}
+                            >
+                              {group.isActive ? 'Activa' : group.cancelledAt ? 'Anulata' : 'Pauza'}
+                            </span>
+                            <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
+                              {freqLabel}
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap gap-3 text-xs text-gray-500">
+                            <span>
+                              {group.completedOccurrences}/{group.totalOccurrences} finalizate
+                            </span>
+                            {nextDate && (
+                              <span className="flex items-center gap-1">
+                                <Calendar className="h-3.5 w-3.5" />
+                                Urmatoarea: {formatDate(nextDate)}
+                              </span>
+                            )}
+                            {group.preferredCleaner && (
+                              <span>Curatator: {group.preferredCleaner.fullName}</span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Price + Chevron */}
+                        <div className="flex items-center gap-2 shrink-0 pl-2">
+                          <div className="text-right">
+                            <div className="text-sm font-bold text-gray-900 whitespace-nowrap">
+                              {group.estimatedTotalPerOccurrence} lei
+                            </div>
+                            <div className="text-xs text-gray-400">/ sesiune</div>
+                          </div>
+                          <ChevronRight className="h-4 w-4 text-gray-400" />
+                        </div>
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Recurring empty state */}
+            {!recurringLoading && recurringGroups.length === 0 && (
+              <div className="text-center py-16">
+                <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-5">
+                  <Repeat className="h-8 w-8 text-gray-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Nu ai serii recurente
+                </h3>
+                <p className="text-gray-500 text-sm mb-6 max-w-xs mx-auto">
+                  Programeaza o curatenie recurenta pentru a o vedea aici.
                 </p>
                 <Button onClick={() => navigate('/rezervare')}>
                   Rezerva o curatenie

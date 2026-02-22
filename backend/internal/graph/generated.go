@@ -485,6 +485,7 @@ type ComplexityRoot struct {
 		DeleteCityArea                func(childComplexity int, id string) int
 		DeleteCleanerDocument         func(childComplexity int, id string) int
 		DeleteCompanyDocument         func(childComplexity int, id string) int
+		DeleteMyAccount               func(childComplexity int) int
 		DeletePaymentMethod           func(childComplexity int, id string) int
 		DeleteReview                  func(childComplexity int, id string) int
 		GenerateBookingInvoice        func(childComplexity int, bookingID string) int
@@ -1075,6 +1076,7 @@ type MutationResolver interface {
 	UpdatePlatformSetting(ctx context.Context, key string, value string) (*model.PlatformSetting, error)
 	UpdateProfile(ctx context.Context, input model.UpdateProfileInput) (*model.User, error)
 	UploadAvatar(ctx context.Context, file graphql.Upload) (*model.User, error)
+	DeleteMyAccount(ctx context.Context) (bool, error)
 	UpdateUserRole(ctx context.Context, userID string, role model.UserRole) (*model.User, error)
 	AdminUpdateUserProfile(ctx context.Context, userID string, fullName string, phone *string) (*model.User, error)
 	JoinWaitlist(ctx context.Context, input model.JoinWaitlistInput) (*model.WaitlistLead, error)
@@ -3264,6 +3266,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.DeleteCompanyDocument(childComplexity, args["id"].(string)), true
+	case "Mutation.deleteMyAccount":
+		if e.complexity.Mutation.DeleteMyAccount == nil {
+			break
+		}
+
+		return e.complexity.Mutation.DeleteMyAccount(childComplexity), true
 	case "Mutation.deletePaymentMethod":
 		if e.complexity.Mutation.DeletePaymentMethod == nil {
 			break
@@ -24178,6 +24186,35 @@ func (ec *executionContext) fieldContext_Mutation_uploadAvatar(ctx context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_deleteMyAccount(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_deleteMyAccount,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.Mutation().DeleteMyAccount(ctx)
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deleteMyAccount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_updateUserRole(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -43425,6 +43462,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "uploadAvatar":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_uploadAvatar(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "deleteMyAccount":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deleteMyAccount(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++

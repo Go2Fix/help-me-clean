@@ -1,11 +1,14 @@
-import { useState, useCallback } from 'react';
-import { useQuery, useMutation } from '@apollo/client';
+import React, { useState, useCallback } from 'react';
+import { useQuery, useMutation, useLazyQuery } from '@apollo/client';
 import {
   FileText,
   Download,
   Building2,
   User,
   Check,
+  ChevronDown,
+  ChevronUp,
+  ExternalLink,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import Button from '@/components/ui/Button';
@@ -17,6 +20,7 @@ import {
   MY_INVOICES,
   MY_BILLING_PROFILE,
   UPSERT_BILLING_PROFILE,
+  INVOICE_DETAIL,
 } from '@/graphql/operations';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -81,6 +85,53 @@ interface BillingFormData {
   iban: string;
 }
 
+interface InvoiceDetailItem {
+  id: string;
+  descriptionRo: string;
+  quantity: number;
+  unitPrice: number;
+  vatRate: number;
+  vatAmount: number;
+  lineTotal: number;
+  lineTotalWithVat: number;
+}
+
+interface InvoiceDetail {
+  id: string;
+  invoiceType: string;
+  invoiceNumber: string;
+  status: string;
+  sellerCompanyName: string;
+  sellerCui: string;
+  buyerName: string;
+  buyerCui?: string;
+  subtotalAmount: number;
+  vatRate: number;
+  vatAmount: number;
+  totalAmount: number;
+  currency: string;
+  efacturaStatus?: string;
+  downloadUrl?: string;
+  issuedAt: string;
+  dueDate?: string;
+  notes?: string;
+  lineItems: InvoiceDetailItem[];
+  booking?: {
+    id: string;
+    referenceCode: string;
+    serviceName: string;
+  };
+  company?: {
+    id: string;
+    companyName: string;
+  };
+  createdAt: string;
+}
+
+interface InvoiceDetailData {
+  invoiceDetail: InvoiceDetail;
+}
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const PAGE_SIZE = 20;
@@ -128,6 +179,7 @@ export default function InvoicesPage() {
   const [billingForm, setBillingForm] = useState<BillingFormData>(EMPTY_BILLING_FORM);
   const [billingEditing, setBillingEditing] = useState(false);
   const [billingError, setBillingError] = useState('');
+  const [expandedInvoiceId, setExpandedInvoiceId] = useState<string | null>(null);
 
   // ─── Queries & Mutations ────────────────────────────────────────────────
 
@@ -159,6 +211,9 @@ export default function InvoicesPage() {
         }
       },
     });
+
+  const [fetchInvoiceDetail, { data: detailData, loading: loadingDetail }] =
+    useLazyQuery<InvoiceDetailData>(INVOICE_DETAIL);
 
   const [upsertBilling, { loading: savingBilling }] = useMutation(UPSERT_BILLING_PROFILE, {
     onCompleted: () => {
@@ -232,6 +287,18 @@ export default function InvoicesPage() {
   const handleToggleType = useCallback((isCompany: boolean) => {
     setBillingForm((prev) => ({ ...prev, isCompany }));
   }, []);
+
+  const handleToggleInvoice = useCallback(
+    (invoiceId: string) => {
+      if (expandedInvoiceId === invoiceId) {
+        setExpandedInvoiceId(null);
+      } else {
+        setExpandedInvoiceId(invoiceId);
+        fetchInvoiceDetail({ variables: { id: invoiceId } });
+      }
+    },
+    [expandedInvoiceId, fetchInvoiceDetail],
+  );
 
   const invoices = invoicesData?.myInvoices.edges ?? [];
   const hasMore = invoicesData?.myInvoices.pageInfo.hasNextPage ?? false;
@@ -504,9 +571,9 @@ export default function InvoicesPage() {
                 <tr className="border-b border-gray-200">
                   <th className="text-left px-6 py-3 font-medium text-gray-500">Nr. factura</th>
                   <th className="text-left px-6 py-3 font-medium text-gray-500">Data</th>
-                  <th className="text-left px-6 py-3 font-medium text-gray-500">Furnizor</th>
+                  <th className="text-left px-6 py-3 font-medium text-gray-500 hidden sm:table-cell">Furnizor</th>
                   <th className="text-right px-6 py-3 font-medium text-gray-500">Suma (RON)</th>
-                  <th className="text-center px-6 py-3 font-medium text-gray-500">Status</th>
+                  <th className="text-center px-6 py-3 font-medium text-gray-500 hidden sm:table-cell">Status</th>
                   <th className="px-6 py-3 w-10" />
                 </tr>
               </thead>
@@ -516,39 +583,198 @@ export default function InvoicesPage() {
                     label: inv.status,
                     variant: 'default' as const,
                   };
+                  const isExpanded = expandedInvoiceId === inv.id;
+                  const detail = isExpanded && detailData?.invoiceDetail?.id === inv.id
+                    ? detailData.invoiceDetail
+                    : null;
 
                   return (
-                    <tr key={inv.id} className="hover:bg-gray-50 transition">
-                      <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
-                        {inv.invoiceNumber}
-                      </td>
-                      <td className="px-6 py-4 text-gray-600 whitespace-nowrap">
-                        {formatDate(inv.issuedAt)}
-                      </td>
-                      <td className="px-6 py-4 text-gray-600 whitespace-nowrap">
-                        {inv.sellerCompanyName}
-                      </td>
-                      <td className="px-6 py-4 text-right font-medium text-gray-900 whitespace-nowrap">
-                        {formatAmount(inv.totalAmount)}
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <Badge variant={cfg.variant}>{cfg.label}</Badge>
-                      </td>
-                      <td className="px-6 py-4">
-                        {inv.downloadUrl && (
-                          <a
-                            href={inv.downloadUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-2 rounded-lg text-gray-400 hover:bg-primary/5 hover:text-primary transition inline-flex"
-                            title="Descarca PDF"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <Download className="h-4 w-4" />
-                          </a>
-                        )}
-                      </td>
-                    </tr>
+                    <React.Fragment key={inv.id}>
+                      <tr
+                        className="hover:bg-gray-50 transition-colors cursor-pointer group"
+                        onClick={() => handleToggleInvoice(inv.id)}
+                      >
+                        <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
+                          {inv.invoiceNumber}
+                        </td>
+                        <td className="px-6 py-4 text-gray-600 whitespace-nowrap">
+                          {formatDate(inv.issuedAt)}
+                        </td>
+                        <td className="px-6 py-4 text-gray-600 whitespace-nowrap hidden sm:table-cell">
+                          {inv.sellerCompanyName}
+                        </td>
+                        <td className="px-6 py-4 text-right font-medium text-gray-900 whitespace-nowrap">
+                          {formatAmount(inv.totalAmount)}
+                        </td>
+                        <td className="px-6 py-4 text-center hidden sm:table-cell">
+                          <Badge variant={cfg.variant}>{cfg.label}</Badge>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-1">
+                            {inv.downloadUrl && (
+                              <a
+                                href={inv.downloadUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-2 rounded-lg text-gray-400 hover:bg-primary/5 hover:text-primary transition inline-flex"
+                                title="Descarca PDF"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <Download className="h-4 w-4" />
+                              </a>
+                            )}
+                            {isExpanded ? (
+                              <ChevronUp className="h-4 w-4 text-gray-400" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4 text-gray-400" />
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+
+                      {/* Expanded detail row */}
+                      {isExpanded && (
+                        <tr>
+                          <td colSpan={6} className="px-6 py-5 bg-gray-50">
+                            {loadingDetail && !detail && (
+                              <div className="flex items-center gap-2 text-sm text-gray-500">
+                                <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                                Se incarca detaliile...
+                              </div>
+                            )}
+
+                            {detail && (
+                              <div className="space-y-4">
+                                {/* Mobile-only: status + supplier */}
+                                <div className="flex flex-wrap items-center gap-3 sm:hidden">
+                                  <Badge variant={cfg.variant}>{cfg.label}</Badge>
+                                  <span className="text-sm text-gray-600">{inv.sellerCompanyName}</span>
+                                </div>
+
+                                {/* Seller / Buyer info */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                  <div>
+                                    <p className="text-xs font-medium text-gray-400 uppercase mb-1">Furnizor</p>
+                                    <p className="text-sm font-medium text-gray-900">{detail.sellerCompanyName}</p>
+                                    <p className="text-xs text-gray-500">CUI: {detail.sellerCui}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-xs font-medium text-gray-400 uppercase mb-1">Cumparator</p>
+                                    <p className="text-sm font-medium text-gray-900">{detail.buyerName}</p>
+                                    {detail.buyerCui && (
+                                      <p className="text-xs text-gray-500">CUI: {detail.buyerCui}</p>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Line items */}
+                                {detail.lineItems.length > 0 && (
+                                  <div>
+                                    <p className="text-xs font-medium text-gray-400 uppercase mb-2">Articole</p>
+                                    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                                      <table className="w-full text-xs">
+                                        <thead>
+                                          <tr className="border-b border-gray-100 bg-gray-50">
+                                            <th className="text-left px-3 py-2 font-medium text-gray-500">Descriere</th>
+                                            <th className="text-right px-3 py-2 font-medium text-gray-500">Cant.</th>
+                                            <th className="text-right px-3 py-2 font-medium text-gray-500 hidden sm:table-cell">Pret unit.</th>
+                                            <th className="text-right px-3 py-2 font-medium text-gray-500">Total</th>
+                                          </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-50">
+                                          {detail.lineItems.map((item) => (
+                                            <tr key={item.id}>
+                                              <td className="px-3 py-2 text-gray-900">{item.descriptionRo}</td>
+                                              <td className="px-3 py-2 text-right text-gray-600">{item.quantity}</td>
+                                              <td className="px-3 py-2 text-right text-gray-600 hidden sm:table-cell">
+                                                {formatAmount(item.unitPrice)}
+                                              </td>
+                                              <td className="px-3 py-2 text-right font-medium text-gray-900">
+                                                {formatAmount(item.lineTotalWithVat)}
+                                              </td>
+                                            </tr>
+                                          ))}
+                                        </tbody>
+                                      </table>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Totals */}
+                                <div className="flex justify-end">
+                                  <div className="text-sm space-y-1 min-w-[180px]">
+                                    <div className="flex justify-between text-gray-600">
+                                      <span>Subtotal:</span>
+                                      <span>{formatAmount(detail.subtotalAmount)}</span>
+                                    </div>
+                                    <div className="flex justify-between text-gray-600">
+                                      <span>TVA ({detail.vatRate}%):</span>
+                                      <span>{formatAmount(detail.vatAmount)}</span>
+                                    </div>
+                                    <div className="flex justify-between font-semibold text-gray-900 pt-1 border-t border-gray-200">
+                                      <span>Total:</span>
+                                      <span>{formatAmount(detail.totalAmount)}</span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Booking reference + Due date + Notes */}
+                                <div className="flex flex-wrap gap-4 text-sm">
+                                  {detail.booking && (
+                                    <div>
+                                      <span className="text-gray-500">Rezervare: </span>
+                                      <span className="font-medium text-gray-900">
+                                        {detail.booking.referenceCode} - {detail.booking.serviceName}
+                                      </span>
+                                    </div>
+                                  )}
+                                  {detail.dueDate && (
+                                    <div>
+                                      <span className="text-gray-500">Scadenta: </span>
+                                      <span className="font-medium text-gray-900">{formatDate(detail.dueDate)}</span>
+                                    </div>
+                                  )}
+                                </div>
+
+                                {detail.notes && (
+                                  <p className="text-sm text-gray-600 italic">{detail.notes}</p>
+                                )}
+
+                                {/* Action buttons */}
+                                <div className="flex flex-wrap gap-3 pt-1">
+                                  {detail.downloadUrl && (
+                                    <a
+                                      href={detail.downloadUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <Button size="sm" variant="primary">
+                                        <Download className="h-4 w-4" />
+                                        Descarca PDF
+                                      </Button>
+                                    </a>
+                                  )}
+                                  {detail.booking && (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        window.location.href = `/cont/comenzi/${detail.booking!.id}`;
+                                      }}
+                                    >
+                                      <ExternalLink className="h-4 w-4" />
+                                      Vezi rezervarea
+                                    </Button>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
                   );
                 })}
               </tbody>

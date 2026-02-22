@@ -3339,6 +3339,12 @@ export const UPLOAD_AVATAR = gql`
   }
 `;
 
+export const DELETE_MY_ACCOUNT = gql`
+  mutation DeleteMyAccount {
+    deleteMyAccount
+  }
+`;
+
 export const UPLOAD_COMPANY_LOGO = gql`
   mutation UploadCompanyLogo($file: Upload!) {
     uploadCompanyLogo(file: $file) {

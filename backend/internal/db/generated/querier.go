@@ -98,6 +98,7 @@ type Querier interface {
 	CreateServiceExtra(ctx context.Context, arg CreateServiceExtraParams) (ServiceExtra, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	CreateWaitlistLead(ctx context.Context, arg CreateWaitlistLeadParams) (WaitlistLead, error)
+	DeactivateUser(ctx context.Context, id pgtype.UUID) error
 	DeleteAddress(ctx context.Context, id pgtype.UUID) error
 	DeleteAllCleanerServiceAreas(ctx context.Context, cleanerID pgtype.UUID) error
 	DeleteAllCompanyServiceAreas(ctx context.Context, companyID pgtype.UUID) error

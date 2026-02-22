@@ -59,5 +59,8 @@ UPDATE users SET avatar_url = $2, updated_at = NOW() WHERE id = $1 RETURNING *;
 -- name: UpdateUserPhone :one
 UPDATE users SET phone = $2, updated_at = NOW() WHERE id = $1 RETURNING *;
 
+-- name: DeactivateUser :exec
+UPDATE users SET status = 'inactive', phone = NULL, avatar_url = NULL, fcm_token = NULL, updated_at = NOW() WHERE id = $1;
+
 -- name: DeleteUser :exec
 DELETE FROM users WHERE id = $1;

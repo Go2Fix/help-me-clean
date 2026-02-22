@@ -120,6 +120,15 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	return i, err
 }
 
+const deactivateUser = `-- name: DeactivateUser :exec
+UPDATE users SET status = 'inactive', phone = NULL, avatar_url = NULL, fcm_token = NULL, updated_at = NOW() WHERE id = $1
+`
+
+func (q *Queries) DeactivateUser(ctx context.Context, id pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deactivateUser, id)
+	return err
+}
+
 const deleteUser = `-- name: DeleteUser :exec
 DELETE FROM users WHERE id = $1
 `

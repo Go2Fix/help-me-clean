@@ -26,6 +26,18 @@ const statusConfig: Record<string, { label: string; classes: string }> = {
     label: 'Anulata',
     classes: 'bg-red-100 text-red-800',
   },
+  CANCELLED_BY_CLIENT: {
+    label: 'Anulata',
+    classes: 'bg-red-100 text-red-800',
+  },
+  CANCELLED_BY_COMPANY: {
+    label: 'Anulata',
+    classes: 'bg-red-100 text-red-800',
+  },
+  CANCELLED_BY_ADMIN: {
+    label: 'Anulata',
+    classes: 'bg-red-100 text-red-800',
+  },
 };
 
 export default function Badge({ status, className }: BadgeProps) {

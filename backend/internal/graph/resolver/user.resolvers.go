@@ -105,6 +105,21 @@ func (r *mutationResolver) UploadAvatar(ctx context.Context, file graphql.Upload
 	return dbUserToGQL(user), nil
 }
 
+// DeleteMyAccount is the resolver for the deleteMyAccount field.
+func (r *mutationResolver) DeleteMyAccount(ctx context.Context) (bool, error) {
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil {
+		return false, fmt.Errorf("not authenticated")
+	}
+
+	err := r.Queries.DeactivateUser(ctx, stringToUUID(claims.UserID))
+	if err != nil {
+		return false, fmt.Errorf("failed to deactivate account: %w", err)
+	}
+
+	return true, nil
+}
+
 // UpdateUserRole is the resolver for the updateUserRole field.
 func (r *mutationResolver) UpdateUserRole(ctx context.Context, userID string, role model.UserRole) (*model.User, error) {
 	claims := auth.GetUserFromContext(ctx)
