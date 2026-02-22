@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math"
 	"math/big"
 	"net/http"
 	"os"
@@ -864,7 +865,7 @@ func numericToInt32(n pgtype.Numeric) int32 {
 	if err != nil {
 		return 0
 	}
-	return int32(f.Float64)
+	return int32(math.Round(f.Float64 * 100))
 }
 
 // baniToRON converts an amount in bani (RON cents) to RON with 2 decimal places.

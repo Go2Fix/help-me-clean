@@ -947,6 +947,7 @@ export const COMPANY_BOOKING_DETAIL = gql`
         fullName
         email
         phone
+        avatarUrl
       }
       company {
         id
@@ -963,6 +964,11 @@ export const COMPANY_BOOKING_DETAIL = gql`
         id
         fullName
         phone
+        email
+        user {
+          id
+          avatarUrl
+        }
       }
       timeSlots {
         id
@@ -981,11 +987,30 @@ export const COMPANY_INVOICE_FOR_BOOKING = gql`
       id
       invoiceNumber
       status
+      sellerCompanyName
+      sellerCui
+      buyerName
+      buyerCui
+      subtotalAmount
+      vatRate
+      vatAmount
       totalAmount
       currency
       downloadUrl
       efacturaStatus
       issuedAt
+      dueDate
+      notes
+      lineItems {
+        id
+        descriptionRo
+        quantity
+        unitPrice
+        vatRate
+        vatAmount
+        lineTotal
+        lineTotalWithVat
+      }
     }
   }
 `;
