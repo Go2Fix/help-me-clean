@@ -31,24 +31,36 @@ const mockBooking = (overrides = {}) => ({
   id: '1',
   referenceCode: 'HMC-001',
   serviceName: 'Curatenie standard',
+  serviceType: 'STANDARD_CLEANING',
+  includedItems: ['Aspirat', 'Sters praf'],
   scheduledDate: '2025-01-15',
   scheduledStartTime: '10:00',
   estimatedDurationHours: 3,
   status: 'ASSIGNED',
+  createdAt: '2025-01-10T08:00:00Z',
   address: {
     streetAddress: 'Str. Exemplu 10',
     city: 'Bucuresti',
     county: 'Ilfov',
     floor: '2',
     apartment: '5',
+    entryCode: null,
+    notes: null,
   },
-  client: { fullName: 'Maria Popescu', phone: '0722123456' },
-  propertyType: 'Apartament',
+  client: { id: 'c1', fullName: 'Maria Popescu', phone: '0722123456' },
+  company: { id: 'co1', companyName: 'Clean Pro SRL', contactPhone: '0700000000' },
+  propertyType: 'APARTMENT',
   numRooms: 3,
   numBathrooms: 1,
   areaSqm: 80,
   hasPets: false,
   specialInstructions: 'Cheile sunt la vecin.',
+  extras: [],
+  review: null,
+  recurringGroupId: null,
+  occurrenceNumber: null,
+  startedAt: null,
+  completedAt: null,
   ...overrides,
 });
 
@@ -64,18 +76,24 @@ describe('Cleaner JobDetailPage', () => {
 
   const renderPage = () =>
     render(
-      <MemoryRouter initialEntries={['/worker/job/1']}>
+      <MemoryRouter initialEntries={['/worker/comenzi/1']}>
         <Routes>
-          <Route path="/worker/job/:id" element={<JobDetailPage />} />
+          <Route path="/worker/comenzi/:id" element={<JobDetailPage />} />
         </Routes>
       </MemoryRouter>,
     );
 
-  it('shows loading spinner when loading', () => {
+  it('shows loading skeleton when loading', () => {
     mockUseQuery.mockReturnValue({ data: undefined, loading: true });
     renderPage();
-    const spinner = document.querySelector('.animate-spin');
-    expect(spinner).toBeInTheDocument();
+    const skeleton = document.querySelector('.animate-pulse');
+    expect(skeleton).toBeInTheDocument();
+  });
+
+  it('shows not found state when booking is missing', () => {
+    mockUseQuery.mockReturnValue({ data: { booking: null }, loading: false });
+    renderPage();
+    expect(screen.getByText('Comanda nu a fost gasita')).toBeInTheDocument();
   });
 
   it('shows booking details', () => {
@@ -96,13 +114,33 @@ describe('Cleaner JobDetailPage', () => {
     expect(screen.getByText(/Ap\. 5/)).toBeInTheDocument();
   });
 
-  it('shows property details', () => {
+  it('shows entry code when present', () => {
+    mockUseQuery.mockReturnValue({
+      data: {
+        booking: mockBooking({
+          address: {
+            streetAddress: 'Str. Exemplu 10',
+            city: 'Bucuresti',
+            county: 'Ilfov',
+            floor: '2',
+            apartment: '5',
+            entryCode: '#4567',
+            notes: null,
+          },
+        }),
+      },
+      loading: false,
+    });
+    renderPage();
+    expect(screen.getByText('#4567')).toBeInTheDocument();
+    expect(screen.getByText('Cod intrare')).toBeInTheDocument();
+  });
+
+  it('shows property details in compact grid', () => {
     mockUseQuery.mockReturnValue({ data: { booking: mockBooking() }, loading: false });
     renderPage();
-    expect(screen.getByText('3')).toBeInTheDocument();
-    expect(screen.getByText('Camere')).toBeInTheDocument();
-    expect(screen.getByText('80')).toBeInTheDocument();
-    expect(screen.getByText('mp')).toBeInTheDocument();
+    expect(screen.getByText(/Apartament.*3 cam.*1 bai/)).toBeInTheDocument();
+    expect(screen.getByText(/80 mp/)).toBeInTheDocument();
   });
 
   it('shows special instructions', () => {
@@ -111,13 +149,32 @@ describe('Cleaner JobDetailPage', () => {
     expect(screen.getByText('Cheile sunt la vecin.')).toBeInTheDocument();
   });
 
-  it('shows no action button for ASSIGNED status (auto-confirmed by payment)', () => {
+  it('shows company name', () => {
+    mockUseQuery.mockReturnValue({ data: { booking: mockBooking() }, loading: false });
+    renderPage();
+    expect(screen.getByText('Clean Pro SRL')).toBeInTheDocument();
+  });
+
+  it('shows timeline steps', () => {
+    mockUseQuery.mockReturnValue({ data: { booking: mockBooking() }, loading: false });
+    renderPage();
+    expect(screen.getByText('Progresul comenzii')).toBeInTheDocument();
+    // "Asignata" appears in both badge and timeline — use getAllByText
+    expect(screen.getAllByText('Asignata').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText('Confirmata')).toBeInTheDocument();
+    expect(screen.getByText('In lucru')).toBeInTheDocument();
+    // "Finalizata" also in timeline
+    expect(screen.getAllByText('Finalizata').length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('shows no action button for ASSIGNED status', () => {
     mockUseQuery.mockReturnValue({
       data: { booking: mockBooking({ status: 'ASSIGNED' }) },
       loading: false,
     });
     renderPage();
-    expect(screen.queryByText('Confirma comanda')).not.toBeInTheDocument();
+    expect(screen.queryByText('Incepe curatenia')).not.toBeInTheDocument();
+    expect(screen.queryByText('Finalizeaza curatenia')).not.toBeInTheDocument();
   });
 
   it('shows "Incepe curatenia" button for CONFIRMED status', () => {
@@ -144,12 +201,11 @@ describe('Cleaner JobDetailPage', () => {
       loading: false,
     });
     renderPage();
-    expect(screen.queryByText('Confirma comanda')).not.toBeInTheDocument();
     expect(screen.queryByText('Incepe curatenia')).not.toBeInTheDocument();
     expect(screen.queryByText('Finalizeaza curatenia')).not.toBeInTheDocument();
   });
 
-  it('calls start mutation when "Incepe curatenia" button clicked', async () => {
+  it('calls start mutation when "Incepe curatenia" clicked', async () => {
     const mockStart = vi.fn().mockResolvedValue({});
     mockUseMutation.mockReturnValue([mockStart, { loading: false }]);
     mockUseQuery.mockReturnValue({
@@ -162,18 +218,83 @@ describe('Cleaner JobDetailPage', () => {
     expect(mockStart).toHaveBeenCalledWith({ variables: { id: '1' } });
   });
 
-  it('shows back link', () => {
+  it('shows read-only checklist on COMPLETED booking', () => {
+    mockUseQuery.mockReturnValue({
+      data: {
+        booking: mockBooking({
+          status: 'COMPLETED',
+          includedItems: ['Aspirat', 'Sters praf'],
+        }),
+      },
+      loading: false,
+    });
+    renderPage();
+    expect(screen.getByText('Ce trebuie sa faci')).toBeInTheDocument();
+    expect(screen.getByText('Aspirat')).toBeInTheDocument();
+    expect(screen.getByText('Sters praf')).toBeInTheDocument();
+    // Should have no interactive buttons — no progress bar
+    expect(screen.queryByText(/Progres:/)).not.toBeInTheDocument();
+  });
+
+  it('shows interactive checklist on IN_PROGRESS booking', async () => {
+    mockUseQuery.mockReturnValue({
+      data: {
+        booking: mockBooking({
+          status: 'IN_PROGRESS',
+          includedItems: ['Aspirat', 'Sters praf'],
+        }),
+      },
+      loading: false,
+    });
+    const user = userEvent.setup();
+    renderPage();
+    expect(screen.getByText(/Progres:/)).toBeInTheDocument();
+    // Items should be clickable buttons
+    await user.click(screen.getByText('Aspirat'));
+    // After click, progress should update
+    expect(screen.getByText(/1\/2 finalizate/)).toBeInTheDocument();
+  });
+
+  it('shows review when present', () => {
+    mockUseQuery.mockReturnValue({
+      data: {
+        booking: mockBooking({
+          status: 'COMPLETED',
+          review: {
+            id: 'r1',
+            rating: 5,
+            comment: 'Excelent!',
+            createdAt: '2025-01-16T10:00:00Z',
+          },
+        }),
+      },
+      loading: false,
+    });
+    renderPage();
+    expect(screen.getByText('Recenzie client')).toBeInTheDocument();
+    expect(screen.getByText(/5\/5/)).toBeInTheDocument();
+    expect(screen.getByText(/Excelent!/)).toBeInTheDocument();
+  });
+
+  it('shows back link to comenzi', () => {
     mockUseQuery.mockReturnValue({ data: { booking: mockBooking() }, loading: false });
     renderPage();
-    expect(screen.getByText('Inapoi')).toBeInTheDocument();
+    expect(screen.getByText('Inapoi la comenzi')).toBeInTheDocument();
   });
 
   it('shows status badge', () => {
     mockUseQuery.mockReturnValue({
-      data: { booking: mockBooking({ status: 'ASSIGNED' }) },
+      data: { booking: mockBooking({ status: 'CONFIRMED' }) },
       loading: false,
     });
     renderPage();
-    expect(screen.getByText('Asignata')).toBeInTheDocument();
+    // "Confirmata" appears in both badge and timeline
+    expect(screen.getAllByText('Confirmata').length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('shows chat button', () => {
+    mockUseQuery.mockReturnValue({ data: { booking: mockBooking() }, loading: false });
+    renderPage();
+    expect(screen.getByText('Mesaj')).toBeInTheDocument();
   });
 });

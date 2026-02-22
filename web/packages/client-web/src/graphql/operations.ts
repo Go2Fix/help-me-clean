@@ -224,12 +224,16 @@ export const CLIENT_BOOKING_DETAIL = gql`
       recurringGroupId
       occurrenceNumber
       createdAt
+      startedAt
+      completedAt
       address {
         streetAddress
         city
         county
         floor
         apartment
+        entryCode
+        notes
       }
       company {
         id
