@@ -4,7 +4,7 @@ import { useState } from 'react';
 import {
   ArrowLeft, Calendar, Repeat, Clock, MapPin, Home,
   PawPrint, Check, CheckCircle, CheckSquare, Square,
-  AlertTriangle, AlertCircle, User, Phone, Star,
+  AlertTriangle, Phone, Star,
   MessageSquare, Building2, Key, FileText, XCircle,
 } from 'lucide-react';
 import { cn } from '@go2fix/shared';

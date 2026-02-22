@@ -13,7 +13,6 @@ import {
   PawPrint,
   Building2,
   Phone,
-  User,
   FileText,
   MessageCircle,
   CreditCard,
@@ -23,7 +22,6 @@ import {
   Sparkles,
   CheckCircle,
   XCircle,
-  AlertCircle,
   KeyRound,
   Timer,
 } from 'lucide-react';
@@ -98,7 +96,6 @@ interface BookingData {
   numBathrooms: number;
   areaSqm?: number;
   hasPets?: boolean;
-  estimatedDurationHours: number;
   paymentStatus?: string;
   paidAt?: string;
   recurringGroupId?: string;

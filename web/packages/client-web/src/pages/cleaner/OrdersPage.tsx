@@ -193,9 +193,9 @@ export default function OrdersPage() {
                       <td className="px-3 md:px-6 py-3 md:py-4 hidden sm:table-cell">
                         <div>
                           <p className="text-gray-900 text-sm">{(client?.fullName as string) || '--'}</p>
-                          {address?.city && (
+                          {address?.city ? (
                             <p className="text-gray-500 text-xs">{address.city as string}</p>
-                          )}
+                          ) : null}
                         </div>
                       </td>
                       <td className="px-3 md:px-6 py-3 md:py-4">
