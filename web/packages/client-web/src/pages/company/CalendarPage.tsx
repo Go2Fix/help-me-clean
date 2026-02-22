@@ -302,7 +302,7 @@ export default function CalendarPage() {
   }
 
   return (
-    <div>
+    <div className="max-w-full overflow-hidden">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Calendar</h1>
         <p className="text-gray-500 mt-1">Gestioneaza disponibilitatea si vezi programarile echipei.</p>
@@ -340,7 +340,7 @@ export default function CalendarPage() {
       ) : (
         <>
           {/* Desktop Grid */}
-          <div className="hidden md:block overflow-x-auto">
+          <div className="hidden lg:block overflow-x-auto">
             <div className="min-w-[800px]">
               <div className="grid grid-cols-8 gap-px bg-gray-200 rounded-t-xl overflow-hidden">
                 <div className="bg-gray-50 p-3 text-xs font-medium text-gray-500 uppercase">Cleaner</div>
@@ -425,7 +425,7 @@ export default function CalendarPage() {
           </div>
 
           {/* Mobile View */}
-          <div className="md:hidden">
+          <div className="lg:hidden">
             <div className="flex gap-1.5 mb-4 overflow-x-auto pb-2">
               {weekDates.map((date, idx) => {
                 const isToday = fmtYMD(date) === fmtYMD(new Date());
@@ -542,7 +542,7 @@ export default function CalendarPage() {
             </label>
           </div>
           {modal.isAvailable && (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               <Input label="Ora de inceput" type="time" value={modal.startTime}
                 onChange={(e) => setModal((p) => ({ ...p, startTime: e.target.value }))} />
               <Input label="Ora de sfarsit" type="time" value={modal.endTime}

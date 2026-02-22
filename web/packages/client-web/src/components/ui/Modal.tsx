@@ -48,17 +48,17 @@ export default function Modal({
       {/* Content */}
       <div
         className={cn(
-          'relative z-10 w-full max-w-lg mx-4 bg-white rounded-xl shadow-2xl',
+          'relative z-10 w-full max-w-lg mx-3 sm:mx-4 bg-white rounded-xl shadow-2xl overflow-hidden',
           className,
         )}
       >
         {/* Header */}
         {title && (
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+          <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 min-w-0 truncate mr-2">{title}</h3>
             <button
               onClick={onClose}
-              className="p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition cursor-pointer"
+              className="p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition cursor-pointer shrink-0"
             >
               <X className="h-5 w-5" />
             </button>
@@ -66,7 +66,7 @@ export default function Modal({
         )}
 
         {/* Body */}
-        <div className="p-6">{children}</div>
+        <div className="p-4 sm:p-6 overflow-hidden">{children}</div>
       </div>
     </div>
   );

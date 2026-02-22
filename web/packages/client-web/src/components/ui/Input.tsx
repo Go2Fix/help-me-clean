@@ -12,7 +12,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     const inputId = id || props.name || generatedId;
 
     return (
-      <div className="w-full min-w-0">
+      <div className="w-full min-w-0 overflow-hidden">
         {label && (
           <label
             htmlFor={inputId}
@@ -25,7 +25,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           id={inputId}
           ref={ref}
           className={cn(
-            'w-full max-w-full min-w-0 rounded-xl border bg-white px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary',
+            'w-full max-w-full min-w-0 appearance-none rounded-xl border bg-white px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary',
             error ? 'border-danger' : 'border-gray-300',
             className,
           )}
