@@ -445,6 +445,52 @@ func (s *Service) TransmitToEFactura(ctx context.Context, invoiceID pgtype.UUID)
 	return nil
 }
 
+// CheckEFacturaStatus polls Factureaza.ro for the current e-factura status
+// of an invoice and updates the local database accordingly.
+func (s *Service) CheckEFacturaStatus(ctx context.Context, invoiceID pgtype.UUID) (db.Invoice, error) {
+	inv, err := s.queries.GetInvoiceByID(ctx, invoiceID)
+	if err != nil {
+		return db.Invoice{}, fmt.Errorf("invoice: get invoice: %w", err)
+	}
+
+	if !inv.FactureazaID.Valid || inv.FactureazaID.String == "" {
+		return db.Invoice{}, errors.New("invoice: no factureaza.ro ID to check status for")
+	}
+
+	respBody, err := s.callFactureazaAPI(ctx, http.MethodGet, "/invoices/"+inv.FactureazaID.String+".json", nil)
+	if err != nil {
+		return db.Invoice{}, fmt.Errorf("invoice: check e-factura status: %w", err)
+	}
+
+	var statusResp struct {
+		EfacturaStatus string `json:"efactura_status"`
+		EfacturaIndex  string `json:"efactura_index"`
+	}
+	if jsonErr := json.Unmarshal(respBody, &statusResp); jsonErr != nil {
+		return db.Invoice{}, fmt.Errorf("invoice: parse status response: %w", jsonErr)
+	}
+
+	if statusResp.EfacturaStatus != "" {
+		updateErr := s.queries.UpdateInvoiceEFactura(ctx, db.UpdateInvoiceEFacturaParams{
+			ID:             invoiceID,
+			EfacturaStatus: pgText(statusResp.EfacturaStatus),
+			EfacturaIndex:  pgText(statusResp.EfacturaIndex),
+		})
+		if updateErr != nil {
+			return db.Invoice{}, fmt.Errorf("invoice: update e-factura status: %w", updateErr)
+		}
+	}
+
+	// Re-read to return updated record.
+	updated, err := s.queries.GetInvoiceByID(ctx, invoiceID)
+	if err != nil {
+		return db.Invoice{}, fmt.Errorf("invoice: re-read invoice: %w", err)
+	}
+
+	log.Printf("invoice: checked e-factura status for %s: %s", textVal(inv.InvoiceNumber), statusResp.EfacturaStatus)
+	return updated, nil
+}
+
 // GenerateCreditNote creates a credit note (storno) referencing an original invoice.
 // The amount parameter is in bani and represents the credited total (VAT-inclusive).
 func (s *Service) GenerateCreditNote(ctx context.Context, invoiceID pgtype.UUID, amount int32, reason string) (db.Invoice, error) {
@@ -587,19 +633,24 @@ type factureazaInvoiceRequest struct {
 }
 
 type factureazaInvoiceBody struct {
-	ClientName    string                  `json:"client_name"`
-	ClientCUI     string                  `json:"client_cui,omitempty"`
-	ClientAddress string                  `json:"client_address,omitempty"`
-	InvoiceNumber string                  `json:"number,omitempty"`
-	Currency      string                  `json:"currency"`
-	Items         []factureazaInvoiceItem `json:"items"`
+	ClientName      string                  `json:"client_name"`
+	ClientCUI       string                  `json:"client_cui,omitempty"`
+	ClientAddress   string                  `json:"client_address,omitempty"`
+	ClientCity      string                  `json:"client_city,omitempty"`
+	ClientCounty    string                  `json:"client_county,omitempty"`
+	Currency        string                  `json:"currency"`
+	DocumentDate    string                  `json:"document_date"`
+	DueDays         int                     `json:"due_days,omitempty"`
+	UpperAnnotation string                  `json:"upper_annotation,omitempty"`
+	Positions       []factureazaInvoiceItem `json:"document_positions"`
 }
 
 type factureazaInvoiceItem struct {
 	Description string  `json:"description"`
-	Quantity    float64 `json:"quantity"`
-	UnitPrice   float64 `json:"unit_price"`
-	VATRate     int     `json:"vat_rate"`
+	Unit        string  `json:"unit"`
+	UnitCount   float64 `json:"unit_count"`
+	Price       float64 `json:"price"`
+	VAT         int     `json:"vat"`
 }
 
 // factureazaInvoiceResponse represents the JSON response from Factureaza.ro
@@ -623,34 +674,40 @@ func (s *Service) createInvoiceOnFactureaza(ctx context.Context, inv db.Invoice,
 		return "", "", nil // No API key configured; skip silently.
 	}
 
-	items := make([]factureazaInvoiceItem, 0, len(lineItems))
+	positions := make([]factureazaInvoiceItem, 0, len(lineItems))
 	for _, li := range lineItems {
-		items = append(items, factureazaInvoiceItem{
+		positions = append(positions, factureazaInvoiceItem{
 			Description: li.DescriptionRo,
-			Quantity:    numericToFloat64(li.Quantity),
-			UnitPrice:   baniToRON(li.UnitPrice),
-			VATRate:     vatRatePct,
+			Unit:        "buc",
+			UnitCount:   numericToFloat64(li.Quantity),
+			Price:       baniToRON(li.UnitPrice),
+			VAT:         vatRatePct,
 		})
 	}
 
 	// If no line items were provided (edge case), build a single item from the invoice totals.
-	if len(items) == 0 {
-		items = append(items, factureazaInvoiceItem{
+	if len(positions) == 0 {
+		positions = append(positions, factureazaInvoiceItem{
 			Description: "Servicii curatenie",
-			Quantity:    1,
-			UnitPrice:   baniToRON(inv.SubtotalAmount),
-			VATRate:     vatRatePct,
+			Unit:        "buc",
+			UnitCount:   1,
+			Price:       baniToRON(inv.SubtotalAmount),
+			VAT:         vatRatePct,
 		})
 	}
 
 	reqPayload := factureazaInvoiceRequest{
 		Invoice: factureazaInvoiceBody{
-			ClientName:    inv.BuyerName,
-			ClientCUI:     textVal(inv.BuyerCui),
-			ClientAddress: textVal(inv.BuyerAddress),
-			InvoiceNumber: textVal(inv.InvoiceNumber),
-			Currency:      inv.Currency,
-			Items:         items,
+			ClientName:      inv.BuyerName,
+			ClientCUI:       textVal(inv.BuyerCui),
+			ClientAddress:   textVal(inv.BuyerAddress),
+			ClientCity:      textVal(inv.BuyerCity),
+			ClientCounty:    textVal(inv.BuyerCounty),
+			Currency:        inv.Currency,
+			DocumentDate:    time.Now().Format("2006-01-02"),
+			DueDays:         30,
+			UpperAnnotation: textVal(inv.Notes),
+			Positions:       positions,
 		},
 	}
 

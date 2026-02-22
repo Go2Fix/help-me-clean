@@ -301,7 +301,7 @@ type Querier interface {
 	ListWaitlistLeads(ctx context.Context, arg ListWaitlistLeadsParams) ([]WaitlistLead, error)
 	MarkAllNotificationsRead(ctx context.Context, userID pgtype.UUID) error
 	MarkBookingPaid(ctx context.Context, id pgtype.UUID) (Booking, error)
-	// Atomically marks a booking as paid AND auto-confirms it if still pending/assigned.
+	// Atomically marks a booking as paid AND auto-confirms it if still assigned.
 	// Idempotent: if booking is already confirmed or later, status is left unchanged.
 	MarkBookingPaidAndConfirmed(ctx context.Context, id pgtype.UUID) (Booking, error)
 	MarkEmailOTPUsed(ctx context.Context, id pgtype.UUID) error

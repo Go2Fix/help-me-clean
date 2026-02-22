@@ -24,13 +24,13 @@ function formatDate(dateStr: string): string {
 }
 
 const statusLabel: Record<string, string> = {
-  PENDING: 'In asteptare', ASSIGNED: 'Asignat', CONFIRMED: 'Confirmat',
+  ASSIGNED: 'Asignat', CONFIRMED: 'Confirmat',
   IN_PROGRESS: 'In desfasurare', COMPLETED: 'Finalizat',
   CANCELLED_BY_CLIENT: 'Anulat', CANCELLED_BY_COMPANY: 'Anulat', CANCELLED_BY_ADMIN: 'Anulat',
 };
 
 const statusVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
-  PENDING: 'warning', ASSIGNED: 'info', CONFIRMED: 'info', IN_PROGRESS: 'info',
+  ASSIGNED: 'info', CONFIRMED: 'info', IN_PROGRESS: 'info',
   COMPLETED: 'success',
   CANCELLED_BY_CLIENT: 'danger', CANCELLED_BY_COMPANY: 'danger', CANCELLED_BY_ADMIN: 'danger',
 };

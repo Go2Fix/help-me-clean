@@ -974,7 +974,6 @@ type WorkScheduleDayInput struct {
 type BookingStatus string
 
 const (
-	BookingStatusPending            BookingStatus = "PENDING"
 	BookingStatusAssigned           BookingStatus = "ASSIGNED"
 	BookingStatusConfirmed          BookingStatus = "CONFIRMED"
 	BookingStatusInProgress         BookingStatus = "IN_PROGRESS"
@@ -985,7 +984,6 @@ const (
 )
 
 var AllBookingStatus = []BookingStatus{
-	BookingStatusPending,
 	BookingStatusAssigned,
 	BookingStatusConfirmed,
 	BookingStatusInProgress,
@@ -997,7 +995,7 @@ var AllBookingStatus = []BookingStatus{
 
 func (e BookingStatus) IsValid() bool {
 	switch e {
-	case BookingStatusPending, BookingStatusAssigned, BookingStatusConfirmed, BookingStatusInProgress, BookingStatusCompleted, BookingStatusCancelledByClient, BookingStatusCancelledByCompany, BookingStatusCancelledByAdmin:
+	case BookingStatusAssigned, BookingStatusConfirmed, BookingStatusInProgress, BookingStatusCompleted, BookingStatusCancelledByClient, BookingStatusCancelledByCompany, BookingStatusCancelledByAdmin:
 		return true
 	}
 	return false

@@ -505,6 +505,7 @@ type ComplexityRoot struct {
 		ProcessRefund                 func(childComplexity int, refundRequestID string, approved bool) int
 		ReactivateUser                func(childComplexity int, id string) int
 		RefreshConnectOnboarding      func(childComplexity int) int
+		RefreshEFacturaStatus         func(childComplexity int, id string) int
 		RefreshToken                  func(childComplexity int) int
 		RegeneratePersonalityInsights func(childComplexity int, cleanerID string) int
 		RegisterDeviceToken           func(childComplexity int, token string) int
@@ -1040,6 +1041,7 @@ type MutationResolver interface {
 	TransmitInvoiceToEFactura(ctx context.Context, id string) (*model.Invoice, error)
 	GenerateCommissionInvoice(ctx context.Context, payoutID string) (*model.Invoice, error)
 	GenerateCreditNote(ctx context.Context, invoiceID string, amount int, reason string) (*model.Invoice, error)
+	RefreshEFacturaStatus(ctx context.Context, id string) (*model.Invoice, error)
 	CreateCity(ctx context.Context, name string, county string) (*model.EnabledCity, error)
 	ToggleCityActive(ctx context.Context, id string, isActive bool) (*model.EnabledCity, error)
 	CreateCityArea(ctx context.Context, cityID string, name string) (*model.CityArea, error)
@@ -3455,6 +3457,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.RefreshConnectOnboarding(childComplexity), true
+	case "Mutation.refreshEFacturaStatus":
+		if e.complexity.Mutation.RefreshEFacturaStatus == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_refreshEFacturaStatus_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RefreshEFacturaStatus(childComplexity, args["id"].(string)), true
 	case "Mutation.refreshToken":
 		if e.complexity.Mutation.RefreshToken == nil {
 			break
@@ -6907,6 +6920,17 @@ func (ec *executionContext) field_Mutation_processRefund_args(ctx context.Contex
 }
 
 func (ec *executionContext) field_Mutation_reactivateUser_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_refreshEFacturaStatus_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
@@ -22109,6 +22133,93 @@ func (ec *executionContext) fieldContext_Mutation_generateCreditNote(ctx context
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_generateCreditNote_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_refreshEFacturaStatus(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_refreshEFacturaStatus,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().RefreshEFacturaStatus(ctx, fc.Args["id"].(string))
+		},
+		nil,
+		ec.marshalNInvoice2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoice,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_refreshEFacturaStatus(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Invoice_id(ctx, field)
+			case "invoiceType":
+				return ec.fieldContext_Invoice_invoiceType(ctx, field)
+			case "invoiceNumber":
+				return ec.fieldContext_Invoice_invoiceNumber(ctx, field)
+			case "status":
+				return ec.fieldContext_Invoice_status(ctx, field)
+			case "sellerCompanyName":
+				return ec.fieldContext_Invoice_sellerCompanyName(ctx, field)
+			case "sellerCui":
+				return ec.fieldContext_Invoice_sellerCui(ctx, field)
+			case "buyerName":
+				return ec.fieldContext_Invoice_buyerName(ctx, field)
+			case "buyerCui":
+				return ec.fieldContext_Invoice_buyerCui(ctx, field)
+			case "subtotalAmount":
+				return ec.fieldContext_Invoice_subtotalAmount(ctx, field)
+			case "vatRate":
+				return ec.fieldContext_Invoice_vatRate(ctx, field)
+			case "vatAmount":
+				return ec.fieldContext_Invoice_vatAmount(ctx, field)
+			case "totalAmount":
+				return ec.fieldContext_Invoice_totalAmount(ctx, field)
+			case "currency":
+				return ec.fieldContext_Invoice_currency(ctx, field)
+			case "booking":
+				return ec.fieldContext_Invoice_booking(ctx, field)
+			case "company":
+				return ec.fieldContext_Invoice_company(ctx, field)
+			case "efacturaStatus":
+				return ec.fieldContext_Invoice_efacturaStatus(ctx, field)
+			case "downloadUrl":
+				return ec.fieldContext_Invoice_downloadUrl(ctx, field)
+			case "issuedAt":
+				return ec.fieldContext_Invoice_issuedAt(ctx, field)
+			case "dueDate":
+				return ec.fieldContext_Invoice_dueDate(ctx, field)
+			case "notes":
+				return ec.fieldContext_Invoice_notes(ctx, field)
+			case "lineItems":
+				return ec.fieldContext_Invoice_lineItems(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Invoice_createdAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Invoice", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_refreshEFacturaStatus_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -42965,6 +43076,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "generateCreditNote":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_generateCreditNote(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "refreshEFacturaStatus":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_refreshEFacturaStatus(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++

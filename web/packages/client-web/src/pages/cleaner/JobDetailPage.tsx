@@ -59,7 +59,6 @@ interface BookingData {
 // ─── Status Badge Map ───────────────────────────────────────────────────────
 
 const STATUS_BADGE: Record<string, { label: string; variant: 'default' | 'success' | 'warning' | 'danger' | 'info' }> = {
-  PENDING: { label: 'In asteptare', variant: 'default' },
   ASSIGNED: { label: 'Asignata', variant: 'info' },
   CONFIRMED: { label: 'Confirmata', variant: 'warning' },
   IN_PROGRESS: { label: 'In lucru', variant: 'success' },

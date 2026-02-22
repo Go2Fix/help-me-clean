@@ -38,22 +38,26 @@ function formatDate(dateStr: string): string {
 
 // ─── Status Maps ──────────────────────────────────────────────────────────────
 
-type InvoiceStatus = 'DRAFT' | 'ISSUED' | 'PAID' | 'CANCELLED' | 'OVERDUE';
+type InvoiceStatus = 'DRAFT' | 'ISSUED' | 'SENT' | 'TRANSMITTED' | 'PAID' | 'CANCELLED' | 'CREDIT_NOTE';
 
 const invoiceStatusBadge: Record<InvoiceStatus, 'default' | 'info' | 'success' | 'danger' | 'warning'> = {
   DRAFT: 'default',
   ISSUED: 'info',
+  SENT: 'info',
+  TRANSMITTED: 'warning',
   PAID: 'success',
   CANCELLED: 'danger',
-  OVERDUE: 'warning',
+  CREDIT_NOTE: 'info',
 };
 
 const invoiceStatusLabel: Record<InvoiceStatus, string> = {
   DRAFT: 'Ciorna',
   ISSUED: 'Emisa',
+  SENT: 'Trimisa',
+  TRANSMITTED: 'Transmisa e-Factura',
   PAID: 'Platita',
   CANCELLED: 'Anulata',
-  OVERDUE: 'Scadenta',
+  CREDIT_NOTE: 'Nota de credit',
 };
 
 type EfacturaStatus = 'NOT_SENT' | 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'ERROR';
@@ -78,9 +82,11 @@ const statusFilterOptions = [
   { value: '', label: 'Toate statusurile' },
   { value: 'DRAFT', label: 'Ciorna' },
   { value: 'ISSUED', label: 'Emisa' },
+  { value: 'SENT', label: 'Trimisa' },
+  { value: 'TRANSMITTED', label: 'Transmisa e-Factura' },
   { value: 'PAID', label: 'Platita' },
   { value: 'CANCELLED', label: 'Anulata' },
-  { value: 'OVERDUE', label: 'Scadenta' },
+  { value: 'CREDIT_NOTE', label: 'Nota de credit' },
 ];
 
 // ─── Invoice Row Type ─────────────────────────────────────────────────────────

@@ -50,7 +50,7 @@ const baseBooking = {
   estimatedTotal: 150,
   finalTotal: null,
   platformCommissionPct: 15,
-  status: 'PENDING',
+  status: 'CONFIRMED',
   paymentStatus: 'PENDING',
   startedAt: null,
   completedAt: null,
@@ -123,10 +123,10 @@ describe('BookingDetailPage', () => {
     expect(screen.getByText('REF-101')).toBeInTheDocument();
   });
 
-  it('shows PENDING status badge', () => {
+  it('shows CONFIRMED status badge', () => {
     mockBooking();
     renderPage();
-    expect(screen.getByText('In asteptare')).toBeInTheDocument();
+    expect(screen.getByText('Confirmat')).toBeInTheDocument();
   });
 
   it('shows ASSIGNED status badge', () => {
@@ -135,8 +135,8 @@ describe('BookingDetailPage', () => {
     expect(screen.getByText('Asignat')).toBeInTheDocument();
   });
 
-  it('shows "Asigneaza cleaner" button for PENDING booking without cleaner', () => {
-    mockBooking({ status: 'PENDING', cleaner: null });
+  it('shows "Asigneaza cleaner" button for ASSIGNED booking without cleaner', () => {
+    mockBooking({ status: 'ASSIGNED', cleaner: null });
     renderPage();
     expect(screen.getByText('Asigneaza cleaner')).toBeInTheDocument();
   });

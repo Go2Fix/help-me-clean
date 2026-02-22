@@ -2,11 +2,6 @@ import { render, screen } from '@testing-library/react';
 import ClientBadge from '@/components/ui/ClientBadge';
 
 describe('ClientBadge', () => {
-  it('shows Romanian label "In asteptare" for PENDING status', () => {
-    render(<ClientBadge status="PENDING" />);
-    expect(screen.getByText('In asteptare')).toBeInTheDocument();
-  });
-
   it('shows Romanian label "Finalizata" for COMPLETED status', () => {
     render(<ClientBadge status="COMPLETED" />);
     expect(screen.getByText('Finalizata')).toBeInTheDocument();
@@ -35,13 +30,6 @@ describe('ClientBadge', () => {
   it('shows raw status text for unknown status', () => {
     render(<ClientBadge status="UNKNOWN_STATUS" />);
     expect(screen.getByText('UNKNOWN_STATUS')).toBeInTheDocument();
-  });
-
-  it('applies amber color classes for PENDING', () => {
-    render(<ClientBadge status="PENDING" />);
-    const badge = screen.getByText('In asteptare');
-    expect(badge.className).toContain('bg-amber-100');
-    expect(badge.className).toContain('text-amber-800');
   });
 
   it('applies green color classes for COMPLETED', () => {
@@ -87,14 +75,14 @@ describe('ClientBadge', () => {
   });
 
   it('applies custom className', () => {
-    render(<ClientBadge status="PENDING" className="extra" />);
-    const badge = screen.getByText('In asteptare');
+    render(<ClientBadge status="CONFIRMED" className="extra" />);
+    const badge = screen.getByText('Confirmata');
     expect(badge.className).toContain('extra');
   });
 
   it('renders as a span element', () => {
-    render(<ClientBadge status="PENDING" />);
-    const badge = screen.getByText('In asteptare');
+    render(<ClientBadge status="CONFIRMED" />);
+    const badge = screen.getByText('Confirmata');
     expect(badge.tagName).toBe('SPAN');
   });
 });

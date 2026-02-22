@@ -8,6 +8,10 @@ import {
   TrendingUp,
   Hash,
   Banknote,
+  Send,
+  XCircle,
+  RefreshCw,
+  AlertTriangle,
 } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
@@ -21,6 +25,9 @@ import {
   GENERATE_COMMISSION_INVOICE,
   GENERATE_CREDIT_NOTE,
   INVOICE_ANALYTICS,
+  CANCEL_INVOICE,
+  TRANSMIT_TO_EFACTURA,
+  REFRESH_EFACTURA_STATUS,
 } from '@/graphql/operations';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -70,41 +77,59 @@ interface InvoiceAnalyticsData {
 const invoiceStatusVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
   DRAFT: 'default',
   ISSUED: 'info',
+  SENT: 'info',
+  TRANSMITTED: 'warning',
   PAID: 'success',
   CANCELLED: 'danger',
-  OVERDUE: 'warning',
+  CREDIT_NOTE: 'info',
 };
 
 const invoiceStatusLabel: Record<string, string> = {
   DRAFT: 'Ciorna',
   ISSUED: 'Emisa',
+  SENT: 'Trimisa',
+  TRANSMITTED: 'Transmisa e-Factura',
   PAID: 'Platita',
   CANCELLED: 'Anulata',
-  OVERDUE: 'Depasita',
+  CREDIT_NOTE: 'Nota de credit',
 };
 
 const invoiceTypeLabel: Record<string, string> = {
-  BOOKING: 'Rezervare',
-  COMMISSION: 'Comision',
-  CREDIT_NOTE: 'Nota de credit',
-  PAYOUT: 'Plata',
+  CLIENT_SERVICE: 'Serviciu client',
+  PLATFORM_COMMISSION: 'Comision platforma',
+};
+
+const efacturaStatusVariant: Record<string, 'default' | 'warning' | 'success' | 'danger'> = {
+  NOT_SENT: 'default',
+  transmitted: 'warning',
+  accepted: 'success',
+  rejected: 'danger',
+  error: 'danger',
+};
+
+const efacturaStatusLabel: Record<string, string> = {
+  NOT_SENT: 'Netransmisa',
+  transmitted: 'Transmisa',
+  accepted: 'Acceptata',
+  rejected: 'Respinsa',
+  error: 'Eroare',
 };
 
 const statusOptions = [
   { value: '', label: 'Toate statusurile' },
   { value: 'DRAFT', label: 'Ciorna' },
   { value: 'ISSUED', label: 'Emisa' },
+  { value: 'SENT', label: 'Trimisa' },
+  { value: 'TRANSMITTED', label: 'Transmisa e-Factura' },
   { value: 'PAID', label: 'Platita' },
   { value: 'CANCELLED', label: 'Anulata' },
-  { value: 'OVERDUE', label: 'Depasita' },
+  { value: 'CREDIT_NOTE', label: 'Nota de credit' },
 ];
 
 const typeOptions = [
   { value: '', label: 'Toate tipurile' },
-  { value: 'BOOKING', label: 'Rezervare' },
-  { value: 'COMMISSION', label: 'Comision' },
-  { value: 'CREDIT_NOTE', label: 'Nota de credit' },
-  { value: 'PAYOUT', label: 'Plata' },
+  { value: 'CLIENT_SERVICE', label: 'Serviciu client' },
+  { value: 'PLATFORM_COMMISSION', label: 'Comision platforma' },
 ];
 
 // ─── Stat Card ──────────────────────────────────────────────────────────────
@@ -161,6 +186,10 @@ export default function AdminInvoicesPage() {
   const [creditAmount, setCreditAmount] = useState('');
   const [creditReason, setCreditReason] = useState('');
 
+  // Cancel modal
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [cancelInvoiceId, setCancelInvoiceId] = useState<string | null>(null);
+
   // Analytics
   const { data: analyticsData, loading: analyticsLoading } = useQuery(INVOICE_ANALYTICS, {
     variables: { from: defaults.from, to: defaults.to },
@@ -200,6 +229,22 @@ export default function AdminInvoicesPage() {
     },
   );
 
+  const [cancelInvoice, { loading: cancelling }] = useMutation(CANCEL_INVOICE, {
+    onCompleted: () => {
+      setCancelModalOpen(false);
+      setCancelInvoiceId(null);
+      refetch();
+    },
+  });
+
+  const [transmitToEfactura, { loading: transmitting }] = useMutation(TRANSMIT_TO_EFACTURA, {
+    onCompleted: () => refetch(),
+  });
+
+  const [refreshEfacturaStatus, { loading: refreshing }] = useMutation(REFRESH_EFACTURA_STATUS, {
+    onCompleted: () => refetch(),
+  });
+
   const analytics: InvoiceAnalyticsData | null = analyticsData?.invoiceAnalytics ?? null;
   const invoices: Invoice[] = data?.allInvoices?.edges ?? [];
   const totalCount: number = data?.allInvoices?.totalCount ?? 0;
@@ -218,6 +263,31 @@ export default function AdminInvoicesPage() {
         reason: creditReason,
       },
     });
+  };
+
+  const handleCancel = async () => {
+    if (!cancelInvoiceId) return;
+    try {
+      await cancelInvoice({ variables: { id: cancelInvoiceId } });
+    } catch {
+      // Error handled by Apollo
+    }
+  };
+
+  const handleTransmit = async (invoiceId: string) => {
+    try {
+      await transmitToEfactura({ variables: { id: invoiceId } });
+    } catch {
+      // Error handled by Apollo
+    }
+  };
+
+  const handleRefreshEfactura = async (invoiceId: string) => {
+    try {
+      await refreshEfacturaStatus({ variables: { id: invoiceId } });
+    } catch {
+      // Error handled by Apollo
+    }
   };
 
   return (
@@ -314,8 +384,8 @@ export default function AdminInvoicesPage() {
       </div>
 
       {/* Invoices Table */}
-      <Card>
-        <div className="flex items-center gap-3 mb-6">
+      <Card padding={false}>
+        <div className="flex items-center gap-3 px-6 pt-6 mb-6">
           <FileText className="h-5 w-5 text-primary" />
           <h3 className="text-lg font-semibold text-gray-900">Toate facturile</h3>
           {totalCount > 0 && (
@@ -324,7 +394,9 @@ export default function AdminInvoicesPage() {
         </div>
 
         {loading ? (
-          <LoadingSpinner text="Se incarca facturile..." />
+          <div className="px-6 pb-6">
+            <LoadingSpinner text="Se incarca facturile..." />
+          </div>
         ) : invoices.length === 0 ? (
           <p className="text-center text-gray-400 py-12">Nu exista facturi.</p>
         ) : (
@@ -332,66 +404,157 @@ export default function AdminInvoicesPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-gray-500 border-b border-gray-200">
-                  <th className="pb-3 font-medium">Nr. Factura</th>
-                  <th className="pb-3 font-medium">Tip</th>
-                  <th className="pb-3 font-medium">Data</th>
-                  <th className="pb-3 font-medium">Vanzator</th>
-                  <th className="pb-3 font-medium">Cumparator</th>
-                  <th className="pb-3 font-medium text-right">Suma</th>
-                  <th className="pb-3 font-medium text-right">Status</th>
-                  <th className="pb-3 font-medium text-center">Descarca</th>
+                  <th className="px-6 pb-3 font-medium">Nr. Factura</th>
+                  <th className="px-6 pb-3 font-medium">Tip</th>
+                  <th className="px-6 pb-3 font-medium">Data</th>
+                  <th className="px-6 pb-3 font-medium">Vanzator</th>
+                  <th className="px-6 pb-3 font-medium">Cumparator</th>
+                  <th className="px-6 pb-3 font-medium text-right">Suma</th>
+                  <th className="px-6 pb-3 font-medium">Status</th>
+                  <th className="px-6 pb-3 font-medium">E-Factura</th>
+                  <th className="px-6 pb-3 font-medium text-right">Actiuni</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {invoices.map((invoice) => (
-                  <tr key={invoice.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="py-3 font-medium text-gray-900">
-                      {invoice.invoiceNumber}
-                    </td>
-                    <td className="py-3 text-gray-600">
-                      <Badge variant="default">
-                        {invoiceTypeLabel[invoice.invoiceType] ?? invoice.invoiceType}
-                      </Badge>
-                    </td>
-                    <td className="py-3 text-gray-600">
-                      {new Date(invoice.issuedAt).toLocaleDateString('ro-RO')}
-                    </td>
-                    <td className="py-3 text-gray-600">
-                      {invoice.sellerCompanyName}
-                    </td>
-                    <td className="py-3 text-gray-600">
-                      {invoice.buyerName}
-                    </td>
-                    <td className="py-3 text-right font-semibold text-gray-900">
-                      {formatRON(invoice.totalAmount)}
-                    </td>
-                    <td className="py-3 text-right">
-                      <Badge variant={invoiceStatusVariant[invoice.status] ?? 'default'}>
-                        {invoiceStatusLabel[invoice.status] ?? invoice.status}
-                      </Badge>
-                    </td>
-                    <td className="py-3 text-center">
-                      {invoice.downloadUrl ? (
-                        <a
-                          href={invoice.downloadUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center justify-center p-1.5 rounded-lg text-primary hover:bg-primary/10 transition-colors"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <Download className="h-4 w-4" />
-                        </a>
-                      ) : (
-                        <span className="text-gray-300">-</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                {invoices.map((invoice) => {
+                  const efStatus = invoice.efacturaStatus || 'NOT_SENT';
+
+                  return (
+                    <tr key={invoice.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-6 py-3 font-medium text-gray-900">
+                        {invoice.invoiceNumber}
+                      </td>
+                      <td className="px-6 py-3 text-gray-600">
+                        <Badge variant="default">
+                          {invoiceTypeLabel[invoice.invoiceType] ?? invoice.invoiceType}
+                        </Badge>
+                      </td>
+                      <td className="px-6 py-3 text-gray-600">
+                        {new Date(invoice.issuedAt || invoice.createdAt).toLocaleDateString('ro-RO')}
+                      </td>
+                      <td className="px-6 py-3 text-gray-600">
+                        {invoice.sellerCompanyName}
+                      </td>
+                      <td className="px-6 py-3 text-gray-600">
+                        {invoice.buyerName}
+                      </td>
+                      <td className="px-6 py-3 text-right font-semibold text-gray-900">
+                        {formatRON(invoice.totalAmount)}
+                      </td>
+                      <td className="px-6 py-3">
+                        <Badge variant={invoiceStatusVariant[invoice.status] ?? 'default'}>
+                          {invoiceStatusLabel[invoice.status] ?? invoice.status}
+                        </Badge>
+                      </td>
+                      <td className="px-6 py-3">
+                        <Badge variant={efacturaStatusVariant[efStatus] ?? 'default'}>
+                          {efacturaStatusLabel[efStatus] ?? efStatus}
+                        </Badge>
+                      </td>
+                      <td className="px-6 py-3">
+                        <div className="flex items-center justify-end gap-1">
+                          {/* Download PDF */}
+                          {invoice.downloadUrl && (
+                            <a
+                              href={invoice.downloadUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                              title="Descarca PDF"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Download className="h-4 w-4" />
+                            </a>
+                          )}
+
+                          {/* Transmit to e-Factura */}
+                          {invoice.status !== 'CANCELLED' &&
+                            (!invoice.efacturaStatus ||
+                              invoice.efacturaStatus === 'NOT_SENT' ||
+                              invoice.efacturaStatus === 'error') && (
+                              <button
+                                onClick={() => handleTransmit(invoice.id)}
+                                disabled={transmitting}
+                                className="p-1.5 rounded-lg text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors cursor-pointer disabled:opacity-50"
+                                title="Transmite la e-Factura"
+                              >
+                                <Send className="h-4 w-4" />
+                              </button>
+                            )}
+
+                          {/* Refresh e-Factura status */}
+                          {invoice.efacturaStatus &&
+                            invoice.efacturaStatus !== 'NOT_SENT' &&
+                            invoice.efacturaStatus !== 'accepted' && (
+                              <button
+                                onClick={() => handleRefreshEfactura(invoice.id)}
+                                disabled={refreshing}
+                                className="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer disabled:opacity-50"
+                                title="Actualizeaza status e-Factura"
+                              >
+                                <RefreshCw className="h-4 w-4" />
+                              </button>
+                            )}
+
+                          {/* Cancel invoice */}
+                          {invoice.status !== 'CANCELLED' &&
+                            invoice.status !== 'PAID' &&
+                            invoice.status !== 'CREDIT_NOTE' && (
+                              <button
+                                onClick={() => {
+                                  setCancelInvoiceId(invoice.id);
+                                  setCancelModalOpen(true);
+                                }}
+                                className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                                title="Anuleaza factura"
+                              >
+                                <XCircle className="h-4 w-4" />
+                              </button>
+                            )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         )}
       </Card>
+
+      {/* Cancel Invoice Confirmation Modal */}
+      <Modal
+        open={cancelModalOpen}
+        onClose={() => {
+          setCancelModalOpen(false);
+          setCancelInvoiceId(null);
+        }}
+        title="Confirma anularea"
+      >
+        <div className="space-y-4">
+          <div className="flex items-start gap-3 p-4 rounded-xl bg-red-50 border border-red-200">
+            <AlertTriangle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
+            <p className="text-sm text-red-700">
+              Esti sigur ca doresti sa anulezi aceasta factura? Aceasta actiune nu poate fi anulata.
+            </p>
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setCancelModalOpen(false);
+                setCancelInvoiceId(null);
+              }}
+            >
+              Renunta
+            </Button>
+            <Button variant="danger" onClick={handleCancel} loading={cancelling}>
+              <XCircle className="h-4 w-4" />
+              Anuleaza factura
+            </Button>
+          </div>
+        </div>
+      </Modal>
 
       {/* Generate Commission Invoice Modal */}
       <Modal

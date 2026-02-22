@@ -28,7 +28,6 @@ import Input from '@/components/ui/Input';
 import { ADMIN_BOOKING_DETAIL, ADMIN_CANCEL_BOOKING, ALL_BOOKINGS, ALL_CLEANERS, ASSIGN_CLEANER } from '@/graphql/operations';
 
 const statusVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
-  PENDING: 'warning',
   ASSIGNED: 'info',
   CONFIRMED: 'info',
   IN_PROGRESS: 'info',
@@ -40,7 +39,6 @@ const statusVariant: Record<string, 'default' | 'success' | 'warning' | 'danger'
 };
 
 const statusLabel: Record<string, string> = {
-  PENDING: 'In asteptare',
   ASSIGNED: 'Asignat',
   CONFIRMED: 'Confirmat',
   IN_PROGRESS: 'In desfasurare',
@@ -152,7 +150,7 @@ export default function BookingDetailPage() {
 
   const isCancelled = booking.status.startsWith('CANCELLED');
   const canCancel = !['COMPLETED'].includes(booking.status) && !isCancelled;
-  const canAssign = booking.status === 'PENDING' && !booking.cleaner;
+  const canAssign = booking.status === 'ASSIGNED' && !booking.cleaner;
 
   // Filter cleaners by search
   const allCleaners: CleanerOption[] = cleanersData?.allCleaners ?? [];

@@ -1,5 +1,4 @@
 enum BookingStatus {
-  PENDING
   ASSIGNED
   CONFIRMED
   IN_PROGRESS

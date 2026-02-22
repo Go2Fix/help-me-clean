@@ -14,7 +14,6 @@ import (
 type BookingStatus string
 
 const (
-	BookingStatusPending            BookingStatus = "pending"
 	BookingStatusAssigned           BookingStatus = "assigned"
 	BookingStatusConfirmed          BookingStatus = "confirmed"
 	BookingStatusInProgress         BookingStatus = "in_progress"

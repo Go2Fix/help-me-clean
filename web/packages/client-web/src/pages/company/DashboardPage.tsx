@@ -31,7 +31,6 @@ import {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const statusBadgeVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
-  PENDING: 'warning',
   CONFIRMED: 'info',
   IN_PROGRESS: 'info',
   COMPLETED: 'success',
@@ -39,7 +38,6 @@ const statusBadgeVariant: Record<string, 'default' | 'success' | 'warning' | 'da
 };
 
 const statusLabel: Record<string, string> = {
-  PENDING: 'In asteptare',
   CONFIRMED: 'Confirmata',
   IN_PROGRESS: 'In desfasurare',
   COMPLETED: 'Finalizata',
@@ -345,8 +343,8 @@ export default function DashboardPage() {
                       <p className="font-semibold text-gray-900">
                         #{booking.referenceCode as string}
                       </p>
-                      <Badge variant={statusBadgeVariant[(booking.status as string) || 'PENDING']}>
-                        {statusLabel[(booking.status as string) || 'PENDING'] || (booking.status as string)}
+                      <Badge variant={statusBadgeVariant[(booking.status as string) || 'CONFIRMED']}>
+                        {statusLabel[(booking.status as string) || 'CONFIRMED'] || (booking.status as string)}
                       </Badge>
                     </div>
                     <p className="text-sm text-gray-600">

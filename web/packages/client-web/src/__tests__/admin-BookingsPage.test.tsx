@@ -46,7 +46,7 @@ const sampleBooking = {
   scheduledDate: '2024-06-01',
   scheduledStartTime: '10:00',
   estimatedTotal: 250,
-  status: 'PENDING',
+  status: 'CONFIRMED',
   paymentStatus: 'PENDING',
   createdAt: '2024-05-28T10:00:00Z',
   client: { id: 'c1', fullName: 'Maria Ionescu', email: 'maria@test.com' },
@@ -90,9 +90,8 @@ describe('BookingsPage', () => {
     renderBookingsPage();
     expect(screen.getByText('REF-001')).toBeInTheDocument();
     expect(screen.getByText('Curatenie standard')).toBeInTheDocument();
-    // "In asteptare" appears both as a tab button and as the PENDING status badge
-    const matches = screen.getAllByText('In asteptare');
-    expect(matches.length).toBe(2);
+    // "Confirmat" appears as the CONFIRMED status badge
+    expect(screen.getByText('Confirmat')).toBeInTheDocument();
   });
 
   it('shows "Nu exista comenzi." empty state when edges is empty', () => {

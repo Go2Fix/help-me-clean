@@ -114,9 +114,10 @@ function formatDate(iso: string): string {
 const INVOICE_STATUS_CONFIG: Record<string, { label: string; variant: 'success' | 'warning' | 'danger' | 'default' | 'info' }> = {
   ISSUED: { label: 'Emisa', variant: 'success' },
   DRAFT: { label: 'Ciorna', variant: 'default' },
+  SENT: { label: 'Trimisa', variant: 'info' },
+  TRANSMITTED: { label: 'Transmisa e-Factura', variant: 'warning' },
   CANCELLED: { label: 'Anulata', variant: 'danger' },
   PAID: { label: 'Platita', variant: 'success' },
-  OVERDUE: { label: 'Restanta', variant: 'warning' },
   CREDIT_NOTE: { label: 'Nota de credit', variant: 'info' },
 };
 

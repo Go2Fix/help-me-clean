@@ -737,7 +737,6 @@ func validateStatusTransition(current db.BookingStatus, target db.BookingStatus)
 	}
 
 	allowed := map[db.BookingStatus][]db.BookingStatus{
-		db.BookingStatusPending:    {db.BookingStatusAssigned, db.BookingStatusConfirmed},
 		db.BookingStatusAssigned:   {db.BookingStatusConfirmed},
 		db.BookingStatusConfirmed:  {db.BookingStatusInProgress},
 		db.BookingStatusInProgress: {db.BookingStatusCompleted},

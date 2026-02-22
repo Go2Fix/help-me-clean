@@ -1164,12 +1164,12 @@ func (q *Queries) MarkBookingPaid(ctx context.Context, id pgtype.UUID) (Booking,
 const markBookingPaidAndConfirmed = `-- name: MarkBookingPaidAndConfirmed :one
 UPDATE bookings
 SET payment_status = 'paid', paid_at = NOW(),
-    status = CASE WHEN status IN ('pending', 'assigned') THEN 'confirmed'::booking_status ELSE status END,
+    status = CASE WHEN status = 'assigned' THEN 'confirmed'::booking_status ELSE status END,
     updated_at = NOW()
 WHERE id = $1 RETURNING id, reference_code, client_user_id, company_id, cleaner_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number
 `
 
-// Atomically marks a booking as paid AND auto-confirms it if still pending/assigned.
+// Atomically marks a booking as paid AND auto-confirms it if still assigned.
 // Idempotent: if booking is already confirmed or later, status is left unchanged.
 func (q *Queries) MarkBookingPaidAndConfirmed(ctx context.Context, id pgtype.UUID) (Booking, error) {
 	row := q.db.QueryRow(ctx, markBookingPaidAndConfirmed, id)

@@ -91,7 +91,6 @@ function SkeletonCards({ count }: { count: number }) {
 }
 
 const statusLabels: Record<string, string> = {
-  PENDING: 'In asteptare',
   ASSIGNED: 'Asignate',
   CONFIRMED: 'Confirmate',
   IN_PROGRESS: 'In desfasurare',
@@ -100,7 +99,6 @@ const statusLabels: Record<string, string> = {
 };
 
 const statusVariants: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
-  PENDING: 'warning',
   ASSIGNED: 'info',
   CONFIRMED: 'info',
   IN_PROGRESS: 'info',

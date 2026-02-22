@@ -1828,27 +1828,10 @@ export const SEARCH_COMPANY_BOOKINGS = gql`
       edges {
         id
         referenceCode
-        serviceType
-        serviceName
         scheduledDate
-        scheduledStartTime
         estimatedTotal
         status
-        createdAt
-        client {
-          id
-          fullName
-          phone
-        }
-        cleaner {
-          id
-          fullName
-        }
-        address {
-          streetAddress
-          city
-          county
-        }
+        recurringGroupId
       }
       totalCount
     }
@@ -2965,6 +2948,17 @@ export const GENERATE_CREDIT_NOTE = gql`
       invoiceNumber
       status
       totalAmount
+    }
+  }
+`;
+
+export const REFRESH_EFACTURA_STATUS = gql`
+  mutation RefreshEFacturaStatus($id: ID!) {
+    refreshEFacturaStatus(id: $id) {
+      id
+      invoiceNumber
+      status
+      efacturaStatus
     }
   }
 `;

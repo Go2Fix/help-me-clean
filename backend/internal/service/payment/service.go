@@ -32,6 +32,9 @@ type Service struct {
 	// OnBookingConfirmed is called when a booking is auto-confirmed via payment.
 	// Set by the application layer to create a chat room, etc.
 	OnBookingConfirmed func(ctx context.Context, booking db.Booking)
+	// OnPaymentSucceeded is called when a payment succeeds.
+	// Set by the application layer to auto-generate invoices, etc.
+	OnPaymentSucceeded func(ctx context.Context, booking db.Booking, txn db.PaymentTransaction)
 }
 
 // NewService creates a new payment service and configures the global Stripe API key.
@@ -360,7 +363,7 @@ func (s *Service) handlePaymentIntentSucceeded(ctx context.Context, event stripe
 		return fmt.Errorf("payment: failed to update transaction for PI %s: %w", pi.ID, err)
 	}
 
-	// Mark the booking as paid AND auto-confirm if pending/assigned.
+	// Mark the booking as paid AND auto-confirm if assigned.
 	booking, err := s.queries.MarkBookingPaidAndConfirmed(ctx, txn.BookingID)
 	if err != nil {
 		return fmt.Errorf("payment: failed to mark booking paid for PI %s: %w", pi.ID, err)
@@ -369,6 +372,11 @@ func (s *Service) handlePaymentIntentSucceeded(ctx context.Context, event stripe
 	// If booking was auto-confirmed, create chat room via callback.
 	if booking.Status == db.BookingStatusConfirmed && s.OnBookingConfirmed != nil {
 		go s.OnBookingConfirmed(context.Background(), booking)
+	}
+
+	// Trigger invoice generation (non-blocking, best-effort).
+	if s.OnPaymentSucceeded != nil {
+		go s.OnPaymentSucceeded(context.Background(), booking, txn)
 	}
 
 	log.Printf("payment: payment_intent.succeeded processed for PI %s, booking %s, status=%s", pi.ID, uuidToString(txn.BookingID), booking.Status)

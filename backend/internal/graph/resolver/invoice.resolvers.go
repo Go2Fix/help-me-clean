@@ -208,6 +208,26 @@ func (r *mutationResolver) GenerateCreditNote(ctx context.Context, invoiceID str
 	return gqlInvoice, nil
 }
 
+// RefreshEFacturaStatus is the resolver for the refreshEFacturaStatus field.
+func (r *mutationResolver) RefreshEFacturaStatus(ctx context.Context, id string) (*model.Invoice, error) {
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil {
+		return nil, fmt.Errorf("not authenticated")
+	}
+	if claims.Role != "global_admin" {
+		return nil, fmt.Errorf("only global admins can refresh e-factura status")
+	}
+
+	inv, err := r.InvoiceService.CheckEFacturaStatus(ctx, stringToUUID(id))
+	if err != nil {
+		return nil, fmt.Errorf("failed to refresh e-factura status: %w", err)
+	}
+
+	gqlInvoice := dbInvoiceToGQL(inv)
+	r.enrichInvoice(ctx, inv, gqlInvoice)
+	return gqlInvoice, nil
+}
+
 // MyBillingProfile is the resolver for the myBillingProfile field.
 func (r *queryResolver) MyBillingProfile(ctx context.Context) (*model.ClientBillingProfile, error) {
 	claims := auth.GetUserFromContext(ctx)

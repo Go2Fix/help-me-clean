@@ -234,7 +234,7 @@ func (r *mutationResolver) CreateBookingRequest(ctx context.Context, input model
 		}
 	}
 
-	// If preferred cleaner was selected, set company_id and cleaner_id (status stays pending).
+	// If preferred cleaner was selected, set company_id and cleaner_id.
 	if input.PreferredCleanerID != nil && *input.PreferredCleanerID != "" {
 		cleanerUUID := stringToUUID(*input.PreferredCleanerID)
 		cleaner, err := r.Queries.GetCleanerByID(ctx, cleanerUUID)

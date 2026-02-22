@@ -39,7 +39,6 @@ interface BookingsData {
 
 const FILTER_TABS = [
   { key: 'ALL', label: 'Toate' },
-  { key: 'PENDING', label: 'In asteptare' },
   { key: 'ACTIVE', label: 'Active' },
   { key: 'COMPLETED', label: 'Finalizate' },
   { key: 'CANCELLED', label: 'Anulate' },
@@ -108,8 +107,6 @@ export default function MyBookingsPage() {
     switch (activeFilter) {
       case 'ALL':
         return true;
-      case 'PENDING':
-        return b.status === 'PENDING';
       case 'ACTIVE':
         return ACTIVE_STATUSES.includes(b.status);
       case 'COMPLETED':

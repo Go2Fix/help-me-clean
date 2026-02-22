@@ -11,6 +11,7 @@ import (
 	"go2fix-backend/internal/auth"
 	db "go2fix-backend/internal/db/generated"
 	"go2fix-backend/internal/graph/model"
+	"log"
 	"strings"
 	"time"
 
@@ -279,6 +280,20 @@ func (r *mutationResolver) CreateMonthlyPayout(ctx context.Context, companyID st
 		})
 		if err != nil {
 			return nil, fmt.Errorf("failed to create payout line item: %w", err)
+		}
+	}
+
+	// Auto-generate platform commission invoice for this payout (best-effort).
+	var totalCommission int32
+	for _, txn := range txns {
+		totalCommission += txn.AmountPlatformFee
+	}
+	if totalCommission > 0 {
+		_, invoiceErr := r.InvoiceService.GenerateCommissionInvoice(
+			ctx, companyUUID, totalCommission, len(txns), periodFrom, periodTo,
+		)
+		if invoiceErr != nil {
+			log.Printf("invoice: auto-commission invoice failed for payout: %v", invoiceErr)
 		}
 	}
 

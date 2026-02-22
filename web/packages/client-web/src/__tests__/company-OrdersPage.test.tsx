@@ -56,14 +56,13 @@ describe('OrdersPage', () => {
   it('shows page title "Comenzi"', () => {
     mockQuery();
     renderPage();
-    expect(screen.getByText('Comenzi')).toBeInTheDocument();
+    expect(screen.getByText('Comenzi', { selector: 'h1' })).toBeInTheDocument();
   });
 
   it('shows filter tabs', () => {
     mockQuery();
     renderPage();
     expect(screen.getByText('Toate')).toBeInTheDocument();
-    expect(screen.getByText('In asteptare')).toBeInTheDocument();
     expect(screen.getByText('Confirmate')).toBeInTheDocument();
     expect(screen.getByText('In desfasurare')).toBeInTheDocument();
     expect(screen.getByText('Finalizate')).toBeInTheDocument();
@@ -83,14 +82,13 @@ describe('OrdersPage', () => {
     expect(screen.getByText(/nu exista comenzi pentru filtrul selectat/i)).toBeInTheDocument();
   });
 
-  it('shows loading skeletons when loading', () => {
+  it('shows loading spinner when loading', () => {
     mockQuery({ loading: true });
     renderPage();
-    const skeletons = document.querySelectorAll('.animate-pulse');
-    expect(skeletons.length).toBeGreaterThan(0);
+    expect(screen.getByText('Se incarca comenzile...')).toBeInTheDocument();
   });
 
-  it('shows booking cards with reference code, service name, and status badge', () => {
+  it('shows booking rows with reference code, status, and price', () => {
     mockQuery({
       data: {
         searchCompanyBookings: {
@@ -98,16 +96,10 @@ describe('OrdersPage', () => {
             {
               id: 'b1',
               referenceCode: 'ABC123',
-              serviceType: 'STANDARD',
-              serviceName: 'Curatenie generala',
               scheduledDate: '2025-03-15',
-              scheduledStartTime: '10:00',
               estimatedTotal: '150',
-              status: 'PENDING',
-              createdAt: '2025-03-15',
-              client: { id: 'c1', fullName: 'Maria Ionescu', phone: '0700000000' },
-              cleaner: null,
-              address: { streetAddress: 'Str. Test 1', city: 'Bucuresti', county: 'Bucuresti' },
+              status: 'CONFIRMED',
+              recurringGroupId: null,
             },
           ],
           totalCount: 1,
@@ -116,13 +108,12 @@ describe('OrdersPage', () => {
     });
     renderPage();
     expect(screen.getByText('#ABC123')).toBeInTheDocument();
-    expect(screen.getByText(/curatenie generala/i)).toBeInTheDocument();
-    // "In asteptare" appears both as a tab button and a status badge
-    const inAsteptareElements = screen.getAllByText('In asteptare');
-    expect(inAsteptareElements.length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText('150 lei')).toBeInTheDocument();
+    // "Confirmata" appears as the CONFIRMED status badge
+    expect(screen.getByText('Confirmata')).toBeInTheDocument();
   });
 
-  it('shows total count', () => {
+  it('shows total count badge', () => {
     mockQuery({
       data: {
         searchCompanyBookings: {
@@ -130,16 +121,10 @@ describe('OrdersPage', () => {
             {
               id: 'b1',
               referenceCode: 'ABC123',
-              serviceType: 'STANDARD',
-              serviceName: 'Curatenie generala',
               scheduledDate: '2025-03-15',
-              scheduledStartTime: '10:00',
               estimatedTotal: '150',
               status: 'CONFIRMED',
-              createdAt: '2025-03-15',
-              client: { id: 'c1', fullName: 'Maria Ionescu', phone: '0700000000' },
-              cleaner: { id: 'cl1', fullName: 'Ana Popa' },
-              address: { streetAddress: 'Str. Test 1', city: 'Bucuresti', county: 'Bucuresti' },
+              recurringGroupId: null,
             },
           ],
           totalCount: 1,
@@ -147,6 +132,7 @@ describe('OrdersPage', () => {
       },
     });
     renderPage();
-    expect(screen.getByText('1 comenzi gasite')).toBeInTheDocument();
+    // Count shown in Badge inside card header
+    expect(screen.getByText('1')).toBeInTheDocument();
   });
 });

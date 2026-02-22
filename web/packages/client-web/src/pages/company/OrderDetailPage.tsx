@@ -20,7 +20,6 @@ import {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const statusBadgeVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
-  PENDING: 'warning',
   ASSIGNED: 'info',
   CONFIRMED: 'info',
   IN_PROGRESS: 'info',
@@ -32,7 +31,6 @@ const statusBadgeVariant: Record<string, 'default' | 'success' | 'warning' | 'da
 };
 
 const statusLabel: Record<string, string> = {
-  PENDING: 'In asteptare',
   ASSIGNED: 'Asignat',
   CONFIRMED: 'Confirmata',
   IN_PROGRESS: 'In desfasurare',
@@ -322,7 +320,7 @@ export default function OrderDetailPage() {
               <h2 className="font-semibold text-gray-900 mb-4">Intervale de timp</h2>
               <div className="space-y-3">
                 {booking.timeSlots.map((slot: { id: string; slotDate: string; startTime: string; endTime: string; isSelected: boolean }) => {
-                  const canSelect = (booking.status === 'PENDING' || booking.status === 'ASSIGNED') && !slot.isSelected;
+                  const canSelect = booking.status === 'ASSIGNED' && !slot.isSelected;
                   return (
                     <div
                       key={slot.id}

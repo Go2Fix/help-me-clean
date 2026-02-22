@@ -237,7 +237,7 @@ export default function BookingDetailPage() {
   }
 
   const booking = data.booking;
-  const canCancel = booking.status === 'PENDING' || booking.status === 'ASSIGNED';
+  const canCancel = booking.status === 'ASSIGNED';
 
   const handleCancel = async () => {
     await cancelBooking({
@@ -560,8 +560,7 @@ export default function BookingDetailPage() {
             )}
 
             {/* Chat */}
-            {booking.status !== 'PENDING' && (
-              <Card>
+            <Card>
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">
                   Chat
                 </h2>
@@ -576,7 +575,6 @@ export default function BookingDetailPage() {
                   Deschide chat
                 </Button>
               </Card>
-            )}
 
             {/* Payment — show for any unpaid booking with company, or any paid booking */}
             {booking.paymentStatus === 'paid' && (

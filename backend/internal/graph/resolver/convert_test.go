@@ -690,7 +690,6 @@ func TestDbBookingStatusToGQL(t *testing.T) {
 		db  db.BookingStatus
 		gql model.BookingStatus
 	}{
-		{db.BookingStatusPending, model.BookingStatusPending},
 		{db.BookingStatusAssigned, model.BookingStatusAssigned},
 		{db.BookingStatusConfirmed, model.BookingStatusConfirmed},
 		{db.BookingStatusInProgress, model.BookingStatusInProgress},
@@ -715,7 +714,6 @@ func TestGqlBookingStatusToDb(t *testing.T) {
 		gql model.BookingStatus
 		db  db.BookingStatus
 	}{
-		{model.BookingStatusPending, db.BookingStatusPending},
 		{model.BookingStatusAssigned, db.BookingStatusAssigned},
 		{model.BookingStatusConfirmed, db.BookingStatusConfirmed},
 		{model.BookingStatusInProgress, db.BookingStatusInProgress},
@@ -1172,7 +1170,7 @@ func TestDbBookingToGQL(t *testing.T) {
 			ReferenceCode: "HMC-2025-002",
 			ServiceType:   db.ServiceTypeStandardCleaning,
 			PaymentStatus: pgtype.Text{Valid: false},
-			Status:        db.BookingStatusPending,
+			Status:        db.BookingStatusConfirmed,
 			CreatedAt:     makeTimestamptz(time.Now().UTC()),
 		}
 
@@ -1189,7 +1187,7 @@ func TestDbBookingToGQL(t *testing.T) {
 			ReferenceCode: "HMC-2025-003",
 			ServiceType:   db.ServiceTypeStandardCleaning,
 			PaymentStatus: pgtype.Text{String: "", Valid: true},
-			Status:        db.BookingStatusPending,
+			Status:        db.BookingStatusConfirmed,
 			CreatedAt:     makeTimestamptz(time.Now().UTC()),
 		}
 
@@ -1206,7 +1204,7 @@ func TestDbBookingToGQL(t *testing.T) {
 			ReferenceCode: "HMC-2025-004",
 			ServiceType:   db.ServiceTypeStandardCleaning,
 			FinalTotal:    pgtype.Numeric{Valid: false},
-			Status:        db.BookingStatusPending,
+			Status:        db.BookingStatusConfirmed,
 			PaymentStatus: makeText("pending"),
 			CreatedAt:     makeTimestamptz(time.Now().UTC()),
 		}
@@ -1236,7 +1234,7 @@ func TestDbBookingToGQL(t *testing.T) {
 			EstimatedTotal:         pgtype.Numeric{Valid: false},
 			FinalTotal:             pgtype.Numeric{Valid: false},
 			PlatformCommissionPct:  pgtype.Numeric{Valid: false},
-			Status:                 db.BookingStatusPending,
+			Status:                 db.BookingStatusConfirmed,
 			StartedAt:              pgtype.Timestamptz{Valid: false},
 			CompletedAt:            pgtype.Timestamptz{Valid: false},
 			CancelledAt:            pgtype.Timestamptz{Valid: false},
@@ -2916,25 +2914,18 @@ func TestValidateStatusTransition(t *testing.T) {
 		target  db.BookingStatus
 		wantErr bool
 	}{
-		// New auto-confirm path (payment → confirmed).
-		{"pending to confirmed", db.BookingStatusPending, db.BookingStatusConfirmed, false},
-		// Legacy path (still supported).
-		{"pending to assigned", db.BookingStatusPending, db.BookingStatusAssigned, false},
 		{"assigned to confirmed", db.BookingStatusAssigned, db.BookingStatusConfirmed, false},
 		// Normal forward transitions.
 		{"confirmed to in_progress", db.BookingStatusConfirmed, db.BookingStatusInProgress, false},
 		{"in_progress to completed", db.BookingStatusInProgress, db.BookingStatusCompleted, false},
 		// Invalid transitions.
-		{"pending to in_progress", db.BookingStatusPending, db.BookingStatusInProgress, true},
-		{"pending to completed", db.BookingStatusPending, db.BookingStatusCompleted, true},
 		{"confirmed to assigned", db.BookingStatusConfirmed, db.BookingStatusAssigned, true},
 		// Cancellation from any active state.
-		{"pending cancel by client", db.BookingStatusPending, db.BookingStatusCancelledByClient, false},
 		{"confirmed cancel by company", db.BookingStatusConfirmed, db.BookingStatusCancelledByCompany, false},
 		{"in_progress cancel by admin", db.BookingStatusInProgress, db.BookingStatusCancelledByAdmin, false},
 		// Terminal states cannot transition.
 		{"completed cannot transition", db.BookingStatusCompleted, db.BookingStatusInProgress, true},
-		{"cancelled cannot transition", db.BookingStatusCancelledByClient, db.BookingStatusPending, true},
+		{"cancelled cannot transition", db.BookingStatusCancelledByClient, db.BookingStatusConfirmed, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

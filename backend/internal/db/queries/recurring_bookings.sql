@@ -65,4 +65,4 @@ UPDATE bookings
 SET status = 'cancelled_by_client', cancelled_at = NOW(), cancellation_reason = $2, updated_at = NOW()
 WHERE recurring_group_id = $1
   AND scheduled_date >= CURRENT_DATE
-  AND status IN ('pending', 'assigned', 'confirmed');
+  AND status IN ('assigned', 'confirmed');

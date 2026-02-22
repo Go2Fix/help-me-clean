@@ -15,7 +15,6 @@ const LIMIT = 20;
 
 const tabs: Array<{ label: string; value: string }> = [
   { label: 'Toate', value: '' },
-  { label: 'In asteptare', value: 'pending' },
   { label: 'Confirmate', value: 'confirmed' },
   { label: 'In desfasurare', value: 'in_progress' },
   { label: 'Finalizate', value: 'completed' },
@@ -23,7 +22,6 @@ const tabs: Array<{ label: string; value: string }> = [
 ];
 
 const statusLabel: Record<string, string> = {
-  PENDING: 'In asteptare',
   ASSIGNED: 'Asignata',
   CONFIRMED: 'Confirmata',
   IN_PROGRESS: 'In desfasurare',
@@ -34,7 +32,6 @@ const statusLabel: Record<string, string> = {
 };
 
 const statusColor: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
-  PENDING: 'warning',
   ASSIGNED: 'info',
   CONFIRMED: 'info',
   IN_PROGRESS: 'info',
@@ -151,7 +148,7 @@ export default function OrdersPage() {
           {/* Booking cards */}
           <div className="space-y-3">
             {bookings.map((booking: Record<string, unknown>) => {
-              const status = (booking.status as string) || 'PENDING';
+              const status = (booking.status as string) || 'CONFIRMED';
               const client = booking.client as Record<string, unknown> | null;
               const address = booking.address as Record<string, unknown> | null;
 

@@ -12,11 +12,10 @@ import { SEARCH_BOOKINGS } from '@/graphql/operations';
 
 const PAGE_SIZE = 20;
 
-type StatusFilter = 'ALL' | 'PENDING' | 'CONFIRMED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+type StatusFilter = 'ALL' | 'CONFIRMED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
 
 const statusTabs: { key: StatusFilter; label: string }[] = [
   { key: 'ALL', label: 'Toate' },
-  { key: 'PENDING', label: 'In asteptare' },
   { key: 'CONFIRMED', label: 'Confirmate' },
   { key: 'IN_PROGRESS', label: 'In desfasurare' },
   { key: 'COMPLETED', label: 'Finalizate' },
@@ -24,7 +23,6 @@ const statusTabs: { key: StatusFilter; label: string }[] = [
 ];
 
 const statusVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
-  PENDING: 'warning',
   ASSIGNED: 'info',
   CONFIRMED: 'info',
   IN_PROGRESS: 'info',
@@ -36,7 +34,6 @@ const statusVariant: Record<string, 'default' | 'success' | 'warning' | 'danger'
 };
 
 const statusLabel: Record<string, string> = {
-  PENDING: 'In asteptare',
   ASSIGNED: 'Asignat',
   CONFIRMED: 'Confirmat',
   IN_PROGRESS: 'In desfasurare',

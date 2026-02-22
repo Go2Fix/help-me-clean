@@ -32,11 +32,11 @@ UPDATE bookings SET payment_status = 'paid', paid_at = NOW(), updated_at = NOW()
 WHERE id = $1 RETURNING *;
 
 -- name: MarkBookingPaidAndConfirmed :one
--- Atomically marks a booking as paid AND auto-confirms it if still pending/assigned.
+-- Atomically marks a booking as paid AND auto-confirms it if still assigned.
 -- Idempotent: if booking is already confirmed or later, status is left unchanged.
 UPDATE bookings
 SET payment_status = 'paid', paid_at = NOW(),
-    status = CASE WHEN status IN ('pending', 'assigned') THEN 'confirmed'::booking_status ELSE status END,
+    status = CASE WHEN status = 'assigned' THEN 'confirmed'::booking_status ELSE status END,
     updated_at = NOW()
 WHERE id = $1 RETURNING *;
 

@@ -6,10 +6,6 @@ interface BadgeProps {
 }
 
 const statusConfig: Record<string, { label: string; classes: string }> = {
-  PENDING: {
-    label: 'In asteptare',
-    classes: 'bg-amber-100 text-amber-800',
-  },
   ASSIGNED: {
     label: 'Alocata',
     classes: 'bg-blue-100 text-blue-800',
