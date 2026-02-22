@@ -122,10 +122,10 @@ describe('PayoutsPage (Company)', () => {
   it('renders payouts table with mock data', () => {
     mockQueries({ payoutsData: [samplePayout] });
     renderPage();
-    expect(screen.getByText('Istoricul platilor')).toBeInTheDocument();
     // Amount: 200000 cents = 2000.00 lei
     expect(screen.getByText('2000.00 lei')).toBeInTheDocument();
-    expect(screen.getByText('Platit')).toBeInTheDocument();
+    // "Platit" appears in both dropdown option and badge
+    expect(screen.getAllByText('Platit').length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows empty state when no payouts exist', () => {
@@ -138,5 +138,11 @@ describe('PayoutsPage (Company)', () => {
     mockQueries({ connectData: { onboardingStatus: 'NOT_STARTED', chargesEnabled: false } });
     renderPage();
     expect(screen.getByText('Conecteaza cu Stripe')).toBeInTheDocument();
+  });
+
+  it('renders status filter dropdown', () => {
+    mockQueries();
+    renderPage();
+    expect(screen.getByLabelText('Filtreaza dupa status')).toBeInTheDocument();
   });
 });

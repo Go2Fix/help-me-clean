@@ -18,6 +18,7 @@ import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import Select from '@/components/ui/Select';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import {
   MY_COMPANY_EARNINGS,
@@ -75,6 +76,14 @@ const payoutStatusLabel: Record<PayoutStatus, string> = {
   FAILED: 'Esuat',
 };
 
+const statusFilterOptions = [
+  { value: '', label: 'Toate statusurile' },
+  { value: 'PENDING', label: 'In asteptare' },
+  { value: 'PROCESSING', label: 'In procesare' },
+  { value: 'PAID', label: 'Platit' },
+  { value: 'FAILED', label: 'Esuat' },
+];
+
 // ─── KPI Card ─────────────────────────────────────────────────────────────────
 
 interface KpiCardProps {
@@ -89,17 +98,15 @@ interface KpiCardProps {
 function KpiCard({ icon: Icon, label, value, colorBg, colorText, valueColor }: KpiCardProps) {
   return (
     <Card>
-      <div className="flex items-center gap-4">
-        <div className={cn('p-3 rounded-xl', colorBg)}>
-          <Icon className={cn('h-6 w-6', colorText)} />
+      <div className="flex items-center gap-2 mb-2">
+        <div className={cn('p-1.5 md:p-2 rounded-lg', colorBg)}>
+          <Icon className={cn('h-4 w-4 md:h-5 md:w-5', colorText)} />
         </div>
-        <div>
-          <p className="text-sm text-gray-500">{label}</p>
-          <p className={cn('text-2xl font-bold', valueColor ?? 'text-gray-900')}>
-            {value}
-          </p>
-        </div>
+        <p className="text-xs md:text-sm text-gray-500">{label}</p>
       </div>
+      <p className={cn('text-lg md:text-2xl font-bold', valueColor ?? 'text-gray-900')}>
+        {value}
+      </p>
     </Card>
   );
 }
@@ -154,16 +161,16 @@ function StripeConnectCard() {
 
   return (
     <Card>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="p-3 rounded-xl bg-purple-100">
-            <CreditCard className="h-6 w-6 text-purple-600" />
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3 md:gap-4 min-w-0">
+          <div className="p-2.5 md:p-3 rounded-xl bg-purple-100 shrink-0">
+            <CreditCard className="h-5 w-5 md:h-6 md:w-6 text-purple-600" />
           </div>
-          <div>
-            <p className="text-sm font-medium text-gray-500">Stripe Connect</p>
+          <div className="min-w-0">
+            <p className="text-xs md:text-sm font-medium text-gray-500">Stripe Connect</p>
             {onboardingStatus === 'COMPLETE' ? (
               <div className="flex items-center gap-2 mt-1">
-                <CheckCircle className="h-4 w-4 text-emerald-500" />
+                <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0" />
                 <span className="text-sm font-semibold text-emerald-600">Stripe activ</span>
                 {connectStatus?.chargesEnabled && (
                   <Badge variant="success">Plati activate</Badge>
@@ -171,19 +178,19 @@ function StripeConnectCard() {
               </div>
             ) : onboardingStatus === 'PENDING' ? (
               <div className="flex items-center gap-2 mt-1">
-                <Clock className="h-4 w-4 text-amber-500" />
+                <Clock className="h-4 w-4 text-amber-500 shrink-0" />
                 <span className="text-sm font-semibold text-amber-600">Inregistrare incompleta</span>
               </div>
             ) : (
               <div className="flex items-center gap-2 mt-1">
-                <AlertCircle className="h-4 w-4 text-gray-400" />
+                <AlertCircle className="h-4 w-4 text-gray-400 shrink-0" />
                 <span className="text-sm text-gray-500">Neconectat</span>
               </div>
             )}
           </div>
         </div>
 
-        <div>
+        <div className="shrink-0">
           {onboardingStatus === 'NOT_STARTED' && (
             <Button onClick={handleInitiate} loading={initiating} size="sm">
               <ExternalLink className="h-4 w-4" />
@@ -230,7 +237,7 @@ function PayoutDetailPanel({ payoutId }: { payoutId: string }) {
 
   if (loading) {
     return (
-      <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
+      <div className="px-3 md:px-6 py-4 bg-gray-50 border-t border-gray-100">
         <div className="animate-pulse space-y-2">
           <div className="h-4 bg-gray-200 rounded w-48" />
           <div className="h-4 bg-gray-200 rounded w-64" />
@@ -242,22 +249,22 @@ function PayoutDetailPanel({ payoutId }: { payoutId: string }) {
 
   if (lineItems.length === 0) {
     return (
-      <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
+      <div className="px-3 md:px-6 py-4 bg-gray-50 border-t border-gray-100">
         <p className="text-sm text-gray-500">Nu exista detalii disponibile.</p>
       </div>
     );
   }
 
   return (
-    <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
+    <div className="px-3 md:px-6 py-4 bg-gray-50 border-t border-gray-100">
       <p className="text-xs font-semibold text-gray-500 uppercase mb-3">Detalii rezervari</p>
       <div className="space-y-2">
         {lineItems.map((item) => (
           <div
             key={item.id}
-            className="flex items-center justify-between py-2 px-3 rounded-lg bg-white border border-gray-100"
+            className="flex flex-col sm:flex-row sm:items-center justify-between py-2 px-3 rounded-lg bg-white border border-gray-100 gap-1 sm:gap-3"
           >
-            <div className="flex items-center gap-3 min-w-0">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
               <Hash className="h-4 w-4 text-gray-400 shrink-0" />
               <div className="min-w-0">
                 <p className="text-sm font-medium text-gray-900 truncate">
@@ -266,7 +273,7 @@ function PayoutDetailPanel({ payoutId }: { payoutId: string }) {
                 <p className="text-xs text-gray-500">{formatDate(item.booking.scheduledDate)}</p>
               </div>
             </div>
-            <div className="flex items-center gap-4 shrink-0 ml-4 text-sm">
+            <div className="flex items-center gap-3 sm:gap-4 shrink-0 ml-6 sm:ml-4 text-xs sm:text-sm">
               <span className="text-gray-500">{formatRON(item.amountGross)}</span>
               <span className="text-amber-600">-{formatRON(item.amountCommission)}</span>
               <span className="font-semibold text-emerald-600">{formatRON(item.amountNet)}</span>
@@ -280,11 +287,23 @@ function PayoutDetailPanel({ payoutId }: { payoutId: string }) {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
+interface Payout {
+  id: string;
+  amount: number;
+  periodFrom: string;
+  periodTo: string;
+  bookingCount: number;
+  status: PayoutStatus;
+  paidAt: string | null;
+  createdAt: string;
+}
+
 export default function PayoutsPage() {
   const defaultRange = useMemo(getMonthRange, []);
   const [dateFrom, setDateFrom] = useState(defaultRange.from);
   const [dateTo, setDateTo] = useState(defaultRange.to);
   const [expandedPayoutId, setExpandedPayoutId] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string>('');
 
   // Earnings query for date range
   const { data: earningsData, loading: earningsLoading } = useQuery(MY_COMPANY_EARNINGS, {
@@ -297,14 +316,19 @@ export default function PayoutsPage() {
   });
 
   const earnings = earningsData?.myCompanyEarnings;
-  const payouts = payoutsData?.myPayouts ?? [];
+  const allPayouts: Payout[] = payoutsData?.myPayouts ?? [];
+
+  // Client-side status filtering
+  const payouts = statusFilter
+    ? allPayouts.filter((p: Payout) => p.status === statusFilter)
+    : allPayouts;
 
   const toggleExpand = (payoutId: string) => {
     setExpandedPayoutId((prev) => (prev === payoutId ? null : payoutId));
   };
 
   return (
-    <div>
+    <div className="max-w-full overflow-hidden">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Plati si Castiguri</h1>
@@ -319,40 +343,46 @@ export default function PayoutsPage() {
       </div>
 
       {/* Date range filter */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-6">
-        <Input
-          type="date"
-          value={dateFrom}
-          onChange={(e) => setDateFrom(e.target.value)}
-          label="De la"
-          className="w-auto"
-        />
-        <Input
-          type="date"
-          value={dateTo}
-          onChange={(e) => setDateTo(e.target.value)}
-          label="Pana la"
-          className="w-auto"
-        />
+      <div className="flex flex-col sm:flex-row items-end gap-3 mb-6">
+        <div className="grid grid-cols-2 sm:flex sm:items-end gap-2 sm:gap-3 w-full sm:w-auto">
+          <div className="sm:w-40">
+            <Input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              label="De la"
+              className="appearance-none px-2 sm:px-4"
+            />
+          </div>
+          <div className="sm:w-40">
+            <Input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              label="Pana la"
+              className="appearance-none px-2 sm:px-4"
+            />
+          </div>
+        </div>
       </div>
 
       {/* Earnings Summary KPI Cards */}
       {earningsLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 mb-8">
           {Array.from({ length: 4 }).map((_, i) => (
             <Card key={i}>
-              <div className="animate-pulse flex items-center gap-4">
-                <div className="h-12 w-12 bg-gray-200 rounded-xl" />
+              <div className="animate-pulse flex items-center gap-3">
+                <div className="h-10 w-10 md:h-12 md:w-12 bg-gray-200 rounded-xl shrink-0" />
                 <div>
-                  <div className="h-4 bg-gray-200 rounded w-24 mb-2" />
-                  <div className="h-7 bg-gray-200 rounded w-16" />
+                  <div className="h-3 bg-gray-200 rounded w-16 md:w-24 mb-2" />
+                  <div className="h-5 bg-gray-200 rounded w-12 md:w-16" />
                 </div>
               </div>
             </Card>
           ))}
         </div>
       ) : earnings ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 mb-8">
           <KpiCard
             icon={TrendingUp}
             label="Venit brut"
@@ -387,15 +417,20 @@ export default function PayoutsPage() {
         </div>
       ) : null}
 
+      {/* Status filter */}
+      <div className="mb-6">
+        <div className="w-full sm:w-64">
+          <Select
+            options={statusFilterOptions}
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            label="Filtreaza dupa status"
+          />
+        </div>
+      </div>
+
       {/* Payouts Table */}
       <Card padding={false}>
-        <div className="px-6 pt-6 pb-4">
-          <h2 className="text-lg font-bold text-gray-900">Istoricul platilor</h2>
-          <p className="text-sm text-gray-500 mt-1">
-            Platile periodice catre contul tau Stripe.
-          </p>
-        </div>
-
         {payoutsLoading ? (
           <LoadingSpinner text="Se incarca platile..." />
         ) : payouts.length === 0 ? (
@@ -403,94 +438,83 @@ export default function PayoutsPage() {
             <Wallet className="h-12 w-12 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-1">Nicio plata</h3>
             <p className="text-gray-500">
-              Nu exista plati inregistrate inca.
+              Nu exista plati {statusFilter ? 'pentru filtrul selectat' : 'inregistrate inca'}.
             </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full text-sm">
               <thead>
-                <tr className="border-t border-b border-gray-100">
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">
+                <tr className="border-y border-gray-100">
+                  <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase">
                     Perioada
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase">
+                  <th className="text-right px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase">
                     Suma
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase">
+                  <th className="text-right px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">
                     Rezervari
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">
+                  <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">
+                  <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase hidden md:table-cell">
                     Data platii
                   </th>
-                  <th className="px-6 py-3" />
+                  <th className="px-2 md:px-6 py-3 w-8 md:w-10" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {payouts.map(
-                  (payout: {
-                    id: string;
-                    amount: number;
-                    periodFrom: string;
-                    periodTo: string;
-                    bookingCount: number;
-                    status: PayoutStatus;
-                    paidAt: string | null;
-                    createdAt: string;
-                  }) => {
-                    const isExpanded = expandedPayoutId === payout.id;
-                    return (
-                      <tr key={payout.id} className="group">
-                        <td colSpan={6} className="p-0">
-                          <div
-                            onClick={() => toggleExpand(payout.id)}
-                            className="flex items-center cursor-pointer hover:bg-gray-50 transition-colors"
-                          >
-                            <div className="px-6 py-4 flex-1">
-                              <div className="flex items-center gap-2 text-sm font-medium text-gray-900">
-                                {formatDate(payout.periodFrom)} - {formatDate(payout.periodTo)}
-                              </div>
-                            </div>
-                            <div className="px-6 py-4 text-right">
-                              <span className="text-sm font-bold text-gray-900">
-                                {formatRON(payout.amount)}
-                              </span>
-                            </div>
-                            <div className="px-6 py-4 text-right">
-                              <span className="text-sm text-gray-600">
-                                {payout.bookingCount}
-                              </span>
-                            </div>
-                            <div className="px-6 py-4">
-                              <Badge
-                                variant={payoutStatusBadge[payout.status] ?? 'default'}
-                              >
-                                {payoutStatusLabel[payout.status] ?? payout.status}
-                              </Badge>
-                            </div>
-                            <div className="px-6 py-4">
-                              <span className="text-sm text-gray-500">
-                                {payout.paidAt ? formatDate(payout.paidAt) : '--'}
-                              </span>
-                            </div>
-                            <div className="px-6 py-4">
-                              {isExpanded ? (
-                                <ChevronDown className="h-4 w-4 text-gray-400" />
-                              ) : (
-                                <ChevronRight className="h-4 w-4 text-gray-400" />
-                              )}
-                            </div>
+                {payouts.map((payout: Payout) => {
+                  const isExpanded = expandedPayoutId === payout.id;
+                  return (
+                    <tr key={payout.id} className="group">
+                      <td colSpan={6} className="p-0">
+                        <div
+                          onClick={() => toggleExpand(payout.id)}
+                          className="flex items-center cursor-pointer hover:bg-gray-50 transition-colors"
+                        >
+                          <div className="px-3 md:px-6 py-3 md:py-4 flex-1 min-w-0">
+                            <span className="text-xs md:text-sm font-medium text-gray-900">
+                              {formatDate(payout.periodFrom)} - {formatDate(payout.periodTo)}
+                            </span>
                           </div>
+                          <div className="px-3 md:px-6 py-3 md:py-4 text-right">
+                            <span className="text-xs md:text-sm font-bold text-gray-900 whitespace-nowrap">
+                              {formatRON(payout.amount)}
+                            </span>
+                          </div>
+                          <div className="px-3 md:px-6 py-3 md:py-4 text-right hidden sm:block">
+                            <span className="text-sm text-gray-600">
+                              {payout.bookingCount}
+                            </span>
+                          </div>
+                          <div className="px-3 md:px-6 py-3 md:py-4">
+                            <Badge
+                              variant={payoutStatusBadge[payout.status] ?? 'default'}
+                            >
+                              {payoutStatusLabel[payout.status] ?? payout.status}
+                            </Badge>
+                          </div>
+                          <div className="px-3 md:px-6 py-3 md:py-4 hidden md:block">
+                            <span className="text-sm text-gray-500">
+                              {payout.paidAt ? formatDate(payout.paidAt) : '--'}
+                            </span>
+                          </div>
+                          <div className="px-2 md:px-6 py-3 md:py-4">
+                            {isExpanded ? (
+                              <ChevronDown className="h-4 w-4 text-gray-400" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4 text-gray-400" />
+                            )}
+                          </div>
+                        </div>
 
-                          {isExpanded && <PayoutDetailPanel payoutId={payout.id} />}
-                        </td>
-                      </tr>
-                    );
-                  },
-                )}
+                        {isExpanded && <PayoutDetailPanel payoutId={payout.id} />}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

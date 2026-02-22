@@ -11,6 +11,7 @@ import {
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Modal from '@/components/ui/Modal';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
@@ -89,7 +90,7 @@ const statusFilterOptions = [
   { value: 'CREDIT_NOTE', label: 'Nota de credit' },
 ];
 
-// ─── Invoice Row Type ─────────────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface InvoiceEdge {
   id: string;
@@ -150,7 +151,6 @@ export default function CompanyInvoicesPage() {
   });
 
   const invoices: InvoiceEdge[] = data?.companyInvoices?.edges ?? [];
-  const totalCount: number = data?.companyInvoices?.totalCount ?? 0;
 
   // ─── Handlers ─────────────────────────────────────────────────────────────
 
@@ -198,7 +198,7 @@ export default function CompanyInvoicesPage() {
   // ─── Render ──────────────────────────────────────────────────────────────────
 
   return (
-    <div>
+    <div className="max-w-full overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
@@ -213,8 +213,8 @@ export default function CompanyInvoicesPage() {
         </Button>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+      {/* Status filter dropdown */}
+      <div className="mb-6">
         <div className="w-full sm:w-64">
           <Select
             options={statusFilterOptions}
@@ -225,11 +225,6 @@ export default function CompanyInvoicesPage() {
         </div>
       </div>
 
-      {/* Results count */}
-      {!loading && (
-        <p className="text-sm text-gray-500 mb-4">{totalCount} facturi gasite</p>
-      )}
-
       {/* Invoice table */}
       <Card padding={false}>
         {loading ? (
@@ -239,33 +234,33 @@ export default function CompanyInvoicesPage() {
             <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-1">Nicio factura</h3>
             <p className="text-gray-500">
-              Nu exista facturi pentru filtrul selectat.
+              Nu exista facturi {statusFilter ? 'pentru filtrul selectat' : 'inregistrate inca'}.
             </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">
+                <tr className="border-y border-gray-100">
+                  <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase">
                     Nr. factura
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">
+                  <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">
                     Data
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">
+                  <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase hidden md:table-cell">
                     Cumparator
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase">
+                  <th className="text-right px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase">
                     Suma
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">
+                  <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">
+                  <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase hidden lg:table-cell">
                     E-Factura
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase">
+                  <th className="px-2 md:px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">
                     Actiuni
                   </th>
                 </tr>
@@ -273,35 +268,29 @@ export default function CompanyInvoicesPage() {
               <tbody className="divide-y divide-gray-50">
                 {invoices.map((invoice) => (
                   <tr key={invoice.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
+                    <td className="px-3 md:px-6 py-3 md:py-4">
+                      <div className="flex items-center gap-1.5 md:gap-2">
                         <FileText className="h-4 w-4 text-gray-400 shrink-0" />
-                        <span className="text-sm font-medium text-gray-900">
+                        <span className="font-semibold text-gray-900 text-xs md:text-sm">
                           {invoice.invoiceNumber}
                         </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm text-gray-600">
-                        {formatDate(invoice.issuedAt || invoice.createdAt)}
-                      </span>
+                    <td className="px-3 md:px-6 py-3 md:py-4 text-gray-600 hidden sm:table-cell">
+                      {formatDate(invoice.issuedAt || invoice.createdAt)}
                     </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm text-gray-900">
-                        {invoice.buyerName || '--'}
-                      </span>
+                    <td className="px-3 md:px-6 py-3 md:py-4 text-gray-900 hidden md:table-cell">
+                      {invoice.buyerName || '--'}
                     </td>
-                    <td className="px-6 py-4 text-right">
-                      <span className="text-sm font-bold text-gray-900">
-                        {formatRON(invoice.totalAmount)}
-                      </span>
+                    <td className="px-3 md:px-6 py-3 md:py-4 text-right font-bold text-gray-900 text-xs md:text-sm whitespace-nowrap">
+                      {formatRON(invoice.totalAmount)}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-3 md:px-6 py-3 md:py-4">
                       <Badge variant={invoiceStatusBadge[invoice.status] ?? 'default'}>
                         {invoiceStatusLabel[invoice.status] ?? invoice.status}
                       </Badge>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-3 md:px-6 py-3 md:py-4 hidden lg:table-cell">
                       {invoice.efacturaStatus ? (
                         <Badge
                           variant={
@@ -315,9 +304,8 @@ export default function CompanyInvoicesPage() {
                         <span className="text-sm text-gray-400">--</span>
                       )}
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-end gap-2">
-                        {/* Download PDF */}
+                    <td className="px-2 md:px-6 py-3 md:py-4 hidden sm:table-cell">
+                      <div className="flex items-center justify-end gap-1">
                         {invoice.downloadUrl && (
                           <button
                             onClick={() => handleDownload(invoice.downloadUrl!)}
@@ -327,8 +315,6 @@ export default function CompanyInvoicesPage() {
                             <Download className="h-4 w-4" />
                           </button>
                         )}
-
-                        {/* Transmit to e-Factura */}
                         {invoice.status !== 'CANCELLED' &&
                           (!invoice.efacturaStatus ||
                             invoice.efacturaStatus === 'NOT_SENT' ||
@@ -342,8 +328,6 @@ export default function CompanyInvoicesPage() {
                               <Send className="h-4 w-4" />
                             </button>
                           )}
-
-                        {/* Cancel invoice */}
                         {invoice.status !== 'CANCELLED' && invoice.status !== 'PAID' && (
                           <button
                             onClick={() => openCancelModal(invoice.id)}
@@ -376,25 +360,20 @@ export default function CompanyInvoicesPage() {
           <p className="text-sm text-gray-600">
             Introdu ID-ul rezervarii finalizate pentru care doresti sa generezi o factura.
           </p>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              ID Rezervare
-            </label>
-            <input
-              type="text"
-              value={generateBookingId}
-              onChange={(e) => setGenerateBookingId(e.target.value)}
-              placeholder="ex: abc123-def456..."
-              className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600"
-            />
-          </div>
-          <div className="flex justify-end gap-3 pt-2">
+          <Input
+            label="ID Rezervare"
+            value={generateBookingId}
+            onChange={(e) => setGenerateBookingId(e.target.value)}
+            placeholder="ex: abc123-def456..."
+          />
+          <div className="flex gap-3 pt-2">
             <Button
               variant="ghost"
               onClick={() => {
                 setGenerateModalOpen(false);
                 setGenerateBookingId('');
               }}
+              className="flex-1"
             >
               Anuleaza
             </Button>
@@ -402,6 +381,7 @@ export default function CompanyInvoicesPage() {
               onClick={handleGenerate}
               loading={generating}
               disabled={!generateBookingId.trim()}
+              className="flex-1"
             >
               <FileText className="h-4 w-4" />
               Genereaza
@@ -426,13 +406,14 @@ export default function CompanyInvoicesPage() {
               Esti sigur ca doresti sa anulezi aceasta factura? Aceasta actiune nu poate fi anulata.
             </p>
           </div>
-          <div className="flex justify-end gap-3 pt-2">
+          <div className="flex gap-3 pt-2">
             <Button
               variant="ghost"
               onClick={() => {
                 setCancelModalOpen(false);
                 setCancelInvoiceId(null);
               }}
+              className="flex-1"
             >
               Renunta
             </Button>
@@ -440,6 +421,7 @@ export default function CompanyInvoicesPage() {
               variant="danger"
               onClick={handleCancel}
               loading={cancelling}
+              className="flex-1"
             >
               <XCircle className="h-4 w-4" />
               Anuleaza factura

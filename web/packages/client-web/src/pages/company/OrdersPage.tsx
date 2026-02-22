@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@apollo/client';
 import { useNavigate } from 'react-router-dom';
 import { ClipboardList, ChevronRight, Search, Repeat } from 'lucide-react';
-import { cn } from '@go2fix/shared';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import Select from '@/components/ui/Select';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { SEARCH_COMPANY_BOOKINGS } from '@/graphql/operations';
 
@@ -45,12 +45,12 @@ const statusLabel: Record<string, string> = {
   CANCELLED_BY_ADMIN: 'Anulata de admin',
 };
 
-const tabs: Array<{ label: string; value: string | undefined }> = [
-  { label: 'Toate', value: undefined },
-  { label: 'Confirmate', value: 'CONFIRMED' },
-  { label: 'In desfasurare', value: 'IN_PROGRESS' },
-  { label: 'Finalizate', value: 'COMPLETED' },
-  { label: 'Anulate', value: 'CANCELLED' },
+const statusFilterOptions = [
+  { value: '', label: 'Toate statusurile' },
+  { value: 'CONFIRMED', label: 'Confirmata' },
+  { value: 'IN_PROGRESS', label: 'In desfasurare' },
+  { value: 'COMPLETED', label: 'Finalizata' },
+  { value: 'CANCELLED', label: 'Anulata' },
 ];
 
 function formatDate(dateStr: string): string {
@@ -71,7 +71,7 @@ function formatRON(amount: string): string {
 export default function OrdersPage() {
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState<string | undefined>(undefined);
+  const [statusFilter, setStatusFilter] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [dateFrom, setDateFrom] = useState('');
@@ -87,12 +87,12 @@ export default function OrdersPage() {
   // Reset page when any filter changes
   useEffect(() => {
     setPage(0);
-  }, [debouncedQuery, activeTab, dateFrom, dateTo]);
+  }, [debouncedQuery, statusFilter, dateFrom, dateTo]);
 
   const { data, loading } = useQuery(SEARCH_COMPANY_BOOKINGS, {
     variables: {
       query: debouncedQuery || undefined,
-      status: activeTab,
+      status: statusFilter || undefined,
       dateFrom: dateFrom || undefined,
       dateTo: dateTo || undefined,
       limit: LIMIT,
@@ -112,26 +112,16 @@ export default function OrdersPage() {
         <p className="text-gray-500 mt-1">Gestioneaza comenzile firmei tale.</p>
       </div>
 
-      {/* Status tabs */}
-      <div className="flex gap-1 mb-6 bg-gray-100 rounded-xl p-1 max-w-full overflow-x-auto">
-        {tabs.map(({ label, value }) => (
-          <button
-            key={label}
-            onClick={() => setActiveTab(value)}
-            className={cn(
-              'px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors cursor-pointer',
-              activeTab === value
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700',
-            )}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {/* Search and date filters */}
+      {/* Filters */}
       <div className="flex flex-col sm:flex-row items-end gap-3 mb-6">
+        <div className="w-full sm:w-64">
+          <Select
+            options={statusFilterOptions}
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            label="Filtreaza dupa status"
+          />
+        </div>
         <div className="relative flex-1 w-full min-w-0">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input

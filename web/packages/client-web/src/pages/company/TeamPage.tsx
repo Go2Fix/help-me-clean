@@ -2,11 +2,11 @@ import { useState, useEffect, useCallback } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { useNavigate } from 'react-router-dom';
 import { Users, UserPlus, ChevronRight, Search, Star, Copy, Check } from 'lucide-react';
-import { cn } from '@go2fix/shared';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import Select from '@/components/ui/Select';
 import Modal from '@/components/ui/Modal';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { MY_CLEANERS_LIST, INVITE_CLEANER } from '@/graphql/operations';
@@ -35,12 +35,12 @@ const statusLabel: Record<string, string> = {
   ACTIVE: 'Activ', INVITED: 'Invitat', PENDING: 'In asteptare', PENDING_REVIEW: 'In asteptare', SUSPENDED: 'Suspendat', INACTIVE: 'Inactiv',
 };
 
-const tabs: Array<{ label: string; value: string | undefined }> = [
-  { label: 'Toate', value: undefined },
-  { label: 'Active', value: 'ACTIVE' },
-  { label: 'Inactive', value: 'INACTIVE' },
-  { label: 'Invitati', value: 'INVITED' },
-  { label: 'Suspendate', value: 'SUSPENDED' },
+const statusFilterOptions = [
+  { value: '', label: 'Toate statusurile' },
+  { value: 'ACTIVE', label: 'Activ' },
+  { value: 'INACTIVE', label: 'Inactiv' },
+  { value: 'INVITED', label: 'Invitat' },
+  { value: 'SUSPENDED', label: 'Suspendat' },
 ];
 
 function Avatar({ src, name }: { src?: string | null; name: string }) {
@@ -61,7 +61,7 @@ function Avatar({ src, name }: { src?: string | null; name: string }) {
 export default function TeamPage() {
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState<string | undefined>(undefined);
+  const [statusFilter, setStatusFilter] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
 
@@ -89,7 +89,7 @@ export default function TeamPage() {
 
   // Client-side filtering
   const filtered = cleaners.filter((c) => {
-    if (activeTab && c.status !== activeTab) return false;
+    if (statusFilter && c.status !== statusFilter) return false;
     if (debouncedQuery) {
       const q = debouncedQuery.toLowerCase();
       if (!c.fullName.toLowerCase().includes(q) && !c.email?.toLowerCase().includes(q)) return false;
@@ -143,22 +143,16 @@ export default function TeamPage() {
         </Button>
       </div>
 
-      {/* Status tabs */}
-      <div className="flex gap-1 mb-6 bg-gray-100 rounded-xl p-1 max-w-full overflow-x-auto">
-        {tabs.map(({ label, value }) => (
-          <button
-            key={label}
-            onClick={() => setActiveTab(value)}
-            className={cn(
-              'px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors cursor-pointer',
-              activeTab === value
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700',
-            )}
-          >
-            {label}
-          </button>
-        ))}
+      {/* Status filter */}
+      <div className="mb-6">
+        <div className="w-full sm:w-64">
+          <Select
+            options={statusFilterOptions}
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            label="Filtreaza dupa status"
+          />
+        </div>
       </div>
 
       {/* Search */}

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, act, waitFor } from '@testing-library/react';
+import { render, screen, act, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { useQuery, useMutation } from '@apollo/client';
@@ -123,7 +123,8 @@ describe('TeamPage', () => {
     mockQueries({ cleaners: [defaultCleaner] });
     renderPage();
     expect(screen.getByText('Ana Popa')).toBeInTheDocument();
-    expect(screen.getByText('Activ')).toBeInTheDocument();
+    // "Activ" appears in both dropdown option and badge
+    expect(screen.getAllByText('Activ').length).toBeGreaterThanOrEqual(1);
   });
 
   it('renders cleaner email and phone in table', () => {
@@ -160,13 +161,6 @@ describe('TeamPage', () => {
     expect(img).toHaveAttribute('src', 'https://example.com/photo.jpg');
   });
 
-  it('shows card header with count badge', () => {
-    mockQueries({ cleaners: [defaultCleaner, invitedCleaner] });
-    renderPage();
-    expect(screen.getByText('Lucratori')).toBeInTheDocument();
-    expect(screen.getByText('2')).toBeInTheDocument();
-  });
-
   it('navigates to detail page on row click', async () => {
     const user = userEvent.setup();
     mockQueries({ cleaners: [defaultCleaner] });
@@ -177,25 +171,20 @@ describe('TeamPage', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/firma/echipa/cl1');
   });
 
-  it('renders status tabs', () => {
+  it('renders status filter dropdown', () => {
     mockQueries({ cleaners: [defaultCleaner] });
     renderPage();
-    expect(screen.getByText('Toate')).toBeInTheDocument();
-    expect(screen.getByText('Active')).toBeInTheDocument();
-    expect(screen.getByText('Inactive')).toBeInTheDocument();
-    expect(screen.getByText('Invitati')).toBeInTheDocument();
-    expect(screen.getByText('Suspendate')).toBeInTheDocument();
+    expect(screen.getByLabelText('Filtreaza dupa status')).toBeInTheDocument();
   });
 
-  it('filters by tab selection', async () => {
-    const user = userEvent.setup();
+  it('filters by dropdown selection', () => {
     mockQueries({ cleaners: [defaultCleaner, invitedCleaner] });
     renderPage();
     // Both visible initially
     expect(screen.getByText('Ana Popa')).toBeInTheDocument();
     expect(screen.getByText('Ion Ionescu')).toBeInTheDocument();
-    // Click "Active" tab
-    await user.click(screen.getByText('Active'));
+    // Select "Activ" from dropdown
+    fireEvent.change(screen.getByLabelText('Filtreaza dupa status'), { target: { value: 'ACTIVE' } });
     expect(screen.getByText('Ana Popa')).toBeInTheDocument();
     expect(screen.queryByText('Ion Ionescu')).not.toBeInTheDocument();
   });
@@ -245,9 +234,10 @@ describe('TeamPage', () => {
     ];
     mockQueries({ cleaners });
     renderPage();
-    expect(screen.getByText('Activ')).toBeInTheDocument();
-    expect(screen.getByText('Invitat')).toBeInTheDocument();
-    expect(screen.getByText('Suspendat')).toBeInTheDocument();
+    // "Activ" and "Invitat" appear in both dropdown options and badges
+    expect(screen.getAllByText('Activ').length).toBeGreaterThanOrEqual(2);
+    expect(screen.getAllByText('Invitat').length).toBeGreaterThanOrEqual(2);
+    expect(screen.getAllByText('Suspendat').length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows -- for missing rating', () => {

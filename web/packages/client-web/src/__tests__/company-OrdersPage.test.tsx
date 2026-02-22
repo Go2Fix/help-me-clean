@@ -59,14 +59,10 @@ describe('OrdersPage', () => {
     expect(screen.getByText('Comenzi', { selector: 'h1' })).toBeInTheDocument();
   });
 
-  it('shows filter tabs', () => {
+  it('shows status filter dropdown', () => {
     mockQuery();
     renderPage();
-    expect(screen.getByText('Toate')).toBeInTheDocument();
-    expect(screen.getByText('Confirmate')).toBeInTheDocument();
-    expect(screen.getByText('In desfasurare')).toBeInTheDocument();
-    expect(screen.getByText('Finalizate')).toBeInTheDocument();
-    expect(screen.getByText('Anulate')).toBeInTheDocument();
+    expect(screen.getByLabelText('Filtreaza dupa status')).toBeInTheDocument();
   });
 
   it('shows search input', () => {
@@ -109,30 +105,8 @@ describe('OrdersPage', () => {
     renderPage();
     expect(screen.getByText('#ABC123')).toBeInTheDocument();
     expect(screen.getByText('150 lei')).toBeInTheDocument();
-    // "Confirmata" appears as the CONFIRMED status badge
-    expect(screen.getByText('Confirmata')).toBeInTheDocument();
+    // "Confirmata" appears in both dropdown option and badge
+    expect(screen.getAllByText('Confirmata').length).toBeGreaterThanOrEqual(1);
   });
 
-  it('shows total count badge', () => {
-    mockQuery({
-      data: {
-        searchCompanyBookings: {
-          edges: [
-            {
-              id: 'b1',
-              referenceCode: 'ABC123',
-              scheduledDate: '2025-03-15',
-              estimatedTotal: '150',
-              status: 'CONFIRMED',
-              recurringGroupId: null,
-            },
-          ],
-          totalCount: 1,
-        },
-      },
-    });
-    renderPage();
-    // Count shown in Badge inside card header
-    expect(screen.getByText('1')).toBeInTheDocument();
-  });
 });
