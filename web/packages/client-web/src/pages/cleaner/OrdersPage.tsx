@@ -51,10 +51,6 @@ function formatDate(dateStr: string): string {
   });
 }
 
-function formatRON(amount: string): string {
-  return amount + ' lei';
-}
-
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function OrdersPage() {
@@ -161,7 +157,6 @@ export default function OrdersPage() {
                   <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">Data</th>
                   <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">Client</th>
                   <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Status</th>
-                  <th className="text-right px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Pret</th>
                   <th className="px-2 md:px-6 py-3 w-8 md:w-10" />
                 </tr>
               </thead>
@@ -207,9 +202,6 @@ export default function OrdersPage() {
                         <Badge variant={statusBadgeVariant[status] ?? 'default'}>
                           {statusLabel[status] ?? status}
                         </Badge>
-                      </td>
-                      <td className="px-3 md:px-6 py-3 md:py-4 text-right font-bold text-gray-900 text-xs md:text-sm whitespace-nowrap">
-                        {formatRON(booking.estimatedTotal as string)}
                       </td>
                       <td className="px-2 md:px-6 py-3 md:py-4">
                         <ChevronRight className="h-4 w-4 text-gray-400" />

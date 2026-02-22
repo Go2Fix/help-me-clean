@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { Link } from 'react-router-dom';
 import {
-  Phone, FileText, Building2, Star, Briefcase, TrendingUp,
+  Phone, FileText, Building2, Star, Briefcase, Camera, Loader2,
   Check, MapPin, Info, Brain, MessageSquare, Calendar,
 } from 'lucide-react';
 import { cn } from '@go2fix/shared';
@@ -21,6 +21,7 @@ import {
   MY_CLEANER_REVIEWS,
   UPLOAD_CLEANER_DOCUMENT,
   DELETE_CLEANER_DOCUMENT,
+  UPLOAD_CLEANER_AVATAR,
 } from '@/graphql/operations';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -146,6 +147,28 @@ export default function SettingsPage() {
   const [deleteDocument, { loading: deleting }] = useMutation(DELETE_CLEANER_DOCUMENT, {
     refetchQueries: [{ query: MY_CLEANER_PROFILE }],
   });
+  const [uploadAvatar, { loading: uploadingAvatar }] = useMutation(UPLOAD_CLEANER_AVATAR, {
+    refetchQueries: [{ query: MY_CLEANER_PROFILE }],
+  });
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !profile?.id) return;
+    if (!file.type.startsWith('image/')) return;
+    if (file.size > 10 * 1024 * 1024) return;
+    const reader = new FileReader();
+    reader.onloadend = () => setAvatarPreview(reader.result as string);
+    reader.readAsDataURL(file);
+    try {
+      await uploadAvatar({ variables: { cleanerId: profile.id, file } });
+    } catch {
+      setAvatarPreview(null);
+    }
+    if (avatarInputRef.current) avatarInputRef.current.value = '';
+  };
+
   const [uploadingType, setUploadingType] = useState('');
 
   const handleUploadDoc = async (file: File, documentType: string) => {
@@ -190,9 +213,43 @@ export default function SettingsPage() {
       {/* ── 1. Profile Header ─────────────────────────────────────────── */}
       <Card className="mb-6">
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-primary text-white flex items-center justify-center text-xl font-bold shrink-0">
-            {initial}
-          </div>
+          {/* Editable avatar */}
+          <button
+            type="button"
+            onClick={() => !uploadingAvatar && avatarInputRef.current?.click()}
+            disabled={uploadingAvatar}
+            className={cn(
+              'w-16 h-16 rounded-full relative overflow-hidden shrink-0 group',
+              'border-2 border-gray-200 hover:border-blue-500 transition-all',
+              uploadingAvatar ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer',
+            )}
+          >
+            {(avatarPreview || profile?.user?.avatarUrl) ? (
+              <img
+                src={avatarPreview || profile?.user?.avatarUrl}
+                alt={profile?.fullName ?? 'Avatar'}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-primary text-white flex items-center justify-center text-xl font-bold">
+                {initial}
+              </div>
+            )}
+            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              {uploadingAvatar ? (
+                <Loader2 className="h-5 w-5 text-white animate-spin" />
+              ) : (
+                <Camera className="h-5 w-5 text-white" />
+              )}
+            </div>
+          </button>
+          <input
+            ref={avatarInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleAvatarUpload}
+            className="hidden"
+          />
           <div className="min-w-0">
             <h2 className="text-lg font-bold text-gray-900">{profile?.fullName ?? '--'}</h2>
             <p className="text-sm text-gray-400">{profile?.email ?? '--'}</p>
@@ -219,7 +276,7 @@ export default function SettingsPage() {
 
       {/* ── 2. Stats Row ──────────────────────────────────────────────── */}
       {stats && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
           <Card>
             <div className="flex items-center gap-3">
               <div className="p-2.5 rounded-xl bg-amber-50">
@@ -246,22 +303,6 @@ export default function SettingsPage() {
                 <p className="text-xl font-bold text-gray-900">{stats.totalJobsCompleted ?? 0}</p>
                 <p className="text-[11px] text-gray-400">
                   {stats.thisMonthJobs ?? 0} luna aceasta
-                </p>
-              </div>
-            </div>
-          </Card>
-          <Card>
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-emerald-50">
-                <TrendingUp className="h-5 w-5 text-emerald-500" />
-              </div>
-              <div>
-                <p className="text-xs text-gray-500">Castiguri luna</p>
-                <p className="text-xl font-bold text-gray-900">
-                  {stats.thisMonthEarnings ? `${Number(stats.thisMonthEarnings).toFixed(0)} RON` : '0 RON'}
-                </p>
-                <p className="text-[11px] text-gray-400">
-                  {stats.thisMonthJobs ?? 0} joburi
                 </p>
               </div>
             </div>

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
-import { Star, Briefcase, CalendarCheck, TrendingUp, FileText, User as UserIcon } from 'lucide-react';
+import { Star, Briefcase, CalendarCheck, FileText, User as UserIcon } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
@@ -198,7 +198,7 @@ export default function ProfilePage() {
 
           {/* Stats */}
           {stats && (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-3 gap-4 mb-6">
               <Card>
                 <div className="flex items-center gap-3">
                   <div className="p-2.5 rounded-xl bg-primary/10">
@@ -230,19 +230,6 @@ export default function ProfilePage() {
                     <p className="text-xs text-gray-500">Rating</p>
                     <p className="text-xl font-bold text-accent">
                       {stats.averageRating ? Number(stats.averageRating).toFixed(1) : '--'}
-                    </p>
-                  </div>
-                </div>
-              </Card>
-              <Card>
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl bg-blue-50">
-                    <TrendingUp className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Castiguri luna</p>
-                    <p className="text-xl font-bold text-gray-900">
-                      {stats.thisMonthEarnings ? `${Number(stats.thisMonthEarnings).toFixed(0)} RON` : '0 RON'}
                     </p>
                   </div>
                 </div>
