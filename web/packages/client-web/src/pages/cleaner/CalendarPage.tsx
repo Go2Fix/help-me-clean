@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Clock, User, Calendar, Building2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Clock, Building2 } from 'lucide-react';
 import { cn } from '@go2fix/shared';
 import {
   MY_CLEANER_AVAILABILITY,
@@ -245,160 +245,123 @@ export default function CalendarPage() {
       </div>
 
       {/* Week Navigation */}
-      <Card className="mb-6">
-        <div className="flex items-center justify-between flex-wrap gap-2">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-2">
           <button
             onClick={goToPrevWeek}
-            className="flex items-center gap-1 text-sm text-gray-600 hover:text-primary transition-colors cursor-pointer"
+            className="h-9 w-9 rounded-xl border border-gray-200 bg-white flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-primary hover:border-primary/30 transition-all cursor-pointer"
+            aria-label="Saptamana anterioara"
           >
             <ChevronLeft className="h-4 w-4" />
-            <span className="hidden sm:inline">Saptamana anterioara</span>
           </button>
-          <div className="flex items-center gap-3">
-            <Calendar className="h-5 w-5 text-primary hidden sm:block" />
-            <span className="text-sm sm:text-base font-semibold text-gray-900">{weekLabel}</span>
-            <Button variant="outline" size="sm" onClick={goToToday}>Astazi</Button>
-          </div>
           <button
             onClick={goToNextWeek}
-            className="flex items-center gap-1 text-sm text-gray-600 hover:text-primary transition-colors cursor-pointer"
+            className="h-9 w-9 rounded-xl border border-gray-200 bg-white flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-primary hover:border-primary/30 transition-all cursor-pointer"
+            aria-label="Saptamana urmatoare"
           >
-            <span className="hidden sm:inline">Saptamana urmatoare</span>
             <ChevronRight className="h-4 w-4" />
           </button>
         </div>
-      </Card>
+        <span className="text-sm sm:text-base font-bold text-gray-900">{weekLabel}</span>
+        <Button variant="outline" size="sm" onClick={goToToday}>Astazi</Button>
+      </div>
 
-      {/* Day Cards */}
-      <div className="space-y-3">
-        {weekDates.map((date, gridIdx) => {
-          const dow = gridToDow(gridIdx);
-          const dateStr = fmtYMD(date);
-          const todayStr = fmtYMD(new Date());
-          const override = overridesByDate.get(dateStr);
-          const slot = getSlotForDow(dow);
-          const companySlot = getCompanySlotForDow(dow);
-          const dayBookings = bookingsByDate.get(dateStr) ?? [];
-          const isToday = dateStr === todayStr;
-          const isPast = dateStr < todayStr;
-          const isCompanyOff = companySlot ? !companySlot.isWorkDay : false;
+      {/* Compact Week List */}
+      <Card padding={false}>
+        <div className="divide-y divide-gray-100">
+          {weekDates.map((date, gridIdx) => {
+            const dow = gridToDow(gridIdx);
+            const dateStr = fmtYMD(date);
+            const todayStr = fmtYMD(new Date());
+            const override = overridesByDate.get(dateStr);
+            const slot = getSlotForDow(dow);
+            const companySlot = getCompanySlotForDow(dow);
+            const dayBookings = bookingsByDate.get(dateStr) ?? [];
+            const isToday = dateStr === todayStr;
+            const isPast = dateStr < todayStr;
+            const isCompanyOff = companySlot ? !companySlot.isWorkDay : false;
 
-          // Resolve effective availability: date override > weekly slot > company schedule > default
-          let statusElement: React.ReactNode;
-          if (override) {
-            if (override.isAvailable) {
-              statusElement = (
-                <span className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 border border-emerald-200 px-2.5 py-1.5 text-xs sm:text-sm font-medium text-emerald-700 whitespace-nowrap">
-                  <Clock className="h-3.5 w-3.5 shrink-0" />
-                  {override.startTime} - {override.endTime}
-                </span>
-              );
+            // Resolve schedule text & style
+            let scheduleText: string;
+            let scheduleColor: string;
+            if (override) {
+              scheduleText = override.isAvailable ? `${override.startTime} - ${override.endTime}` : 'Indisponibil';
+              scheduleColor = override.isAvailable ? 'text-emerald-600' : 'text-red-500';
+            } else if (slot) {
+              scheduleText = slot.isAvailable ? `${slot.startTime} - ${slot.endTime}` : 'Indisponibil';
+              scheduleColor = slot.isAvailable ? 'text-emerald-600' : 'text-red-400';
+            } else if (companySlot && companySlot.isWorkDay) {
+              scheduleText = `${companySlot.startTime} - ${companySlot.endTime}`;
+              scheduleColor = 'text-blue-600';
+            } else if (companySlot && !companySlot.isWorkDay) {
+              scheduleText = 'Zi libera';
+              scheduleColor = 'text-gray-400';
             } else {
-              statusElement = (
-                <span className="inline-flex items-center rounded-xl bg-red-50 border border-red-200 px-2.5 py-1.5 text-xs sm:text-sm font-medium text-red-600 whitespace-nowrap">
-                  Indisponibil
-                </span>
-              );
+              scheduleText = 'Disponibil';
+              scheduleColor = 'text-emerald-600';
             }
-          } else if (slot) {
-            if (slot.isAvailable) {
-              statusElement = (
-                <span className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50/50 border border-dashed border-emerald-300 px-2.5 py-1.5 text-xs sm:text-sm font-medium text-emerald-600 whitespace-nowrap">
-                  <Clock className="h-3.5 w-3.5 shrink-0" />
-                  {slot.startTime} - {slot.endTime}
-                </span>
-              );
-            } else {
-              statusElement = (
-                <span className="inline-flex items-center rounded-xl bg-red-50/50 border border-dashed border-red-200 px-2.5 py-1.5 text-xs sm:text-sm font-medium text-red-400 whitespace-nowrap">
-                  Indisponibil
-                </span>
-              );
-            }
-          } else if (companySlot && companySlot.isWorkDay) {
-            statusElement = (
-              <span className="inline-flex items-center gap-1.5 rounded-xl bg-blue-50/50 border border-dashed border-blue-300 px-2.5 py-1.5 text-xs sm:text-sm font-medium text-blue-600 whitespace-nowrap">
-                <Building2 className="h-3.5 w-3.5 shrink-0" />
-                {companySlot.startTime} - {companySlot.endTime}
-              </span>
-            );
-          } else if (companySlot && !companySlot.isWorkDay) {
-            statusElement = (
-              <span className="inline-flex items-center rounded-xl bg-gray-100 border border-dashed border-gray-300 px-2.5 py-1.5 text-xs sm:text-sm font-medium text-gray-400 whitespace-nowrap">
-                Zi libera
-              </span>
-            );
-          } else {
-            statusElement = (
-              <span className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50/50 border border-dashed border-emerald-300 px-2.5 py-1.5 text-xs sm:text-sm font-medium text-emerald-600 whitespace-nowrap">
-                <Clock className="h-3.5 w-3.5 shrink-0" />
-                Disponibil
-              </span>
-            );
-          }
 
-          return (
-            <Card key={gridIdx} className={cn(
-              isToday && 'ring-2 ring-primary/30',
-              isPast && 'opacity-50',
-            )}>
-              {/* Mobile layout: relative so edit button can sit top-right */}
-              <div className="relative sm:flex sm:items-center sm:justify-between sm:gap-2">
-                {/* Edit button / label — top-right on mobile, inline-right on desktop */}
-                <div className="absolute right-0 top-0 sm:relative sm:order-3 shrink-0">
-                  {isPast ? (
-                    <span className="text-xs text-gray-300 px-2">Trecut</span>
-                  ) : isCompanyOff ? (
-                    <span className="text-xs text-gray-300 px-2">Zi libera</span>
-                  ) : (
-                    <Button variant="ghost" size="sm" onClick={() => openEditModal(gridIdx, date)} aria-label={`Editeaza ${DAY_NAMES[dow]}`}>
-                      Editeaza
-                    </Button>
-                  )}
-                </div>
-                {/* Left: Day name + date + status badge on mobile */}
-                <div className="flex items-center gap-3 shrink-0 sm:order-1 pr-20 sm:pr-0">
+            return (
+              <div key={gridIdx} className={cn(
+                'px-4 py-3',
+                isPast && 'opacity-40',
+                isToday && 'bg-primary/5 border-l-3 border-l-primary',
+              )}>
+                {/* Day row */}
+                <div className="flex items-center gap-3">
+                  {/* Date circle */}
                   <div className={cn(
-                    'h-10 w-10 rounded-xl flex items-center justify-center text-sm font-bold shrink-0',
-                    isToday ? 'bg-primary text-white' : isPast ? 'bg-gray-50 text-gray-300' : 'bg-gray-100 text-gray-600',
+                    'h-9 w-9 rounded-lg flex items-center justify-center text-sm font-bold shrink-0',
+                    isToday ? 'bg-primary text-white' : isPast ? 'bg-gray-50 text-gray-300' : 'bg-gray-100 text-gray-700',
                   )}>
                     {String(date.getDate()).padStart(2, '0')}
                   </div>
-                  <div>
-                    <p className={cn('text-sm font-semibold', isPast ? 'text-gray-400' : 'text-gray-900')}>{DAY_NAMES[dow]}</p>
-                    <p className="text-xs text-gray-400">{fmtDM(date)}</p>
+                  {/* Day name + schedule */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className={cn('text-sm font-semibold', isPast ? 'text-gray-400' : 'text-gray-900')}>
+                        {DAY_NAMES[dow]}
+                      </span>
+                      <span className="text-xs text-gray-400">{fmtDM(date)}</span>
+                    </div>
+                    <p className={cn('text-xs font-medium mt-0.5', scheduleColor)}>
+                      {scheduleText}
+                    </p>
                   </div>
-                  {/* Status badge — inline on mobile */}
-                  <div className="sm:hidden">
-                    {statusElement}
-                  </div>
-                </div>
-                {/* Middle: Availability status (desktop only) */}
-                <div className="hidden sm:flex flex-1 justify-center px-2 sm:order-2">
-                  {statusElement}
-                </div>
-              </div>
-              {/* Booking Pills */}
-              {dayBookings.length > 0 && (
-                <div className={cn('mt-3 flex flex-wrap gap-2', isPast && 'opacity-70')}>
-                  {dayBookings.map((b) => (
-                    <Link
-                      key={b.id}
-                      to={`/worker/comenzi/${b.id}`}
-                      className="flex items-center gap-2 bg-primary/10 border border-primary/30 rounded-xl px-3 py-2 hover:bg-primary/20 transition-colors"
+                  {/* Edit button */}
+                  {!isPast && !isCompanyOff && (
+                    <button
+                      onClick={() => openEditModal(gridIdx, date)}
+                      className="text-xs font-medium text-primary hover:text-blue-700 transition-colors cursor-pointer shrink-0"
+                      aria-label={`Editeaza ${DAY_NAMES[dow]}`}
                     >
-                      <User className="h-3.5 w-3.5 text-primary shrink-0" />
-                      <span className="text-xs sm:text-sm font-medium text-primary">{b.client?.fullName ?? 'Client'}</span>
-                      <span className="text-xs text-primary/70">{b.scheduledStartTime}</span>
-                      <span className="text-xs text-primary/60 hidden sm:inline">{b.serviceName}</span>
-                    </Link>
-                  ))}
+                      Editeaza
+                    </button>
+                  )}
                 </div>
-              )}
-            </Card>
-          );
-        })}
-      </div>
+                {/* Booking sub-list */}
+                {dayBookings.length > 0 && (
+                  <div className={cn('ml-12 mt-2 space-y-1.5', isPast && 'opacity-70')}>
+                    {dayBookings.map((b) => (
+                      <Link
+                        key={b.id}
+                        to={`/worker/comenzi/${b.id}`}
+                        className="flex items-center gap-2 text-xs rounded-lg px-2.5 py-1.5 bg-primary/5 hover:bg-primary/10 transition-colors"
+                      >
+                        <Clock className="h-3 w-3 text-primary/60 shrink-0" />
+                        <span className="font-medium text-gray-900">{b.scheduledStartTime}</span>
+                        <span className="text-gray-600 truncate">{b.client?.fullName ?? 'Client'}</span>
+                        <span className="text-gray-400 truncate hidden sm:inline">{b.serviceName}</span>
+                        <ChevronRight className="h-3 w-3 text-gray-300 ml-auto shrink-0" />
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </Card>
 
       {/* Availability Edit Modal */}
       <Modal
@@ -425,12 +388,22 @@ export default function CalendarPage() {
             return (
               <>
                 <div className="grid grid-cols-2 gap-4">
-                  <Input label="Ora inceput" type="time" value={modal.startTime}
-                    min={bounds?.minTime} max={bounds?.maxTime}
-                    onChange={(e) => setModal((p) => ({ ...p, startTime: e.target.value }))} />
-                  <Input label="Ora sfarsit" type="time" value={modal.endTime}
-                    min={bounds?.minTime} max={bounds?.maxTime}
-                    onChange={(e) => setModal((p) => ({ ...p, endTime: e.target.value }))} />
+                  <Input label="Ora inceput" type="text" inputMode="numeric" pattern="[0-2][0-9]:[0-5][0-9]" placeholder="HH:MM"
+                    value={modal.startTime}
+                    onChange={(e) => {
+                      let v = e.target.value.replace(/[^0-9:]/g, '');
+                      if (v.length === 2 && !v.includes(':')) v += ':';
+                      if (v.length > 5) v = v.slice(0, 5);
+                      setModal((p) => ({ ...p, startTime: v }));
+                    }} />
+                  <Input label="Ora sfarsit" type="text" inputMode="numeric" pattern="[0-2][0-9]:[0-5][0-9]" placeholder="HH:MM"
+                    value={modal.endTime}
+                    onChange={(e) => {
+                      let v = e.target.value.replace(/[^0-9:]/g, '');
+                      if (v.length === 2 && !v.includes(':')) v += ':';
+                      if (v.length > 5) v = v.slice(0, 5);
+                      setModal((p) => ({ ...p, endTime: v }));
+                    }} />
                 </div>
                 {bounds && (
                   <p className="text-xs text-blue-600 flex items-center gap-1">
