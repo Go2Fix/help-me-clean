@@ -397,6 +397,30 @@ func (r *queryResolver) CompanyInvoices(ctx context.Context, status *model.Invoi
 	}, nil
 }
 
+// CompanyInvoiceForBooking is the resolver for the companyInvoiceForBooking field.
+func (r *queryResolver) CompanyInvoiceForBooking(ctx context.Context, bookingID string) (*model.Invoice, error) {
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil {
+		return nil, fmt.Errorf("not authenticated")
+	}
+	if claims.Role != "company_admin" {
+		return nil, fmt.Errorf("only company admins can view company invoices")
+	}
+
+	inv, err := r.Queries.GetInvoiceByBookingAndType(ctx, db.GetInvoiceByBookingAndTypeParams{
+		BookingID:   stringToUUID(bookingID),
+		InvoiceType: db.InvoiceTypeClientService,
+	})
+	if err != nil {
+		// No invoice found is not an error — return nil.
+		return nil, nil
+	}
+
+	gqlInvoice := dbInvoiceToGQL(inv)
+	r.enrichInvoice(ctx, inv, gqlInvoice)
+	return gqlInvoice, nil
+}
+
 // AllInvoices is the resolver for the allInvoices field.
 func (r *queryResolver) AllInvoices(ctx context.Context, typeArg *model.InvoiceType, status *model.InvoiceStatus, companyID *string, first *int, after *string) (*model.InvoiceConnection, error) {
 	claims := auth.GetUserFromContext(ctx)

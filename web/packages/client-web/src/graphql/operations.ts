@@ -909,6 +909,9 @@ export const COMPANY_BOOKING_DETAIL = gql`
       estimatedDurationHours
       estimatedTotal
       finalTotal
+      hourlyRate
+      platformCommissionPct
+      propertyType
       status
       specialInstructions
       numRooms
@@ -916,11 +919,29 @@ export const COMPANY_BOOKING_DETAIL = gql`
       areaSqm
       hasPets
       paymentStatus
+      paidAt
       createdAt
       startedAt
       completedAt
       cancelledAt
       cancellationReason
+      recurringGroupId
+      occurrenceNumber
+      includedItems
+      extras {
+        extra {
+          id
+          nameRo
+          nameEn
+        }
+        price
+        quantity
+      }
+      review {
+        rating
+        comment
+        createdAt
+      }
       client {
         id
         fullName
@@ -950,6 +971,21 @@ export const COMPANY_BOOKING_DETAIL = gql`
         endTime
         isSelected
       }
+    }
+  }
+`;
+
+export const COMPANY_INVOICE_FOR_BOOKING = gql`
+  query CompanyInvoiceForBooking($bookingId: ID!) {
+    companyInvoiceForBooking(bookingId: $bookingId) {
+      id
+      invoiceNumber
+      status
+      totalAmount
+      currency
+      downloadUrl
+      efacturaStatus
+      issuedAt
     }
   }
 `;

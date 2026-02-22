@@ -750,6 +750,7 @@ type ComplexityRoot struct {
 		CompanyBookingsByDateRange   func(childComplexity int, from string, to string) int
 		CompanyChatRooms             func(childComplexity int) int
 		CompanyFinancialSummary      func(childComplexity int, companyID string) int
+		CompanyInvoiceForBooking     func(childComplexity int, bookingID string) int
 		CompanyInvoices              func(childComplexity int, status *model.InvoiceStatus, first *int, after *string) int
 		CompanyPerformance           func(childComplexity int, first *int) int
 		CompanyRevenueByDateRange    func(childComplexity int, from string, to string) int
@@ -1137,6 +1138,7 @@ type QueryResolver interface {
 	MyInvoices(ctx context.Context, first *int, after *string) (*model.InvoiceConnection, error)
 	InvoiceDetail(ctx context.Context, id string) (*model.Invoice, error)
 	CompanyInvoices(ctx context.Context, status *model.InvoiceStatus, first *int, after *string) (*model.InvoiceConnection, error)
+	CompanyInvoiceForBooking(ctx context.Context, bookingID string) (*model.Invoice, error)
 	AllInvoices(ctx context.Context, typeArg *model.InvoiceType, status *model.InvoiceStatus, companyID *string, first *int, after *string) (*model.InvoiceConnection, error)
 	InvoiceAnalytics(ctx context.Context, from string, to string) (*model.InvoiceAnalytics, error)
 	ActiveCities(ctx context.Context) ([]*model.EnabledCity, error)
@@ -4929,6 +4931,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.CompanyFinancialSummary(childComplexity, args["companyId"].(string)), true
+	case "Query.companyInvoiceForBooking":
+		if e.complexity.Query.CompanyInvoiceForBooking == nil {
+			break
+		}
+
+		args, err := ec.field_Query_companyInvoiceForBooking_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.CompanyInvoiceForBooking(childComplexity, args["bookingId"].(string)), true
 	case "Query.companyInvoices":
 		if e.complexity.Query.CompanyInvoices == nil {
 			break
@@ -7942,6 +7955,17 @@ func (ec *executionContext) field_Query_companyFinancialSummary_args(ctx context
 		return nil, err
 	}
 	args["companyId"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_companyInvoiceForBooking_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "bookingId", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["bookingId"] = arg0
 	return args, nil
 }
 
@@ -31031,6 +31055,93 @@ func (ec *executionContext) fieldContext_Query_companyInvoices(ctx context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_companyInvoiceForBooking(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_companyInvoiceForBooking,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Query().CompanyInvoiceForBooking(ctx, fc.Args["bookingId"].(string))
+		},
+		nil,
+		ec.marshalOInvoice2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoice,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_companyInvoiceForBooking(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Invoice_id(ctx, field)
+			case "invoiceType":
+				return ec.fieldContext_Invoice_invoiceType(ctx, field)
+			case "invoiceNumber":
+				return ec.fieldContext_Invoice_invoiceNumber(ctx, field)
+			case "status":
+				return ec.fieldContext_Invoice_status(ctx, field)
+			case "sellerCompanyName":
+				return ec.fieldContext_Invoice_sellerCompanyName(ctx, field)
+			case "sellerCui":
+				return ec.fieldContext_Invoice_sellerCui(ctx, field)
+			case "buyerName":
+				return ec.fieldContext_Invoice_buyerName(ctx, field)
+			case "buyerCui":
+				return ec.fieldContext_Invoice_buyerCui(ctx, field)
+			case "subtotalAmount":
+				return ec.fieldContext_Invoice_subtotalAmount(ctx, field)
+			case "vatRate":
+				return ec.fieldContext_Invoice_vatRate(ctx, field)
+			case "vatAmount":
+				return ec.fieldContext_Invoice_vatAmount(ctx, field)
+			case "totalAmount":
+				return ec.fieldContext_Invoice_totalAmount(ctx, field)
+			case "currency":
+				return ec.fieldContext_Invoice_currency(ctx, field)
+			case "booking":
+				return ec.fieldContext_Invoice_booking(ctx, field)
+			case "company":
+				return ec.fieldContext_Invoice_company(ctx, field)
+			case "efacturaStatus":
+				return ec.fieldContext_Invoice_efacturaStatus(ctx, field)
+			case "downloadUrl":
+				return ec.fieldContext_Invoice_downloadUrl(ctx, field)
+			case "issuedAt":
+				return ec.fieldContext_Invoice_issuedAt(ctx, field)
+			case "dueDate":
+				return ec.fieldContext_Invoice_dueDate(ctx, field)
+			case "notes":
+				return ec.fieldContext_Invoice_notes(ctx, field)
+			case "lineItems":
+				return ec.fieldContext_Invoice_lineItems(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Invoice_createdAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Invoice", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_companyInvoiceForBooking_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_allInvoices(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -45743,6 +45854,25 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "companyInvoiceForBooking":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_companyInvoiceForBooking(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "allInvoices":
 			field := field
 
@@ -51919,6 +52049,13 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	_ = ctx
 	res := graphql.MarshalInt(*v)
 	return res
+}
+
+func (ec *executionContext) marshalOInvoice2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoice(ctx context.Context, sel ast.SelectionSet, v *model.Invoice) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Invoice(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOInvoiceStatus2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoiceStatus(ctx context.Context, v any) (*model.InvoiceStatus, error) {
