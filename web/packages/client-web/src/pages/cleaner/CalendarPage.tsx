@@ -274,11 +274,13 @@ export default function CalendarPage() {
         {weekDates.map((date, gridIdx) => {
           const dow = gridToDow(gridIdx);
           const dateStr = fmtYMD(date);
+          const todayStr = fmtYMD(new Date());
           const override = overridesByDate.get(dateStr);
           const slot = getSlotForDow(dow);
           const companySlot = getCompanySlotForDow(dow);
           const dayBookings = bookingsByDate.get(dateStr) ?? [];
-          const isToday = dateStr === fmtYMD(new Date());
+          const isToday = dateStr === todayStr;
+          const isPast = dateStr < todayStr;
           const isCompanyOff = companySlot ? !companySlot.isWorkDay : false;
 
           // Resolve effective availability: date override > weekly slot > company schedule > default
@@ -286,14 +288,14 @@ export default function CalendarPage() {
           if (override) {
             if (override.isAvailable) {
               statusElement = (
-                <span className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 border border-emerald-200 px-3 py-1.5 text-sm font-medium text-emerald-700">
-                  <Clock className="h-3.5 w-3.5" />
-                  Disponibil {override.startTime} - {override.endTime}
+                <span className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 border border-emerald-200 px-2.5 py-1.5 text-xs sm:text-sm font-medium text-emerald-700 whitespace-nowrap">
+                  <Clock className="h-3.5 w-3.5 shrink-0" />
+                  {override.startTime} - {override.endTime}
                 </span>
               );
             } else {
               statusElement = (
-                <span className="inline-flex items-center rounded-xl bg-red-50 border border-red-200 px-3 py-1.5 text-sm font-medium text-red-600">
+                <span className="inline-flex items-center rounded-xl bg-red-50 border border-red-200 px-2.5 py-1.5 text-xs sm:text-sm font-medium text-red-600 whitespace-nowrap">
                   Indisponibil
                 </span>
               );
@@ -301,81 +303,92 @@ export default function CalendarPage() {
           } else if (slot) {
             if (slot.isAvailable) {
               statusElement = (
-                <span className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50/50 border border-dashed border-emerald-300 px-3 py-1.5 text-sm font-medium text-emerald-600">
-                  <Clock className="h-3.5 w-3.5" />
-                  Disponibil {slot.startTime} - {slot.endTime}
-                  <span className="text-xs text-emerald-400">(saptamanal)</span>
+                <span className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50/50 border border-dashed border-emerald-300 px-2.5 py-1.5 text-xs sm:text-sm font-medium text-emerald-600 whitespace-nowrap">
+                  <Clock className="h-3.5 w-3.5 shrink-0" />
+                  {slot.startTime} - {slot.endTime}
                 </span>
               );
             } else {
               statusElement = (
-                <span className="inline-flex items-center rounded-xl bg-red-50/50 border border-dashed border-red-200 px-3 py-1.5 text-sm font-medium text-red-400">
-                  Indisponibil <span className="text-xs">(saptamanal)</span>
+                <span className="inline-flex items-center rounded-xl bg-red-50/50 border border-dashed border-red-200 px-2.5 py-1.5 text-xs sm:text-sm font-medium text-red-400 whitespace-nowrap">
+                  Indisponibil
                 </span>
               );
             }
           } else if (companySlot && companySlot.isWorkDay) {
             statusElement = (
-              <span className="inline-flex items-center gap-1.5 rounded-xl bg-blue-50/50 border border-dashed border-blue-300 px-3 py-1.5 text-sm font-medium text-blue-600">
-                <Building2 className="h-3.5 w-3.5" />
-                Program firma: {companySlot.startTime} - {companySlot.endTime}
+              <span className="inline-flex items-center gap-1.5 rounded-xl bg-blue-50/50 border border-dashed border-blue-300 px-2.5 py-1.5 text-xs sm:text-sm font-medium text-blue-600 whitespace-nowrap">
+                <Building2 className="h-3.5 w-3.5 shrink-0" />
+                {companySlot.startTime} - {companySlot.endTime}
               </span>
             );
           } else if (companySlot && !companySlot.isWorkDay) {
             statusElement = (
-              <span className="inline-flex items-center rounded-xl bg-gray-100 border border-dashed border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-400">
-                Zi libera firma
+              <span className="inline-flex items-center rounded-xl bg-gray-100 border border-dashed border-gray-300 px-2.5 py-1.5 text-xs sm:text-sm font-medium text-gray-400 whitespace-nowrap">
+                Zi libera
               </span>
             );
           } else {
             statusElement = (
-              <span className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50/50 border border-dashed border-emerald-300 px-3 py-1.5 text-sm font-medium text-emerald-600">
-                <Clock className="h-3.5 w-3.5" />
-                Disponibil (implicit)
+              <span className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50/50 border border-dashed border-emerald-300 px-2.5 py-1.5 text-xs sm:text-sm font-medium text-emerald-600 whitespace-nowrap">
+                <Clock className="h-3.5 w-3.5 shrink-0" />
+                Disponibil
               </span>
             );
           }
 
           return (
-            <Card key={gridIdx} className={cn(isToday && 'ring-2 ring-primary/30')}>
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                {/* Left: Day name + date */}
-                <div className="flex items-center gap-3">
+            <Card key={gridIdx} className={cn(
+              isToday && 'ring-2 ring-primary/30',
+              isPast && 'opacity-50',
+            )}>
+              {/* Mobile layout: relative so edit button can sit top-right */}
+              <div className="relative sm:flex sm:items-center sm:justify-between sm:gap-2">
+                {/* Edit button / label — top-right on mobile, inline-right on desktop */}
+                <div className="absolute right-0 top-0 sm:relative sm:order-3 shrink-0">
+                  {isPast ? (
+                    <span className="text-xs text-gray-300 px-2">Trecut</span>
+                  ) : isCompanyOff ? (
+                    <span className="text-xs text-gray-300 px-2">Zi libera</span>
+                  ) : (
+                    <Button variant="ghost" size="sm" onClick={() => openEditModal(gridIdx, date)} aria-label={`Editeaza ${DAY_NAMES[dow]}`}>
+                      Editeaza
+                    </Button>
+                  )}
+                </div>
+                {/* Left: Day name + date + status badge on mobile */}
+                <div className="flex items-center gap-3 shrink-0 sm:order-1 pr-20 sm:pr-0">
                   <div className={cn(
                     'h-10 w-10 rounded-xl flex items-center justify-center text-sm font-bold shrink-0',
-                    isToday ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600',
+                    isToday ? 'bg-primary text-white' : isPast ? 'bg-gray-50 text-gray-300' : 'bg-gray-100 text-gray-600',
                   )}>
                     {String(date.getDate()).padStart(2, '0')}
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-gray-900">{DAY_NAMES[dow]}</p>
+                    <p className={cn('text-sm font-semibold', isPast ? 'text-gray-400' : 'text-gray-900')}>{DAY_NAMES[dow]}</p>
                     <p className="text-xs text-gray-400">{fmtDM(date)}</p>
                   </div>
+                  {/* Status badge — inline on mobile */}
+                  <div className="sm:hidden">
+                    {statusElement}
+                  </div>
                 </div>
-                {/* Middle: Availability status */}
-                <div className="flex-1 flex justify-center px-2">
+                {/* Middle: Availability status (desktop only) */}
+                <div className="hidden sm:flex flex-1 justify-center px-2 sm:order-2">
                   {statusElement}
                 </div>
-                {/* Right: Edit button (disabled on company off-days) */}
-                {isCompanyOff ? (
-                  <span className="text-xs text-gray-300 px-2">Zi libera</span>
-                ) : (
-                  <Button variant="ghost" size="sm" onClick={() => openEditModal(gridIdx, date)} aria-label={`Editeaza ${DAY_NAMES[dow]}`}>
-                    Editeaza
-                  </Button>
-                )}
               </div>
               {/* Booking Pills */}
               {dayBookings.length > 0 && (
-                <div className="mt-3 flex flex-wrap gap-2">
+                <div className={cn('mt-3 flex flex-wrap gap-2', isPast && 'opacity-70')}>
                   {dayBookings.map((b) => (
                     <Link
                       key={b.id}
                       to={`/worker/comenzi/${b.id}`}
                       className="flex items-center gap-2 bg-primary/10 border border-primary/30 rounded-xl px-3 py-2 hover:bg-primary/20 transition-colors"
                     >
-                      <User className="h-3.5 w-3.5 text-primary" />
-                      <span className="text-sm font-medium text-primary">{b.client?.fullName ?? 'Client'}</span>
+                      <User className="h-3.5 w-3.5 text-primary shrink-0" />
+                      <span className="text-xs sm:text-sm font-medium text-primary">{b.client?.fullName ?? 'Client'}</span>
                       <span className="text-xs text-primary/70">{b.scheduledStartTime}</span>
                       <span className="text-xs text-primary/60 hidden sm:inline">{b.serviceName}</span>
                     </Link>

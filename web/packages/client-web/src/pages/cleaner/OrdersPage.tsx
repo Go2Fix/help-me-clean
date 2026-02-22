@@ -1,11 +1,12 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@apollo/client';
-import { Link } from 'react-router-dom';
-import { Search, ChevronLeft, ChevronRight, ClipboardList, Repeat } from 'lucide-react';
-import { cn } from '@go2fix/shared';
-import Badge from '@/components/ui/Badge';
+import { useNavigate } from 'react-router-dom';
+import { ClipboardList, ChevronRight, Search, Repeat } from 'lucide-react';
 import Card from '@/components/ui/Card';
+import Badge from '@/components/ui/Badge';
+import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import Select from '@/components/ui/Select';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { SEARCH_CLEANER_BOOKINGS } from '@/graphql/operations';
 
@@ -13,13 +14,15 @@ import { SEARCH_CLEANER_BOOKINGS } from '@/graphql/operations';
 
 const LIMIT = 20;
 
-const tabs: Array<{ label: string; value: string }> = [
-  { label: 'Toate', value: '' },
-  { label: 'Confirmate', value: 'confirmed' },
-  { label: 'In desfasurare', value: 'in_progress' },
-  { label: 'Finalizate', value: 'completed' },
-  { label: 'Anulate', value: 'cancelled' },
-];
+const statusBadgeVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
+  ASSIGNED: 'info',
+  CONFIRMED: 'info',
+  IN_PROGRESS: 'info',
+  COMPLETED: 'success',
+  CANCELLED_BY_CLIENT: 'danger',
+  CANCELLED_BY_COMPANY: 'danger',
+  CANCELLED_BY_ADMIN: 'danger',
+};
 
 const statusLabel: Record<string, string> = {
   ASSIGNED: 'Asignata',
@@ -31,20 +34,33 @@ const statusLabel: Record<string, string> = {
   CANCELLED_BY_ADMIN: 'Anulata de admin',
 };
 
-const statusColor: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
-  ASSIGNED: 'info',
-  CONFIRMED: 'info',
-  IN_PROGRESS: 'info',
-  COMPLETED: 'success',
-  CANCELLED_BY_CLIENT: 'danger',
-  CANCELLED_BY_COMPANY: 'danger',
-  CANCELLED_BY_ADMIN: 'danger',
-};
+const statusFilterOptions = [
+  { value: '', label: 'Toate statusurile' },
+  { value: 'confirmed', label: 'Confirmata' },
+  { value: 'in_progress', label: 'In desfasurare' },
+  { value: 'completed', label: 'Finalizata' },
+  { value: 'cancelled', label: 'Anulata' },
+];
+
+function formatDate(dateStr: string): string {
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('ro-RO', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  });
+}
+
+function formatRON(amount: string): string {
+  return amount + ' lei';
+}
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function OrdersPage() {
-  const [activeTab, setActiveTab] = useState('');
+  const navigate = useNavigate();
+
+  const [statusFilter, setStatusFilter] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [dateFrom, setDateFrom] = useState('');
@@ -60,12 +76,12 @@ export default function OrdersPage() {
   // Reset page when filters change
   useEffect(() => {
     setPage(0);
-  }, [debouncedQuery, activeTab, dateFrom, dateTo]);
+  }, [debouncedQuery, statusFilter, dateFrom, dateTo]);
 
   const { data, loading } = useQuery(SEARCH_CLEANER_BOOKINGS, {
     variables: {
       query: debouncedQuery || undefined,
-      status: activeTab || undefined,
+      status: statusFilter || undefined,
       dateFrom: dateFrom || undefined,
       dateTo: dateTo || undefined,
       limit: LIMIT,
@@ -74,38 +90,28 @@ export default function OrdersPage() {
   });
 
   const bookings = data?.searchCleanerBookings?.edges ?? [];
-  const hasNextPage: boolean = data?.searchCleanerBookings?.pageInfo?.hasNextPage ?? false;
   const totalCount: number = data?.searchCleanerBookings?.totalCount ?? 0;
-  const totalPages = useMemo(() => Math.max(1, Math.ceil(totalCount / LIMIT)), [totalCount]);
+  const totalPages = Math.max(1, Math.ceil(totalCount / LIMIT));
 
   return (
-    <div>
+    <div className="max-w-full overflow-hidden">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Comenzile mele</h1>
+        <p className="text-gray-500 mt-1">Gestioneaza comenzile asignate tie.</p>
       </div>
 
-      {/* Status tabs */}
-      <div className="flex gap-0 mb-6 overflow-x-auto border-b border-gray-200">
-        {tabs.map(({ label, value }) => (
-          <button
-            key={value}
-            onClick={() => setActiveTab(value)}
-            className={cn(
-              'px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors cursor-pointer border-b-2 -mb-px',
-              activeTab === value
-                ? 'border-[#2563EB] text-[#2563EB]'
-                : 'border-transparent text-gray-500 hover:text-gray-700',
-            )}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {/* Filters row */}
-      <div className="flex flex-wrap gap-3 mb-6">
-        <div className="relative flex-1 min-w-[200px]">
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row items-end gap-3 mb-6">
+        <div className="w-full sm:w-64">
+          <Select
+            options={statusFilterOptions}
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            label="Filtreaza dupa status"
+          />
+        </div>
+        <div className="relative flex-1 w-full min-w-0">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
             value={searchQuery}
@@ -114,121 +120,133 @@ export default function OrdersPage() {
             className="pl-9"
           />
         </div>
-        <div className="flex gap-3">
-          <Input
-            type="date"
-            value={dateFrom}
-            onChange={(e) => setDateFrom(e.target.value)}
-            label="De la"
-            className="w-auto"
-          />
-          <Input
-            type="date"
-            value={dateTo}
-            onChange={(e) => setDateTo(e.target.value)}
-            label="Pana la"
-            className="w-auto"
-          />
+        <div className="grid grid-cols-2 sm:flex sm:items-end gap-2 sm:gap-3 w-full sm:w-auto">
+          <div className="sm:w-40">
+            <Input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              label="De la"
+              className="appearance-none px-2 sm:px-4"
+            />
+          </div>
+          <div className="sm:w-40">
+            <Input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              label="Pana la"
+              className="appearance-none px-2 sm:px-4"
+            />
+          </div>
         </div>
       </div>
 
-      {/* Content */}
-      {loading ? (
-        <LoadingSpinner text="Se incarca comenzile..." />
-      ) : bookings.length === 0 ? (
-        <Card>
-          <div className="text-center py-12">
+      {/* Table Card */}
+      <Card padding={false}>
+        {loading ? (
+          <LoadingSpinner text="Se incarca comenzile..." />
+        ) : bookings.length === 0 ? (
+          <div className="text-center py-12 px-6">
             <ClipboardList className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-1">Nicio comanda gasita</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-1">Nicio comanda</h3>
             <p className="text-gray-500">Nu exista comenzi pentru filtrul selectat.</p>
           </div>
-        </Card>
-      ) : (
-        <>
-          {/* Booking cards */}
-          <div className="space-y-3">
-            {bookings.map((booking: Record<string, unknown>) => {
-              const status = (booking.status as string) || 'CONFIRMED';
-              const client = booking.client as Record<string, unknown> | null;
-              const address = booking.address as Record<string, unknown> | null;
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-y border-gray-100">
+                  <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Cod</th>
+                  <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">Data</th>
+                  <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">Client</th>
+                  <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Status</th>
+                  <th className="text-right px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Pret</th>
+                  <th className="px-2 md:px-6 py-3 w-8 md:w-10" />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {bookings.map((booking: Record<string, unknown>) => {
+                  const status = (booking.status as string) || 'CONFIRMED';
+                  const client = booking.client as Record<string, unknown> | null;
+                  const address = booking.address as Record<string, unknown> | null;
 
-              return (
-                <Link
-                  key={booking.id as string}
-                  to={`/worker/comenzi/${booking.id}`}
-                  className="block"
-                >
-                  <Card className="hover:border-[#2563EB]/30 transition-colors cursor-pointer">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3 mb-1">
-                          <p className="font-semibold text-gray-900">
+                  return (
+                    <tr
+                      key={booking.id as string}
+                      className="hover:bg-gray-50 transition-colors cursor-pointer"
+                      onClick={() => navigate(`/worker/comenzi/${booking.id}`)}
+                    >
+                      <td className="px-3 md:px-6 py-3 md:py-4">
+                        <div className="flex items-center gap-1.5 md:gap-2">
+                          <span className="font-semibold text-gray-900 text-xs md:text-sm">
                             #{booking.referenceCode as string}
-                          </p>
-                          <Badge variant={statusColor[status] ?? 'default'}>
-                            {statusLabel[status] ?? status}
-                          </Badge>
+                          </span>
                           {!!booking.recurringGroupId && (
-                            <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full flex items-center gap-1">
+                            <span className="text-xs font-medium text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
                               <Repeat className="h-3 w-3" />
-                              Recurent
+                              <span className="hidden md:inline">Recurent</span>
                             </span>
                           )}
                         </div>
-                        <p className="text-sm text-gray-600">
-                          {booking.serviceName as string} &middot;{' '}
-                          {booking.scheduledDate as string} la{' '}
-                          {booking.scheduledStartTime as string}
-                        </p>
-                        <p className="text-sm text-gray-500 mt-0.5">
-                          {client?.fullName as string}
-                          {address?.city ? ` \u2022 ${address.city as string}` : ''}
-                        </p>
-                      </div>
-                      <p className="text-lg font-bold text-gray-900 whitespace-nowrap">
-                        {booking.estimatedTotal as string} RON
-                      </p>
-                    </div>
-                  </Card>
-                </Link>
-              );
-            })}
+                      </td>
+                      <td className="px-3 md:px-6 py-3 md:py-4 text-gray-600 hidden sm:table-cell">
+                        {booking.scheduledDate
+                          ? `${formatDate(booking.scheduledDate as string)}${booking.scheduledStartTime ? ` la ${booking.scheduledStartTime as string}` : ''}`
+                          : '--'}
+                      </td>
+                      <td className="px-3 md:px-6 py-3 md:py-4 hidden sm:table-cell">
+                        <div>
+                          <p className="text-gray-900 text-sm">{(client?.fullName as string) || '--'}</p>
+                          {address?.city && (
+                            <p className="text-gray-500 text-xs">{address.city as string}</p>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-3 md:px-6 py-3 md:py-4">
+                        <Badge variant={statusBadgeVariant[status] ?? 'default'}>
+                          {statusLabel[status] ?? status}
+                        </Badge>
+                      </td>
+                      <td className="px-3 md:px-6 py-3 md:py-4 text-right font-bold text-gray-900 text-xs md:text-sm whitespace-nowrap">
+                        {formatRON(booking.estimatedTotal as string)}
+                      </td>
+                      <td className="px-2 md:px-6 py-3 md:py-4">
+                        <ChevronRight className="h-4 w-4 text-gray-400" />
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
+        )}
+      </Card>
 
-          {/* Pagination */}
-          <div className="flex items-center justify-center gap-4 mt-8">
-            <button
-              disabled={page === 0}
-              onClick={() => setPage((p) => p - 1)}
-              className={cn(
-                'flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-colors',
-                page === 0
-                  ? 'text-gray-300 cursor-not-allowed'
-                  : 'text-gray-600 hover:bg-gray-100 cursor-pointer',
-              )}
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Anterior
-            </button>
-            <span className="text-sm text-gray-600">
-              Pagina {page + 1} din {totalPages}
-            </span>
-            <button
-              disabled={!hasNextPage}
-              onClick={() => setPage((p) => p + 1)}
-              className={cn(
-                'flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-colors',
-                !hasNextPage
-                  ? 'text-gray-300 cursor-not-allowed'
-                  : 'text-gray-600 hover:bg-gray-100 cursor-pointer',
-              )}
-            >
-              Urmator
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
-        </>
-      )}
+      {/* Pagination */}
+      <div className="flex flex-wrap items-center justify-between gap-3 mt-6">
+        <span className="text-sm text-gray-500">
+          Pagina {page + 1} din {totalPages}
+        </span>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page === 0}
+            onClick={() => setPage((p) => p - 1)}
+          >
+            Anterior
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page >= totalPages - 1}
+            onClick={() => setPage((p) => p + 1)}
+          >
+            Urmator
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
