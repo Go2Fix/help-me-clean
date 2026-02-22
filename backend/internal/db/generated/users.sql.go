@@ -458,6 +458,36 @@ func (q *Queries) UpdateUserFCMToken(ctx context.Context, arg UpdateUserFCMToken
 	return err
 }
 
+const updateUserPhone = `-- name: UpdateUserPhone :one
+UPDATE users SET phone = $2, updated_at = NOW() WHERE id = $1 RETURNING id, email, full_name, phone, avatar_url, role, status, google_id, fcm_token, preferred_language, created_at, updated_at, stripe_customer_id
+`
+
+type UpdateUserPhoneParams struct {
+	ID    pgtype.UUID `json:"id"`
+	Phone pgtype.Text `json:"phone"`
+}
+
+func (q *Queries) UpdateUserPhone(ctx context.Context, arg UpdateUserPhoneParams) (User, error) {
+	row := q.db.QueryRow(ctx, updateUserPhone, arg.ID, arg.Phone)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.FullName,
+		&i.Phone,
+		&i.AvatarUrl,
+		&i.Role,
+		&i.Status,
+		&i.GoogleID,
+		&i.FcmToken,
+		&i.PreferredLanguage,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.StripeCustomerID,
+	)
+	return i, err
+}
+
 const updateUserRole = `-- name: UpdateUserRole :one
 UPDATE users SET role = $2, updated_at = NOW() WHERE id = $1 RETURNING id, email, full_name, phone, avatar_url, role, status, google_id, fcm_token, preferred_language, created_at, updated_at, stripe_customer_id
 `

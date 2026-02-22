@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
-import { Phone, FileText, Building2, Star, Briefcase, TrendingUp, Check, MapPin, Info } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import {
+  Phone, FileText, Building2, Star, Briefcase, TrendingUp,
+  Check, MapPin, Info, Brain, MessageSquare, Calendar,
+} from 'lucide-react';
 import { cn } from '@go2fix/shared';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
@@ -13,8 +17,8 @@ import {
   MY_CLEANER_PROFILE,
   MY_CLEANER_STATS,
   UPDATE_CLEANER_PROFILE,
-  ACCEPT_INVITATION,
   MY_CLEANER_SERVICE_AREAS,
+  MY_CLEANER_REVIEWS,
   UPLOAD_CLEANER_DOCUMENT,
   DELETE_CLEANER_DOCUMENT,
 } from '@/graphql/operations';
@@ -54,17 +58,55 @@ interface CleanerDocument {
   rejectionReason?: string;
 }
 
+interface Review {
+  id: string;
+  rating: number;
+  comment: string;
+  reviewType: string;
+  createdAt: string;
+  booking: { id: string; referenceCode: string } | null;
+  reviewer: { id: string; fullName: string } | null;
+}
+
+function formatMemberSince(dateStr: string): string {
+  try {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('ro-RO', { month: 'long', year: 'numeric' });
+  } catch {
+    return '';
+  }
+}
+
+function formatReviewDate(dateStr: string): string {
+  try {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('ro-RO', { day: 'numeric', month: 'short', year: 'numeric' });
+  } catch {
+    return '';
+  }
+}
+
+function renderStars(rating: number): string {
+  const full = Math.round(rating);
+  return '\u2605'.repeat(full) + '\u2606'.repeat(5 - full);
+}
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function SettingsPage() {
   const { data: profileData, loading: profileLoading } = useQuery(MY_CLEANER_PROFILE);
   const { data: statsData, loading: statsLoading } = useQuery(MY_CLEANER_STATS);
   const { data: areasData, loading: areasLoading } = useQuery(MY_CLEANER_SERVICE_AREAS);
+  const { data: reviewsData } = useQuery(MY_CLEANER_REVIEWS, {
+    variables: { limit: 3, offset: 0 },
+  });
 
   const profile = profileData?.myCleanerProfile;
   const stats = statsData?.myCleanerStats;
   const serviceAreas: { id: string; name: string; cityId: string; cityName: string }[] =
     areasData?.myCleanerServiceAreas ?? [];
+  const reviews: Review[] = reviewsData?.myCleanerReviews?.reviews ?? [];
+  const totalReviews: number = reviewsData?.myCleanerReviews?.totalCount ?? 0;
   const loading = profileLoading || statsLoading;
 
   // ─── Editable form state ────────────────────────────────────────────────
@@ -97,15 +139,6 @@ export default function SettingsPage() {
     }
   };
 
-  // ─── Invitation state ──────────────────────────────────────────────────
-  const [inviteToken, setInviteToken] = useState('');
-  const [inviteSuccess, setInviteSuccess] = useState('');
-  const [inviteError, setInviteError] = useState('');
-
-  const [acceptInvitation, { loading: accepting }] = useMutation(ACCEPT_INVITATION, {
-    refetchQueries: [{ query: MY_CLEANER_PROFILE }],
-  });
-
   // ─── Document upload state ────────────────────────────────────────────
   const [uploadDocument, { loading: uploading }] = useMutation(UPLOAD_CLEANER_DOCUMENT, {
     refetchQueries: [{ query: MY_CLEANER_PROFILE }],
@@ -137,23 +170,6 @@ export default function SettingsPage() {
     }
   };
 
-  const handleAcceptInvitation = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inviteToken.trim()) {
-      setInviteError('Te rugam sa introduci codul de invitatie.');
-      return;
-    }
-    setInviteError('');
-    setInviteSuccess('');
-    try {
-      await acceptInvitation({ variables: { token: inviteToken.trim() } });
-      setInviteSuccess('Invitatie acceptata cu succes!');
-      setInviteToken('');
-    } catch {
-      setInviteError('Codul de invitatie nu este valid sau a expirat.');
-    }
-  };
-
   // ─── Loading ───────────────────────────────────────────────────────────
   if (loading) {
     return (
@@ -165,12 +181,13 @@ export default function SettingsPage() {
   }
 
   const initial = profile?.fullName?.[0]?.toUpperCase() ?? '?';
+  const personalityDone = !!profile?.personalityAssessment?.completedAt;
 
   return (
     <div className="max-w-2xl">
       <h1 className="text-2xl font-bold text-gray-900 mb-8">Profil & Setari</h1>
 
-      {/* Profile Header */}
+      {/* ── 1. Profile Header ─────────────────────────────────────────── */}
       <Card className="mb-6">
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 rounded-full bg-primary text-white flex items-center justify-center text-xl font-bold shrink-0">
@@ -179,7 +196,7 @@ export default function SettingsPage() {
           <div className="min-w-0">
             <h2 className="text-lg font-bold text-gray-900">{profile?.fullName ?? '--'}</h2>
             <p className="text-sm text-gray-400">{profile?.email ?? '--'}</p>
-            <div className="flex items-center gap-2 mt-2">
+            <div className="flex flex-wrap items-center gap-2 mt-2">
               <Badge variant={statusVariant[profile?.status] || 'default'}>
                 {statusLabel[profile?.status] || profile?.status || '--'}
               </Badge>
@@ -189,14 +206,20 @@ export default function SettingsPage() {
                   {profile.company.companyName}
                 </span>
               )}
+              {profile?.createdAt && (
+                <span className="inline-flex items-center gap-1 text-xs text-gray-400">
+                  <Calendar className="h-3.5 w-3.5" />
+                  Membru din {formatMemberSince(profile.createdAt)}
+                </span>
+              )}
             </div>
           </div>
         </div>
       </Card>
 
-      {/* Stats Row */}
+      {/* ── 2. Stats Row ──────────────────────────────────────────────── */}
       {stats && (
-        <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           <Card>
             <div className="flex items-center gap-3">
               <div className="p-2.5 rounded-xl bg-amber-50">
@@ -207,6 +230,9 @@ export default function SettingsPage() {
                 <p className="text-xl font-bold text-gray-900">
                   {stats.averageRating ? `${Number(stats.averageRating).toFixed(1)} / 5` : '-- / 5'}
                 </p>
+                <p className="text-[11px] text-gray-400">
+                  {stats.totalReviews ?? 0} recenzii
+                </p>
               </div>
             </div>
           </Card>
@@ -216,8 +242,11 @@ export default function SettingsPage() {
                 <Briefcase className="h-5 w-5 text-blue-600" />
               </div>
               <div>
-                <p className="text-xs text-gray-500">Joburi</p>
+                <p className="text-xs text-gray-500">Joburi finalizate</p>
                 <p className="text-xl font-bold text-gray-900">{stats.totalJobsCompleted ?? 0}</p>
+                <p className="text-[11px] text-gray-400">
+                  {stats.thisMonthJobs ?? 0} luna aceasta
+                </p>
               </div>
             </div>
           </Card>
@@ -231,13 +260,88 @@ export default function SettingsPage() {
                 <p className="text-xl font-bold text-gray-900">
                   {stats.thisMonthEarnings ? `${Number(stats.thisMonthEarnings).toFixed(0)} RON` : '0 RON'}
                 </p>
+                <p className="text-[11px] text-gray-400">
+                  {stats.thisMonthJobs ?? 0} joburi
+                </p>
               </div>
             </div>
           </Card>
         </div>
       )}
 
-      {/* Work Areas (read-only) */}
+      {/* ── 3. Personality Test Status ────────────────────────────────── */}
+      <Card className="mb-6">
+        <div className="flex items-center gap-3">
+          <div className={cn('p-2.5 rounded-xl', personalityDone ? 'bg-emerald-50' : 'bg-amber-50')}>
+            <Brain className={cn('h-5 w-5', personalityDone ? 'text-emerald-500' : 'text-amber-500')} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-gray-900">Test de personalitate</p>
+            {personalityDone ? (
+              <p className="text-xs text-emerald-600 flex items-center gap-1 mt-0.5">
+                <Check className="h-3 w-3" />
+                Completat{profile?.personalityAssessment?.completedAt
+                  ? ` pe ${formatReviewDate(profile.personalityAssessment.completedAt)}`
+                  : ''}
+              </p>
+            ) : (
+              <p className="text-xs text-amber-600 mt-0.5">
+                Necesar pentru activare
+              </p>
+            )}
+          </div>
+          {!personalityDone && (
+            <Link to="/worker/test-personalitate">
+              <Button size="sm" variant="outline">Completeaza</Button>
+            </Link>
+          )}
+        </div>
+      </Card>
+
+      {/* ── 4. Recent Reviews ─────────────────────────────────────────── */}
+      <Card className="mb-6">
+        <div className="flex items-center gap-2 mb-4">
+          <MessageSquare className="h-5 w-5 text-blue-600" />
+          <h2 className="text-lg font-semibold text-gray-900">Recenzii recente</h2>
+          {totalReviews > 0 && (
+            <span className="text-xs text-gray-400 ml-auto">{totalReviews} total</span>
+          )}
+        </div>
+
+        {reviews.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            <div className="p-3 rounded-full bg-gray-100 mb-3">
+              <MessageSquare className="h-6 w-6 text-gray-400" />
+            </div>
+            <p className="text-sm text-gray-500">Nicio recenzie inca.</p>
+            <p className="text-xs text-gray-400 mt-1">Recenziile vor aparea dupa finalizarea comenzilor.</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {reviews.map((review) => (
+              <div key={review.id} className="p-3 rounded-xl bg-gray-50 border border-gray-100">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-amber-500 text-sm tracking-wider">{renderStars(review.rating)}</span>
+                    <span className="text-xs font-medium text-gray-700">
+                      {review.reviewer?.fullName ?? 'Client'}
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-gray-400">{formatReviewDate(review.createdAt)}</span>
+                </div>
+                {review.comment && (
+                  <p className="text-sm text-gray-600 line-clamp-2">{review.comment}</p>
+                )}
+                {review.booking?.referenceCode && (
+                  <p className="text-[11px] text-gray-400 mt-1">#{review.booking.referenceCode}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+
+      {/* ── 5. Work Areas (read-only) ─────────────────────────────────── */}
       <Card className="mb-6">
         <div className="flex items-center gap-2 mb-4">
           <MapPin className="h-5 w-5 text-blue-600" />
@@ -288,7 +392,7 @@ export default function SettingsPage() {
         </div>
       </Card>
 
-      {/* My Documents */}
+      {/* ── 6. My Documents ───────────────────────────────────────────── */}
       {profile && (
         <Card className="mb-6">
           <div className="flex items-center gap-2 mb-4">
@@ -337,8 +441,8 @@ export default function SettingsPage() {
         </Card>
       )}
 
-      {/* Editable Profile Form */}
-      <Card className="mb-6">
+      {/* ── 7. Editable Profile Form ──────────────────────────────────── */}
+      <Card>
         <h2 className="text-lg font-semibold text-gray-900 mb-6">Informatii profil</h2>
         <form onSubmit={handleSave} className="space-y-5">
           <div className="relative">
@@ -381,35 +485,6 @@ export default function SettingsPage() {
           )}
           <Button type="submit" loading={saving}>
             Salveaza modificarile
-          </Button>
-        </form>
-      </Card>
-
-      {/* Accept Invitation */}
-      <Card>
-        <h2 className="text-lg font-semibold text-gray-900 mb-2">Accepta invitatie</h2>
-        <p className="text-sm text-gray-500 mb-4">
-          Ai primit un cod de invitatie de la o companie? Introdu-l mai jos.
-        </p>
-        <form onSubmit={handleAcceptInvitation} className="space-y-4">
-          <Input
-            value={inviteToken}
-            onChange={(e) => setInviteToken(e.target.value)}
-            placeholder="Cod invitatie (ex: inv-abc123...)"
-          />
-          {inviteSuccess && (
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-700">
-              <Check className="h-4 w-4 shrink-0" />
-              {inviteSuccess}
-            </div>
-          )}
-          {inviteError && (
-            <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">
-              {inviteError}
-            </div>
-          )}
-          <Button type="submit" loading={accepting}>
-            Accepta invitatia
           </Button>
         </form>
       </Card>

@@ -364,6 +364,7 @@ type Querier interface {
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 	UpdateUserAvatar(ctx context.Context, arg UpdateUserAvatarParams) (User, error)
 	UpdateUserFCMToken(ctx context.Context, arg UpdateUserFCMTokenParams) error
+	UpdateUserPhone(ctx context.Context, arg UpdateUserPhoneParams) (User, error)
 	UpdateUserRole(ctx context.Context, arg UpdateUserRoleParams) (User, error)
 	UpdateUserStatus(ctx context.Context, arg UpdateUserStatusParams) (User, error)
 	UpsertCleanerDateOverride(ctx context.Context, arg UpsertCleanerDateOverrideParams) (CleanerDateOverride, error)

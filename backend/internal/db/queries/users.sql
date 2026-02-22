@@ -56,5 +56,8 @@ UPDATE users SET full_name = $2, phone = $3, updated_at = NOW() WHERE id = $1 RE
 -- name: UpdateUserAvatar :one
 UPDATE users SET avatar_url = $2, updated_at = NOW() WHERE id = $1 RETURNING *;
 
+-- name: UpdateUserPhone :one
+UPDATE users SET phone = $2, updated_at = NOW() WHERE id = $1 RETURNING *;
+
 -- name: DeleteUser :exec
 DELETE FROM users WHERE id = $1;

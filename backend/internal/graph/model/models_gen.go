@@ -879,7 +879,8 @@ type UpdateAddressInput struct {
 }
 
 type UpdateCleanerProfileInput struct {
-	Bio *string `json:"bio,omitempty"`
+	Bio   *string `json:"bio,omitempty"`
+	Phone *string `json:"phone,omitempty"`
 }
 
 type UpdateCompanyInput struct {

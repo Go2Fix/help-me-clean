@@ -333,7 +333,6 @@ func (r *mutationResolver) UpdateCleanerProfile(ctx context.Context, input model
 		return nil, fmt.Errorf("cleaner profile not found: %w", err)
 	}
 
-	// Update bio only (phone is now in users table, use updateProfile mutation instead)
 	if input.Bio != nil {
 		cleaner, err = r.Queries.UpdateCleanerBio(ctx, db.UpdateCleanerBioParams{
 			ID:  cleaner.ID,
@@ -341,6 +340,16 @@ func (r *mutationResolver) UpdateCleanerProfile(ctx context.Context, input model
 		})
 		if err != nil {
 			return nil, fmt.Errorf("failed to update bio: %w", err)
+		}
+	}
+
+	if input.Phone != nil {
+		_, err = r.Queries.UpdateUserPhone(ctx, db.UpdateUserPhoneParams{
+			ID:    stringToUUID(claims.UserID),
+			Phone: stringToText(input.Phone),
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to update phone: %w", err)
 		}
 	}
 

@@ -39815,7 +39815,7 @@ func (ec *executionContext) unmarshalInputUpdateCleanerProfileInput(ctx context.
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"bio"}
+	fieldsInOrder := [...]string{"bio", "phone"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -39829,6 +39829,13 @@ func (ec *executionContext) unmarshalInputUpdateCleanerProfileInput(ctx context.
 				return it, err
 			}
 			it.Bio = data
+		case "phone":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phone"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Phone = data
 		}
 	}
 

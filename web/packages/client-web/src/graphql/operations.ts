@@ -2063,6 +2063,7 @@ export const MY_CLEANER_PROFILE = gql`
         id
         completedAt
       }
+      createdAt
     }
   }
 `;
