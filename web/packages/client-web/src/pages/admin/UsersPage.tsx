@@ -192,7 +192,7 @@ export default function UsersPage() {
         ) : (
           <>
             {/* Table Header */}
-            <div className="hidden md:grid grid-cols-[1fr_1fr_auto_auto_auto] gap-4 px-6 py-3 border-b border-gray-200 bg-gray-50 rounded-t-xl">
+            <div className="hidden md:grid grid-cols-[1fr_1fr_auto_auto_auto] gap-4 px-3 md:px-6 py-3 border-b border-gray-200 bg-gray-50 rounded-t-xl">
               <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Utilizator
               </span>
@@ -216,7 +216,7 @@ export default function UsersPage() {
                 key={user.id}
                 onClick={() => navigate(`/admin/utilizatori/${user.id}`)}
                 className={cn(
-                  'grid grid-cols-1 md:grid-cols-[1fr_1fr_auto_auto_auto] gap-2 md:gap-4 items-center px-6 py-4 border-b border-gray-100 last:border-b-0 cursor-pointer transition-colors hover:bg-gray-50',
+                  'grid grid-cols-1 md:grid-cols-[1fr_1fr_auto_auto_auto] gap-2 md:gap-4 items-center px-3 md:px-6 py-4 border-b border-gray-100 last:border-b-0 cursor-pointer transition-colors hover:bg-gray-50',
                 )}
               >
                 {/* Name + Avatar */}

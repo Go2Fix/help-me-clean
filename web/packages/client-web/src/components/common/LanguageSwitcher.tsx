@@ -4,7 +4,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { usePageAlternate } from '@/context/PageAlternateContext';
 import { getAlternatePath, type SupportedLanguage } from '@/i18n/routes';
 
-export default function LanguageSwitcher({ className }: { className?: string }) {
+export default function LanguageSwitcher({ className, variant = 'light' }: { className?: string; variant?: 'light' | 'dark' }) {
   const { lang } = useLanguage();
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -29,20 +29,24 @@ export default function LanguageSwitcher({ className }: { className?: string }) 
           'px-2 py-1 rounded-lg transition-colors cursor-pointer',
           lang === 'ro'
             ? 'bg-primary text-white'
-            : 'text-gray-500 hover:text-gray-900',
+            : variant === 'dark'
+              ? 'text-gray-400 hover:text-white'
+              : 'text-gray-500 hover:text-gray-900',
         )}
         aria-label="Română"
       >
         RO
       </button>
-      <span className="text-gray-300 mx-0.5">|</span>
+      <span className={cn('mx-0.5', variant === 'dark' ? 'text-gray-600' : 'text-gray-300')}>|</span>
       <button
         onClick={() => switchTo('en')}
         className={cn(
           'px-2 py-1 rounded-lg transition-colors cursor-pointer',
           lang === 'en'
             ? 'bg-primary text-white'
-            : 'text-gray-500 hover:text-gray-900',
+            : variant === 'dark'
+              ? 'text-gray-400 hover:text-white'
+              : 'text-gray-500 hover:text-gray-900',
         )}
         aria-label="English"
       >

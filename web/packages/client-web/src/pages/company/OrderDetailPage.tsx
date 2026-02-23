@@ -545,7 +545,7 @@ export default function OrderDetailPage() {
               })}
             </div>
             {booking.cancellationReason && (
-              <div className="mt-4 pt-4 border-t border-gray-100 flex items-start gap-2 bg-red-50 -mx-6 -mb-6 px-6 py-4 rounded-b-xl">
+              <div className="mt-4 pt-4 border-t border-gray-100 flex items-start gap-2 bg-red-50 -mx-4 sm:-mx-6 -mb-4 sm:-mb-6 px-4 sm:px-6 py-4 rounded-b-xl">
                 <AlertCircle className="h-4 w-4 text-red-500 mt-0.5 shrink-0" />
                 <div>
                   <p className="text-sm font-medium text-red-700">Motiv anulare</p>
@@ -830,7 +830,7 @@ export default function OrderDetailPage() {
                 </span>
                 <span className="text-red-600 font-medium">-{formatCurrency(commissionAmount)}</span>
               </div>
-              <div className="flex justify-between bg-emerald-50 -mx-6 px-6 py-2 rounded">
+              <div className="flex justify-between bg-emerald-50 -mx-4 sm:-mx-6 px-4 sm:px-6 py-2 rounded">
                 <span className="font-bold text-gray-900">Castigul tau net</span>
                 <span className="font-bold text-emerald-600">{formatCurrency(netEarnings)}</span>
               </div>

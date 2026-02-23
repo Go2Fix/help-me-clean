@@ -12,7 +12,8 @@
     "companyPanel": "Panoul firmei",
     "myPanel": "Panoul meu",
     "adminPanel": "Panou admin",
-    "logout": "Deconectare"
+    "logout": "Deconectare",
+    "contact": "Contact"
   },
   "footer": {
     "tagline": "Prima platforma de tip marketplace din Romania care conecteaza clientii cu firme de curatenie verificate. Plati digitale, facturare automata, transparenta totala.",

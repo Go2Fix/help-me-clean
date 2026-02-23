@@ -60,7 +60,8 @@
     "step2Desc": "Confirm the details and place your order. A company will accept quickly.",
     "step3Title": "Enjoy the result",
     "step3Desc": "The team comes to you. You relax, we handle the rest.",
-    "cta": "Book now"
+    "cta": "Book now",
+    "ctaWaitlist": "Join the waitlist"
   },
   "stats": {
     "bookings": "Bookings made",

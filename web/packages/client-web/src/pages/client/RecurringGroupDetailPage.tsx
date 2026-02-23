@@ -138,8 +138,8 @@ export default function RecurringGroupDetailPage() {
   if (loading) return <LoadingSpinner text="Se incarca detaliile..." />;
   if (error || !data?.recurringGroup) {
     return (
-      <div className="py-10 sm:py-16">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
+      <div className="py-4 sm:py-8">
+        <div className="max-w-3xl mx-auto sm:px-2 text-center">
           <p className="text-danger mb-4">Nu am putut incarca seria recurenta.</p>
           <Button variant="outline" onClick={() => navigate('/cont/comenzi')}>
             Inapoi la comenzi
@@ -152,8 +152,8 @@ export default function RecurringGroupDetailPage() {
   const group = data.recurringGroup;
 
   return (
-    <div className="py-10 sm:py-16">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6">
+    <div className="py-4 sm:py-8">
+      <div className="max-w-3xl mx-auto sm:px-2">
         {/* Back button */}
         <button
           onClick={() => navigate('/cont/comenzi')}

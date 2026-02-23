@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { usePlatform } from '@/context/PlatformContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { ROUTE_MAP } from '@/i18n/routes';
+import LanguageSwitcher from '@/components/common/LanguageSwitcher';
 
 export default function Footer() {
   const { t } = useTranslation('common');
@@ -86,8 +87,16 @@ export default function Footer() {
           <div>
             <h4 className="text-white font-semibold mb-3">{t('footer.contact')}</h4>
             <ul className="space-y-2 text-sm">
-              <li>{t('footer.email')}</li>
-              <li>{t('footer.phone')}</li>
+              <li>
+                <a href={`mailto:${t('footer.email')}`} className="hover:text-white transition">
+                  {t('footer.email')}
+                </a>
+              </li>
+              <li>
+                <a href={`tel:${t('footer.phone').replace(/\s/g, '')}`} className="hover:text-white transition">
+                  {t('footer.phone')}
+                </a>
+              </li>
               <li>{t('footer.city')}</li>
             </ul>
           </div>
@@ -110,8 +119,9 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-10 pt-6 border-t border-gray-800 text-sm text-center">
-          &copy; {currentYear} Go2Fix. {t('footer.rights')}
+        <div className="mt-10 pt-6 border-t border-gray-800 text-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+          <p>&copy; {currentYear} Go2Fix. {t('footer.rights')}</p>
+          <LanguageSwitcher variant="dark" />
         </div>
       </div>
     </footer>

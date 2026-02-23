@@ -12,7 +12,8 @@
     "companyPanel": "Company panel",
     "myPanel": "My panel",
     "adminPanel": "Admin panel",
-    "logout": "Sign out"
+    "logout": "Sign out",
+    "contact": "Contact"
   },
   "footer": {
     "tagline": "Romania's first cleaning marketplace connecting clients with verified cleaning companies. Digital payments, automatic invoicing, total transparency.",

@@ -273,14 +273,14 @@ export default function ClientDashboardPage() {
         {/* Left Column — Upcoming Bookings */}
         <div className="lg:col-span-3">
           <Card padding={false}>
-            <div className="px-6 pt-6 pb-4 border-b border-gray-100">
+            <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-gray-100">
               <h2 className="text-lg font-semibold text-gray-900">
                 Urmatoarele comenzi
               </h2>
             </div>
 
             {isLoading ? (
-              <div className="p-6 space-y-4">
+              <div className="p-4 sm:p-6 space-y-4">
                 {[1, 2, 3].map((i) => (
                   <div key={i} className="animate-pulse flex items-center gap-4">
                     <div className="w-11 h-11 rounded-xl bg-gray-200 shrink-0" />
@@ -308,7 +308,7 @@ export default function ClientDashboardPage() {
                     key={booking.id}
                     type="button"
                     onClick={() => navigate(`/cont/comenzi/${booking.id}`)}
-                    className="w-full flex items-center gap-4 px-6 py-4 hover:bg-gray-50 transition-colors text-left cursor-pointer"
+                    className="w-full flex items-center gap-4 px-4 sm:px-6 py-3 sm:py-4 hover:bg-gray-50 transition-colors text-left cursor-pointer"
                   >
                     <div className="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center shrink-0 text-lg select-none">
                       {SERVICE_ICONS[booking.serviceType] ?? '\u{1F9F9}'}
@@ -337,7 +337,7 @@ export default function ClientDashboardPage() {
             )}
 
             {upcomingBookings.length > 0 && (
-              <div className="px-6 py-3 border-t border-gray-100">
+              <div className="px-4 sm:px-6 py-3 border-t border-gray-100">
                 <button
                   type="button"
                   onClick={() => navigate('/cont/comenzi')}
@@ -354,7 +354,7 @@ export default function ClientDashboardPage() {
         <div className="lg:col-span-2 space-y-6">
           {/* Recurring Subscriptions */}
           <Card padding={false}>
-            <div className="px-6 pt-6 pb-4 border-b border-gray-100">
+            <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-gray-100">
               <div className="flex items-center gap-2">
                 <Repeat className="h-4 w-4 text-blue-600" />
                 <h2 className="text-lg font-semibold text-gray-900">
@@ -364,7 +364,7 @@ export default function ClientDashboardPage() {
             </div>
 
             {isLoading ? (
-              <div className="p-6 space-y-3">
+              <div className="p-4 sm:p-6 space-y-3">
                 {[1, 2].map((i) => (
                   <div key={i} className="animate-pulse space-y-2">
                     <div className="h-4 w-36 bg-gray-200 rounded" />
@@ -373,7 +373,7 @@ export default function ClientDashboardPage() {
                 ))}
               </div>
             ) : activeRecurring.length === 0 ? (
-              <div className="p-6 text-center">
+              <div className="p-4 sm:p-6 text-center">
                 <Repeat className="h-8 w-8 text-gray-300 mx-auto mb-2" />
                 <p className="text-sm text-gray-500">Nu ai abonamente active</p>
               </div>
@@ -386,7 +386,7 @@ export default function ClientDashboardPage() {
                       key={group.id}
                       type="button"
                       onClick={() => navigate(`/cont/recurente/${group.id}`)}
-                      className="w-full flex items-center justify-between px-6 py-4 hover:bg-gray-50 transition-colors text-left cursor-pointer"
+                      className="w-full flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 hover:bg-gray-50 transition-colors text-left cursor-pointer"
                     >
                       <div className="min-w-0">
                         <p className="text-sm font-semibold text-gray-900 truncate">
@@ -413,7 +413,7 @@ export default function ClientDashboardPage() {
 
           {/* Quick Actions */}
           <Card padding={false}>
-            <div className="px-6 pt-6 pb-4 border-b border-gray-100">
+            <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-gray-100">
               <h2 className="text-lg font-semibold text-gray-900">
                 Actiuni rapide
               </h2>
@@ -424,7 +424,7 @@ export default function ClientDashboardPage() {
                   key={action.path}
                   type="button"
                   onClick={() => navigate(action.path)}
-                  className="w-full flex items-center gap-3 px-6 py-3.5 hover:bg-gray-50 transition-colors text-left cursor-pointer"
+                  className="w-full flex items-center gap-3 px-4 sm:px-6 py-3 sm:py-3.5 hover:bg-gray-50 transition-colors text-left cursor-pointer"
                 >
                   <action.icon className="h-4.5 w-4.5 text-gray-400 shrink-0" />
                   <span className="text-sm font-medium text-gray-700 flex-1">

@@ -444,9 +444,15 @@ export default function HomePage() {
           </div>
 
           <div className="text-center mt-12">
-            <Button size="lg" onClick={() => navigate(ROUTE_MAP.booking[lang])}>
-              {t('howItWorks.cta')} <ArrowRight className="h-5 w-5" />
-            </Button>
+            {isPreRelease ? (
+              <Button size="lg" onClick={() => navigate(ROUTE_MAP.waitlist[lang])}>
+                {t('howItWorks.ctaWaitlist')} <ArrowRight className="h-5 w-5" />
+              </Button>
+            ) : (
+              <Button size="lg" onClick={() => navigate(ROUTE_MAP.booking[lang])}>
+                {t('howItWorks.cta')} <ArrowRight className="h-5 w-5" />
+              </Button>
+            )}
           </div>
         </div>
       </section>
@@ -478,7 +484,7 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
             {TRUST_ITEM_STYLES.map((item) => (
               <div
                 key={item.key}
@@ -578,7 +584,7 @@ export default function HomePage() {
               ))}
             </div>
 
-            <Link to="/inregistrare-firma">
+            <Link to={ROUTE_MAP.registerFirm[lang]}>
               <Button size="lg">
                 {t('partners.cta')} <ArrowRight className="h-5 w-5" />
               </Button>

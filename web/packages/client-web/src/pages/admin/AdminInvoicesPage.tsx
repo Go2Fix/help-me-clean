@@ -385,7 +385,7 @@ export default function AdminInvoicesPage() {
 
       {/* Invoices Table */}
       <Card padding={false}>
-        <div className="flex items-center gap-3 px-6 pt-6 mb-6">
+        <div className="flex items-center gap-3 px-3 md:px-6 pt-4 md:pt-6 mb-6">
           <FileText className="h-5 w-5 text-primary" />
           <h3 className="text-lg font-semibold text-gray-900">Toate facturile</h3>
           {totalCount > 0 && (
@@ -394,7 +394,7 @@ export default function AdminInvoicesPage() {
         </div>
 
         {loading ? (
-          <div className="px-6 pb-6">
+          <div className="px-3 md:px-6 pb-4 md:pb-6">
             <LoadingSpinner text="Se incarca facturile..." />
           </div>
         ) : invoices.length === 0 ? (
@@ -404,15 +404,15 @@ export default function AdminInvoicesPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-gray-500 border-b border-gray-200">
-                  <th className="px-6 pb-3 font-medium">Nr. Factura</th>
-                  <th className="px-6 pb-3 font-medium">Tip</th>
-                  <th className="px-6 pb-3 font-medium">Data</th>
-                  <th className="px-6 pb-3 font-medium">Vanzator</th>
-                  <th className="px-6 pb-3 font-medium">Cumparator</th>
-                  <th className="px-6 pb-3 font-medium text-right">Suma</th>
-                  <th className="px-6 pb-3 font-medium">Status</th>
-                  <th className="px-6 pb-3 font-medium">E-Factura</th>
-                  <th className="px-6 pb-3 font-medium text-right">Actiuni</th>
+                  <th className="px-3 md:px-6 pb-3 font-medium">Nr. Factura</th>
+                  <th className="px-3 md:px-6 pb-3 font-medium">Tip</th>
+                  <th className="px-3 md:px-6 pb-3 font-medium">Data</th>
+                  <th className="px-3 md:px-6 pb-3 font-medium">Vanzator</th>
+                  <th className="px-3 md:px-6 pb-3 font-medium">Cumparator</th>
+                  <th className="px-3 md:px-6 pb-3 font-medium text-right">Suma</th>
+                  <th className="px-3 md:px-6 pb-3 font-medium">Status</th>
+                  <th className="px-3 md:px-6 pb-3 font-medium">E-Factura</th>
+                  <th className="px-3 md:px-6 pb-3 font-medium text-right">Actiuni</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -421,37 +421,37 @@ export default function AdminInvoicesPage() {
 
                   return (
                     <tr key={invoice.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-3 font-medium text-gray-900">
+                      <td className="px-3 md:px-6 py-3 font-medium text-gray-900">
                         {invoice.invoiceNumber}
                       </td>
-                      <td className="px-6 py-3 text-gray-600">
+                      <td className="px-3 md:px-6 py-3 text-gray-600">
                         <Badge variant="default">
                           {invoiceTypeLabel[invoice.invoiceType] ?? invoice.invoiceType}
                         </Badge>
                       </td>
-                      <td className="px-6 py-3 text-gray-600">
+                      <td className="px-3 md:px-6 py-3 text-gray-600">
                         {new Date(invoice.issuedAt || invoice.createdAt).toLocaleDateString('ro-RO')}
                       </td>
-                      <td className="px-6 py-3 text-gray-600">
+                      <td className="px-3 md:px-6 py-3 text-gray-600">
                         {invoice.sellerCompanyName}
                       </td>
-                      <td className="px-6 py-3 text-gray-600">
+                      <td className="px-3 md:px-6 py-3 text-gray-600">
                         {invoice.buyerName}
                       </td>
-                      <td className="px-6 py-3 text-right font-semibold text-gray-900">
+                      <td className="px-3 md:px-6 py-3 text-right font-semibold text-gray-900">
                         {formatRON(invoice.totalAmount)}
                       </td>
-                      <td className="px-6 py-3">
+                      <td className="px-3 md:px-6 py-3">
                         <Badge variant={invoiceStatusVariant[invoice.status] ?? 'default'}>
                           {invoiceStatusLabel[invoice.status] ?? invoice.status}
                         </Badge>
                       </td>
-                      <td className="px-6 py-3">
+                      <td className="px-3 md:px-6 py-3">
                         <Badge variant={efacturaStatusVariant[efStatus] ?? 'default'}>
                           {efacturaStatusLabel[efStatus] ?? efStatus}
                         </Badge>
                       </td>
-                      <td className="px-6 py-3">
+                      <td className="px-3 md:px-6 py-3">
                         <div className="flex items-center justify-end gap-1">
                           {/* Download PDF */}
                           {invoice.downloadUrl && (

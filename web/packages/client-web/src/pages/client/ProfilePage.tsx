@@ -121,8 +121,8 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="py-8 sm:py-16">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6">
+    <div className="py-2 sm:py-8">
+      <div className="max-w-2xl mx-auto sm:px-2">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Profilul meu</h1>

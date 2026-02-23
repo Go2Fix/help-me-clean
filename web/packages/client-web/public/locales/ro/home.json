@@ -60,7 +60,8 @@
     "step2Desc": "Confirmă detaliile și plasează comanda. O firmă va prelua cererea ta rapid.",
     "step3Title": "Bucură-te de rezultat",
     "step3Desc": "Echipa vine la tine. Tu te relaxezi, noi ne ocupăm de restul.",
-    "cta": "Rezervă acum"
+    "cta": "Rezervă acum",
+    "ctaWaitlist": "Inscrie-te pe lista de asteptare"
   },
   "stats": {
     "bookings": "Rezervări efectuate",

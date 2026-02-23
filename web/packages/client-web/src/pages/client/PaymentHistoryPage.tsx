@@ -141,11 +141,11 @@ export default function PaymentHistoryPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-200">
-                  <th className="text-left px-6 py-3 font-medium text-gray-500">Data</th>
-                  <th className="text-left px-6 py-3 font-medium text-gray-500">Referinta</th>
-                  <th className="text-right px-6 py-3 font-medium text-gray-500">Suma (RON)</th>
-                  <th className="text-center px-6 py-3 font-medium text-gray-500">Status</th>
-                  <th className="px-6 py-3 w-10" />
+                  <th className="text-left px-3 md:px-6 py-3 font-medium text-gray-500">Data</th>
+                  <th className="text-left px-3 md:px-6 py-3 font-medium text-gray-500">Referinta</th>
+                  <th className="text-right px-3 md:px-6 py-3 font-medium text-gray-500">Suma (RON)</th>
+                  <th className="text-center px-3 md:px-6 py-3 font-medium text-gray-500">Status</th>
+                  <th className="px-3 md:px-6 py-3 w-10" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -165,10 +165,10 @@ export default function PaymentHistoryPage() {
                           : ''
                       }
                     >
-                      <td className="px-6 py-4 text-gray-900 whitespace-nowrap">
+                      <td className="px-3 md:px-6 py-4 text-gray-900 whitespace-nowrap">
                         {formatDate(payment.createdAt)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-3 md:px-6 py-4 whitespace-nowrap">
                         {payment.booking ? (
                           <div>
                             <span className="font-medium text-gray-900">
@@ -182,13 +182,13 @@ export default function PaymentHistoryPage() {
                           <span className="text-gray-400">-</span>
                         )}
                       </td>
-                      <td className="px-6 py-4 text-right font-medium text-gray-900 whitespace-nowrap">
+                      <td className="px-3 md:px-6 py-4 text-right font-medium text-gray-900 whitespace-nowrap">
                         {formatAmount(payment.amount)}
                       </td>
-                      <td className="px-6 py-4 text-center">
+                      <td className="px-3 md:px-6 py-4 text-center">
                         <Badge variant={cfg.variant}>{cfg.label}</Badge>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-3 md:px-6 py-4">
                         {payment.booking && (
                           <ChevronRight className="h-4 w-4 text-gray-400" />
                         )}
@@ -202,7 +202,7 @@ export default function PaymentHistoryPage() {
 
           {/* Load More */}
           {hasMore && (
-            <div className="px-6 py-4 border-t border-gray-100 text-center">
+            <div className="px-3 md:px-6 py-4 border-t border-gray-100 text-center">
               <Button variant="ghost" onClick={handleLoadMore}>
                 Incarca mai multe
               </Button>

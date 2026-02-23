@@ -569,12 +569,12 @@ export default function InvoicesPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-200">
-                  <th className="text-left px-6 py-3 font-medium text-gray-500">Nr. factura</th>
-                  <th className="text-left px-6 py-3 font-medium text-gray-500">Data</th>
-                  <th className="text-left px-6 py-3 font-medium text-gray-500 hidden sm:table-cell">Furnizor</th>
-                  <th className="text-right px-6 py-3 font-medium text-gray-500">Suma (RON)</th>
-                  <th className="text-center px-6 py-3 font-medium text-gray-500 hidden sm:table-cell">Status</th>
-                  <th className="px-6 py-3 w-10" />
+                  <th className="text-left px-3 md:px-6 py-3 font-medium text-gray-500">Nr. factura</th>
+                  <th className="text-left px-3 md:px-6 py-3 font-medium text-gray-500">Data</th>
+                  <th className="text-left px-3 md:px-6 py-3 font-medium text-gray-500 hidden sm:table-cell">Furnizor</th>
+                  <th className="text-right px-3 md:px-6 py-3 font-medium text-gray-500">Suma (RON)</th>
+                  <th className="text-center px-3 md:px-6 py-3 font-medium text-gray-500 hidden sm:table-cell">Status</th>
+                  <th className="px-3 md:px-6 py-3 w-10" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -594,22 +594,22 @@ export default function InvoicesPage() {
                         className="hover:bg-gray-50 transition-colors cursor-pointer group"
                         onClick={() => handleToggleInvoice(inv.id)}
                       >
-                        <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
+                        <td className="px-3 md:px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
                           {inv.invoiceNumber}
                         </td>
-                        <td className="px-6 py-4 text-gray-600 whitespace-nowrap">
+                        <td className="px-3 md:px-6 py-4 text-gray-600 whitespace-nowrap">
                           {formatDate(inv.issuedAt)}
                         </td>
-                        <td className="px-6 py-4 text-gray-600 whitespace-nowrap hidden sm:table-cell">
+                        <td className="px-3 md:px-6 py-4 text-gray-600 whitespace-nowrap hidden sm:table-cell">
                           {inv.sellerCompanyName}
                         </td>
-                        <td className="px-6 py-4 text-right font-medium text-gray-900 whitespace-nowrap">
+                        <td className="px-3 md:px-6 py-4 text-right font-medium text-gray-900 whitespace-nowrap">
                           {formatAmount(inv.totalAmount)}
                         </td>
-                        <td className="px-6 py-4 text-center hidden sm:table-cell">
+                        <td className="px-3 md:px-6 py-4 text-center hidden sm:table-cell">
                           <Badge variant={cfg.variant}>{cfg.label}</Badge>
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-3 md:px-6 py-4">
                           <div className="flex items-center gap-1">
                             {inv.downloadUrl && (
                               <a
@@ -635,7 +635,7 @@ export default function InvoicesPage() {
                       {/* Expanded detail row */}
                       {isExpanded && (
                         <tr>
-                          <td colSpan={6} className="px-6 py-5 bg-gray-50">
+                          <td colSpan={6} className="px-3 md:px-6 py-5 bg-gray-50">
                             {loadingDetail && !detail && (
                               <div className="flex items-center gap-2 text-sm text-gray-500">
                                 <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -783,7 +783,7 @@ export default function InvoicesPage() {
 
           {/* Load More */}
           {hasMore && (
-            <div className="px-6 py-4 border-t border-gray-100 text-center">
+            <div className="px-3 md:px-6 py-4 border-t border-gray-100 text-center">
               <Button variant="ghost" onClick={handleLoadMore}>
                 Incarca mai multe
               </Button>

@@ -16,7 +16,7 @@ export default function Card({
     <div
       className={cn(
         'bg-white rounded-xl border border-gray-200 shadow-sm',
-        padding && 'p-6',
+        padding && 'p-4 sm:p-6',
         className,
       )}
       {...props}

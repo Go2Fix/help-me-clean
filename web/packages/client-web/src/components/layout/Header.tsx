@@ -8,7 +8,6 @@ import { usePlatform } from '@/context/PlatformContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { ROUTE_MAP } from '@/i18n/routes';
 import Button from '@/components/ui/Button';
-import LanguageSwitcher from '@/components/common/LanguageSwitcher';
 
 function UserAvatar({ name, avatarUrl }: { name: string; avatarUrl?: string | null }) {
   const initials = name
@@ -157,7 +156,7 @@ export default function Header() {
                   {t('nav.services')}
                 </a>
                 <a
-                  href="#cum-functioneaza"
+                  href="/#cum-functioneaza"
                   className="text-sm text-gray-500 hover:text-gray-900 font-medium transition"
                 >
                   {t('nav.howItWorks')}
@@ -168,6 +167,9 @@ export default function Header() {
                 <Link to={ROUTE_MAP.about[lang]} className="text-sm text-gray-600 hover:text-gray-900 font-medium transition-colors">
                   {t('nav.about')}
                 </Link>
+                <Link to={ROUTE_MAP.contact[lang]} className="text-sm text-gray-600 hover:text-gray-900 font-medium transition-colors">
+                  {t('nav.contact')}
+                </Link>
                 {!isPreRelease && (
                   <Link
                     to={ROUTE_MAP.login[lang]}
@@ -176,7 +178,6 @@ export default function Header() {
                     {t('nav.login')}
                   </Link>
                 )}
-                <LanguageSwitcher className="mr-1" />
                 {isPreRelease ? (
                   <Button size="md" onClick={() => navigate(ROUTE_MAP.waitlist[lang])}>
                     {t('nav.waitlist')}
@@ -255,7 +256,7 @@ export default function Header() {
                   {t('nav.services')}
                 </a>
                 <a
-                  href="#cum-functioneaza"
+                  href="/#cum-functioneaza"
                   className="px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 font-medium"
                   onClick={() => setMobileMenuOpen(false)}
                 >
@@ -274,6 +275,13 @@ export default function Header() {
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {t('nav.about')}
+                </Link>
+                <Link
+                  to={ROUTE_MAP.contact[lang]}
+                  className="px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 font-medium"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {t('nav.contact')}
                 </Link>
                 {!isPreRelease && (
                   <Link
@@ -318,7 +326,6 @@ export default function Header() {
                     </Button>
                   )}
                 </div>
-                <LanguageSwitcher className="px-3 py-2" />
               </>
             )}
           </nav>

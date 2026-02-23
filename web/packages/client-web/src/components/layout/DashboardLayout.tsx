@@ -205,7 +205,7 @@ export default function DashboardLayout({
           </NavLink>
         </header>
 
-        <main className="flex-1 p-4 md:p-8 overflow-y-auto overflow-x-hidden">
+        <main className="flex-1 px-3 py-4 md:p-8 overflow-y-auto overflow-x-hidden">
           <Outlet />
         </main>
       </div>

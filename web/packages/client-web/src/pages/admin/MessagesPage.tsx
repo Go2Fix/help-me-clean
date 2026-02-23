@@ -393,7 +393,7 @@ export default function AdminMessagesPage() {
             <>
               {/* Chat Header */}
               {chatRoom && (
-                <div className="px-6 py-4 border-b border-gray-200 flex items-center gap-2 flex-wrap">
+                <div className="px-4 sm:px-6 py-4 border-b border-gray-200 flex items-center gap-2 flex-wrap">
                   {chatRoom.participants.filter((p) => p.user.id !== myId).map((p, idx) => (
                     <span key={p.user.id} className="inline-flex items-center gap-1">
                       {idx > 0 && <span className="text-gray-300 mr-1">&middot;</span>}
@@ -413,7 +413,7 @@ export default function AdminMessagesPage() {
               )}
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
+              <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-3">
                 {messages.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full text-center">
                     <p className="text-sm text-gray-400">
@@ -490,7 +490,7 @@ export default function AdminMessagesPage() {
               </div>
 
               {/* Input */}
-              <div className="px-6 py-4 border-t border-gray-200">
+              <div className="px-4 sm:px-6 py-4 border-t border-gray-200">
                 <div className="flex items-center gap-3">
                   <input
                     type="text"
@@ -538,7 +538,7 @@ export default function AdminMessagesPage() {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900">Conversatie noua</h3>
               <button
                 onClick={() => {
@@ -553,7 +553,7 @@ export default function AdminMessagesPage() {
             </div>
 
             {/* Search Input */}
-            <div className="px-6 py-3 border-b border-gray-100">
+            <div className="px-4 sm:px-6 py-3 border-b border-gray-100">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <input
@@ -569,7 +569,7 @@ export default function AdminMessagesPage() {
 
             {/* Selected Chips */}
             {selectedUserIds.length > 0 && (
-              <div className="px-6 py-2 border-b border-gray-100 flex flex-wrap gap-1.5">
+              <div className="px-4 sm:px-6 py-2 border-b border-gray-100 flex flex-wrap gap-1.5">
                 {allUsers
                   .filter((u) => selectedUserIds.includes(u.id))
                   .map((u) => (
@@ -615,7 +615,7 @@ export default function AdminMessagesPage() {
                         );
                       }}
                       className={cn(
-                        'w-full flex items-center gap-3 px-6 py-3 text-left transition-colors cursor-pointer',
+                        'w-full flex items-center gap-3 px-4 sm:px-6 py-3 text-left transition-colors cursor-pointer',
                         isSelected ? 'bg-primary/5' : 'hover:bg-gray-50',
                       )}
                     >
@@ -655,7 +655,7 @@ export default function AdminMessagesPage() {
             </div>
 
             {/* Footer */}
-            <div className="px-6 py-3 border-t border-gray-200">
+            <div className="px-4 sm:px-6 py-3 border-t border-gray-200">
               <button
                 onClick={() =>
                   createAdminChatRoom({ variables: { userIds: selectedUserIds } })

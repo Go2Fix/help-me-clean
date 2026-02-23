@@ -252,8 +252,8 @@ export default function BookingDetailPage() {
 
   if (loading) {
     return (
-      <div className="py-10 sm:py-16">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 animate-pulse">
+      <div className="py-4 sm:py-8">
+        <div className="max-w-4xl mx-auto sm:px-2 animate-pulse">
           {/* Back button skeleton */}
           <div className="h-4 w-32 bg-gray-200 rounded mb-6" />
           {/* Header skeleton */}
@@ -327,7 +327,7 @@ export default function BookingDetailPage() {
 
   if (error || !data?.booking) {
     return (
-      <div className="py-16 text-center max-w-4xl mx-auto px-4">
+      <div className="py-8 text-center max-w-4xl mx-auto">
         <p className="text-danger mb-4">
           {error
             ? 'Nu am putut incarca detaliile comenzii.'
@@ -371,8 +371,8 @@ export default function BookingDetailPage() {
   };
 
   return (
-    <div className="py-10 sm:py-16">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6">
+    <div className="py-4 sm:py-8">
+      <div className="max-w-4xl mx-auto sm:px-2">
         {/* Back button */}
         <button
           onClick={() => navigate('/cont/comenzi')}

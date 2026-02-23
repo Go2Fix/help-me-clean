@@ -382,7 +382,7 @@ export default function CompanyMessagesPage() {
             <>
               {/* Chat Header */}
               {chatRoom && (
-                <div className="px-6 py-4 border-b border-gray-200 flex items-center gap-2 flex-wrap">
+                <div className="px-4 sm:px-6 py-4 border-b border-gray-200 flex items-center gap-2 flex-wrap">
                   {chatRoom.participants.filter((p) => p.user.id !== myId).map((p, idx) => (
                     <span key={p.user.id} className="inline-flex items-center gap-1">
                       {idx > 0 && <span className="text-gray-300 mr-1">&middot;</span>}
@@ -402,7 +402,7 @@ export default function CompanyMessagesPage() {
               )}
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
+              <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-3">
                 {messages.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full text-center">
                     <p className="text-sm text-gray-400">
@@ -459,7 +459,7 @@ export default function CompanyMessagesPage() {
               </div>
 
               {/* Input */}
-              <div className="px-6 py-4 border-t border-gray-200">
+              <div className="px-4 sm:px-6 py-4 border-t border-gray-200">
                 <div className="flex items-center gap-3">
                   <input
                     type="text"
