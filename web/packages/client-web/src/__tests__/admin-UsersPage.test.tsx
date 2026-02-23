@@ -91,10 +91,11 @@ describe('UsersPage', () => {
 
   it('shows user list when data loads', () => {
     renderUsersPage();
-    expect(screen.getByText('Maria Ionescu')).toBeInTheDocument();
-    expect(screen.getByText('maria@test.com')).toBeInTheDocument();
-    expect(screen.getByText('Ion Popescu')).toBeInTheDocument();
-    expect(screen.getByText('ion@company.com')).toBeInTheDocument();
+    // Names and emails appear twice: once in the desktop table and once in mobile cards
+    expect(screen.getAllByText('Maria Ionescu').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('maria@test.com').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Ion Popescu').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('ion@company.com').length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows role badges', () => {
@@ -132,11 +133,11 @@ describe('UsersPage', () => {
     expect(screen.getByPlaceholderText('Cauta dupa nume, email sau telefon...')).toBeInTheDocument();
   });
 
-  it('shows pagination when there are results', () => {
+  it('hides pagination when results fit in one page', () => {
+    // With only 2 users and PAGE_SIZE=20, AdminPagination returns null
     renderUsersPage();
-    expect(screen.getByText('Anterior')).toBeInTheDocument();
-    expect(screen.getByText('Urmator')).toBeInTheDocument();
-    expect(screen.getByText('Pagina 1 din 1')).toBeInTheDocument();
+    expect(screen.queryByText('Anterior')).not.toBeInTheDocument();
+    expect(screen.queryByText('Urmator')).not.toBeInTheDocument();
   });
 
   it('shows pagination with multiple pages when totalCount > 20', () => {
@@ -156,14 +157,15 @@ describe('UsersPage', () => {
       loading: false,
     } as ReturnType<typeof useQuery>);
     renderUsersPage();
-    expect(screen.getByText('Pagina 1 din 2')).toBeInTheDocument();
-    expect(screen.getByText('35 utilizatori gasiti')).toBeInTheDocument();
+    expect(screen.getByText('1 / 2')).toBeInTheDocument();
+    expect(screen.getByText('1-20 din 35 utilizatori')).toBeInTheDocument();
   });
 
   it('shows user initials when no avatar is provided', () => {
     renderUsersPage();
-    expect(screen.getByText('MI')).toBeInTheDocument();
-    expect(screen.getByText('IP')).toBeInTheDocument();
+    // Initials appear twice: once in the desktop table and once in mobile cards
+    expect(screen.getAllByText('MI').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('IP').length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows role filter dropdown', () => {

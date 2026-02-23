@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@apollo/client';
+import { useNavigate } from 'react-router-dom';
 import {
   TrendingUp,
   Calendar,
@@ -23,6 +24,9 @@ import {
 } from 'recharts';
 import { cn } from '@go2fix/shared';
 import Card from '@/components/ui/Card';
+import Select from '@/components/ui/Select';
+import StatCard from '@/components/admin/StatCard';
+import { formatCurrency } from '@/utils/format';
 import {
   PLATFORM_TOTALS,
   REVENUE_BY_DATE_RANGE,
@@ -129,15 +133,6 @@ function getDateRange(preset: DatePreset): { from: string; to: string } {
   }
 }
 
-function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('ro-RO', {
-    style: 'currency',
-    currency: 'RON',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
-}
-
 const serviceTypeLabels: Record<string, string> = {
   STANDARD: 'Standard',
   DEEP: 'Curatenie Profunda',
@@ -145,44 +140,6 @@ const serviceTypeLabels: Record<string, string> = {
   OFFICE: 'Birouri',
   MOVE_IN_OUT: 'Mutare',
 };
-
-// ─── Stat Card ──────────────────────────────────────────────────────────────
-
-function StatCard({
-  icon: Icon,
-  label,
-  value,
-  color,
-}: {
-  icon: React.ElementType;
-  label: string;
-  value: string | number;
-  color: string;
-}) {
-  const colorMap: Record<string, { bg: string; text: string }> = {
-    primary: { bg: 'bg-primary/10', text: 'text-primary' },
-    secondary: { bg: 'bg-secondary/10', text: 'text-secondary' },
-    accent: { bg: 'bg-accent/10', text: 'text-accent' },
-    blue: { bg: 'bg-blue-100', text: 'text-blue-600' },
-    purple: { bg: 'bg-purple-100', text: 'text-purple-600' },
-    indigo: { bg: 'bg-indigo-100', text: 'text-indigo-600' },
-  };
-  const colors = colorMap[color] ?? colorMap.primary;
-
-  return (
-    <Card>
-      <div className="flex items-center gap-4">
-        <div className={`p-3 rounded-xl ${colors.bg}`}>
-          <Icon className={`h-6 w-6 ${colors.text}`} />
-        </div>
-        <div>
-          <p className="text-sm text-gray-500">{label}</p>
-          <p className="text-2xl font-bold text-gray-900">{value}</p>
-        </div>
-      </div>
-    </Card>
-  );
-}
 
 // ─── Skeleton Components ────────────────────────────────────────────────────
 
@@ -236,6 +193,7 @@ interface TooltipPayloadEntry {
   value: number;
   name: string;
   color: string;
+  payload?: RevenueByDateEntry;
 }
 
 function RevenueTooltip({
@@ -249,6 +207,8 @@ function RevenueTooltip({
 }) {
   if (!active || !payload || payload.length === 0) return null;
 
+  const bookingCount = payload[0]?.payload?.bookingCount;
+
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-lg p-3">
       <p className="text-sm font-medium text-gray-900 mb-1">{label}</p>
@@ -257,6 +217,9 @@ function RevenueTooltip({
           {entry.name}: {formatCurrency(entry.value)}
         </p>
       ))}
+      {bookingCount != null && (
+        <p className="text-sm text-gray-500 mt-1">Rezervari: {bookingCount}</p>
+      )}
     </div>
   );
 }
@@ -264,6 +227,7 @@ function RevenueTooltip({
 // ─── Main Component ─────────────────────────────────────────────────────────
 
 export default function ReportsPage() {
+  const navigate = useNavigate();
   const [activePreset, setActivePreset] = useState<DatePreset>('this_month');
 
   const { from, to } = useMemo(() => getDateRange(activePreset), [activePreset]);
@@ -312,22 +276,31 @@ export default function ReportsPage() {
         </p>
       </div>
 
-      {/* Date Range Selector */}
-      <div className="flex gap-1 mb-8 bg-gray-100 rounded-xl p-1 w-fit">
-        {presets.map((preset) => (
-          <button
-            key={preset.key}
-            onClick={() => setActivePreset(preset.key)}
-            className={cn(
-              'px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer whitespace-nowrap',
-              activePreset === preset.key
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700',
-            )}
-          >
-            {preset.label}
-          </button>
-        ))}
+      {/* Date Range Selector — dropdown on mobile, pills on desktop */}
+      <div className="mb-8">
+        <div className="md:hidden">
+          <Select
+            options={presets.map((p) => ({ value: p.key, label: p.label }))}
+            value={activePreset}
+            onChange={(e) => setActivePreset(e.target.value as DatePreset)}
+          />
+        </div>
+        <div className="hidden md:flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
+          {presets.map((preset) => (
+            <button
+              key={preset.key}
+              onClick={() => setActivePreset(preset.key)}
+              className={cn(
+                'px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer whitespace-nowrap',
+                activePreset === preset.key
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700',
+              )}
+            >
+              {preset.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Platform Totals Cards */}
@@ -511,7 +484,8 @@ export default function ReportsPage() {
                     {topCompanies.map((company, index) => (
                       <tr
                         key={company.id}
-                        className="border-b border-gray-100 last:border-0"
+                        onClick={() => navigate(`/admin/companii/${company.id}`)}
+                        className="border-b border-gray-100 last:border-0 cursor-pointer hover:bg-gray-50 transition-colors"
                       >
                         <td className="py-3 pr-4 text-sm text-gray-400 font-medium">
                           {index + 1}

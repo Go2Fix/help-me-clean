@@ -15,11 +15,23 @@ SELECT COALESCE(AVG(rating), 0)::DECIMAL(3,2) AS avg_rating FROM reviews WHERE r
 -- name: ListAllReviews :many
 SELECT * FROM reviews ORDER BY created_at DESC LIMIT $1 OFFSET $2;
 
+-- name: ListAllReviewsFiltered :many
+SELECT * FROM reviews
+WHERE (sqlc.narg('rating')::int IS NULL OR rating = sqlc.narg('rating'))
+  AND (sqlc.narg('review_type')::text IS NULL OR review_type = sqlc.narg('review_type'))
+ORDER BY created_at DESC
+LIMIT $1 OFFSET $2;
+
 -- name: DeleteReview :exec
 DELETE FROM reviews WHERE id = $1;
 
 -- name: CountAllReviews :one
 SELECT COUNT(*) FROM reviews;
+
+-- name: CountAllReviewsFiltered :one
+SELECT COUNT(*) FROM reviews
+WHERE (sqlc.narg('rating')::int IS NULL OR rating = sqlc.narg('rating'))
+  AND (sqlc.narg('review_type')::text IS NULL OR review_type = sqlc.narg('review_type'));
 
 -- name: CountReviewsByCleanerID :one
 SELECT COUNT(*) FROM reviews WHERE reviewed_cleaner_id = $1;

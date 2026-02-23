@@ -80,8 +80,6 @@ import AdminMessagesPage from '@/pages/admin/MessagesPage';
 import ReportsPage from '@/pages/admin/ReportsPage';
 import ReviewsPage from '@/pages/admin/ReviewsPage';
 import AdminPaymentsPage from '@/pages/admin/PaymentsPage';
-import AdminPayoutsPage from '@/pages/admin/AdminPayoutsPage';
-import AdminRefundsPage from '@/pages/admin/RefundsPage';
 import AdminInvoicesPage from '@/pages/admin/AdminInvoicesPage';
 
 // ─── Apollo Client ───────────────────────────────────────────────────────────
@@ -287,8 +285,6 @@ function AppRoutes() {
         <Route path="utilizatori" element={<UsersPage />} />
         <Route path="utilizatori/:id" element={<UserDetailPage />} />
         <Route path="plati" element={<AdminPaymentsPage />} />
-        <Route path="plati/companii" element={<AdminPayoutsPage />} />
-        <Route path="plati/rambursari" element={<AdminRefundsPage />} />
         <Route path="facturi" element={<AdminInvoicesPage />} />
         <Route path="rapoarte" element={<ReportsPage />} />
         <Route path="recenzii" element={<ReviewsPage />} />

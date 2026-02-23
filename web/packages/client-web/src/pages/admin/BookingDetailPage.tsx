@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation } from '@apollo/client';
 import {
   ArrowLeft,
@@ -25,7 +25,8 @@ import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
-import { ADMIN_BOOKING_DETAIL, ADMIN_CANCEL_BOOKING, ALL_BOOKINGS, ALL_CLEANERS, ASSIGN_CLEANER } from '@/graphql/operations';
+import { ADMIN_BOOKING_DETAIL, ADMIN_CANCEL_BOOKING, ALL_BOOKINGS, ALL_CLEANERS, ASSIGN_CLEANER, MARK_BOOKING_PAID } from '@/graphql/operations';
+import { formatCurrency, formatDate, formatDateTime } from '@/utils/format';
 
 const statusVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
   ASSIGNED: 'info',
@@ -48,33 +49,6 @@ const statusLabel: Record<string, string> = {
   CANCELLED_BY_COMPANY: 'Anulat de companie',
   CANCELLED_BY_ADMIN: 'Anulat de admin',
 };
-
-function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('ro-RO', {
-    style: 'currency',
-    currency: 'RON',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value);
-}
-
-function formatDate(date: string): string {
-  return new Date(date).toLocaleDateString('ro-RO', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-}
-
-function formatDateTime(date: string): string {
-  return new Date(date).toLocaleString('ro-RO', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
 
 interface CleanerOption {
   id: string;
@@ -114,6 +88,13 @@ export default function BookingDetailPage() {
     ],
   });
 
+  const [markPaid, { loading: markingPaid }] = useMutation(MARK_BOOKING_PAID, {
+    refetchQueries: [
+      { query: ADMIN_BOOKING_DETAIL, variables: { id } },
+      { query: ALL_BOOKINGS, variables: { first: 50 } },
+    ],
+  });
+
   const booking = data?.booking;
 
   if (loading) {
@@ -146,6 +127,10 @@ export default function BookingDetailPage() {
     await assignCleaner({ variables: { bookingId: id, cleanerId } });
     setAssignModal(false);
     setCleanerSearch('');
+  };
+
+  const handleMarkPaid = async () => {
+    await markPaid({ variables: { id } });
   };
 
   const isCancelled = booking.status.startsWith('CANCELLED');
@@ -360,6 +345,19 @@ export default function BookingDetailPage() {
                   {booking.paymentStatus}
                 </Badge>
               </div>
+              {booking.paymentStatus !== 'PAID' && (
+                <div className="pt-3 border-t border-gray-200">
+                  <Button
+                    size="sm"
+                    onClick={handleMarkPaid}
+                    loading={markingPaid}
+                    className="w-full"
+                  >
+                    <CheckCircle className="h-4 w-4" />
+                    Marcheaza ca platit
+                  </Button>
+                </div>
+              )}
             </div>
           </Card>
 
@@ -409,7 +407,12 @@ export default function BookingDetailPage() {
                   <User className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <p className="font-medium text-gray-900">{booking.client.fullName}</p>
+                  <Link
+                    to={`/admin/utilizatori/${booking.client.id}`}
+                    className="font-medium text-gray-900 hover:text-primary transition-colors"
+                  >
+                    {booking.client.fullName}
+                  </Link>
                   <p className="text-sm text-gray-500">{booking.client.email}</p>
                   {booking.client.phone && (
                     <p className="text-sm text-gray-500">{booking.client.phone}</p>
@@ -428,7 +431,12 @@ export default function BookingDetailPage() {
                   <Building2 className="h-5 w-5 text-secondary" />
                 </div>
                 <div>
-                  <p className="font-medium text-gray-900">{booking.company.companyName}</p>
+                  <Link
+                    to={`/admin/companii/${booking.company.id}`}
+                    className="font-medium text-gray-900 hover:text-secondary transition-colors"
+                  >
+                    {booking.company.companyName}
+                  </Link>
                   <p className="text-sm text-gray-500">{booking.company.contactEmail}</p>
                 </div>
               </div>

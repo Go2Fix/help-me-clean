@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useQuery, useMutation } from '@apollo/client';
+import { useState, useRef, useEffect } from 'react';
+import { useQuery, useMutation, useLazyQuery } from '@apollo/client';
 import {
   FileText,
   Download,
@@ -12,7 +12,13 @@ import {
   XCircle,
   RefreshCw,
   AlertTriangle,
+  Search,
+  X,
 } from 'lucide-react';
+import StatCard from '@/components/admin/StatCard';
+import AdminPagination from '@/components/admin/AdminPagination';
+import { formatCents } from '@/utils/format';
+import { useDebounce } from '@/hooks/useDebounce';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
@@ -28,13 +34,14 @@ import {
   CANCEL_INVOICE,
   TRANSMIT_TO_EFACTURA,
   REFRESH_EFACTURA_STATUS,
+  SEARCH_COMPANIES,
 } from '@/graphql/operations';
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
+// ─── Constants ─────────────────────────────────────────────────────────────
 
-function formatRON(amount: number): string {
-  return (amount / 100).toFixed(2) + ' lei';
-}
+const PAGE_SIZE = 20;
+
+// ─── Helpers ───────────────────────────────────────────────────────────────
 
 function getMonthRange(): { from: string; to: string } {
   const now = new Date();
@@ -47,7 +54,7 @@ function getMonthRange(): { from: string; to: string } {
   return { from, to };
 }
 
-// ─── Types ──────────────────────────────────────────────────────────────────
+// ─── Types ─────────────────────────────────────────────────────────────────
 
 interface Invoice {
   id: string;
@@ -72,7 +79,13 @@ interface InvoiceAnalyticsData {
   byType: { type: string; count: number; totalAmount: number }[];
 }
 
-// ─── Status Maps ────────────────────────────────────────────────────────────
+interface CompanyOption {
+  id: string;
+  companyName: string;
+  cui: string;
+}
+
+// ─── Status Maps ───────────────────────────────────────────────────────────
 
 const invoiceStatusVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
   DRAFT: 'default',
@@ -132,49 +145,132 @@ const typeOptions = [
   { value: 'PLATFORM_COMMISSION', label: 'Comision platforma' },
 ];
 
-// ─── Stat Card ──────────────────────────────────────────────────────────────
+// ─── Company Search Dropdown ───────────────────────────────────────────────
 
-function StatCard({
-  icon: Icon,
-  label,
-  value,
-  color,
+function CompanySearchDropdown({
+  selectedCompanyId,
+  selectedCompanyName,
+  onSelect,
+  onClear,
 }: {
-  icon: React.ElementType;
-  label: string;
-  value: string;
-  color: string;
+  selectedCompanyId: string;
+  selectedCompanyName: string;
+  onSelect: (id: string, name: string) => void;
+  onClear: () => void;
 }) {
-  const colorMap: Record<string, { bg: string; text: string }> = {
-    primary: { bg: 'bg-primary/10', text: 'text-primary' },
-    secondary: { bg: 'bg-secondary/10', text: 'text-secondary' },
-    accent: { bg: 'bg-accent/10', text: 'text-accent' },
-    danger: { bg: 'bg-danger/10', text: 'text-danger' },
-  };
-  const colors = colorMap[color] ?? colorMap.primary;
+  const [searchText, setSearchText] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
+  const debouncedSearch = useDebounce(searchText, 300);
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
-  return (
-    <Card>
-      <div className="flex items-center gap-4">
-        <div className={`p-3 rounded-xl ${colors.bg}`}>
-          <Icon className={`h-6 w-6 ${colors.text}`} />
-        </div>
-        <div>
-          <p className="text-sm text-gray-500">{label}</p>
-          <p className="text-2xl font-bold text-gray-900">{value}</p>
+  const [searchCompanies, { data: searchData, loading: searching }] =
+    useLazyQuery(SEARCH_COMPANIES);
+
+  useEffect(() => {
+    if (debouncedSearch.length >= 1) {
+      searchCompanies({ variables: { query: debouncedSearch, limit: 10 } });
+      setIsOpen(true);
+    } else {
+      setIsOpen(false);
+    }
+  }, [debouncedSearch, searchCompanies]);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const companies: CompanyOption[] = searchData?.searchCompanies?.edges ?? [];
+
+  if (selectedCompanyId) {
+    return (
+      <div className="w-full">
+        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+          Companie
+        </label>
+        <div className="flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm">
+          <span className="text-gray-900 truncate flex-1">{selectedCompanyName}</span>
+          <button
+            type="button"
+            onClick={onClear}
+            className="shrink-0 p-0.5 rounded text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+            title="Sterge filtrul"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
       </div>
-    </Card>
+    );
+  }
+
+  return (
+    <div className="w-full relative" ref={wrapperRef}>
+      <label className="block text-sm font-medium text-gray-700 mb-1.5">
+        Companie
+      </label>
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+        <input
+          type="text"
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          onFocus={() => {
+            if (debouncedSearch.length >= 1) setIsOpen(true);
+          }}
+          placeholder="Cauta companie..."
+          className="w-full rounded-xl border border-gray-300 bg-white pl-9 pr-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+        />
+      </div>
+
+      {isOpen && (
+        <div className="absolute z-50 mt-1 w-full max-h-60 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-lg">
+          {searching ? (
+            <div className="px-4 py-3 text-sm text-gray-500">Se cauta...</div>
+          ) : companies.length === 0 ? (
+            <div className="px-4 py-3 text-sm text-gray-400">Niciun rezultat</div>
+          ) : (
+            companies.map((company) => (
+              <button
+                key={company.id}
+                type="button"
+                onClick={() => {
+                  onSelect(company.id, company.companyName);
+                  setSearchText('');
+                  setIsOpen(false);
+                }}
+                className="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors cursor-pointer"
+              >
+                <span className="font-medium text-gray-900">{company.companyName}</span>
+                <span className="ml-2 text-gray-400">CUI: {company.cui}</span>
+              </button>
+            ))
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 
-// ─── Component ──────────────────────────────────────────────────────────────
+// ─── Component ─────────────────────────────────────────────────────────────
 
 export default function AdminInvoicesPage() {
-  const defaults = getMonthRange();
+  const monthRange = getMonthRange();
+
+  // Filters
   const [statusFilter, setStatusFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
-  const [companyFilter, setCompanyFilter] = useState('');
+  const [companyId, setCompanyId] = useState('');
+  const [companyName, setCompanyName] = useState('');
+  const [dateFrom, setDateFrom] = useState(monthRange.from);
+  const [dateTo, setDateTo] = useState(monthRange.to);
+
+  // Pagination
+  const [page, setPage] = useState(0);
 
   // Commission invoice modal
   const [commissionModalOpen, setCommissionModalOpen] = useState(false);
@@ -190,9 +286,12 @@ export default function AdminInvoicesPage() {
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [cancelInvoiceId, setCancelInvoiceId] = useState<string | null>(null);
 
+  // Reset page when filters change
+  const resetPage = () => setPage(0);
+
   // Analytics
   const { data: analyticsData, loading: analyticsLoading } = useQuery(INVOICE_ANALYTICS, {
-    variables: { from: defaults.from, to: defaults.to },
+    variables: { from: dateFrom, to: dateTo },
   });
 
   // Invoices list
@@ -200,8 +299,8 @@ export default function AdminInvoicesPage() {
     variables: {
       type: typeFilter || undefined,
       status: statusFilter || undefined,
-      companyId: companyFilter || undefined,
-      first: 50,
+      companyId: companyId || undefined,
+      first: PAGE_SIZE,
     },
   });
 
@@ -246,9 +345,24 @@ export default function AdminInvoicesPage() {
   });
 
   const analytics: InvoiceAnalyticsData | null = analyticsData?.invoiceAnalytics ?? null;
-  const invoices: Invoice[] = data?.allInvoices?.edges ?? [];
+  const allInvoices: Invoice[] = data?.allInvoices?.edges ?? [];
   const totalCount: number = data?.allInvoices?.totalCount ?? 0;
 
+  // Client-side date filtering + pagination
+  const filteredInvoices = allInvoices.filter((inv) => {
+    const invDate = (inv.issuedAt || inv.createdAt).split('T')[0];
+    if (dateFrom && invDate < dateFrom) return false;
+    if (dateTo && invDate > dateTo) return false;
+    return true;
+  });
+
+  const filteredTotal = filteredInvoices.length;
+  const paginatedInvoices = filteredInvoices.slice(
+    page * PAGE_SIZE,
+    (page + 1) * PAGE_SIZE,
+  );
+
+  // Handlers
   const handleGenerateCommission = () => {
     if (!payoutIdForCommission) return;
     generateCommission({ variables: { payoutId: payoutIdForCommission } });
@@ -294,7 +408,7 @@ export default function AdminInvoicesPage() {
     <div>
       {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Facturi</h1>
             <p className="text-gray-500 mt-1">
@@ -337,13 +451,13 @@ export default function AdminInvoicesPage() {
           <StatCard
             icon={Banknote}
             label="Valoare totala"
-            value={formatRON(analytics.totalAmount)}
+            value={formatCents(analytics.totalAmount)}
             color="secondary"
           />
           <StatCard
             icon={TrendingUp}
             label="TVA total"
-            value={formatRON(analytics.totalVat)}
+            value={formatCents(analytics.totalVat)}
             color="accent"
           />
           <StatCard
@@ -356,29 +470,65 @@ export default function AdminInvoicesPage() {
       ) : null}
 
       {/* Filters */}
-      <div className="flex items-end gap-4 mb-6">
-        <div className="w-48">
+      <div className="flex flex-col md:flex-row md:items-end gap-4 mb-6">
+        <div className="w-full md:w-44">
           <Select
             label="Tip"
             options={typeOptions}
             value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
+            onChange={(e) => {
+              setTypeFilter(e.target.value);
+              resetPage();
+            }}
           />
         </div>
-        <div className="w-48">
+        <div className="w-full md:w-44">
           <Select
             label="Status"
             options={statusOptions}
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              resetPage();
+            }}
           />
         </div>
-        <div className="w-64">
+        <div className="w-full md:w-64">
+          <CompanySearchDropdown
+            selectedCompanyId={companyId}
+            selectedCompanyName={companyName}
+            onSelect={(id, name) => {
+              setCompanyId(id);
+              setCompanyName(name);
+              resetPage();
+            }}
+            onClear={() => {
+              setCompanyId('');
+              setCompanyName('');
+              resetPage();
+            }}
+          />
+        </div>
+        <div className="w-full md:w-40">
           <Input
-            label="ID Companie"
-            value={companyFilter}
-            onChange={(e) => setCompanyFilter(e.target.value)}
-            placeholder="Filtreaza dupa companie..."
+            label="De la"
+            type="date"
+            value={dateFrom}
+            onChange={(e) => {
+              setDateFrom(e.target.value);
+              resetPage();
+            }}
+          />
+        </div>
+        <div className="w-full md:w-40">
+          <Input
+            label="Pana la"
+            type="date"
+            value={dateTo}
+            onChange={(e) => {
+              setDateTo(e.target.value);
+              resetPage();
+            }}
           />
         </div>
       </div>
@@ -397,7 +547,7 @@ export default function AdminInvoicesPage() {
           <div className="px-3 md:px-6 pb-4 md:pb-6">
             <LoadingSpinner text="Se incarca facturile..." />
           </div>
-        ) : invoices.length === 0 ? (
+        ) : paginatedInvoices.length === 0 ? (
           <p className="text-center text-gray-400 py-12">Nu exista facturi.</p>
         ) : (
           <div className="overflow-x-auto">
@@ -407,16 +557,16 @@ export default function AdminInvoicesPage() {
                   <th className="px-3 md:px-6 pb-3 font-medium">Nr. Factura</th>
                   <th className="px-3 md:px-6 pb-3 font-medium">Tip</th>
                   <th className="px-3 md:px-6 pb-3 font-medium">Data</th>
-                  <th className="px-3 md:px-6 pb-3 font-medium">Vanzator</th>
-                  <th className="px-3 md:px-6 pb-3 font-medium">Cumparator</th>
+                  <th className="px-3 md:px-6 pb-3 font-medium hidden md:table-cell">Vanzator</th>
+                  <th className="px-3 md:px-6 pb-3 font-medium hidden md:table-cell">Cumparator</th>
                   <th className="px-3 md:px-6 pb-3 font-medium text-right">Suma</th>
                   <th className="px-3 md:px-6 pb-3 font-medium">Status</th>
-                  <th className="px-3 md:px-6 pb-3 font-medium">E-Factura</th>
+                  <th className="px-3 md:px-6 pb-3 font-medium hidden md:table-cell">E-Factura</th>
                   <th className="px-3 md:px-6 pb-3 font-medium text-right">Actiuni</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {invoices.map((invoice) => {
+                {paginatedInvoices.map((invoice) => {
                   const efStatus = invoice.efacturaStatus || 'NOT_SENT';
 
                   return (
@@ -432,21 +582,21 @@ export default function AdminInvoicesPage() {
                       <td className="px-3 md:px-6 py-3 text-gray-600">
                         {new Date(invoice.issuedAt || invoice.createdAt).toLocaleDateString('ro-RO')}
                       </td>
-                      <td className="px-3 md:px-6 py-3 text-gray-600">
+                      <td className="px-3 md:px-6 py-3 text-gray-600 hidden md:table-cell">
                         {invoice.sellerCompanyName}
                       </td>
-                      <td className="px-3 md:px-6 py-3 text-gray-600">
+                      <td className="px-3 md:px-6 py-3 text-gray-600 hidden md:table-cell">
                         {invoice.buyerName}
                       </td>
                       <td className="px-3 md:px-6 py-3 text-right font-semibold text-gray-900">
-                        {formatRON(invoice.totalAmount)}
+                        {formatCents(invoice.totalAmount)}
                       </td>
                       <td className="px-3 md:px-6 py-3">
                         <Badge variant={invoiceStatusVariant[invoice.status] ?? 'default'}>
                           {invoiceStatusLabel[invoice.status] ?? invoice.status}
                         </Badge>
                       </td>
-                      <td className="px-3 md:px-6 py-3">
+                      <td className="px-3 md:px-6 py-3 hidden md:table-cell">
                         <Badge variant={efacturaStatusVariant[efStatus] ?? 'default'}>
                           {efacturaStatusLabel[efStatus] ?? efStatus}
                         </Badge>
@@ -520,6 +670,17 @@ export default function AdminInvoicesPage() {
             </table>
           </div>
         )}
+
+        {/* Pagination */}
+        <div className="px-3 md:px-6 pb-4 md:pb-6">
+          <AdminPagination
+            page={page}
+            totalCount={filteredTotal}
+            pageSize={PAGE_SIZE}
+            onPageChange={setPage}
+            noun="facturi"
+          />
+        </div>
       </Card>
 
       {/* Cancel Invoice Confirmation Modal */}

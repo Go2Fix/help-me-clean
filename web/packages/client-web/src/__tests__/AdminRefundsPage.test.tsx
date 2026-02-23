@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { useQuery, useMutation } from '@apollo/client';
+import { useQuery, useMutation, useLazyQuery } from '@apollo/client';
 import RefundsPage from '@/pages/admin/RefundsPage';
 import { ALL_REFUND_REQUESTS } from '@/graphql/operations';
 
@@ -21,6 +21,7 @@ vi.mock('@apollo/client', async () => {
     ...actual,
     useQuery: vi.fn(),
     useMutation: vi.fn(),
+    useLazyQuery: vi.fn(),
   };
 });
 
@@ -74,6 +75,7 @@ describe('RefundsPage (Admin)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(useMutation).mockReturnValue([vi.fn(), { loading: false }] as unknown as ReturnType<typeof useMutation>);
+    vi.mocked(useLazyQuery).mockReturnValue([vi.fn(), { data: null, loading: false, called: false }] as unknown as ReturnType<typeof useLazyQuery>);
   });
 
   it('shows page title "Rambursari"', () => {

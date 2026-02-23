@@ -729,7 +729,7 @@ type ComplexityRoot struct {
 		AllPaymentTransactions       func(childComplexity int, status *model.PaymentTransactionStatus, first *int, after *string) int
 		AllPayouts                   func(childComplexity int, companyID *string, status *model.PayoutStatus, first *int, after *string) int
 		AllRefundRequests            func(childComplexity int, status *model.RefundStatus, first *int, after *string) int
-		AllReviews                   func(childComplexity int, limit *int, offset *int) int
+		AllReviews                   func(childComplexity int, limit *int, offset *int, rating *int, reviewType *string) int
 		AllServices                  func(childComplexity int) int
 		AllUsers                     func(childComplexity int) int
 		AvailableExtras              func(childComplexity int) int
@@ -1096,7 +1096,7 @@ type QueryResolver interface {
 	SearchCompanies(ctx context.Context, query *string, status *model.CompanyStatus, limit *int, offset *int) (*model.CompanyConnection, error)
 	CompanyFinancialSummary(ctx context.Context, companyID string) (*model.CompanyFinancialSummary, error)
 	SearchBookings(ctx context.Context, query *string, status *model.BookingStatus, limit *int, offset *int) (*model.BookingConnection, error)
-	AllReviews(ctx context.Context, limit *int, offset *int) (*model.ReviewConnection, error)
+	AllReviews(ctx context.Context, limit *int, offset *int, rating *int, reviewType *string) (*model.ReviewConnection, error)
 	RevenueByDateRange(ctx context.Context, from string, to string) ([]*model.DailyRevenue, error)
 	RevenueByServiceType(ctx context.Context, from string, to string) ([]*model.ServiceRevenue, error)
 	TopCompaniesByRevenue(ctx context.Context, from string, to string, limit *int) ([]*model.TopCompany, error)
@@ -4737,7 +4737,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Query.AllReviews(childComplexity, args["limit"].(*int), args["offset"].(*int)), true
+		return e.complexity.Query.AllReviews(childComplexity, args["limit"].(*int), args["offset"].(*int), args["rating"].(*int), args["reviewType"].(*string)), true
 	case "Query.allServices":
 		if e.complexity.Query.AllServices == nil {
 			break
@@ -7769,6 +7769,16 @@ func (ec *executionContext) field_Query_allReviews_args(ctx context.Context, raw
 		return nil, err
 	}
 	args["offset"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "rating", ec.unmarshalOInt2ᚖint)
+	if err != nil {
+		return nil, err
+	}
+	args["rating"] = arg2
+	arg3, err := graphql.ProcessArgField(ctx, rawArgs, "reviewType", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["reviewType"] = arg3
 	return args, nil
 }
 
@@ -28520,7 +28530,7 @@ func (ec *executionContext) _Query_allReviews(ctx context.Context, field graphql
 		ec.fieldContext_Query_allReviews,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Query().AllReviews(ctx, fc.Args["limit"].(*int), fc.Args["offset"].(*int))
+			return ec.resolvers.Query().AllReviews(ctx, fc.Args["limit"].(*int), fc.Args["offset"].(*int), fc.Args["rating"].(*int), fc.Args["reviewType"].(*string))
 		},
 		nil,
 		ec.marshalNReviewConnection2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐReviewConnection,

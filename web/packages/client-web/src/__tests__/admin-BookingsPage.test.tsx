@@ -117,12 +117,12 @@ describe('BookingsPage', () => {
     renderBookingsPage();
     expect(screen.getByText('Anterior')).toBeInTheDocument();
     expect(screen.getByText('Urmator')).toBeInTheDocument();
-    expect(screen.getByText('Pagina 1 din 2')).toBeInTheDocument();
+    expect(screen.getByText('1 / 2')).toBeInTheDocument();
   });
 
   it('shows search input with placeholder', () => {
     renderBookingsPage();
-    expect(screen.getByPlaceholderText('Cauta dupa cod referinta...')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Cauta dupa cod referinta, client, companie...')).toBeInTheDocument();
   });
 
   it('shows status filter tabs', () => {

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useSubscription } from '@apollo/client';
-import { MessageCircle, Send, Loader2, Plus, X, Search } from 'lucide-react';
+import { MessageCircle, Send, Loader2, Plus, X, Search, ChevronLeft } from 'lucide-react';
 import { cn } from '@go2fix/shared';
 import { useAuth } from '@/context/AuthContext';
 import {
@@ -282,7 +282,10 @@ export default function AdminMessagesPage() {
 
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex" style={{ height: '600px' }}>
         {/* Sidebar - Room List */}
-        <div className="w-80 border-r border-gray-200 flex flex-col shrink-0">
+        <div className={cn(
+          'border-r border-gray-200 flex flex-col shrink-0',
+          roomId ? 'hidden md:flex md:w-80' : 'w-full md:w-80',
+        )}>
           <div className="p-4 border-b border-gray-200 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-gray-900">
               Conversatii ({rooms.length})
@@ -381,7 +384,10 @@ export default function AdminMessagesPage() {
         </div>
 
         {/* Main - Chat Area */}
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className={cn(
+          'flex-1 flex flex-col min-w-0',
+          !roomId && 'hidden md:flex',
+        )}>
           {!roomId ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center px-4">
               <MessageCircle className="h-12 w-12 text-gray-300 mb-4" />
@@ -396,6 +402,12 @@ export default function AdminMessagesPage() {
               {/* Chat Header */}
               {chatRoom && (
                 <div className="px-4 sm:px-6 py-4 border-b border-gray-200 flex items-center gap-2 flex-wrap">
+                  <button
+                    onClick={() => navigate('/admin/mesaje')}
+                    className="md:hidden p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer mr-1"
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </button>
                   {chatRoom.participants.filter((p) => p.user.id !== myId).map((p, idx) => (
                     <span key={p.user.id} className="inline-flex items-center gap-1">
                       {idx > 0 && <span className="text-gray-300 mr-1">&middot;</span>}

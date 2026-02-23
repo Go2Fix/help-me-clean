@@ -56,7 +56,7 @@ extend type Query {
   searchCompanies(query: String, status: CompanyStatus, limit: Int, offset: Int): CompanyConnection!
   companyFinancialSummary(companyId: ID!): CompanyFinancialSummary!
   searchBookings(query: String, status: BookingStatus, limit: Int, offset: Int): BookingConnection!
-  allReviews(limit: Int, offset: Int): ReviewConnection!
+  allReviews(limit: Int, offset: Int, rating: Int, reviewType: String): ReviewConnection!
 }
 
 extend type Mutation {

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation } from '@apollo/client';
 import {
   ArrowLeft,
@@ -32,6 +32,7 @@ import {
   SEARCH_USERS,
   GENERATE_PERSONALITY_INSIGHTS,
 } from '@/graphql/operations';
+import { formatDate } from '@/utils/format';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -488,11 +489,7 @@ export default function UserDetailPage() {
                 <div>
                   <p className="text-xs text-gray-400">Inregistrat pe</p>
                   <p className="text-sm text-gray-900">
-                    {new Date(user.createdAt).toLocaleDateString('ro-RO', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                    })}
+                    {formatDate(user.createdAt)}
                   </p>
                 </div>
               </div>
@@ -502,55 +499,67 @@ export default function UserDetailPage() {
           {/* Cleaner Profile Section - Only for CLEANER role */}
           {user.role === 'CLEANER' && user.cleanerProfile && (
             <div className="space-y-6">
-              {/* Company Affiliation Card */}
-              {user.cleanerProfile.company && (
-                <Card>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                    Informatii curator
-                  </h3>
-                  <div className="space-y-3">
+              {/* Cleaner Info Card */}
+              <Card>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Informatii curator
+                </h3>
+                <div className="space-y-3">
+                  {user.cleanerProfile.company && (
                     <div className="flex items-start gap-3">
                       <Building2 className="h-4 w-4 text-gray-400 mt-0.5 shrink-0" />
                       <div>
                         <p className="text-xs text-gray-400">Companie</p>
-                        <p className="text-sm text-gray-900">
+                        <Link
+                          to={`/admin/companii/${user.cleanerProfile.company.id}`}
+                          className="text-sm text-primary hover:underline font-medium"
+                        >
                           {user.cleanerProfile.company.companyName}
-                        </p>
+                        </Link>
                       </div>
                     </div>
-                    <div className="flex items-start gap-3">
-                      <Star className="h-4 w-4 text-gray-400 mt-0.5 shrink-0" />
-                      <div>
-                        <p className="text-xs text-gray-400">Rating</p>
-                        <p className="text-sm text-gray-900">
-                          {user.cleanerProfile.ratingAvg
-                            ? Number(user.cleanerProfile.ratingAvg).toFixed(1)
-                            : '--'}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <ClipboardList className="h-4 w-4 text-gray-400 mt-0.5 shrink-0" />
-                      <div>
-                        <p className="text-xs text-gray-400">Lucrari finalizate</p>
-                        <p className="text-sm text-gray-900">
-                          {user.cleanerProfile.totalJobsCompleted}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="pt-3 border-t">
-                      <Badge
-                        variant={
-                          cleanerStatusVariant[user.cleanerProfile.status] ?? 'default'
-                        }
-                      >
-                        {cleanerStatusLabel[user.cleanerProfile.status] ??
-                          user.cleanerProfile.status}
-                      </Badge>
+                  )}
+                  <div className="flex items-start gap-3">
+                    <Star className="h-4 w-4 text-gray-400 mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-xs text-gray-400">Rating</p>
+                      <p className="text-sm text-gray-900">
+                        {user.cleanerProfile.ratingAvg
+                          ? Number(user.cleanerProfile.ratingAvg).toFixed(1)
+                          : '--'}
+                      </p>
                     </div>
                   </div>
-                </Card>
-              )}
+                  <div className="flex items-start gap-3">
+                    <ClipboardList className="h-4 w-4 text-gray-400 mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-xs text-gray-400">Lucrari finalizate</p>
+                      <p className="text-sm text-gray-900">
+                        {user.cleanerProfile.totalJobsCompleted}
+                      </p>
+                    </div>
+                  </div>
+                  {user.cleanerProfile.bio && (
+                    <div className="flex items-start gap-3">
+                      <User className="h-4 w-4 text-gray-400 mt-0.5 shrink-0" />
+                      <div>
+                        <p className="text-xs text-gray-400">Bio</p>
+                        <p className="text-sm text-gray-900">{user.cleanerProfile.bio}</p>
+                      </div>
+                    </div>
+                  )}
+                  <div className="pt-3 border-t">
+                    <Badge
+                      variant={
+                        cleanerStatusVariant[user.cleanerProfile.status] ?? 'default'
+                      }
+                    >
+                      {cleanerStatusLabel[user.cleanerProfile.status] ??
+                        user.cleanerProfile.status}
+                    </Badge>
+                  </div>
+                </div>
+              </Card>
 
               {/* Personality Assessment Card */}
               {user.cleanerProfile.personalityAssessment && (

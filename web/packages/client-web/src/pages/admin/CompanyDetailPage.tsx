@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation } from '@apollo/client';
 import {
   ArrowLeft,
@@ -16,17 +16,17 @@ import {
   TrendingUp,
   Percent,
   Wallet,
-  Hash,
-  Clock,
   Users,
+  User,
   ShieldCheck,
   AlertCircle,
   FileCheck,
   CheckCircle,
 } from 'lucide-react';
-import { cn } from '@go2fix/shared';
+import { formatCurrency, formatDate } from '@/utils/format';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
+import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
@@ -64,13 +64,13 @@ const statusLabel: Record<string, string> = {
   REJECTED: 'Respins',
 };
 
-const bookingStatusVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
-  PENDING: 'warning',
-  CONFIRMED: 'info',
-  ASSIGNED: 'info',
-  IN_PROGRESS: 'info',
-  COMPLETED: 'success',
-  CANCELLED: 'danger',
+const bookingStatusDotColor: Record<string, string> = {
+  PENDING: 'bg-amber-400',
+  ASSIGNED: 'bg-blue-400',
+  CONFIRMED: 'bg-blue-500',
+  IN_PROGRESS: 'bg-indigo-500',
+  COMPLETED: 'bg-emerald-500',
+  CANCELLED: 'bg-red-400',
 };
 
 const bookingStatusLabel: Record<string, string> = {
@@ -81,13 +81,6 @@ const bookingStatusLabel: Record<string, string> = {
   COMPLETED: 'Finalizat',
   CANCELLED: 'Anulat',
 };
-
-const formatCurrency = new Intl.NumberFormat('ro-RO', {
-  style: 'currency',
-  currency: 'RON',
-  minimumFractionDigits: 0,
-  maximumFractionDigits: 0,
-});
 
 const companyDocTypeLabel: Record<string, string> = {
   certificat_constatator: 'Certificat Constatator',
@@ -403,12 +396,12 @@ export default function CompanyDetailPage() {
   // Check document completion status for approval
   const docStatus = getDocumentCompletionStatus(companyDocuments);
 
-  const tabs: { key: DetailTab; label: string }[] = [
-    { key: 'detalii', label: 'Detalii' },
-    { key: 'financiar', label: 'Financiar' },
-    { key: 'comenzi', label: 'Comenzi' },
-    { key: 'documente', label: 'Documente' },
-    { key: 'echipa', label: 'Echipa' },
+  const tabOptions = [
+    { value: 'detalii', label: 'Detalii' },
+    { value: 'financiar', label: 'Financiar' },
+    { value: 'comenzi', label: 'Comenzi' },
+    { value: 'documente', label: 'Documente' },
+    { value: 'echipa', label: 'Echipa' },
   ];
 
   const financial = financialData?.companyFinancialSummary;
@@ -435,22 +428,13 @@ export default function CompanyDetailPage() {
         </div>
       </div>
 
-      {/* Tab Bar */}
-      <div className="flex gap-1 mb-6 bg-gray-100 rounded-xl p-1 w-fit">
-        {tabs.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
-            className={cn(
-              'px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer',
-              activeTab === tab.key
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700',
-            )}
-          >
-            {tab.label}
-          </button>
-        ))}
+      {/* Tab Selector */}
+      <div className="mb-6 w-48">
+        <Select
+          options={tabOptions}
+          value={activeTab}
+          onChange={(e) => setActiveTab(e.target.value as DetailTab)}
+        />
       </div>
 
       {/* Detalii Tab */}
@@ -746,11 +730,7 @@ export default function CompanyDetailPage() {
               <h3 className="text-sm font-medium text-gray-500 mb-2">Inregistrata pe</h3>
               <div className="flex items-center gap-2 text-gray-900">
                 <Calendar className="h-4 w-4 text-gray-400" />
-                {new Date(company.createdAt).toLocaleDateString('ro-RO', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
+                {formatDate(company.createdAt)}
               </div>
             </Card>
           </div>
@@ -761,48 +741,60 @@ export default function CompanyDetailPage() {
       {activeTab === 'financiar' && (
         <div>
           {financialLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <Card key={i}>
-                  <div className="animate-pulse">
-                    <div className="h-10 w-10 bg-gray-200 rounded-xl mb-3" />
-                    <div className="h-3 bg-gray-200 rounded w-24 mb-2" />
-                    <div className="h-6 bg-gray-200 rounded w-32" />
+            <Card>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="animate-pulse flex items-center gap-3 py-3">
+                    <div className="h-9 w-9 bg-gray-200 rounded-lg shrink-0" />
+                    <div>
+                      <div className="h-3 bg-gray-200 rounded w-16 mb-2" />
+                      <div className="h-5 bg-gray-200 rounded w-10" />
+                    </div>
                   </div>
-                </Card>
-              ))}
-            </div>
+                ))}
+              </div>
+            </Card>
           ) : financial ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <FinancialCard
-                icon={ClipboardList}
-                label="Rezervari Finalizate"
-                value={String(financial.completedBookings)}
-                iconBg="bg-primary/10"
-                iconColor="text-primary"
-              />
-              <FinancialCard
-                icon={TrendingUp}
-                label="Venit Total"
-                value={formatCurrency.format(financial.totalRevenue)}
-                iconBg="bg-secondary/10"
-                iconColor="text-secondary"
-              />
-              <FinancialCard
-                icon={Percent}
-                label="Comision Total"
-                value={formatCurrency.format(financial.totalCommission)}
-                iconBg="bg-accent/10"
-                iconColor="text-accent"
-              />
-              <FinancialCard
-                icon={Wallet}
-                label="Plata Neta"
-                value={formatCurrency.format(financial.netPayout)}
-                iconBg="bg-emerald-50"
-                iconColor="text-emerald-600"
-              />
-            </div>
+            <Card>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-1 divide-y md:divide-y-0 md:divide-x divide-gray-100">
+                <div className="flex items-center gap-3 py-3">
+                  <div className="h-9 w-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+                    <ClipboardList className="h-4.5 w-4.5 text-gray-500" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 leading-tight">Rezervari finalizate</p>
+                    <p className="text-lg font-semibold text-gray-900 leading-tight">{financial.completedBookings}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 py-3 md:pl-6">
+                  <div className="h-9 w-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+                    <TrendingUp className="h-4.5 w-4.5 text-gray-500" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 leading-tight">Venit total</p>
+                    <p className="text-lg font-semibold text-gray-900 leading-tight">{formatCurrency(financial.totalRevenue)}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 py-3 md:pl-6">
+                  <div className="h-9 w-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+                    <Percent className="h-4.5 w-4.5 text-gray-500" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 leading-tight">Comision total</p>
+                    <p className="text-lg font-semibold text-gray-900 leading-tight">{formatCurrency(financial.totalCommission)}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 py-3 md:pl-6">
+                  <div className="h-9 w-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+                    <Wallet className="h-4.5 w-4.5 text-gray-500" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 leading-tight">Plata neta</p>
+                    <p className="text-lg font-semibold text-gray-900 leading-tight">{formatCurrency(financial.netPayout)}</p>
+                  </div>
+                </div>
+              </div>
+            </Card>
           ) : (
             <Card>
               <p className="text-center text-gray-400 py-8">
@@ -815,81 +807,63 @@ export default function CompanyDetailPage() {
 
       {/* Comenzi Tab */}
       {activeTab === 'comenzi' && (
-        <div>
+        <Card padding={false}>
           {bookingsLoading ? (
-            <div className="space-y-4">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <Card key={i}>
-                  <div className="animate-pulse flex items-center gap-4">
-                    <div className="h-10 w-10 bg-gray-200 rounded-xl" />
-                    <div className="flex-1">
-                      <div className="h-4 bg-gray-200 rounded w-40 mb-2" />
-                      <div className="h-3 bg-gray-200 rounded w-28" />
-                    </div>
-                    <div className="h-6 bg-gray-200 rounded w-20" />
-                  </div>
-                </Card>
+            <div className="divide-y divide-gray-100">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="px-4 py-3 animate-pulse flex items-center gap-3">
+                  <div className="h-2.5 w-2.5 bg-gray-200 rounded-full shrink-0" />
+                  <div className="h-4 bg-gray-200 rounded w-16" />
+                  <div className="h-4 bg-gray-200 rounded w-32" />
+                  <div className="flex-1" />
+                  <div className="h-4 bg-gray-200 rounded w-16" />
+                </div>
               ))}
             </div>
           ) : bookings.length === 0 ? (
-            <Card>
-              <p className="text-center text-gray-400 py-8">
-                Aceasta companie nu are comenzi.
-              </p>
-            </Card>
+            <p className="text-center text-gray-400 py-12">Aceasta companie nu are comenzi.</p>
           ) : (
-            <div className="space-y-3">
+            <div className="divide-y divide-gray-100">
               {bookings.map((booking) => (
-                <Card
+                <div
                   key={booking.id}
-                  className="cursor-pointer hover:shadow-md transition-shadow"
                   onClick={() => navigate(`/admin/comenzi/${booking.id}`)}
+                  className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors"
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="p-2.5 rounded-xl bg-primary/10">
-                        <Hash className="h-5 w-5 text-primary" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-semibold text-gray-900">
-                            {booking.referenceCode}
-                          </h4>
-                          <Badge variant={bookingStatusVariant[booking.status] ?? 'default'}>
-                            {bookingStatusLabel[booking.status] ?? booking.status}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-gray-500 mt-0.5">
-                          {booking.serviceName || booking.serviceType}
-                        </p>
-                        <div className="flex items-center gap-3 text-xs text-gray-400 mt-1">
-                          <span className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            {new Date(booking.scheduledDate).toLocaleDateString('ro-RO')}
-                          </span>
-                          {booking.scheduledStartTime && (
-                            <span className="flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              {booking.scheduledStartTime}
-                            </span>
-                          )}
-                          {booking.client && (
-                            <span>Client: {booking.client.fullName}</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <p className="font-semibold text-gray-900">
-                        {formatCurrency.format(booking.estimatedTotal)}
-                      </p>
-                    </div>
-                  </div>
-                </Card>
+                  <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${bookingStatusDotColor[booking.status] ?? 'bg-gray-300'}`} />
+                  <span className="text-sm font-semibold text-gray-900 w-20 shrink-0">
+                    {booking.referenceCode}
+                  </span>
+                  <span className="text-sm text-gray-700 truncate min-w-0">
+                    {booking.serviceName || booking.serviceType}
+                  </span>
+                  <span className="flex-1" />
+                  {booking.client && (
+                    <Link
+                      to={`/admin/utilizatori/${booking.client.id}`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="hidden md:flex items-center gap-1 text-xs text-gray-400 hover:text-primary shrink-0"
+                    >
+                      <User className="h-3 w-3" />
+                      <span className="max-w-[120px] truncate">{booking.client.fullName}</span>
+                    </Link>
+                  )}
+                  <span className="hidden md:flex items-center gap-1 text-xs text-gray-400 shrink-0">
+                    <Calendar className="h-3 w-3" />
+                    {formatDate(booking.scheduledDate)}
+                    {booking.scheduledStartTime ? `, ${booking.scheduledStartTime}` : ''}
+                  </span>
+                  <span className="text-sm font-medium text-gray-900 shrink-0 w-20 text-right">
+                    {formatCurrency(booking.estimatedTotal)}
+                  </span>
+                  <span className="text-xs text-gray-500 shrink-0 w-24 text-right hidden sm:block">
+                    {bookingStatusLabel[booking.status] ?? booking.status}
+                  </span>
+                </div>
               ))}
             </div>
           )}
-        </div>
+        </Card>
       )}
 
       {/* Documente Tab */}
@@ -955,9 +929,19 @@ export default function CompanyDetailPage() {
                         )}
                         <div>
                           <div className="flex items-center gap-2">
-                            <h4 className="font-semibold text-gray-900">
-                              {cleaner.fullName}
-                            </h4>
+                            {cleaner.user?.id ? (
+                              <Link
+                                to={`/admin/utilizatori/${cleaner.user.id}`}
+                                className="font-semibold text-gray-900 hover:text-primary transition-colors"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                {cleaner.fullName}
+                              </Link>
+                            ) : (
+                              <h4 className="font-semibold text-gray-900">
+                                {cleaner.fullName}
+                              </h4>
+                            )}
                             <Badge
                               variant={
                                 cleanerStatusVariant[cleaner.status] ?? 'default'
@@ -1215,30 +1199,3 @@ function EditableInfoItem({
   );
 }
 
-function FinancialCard({
-  icon: Icon,
-  label,
-  value,
-  iconBg,
-  iconColor,
-}: {
-  icon: React.ElementType;
-  label: string;
-  value: string;
-  iconBg: string;
-  iconColor: string;
-}) {
-  return (
-    <Card>
-      <div className="flex items-start gap-4">
-        <div className={cn('p-3 rounded-xl', iconBg)}>
-          <Icon className={cn('h-6 w-6', iconColor)} />
-        </div>
-        <div>
-          <p className="text-sm text-gray-500">{label}</p>
-          <p className="text-xl font-bold text-gray-900 mt-1">{value}</p>
-        </div>
-      </div>
-    </Card>
-  );
-}

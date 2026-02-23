@@ -22,6 +22,24 @@ func (q *Queries) CountAllReviews(ctx context.Context) (int64, error) {
 	return count, err
 }
 
+const countAllReviewsFiltered = `-- name: CountAllReviewsFiltered :one
+SELECT COUNT(*) FROM reviews
+WHERE ($1::int IS NULL OR rating = $1)
+  AND ($2::text IS NULL OR review_type = $2)
+`
+
+type CountAllReviewsFilteredParams struct {
+	Rating     pgtype.Int4 `json:"rating"`
+	ReviewType pgtype.Text `json:"review_type"`
+}
+
+func (q *Queries) CountAllReviewsFiltered(ctx context.Context, arg CountAllReviewsFilteredParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countAllReviewsFiltered, arg.Rating, arg.ReviewType)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const countReviewsByCleanerID = `-- name: CountReviewsByCleanerID :one
 SELECT COUNT(*) FROM reviews WHERE reviewed_cleaner_id = $1
 `
@@ -126,6 +144,56 @@ type ListAllReviewsParams struct {
 
 func (q *Queries) ListAllReviews(ctx context.Context, arg ListAllReviewsParams) ([]Review, error) {
 	rows, err := q.db.Query(ctx, listAllReviews, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Review
+	for rows.Next() {
+		var i Review
+		if err := rows.Scan(
+			&i.ID,
+			&i.BookingID,
+			&i.ReviewerUserID,
+			&i.ReviewedUserID,
+			&i.ReviewedCleanerID,
+			&i.Rating,
+			&i.Comment,
+			&i.ReviewType,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listAllReviewsFiltered = `-- name: ListAllReviewsFiltered :many
+SELECT id, booking_id, reviewer_user_id, reviewed_user_id, reviewed_cleaner_id, rating, comment, review_type, created_at FROM reviews
+WHERE ($3::int IS NULL OR rating = $3)
+  AND ($4::text IS NULL OR review_type = $4)
+ORDER BY created_at DESC
+LIMIT $1 OFFSET $2
+`
+
+type ListAllReviewsFilteredParams struct {
+	Limit      int32       `json:"limit"`
+	Offset     int32       `json:"offset"`
+	Rating     pgtype.Int4 `json:"rating"`
+	ReviewType pgtype.Text `json:"review_type"`
+}
+
+func (q *Queries) ListAllReviewsFiltered(ctx context.Context, arg ListAllReviewsFilteredParams) ([]Review, error) {
+	rows, err := q.db.Query(ctx, listAllReviewsFiltered,
+		arg.Limit,
+		arg.Offset,
+		arg.Rating,
+		arg.ReviewType,
+	)
 	if err != nil {
 		return nil, err
 	}

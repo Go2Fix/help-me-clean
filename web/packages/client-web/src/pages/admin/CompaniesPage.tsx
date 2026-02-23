@@ -1,13 +1,15 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { useNavigate } from 'react-router-dom';
-import { Building2, CheckCircle, XCircle, MapPin, Star, Search } from 'lucide-react';
-import { cn } from '@go2fix/shared';
+import { Building2, CheckCircle, XCircle, MapPin, Star, Search, ChevronRight } from 'lucide-react';
 import Card from '@/components/ui/Card';
-import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
+import Select from '@/components/ui/Select';
+import AdminPagination from '@/components/admin/AdminPagination';
+import { useDebounce } from '@/hooks/useDebounce';
+import { formatDate } from '@/utils/format';
 import {
   PENDING_COMPANY_APPLICATIONS,
   SEARCH_COMPANIES,
@@ -15,15 +17,23 @@ import {
   REJECT_COMPANY,
 } from '@/graphql/operations';
 
+// ─── Constants ──────────────────────────────────────────────────────────────
+
 type Tab = 'pending' | 'approved' | 'all';
 
 const PAGE_SIZE = 20;
 
-const statusVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
-  PENDING_APPROVAL: 'warning',
-  APPROVED: 'success',
-  SUSPENDED: 'danger',
-  REJECTED: 'danger',
+const tabOptions = [
+  { value: 'pending', label: 'In asteptare' },
+  { value: 'approved', label: 'Aprobate' },
+  { value: 'all', label: 'Toate' },
+];
+
+const statusDotColor: Record<string, string> = {
+  PENDING_APPROVAL: 'bg-amber-400',
+  APPROVED: 'bg-emerald-500',
+  SUSPENDED: 'bg-red-400',
+  REJECTED: 'bg-red-400',
 };
 
 const statusLabel: Record<string, string> = {
@@ -32,6 +42,32 @@ const statusLabel: Record<string, string> = {
   SUSPENDED: 'Suspendat',
   REJECTED: 'Respins',
 };
+
+const statusFilterOptions = [
+  { value: '', label: 'Toate statusurile' },
+  { value: 'PENDING_APPROVAL', label: 'In asteptare' },
+  { value: 'APPROVED', label: 'Aprobat' },
+  { value: 'SUSPENDED', label: 'Suspendat' },
+  { value: 'REJECTED', label: 'Respins' },
+];
+
+const companyTypeLabel: Record<string, string> = {
+  SRL: 'SRL',
+  PFA: 'PFA',
+  II: 'II',
+  IF: 'IF',
+  SA: 'SA',
+};
+
+const REQUIRED_DOCS = ['certificat_constatator', 'asigurare_raspundere_civila', 'cui_document'];
+
+function areDocsReady(documents: { documentType: string; status: string }[]): boolean {
+  return REQUIRED_DOCS.every((type) =>
+    documents.some((d) => d.documentType === type && d.status === 'APPROVED'),
+  );
+}
+
+// ─── Types ──────────────────────────────────────────────────────────────────
 
 interface CompanyEdge {
   id: string;
@@ -62,18 +98,10 @@ interface PendingApp {
   description: string;
   status: string;
   createdAt: string;
+  documents: { id: string; documentType: string; status: string }[];
 }
 
-function useDebounce(value: string, delay: number): string {
-  const [debouncedValue, setDebouncedValue] = useState(value);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedValue(value), delay);
-    return () => clearTimeout(timer);
-  }, [value, delay]);
-
-  return debouncedValue;
-}
+// ─── Component ──────────────────────────────────────────────────────────────
 
 export default function CompaniesPage() {
   const navigate = useNavigate();
@@ -84,20 +112,23 @@ export default function CompaniesPage() {
   });
   const [rejectReason, setRejectReason] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [approvedPage, setApprovedPage] = useState(0);
   const [allPage, setAllPage] = useState(0);
 
   const debouncedSearch = useDebounce(searchQuery, 300);
 
-  // Reset pagination when search changes
+  // Reset pagination when search or status filter changes
   const prevSearchRef = useRef(debouncedSearch);
+  const prevStatusRef = useRef(statusFilter);
   useEffect(() => {
-    if (prevSearchRef.current !== debouncedSearch) {
+    if (prevSearchRef.current !== debouncedSearch || prevStatusRef.current !== statusFilter) {
       setApprovedPage(0);
       setAllPage(0);
       prevSearchRef.current = debouncedSearch;
+      prevStatusRef.current = statusFilter;
     }
-  }, [debouncedSearch]);
+  }, [debouncedSearch, statusFilter]);
 
   // Pending applications (no search/pagination)
   const { data: pendingData, loading: pendingLoading } = useQuery(PENDING_COMPANY_APPLICATIONS);
@@ -112,10 +143,11 @@ export default function CompaniesPage() {
     },
   });
 
-  // All companies via SEARCH_COMPANIES
+  // All companies via SEARCH_COMPANIES (with optional status filter)
   const { data: allData, loading: allLoading } = useQuery(SEARCH_COMPANIES, {
     variables: {
       query: debouncedSearch || undefined,
+      status: statusFilter || undefined,
       limit: PAGE_SIZE,
       offset: allPage * PAGE_SIZE,
     },
@@ -137,6 +169,7 @@ export default function CompaniesPage() {
         query: SEARCH_COMPANIES,
         variables: {
           query: debouncedSearch || undefined,
+          status: statusFilter || undefined,
           limit: PAGE_SIZE,
           offset: allPage * PAGE_SIZE,
         },
@@ -151,6 +184,7 @@ export default function CompaniesPage() {
         query: SEARCH_COMPANIES,
         variables: {
           query: debouncedSearch || undefined,
+          status: statusFilter || undefined,
           limit: PAGE_SIZE,
           offset: allPage * PAGE_SIZE,
         },
@@ -181,15 +215,6 @@ export default function CompaniesPage() {
   const allCompanies: CompanyEdge[] = allData?.searchCompanies?.edges ?? [];
   const allTotalCount: number = allData?.searchCompanies?.totalCount ?? 0;
 
-  const approvedTotalPages = Math.max(1, Math.ceil(approvedTotalCount / PAGE_SIZE));
-  const allTotalPages = Math.max(1, Math.ceil(allTotalCount / PAGE_SIZE));
-
-  const tabs: { key: Tab; label: string; count?: number }[] = [
-    { key: 'pending', label: 'In asteptare', count: pendingApps.length },
-    { key: 'approved', label: 'Aprobate', count: approvedTotalCount },
-    { key: 'all', label: 'Toate', count: allTotalCount },
-  ];
-
   const loading =
     activeTab === 'pending'
       ? pendingLoading
@@ -199,14 +224,15 @@ export default function CompaniesPage() {
 
   return (
     <div>
-      <div className="mb-8">
+      {/* Header */}
+      <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Companii</h1>
         <p className="text-gray-500 mt-1">Gestioneaza companiile de pe platforma.</p>
       </div>
 
-      {/* Search Bar */}
-      <div className="mb-6">
-        <div className="relative max-w-md">
+      {/* Filter Bar */}
+      <div className="mb-6 grid grid-cols-1 md:grid-cols-[1fr_180px_180px] gap-3">
+        <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <input
             type="text"
@@ -216,173 +242,154 @@ export default function CompaniesPage() {
             className="w-full rounded-xl border border-gray-300 bg-white pl-10 pr-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
           />
         </div>
+        <Select
+          options={tabOptions}
+          value={activeTab}
+          onChange={(e) => handleTabChange(e.target.value as Tab)}
+        />
+        {activeTab === 'all' && (
+          <Select
+            options={statusFilterOptions}
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          />
+        )}
       </div>
-
-      {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-gray-100 rounded-xl p-1 w-fit">
-        {tabs.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => handleTabChange(tab.key)}
-            className={cn(
-              'px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer',
-              activeTab === tab.key
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700',
-            )}
-          >
-            {tab.label}
-            {tab.count !== undefined && tab.count > 0 && (
-              <span className="ml-2 text-xs bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded-md">
-                {tab.count}
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
-
-      {/* Loading */}
-      {loading && (
-        <div className="space-y-4">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Card key={i}>
-              <div className="animate-pulse flex items-center gap-4">
-                <div className="h-12 w-12 bg-gray-200 rounded-xl" />
-                <div className="flex-1">
-                  <div className="h-4 bg-gray-200 rounded w-48 mb-2" />
-                  <div className="h-3 bg-gray-200 rounded w-32" />
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
-      )}
 
       {/* Pending Tab */}
-      {!loading && activeTab === 'pending' && (
-        <div className="space-y-4">
-          {pendingApps.length === 0 ? (
-            <Card>
-              <p className="text-center text-gray-400 py-8">
-                Nu exista aplicatii in asteptare.
-              </p>
-            </Card>
+      {activeTab === 'pending' && (
+        <Card padding={false}>
+          {loading ? (
+            <div className="divide-y divide-gray-100">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="px-4 py-4 animate-pulse flex items-center gap-3">
+                  <div className="h-9 w-9 bg-gray-200 rounded-lg shrink-0" />
+                  <div className="flex-1">
+                    <div className="h-4 bg-gray-200 rounded w-40 mb-2" />
+                    <div className="h-3 bg-gray-200 rounded w-28" />
+                  </div>
+                  <div className="h-8 bg-gray-200 rounded w-20" />
+                </div>
+              ))}
+            </div>
+          ) : pendingApps.length === 0 ? (
+            <p className="text-center text-gray-400 py-16">Nu exista aplicatii in asteptare.</p>
           ) : (
-            pendingApps.map((app) => (
-              <Card key={app.id}>
-                <div className="flex items-start justify-between">
+            <div className="divide-y divide-gray-100">
+              {pendingApps.map((app) => (
+                <div key={app.id} className="flex items-center gap-3 px-4 py-3.5">
+                  {/* Clickable info area */}
                   <div
-                    className="flex items-start gap-4 cursor-pointer flex-1"
+                    className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer hover:opacity-80 transition-opacity"
                     onClick={() => navigate(`/admin/companii/${app.id}`)}
                   >
-                    <div className="p-3 rounded-xl bg-accent/10">
-                      <Building2 className="h-6 w-6 text-accent" />
+                    <div className="h-9 w-9 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
+                      <Building2 className="h-4.5 w-4.5 text-amber-600" />
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900">{app.companyName}</h3>
-                      <p className="text-sm text-gray-500 mt-0.5">
-                        CUI: {app.cui} &middot; {app.companyType}
-                      </p>
-                      <div className="flex items-center gap-1 text-sm text-gray-400 mt-1">
-                        <MapPin className="h-3.5 w-3.5" />
-                        {app.city}, {app.county}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-gray-900 truncate">{app.companyName}</span>
+                        <span className="text-xs text-gray-400 shrink-0">{companyTypeLabel[app.companyType] ?? app.companyType}</span>
                       </div>
-                      <p className="text-sm text-gray-500 mt-1">
-                        Reprezentant: {app.legalRepresentative}
-                      </p>
-                      <p className="text-xs text-gray-400 mt-1">
-                        Depusa pe {new Date(app.createdAt).toLocaleDateString('ro-RO')}
-                      </p>
+                      <div className="flex items-center gap-3 text-xs text-gray-400 mt-0.5">
+                        <span>CUI: {app.cui}</span>
+                        <span className="hidden sm:flex items-center gap-1">
+                          <MapPin className="h-3 w-3" />{app.city}, {app.county}
+                        </span>
+                        <span className="hidden md:inline">{app.legalRepresentative}</span>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
+
+                  {/* Date */}
+                  <span className="text-xs text-gray-400 shrink-0 hidden md:block">
+                    {formatDate(app.createdAt)}
+                  </span>
+
+                  {/* Docs missing hint */}
+                  {!areDocsReady(app.documents) && (
+                    <span className="text-xs text-amber-600 shrink-0 hidden lg:block">Documente lipsa</span>
+                  )}
+
+                  {/* Actions */}
+                  <div className="flex items-center gap-1.5 shrink-0">
                     <Button
                       size="sm"
                       variant="secondary"
                       onClick={() => handleApprove(app.id)}
                       loading={approving}
+                      disabled={!areDocsReady(app.documents)}
+                      title={!areDocsReady(app.documents) ? 'Toate documentele trebuie aprobate' : undefined}
                     >
-                      <CheckCircle className="h-4 w-4" />
-                      Aproba
+                      <CheckCircle className="h-3.5 w-3.5" />
+                      <span className="hidden sm:inline">Aproba</span>
                     </Button>
                     <Button
                       size="sm"
                       variant="danger"
                       onClick={() => setRejectModal({ open: true, companyId: app.id })}
                     >
-                      <XCircle className="h-4 w-4" />
-                      Respinge
+                      <XCircle className="h-3.5 w-3.5" />
+                      <span className="hidden sm:inline">Respinge</span>
                     </Button>
                   </div>
                 </div>
-              </Card>
-            ))
+              ))}
+            </div>
           )}
-        </div>
+        </Card>
       )}
 
-      {/* Approved Tab */}
-      {!loading && activeTab === 'approved' && (
-        <div className="space-y-4">
-          {approvedCompanies.length === 0 ? (
-            <Card>
-              <p className="text-center text-gray-400 py-8">
-                {debouncedSearch
-                  ? 'Nicio companie gasita pentru cautarea curenta.'
-                  : 'Nu exista companii aprobate.'}
+      {/* Approved Tab — List */}
+      {activeTab === 'approved' && (
+        <>
+          <Card padding={false}>
+            {loading ? (
+              <ListSkeleton />
+            ) : approvedCompanies.length === 0 ? (
+              <p className="text-center text-gray-400 py-16">
+                {debouncedSearch ? 'Nicio companie gasita.' : 'Nu exista companii aprobate.'}
               </p>
-            </Card>
-          ) : (
-            <>
-              {approvedCompanies.map((company) => (
-                <CompanyRow
-                  key={company.id}
-                  company={company}
-                  onClick={() => navigate(`/admin/companii/${company.id}`)}
-                />
-              ))}
-              <Pagination
-                currentPage={approvedPage}
-                totalPages={approvedTotalPages}
-                totalCount={approvedTotalCount}
-                pageSize={PAGE_SIZE}
-                onPageChange={setApprovedPage}
-              />
-            </>
+            ) : (
+              <CompanyList companies={approvedCompanies} onRowClick={(id) => navigate(`/admin/companii/${id}`)} showStatus={false} />
+            )}
+          </Card>
+          {!loading && approvedTotalCount > 0 && (
+            <AdminPagination
+              page={approvedPage}
+              totalCount={approvedTotalCount}
+              pageSize={PAGE_SIZE}
+              onPageChange={setApprovedPage}
+              noun="companii"
+            />
           )}
-        </div>
+        </>
       )}
 
-      {/* All Tab */}
-      {!loading && activeTab === 'all' && (
-        <div className="space-y-4">
-          {allCompanies.length === 0 ? (
-            <Card>
-              <p className="text-center text-gray-400 py-8">
-                {debouncedSearch
-                  ? 'Nicio companie gasita pentru cautarea curenta.'
-                  : 'Nu exista companii.'}
+      {/* All Tab — List */}
+      {activeTab === 'all' && (
+        <>
+          <Card padding={false}>
+            {loading ? (
+              <ListSkeleton />
+            ) : allCompanies.length === 0 ? (
+              <p className="text-center text-gray-400 py-16">
+                {debouncedSearch || statusFilter ? 'Nicio companie gasita.' : 'Nu exista companii.'}
               </p>
-            </Card>
-          ) : (
-            <>
-              {allCompanies.map((company) => (
-                <CompanyRow
-                  key={company.id}
-                  company={company}
-                  onClick={() => navigate(`/admin/companii/${company.id}`)}
-                />
-              ))}
-              <Pagination
-                currentPage={allPage}
-                totalPages={allTotalPages}
-                totalCount={allTotalCount}
-                pageSize={PAGE_SIZE}
-                onPageChange={setAllPage}
-              />
-            </>
+            ) : (
+              <CompanyList companies={allCompanies} onRowClick={(id) => navigate(`/admin/companii/${id}`)} showStatus />
+            )}
+          </Card>
+          {!loading && allTotalCount > 0 && (
+            <AdminPagination
+              page={allPage}
+              totalCount={allTotalCount}
+              pageSize={PAGE_SIZE}
+              onPageChange={setAllPage}
+              noun="companii"
+            />
           )}
-        </div>
+        </>
       )}
 
       {/* Reject Modal */}
@@ -426,88 +433,90 @@ export default function CompaniesPage() {
   );
 }
 
-function CompanyRow({ company, onClick }: { company: CompanyEdge; onClick: () => void }) {
+// ─── List Components ────────────────────────────────────────────────────────
+
+function ListSkeleton() {
   return (
-    <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={onClick}>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="p-3 rounded-xl bg-primary/10">
-            <Building2 className="h-6 w-6 text-primary" />
-          </div>
-          <div>
-            <h3 className="font-semibold text-gray-900">{company.companyName}</h3>
-            <p className="text-sm text-gray-500">
-              CUI: {company.cui} &middot; {company.companyType}
-            </p>
-            <div className="flex items-center gap-1 text-sm text-gray-400 mt-0.5">
-              <MapPin className="h-3.5 w-3.5" />
-              {company.city}, {company.county}
-            </div>
-          </div>
+    <div className="divide-y divide-gray-100">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="px-4 py-3 animate-pulse flex items-center gap-3">
+          <div className="h-2.5 w-2.5 bg-gray-200 rounded-full shrink-0" />
+          <div className="h-4 bg-gray-200 rounded w-36" />
+          <div className="h-3 bg-gray-200 rounded w-20 hidden md:block" />
+          <div className="flex-1" />
+          <div className="h-3 bg-gray-200 rounded w-16" />
         </div>
-        <div className="flex items-center gap-4">
-          {company.ratingAvg != null && (
-            <div className="flex items-center gap-1 text-sm text-gray-600">
-              <Star className="h-4 w-4 text-accent fill-accent" />
-              {Number(company.ratingAvg).toFixed(1)}
-            </div>
-          )}
-          <div className="text-sm text-gray-500">
-            {company.totalJobsCompleted} lucrari
-          </div>
-          <Badge variant={statusVariant[company.status] ?? 'default'}>
-            {statusLabel[company.status] ?? company.status}
-          </Badge>
-        </div>
-      </div>
-    </Card>
+      ))}
+    </div>
   );
 }
 
-function Pagination({
-  currentPage,
-  totalPages,
-  totalCount,
-  pageSize,
-  onPageChange,
+function CompanyList({
+  companies,
+  onRowClick,
+  showStatus,
 }: {
-  currentPage: number;
-  totalPages: number;
-  totalCount: number;
-  pageSize: number;
-  onPageChange: (page: number) => void;
+  companies: CompanyEdge[];
+  onRowClick: (id: string) => void;
+  showStatus: boolean;
 }) {
-  const from = currentPage * pageSize + 1;
-  const to = Math.min((currentPage + 1) * pageSize, totalCount);
-
-  if (totalCount <= pageSize) return null;
-
   return (
-    <div className="flex items-center justify-between pt-4">
-      <p className="text-sm text-gray-500">
-        {from}-{to} din {totalCount} companii
-      </p>
-      <div className="flex items-center gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={currentPage === 0}
-          onClick={() => onPageChange(currentPage - 1)}
+    <div className="divide-y divide-gray-100">
+      {companies.map((company) => (
+        <div
+          key={company.id}
+          onClick={() => onRowClick(company.id)}
+          className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors"
         >
-          Anterior
-        </Button>
-        <span className="text-sm text-gray-600 px-2">
-          {currentPage + 1} / {totalPages}
-        </span>
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={currentPage >= totalPages - 1}
-          onClick={() => onPageChange(currentPage + 1)}
-        >
-          Urmator
-        </Button>
-      </div>
+          {/* Status dot */}
+          {showStatus && (
+            <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${statusDotColor[company.status] ?? 'bg-gray-300'}`} />
+          )}
+
+          {/* Company name */}
+          <span className="text-sm font-semibold text-gray-900 truncate min-w-0">
+            {company.companyName}
+          </span>
+
+          {/* Type badge */}
+          <span className="text-xs text-gray-400 shrink-0">
+            {companyTypeLabel[company.companyType] ?? company.companyType}
+          </span>
+
+          {/* Spacer */}
+          <span className="flex-1" />
+
+          {/* Location — desktop */}
+          <span className="hidden md:flex items-center gap-1 text-xs text-gray-400 shrink-0">
+            <MapPin className="h-3 w-3" />
+            <span className="max-w-[120px] truncate">{company.city}, {company.county}</span>
+          </span>
+
+          {/* Rating — desktop */}
+          {company.ratingAvg != null ? (
+            <span className="hidden md:flex items-center gap-1 text-xs text-gray-500 shrink-0">
+              <Star className="h-3 w-3 text-accent fill-accent" />
+              {Number(company.ratingAvg).toFixed(1)}
+            </span>
+          ) : (
+            <span className="hidden md:block text-xs text-gray-300 shrink-0 w-8 text-center">—</span>
+          )}
+
+          {/* Jobs count */}
+          <span className="text-xs text-gray-400 shrink-0 w-16 text-right">
+            {company.totalJobsCompleted} lucrari
+          </span>
+
+          {/* Status label */}
+          {showStatus && (
+            <span className="text-xs text-gray-500 shrink-0 w-20 text-right hidden sm:block">
+              {statusLabel[company.status] ?? company.status}
+            </span>
+          )}
+
+          <ChevronRight className="h-4 w-4 text-gray-300 shrink-0" />
+        </div>
+      ))}
     </div>
   );
 }

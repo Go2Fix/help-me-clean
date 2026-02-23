@@ -1,12 +1,13 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useQuery } from '@apollo/client';
 import { useNavigate } from 'react-router-dom';
-import { Search, Users, ChevronLeft, ChevronRight } from 'lucide-react';
-import { cn } from '@go2fix/shared';
+import { Search, Users, Phone } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
-import Button from '@/components/ui/Button';
 import Select from '@/components/ui/Select';
+import AdminPagination from '@/components/admin/AdminPagination';
+import { useDebounce } from '@/hooks/useDebounce';
+import { formatDate } from '@/utils/format';
 import { SEARCH_USERS } from '@/graphql/operations';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
@@ -79,19 +80,10 @@ export default function UsersPage() {
   const navigate = useNavigate();
 
   const [searchInput, setSearchInput] = useState('');
-  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const debouncedQuery = useDebounce(searchInput, 300);
   const [roleFilter, setRoleFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [page, setPage] = useState(0);
-
-  // Debounce the search input
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      setDebouncedQuery(searchInput);
-      setPage(0);
-    }, 300);
-    return () => clearTimeout(timeout);
-  }, [searchInput]);
 
   // Reset page when filters change
   const handleRoleChange = useCallback((value: string) => {
@@ -101,6 +93,12 @@ export default function UsersPage() {
 
   const handleStatusChange = useCallback((value: string) => {
     setStatusFilter(value);
+    setPage(0);
+  }, []);
+
+  // Reset page when search changes
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchInput(value);
     setPage(0);
   }, []);
 
@@ -116,7 +114,6 @@ export default function UsersPage() {
 
   const users: UserRow[] = data?.searchUsers?.users ?? [];
   const totalCount: number = data?.searchUsers?.totalCount ?? 0;
-  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
   return (
     <div>
@@ -137,7 +134,7 @@ export default function UsersPage() {
             <input
               type="text"
               value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
+              onChange={(e) => handleSearchChange(e.target.value)}
               placeholder="Cauta dupa nume, email sau telefon..."
               className="w-full rounded-xl border border-gray-300 bg-white pl-10 pr-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
             />
@@ -191,109 +188,164 @@ export default function UsersPage() {
           </div>
         ) : (
           <>
-            {/* Table Header */}
-            <div className="hidden md:grid grid-cols-[1fr_1fr_auto_auto_auto] gap-4 px-3 md:px-6 py-3 border-b border-gray-200 bg-gray-50 rounded-t-xl">
-              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Utilizator
-              </span>
-              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Email
-              </span>
-              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Rol
-              </span>
-              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Status
-              </span>
-              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Inregistrat
-              </span>
+            {/* Desktop: proper table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200 bg-gray-50">
+                    <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">
+                      Utilizator
+                    </th>
+                    <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">
+                      Email
+                    </th>
+                    <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">
+                      Telefon
+                    </th>
+                    <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">
+                      Rol
+                    </th>
+                    <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">
+                      Status
+                    </th>
+                    <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">
+                      Inregistrat
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.map((user) => (
+                    <tr
+                      key={user.id}
+                      onClick={() => navigate(`/admin/utilizatori/${user.id}`)}
+                      className="border-b border-gray-100 last:border-b-0 cursor-pointer transition-colors hover:bg-gray-50"
+                    >
+                      {/* Name + Avatar */}
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                            {user.avatarUrl ? (
+                              <img
+                                src={user.avatarUrl}
+                                alt={user.fullName}
+                                className="h-10 w-10 rounded-full object-cover"
+                              />
+                            ) : (
+                              <span className="text-sm font-semibold text-primary">
+                                {getInitials(user.fullName)}
+                              </span>
+                            )}
+                          </div>
+                          <span className="font-medium text-gray-900 truncate max-w-[200px]">
+                            {user.fullName}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* Email */}
+                      <td className="px-6 py-4">
+                        <span className="text-sm text-gray-500 truncate block max-w-[240px]">
+                          {user.email}
+                        </span>
+                      </td>
+
+                      {/* Phone */}
+                      <td className="px-6 py-4">
+                        <span className="text-sm text-gray-500">
+                          {user.phone || '-'}
+                        </span>
+                      </td>
+
+                      {/* Role */}
+                      <td className="px-6 py-4">
+                        <Badge variant={roleVariant[user.role] ?? 'default'}>
+                          {roleLabel[user.role] ?? user.role}
+                        </Badge>
+                      </td>
+
+                      {/* Status */}
+                      <td className="px-6 py-4">
+                        <Badge variant={statusVariant[user.status] ?? 'default'}>
+                          {statusLabel[user.status] ?? user.status}
+                        </Badge>
+                      </td>
+
+                      {/* Created */}
+                      <td className="px-6 py-4">
+                        <span className="text-sm text-gray-400 whitespace-nowrap">
+                          {formatDate(user.createdAt)}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
 
-            {/* Rows */}
-            {users.map((user) => (
-              <div
-                key={user.id}
-                onClick={() => navigate(`/admin/utilizatori/${user.id}`)}
-                className={cn(
-                  'grid grid-cols-1 md:grid-cols-[1fr_1fr_auto_auto_auto] gap-2 md:gap-4 items-center px-3 md:px-6 py-4 border-b border-gray-100 last:border-b-0 cursor-pointer transition-colors hover:bg-gray-50',
-                )}
-              >
-                {/* Name + Avatar */}
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                    {user.avatarUrl ? (
-                      <img
-                        src={user.avatarUrl}
-                        alt={user.fullName}
-                        className="h-10 w-10 rounded-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-sm font-semibold text-primary">
-                        {getInitials(user.fullName)}
+            {/* Mobile: compact card layout */}
+            <div className="md:hidden divide-y divide-gray-100">
+              {users.map((user) => (
+                <div
+                  key={user.id}
+                  onClick={() => navigate(`/admin/utilizatori/${user.id}`)}
+                  className="px-4 py-4 cursor-pointer transition-colors hover:bg-gray-50 active:bg-gray-100"
+                >
+                  {/* Top row: avatar + name */}
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                      {user.avatarUrl ? (
+                        <img
+                          src={user.avatarUrl}
+                          alt={user.fullName}
+                          className="h-10 w-10 rounded-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-sm font-semibold text-primary">
+                          {getInitials(user.fullName)}
+                        </span>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-gray-900 truncate">
+                        {user.fullName}
+                      </p>
+                      <p className="text-sm text-gray-500 truncate">
+                        {user.email}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Bottom row: phone (if present) + role + status badges */}
+                  <div className="mt-3 ml-[52px] flex flex-wrap items-center gap-2">
+                    {user.phone && (
+                      <span className="inline-flex items-center gap-1 text-xs text-gray-500">
+                        <Phone className="h-3 w-3" />
+                        {user.phone}
                       </span>
                     )}
+                    <Badge variant={roleVariant[user.role] ?? 'default'}>
+                      {roleLabel[user.role] ?? user.role}
+                    </Badge>
+                    <Badge variant={statusVariant[user.status] ?? 'default'}>
+                      {statusLabel[user.status] ?? user.status}
+                    </Badge>
                   </div>
-                  <span className="font-medium text-gray-900 truncate">
-                    {user.fullName}
-                  </span>
                 </div>
-
-                {/* Email */}
-                <span className="text-sm text-gray-500 truncate">
-                  {user.email}
-                </span>
-
-                {/* Role */}
-                <Badge variant={roleVariant[user.role] ?? 'default'}>
-                  {roleLabel[user.role] ?? user.role}
-                </Badge>
-
-                {/* Status */}
-                <Badge variant={statusVariant[user.status] ?? 'default'}>
-                  {statusLabel[user.status] ?? user.status}
-                </Badge>
-
-                {/* Created */}
-                <span className="text-sm text-gray-400">
-                  {new Date(user.createdAt).toLocaleDateString('ro-RO')}
-                </span>
-              </div>
-            ))}
+              ))}
+            </div>
           </>
         )}
       </Card>
 
       {/* Pagination */}
-      {!loading && totalCount > 0 && (
-        <div className="flex items-center justify-between mt-6">
-          <p className="text-sm text-gray-500">
-            {totalCount} {totalCount === 1 ? 'utilizator' : 'utilizatori'} {totalCount === 1 ? 'gasit' : 'gasiti'}
-          </p>
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page === 0}
-              onClick={() => setPage((p) => Math.max(0, p - 1))}
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Anterior
-            </Button>
-            <span className="text-sm text-gray-700">
-              Pagina {page + 1} din {totalPages}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page + 1 >= totalPages}
-              onClick={() => setPage((p) => p + 1)}
-            >
-              Urmator
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
+      {!loading && (
+        <AdminPagination
+          page={page}
+          totalCount={totalCount}
+          pageSize={PAGE_SIZE}
+          onPageChange={setPage}
+          noun="utilizatori"
+        />
       )}
     </div>
   );

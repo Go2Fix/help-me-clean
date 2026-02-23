@@ -1134,6 +1134,11 @@ export const PENDING_COMPANY_APPLICATIONS = gql`
       description
       status
       createdAt
+      documents {
+        id
+        documentType
+        status
+      }
     }
   }
 `;
@@ -1297,6 +1302,7 @@ export const ADMIN_BOOKING_DETAIL = gql`
       platformCommissionPct
       status
       paymentStatus
+      paidAt
       recurringGroupId
       occurrenceNumber
       startedAt
@@ -1831,8 +1837,8 @@ export const SEARCH_BOOKINGS = gql`
 // ─── Admin CMS: Review Moderation ───────────────────────────────────────────
 
 export const ALL_REVIEWS = gql`
-  query AllReviews($limit: Int, $offset: Int) {
-    allReviews(limit: $limit, offset: $offset) {
+  query AllReviews($limit: Int, $offset: Int, $rating: Int, $reviewType: String) {
+    allReviews(limit: $limit, offset: $offset, rating: $rating, reviewType: $reviewType) {
       reviews {
         id
         rating

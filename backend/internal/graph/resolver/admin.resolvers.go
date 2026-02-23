@@ -14,6 +14,8 @@ import (
 	"go2fix-backend/internal/storage"
 	"strings"
 
+	"github.com/jackc/pgx/v5/pgtype"
+
 	"github.com/99designs/gqlgen/graphql"
 )
 
@@ -540,7 +542,7 @@ func (r *queryResolver) SearchBookings(ctx context.Context, query *string, statu
 }
 
 // AllReviews is the resolver for the allReviews field.
-func (r *queryResolver) AllReviews(ctx context.Context, limit *int, offset *int) (*model.ReviewConnection, error) {
+func (r *queryResolver) AllReviews(ctx context.Context, limit *int, offset *int, rating *int, reviewType *string) (*model.ReviewConnection, error) {
 	claims := auth.GetUserFromContext(ctx)
 	if claims == nil {
 		return nil, fmt.Errorf("not authenticated")
@@ -555,15 +557,29 @@ func (r *queryResolver) AllReviews(ctx context.Context, limit *int, offset *int)
 		o = int32(*offset)
 	}
 
-	dbReviews, err := r.Queries.ListAllReviews(ctx, db.ListAllReviewsParams{
-		Limit:  l,
-		Offset: o,
+	var ratingParam pgtype.Int4
+	if rating != nil {
+		ratingParam = pgtype.Int4{Int32: int32(*rating), Valid: true}
+	}
+	var reviewTypeParam pgtype.Text
+	if reviewType != nil && *reviewType != "" {
+		reviewTypeParam = pgtype.Text{String: *reviewType, Valid: true}
+	}
+
+	dbReviews, err := r.Queries.ListAllReviewsFiltered(ctx, db.ListAllReviewsFilteredParams{
+		Limit:      l,
+		Offset:     o,
+		Rating:     ratingParam,
+		ReviewType: reviewTypeParam,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to list reviews: %w", err)
 	}
 
-	count, err := r.Queries.CountAllReviews(ctx)
+	count, err := r.Queries.CountAllReviewsFiltered(ctx, db.CountAllReviewsFilteredParams{
+		Rating:     ratingParam,
+		ReviewType: reviewTypeParam,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to count reviews: %w", err)
 	}

@@ -8,7 +8,9 @@ import {
   Star,
   AlertCircle,
   FileText,
-  Repeat,
+  UserPlus,
+  ArrowRight,
+  ChevronRight,
 } from 'lucide-react';
 import {
   BarChart,
@@ -20,8 +22,9 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+import { useNavigate, Link } from 'react-router-dom';
 import Card from '@/components/ui/Card';
-import Badge from '@/components/ui/Badge';
+import { formatCurrency } from '@/utils/format';
 import {
   PLATFORM_STATS,
   BOOKINGS_BY_STATUS,
@@ -30,65 +33,8 @@ import {
   PENDING_COMPANY_DOCUMENTS,
   PENDING_CLEANER_DOCUMENTS,
 } from '@/graphql/operations';
-import { useNavigate } from 'react-router-dom';
 
-function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('ro-RO', {
-    style: 'currency',
-    currency: 'RON',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
-}
-
-function StatCard({
-  icon: Icon,
-  label,
-  value,
-  color,
-}: {
-  icon: React.ElementType;
-  label: string;
-  value: string | number;
-  color: string;
-}) {
-  const colorMap: Record<string, { bg: string; text: string }> = {
-    primary: { bg: 'bg-primary/10', text: 'text-primary' },
-    secondary: { bg: 'bg-secondary/10', text: 'text-secondary' },
-    accent: { bg: 'bg-accent/10', text: 'text-accent' },
-    danger: { bg: 'bg-danger/10', text: 'text-danger' },
-  };
-  const colors = colorMap[color] ?? colorMap.primary;
-
-  return (
-    <Card>
-      <div className="flex items-center gap-4">
-        <div className={`p-3 rounded-xl ${colors.bg}`}>
-          <Icon className={`h-6 w-6 ${colors.text}`} />
-        </div>
-        <div>
-          <p className="text-sm text-gray-500">{label}</p>
-          <p className="text-2xl font-bold text-gray-900">{value}</p>
-        </div>
-      </div>
-    </Card>
-  );
-}
-
-function SkeletonCards({ count }: { count: number }) {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      {Array.from({ length: count }).map((_, i) => (
-        <Card key={i}>
-          <div className="animate-pulse">
-            <div className="h-4 bg-gray-200 rounded w-24 mb-3" />
-            <div className="h-8 bg-gray-200 rounded w-16" />
-          </div>
-        </Card>
-      ))}
-    </div>
-  );
-}
+// ─── Status Maps ────────────────────────────────────────────────────────────
 
 const statusLabels: Record<string, string> = {
   ASSIGNED: 'Asignate',
@@ -98,17 +44,52 @@ const statusLabels: Record<string, string> = {
   CANCELLED: 'Anulate',
 };
 
-const statusVariants: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
-  ASSIGNED: 'info',
-  CONFIRMED: 'info',
-  IN_PROGRESS: 'info',
-  COMPLETED: 'success',
-  CANCELLED: 'danger',
+const statusDotColor: Record<string, string> = {
+  ASSIGNED: 'bg-blue-400',
+  CONFIRMED: 'bg-blue-500',
+  IN_PROGRESS: 'bg-indigo-500',
+  COMPLETED: 'bg-emerald-500',
+  CANCELLED: 'bg-red-400',
 };
+
+// ─── Metric Item ────────────────────────────────────────────────────────────
+
+function Metric({
+  icon: Icon,
+  label,
+  value,
+  onClick,
+}: {
+  icon: React.ElementType;
+  label: string;
+  value: string | number;
+  onClick?: () => void;
+}) {
+  const Wrapper = onClick ? 'button' : 'div';
+  return (
+    <Wrapper
+      className={`flex items-center gap-3 py-3 ${onClick ? 'cursor-pointer hover:bg-gray-50 -mx-2 px-2 rounded-lg transition-colors' : ''}`}
+      onClick={onClick}
+    >
+      <div className="h-9 w-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+        <Icon className="h-4.5 w-4.5 text-gray-500" />
+      </div>
+      <div className="min-w-0">
+        <p className="text-xs text-gray-500 leading-tight">{label}</p>
+        <p className="text-lg font-semibold text-gray-900 leading-tight">{value}</p>
+      </div>
+    </Wrapper>
+  );
+}
+
+// ─── Component ──────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
   const navigate = useNavigate();
-  const { data: statsData, loading: statsLoading } = useQuery(PLATFORM_STATS);
+
+  const { data: statsData, loading: statsLoading } = useQuery(PLATFORM_STATS, {
+    pollInterval: 30000,
+  });
   const { data: statusData } = useQuery(BOOKINGS_BY_STATUS);
   const { data: revenueData } = useQuery(REVENUE_BY_MONTH, {
     variables: { months: 6 },
@@ -124,146 +105,142 @@ export default function DashboardPage() {
   const pendingCompanyDocs = pendingCompanyDocsData?.pendingCompanyDocuments ?? [];
   const pendingCleanerDocs = pendingCleanerDocsData?.pendingCleanerDocuments ?? [];
 
+  const pendingCount = pendingApps.length + pendingCompanyDocs.length + pendingCleanerDocs.length;
+
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Platform Overview</h1>
-        <p className="text-gray-500 mt-1">
-          Statistici si date despre platforma Go2Fix.
-        </p>
+      {/* Header */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+        <p className="text-gray-500 mt-1">Statistici si date despre platforma Go2Fix.</p>
       </div>
 
-      {/* Primary Stats */}
+      {/* Key Metrics */}
       {statsLoading ? (
-        <SkeletonCards count={4} />
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatCard
-            icon={Users}
-            label="Total Clienti"
-            value={stats?.totalClients ?? 0}
-            color="primary"
-          />
-          <StatCard
-            icon={Building2}
-            label="Total Companii"
-            value={stats?.totalCompanies ?? 0}
-            color="secondary"
-          />
-          <StatCard
-            icon={CalendarDays}
-            label="Total Rezervari"
-            value={stats?.totalBookings ?? 0}
-            color="accent"
-          />
-          <StatCard
-            icon={Banknote}
-            label="Venit Total"
-            value={formatCurrency(stats?.totalRevenue ?? 0)}
-            color="secondary"
-          />
-        </div>
-      )}
-
-      {/* Secondary Stats */}
-      {!statsLoading && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
-          <StatCard
-            icon={CalendarDays}
-            label="Rezervari luna aceasta"
-            value={stats?.bookingsThisMonth ?? 0}
-            color="primary"
-          />
-          <StatCard
-            icon={TrendingUp}
-            label="Venit luna aceasta"
-            value={formatCurrency(stats?.revenueThisMonth ?? 0)}
-            color="secondary"
-          />
-          <StatCard
-            icon={Banknote}
-            label="Comision platforma"
-            value={formatCurrency(stats?.platformCommissionTotal ?? 0)}
-            color="accent"
-          />
-          <StatCard
-            icon={Star}
-            label="Rating mediu"
-            value={stats?.averageRating ? Number(stats.averageRating).toFixed(1) : '--'}
-            color="primary"
-          />
-        </div>
-      )}
-
-      {/* Pending Documents & Recurring */}
-      {!statsLoading && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-          <StatCard
-            icon={FileText}
-            label="Documente companie in asteptare"
-            value={pendingCompanyDocs.length}
-            color="accent"
-          />
-          <StatCard
-            icon={FileText}
-            label="Documente lucratori in asteptare"
-            value={pendingCleanerDocs.length}
-            color="danger"
-          />
-          <StatCard
-            icon={Repeat}
-            label="Rezervari recurente"
-            value={bookingStatuses.length > 0 ? 'Activ' : '--'}
-            color="primary"
-          />
-        </div>
-      )}
-
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-        {/* Revenue Chart */}
         <Card>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Venit pe luni</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="animate-pulse flex items-center gap-3 py-3">
+                <div className="h-9 w-9 bg-gray-200 rounded-lg shrink-0" />
+                <div>
+                  <div className="h-3 bg-gray-200 rounded w-16 mb-2" />
+                  <div className="h-5 bg-gray-200 rounded w-10" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      ) : stats ? (
+        <Card>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-1 divide-y md:divide-y-0 md:divide-x divide-gray-100">
+            <div className="space-y-1">
+              <Metric icon={Users} label="Clienti" value={stats.totalClients} />
+              <Metric icon={UserPlus} label="Noi luna aceasta" value={stats.newClientsThisMonth} />
+            </div>
+            <div className="space-y-1 pt-3 md:pt-0 md:pl-6">
+              <Metric icon={Building2} label="Companii" value={stats.totalCompanies} />
+              <Metric icon={Star} label="Rating mediu" value={stats.averageRating ? Number(stats.averageRating).toFixed(1) : '--'} />
+            </div>
+            <div className="space-y-1 pt-3 md:pt-0 md:pl-6">
+              <Metric icon={CalendarDays} label="Rezervari" value={stats.totalBookings} />
+              <Metric icon={CalendarDays} label="Luna aceasta" value={stats.bookingsThisMonth} />
+            </div>
+            <div className="space-y-1 pt-3 md:pt-0 md:pl-6">
+              <Metric icon={Banknote} label="Venit total" value={formatCurrency(stats.totalRevenue)} />
+              <Metric icon={TrendingUp} label="Comision platforma" value={formatCurrency(stats.platformCommissionTotal)} />
+            </div>
+          </div>
+        </Card>
+      ) : null}
+
+      {/* Alerts Row */}
+      {pendingCount > 0 && (
+        <div className="mt-4 flex flex-col sm:flex-row gap-3">
+          {pendingApps.length > 0 && (
+            <Link
+              to="/admin/companii"
+              className="flex items-center gap-3 flex-1 px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl hover:bg-amber-100 transition-colors"
+            >
+              <AlertCircle className="h-4 w-4 text-amber-600 shrink-0" />
+              <span className="text-sm font-medium text-amber-800 flex-1">
+                {pendingApps.length} {pendingApps.length === 1 ? 'aplicatie noua' : 'aplicatii noi'}
+              </span>
+              <ChevronRight className="h-4 w-4 text-amber-400" />
+            </Link>
+          )}
+          {pendingCompanyDocs.length > 0 && (
+            <Link
+              to="/admin/companii"
+              className="flex items-center gap-3 flex-1 px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl hover:bg-blue-100 transition-colors"
+            >
+              <FileText className="h-4 w-4 text-blue-600 shrink-0" />
+              <span className="text-sm font-medium text-blue-800 flex-1">
+                {pendingCompanyDocs.length} documente companie
+              </span>
+              <ChevronRight className="h-4 w-4 text-blue-400" />
+            </Link>
+          )}
+          {pendingCleanerDocs.length > 0 && (
+            <Link
+              to="/admin/companii"
+              className="flex items-center gap-3 flex-1 px-4 py-3 bg-red-50 border border-red-200 rounded-xl hover:bg-red-100 transition-colors"
+            >
+              <FileText className="h-4 w-4 text-red-600 shrink-0" />
+              <span className="text-sm font-medium text-red-800 flex-1">
+                {pendingCleanerDocs.length} documente lucratori
+              </span>
+              <ChevronRight className="h-4 w-4 text-red-400" />
+            </Link>
+          )}
+        </div>
+      )}
+
+      {/* Charts + Status */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+        {/* Revenue Chart — 2 cols */}
+        <Card className="lg:col-span-2">
+          <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">Venit pe luni</h3>
           {revenueMonths.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={280}>
               <BarChart data={revenueMonths}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip
-                  formatter={(value: number) => formatCurrency(value)}
-                />
+                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#9ca3af' }} />
+                <YAxis tick={{ fontSize: 12, fill: '#9ca3af' }} />
+                <Tooltip formatter={(value: number) => formatCurrency(value)} />
                 <Legend />
                 <Bar dataKey="revenue" name="Venit" fill="#2563EB" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="commission" name="Comision" fill="#10B981" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <div className="flex items-center justify-center h-[300px] text-gray-400">
+            <div className="flex items-center justify-center h-[280px] text-gray-400 text-sm">
               Nu exista date pentru grafic
             </div>
           )}
         </Card>
 
-        {/* Bookings by Status */}
+        {/* Bookings by Status — 1 col */}
         <Card>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Rezervari dupa status</h3>
+          <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">Rezervari dupa status</h3>
           {bookingStatuses.length > 0 ? (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {bookingStatuses.map((item: { status: string; count: number }) => (
                 <div
                   key={item.status}
-                  className="flex items-center justify-between py-3 px-4 rounded-xl bg-gray-50"
+                  className="flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors"
                 >
-                  <Badge variant={statusVariants[item.status] ?? 'default'}>
-                    {statusLabels[item.status] ?? item.status}
-                  </Badge>
-                  <span className="text-lg font-semibold text-gray-900">{item.count}</span>
+                  <div className="flex items-center gap-2.5">
+                    <span className={`h-2.5 w-2.5 rounded-full ${statusDotColor[item.status] ?? 'bg-gray-300'}`} />
+                    <span className="text-sm text-gray-700">
+                      {statusLabels[item.status] ?? item.status}
+                    </span>
+                  </div>
+                  <span className="text-sm font-semibold text-gray-900">{item.count}</span>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="flex items-center justify-center h-[300px] text-gray-400">
+            <div className="flex items-center justify-center h-[280px] text-gray-400 text-sm">
               Nu exista date
             </div>
           )}
@@ -271,27 +248,20 @@ export default function DashboardPage() {
       </div>
 
       {/* Pending Applications */}
-      <Card className="mt-8">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <AlertCircle className="h-5 w-5 text-accent" />
-            <h3 className="text-lg font-semibold text-gray-900">Aplicatii in asteptare</h3>
-            {pendingApps.length > 0 && (
-              <Badge variant="warning">{pendingApps.length}</Badge>
-            )}
-          </div>
-          {pendingApps.length > 0 && (
+      {pendingApps.length > 0 && (
+        <Card className="mt-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
+              Aplicatii in asteptare
+            </h3>
             <button
               onClick={() => navigate('/admin/companii')}
-              className="text-sm text-primary hover:underline cursor-pointer"
+              className="text-xs text-primary hover:underline cursor-pointer flex items-center gap-1"
             >
-              Vezi toate
+              Vezi toate <ArrowRight className="h-3 w-3" />
             </button>
-          )}
-        </div>
-
-        {pendingApps.length > 0 ? (
-          <div className="space-y-3">
+          </div>
+          <div className="divide-y divide-gray-100">
             {pendingApps.slice(0, 5).map((app: {
               id: string;
               companyName: string;
@@ -302,25 +272,38 @@ export default function DashboardPage() {
             }) => (
               <div
                 key={app.id}
-                className="flex items-center justify-between py-3 px-4 rounded-xl bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors"
+                className="flex items-center gap-3 py-3 hover:bg-gray-50 -mx-2 px-2 rounded-lg cursor-pointer transition-colors"
                 onClick={() => navigate(`/admin/companii/${app.id}`)}
               >
-                <div>
-                  <p className="font-medium text-gray-900">{app.companyName}</p>
-                  <p className="text-sm text-gray-500">
-                    CUI: {app.cui} &middot; {app.city}, {app.county}
-                  </p>
+                <div className="h-8 w-8 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
+                  <Building2 className="h-4 w-4 text-amber-600" />
                 </div>
-                <p className="text-sm text-gray-400">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 truncate">{app.companyName}</p>
+                  <p className="text-xs text-gray-500">CUI: {app.cui} &middot; {app.city}, {app.county}</p>
+                </div>
+                <span className="text-xs text-gray-400 shrink-0">
                   {new Date(app.createdAt).toLocaleDateString('ro-RO')}
-                </p>
+                </span>
+                <ChevronRight className="h-4 w-4 text-gray-300 shrink-0" />
               </div>
             ))}
           </div>
-        ) : (
-          <p className="text-gray-400 text-sm">Nu exista aplicatii in asteptare.</p>
-        )}
-      </Card>
+        </Card>
+      )}
+
+      {/* Quick Links */}
+      <div className="mt-6 flex flex-wrap gap-3">
+        <Link to="/admin/companii" className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:border-gray-300 hover:text-gray-900 transition-colors">
+          <Building2 className="h-4 w-4" /> Companii
+        </Link>
+        <Link to="/admin/comenzi" className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:border-gray-300 hover:text-gray-900 transition-colors">
+          <CalendarDays className="h-4 w-4" /> Comenzi
+        </Link>
+        <Link to="/admin/plati" className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:border-gray-300 hover:text-gray-900 transition-colors">
+          <Banknote className="h-4 w-4" /> Plati
+        </Link>
+      </div>
     </div>
   );
 }

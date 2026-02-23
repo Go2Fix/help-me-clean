@@ -94,7 +94,7 @@ const tabs: { key: TabKey; label: string; icon: typeof Settings }[] = [
 ];
 
 const SETTING_GROUPS: { title: string; keys: string[] }[] = [
-  { title: 'Business', keys: ['platform_commission_pct', 'min_booking_hours', 'max_booking_hours', 'default_hourly_rate'] },
+  { title: 'Business', keys: ['platform_commission_pct', 'min_booking_hours', 'max_booking_hours', 'default_hourly_rate', 'booking_auto_cancel_hours', 'require_company_approval'] },
   { title: 'Contact', keys: ['support_email', 'support_phone'] },
   { title: 'Politici', keys: ['privacy_url', 'terms_url'] },
 ];
@@ -104,13 +104,15 @@ const SETTING_LABELS: Record<string, string> = {
   min_booking_hours: 'Ore minime rezervare',
   max_booking_hours: 'Ore maxime rezervare',
   default_hourly_rate: 'Tarif orar implicit (RON)',
+  booking_auto_cancel_hours: 'Anulare automata rezervare (ore)',
+  require_company_approval: 'Aprobare companie necesara',
   support_email: 'Email suport',
   support_phone: 'Telefon suport',
   privacy_url: 'URL Politica confidentialitate',
   terms_url: 'URL Termeni si conditii',
 };
 
-const NUMBER_KEYS = new Set(['platform_commission_pct', 'min_booking_hours', 'max_booking_hours', 'default_hourly_rate']);
+const NUMBER_KEYS = new Set(['platform_commission_pct', 'min_booking_hours', 'max_booking_hours', 'default_hourly_rate', 'booking_auto_cancel_hours']);
 
 const SERVICE_TYPE_OPTIONS = [
   { value: 'STANDARD', label: 'Standard' },
@@ -1200,10 +1202,12 @@ function PlatformTab() {
   const [updateSetting, { loading: saving }] = useMutation(UPDATE_PLATFORM_SETTING, {
     onCompleted: () => refetchMode(),
   });
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const isLive = modeData?.platformMode === 'live';
 
   async function handleToggle() {
+    setShowConfirm(false);
     await updateSetting({
       variables: {
         key: 'platform_mode',
@@ -1234,7 +1238,7 @@ function PlatformTab() {
               {isLive ? '🟢 LIVE' : '🟡 PRE-LANSARE'}
             </span>
             <button
-              onClick={handleToggle}
+              onClick={() => setShowConfirm(true)}
               disabled={saving || modeLoading}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 cursor-pointer ${
                 isLive ? 'bg-blue-600' : 'bg-gray-200'
@@ -1316,6 +1320,27 @@ function PlatformTab() {
           </div>
         )}
       </div>
+
+      {/* Confirmation Modal for platform mode toggle */}
+      <Modal open={showConfirm} onClose={() => setShowConfirm(false)} title="Confirmare schimbare mod">
+        <div className="space-y-4">
+          <p className="text-sm text-gray-600">
+            {isLive
+              ? 'Esti sigur ca vrei sa treci platforma in modul PRE-LANSARE? Utilizatorii nu vor mai putea face rezervari.'
+              : 'Esti sigur ca vrei sa treci platforma in modul LIVE? Utilizatorii vor putea face rezervari.'}
+          </p>
+          <div className="flex justify-end gap-3">
+            <Button variant="ghost" onClick={() => setShowConfirm(false)}>Anuleaza</Button>
+            <Button
+              variant={isLive ? 'danger' : 'primary'}
+              onClick={handleToggle}
+              loading={saving}
+            >
+              {isLive ? 'Treci la Pre-Lansare' : 'Treci la Live'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
@@ -1332,26 +1357,35 @@ export default function SettingsPage() {
         <p className="text-gray-500 mt-1">Configuratii generale, servicii, extra-uri si orase.</p>
       </div>
 
-      {/* Tab Bar */}
-      <div className="flex gap-1 mb-6 bg-gray-100 rounded-xl p-1 w-fit">
-        {tabs.map((tab) => {
-          const Icon = tab.icon;
-          return (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className={cn(
-                'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap cursor-pointer',
-                activeTab === tab.key
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700',
-              )}
-            >
-              <Icon className="h-4 w-4" />
-              {tab.label}
-            </button>
-          );
-        })}
+      {/* Tab Bar — dropdown on mobile, pills on desktop */}
+      <div className="mb-6">
+        <div className="md:hidden">
+          <Select
+            options={tabs.map((tab) => ({ value: tab.key, label: tab.label }))}
+            value={activeTab}
+            onChange={(e) => setActiveTab(e.target.value as TabKey)}
+          />
+        </div>
+        <div className="hidden md:flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={cn(
+                  'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap cursor-pointer',
+                  activeTab === tab.key
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700',
+                )}
+              >
+                <Icon className="h-4 w-4" />
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Tab Content */}
