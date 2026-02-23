@@ -97,11 +97,15 @@ export default function TeamPage() {
     return true;
   });
 
-  const handleCopyToken = useCallback(async (token: string) => {
-    await navigator.clipboard.writeText(token);
+  const inviteLink = inviteToken
+    ? `${window.location.origin}/invitare?token=${inviteToken}`
+    : '';
+
+  const handleCopyLink = useCallback(async () => {
+    await navigator.clipboard.writeText(inviteLink);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  }, []);
+  }, [inviteLink]);
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -270,29 +274,28 @@ export default function TeamPage() {
         </form>
       </Modal>
 
-      {/* Invite Token Result Modal */}
+      {/* Invite Link Result Modal */}
       <Modal open={showToken} onClose={() => setShowToken(false)} title="Invitatie trimisa cu succes!">
         <div className="space-y-4">
           <p className="text-sm text-gray-600">
-            Trimite acest cod de invitatie lucratorului. El trebuie sa il introduca in panoul sau
-            pentru a se alatura echipei tale.
+            Trimite acest link lucratorului. Cand il acceseaza si se autentifica, va fi adaugat automat in echipa ta.
           </p>
           <div className="flex items-center gap-2">
-            <div className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-mono text-sm text-gray-800 break-all select-all">
-              {inviteToken}
+            <div className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-800 break-all select-all">
+              {inviteLink}
             </div>
             <button
               type="button"
-              onClick={() => handleCopyToken(inviteToken)}
+              onClick={handleCopyLink}
               className="p-3 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer shrink-0"
-              title="Copiaza codul"
+              title="Copiaza linkul"
             >
               {copied
                 ? <Check className="h-5 w-5 text-secondary" />
                 : <Copy className="h-5 w-5 text-gray-500" />}
             </button>
           </div>
-          {copied && <p className="text-xs text-secondary">Codul a fost copiat!</p>}
+          {copied && <p className="text-xs text-secondary">Linkul a fost copiat!</p>}
           <Button onClick={() => setShowToken(false)} className="w-full">Am inteles</Button>
         </div>
       </Modal>

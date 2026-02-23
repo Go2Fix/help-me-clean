@@ -125,12 +125,6 @@ export default function LoginPage() {
                 {t('form.register')}
               </Link>
             </p>
-            <p className="text-sm text-gray-500">
-              Ești curățitor?{' '}
-              <Link to="/invitare" className="text-primary font-semibold hover:underline">
-                Acceptă invitația →
-              </Link>
-            </p>
           </div>
         </div>
 
