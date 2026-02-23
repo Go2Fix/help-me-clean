@@ -720,7 +720,7 @@ export default function BookingPage() {
   if (bookingResult) {
     const hasPaymentError = !!paymentError;
     return (
-      <div className="min-h-[70vh] flex items-center justify-center py-12 px-4">
+      <div className="min-h-[50vh] sm:min-h-[70vh] flex items-center justify-center py-12 px-4">
         <div className="text-center max-w-md">
           <div className="relative w-24 h-24 mx-auto mb-6">
             {hasPaymentError ? (
@@ -913,11 +913,11 @@ export default function BookingPage() {
                           size="large"
                           text="signin_with"
                           shape="rectangular"
-                          width="320"
+                          width="300"
                         />
 
                         {/* Divider */}
-                        <div className="flex items-center gap-3 w-full max-w-[320px]">
+                        <div className="flex items-center gap-3 w-full max-w-[300px]">
                           <div className="flex-1 h-px bg-gray-200" />
                           <span className="text-xs text-gray-400">sau</span>
                           <div className="flex-1 h-px bg-gray-200" />
@@ -926,7 +926,7 @@ export default function BookingPage() {
                         <button
                           type="button"
                           onClick={() => setShowOtpModal(true)}
-                          className="w-full max-w-[320px] rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition flex items-center justify-center gap-2"
+                          className="w-full max-w-[300px] rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition flex items-center justify-center gap-2"
                         >
                           <Mail className="h-4 w-4" />
                           Continuă cu email
@@ -1080,24 +1080,24 @@ export default function BookingPage() {
             )}
 
             {/* Navigation */}
-            <div className="flex justify-between mt-8">
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-between gap-3 mt-8">
               {currentStep > 0 ? (
-                <Button variant="ghost" onClick={handleBack} disabled={paymentProcessing}>
+                <Button variant="ghost" onClick={handleBack} disabled={paymentProcessing} className="w-full sm:w-auto">
                   <ChevronLeft className="h-4 w-4" />
                   Înapoi
                 </Button>
               ) : (
-                <div />
+                <div className="hidden sm:block" />
               )}
 
               {currentStep < STEPS.length - 1 ? (
-                <div className="flex flex-col items-end gap-1">
-                  <Button onClick={handleNext} disabled={!canProceed}>
+                <div className="flex flex-col items-stretch sm:items-end gap-1">
+                  <Button onClick={handleNext} disabled={!canProceed} className="w-full sm:w-auto">
                     Continuă
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                   {NEXT_STEP_LABELS[STEPS[currentStep]?.key] && (
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-gray-400 text-center sm:text-right">
                       Pasul următor: {NEXT_STEP_LABELS[STEPS[currentStep].key]}
                     </p>
                   )}
@@ -1108,6 +1108,7 @@ export default function BookingPage() {
                   loading={paymentProcessing}
                   disabled={!canProceed || paymentProcessing}
                   size="lg"
+                  className="w-full sm:w-auto"
                 >
                   {paymentProcessing ? (
                     <>
@@ -1127,6 +1128,7 @@ export default function BookingPage() {
                   loading={creating}
                   disabled={!canProceed}
                   size="lg"
+                  className="w-full sm:w-auto"
                 >
                   Confirmă rezervarea
                   <Check className="h-5 w-5" />
@@ -1163,51 +1165,82 @@ export default function BookingPage() {
 // ---- Step Indicator ---------------------------------------------------------
 
 function StepIndicator({ currentStep, steps }: { currentStep: number; steps: readonly { key: string; label: string; icon: LucideIcon }[] }) {
-  return (
-    <div className="flex items-center justify-center gap-1 sm:gap-2">
-      {steps.map((step, index) => {
-        const StepIcon = step.icon;
-        const isCompleted = index < currentStep;
-        const isCurrent = index === currentStep;
+  const CurrentIcon = steps[currentStep]?.icon;
 
-        return (
-          <div key={step.key} className="flex items-center">
-            <div className="flex flex-col items-center">
-              <div
-                className={cn(
-                  'w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center transition-colors',
-                  isCompleted && 'bg-emerald-500 text-white',
-                  isCurrent && 'bg-blue-600 text-white shadow-md shadow-blue-600/20',
-                  !isCompleted && !isCurrent && 'bg-gray-100 text-gray-400',
-                )}
-              >
-                {isCompleted ? (
-                  <Check className="h-5 w-5" />
-                ) : (
-                  <StepIcon className="h-5 w-5" />
-                )}
-              </div>
-              <span
-                className={cn(
-                  'text-xs mt-1.5 font-medium hidden sm:block',
-                  isCurrent ? 'text-blue-600' : isCompleted ? 'text-emerald-500' : 'text-gray-400',
-                )}
-              >
-                {step.label}
-              </span>
-            </div>
-            {index < steps.length - 1 && (
-              <div
-                className={cn(
-                  'w-6 sm:w-10 h-0.5 mx-1 sm:mx-2 rounded-full mb-5 sm:mb-5',
-                  index < currentStep ? 'bg-emerald-500' : 'bg-gray-200',
-                )}
-              />
-            )}
+  return (
+    <>
+      {/* Mobile: compact progress bar */}
+      <div className="sm:hidden">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            {CurrentIcon && <CurrentIcon className="h-4 w-4 text-blue-600" />}
+            <span className="text-sm font-semibold text-gray-900">
+              {steps[currentStep]?.label}
+            </span>
           </div>
-        );
-      })}
-    </div>
+          <span className="text-xs text-gray-400 font-medium">
+            {currentStep + 1} / {steps.length}
+          </span>
+        </div>
+        <div className="flex gap-1">
+          {steps.map((_, i) => (
+            <div
+              key={i}
+              className={cn(
+                'h-1.5 flex-1 rounded-full transition-colors',
+                i < currentStep ? 'bg-emerald-500' : i === currentStep ? 'bg-blue-600' : 'bg-gray-200',
+              )}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Desktop: full step indicator with icons and labels */}
+      <div className="hidden sm:flex items-center justify-center gap-2">
+        {steps.map((step, index) => {
+          const StepIcon = step.icon;
+          const isCompleted = index < currentStep;
+          const isCurrent = index === currentStep;
+
+          return (
+            <div key={step.key} className="flex items-center">
+              <div className="flex flex-col items-center">
+                <div
+                  className={cn(
+                    'w-11 h-11 rounded-xl flex items-center justify-center transition-colors',
+                    isCompleted && 'bg-emerald-500 text-white',
+                    isCurrent && 'bg-blue-600 text-white shadow-md shadow-blue-600/20',
+                    !isCompleted && !isCurrent && 'bg-gray-100 text-gray-400',
+                  )}
+                >
+                  {isCompleted ? (
+                    <Check className="h-5 w-5" />
+                  ) : (
+                    <StepIcon className="h-5 w-5" />
+                  )}
+                </div>
+                <span
+                  className={cn(
+                    'text-xs mt-1.5 font-medium',
+                    isCurrent ? 'text-blue-600' : isCompleted ? 'text-emerald-500' : 'text-gray-400',
+                  )}
+                >
+                  {step.label}
+                </span>
+              </div>
+              {index < steps.length - 1 && (
+                <div
+                  className={cn(
+                    'w-10 h-0.5 mx-2 rounded-full mb-5',
+                    index < currentStep ? 'bg-emerald-500' : 'bg-gray-200',
+                  )}
+                />
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </>
   );
 }
 
@@ -1867,7 +1900,7 @@ function StepSchedule({
                 disabled={isPast}
                 onClick={() => handleDateClick(day)}
                 className={cn(
-                  'relative h-10 rounded-lg text-sm font-medium transition-all cursor-pointer',
+                  'relative h-11 rounded-lg text-sm font-medium transition-all cursor-pointer',
                   isPast && 'text-gray-300 cursor-not-allowed',
                   !isPast && !isPickedDate && !hasSlot && 'text-gray-700 hover:bg-gray-100',
                   isPickedDate && 'bg-blue-600 text-white shadow-sm',
@@ -1944,10 +1977,10 @@ function StepSchedule({
                     }}
                     className="absolute inset-0 w-full h-full appearance-none bg-transparent pointer-events-none
                       [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none
-                      [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full
+                      [&::-webkit-slider-thumb]:w-7 [&::-webkit-slider-thumb]:h-7 [&::-webkit-slider-thumb]:rounded-full
                       [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-blue-600
                       [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-grab
-                      [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5
+                      [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:w-7 [&::-moz-range-thumb]:h-7
                       [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2
                       [&::-moz-range-thumb]:border-blue-600 [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:cursor-grab"
                   />
@@ -1965,10 +1998,10 @@ function StepSchedule({
                     }}
                     className="absolute inset-0 w-full h-full appearance-none bg-transparent pointer-events-none
                       [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none
-                      [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full
+                      [&::-webkit-slider-thumb]:w-7 [&::-webkit-slider-thumb]:h-7 [&::-webkit-slider-thumb]:rounded-full
                       [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-blue-600
                       [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-grab
-                      [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5
+                      [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:w-7 [&::-moz-range-thumb]:h-7
                       [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2
                       [&::-moz-range-thumb]:border-blue-600 [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:cursor-grab"
                   />
@@ -2805,7 +2838,7 @@ function StepCleaner({
       {showLoader ? (
         <AIMatchingLoader />
       ) : topSuggestions.length > 0 ? (
-        <div className="flex gap-4 overflow-x-auto p-1">
+        <div className="flex flex-col sm:flex-row gap-4 sm:overflow-x-auto p-1">
           {topSuggestions.slice(0, 2).map((suggestion) => {
             const { cleaner, availabilityStatus, availableFrom, availableTo, suggestedStartTime, suggestedEndTime, suggestedDate } = suggestion;
             const isSelected = form.preferredCleanerId === cleaner.id;
@@ -2816,7 +2849,7 @@ function StepCleaner({
               <Card
                 key={cleaner.id}
                 className={cn(
-                  'transition-all cursor-pointer shrink-0 w-64 relative',
+                  'transition-all cursor-pointer shrink-0 w-full sm:w-64 relative',
                   isSelected
                     ? 'ring-2 ring-blue-600 border-blue-600 shadow-md shadow-blue-600/10'
                     : 'hover:shadow-md hover:border-gray-300',
@@ -3048,7 +3081,7 @@ function StepSummary({
           <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
             Detalii proprietate
           </h3>
-          <div className="grid grid-cols-2 gap-3 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
             <div>
               <span className="text-gray-500">Tip:</span>{' '}
               <span className="font-medium text-gray-900">{propertyLabel}</span>
