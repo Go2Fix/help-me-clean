@@ -233,8 +233,8 @@ export default function PaymentsPage() {
       {activeTab === 'summary' && (
         <>
           {/* Date Range Presets + Inputs */}
-          <div className="flex flex-wrap items-end gap-3 mb-6">
-            <div className="flex items-end gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-end gap-3 mb-6">
+            <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-2">
               <Input
                 type="date"
                 value={dateFrom}
@@ -247,13 +247,13 @@ export default function PaymentsPage() {
                 onChange={(e) => setDateTo(e.target.value)}
               />
             </div>
-            <div className="flex items-center gap-2 pb-0.5">
+            <div className="flex items-center gap-2 overflow-x-auto pb-0.5">
               {datePresets.map((preset) => (
                 <button
                   key={preset.label}
                   type="button"
                   onClick={() => applyPreset(preset)}
-                  className="px-3 py-2 text-xs font-medium rounded-lg border border-gray-200 text-gray-500 hover:bg-primary hover:text-white hover:border-primary transition-colors cursor-pointer"
+                  className="px-3 py-2 text-xs font-medium rounded-lg border border-gray-200 text-gray-500 hover:bg-primary hover:text-white hover:border-primary transition-colors cursor-pointer whitespace-nowrap shrink-0"
                 >
                   {preset.label}
                 </button>
@@ -264,7 +264,7 @@ export default function PaymentsPage() {
           {/* Revenue Summary */}
           {revenueLoading ? (
             <Card className="mb-6">
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <div key={i} className="animate-pulse flex items-center gap-3 py-3">
                     <div className="h-9 w-9 bg-gray-200 rounded-lg shrink-0" />
@@ -278,7 +278,7 @@ export default function PaymentsPage() {
             </Card>
           ) : report ? (
             <Card className="mb-6">
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-x-6 gap-y-1 divide-y md:divide-y-0 md:divide-x divide-gray-100">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-x-6 gap-y-1 divide-y md:divide-y-0 md:divide-x divide-gray-100">
                 {[
                   { icon: Banknote, label: 'Venit total', value: formatCents(report.totalRevenue) },
                   { icon: TrendingUp, label: 'Comision platforma', value: formatCents(report.totalCommission) },
