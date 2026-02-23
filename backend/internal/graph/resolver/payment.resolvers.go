@@ -323,6 +323,85 @@ func (r *mutationResolver) CreateMonthlyPayout(ctx context.Context, companyID st
 	return result, nil
 }
 
+// UpdatePayoutStatus is the resolver for the updatePayoutStatus field.
+func (r *mutationResolver) UpdatePayoutStatus(ctx context.Context, payoutID string, status model.PayoutStatus, notes *string) (*model.CompanyPayout, error) {
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil {
+		return nil, fmt.Errorf("not authenticated")
+	}
+	if claims.Role != "global_admin" {
+		return nil, fmt.Errorf("only admins can update payout status")
+	}
+
+	payoutUUID := stringToUUID(payoutID)
+	payout, err := r.Queries.GetPayoutByID(ctx, payoutUUID)
+	if err != nil {
+		return nil, fmt.Errorf("payout not found: %w", err)
+	}
+
+	// Validate state transitions.
+	currentStatus := string(payout.Status)
+	targetStatus := strings.ToLower(string(status))
+	validTransitions := map[string][]string{
+		"pending":    {"processing", "cancelled"},
+		"processing": {"paid", "failed"},
+	}
+	allowed, ok := validTransitions[currentStatus]
+	if !ok {
+		return nil, fmt.Errorf("payout in status '%s' cannot be transitioned", currentStatus)
+	}
+	isValid := false
+	for _, a := range allowed {
+		if a == targetStatus {
+			isValid = true
+			break
+		}
+	}
+	if !isValid {
+		return nil, fmt.Errorf("invalid status transition: %s -> %s", currentStatus, targetStatus)
+	}
+
+	// Build the stripe_transfer_id from notes (used when marking as paid).
+	stripeTransferID := pgtype.Text{}
+	if notes != nil && *notes != "" {
+		stripeTransferID = pgtype.Text{String: *notes, Valid: true}
+	}
+
+	updated, err := r.Queries.UpdatePayoutStatus(ctx, db.UpdatePayoutStatusParams{
+		ID:               payoutUUID,
+		Status:           db.PayoutStatus(targetStatus),
+		StripeTransferID: stripeTransferID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to update payout status: %w", err)
+	}
+
+	result := dbCompanyPayoutToGQL(updated)
+
+	// Enrich with company data.
+	if company, err := r.Queries.GetCompanyByID(ctx, updated.CompanyID); err == nil {
+		result.Company = dbCompanyToGQL(company)
+	}
+
+	// Load line items with booking data.
+	lineItems, err := r.Queries.ListPayoutLineItems(ctx, updated.ID)
+	if err == nil {
+		gqlLineItems := make([]*model.PayoutLineItem, len(lineItems))
+		for i, li := range lineItems {
+			gqlLI := dbPayoutLineItemToGQL(li)
+			if booking, err := r.Queries.GetBookingByID(ctx, li.BookingID); err == nil {
+				gqlBooking := dbBookingToGQL(booking)
+				r.enrichBooking(ctx, booking, gqlBooking)
+				gqlLI.Booking = gqlBooking
+			}
+			gqlLineItems[i] = gqlLI
+		}
+		result.LineItems = gqlLineItems
+	}
+
+	return result, nil
+}
+
 // ProcessRefund is the resolver for the processRefund field.
 func (r *mutationResolver) ProcessRefund(ctx context.Context, refundRequestID string, approved bool) (*model.RefundRequest, error) {
 	claims := auth.GetUserFromContext(ctx)
@@ -346,6 +425,13 @@ func (r *mutationResolver) ProcessRefund(ctx context.Context, refundRequestID st
 		txn, err := r.Queries.GetPaymentTransactionByBookingID(ctx, refundReq.BookingID)
 		if err != nil {
 			return nil, fmt.Errorf("payment transaction not found: %w", err)
+		}
+
+		// Validate refund amount doesn't exceed what's available.
+		alreadyRefunded, _ := r.Queries.SumRefundedAmountByBooking(ctx, refundReq.BookingID)
+		if alreadyRefunded+refundReq.Amount > txn.AmountTotal {
+			return nil, fmt.Errorf("refund amount (%d) plus already refunded (%d) exceeds total payment (%d)",
+				refundReq.Amount, alreadyRefunded, txn.AmountTotal)
 		}
 
 		// Issue the Stripe refund.
@@ -375,6 +461,26 @@ func (r *mutationResolver) ProcessRefund(ctx context.Context, refundRequestID st
 		if err != nil {
 			return nil, fmt.Errorf("failed to update refund request: %w", err)
 		}
+	}
+
+	// Auto-generate credit note for the refunded amount (best-effort).
+	if approved {
+		go func() {
+			bgCtx := context.Background()
+			// Find the client service invoice for this booking.
+			inv, invErr := r.Queries.GetInvoiceByBookingAndType(bgCtx, db.GetInvoiceByBookingAndTypeParams{
+				BookingID:   refundReq.BookingID,
+				InvoiceType: db.InvoiceTypeClientService,
+			})
+			if invErr == nil {
+				_, cnErr := r.InvoiceService.GenerateCreditNote(bgCtx, inv.ID, refundReq.Amount, fmt.Sprintf("Rambursare - %s", refundReq.Reason))
+				if cnErr != nil {
+					log.Printf("payment: auto credit note generation failed: %v", cnErr)
+				} else {
+					log.Printf("payment: auto credit note generated for refund on booking %s", uuidToString(refundReq.BookingID))
+				}
+			}
+		}()
 	}
 
 	result := dbRefundRequestToGQL(updatedRefund)
@@ -417,6 +523,16 @@ func (r *mutationResolver) AdminIssueRefund(ctx context.Context, bookingID strin
 
 	adminUUID := stringToUUID(claims.UserID)
 
+	// Validate refund amount.
+	if int32(amount) > txn.AmountTotal {
+		return nil, fmt.Errorf("refund amount (%d) exceeds total payment (%d)", amount, txn.AmountTotal)
+	}
+	alreadyRefunded, _ := r.Queries.SumRefundedAmountByBooking(ctx, bookingUUID)
+	if int32(amount)+alreadyRefunded > txn.AmountTotal {
+		return nil, fmt.Errorf("refund amount (%d) plus already refunded (%d) exceeds total payment (%d)",
+			amount, alreadyRefunded, txn.AmountTotal)
+	}
+
 	// Issue the Stripe refund.
 	stripeRefundID, err := r.PaymentService.CreateRefund(ctx, txn.StripePaymentIntentID, int64(amount))
 	if err != nil {
@@ -446,6 +562,23 @@ func (r *mutationResolver) AdminIssueRefund(ctx context.Context, bookingID strin
 	if err != nil {
 		return nil, fmt.Errorf("failed to update refund request with stripe ID: %w", err)
 	}
+
+	// Auto-generate credit note for the refunded amount (best-effort).
+	go func() {
+		bgCtx := context.Background()
+		inv, invErr := r.Queries.GetInvoiceByBookingAndType(bgCtx, db.GetInvoiceByBookingAndTypeParams{
+			BookingID:   bookingUUID,
+			InvoiceType: db.InvoiceTypeClientService,
+		})
+		if invErr == nil {
+			_, cnErr := r.InvoiceService.GenerateCreditNote(bgCtx, inv.ID, int32(amount), fmt.Sprintf("Rambursare - %s", reason))
+			if cnErr != nil {
+				log.Printf("payment: auto credit note generation failed: %v", cnErr)
+			} else {
+				log.Printf("payment: auto credit note generated for admin refund on booking %s", bookingID)
+			}
+		}
+	}()
 
 	result := dbRefundRequestToGQL(dbRefund)
 	// Enrich with booking data.
@@ -563,6 +696,45 @@ func (r *queryResolver) MyPaymentHistory(ctx context.Context, first *int, after 
 		},
 		TotalCount: int(totalCount),
 	}, nil
+}
+
+// MyRefundRequests is the resolver for the myRefundRequests field.
+func (r *queryResolver) MyRefundRequests(ctx context.Context) ([]*model.RefundRequest, error) {
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil {
+		return nil, fmt.Errorf("not authenticated")
+	}
+
+	userUUID := stringToUUID(claims.UserID)
+	refunds, err := r.Queries.ListRefundRequestsByUser(ctx, userUUID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list refund requests: %w", err)
+	}
+
+	results := make([]*model.RefundRequest, len(refunds))
+	for i, ref := range refunds {
+		gqlRef := dbRefundRequestToGQL(ref)
+		// Enrich with booking data.
+		if booking, err := r.Queries.GetBookingByID(ctx, ref.BookingID); err == nil {
+			gqlBooking := dbBookingToGQL(booking)
+			r.enrichBooking(ctx, booking, gqlBooking)
+			gqlRef.Booking = gqlBooking
+		}
+		// Enrich with user data.
+		if ref.RequestedByUserID.Valid {
+			if user, err := r.Queries.GetUserByID(ctx, ref.RequestedByUserID); err == nil {
+				gqlRef.RequestedBy = dbUserToGQL(user)
+			}
+		}
+		if ref.ApprovedByUserID.Valid {
+			if user, err := r.Queries.GetUserByID(ctx, ref.ApprovedByUserID); err == nil {
+				gqlRef.ApprovedBy = dbUserToGQL(user)
+			}
+		}
+		results[i] = gqlRef
+	}
+
+	return results, nil
 }
 
 // BookingPaymentDetails is the resolver for the bookingPaymentDetails field.

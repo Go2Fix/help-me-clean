@@ -180,6 +180,7 @@ export default function InvoicesPage() {
   const [billingEditing, setBillingEditing] = useState(false);
   const [billingError, setBillingError] = useState('');
   const [expandedInvoiceId, setExpandedInvoiceId] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState('');
 
   // ─── Queries & Mutations ────────────────────────────────────────────────
 
@@ -289,6 +290,9 @@ export default function InvoicesPage() {
   );
 
   const invoices = invoicesData?.myInvoices.edges ?? [];
+  const filteredInvoices = statusFilter
+    ? invoices.filter((inv) => inv.status === statusFilter)
+    : invoices;
   const hasMore = invoicesData?.myInvoices.pageInfo.hasNextPage ?? false;
   const billing = billingData?.myBillingProfile;
 
@@ -545,13 +549,30 @@ export default function InvoicesPage() {
         )}
       </div>
 
+      {/* Status Filter */}
+      {invoices.length > 0 && (
+        <div className="mb-3 flex items-center gap-2">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/30"
+          >
+            <option value="">Toate facturile</option>
+            <option value="ISSUED">Emise</option>
+            <option value="PAID">Platite</option>
+            <option value="CANCELLED">Anulate</option>
+            <option value="CREDIT_NOTE">Nota credit</option>
+          </select>
+        </div>
+      )}
+
       {/* Loading Invoices */}
       {loadingInvoices && !invoicesData && (
         <LoadingSpinner text="Se incarca facturile..." />
       )}
 
       {/* Invoices Table */}
-      {!loadingInvoices && invoices.length > 0 && (
+      {!loadingInvoices && filteredInvoices.length > 0 && (
         <Card padding={false}>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -566,7 +587,7 @@ export default function InvoicesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {invoices.map((inv) => {
+                {filteredInvoices.map((inv) => {
                   const cfg = INVOICE_STATUS_CONFIG[inv.status] ?? {
                     label: inv.status,
                     variant: 'default' as const,
@@ -781,7 +802,7 @@ export default function InvoicesPage() {
       )}
 
       {/* Empty State */}
-      {!loadingInvoices && invoices.length === 0 && (
+      {!loadingInvoices && filteredInvoices.length === 0 && (
         <div className="text-center py-16">
           <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-5">
             <FileText className="h-8 w-8 text-gray-400" />

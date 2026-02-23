@@ -397,6 +397,69 @@ func (r *queryResolver) CompanyInvoices(ctx context.Context, status *model.Invoi
 	}, nil
 }
 
+// CompanyReceivedInvoices is the resolver for the companyReceivedInvoices field.
+func (r *queryResolver) CompanyReceivedInvoices(ctx context.Context, first *int, after *string) (*model.InvoiceConnection, error) {
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil {
+		return nil, fmt.Errorf("not authenticated")
+	}
+	if claims.Role != "company_admin" {
+		return nil, fmt.Errorf("only company admins can view received invoices")
+	}
+
+	company, err := r.Queries.GetCompanyByAdminUserID(ctx, stringToUUID(claims.UserID))
+	if err != nil {
+		return nil, fmt.Errorf("company not found for admin: %w", err)
+	}
+
+	limit := int32(20)
+	if first != nil {
+		limit = int32(*first)
+	}
+	offset := int32(0)
+	if after != nil {
+		fmt.Sscanf(*after, "%d", &offset)
+	}
+
+	invoices, err := r.Queries.ListReceivedInvoicesByCompany(ctx, db.ListReceivedInvoicesByCompanyParams{
+		CompanyID: company.ID,
+		Limit:     limit + 1,
+		Offset:    offset,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to list received invoices: %w", err)
+	}
+
+	hasNext := len(invoices) > int(limit)
+	if hasNext {
+		invoices = invoices[:limit]
+	}
+
+	edges := make([]*model.Invoice, len(invoices))
+	for i, inv := range invoices {
+		gqlInv := dbInvoiceToGQL(inv)
+		r.enrichInvoice(ctx, inv, gqlInv)
+		edges[i] = gqlInv
+	}
+
+	total, _ := r.Queries.CountReceivedInvoicesByCompany(ctx, company.ID)
+
+	var endCursor *string
+	if len(invoices) > 0 {
+		c := fmt.Sprintf("%d", offset+limit)
+		endCursor = &c
+	}
+
+	return &model.InvoiceConnection{
+		Edges: edges,
+		PageInfo: &model.PageInfo{
+			HasNextPage: hasNext,
+			EndCursor:   endCursor,
+		},
+		TotalCount: int(total),
+	}, nil
+}
+
 // CompanyInvoiceForBooking is the resolver for the companyInvoiceForBooking field.
 func (r *queryResolver) CompanyInvoiceForBooking(ctx context.Context, bookingID string) (*model.Invoice, error) {
 	claims := auth.GetUserFromContext(ctx)

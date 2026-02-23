@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useLazyQuery } from '@apollo/client';
-import { Plus, Search, Calendar } from 'lucide-react';
+import { Plus, Search, Calendar, Download } from 'lucide-react';
 import AdminPagination from '@/components/admin/AdminPagination';
-import { formatCents, formatDate } from '@/utils/format';
+import { formatCents, formatDate, exportToCSV } from '@/utils/format';
 import { useDebounce } from '@/hooks/useDebounce';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -13,6 +13,7 @@ import {
   ALL_PAYOUTS,
   CREATE_MONTHLY_PAYOUT,
   SEARCH_COMPANIES,
+  UPDATE_PAYOUT_STATUS,
 } from '@/graphql/operations';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
@@ -50,6 +51,7 @@ const payoutStatusDotColor: Record<string, string> = {
   PROCESSING: 'bg-blue-400',
   PAID: 'bg-emerald-500',
   FAILED: 'bg-red-400',
+  CANCELLED: 'bg-gray-400',
 };
 
 const payoutStatusLabel: Record<string, string> = {
@@ -57,6 +59,7 @@ const payoutStatusLabel: Record<string, string> = {
   PROCESSING: 'Se proceseaza',
   PAID: 'Platit',
   FAILED: 'Esuat',
+  CANCELLED: 'Anulat',
 };
 
 const statusOptions = [
@@ -65,7 +68,20 @@ const statusOptions = [
   { value: 'PROCESSING', label: 'Se proceseaza' },
   { value: 'PAID', label: 'Platit' },
   { value: 'FAILED', label: 'Esuat' },
+  { value: 'CANCELLED', label: 'Anulat' },
 ];
+
+// Allowed status transitions: current status -> available next statuses
+const payoutStatusTransitions: Record<string, { status: string; label: string; variant: 'primary' | 'secondary' | 'outline' | 'danger' | 'ghost'; confirm?: string }[]> = {
+  PENDING: [
+    { status: 'PROCESSING', label: 'Se proceseaza', variant: 'outline' },
+    { status: 'CANCELLED', label: 'Anuleaza', variant: 'ghost', confirm: 'Esti sigur ca vrei sa anulezi aceasta plata?' },
+  ],
+  PROCESSING: [
+    { status: 'PAID', label: 'Marcheaza platit', variant: 'primary', confirm: 'Confirmi ca plata a fost efectuata?' },
+    { status: 'FAILED', label: 'Esuat', variant: 'danger' },
+  ],
+};
 
 // ─── Component ──────────────────────────────────────────────────────────────
 
@@ -100,6 +116,12 @@ export default function AdminPayoutsPage() {
     onCompleted: () => {
       setModalOpen(false);
       resetModal();
+      refetch();
+    },
+  });
+
+  const [updatePayoutStatus, { loading: updatingStatus }] = useMutation(UPDATE_PAYOUT_STATUS, {
+    onCompleted: () => {
       refetch();
     },
   });
@@ -173,6 +195,16 @@ export default function AdminPayoutsPage() {
     setPage(0);
   }
 
+  function handlePayoutStatusUpdate(payoutId: string, newStatus: string, confirmMessage?: string) {
+    if (confirmMessage && !window.confirm(confirmMessage)) return;
+    updatePayoutStatus({
+      variables: {
+        payoutId,
+        status: newStatus,
+      },
+    });
+  }
+
   return (
     <div>
       {/* Filter + Create button */}
@@ -185,6 +217,26 @@ export default function AdminPayoutsPage() {
           />
         </div>
         <div className="flex-1" />
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => exportToCSV(
+            payouts.map((p: Payout) => ({
+              'Companie': p.company?.companyName ?? '',
+              'Perioada De La': p.periodFrom,
+              'Perioada Pana La': p.periodTo,
+              'Suma (lei)': (p.amount / 100).toFixed(2),
+              'Nr Rezervari': p.bookingCount,
+              'Status': p.status,
+              'Data Plata': p.paidAt ? new Date(p.paidAt).toLocaleDateString('ro-RO') : '',
+              'Data Creare': new Date(p.createdAt).toLocaleDateString('ro-RO'),
+            })),
+            `plati-companii-${new Date().toISOString().slice(0, 10)}.csv`
+          )}
+        >
+          <Download className="h-4 w-4" />
+          Export CSV
+        </Button>
         <Button onClick={() => setModalOpen(true)} size="sm">
           <Plus className="h-4 w-4" />
           Creeaza plata
@@ -237,6 +289,25 @@ export default function AdminPayoutsPage() {
                   <span className="text-xs text-gray-500 shrink-0 w-24 text-right hidden sm:block">
                     {payoutStatusLabel[payout.status] ?? payout.status}
                   </span>
+                  {payoutStatusTransitions[payout.status] && (
+                    <span className="flex items-center gap-1.5 shrink-0 ml-2">
+                      {payoutStatusTransitions[payout.status].map((action) => (
+                        <Button
+                          key={action.status}
+                          variant={action.variant}
+                          size="sm"
+                          disabled={updatingStatus}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePayoutStatusUpdate(payout.id, action.status, action.confirm);
+                          }}
+                          className="!py-1 !px-2.5 !text-xs !rounded-lg"
+                        >
+                          {action.label}
+                        </Button>
+                      ))}
+                    </span>
+                  )}
                 </div>
               ))}
             </div>

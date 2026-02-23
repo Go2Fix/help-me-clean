@@ -120,6 +120,7 @@ extend type Query {
 
   # Company
   companyInvoices(status: InvoiceStatus, first: Int, after: String): InvoiceConnection!
+  companyReceivedInvoices(first: Int, after: String): InvoiceConnection!
   companyInvoiceForBooking(bookingId: ID!): Invoice
 
   # Admin

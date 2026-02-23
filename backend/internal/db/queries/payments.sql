@@ -170,6 +170,14 @@ SELECT * FROM refund_requests WHERE id = $1;
 -- name: GetRefundRequestByBookingID :one
 SELECT * FROM refund_requests WHERE booking_id = $1 ORDER BY created_at DESC LIMIT 1;
 
+-- name: ListRefundRequestsByUser :many
+SELECT * FROM refund_requests WHERE requested_by_user_id = $1 ORDER BY created_at DESC;
+
+-- name: SumRefundedAmountByBooking :one
+SELECT COALESCE(SUM(amount), 0)::INT as total_refunded
+FROM refund_requests
+WHERE booking_id = $1 AND status IN ('approved', 'processed');
+
 -- ============================================
 -- PAYMENT HISTORY (Client-facing)
 -- ============================================
@@ -229,6 +237,12 @@ WHERE status = 'processed' AND processed_at >= $1 AND processed_at <= $2;
 -- ============================================
 -- UNPAID TRANSACTIONS (Payout calculation)
 -- ============================================
+
+-- name: CheckTransactionInPayout :one
+-- Checks if a payment transaction is already part of any payout
+SELECT EXISTS(
+  SELECT 1 FROM payout_line_items WHERE payment_transaction_id = $1
+)::BOOLEAN as in_payout;
 
 -- name: ListUnpaidCompanyTransactions :many
 SELECT pt.* FROM payment_transactions pt

@@ -11,12 +11,14 @@ import {
   RotateCcw,
   Calendar,
   Building2,
+  Download,
 } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Select from '@/components/ui/Select';
 import Input from '@/components/ui/Input';
 import AdminPagination from '@/components/admin/AdminPagination';
-import { formatCents, formatDate } from '@/utils/format';
+import Button from '@/components/ui/Button';
+import { formatCents, formatDate, exportToCSV } from '@/utils/format';
 import {
   PLATFORM_REVENUE_REPORT,
   ALL_PAYMENT_TRANSACTIONS,
@@ -301,12 +303,36 @@ export default function PaymentsPage() {
           ) : null}
 
           {/* Transactions — filter + flat list */}
-          <div className="mb-4 w-48">
-            <Select
-              options={statusOptions}
-              value={statusFilter}
-              onChange={handleStatusChange}
-            />
+          <div className="mb-4 flex items-center gap-3">
+            <div className="w-48">
+              <Select
+                options={statusOptions}
+                value={statusFilter}
+                onChange={handleStatusChange}
+              />
+            </div>
+            <div className="flex-1" />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => exportToCSV(
+                allTransactions.map((t: any) => ({
+                  'ID Tranzactie': t.id,
+                  'Cod Rezervare': t.booking?.referenceCode ?? '',
+                  'Serviciu': t.booking?.serviceName ?? '',
+                  'Companie': t.booking?.company?.companyName ?? '',
+                  'Suma Totala (lei)': (t.amountTotal / 100).toFixed(2),
+                  'Comision (lei)': (t.amountPlatformFee / 100).toFixed(2),
+                  'Suma Companie (lei)': (t.amountCompany / 100).toFixed(2),
+                  'Status': t.status,
+                  'Data': new Date(t.createdAt).toLocaleDateString('ro-RO'),
+                })),
+                `tranzactii-${new Date().toISOString().slice(0, 10)}.csv`
+              )}
+            >
+              <Download className="h-4 w-4" />
+              Export CSV
+            </Button>
           </div>
 
           <Card padding={false}>

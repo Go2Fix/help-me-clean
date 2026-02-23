@@ -256,6 +256,18 @@ func (s *Service) GenerateClientServiceInvoice(
 		}
 	}
 
+	// Auto-transmit to e-factura (best-effort, non-blocking).
+	if inv.FactureazaID.Valid && inv.FactureazaID.String != "" {
+		go func() {
+			bgCtx := context.Background()
+			if transmitErr := s.TransmitToEFactura(bgCtx, inv.ID); transmitErr != nil {
+				log.Printf("invoice: auto e-factura transmission failed (non-fatal): %v", transmitErr)
+			} else {
+				log.Printf("invoice: auto-transmitted invoice %s to e-factura", invoiceNumber)
+			}
+		}()
+	}
+
 	log.Printf("invoice: created client service invoice %s for booking %s", invoiceNumber, booking.ReferenceCode)
 	return inv, nil
 }
@@ -274,6 +286,17 @@ func (s *Service) GenerateCommissionInvoice(
 	company, err := s.queries.GetCompanyByID(ctx, companyID)
 	if err != nil {
 		return db.Invoice{}, fmt.Errorf("invoice: get company: %w", err)
+	}
+
+	// Idempotency: check if a commission invoice already exists for this period.
+	existing, existErr := s.queries.GetCommissionInvoiceByPeriod(ctx, db.GetCommissionInvoiceByPeriodParams{
+		CompanyID: companyID,
+		Column2:   pgText(periodFrom),
+		Column3:   pgText(periodTo),
+	})
+	if existErr == nil {
+		log.Printf("invoice: commission invoice %s already exists for period %s to %s", textVal(existing.InvoiceNumber), periodFrom, periodTo)
+		return existing, nil
 	}
 
 	// Commission amount is the net (without VAT). Calculate VAT on top.
@@ -367,6 +390,18 @@ func (s *Service) GenerateCommissionInvoice(
 			inv.FactureazaID = pgText(factureazaID)
 			inv.FactureazaDownloadUrl = pgText(downloadURL)
 		}
+	}
+
+	// Auto-transmit to e-factura (best-effort, non-blocking).
+	if inv.FactureazaID.Valid && inv.FactureazaID.String != "" {
+		go func() {
+			bgCtx := context.Background()
+			if transmitErr := s.TransmitToEFactura(bgCtx, inv.ID); transmitErr != nil {
+				log.Printf("invoice: auto e-factura transmission failed (non-fatal): %v", transmitErr)
+			} else {
+				log.Printf("invoice: auto-transmitted commission invoice %s to e-factura", invoiceNumber)
+			}
+		}()
 	}
 
 	log.Printf("invoice: created commission invoice %s for company %s", invoiceNumber, company.CompanyName)

@@ -89,6 +89,20 @@ SELECT * FROM invoices WHERE company_id = $1 AND status = $2 ORDER BY created_at
 -- name: ListInvoicesByCompanyID :many
 SELECT * FROM invoices WHERE company_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3;
 
+-- name: ListReceivedInvoicesByCompany :many
+-- Lists platform commission invoices where the company is the buyer
+SELECT * FROM invoices WHERE company_id = $1 AND invoice_type = 'platform_commission' ORDER BY created_at DESC LIMIT $2 OFFSET $3;
+
+-- name: CountReceivedInvoicesByCompany :one
+SELECT COUNT(*) FROM invoices WHERE company_id = $1 AND invoice_type = 'platform_commission';
+
+-- name: GetCommissionInvoiceByPeriod :one
+-- Check for existing commission invoice to prevent duplicates
+SELECT * FROM invoices
+WHERE company_id = $1 AND invoice_type = 'platform_commission'
+  AND notes LIKE '%' || $2 || '%' AND notes LIKE '%' || $3 || '%'
+ORDER BY created_at DESC LIMIT 1;
+
 -- ============================================
 -- INVOICE LISTING (Admin)
 -- ============================================

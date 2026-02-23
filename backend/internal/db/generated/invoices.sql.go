@@ -33,6 +33,17 @@ func (q *Queries) CountInvoicesByCompany(ctx context.Context, companyID pgtype.U
 	return count, err
 }
 
+const countReceivedInvoicesByCompany = `-- name: CountReceivedInvoicesByCompany :one
+SELECT COUNT(*) FROM invoices WHERE company_id = $1 AND invoice_type = 'platform_commission'
+`
+
+func (q *Queries) CountReceivedInvoicesByCompany(ctx context.Context, companyID pgtype.UUID) (int64, error) {
+	row := q.db.QueryRow(ctx, countReceivedInvoicesByCompany, companyID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createBillingProfile = `-- name: CreateBillingProfile :one
 INSERT INTO client_billing_profiles (
   user_id, is_company, company_name, cui, reg_number, address, city, county, is_vat_payer, bank_name, iban, is_default
@@ -332,6 +343,67 @@ func (q *Queries) GetBillingProfileByUser(ctx context.Context, userID pgtype.UUI
 		&i.BankName,
 		&i.Iban,
 		&i.IsDefault,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getCommissionInvoiceByPeriod = `-- name: GetCommissionInvoiceByPeriod :one
+SELECT id, invoice_type, invoice_number, factureaza_id, factureaza_download_url, seller_company_name, seller_cui, seller_reg_number, seller_address, seller_city, seller_county, seller_is_vat_payer, seller_bank_name, seller_iban, buyer_name, buyer_cui, buyer_reg_number, buyer_address, buyer_city, buyer_county, buyer_is_vat_payer, buyer_email, subtotal_amount, vat_rate, vat_amount, total_amount, currency, booking_id, payment_transaction_id, company_id, client_user_id, efactura_status, efactura_index, status, issued_at, due_date, notes, created_at, updated_at FROM invoices
+WHERE company_id = $1 AND invoice_type = 'platform_commission'
+  AND notes LIKE '%' || $2 || '%' AND notes LIKE '%' || $3 || '%'
+ORDER BY created_at DESC LIMIT 1
+`
+
+type GetCommissionInvoiceByPeriodParams struct {
+	CompanyID pgtype.UUID `json:"company_id"`
+	Column2   pgtype.Text `json:"column_2"`
+	Column3   pgtype.Text `json:"column_3"`
+}
+
+// Check for existing commission invoice to prevent duplicates
+func (q *Queries) GetCommissionInvoiceByPeriod(ctx context.Context, arg GetCommissionInvoiceByPeriodParams) (Invoice, error) {
+	row := q.db.QueryRow(ctx, getCommissionInvoiceByPeriod, arg.CompanyID, arg.Column2, arg.Column3)
+	var i Invoice
+	err := row.Scan(
+		&i.ID,
+		&i.InvoiceType,
+		&i.InvoiceNumber,
+		&i.FactureazaID,
+		&i.FactureazaDownloadUrl,
+		&i.SellerCompanyName,
+		&i.SellerCui,
+		&i.SellerRegNumber,
+		&i.SellerAddress,
+		&i.SellerCity,
+		&i.SellerCounty,
+		&i.SellerIsVatPayer,
+		&i.SellerBankName,
+		&i.SellerIban,
+		&i.BuyerName,
+		&i.BuyerCui,
+		&i.BuyerRegNumber,
+		&i.BuyerAddress,
+		&i.BuyerCity,
+		&i.BuyerCounty,
+		&i.BuyerIsVatPayer,
+		&i.BuyerEmail,
+		&i.SubtotalAmount,
+		&i.VatRate,
+		&i.VatAmount,
+		&i.TotalAmount,
+		&i.Currency,
+		&i.BookingID,
+		&i.PaymentTransactionID,
+		&i.CompanyID,
+		&i.ClientUserID,
+		&i.EfacturaStatus,
+		&i.EfacturaIndex,
+		&i.Status,
+		&i.IssuedAt,
+		&i.DueDate,
+		&i.Notes,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -1066,6 +1138,77 @@ func (q *Queries) ListInvoicesByTypeAndStatus(ctx context.Context, arg ListInvoi
 		arg.Limit,
 		arg.Offset,
 	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Invoice
+	for rows.Next() {
+		var i Invoice
+		if err := rows.Scan(
+			&i.ID,
+			&i.InvoiceType,
+			&i.InvoiceNumber,
+			&i.FactureazaID,
+			&i.FactureazaDownloadUrl,
+			&i.SellerCompanyName,
+			&i.SellerCui,
+			&i.SellerRegNumber,
+			&i.SellerAddress,
+			&i.SellerCity,
+			&i.SellerCounty,
+			&i.SellerIsVatPayer,
+			&i.SellerBankName,
+			&i.SellerIban,
+			&i.BuyerName,
+			&i.BuyerCui,
+			&i.BuyerRegNumber,
+			&i.BuyerAddress,
+			&i.BuyerCity,
+			&i.BuyerCounty,
+			&i.BuyerIsVatPayer,
+			&i.BuyerEmail,
+			&i.SubtotalAmount,
+			&i.VatRate,
+			&i.VatAmount,
+			&i.TotalAmount,
+			&i.Currency,
+			&i.BookingID,
+			&i.PaymentTransactionID,
+			&i.CompanyID,
+			&i.ClientUserID,
+			&i.EfacturaStatus,
+			&i.EfacturaIndex,
+			&i.Status,
+			&i.IssuedAt,
+			&i.DueDate,
+			&i.Notes,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listReceivedInvoicesByCompany = `-- name: ListReceivedInvoicesByCompany :many
+SELECT id, invoice_type, invoice_number, factureaza_id, factureaza_download_url, seller_company_name, seller_cui, seller_reg_number, seller_address, seller_city, seller_county, seller_is_vat_payer, seller_bank_name, seller_iban, buyer_name, buyer_cui, buyer_reg_number, buyer_address, buyer_city, buyer_county, buyer_is_vat_payer, buyer_email, subtotal_amount, vat_rate, vat_amount, total_amount, currency, booking_id, payment_transaction_id, company_id, client_user_id, efactura_status, efactura_index, status, issued_at, due_date, notes, created_at, updated_at FROM invoices WHERE company_id = $1 AND invoice_type = 'platform_commission' ORDER BY created_at DESC LIMIT $2 OFFSET $3
+`
+
+type ListReceivedInvoicesByCompanyParams struct {
+	CompanyID pgtype.UUID `json:"company_id"`
+	Limit     int32       `json:"limit"`
+	Offset    int32       `json:"offset"`
+}
+
+// Lists platform commission invoices where the company is the buyer
+func (q *Queries) ListReceivedInvoicesByCompany(ctx context.Context, arg ListReceivedInvoicesByCompanyParams) ([]Invoice, error) {
+	rows, err := q.db.Query(ctx, listReceivedInvoicesByCompany, arg.CompanyID, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}

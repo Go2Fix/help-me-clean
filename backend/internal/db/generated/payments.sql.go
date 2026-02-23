@@ -11,6 +11,24 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const checkTransactionInPayout = `-- name: CheckTransactionInPayout :one
+
+SELECT EXISTS(
+  SELECT 1 FROM payout_line_items WHERE payment_transaction_id = $1
+)::BOOLEAN as in_payout
+`
+
+// ============================================
+// UNPAID TRANSACTIONS (Payout calculation)
+// ============================================
+// Checks if a payment transaction is already part of any payout
+func (q *Queries) CheckTransactionInPayout(ctx context.Context, paymentTransactionID pgtype.UUID) (bool, error) {
+	row := q.db.QueryRow(ctx, checkTransactionInPayout, paymentTransactionID)
+	var in_payout bool
+	err := row.Scan(&in_payout)
+	return in_payout, err
+}
+
 const countPaymentHistoryByUser = `-- name: CountPaymentHistoryByUser :one
 SELECT COUNT(*) FROM payment_transactions pt
 JOIN bookings b ON b.id = pt.booking_id
@@ -1058,8 +1076,44 @@ func (q *Queries) ListRefundRequestsByStatus(ctx context.Context, arg ListRefund
 	return items, nil
 }
 
-const listUnpaidCompanyTransactions = `-- name: ListUnpaidCompanyTransactions :many
+const listRefundRequestsByUser = `-- name: ListRefundRequestsByUser :many
+SELECT id, booking_id, payment_transaction_id, requested_by_user_id, approved_by_user_id, amount, reason, status, stripe_refund_id, processed_at, created_at, updated_at FROM refund_requests WHERE requested_by_user_id = $1 ORDER BY created_at DESC
+`
 
+func (q *Queries) ListRefundRequestsByUser(ctx context.Context, requestedByUserID pgtype.UUID) ([]RefundRequest, error) {
+	rows, err := q.db.Query(ctx, listRefundRequestsByUser, requestedByUserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []RefundRequest
+	for rows.Next() {
+		var i RefundRequest
+		if err := rows.Scan(
+			&i.ID,
+			&i.BookingID,
+			&i.PaymentTransactionID,
+			&i.RequestedByUserID,
+			&i.ApprovedByUserID,
+			&i.Amount,
+			&i.Reason,
+			&i.Status,
+			&i.StripeRefundID,
+			&i.ProcessedAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listUnpaidCompanyTransactions = `-- name: ListUnpaidCompanyTransactions :many
 SELECT pt.id, pt.booking_id, pt.stripe_payment_intent_id, pt.stripe_charge_id, pt.amount_total, pt.amount_company, pt.amount_platform_fee, pt.currency, pt.status, pt.failure_reason, pt.refund_amount, pt.stripe_refund_id, pt.metadata, pt.created_at, pt.updated_at FROM payment_transactions pt
 JOIN bookings b ON b.id = pt.booking_id
 LEFT JOIN payout_line_items pli ON pli.payment_transaction_id = pt.id
@@ -1076,9 +1130,6 @@ type ListUnpaidCompanyTransactionsParams struct {
 	CreatedAt_2 pgtype.Timestamptz `json:"created_at_2"`
 }
 
-// ============================================
-// UNPAID TRANSACTIONS (Payout calculation)
-// ============================================
 func (q *Queries) ListUnpaidCompanyTransactions(ctx context.Context, arg ListUnpaidCompanyTransactionsParams) ([]PaymentTransaction, error) {
 	rows, err := q.db.Query(ctx, listUnpaidCompanyTransactions, arg.CompanyID, arg.CreatedAt, arg.CreatedAt_2)
 	if err != nil {
@@ -1308,6 +1359,19 @@ func (q *Queries) SumCompanyEarnings(ctx context.Context, arg SumCompanyEarnings
 		&i.BookingCount,
 	)
 	return i, err
+}
+
+const sumRefundedAmountByBooking = `-- name: SumRefundedAmountByBooking :one
+SELECT COALESCE(SUM(amount), 0)::INT as total_refunded
+FROM refund_requests
+WHERE booking_id = $1 AND status IN ('approved', 'processed')
+`
+
+func (q *Queries) SumRefundedAmountByBooking(ctx context.Context, bookingID pgtype.UUID) (int32, error) {
+	row := q.db.QueryRow(ctx, sumRefundedAmountByBooking, bookingID)
+	var total_refunded int32
+	err := row.Scan(&total_refunded)
+	return total_refunded, err
 }
 
 const updateBookingPayment = `-- name: UpdateBookingPayment :one

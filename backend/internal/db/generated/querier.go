@@ -23,6 +23,11 @@ type Querier interface {
 	CheckChatParticipant(ctx context.Context, arg CheckChatParticipantParams) (int64, error)
 	// Returns true if all 3 required documents exist and are approved
 	CheckCompanyDocumentsReady(ctx context.Context, companyID pgtype.UUID) (pgtype.Bool, error)
+	// ============================================
+	// UNPAID TRANSACTIONS (Payout calculation)
+	// ============================================
+	// Checks if a payment transaction is already part of any payout
+	CheckTransactionInPayout(ctx context.Context, paymentTransactionID pgtype.UUID) (bool, error)
 	ClaimCompanyByToken(ctx context.Context, arg ClaimCompanyByTokenParams) (Company, error)
 	CompleteBooking(ctx context.Context, id pgtype.UUID) (Booking, error)
 	CountActiveEmailOTPs(ctx context.Context, email string) (int64, error)
@@ -37,6 +42,7 @@ type Querier interface {
 	CountInvoicesByClient(ctx context.Context, clientUserID pgtype.UUID) (int64, error)
 	CountInvoicesByCompany(ctx context.Context, companyID pgtype.UUID) (int64, error)
 	CountPaymentHistoryByUser(ctx context.Context, clientUserID pgtype.UUID) (int64, error)
+	CountReceivedInvoicesByCompany(ctx context.Context, companyID pgtype.UUID) (int64, error)
 	CountReviewsByCleanerID(ctx context.Context, reviewedCleanerID pgtype.UUID) (int64, error)
 	CountSearchBookings(ctx context.Context, arg CountSearchBookingsParams) (int64, error)
 	CountSearchCleanerBookings(ctx context.Context, arg CountSearchCleanerBookingsParams) (int64, error)
@@ -142,6 +148,8 @@ type Querier interface {
 	GetCleanerDocument(ctx context.Context, id pgtype.UUID) (CleanerDocument, error)
 	GetCleanerEarningsByDateRange(ctx context.Context, arg GetCleanerEarningsByDateRangeParams) ([]GetCleanerEarningsByDateRangeRow, error)
 	GetCleanerPerformanceStats(ctx context.Context, id pgtype.UUID) (GetCleanerPerformanceStatsRow, error)
+	// Check for existing commission invoice to prevent duplicates
+	GetCommissionInvoiceByPeriod(ctx context.Context, arg GetCommissionInvoiceByPeriodParams) (Invoice, error)
 	GetCompanyByAdminUserID(ctx context.Context, adminUserID pgtype.UUID) (Company, error)
 	GetCompanyByCUI(ctx context.Context, cui string) (Company, error)
 	GetCompanyByClaimToken(ctx context.Context, claimToken pgtype.Text) (Company, error)
@@ -292,13 +300,13 @@ type Querier interface {
 	ListPendingCleanerDocuments(ctx context.Context) ([]CleanerDocument, error)
 	ListPendingCompanyDocuments(ctx context.Context) ([]CompanyDocument, error)
 	ListPlatformSettings(ctx context.Context) ([]PlatformSetting, error)
+	// Lists platform commission invoices where the company is the buyer
+	ListReceivedInvoicesByCompany(ctx context.Context, arg ListReceivedInvoicesByCompanyParams) ([]Invoice, error)
 	ListRecurringGroupsByClient(ctx context.Context, clientUserID pgtype.UUID) ([]RecurringBookingGroup, error)
 	ListRefundRequestsByStatus(ctx context.Context, arg ListRefundRequestsByStatusParams) ([]RefundRequest, error)
+	ListRefundRequestsByUser(ctx context.Context, requestedByUserID pgtype.UUID) ([]RefundRequest, error)
 	ListReviewsByCleanerID(ctx context.Context, arg ListReviewsByCleanerIDParams) ([]Review, error)
 	ListTodaysJobsByCleaner(ctx context.Context, cleanerID pgtype.UUID) ([]Booking, error)
-	// ============================================
-	// UNPAID TRANSACTIONS (Payout calculation)
-	// ============================================
 	ListUnpaidCompanyTransactions(ctx context.Context, arg ListUnpaidCompanyTransactionsParams) ([]PaymentTransaction, error)
 	ListUsersByRole(ctx context.Context, role UserRole) ([]User, error)
 	ListWaitlistLeads(ctx context.Context, arg ListWaitlistLeadsParams) ([]WaitlistLead, error)
@@ -333,6 +341,7 @@ type Querier interface {
 	// COMPANY EARNINGS (Reporting)
 	// ============================================
 	SumCompanyEarnings(ctx context.Context, arg SumCompanyEarningsParams) (SumCompanyEarningsRow, error)
+	SumRefundedAmountByBooking(ctx context.Context, bookingID pgtype.UUID) (int32, error)
 	SumThisMonthEarningsByCleaner(ctx context.Context, cleanerID pgtype.UUID) (pgtype.Numeric, error)
 	UpdateAddress(ctx context.Context, arg UpdateAddressParams) (ClientAddress, error)
 	UpdateBillingProfile(ctx context.Context, arg UpdateBillingProfileParams) (ClientBillingProfile, error)

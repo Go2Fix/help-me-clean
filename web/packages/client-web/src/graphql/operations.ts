@@ -2559,6 +2559,24 @@ export const REQUEST_REFUND = gql`
   }
 `;
 
+export const MY_REFUND_REQUESTS = gql`
+  query MyRefundRequests {
+    myRefundRequests {
+      id
+      amount
+      reason
+      status
+      processedAt
+      createdAt
+      booking {
+        id
+        referenceCode
+        serviceName
+      }
+    }
+  }
+`;
+
 export const MY_PAYMENT_HISTORY = gql`
   query MyPaymentHistory($first: Int, $after: String) {
     myPaymentHistory(first: $first, after: $after) {
@@ -2809,6 +2827,31 @@ export const INVOICE_DETAIL = gql`
 
 // ─── Company Invoices ─────────────────────────────────────────────────────
 
+export const COMPANY_RECEIVED_INVOICES = gql`
+  query CompanyReceivedInvoices($first: Int, $after: String) {
+    companyReceivedInvoices(first: $first, after: $after) {
+      edges {
+        id
+        invoiceType
+        invoiceNumber
+        status
+        sellerCompanyName
+        buyerName
+        totalAmount
+        currency
+        downloadUrl
+        issuedAt
+        createdAt
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+  }
+`;
+
 export const COMPANY_INVOICES = gql`
   query CompanyInvoices($status: InvoiceStatus, $first: Int, $after: String) {
     companyInvoices(status: $status, first: $first, after: $after) {
@@ -2972,6 +3015,16 @@ export const ALL_PAYOUTS = gql`
         id
         companyName
       }
+    }
+  }
+`;
+
+export const UPDATE_PAYOUT_STATUS = gql`
+  mutation UpdatePayoutStatus($payoutId: ID!, $status: PayoutStatus!, $notes: String) {
+    updatePayoutStatus(payoutId: $payoutId, status: $status, notes: $notes) {
+      id
+      status
+      paidAt
     }
   }
 `;

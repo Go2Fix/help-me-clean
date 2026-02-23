@@ -78,10 +78,10 @@ describe('RefundsPage (Admin)', () => {
     vi.mocked(useLazyQuery).mockReturnValue([vi.fn(), { data: null, loading: false, called: false }] as unknown as ReturnType<typeof useLazyQuery>);
   });
 
-  it('shows page title "Rambursari"', () => {
+  it('shows the direct refund action button', () => {
     mockQueries();
     renderPage();
-    expect(screen.getByText('Rambursari')).toBeInTheDocument();
+    expect(screen.getByText('Rambursare directa')).toBeInTheDocument();
   });
 
   it('renders tab navigation with all status tabs', () => {

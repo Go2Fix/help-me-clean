@@ -145,6 +145,7 @@ type ConnectOnboardingLink {
 extend type Query {
   # Client
   myPaymentHistory(first: Int, after: String): PaymentHistoryConnection!
+  myRefundRequests: [RefundRequest!]!
   bookingPaymentDetails(bookingId: ID!): PaymentTransaction
 
   # Company
@@ -175,6 +176,7 @@ extend type Mutation {
 
   # Admin: payout & refund management
   createMonthlyPayout(companyId: ID!, periodFrom: String!, periodTo: String!): CompanyPayout!
+  updatePayoutStatus(payoutId: ID!, status: PayoutStatus!, notes: String): CompanyPayout!
   processRefund(refundRequestId: ID!, approved: Boolean!): RefundRequest!
   adminIssueRefund(bookingId: ID!, amount: Int!, reason: String!): RefundRequest!
   markBookingPaid(id: ID!): Booking!

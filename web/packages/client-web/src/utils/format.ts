@@ -36,3 +36,34 @@ export function formatDateTime(date: string): string {
     minute: '2-digit',
   });
 }
+
+/**
+ * Export an array of objects as a CSV file download.
+ * @param rows - Array of flat objects (each key becomes a column header)
+ * @param filename - Filename for the downloaded CSV
+ */
+export function exportToCSV(rows: Record<string, string | number | null | undefined>[], filename: string): void {
+  if (rows.length === 0) return;
+
+  const headers = Object.keys(rows[0]);
+  const csvRows = [
+    headers.join(','),
+    ...rows.map((row) =>
+      headers
+        .map((h) => {
+          const val = row[h] ?? '';
+          const str = String(val).replace(/"/g, '""');
+          return `"${str}"`;
+        })
+        .join(',')
+    ),
+  ];
+
+  const blob = new Blob(['\ufeff' + csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}

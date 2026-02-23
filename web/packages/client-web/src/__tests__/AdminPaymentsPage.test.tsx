@@ -108,12 +108,12 @@ describe('PaymentsPage (Admin)', () => {
   it('renders revenue summary cards with formatted amounts', () => {
     mockQueries({ report: sampleReport });
     renderPage();
-    expect(screen.getByText('Venit Total')).toBeInTheDocument();
+    expect(screen.getByText('Venit total')).toBeInTheDocument();
     // 1000000 cents = 10000.00 lei
     expect(screen.getByText('10000.00 lei')).toBeInTheDocument();
-    expect(screen.getByText('Comision Platforma')).toBeInTheDocument();
+    expect(screen.getByText('Comision platforma')).toBeInTheDocument();
     expect(screen.getByText('1500.00 lei')).toBeInTheDocument();
-    // "Rambursari" appears both in the sub-nav link and the stat card label
+    // "Rambursari" appears both in the sub-nav tab option and the stat card label
     const rambursariElements = screen.getAllByText('Rambursari');
     expect(rambursariElements.length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('500.00 lei')).toBeInTheDocument();
@@ -122,7 +122,6 @@ describe('PaymentsPage (Admin)', () => {
   it('renders transactions table with booking data', () => {
     mockQueries({ transactions: [sampleTransaction] });
     renderPage();
-    expect(screen.getByText('Tranzactii')).toBeInTheDocument();
     expect(screen.getByText('HMC-100')).toBeInTheDocument();
     expect(screen.getByText('Clean Pro SRL')).toBeInTheDocument();
     // 25000 cents = 250.00 lei

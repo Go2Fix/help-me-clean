@@ -14,9 +14,8 @@ import (
 	"go2fix-backend/internal/storage"
 	"strings"
 
-	"github.com/jackc/pgx/v5/pgtype"
-
 	"github.com/99designs/gqlgen/graphql"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 // AdminCancelBooking is the resolver for the adminCancelBooking field.
