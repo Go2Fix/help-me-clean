@@ -1,23 +1,21 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useLazyQuery } from '@apollo/client';
 import {
-  RotateCcw,
   Plus,
   Check,
   X,
   Search,
   CreditCard,
+  User,
 } from 'lucide-react';
-import { cn } from '@go2fix/shared';
 import AdminPagination from '@/components/admin/AdminPagination';
-import { formatCents, formatDate } from '@/utils/format';
+import { formatCents } from '@/utils/format';
 import { useDebounce } from '@/hooks/useDebounce';
 import Card from '@/components/ui/Card';
-import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
+import Select from '@/components/ui/Select';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import {
   ALL_REFUND_REQUESTS,
   PROCESS_REFUND,
@@ -64,18 +62,18 @@ interface BookingSearchResult {
 
 type StatusTab = 'REQUESTED' | 'APPROVED' | 'PROCESSED' | 'REJECTED';
 
-const tabs: { key: StatusTab; label: string }[] = [
-  { key: 'REQUESTED', label: 'Solicitate' },
-  { key: 'APPROVED', label: 'Aprobate' },
-  { key: 'PROCESSED', label: 'Procesate' },
-  { key: 'REJECTED', label: 'Respinse' },
+const tabOptions = [
+  { value: 'REQUESTED', label: 'Solicitate' },
+  { value: 'APPROVED', label: 'Aprobate' },
+  { value: 'PROCESSED', label: 'Procesate' },
+  { value: 'REJECTED', label: 'Respinse' },
 ];
 
-const refundStatusVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
-  REQUESTED: 'warning',
-  APPROVED: 'info',
-  PROCESSED: 'success',
-  REJECTED: 'danger',
+const refundStatusDotColor: Record<string, string> = {
+  REQUESTED: 'bg-amber-400',
+  APPROVED: 'bg-blue-400',
+  PROCESSED: 'bg-emerald-500',
+  REJECTED: 'bg-red-400',
 };
 
 const refundStatusLabel: Record<string, string> = {
@@ -237,171 +235,135 @@ export default function RefundsPage() {
 
   return (
     <div>
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Rambursari</h1>
-            <p className="text-gray-500 mt-1">
-              Gestioneaza cererile de rambursare de pe platforma.
-            </p>
-          </div>
-          <Button onClick={() => setDirectModalOpen(true)}>
-            <Plus className="h-4 w-4" />
-            Rambursare directa
-          </Button>
+      {/* Filter bar */}
+      <div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+        <div className="w-48">
+          <Select
+            options={tabOptions}
+            value={activeTab}
+            onChange={(e) => handleTabChange(e.target.value as StatusTab)}
+          />
         </div>
+        <div className="relative flex-1 max-w-xs">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setPage(0);
+            }}
+            placeholder="Cauta dupa cod rezervare..."
+            className="w-full rounded-xl border border-gray-300 bg-white pl-9 pr-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+          />
+        </div>
+        <div className="flex-1" />
+        <Button onClick={() => setDirectModalOpen(true)} size="sm">
+          <Plus className="h-4 w-4" />
+          Rambursare directa
+        </Button>
       </div>
 
-      {/* Status Tabs */}
-      <div className="flex gap-1 mb-6 bg-gray-100 rounded-xl p-1 w-fit">
-        {tabs.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => handleTabChange(tab.key)}
-            className={cn(
-              'px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap cursor-pointer',
-              activeTab === tab.key
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700',
-            )}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Refunds List */}
-      <Card>
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
-          <div className="flex items-center gap-3 min-w-0">
-            <RotateCcw className="h-5 w-5 text-primary shrink-0" />
-            <h3 className="text-lg font-semibold text-gray-900 truncate">
-              {tabs.find((t) => t.key === activeTab)?.label ?? 'Rambursari'}
-            </h3>
-            {totalCount > 0 && (
-              <Badge variant="info">{totalCount}</Badge>
-            )}
-          </div>
-
-          {/* Search by reference code */}
-          <div className="relative sm:ml-auto w-full sm:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setPage(0);
-              }}
-              placeholder="Cauta dupa cod rezervare..."
-              className="w-full rounded-xl border border-gray-300 bg-white pl-9 pr-4 py-2 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-            />
-          </div>
-        </div>
-
+      {/* Refunds flat list */}
+      <Card padding={false}>
         {loading ? (
-          <LoadingSpinner text="Se incarca rambursarile..." />
+          <div className="divide-y divide-gray-100">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="px-4 py-3 animate-pulse flex items-center gap-3">
+                <div className="h-2.5 w-2.5 bg-gray-200 rounded-full shrink-0" />
+                <div className="h-4 bg-gray-200 rounded w-16" />
+                <div className="h-4 bg-gray-200 rounded w-32" />
+                <div className="flex-1" />
+                <div className="h-4 bg-gray-200 rounded w-16" />
+              </div>
+            ))}
+          </div>
         ) : paginatedRefunds.length === 0 ? (
           <p className="text-center text-gray-400 py-12">
             {searchQuery.trim()
               ? 'Nu s-au gasit rambursari pentru aceasta cautare.'
-              : `Nu exista rambursari ${tabs.find((t) => t.key === activeTab)?.label.toLowerCase()}.`}
+              : `Nu exista rambursari ${tabOptions.find((t) => t.value === activeTab)?.label.toLowerCase()}.`}
           </p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-gray-500 border-b border-gray-200">
-                  <th className="pb-3 font-medium">Data</th>
-                  <th className="pb-3 font-medium">Cod Rezervare</th>
-                  <th className="pb-3 font-medium">Serviciu</th>
-                  <th className="pb-3 font-medium hidden md:table-cell">Utilizator</th>
-                  <th className="pb-3 font-medium text-right">Suma</th>
-                  <th className="pb-3 font-medium hidden md:table-cell">Motiv</th>
-                  <th className="pb-3 font-medium text-right">Status</th>
-                  {showActions && (
-                    <th className="pb-3 font-medium text-right">Actiuni</th>
+          <>
+            <div className="divide-y divide-gray-100">
+              {paginatedRefunds.map((refund) => (
+                <div
+                  key={refund.id}
+                  className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
+                >
+                  <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${refundStatusDotColor[refund.status] ?? 'bg-gray-300'}`} />
+                  <span className="text-sm font-semibold text-gray-900 w-20 shrink-0">
+                    {refund.booking?.referenceCode ?? '-'}
+                  </span>
+                  <span className="text-sm text-gray-700 truncate min-w-0">
+                    {refund.booking?.serviceName ?? '-'}
+                  </span>
+                  <span className="flex-1" />
+                  {refund.requestedBy && (
+                    <span className="hidden md:flex items-center gap-1 text-xs text-gray-400 shrink-0">
+                      <User className="h-3 w-3" />
+                      <span className="max-w-[100px] truncate">{refund.requestedBy.fullName}</span>
+                    </span>
                   )}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {paginatedRefunds.map((refund) => (
-                  <tr key={refund.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="py-3 text-gray-600 whitespace-nowrap">
-                      {formatDate(refund.createdAt)}
-                    </td>
-                    <td className="py-3 font-medium text-gray-900 whitespace-nowrap">
-                      {refund.booking?.referenceCode ?? '-'}
-                    </td>
-                    <td className="py-3 text-gray-600 max-w-[160px] truncate">
-                      {refund.booking?.serviceName ?? '-'}
-                    </td>
-                    <td className="py-3 text-gray-600 hidden md:table-cell">
-                      {refund.requestedBy?.fullName ?? '-'}
-                    </td>
-                    <td className="py-3 text-right font-semibold text-gray-900 whitespace-nowrap">
-                      {formatCents(refund.amount)}
-                    </td>
-                    <td className="py-3 text-gray-600 max-w-[200px] truncate hidden md:table-cell">
-                      {refund.reason}
-                    </td>
-                    <td className="py-3 text-right">
-                      <Badge variant={refundStatusVariant[refund.status] ?? 'default'}>
-                        {refundStatusLabel[refund.status] ?? refund.status}
-                      </Badge>
-                    </td>
-                    {activeTab === 'REQUESTED' && (
-                      <td className="py-3 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button
-                            size="sm"
-                            variant="secondary"
-                            onClick={() => handleApprove(refund.id)}
-                            disabled={processing}
-                          >
-                            <Check className="h-3.5 w-3.5" />
-                            Aproba
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="danger"
-                            onClick={() => handleReject(refund.id)}
-                            disabled={processing}
-                          >
-                            <X className="h-3.5 w-3.5" />
-                            Respinge
-                          </Button>
-                        </div>
-                      </td>
-                    )}
-                    {activeTab === 'APPROVED' && (
-                      <td className="py-3 text-right">
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          onClick={() => handleProcess(refund.id)}
-                          disabled={processing}
-                        >
-                          <CreditCard className="h-3.5 w-3.5" />
-                          Proceseaza
-                        </Button>
-                      </td>
-                    )}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                  <span className="hidden md:block text-xs text-gray-400 shrink-0 max-w-[140px] truncate" title={refund.reason}>
+                    {refund.reason}
+                  </span>
+                  <span className="text-sm font-medium text-gray-900 shrink-0 w-20 text-right">
+                    {formatCents(refund.amount)}
+                  </span>
+                  {activeTab === 'REQUESTED' && (
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => handleApprove(refund.id)}
+                        disabled={processing}
+                      >
+                        <Check className="h-3.5 w-3.5" />
+                        <span className="hidden sm:inline">Aproba</span>
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="danger"
+                        onClick={() => handleReject(refund.id)}
+                        disabled={processing}
+                      >
+                        <X className="h-3.5 w-3.5" />
+                        <span className="hidden sm:inline">Respinge</span>
+                      </Button>
+                    </div>
+                  )}
+                  {activeTab === 'APPROVED' && (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => handleProcess(refund.id)}
+                      disabled={processing}
+                    >
+                      <CreditCard className="h-3.5 w-3.5" />
+                      <span className="hidden sm:inline">Proceseaza</span>
+                    </Button>
+                  )}
+                  {!showActions && (
+                    <span className="text-xs text-gray-500 shrink-0 w-20 text-right hidden sm:block">
+                      {refundStatusLabel[refund.status] ?? refund.status}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className="px-4">
+              <AdminPagination
+                page={page}
+                totalCount={totalCount}
+                pageSize={PAGE_SIZE}
+                onPageChange={setPage}
+                noun="rambursari"
+              />
+            </div>
+          </>
         )}
-
-        <AdminPagination
-          page={page}
-          totalCount={totalCount}
-          pageSize={PAGE_SIZE}
-          onPageChange={setPage}
-          noun="rambursari"
-        />
       </Card>
 
       {/* Direct Refund Modal */}

@@ -22,10 +22,8 @@ import {
   Tooltip,
   Legend,
 } from 'recharts';
-import { cn } from '@go2fix/shared';
 import Card from '@/components/ui/Card';
 import Select from '@/components/ui/Select';
-import StatCard from '@/components/admin/StatCard';
 import { formatCurrency } from '@/utils/format';
 import {
   PLATFORM_TOTALS,
@@ -84,17 +82,12 @@ interface TopCompaniesByRevenueData {
 
 type DatePreset = 'this_month' | 'last_month' | '3_months' | '6_months' | '1_year';
 
-interface PresetOption {
-  key: DatePreset;
-  label: string;
-}
-
-const presets: PresetOption[] = [
-  { key: 'this_month', label: 'Luna aceasta' },
-  { key: 'last_month', label: 'Luna trecuta' },
-  { key: '3_months', label: '3 Luni' },
-  { key: '6_months', label: '6 Luni' },
-  { key: '1_year', label: '1 An' },
+const presetOptions = [
+  { value: 'this_month', label: 'Luna aceasta' },
+  { value: 'last_month', label: 'Luna trecuta' },
+  { value: '3_months', label: '3 Luni' },
+  { value: '6_months', label: '6 Luni' },
+  { value: '1_year', label: '1 An' },
 ];
 
 function formatDate(d: Date): string {
@@ -142,24 +135,6 @@ const serviceTypeLabels: Record<string, string> = {
 };
 
 // ─── Skeleton Components ────────────────────────────────────────────────────
-
-function SkeletonCards({ count }: { count: number }) {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {Array.from({ length: count }).map((_, i) => (
-        <Card key={i}>
-          <div className="animate-pulse flex items-center gap-4">
-            <div className="h-12 w-12 bg-gray-200 rounded-xl" />
-            <div>
-              <div className="h-4 bg-gray-200 rounded w-24 mb-2" />
-              <div className="h-7 bg-gray-200 rounded w-20" />
-            </div>
-          </div>
-        </Card>
-      ))}
-    </div>
-  );
-}
 
 function SkeletonChart() {
   return (
@@ -268,87 +243,64 @@ export default function ReportsPage() {
 
   return (
     <div>
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Rapoarte Financiare</h1>
-        <p className="text-gray-500 mt-1">
-          Analiza veniturilor si performantei platformei.
-        </p>
-      </div>
-
-      {/* Date Range Selector — dropdown on mobile, pills on desktop */}
-      <div className="mb-8">
-        <div className="md:hidden">
+      {/* Header + Date Selector */}
+      <div className="mb-6 flex flex-wrap items-end gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Rapoarte Financiare</h1>
+          <p className="text-gray-500 mt-1">Analiza veniturilor si performantei platformei.</p>
+        </div>
+        <div className="flex-1" />
+        <div className="w-44">
           <Select
-            options={presets.map((p) => ({ value: p.key, label: p.label }))}
+            options={presetOptions}
             value={activePreset}
             onChange={(e) => setActivePreset(e.target.value as DatePreset)}
           />
         </div>
-        <div className="hidden md:flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
-          {presets.map((preset) => (
-            <button
-              key={preset.key}
-              onClick={() => setActivePreset(preset.key)}
-              className={cn(
-                'px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer whitespace-nowrap',
-                activePreset === preset.key
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700',
-              )}
-            >
-              {preset.label}
-            </button>
-          ))}
-        </div>
       </div>
 
-      {/* Platform Totals Cards */}
+      {/* Platform Totals — compact metrics */}
       {totalsLoading ? (
-        <SkeletonCards count={6} />
+        <Card className="mb-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="animate-pulse flex items-center gap-3 py-3">
+                <div className="h-9 w-9 bg-gray-200 rounded-lg shrink-0" />
+                <div>
+                  <div className="h-3 bg-gray-200 rounded w-16 mb-2" />
+                  <div className="h-5 bg-gray-200 rounded w-10" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
       ) : totals ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <StatCard
-            icon={ClipboardList}
-            label="Rezervari Finalizate"
-            value={totals.totalCompleted}
-            color="primary"
-          />
-          <StatCard
-            icon={Calendar}
-            label="Total Rezervari"
-            value={totals.totalBookings}
-            color="blue"
-          />
-          <StatCard
-            icon={TrendingUp}
-            label="Venit Total"
-            value={formatCurrency(totals.totalRevenue)}
-            color="secondary"
-          />
-          <StatCard
-            icon={Percent}
-            label="Comision Total"
-            value={formatCurrency(totals.totalCommission)}
-            color="accent"
-          />
-          <StatCard
-            icon={Users}
-            label="Clienti Unici"
-            value={totals.uniqueClients}
-            color="purple"
-          />
-          <StatCard
-            icon={Building2}
-            label="Companii Active"
-            value={totals.activeCompanies}
-            color="indigo"
-          />
-        </div>
+        <Card className="mb-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-x-6 gap-y-1 divide-y md:divide-y-0 md:divide-x divide-gray-100">
+            {[
+              { icon: ClipboardList, label: 'Finalizate', value: String(totals.totalCompleted) },
+              { icon: Calendar, label: 'Total rezervari', value: String(totals.totalBookings) },
+              { icon: TrendingUp, label: 'Venit total', value: formatCurrency(totals.totalRevenue) },
+              { icon: Percent, label: 'Comision total', value: formatCurrency(totals.totalCommission) },
+              { icon: Users, label: 'Clienti unici', value: String(totals.uniqueClients) },
+              { icon: Building2, label: 'Companii active', value: String(totals.activeCompanies) },
+            ].map((item, idx) => (
+              <div key={idx} className={`flex items-center gap-3 py-3 ${idx > 0 ? 'md:pl-6' : ''}`}>
+                <div className="h-9 w-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+                  <item.icon className="h-4.5 w-4.5 text-gray-500" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 leading-tight">{item.label}</p>
+                  <p className="text-lg font-semibold text-gray-900 leading-tight">{item.value}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
       ) : null}
 
-      {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+      {/* Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
         {/* Revenue Line Chart */}
         {revenueLoading ? (
           <SkeletonChart />
@@ -446,73 +398,51 @@ export default function ReportsPage() {
         )}
       </div>
 
-      {/* Top Companies Table */}
-      <div className="mt-8">
+      {/* Top Companies */}
+      <div className="mt-6">
         {companiesLoading ? (
           <SkeletonTable />
         ) : (
-          <Card>
-            <div className="flex items-center gap-2 mb-6">
-              <Building2 className="h-5 w-5 text-indigo-600" />
-              <h3 className="text-lg font-semibold text-gray-900">
-                Top Companii dupa Venit
-              </h3>
+          <>
+            <div className="flex items-center gap-2 mb-3">
+              <Building2 className="h-4.5 w-4.5 text-gray-500" />
+              <h3 className="text-sm font-semibold text-gray-900">Top Companii dupa Venit</h3>
             </div>
-            {topCompanies.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider pb-3 pr-4">
-                        #
-                      </th>
-                      <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider pb-3 pr-4">
-                        Companie
-                      </th>
-                      <th className="text-right text-xs font-semibold text-gray-500 uppercase tracking-wider pb-3 pr-4">
-                        Rezervari
-                      </th>
-                      <th className="text-right text-xs font-semibold text-gray-500 uppercase tracking-wider pb-3 pr-4">
-                        Venit
-                      </th>
-                      <th className="text-right text-xs font-semibold text-gray-500 uppercase tracking-wider pb-3">
-                        Comision
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {topCompanies.map((company, index) => (
-                      <tr
-                        key={company.id}
-                        onClick={() => navigate(`/admin/companii/${company.id}`)}
-                        className="border-b border-gray-100 last:border-0 cursor-pointer hover:bg-gray-50 transition-colors"
-                      >
-                        <td className="py-3 pr-4 text-sm text-gray-400 font-medium">
-                          {index + 1}
-                        </td>
-                        <td className="py-3 pr-4 text-sm font-medium text-gray-900">
-                          {company.companyName}
-                        </td>
-                        <td className="py-3 pr-4 text-sm text-gray-600 text-right">
-                          {company.bookingCount}
-                        </td>
-                        <td className="py-3 pr-4 text-sm font-semibold text-gray-900 text-right">
-                          {formatCurrency(company.revenue)}
-                        </td>
-                        <td className="py-3 text-sm text-gray-600 text-right">
-                          {formatCurrency(company.commission)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <p className="text-center text-gray-400 py-8">
-                Nu exista date pentru perioada selectata.
-              </p>
-            )}
-          </Card>
+            <Card padding={false}>
+              {topCompanies.length > 0 ? (
+                <div className="divide-y divide-gray-100">
+                  {topCompanies.map((company, index) => (
+                    <div
+                      key={company.id}
+                      onClick={() => navigate(`/admin/companii/${company.id}`)}
+                      className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors"
+                    >
+                      <span className="text-xs font-medium text-gray-400 w-5 shrink-0 text-right">
+                        {index + 1}
+                      </span>
+                      <span className="text-sm font-semibold text-gray-900 truncate min-w-0">
+                        {company.companyName}
+                      </span>
+                      <span className="flex-1" />
+                      <span className="text-xs text-gray-400 shrink-0">
+                        {company.bookingCount} rez.
+                      </span>
+                      <span className="hidden sm:block text-xs text-gray-400 shrink-0 w-24 text-right">
+                        Com. {formatCurrency(company.commission)}
+                      </span>
+                      <span className="text-sm font-medium text-gray-900 shrink-0 w-24 text-right">
+                        {formatCurrency(company.revenue)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-center text-gray-400 py-12">
+                  Nu exista date pentru perioada selectata.
+                </p>
+              )}
+            </Card>
+          </>
         )}
       </div>
     </div>

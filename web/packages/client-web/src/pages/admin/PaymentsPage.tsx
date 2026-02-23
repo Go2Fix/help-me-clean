@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@apollo/client';
 import { useNavigate } from 'react-router-dom';
-import { cn } from '@go2fix/shared';
 import AdminPayoutsPage from '@/pages/admin/AdminPayoutsPage';
 import RefundsPage from '@/pages/admin/RefundsPage';
 import {
@@ -10,16 +9,14 @@ import {
   ArrowDownRight,
   Clock,
   RotateCcw,
-  CreditCard,
+  Calendar,
+  Building2,
 } from 'lucide-react';
 import Card from '@/components/ui/Card';
-import Badge from '@/components/ui/Badge';
 import Select from '@/components/ui/Select';
 import Input from '@/components/ui/Input';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import StatCard from '@/components/admin/StatCard';
 import AdminPagination from '@/components/admin/AdminPagination';
-import { formatCents } from '@/utils/format';
+import { formatCents, formatDate } from '@/utils/format';
 import {
   PLATFORM_REVENUE_REPORT,
   ALL_PAYMENT_TRANSACTIONS,
@@ -130,13 +127,13 @@ interface RevenueReport {
 
 // ─── Status Maps ───────────────────────────────────────────────────────────
 
-const paymentStatusVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
-  PENDING: 'warning',
-  PROCESSING: 'info',
-  SUCCEEDED: 'success',
-  FAILED: 'danger',
-  REFUNDED: 'default',
-  PARTIALLY_REFUNDED: 'warning',
+const paymentStatusDotColor: Record<string, string> = {
+  PENDING: 'bg-amber-400',
+  PROCESSING: 'bg-blue-400',
+  SUCCEEDED: 'bg-emerald-500',
+  FAILED: 'bg-red-400',
+  REFUNDED: 'bg-gray-400',
+  PARTIALLY_REFUNDED: 'bg-amber-400',
 };
 
 const paymentStatusLabel: Record<string, string> = {
@@ -161,10 +158,10 @@ const statusOptions = [
 
 type PaymentsTab = 'summary' | 'payouts' | 'refunds';
 
-const subTabs: { key: PaymentsTab; label: string }[] = [
-  { key: 'summary', label: 'Sumar' },
-  { key: 'payouts', label: 'Plati companii' },
-  { key: 'refunds', label: 'Rambursari' },
+const tabOptions = [
+  { value: 'summary', label: 'Sumar tranzactii' },
+  { value: 'payouts', label: 'Plati companii' },
+  { value: 'refunds', label: 'Rambursari' },
 ];
 
 // ─── Component ─────────────────────────────────────────────────────────────
@@ -223,195 +220,155 @@ export default function PaymentsPage() {
         </p>
       </div>
 
-      {/* Sub-Tabs */}
-      <div className="flex items-center gap-1 mb-8 border-b border-gray-200">
-        {subTabs.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
-            className={cn(
-              'px-4 py-2.5 text-sm font-medium border-b-2 transition-colors cursor-pointer',
-              activeTab === tab.key
-                ? 'border-primary text-primary'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
-            )}
-          >
-            {tab.label}
-          </button>
-        ))}
+      {/* Tab Selector */}
+      <div className="mb-6 w-56">
+        <Select
+          options={tabOptions}
+          value={activeTab}
+          onChange={(e) => setActiveTab(e.target.value as PaymentsTab)}
+        />
       </div>
 
       {/* Tab Content */}
       {activeTab === 'summary' && (
         <>
-          {/* Date Range Presets */}
-          <div className="flex flex-wrap items-center gap-2 mb-4">
-            {datePresets.map((preset) => (
-              <button
-                key={preset.label}
-                type="button"
-                onClick={() => applyPreset(preset)}
-                className="px-3 py-1.5 text-sm font-medium rounded-full border border-gray-300 text-gray-600 hover:bg-primary hover:text-white hover:border-primary transition-colors"
-              >
-                {preset.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Date Range Inputs */}
-          <div className="flex items-end gap-4 mb-6">
-            <Input
-              label="De la"
-              type="date"
-              value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
-            />
-            <Input
-              label="Pana la"
-              type="date"
-              value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
-            />
-          </div>
-
-          {/* Revenue Summary Cards */}
-          {revenueLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Card key={i}>
-                  <div className="animate-pulse">
-                    <div className="h-4 bg-gray-200 rounded w-24 mb-3" />
-                    <div className="h-8 bg-gray-200 rounded w-16" />
-                  </div>
-                </Card>
+          {/* Date Range Presets + Inputs */}
+          <div className="flex flex-wrap items-end gap-3 mb-6">
+            <div className="flex items-end gap-2">
+              <Input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+              />
+              <span className="text-gray-400 pb-2.5">&mdash;</span>
+              <Input
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+              />
+            </div>
+            <div className="flex items-center gap-2 pb-0.5">
+              {datePresets.map((preset) => (
+                <button
+                  key={preset.label}
+                  type="button"
+                  onClick={() => applyPreset(preset)}
+                  className="px-3 py-2 text-xs font-medium rounded-lg border border-gray-200 text-gray-500 hover:bg-primary hover:text-white hover:border-primary transition-colors cursor-pointer"
+                >
+                  {preset.label}
+                </button>
               ))}
             </div>
+          </div>
+
+          {/* Revenue Summary */}
+          {revenueLoading ? (
+            <Card className="mb-6">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="animate-pulse flex items-center gap-3 py-3">
+                    <div className="h-9 w-9 bg-gray-200 rounded-lg shrink-0" />
+                    <div>
+                      <div className="h-3 bg-gray-200 rounded w-16 mb-2" />
+                      <div className="h-5 bg-gray-200 rounded w-10" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
           ) : report ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-              <StatCard
-                icon={Banknote}
-                label="Venit Total"
-                value={formatCents(report.totalRevenue)}
-                color="primary"
-              />
-              <StatCard
-                icon={TrendingUp}
-                label="Comision Platforma"
-                value={formatCents(report.totalCommission)}
-                color="secondary"
-              />
-              <StatCard
-                icon={ArrowDownRight}
-                label="Plati catre companii"
-                value={formatCents(report.totalPayouts)}
-                color="accent"
-              />
-              <StatCard
-                icon={Clock}
-                label="In asteptare"
-                value={formatCents(report.pendingPayouts)}
-                color="accent"
-              />
-              <StatCard
-                icon={RotateCcw}
-                label="Rambursari"
-                value={formatCents(report.totalRefunds)}
-                color="danger"
-              />
-            </div>
+            <Card className="mb-6">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-x-6 gap-y-1 divide-y md:divide-y-0 md:divide-x divide-gray-100">
+                {[
+                  { icon: Banknote, label: 'Venit total', value: formatCents(report.totalRevenue) },
+                  { icon: TrendingUp, label: 'Comision platforma', value: formatCents(report.totalCommission) },
+                  { icon: ArrowDownRight, label: 'Plati companii', value: formatCents(report.totalPayouts) },
+                  { icon: Clock, label: 'In asteptare', value: formatCents(report.pendingPayouts) },
+                  { icon: RotateCcw, label: 'Rambursari', value: formatCents(report.totalRefunds) },
+                ].map((item, idx) => (
+                  <div key={idx} className={`flex items-center gap-3 py-3 ${idx > 0 ? 'md:pl-6' : ''}`}>
+                    <div className="h-9 w-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+                      <item.icon className="h-4.5 w-4.5 text-gray-500" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 leading-tight">{item.label}</p>
+                      <p className="text-lg font-semibold text-gray-900 leading-tight">{item.value}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
           ) : null}
 
-          {/* Transactions Section */}
-          <Card>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-              <div className="flex items-center gap-3">
-                <CreditCard className="h-5 w-5 text-primary" />
-                <h3 className="text-lg font-semibold text-gray-900">Tranzactii</h3>
-              </div>
-              <div className="w-48">
-                <Select
-                  options={statusOptions}
-                  value={statusFilter}
-                  onChange={handleStatusChange}
-                  placeholder="Filtreaza"
-                />
-              </div>
-            </div>
+          {/* Transactions — filter + flat list */}
+          <div className="mb-4 w-48">
+            <Select
+              options={statusOptions}
+              value={statusFilter}
+              onChange={handleStatusChange}
+            />
+          </div>
 
+          <Card padding={false}>
             {txLoading ? (
-              <LoadingSpinner text="Se incarca tranzactiile..." />
+              <div className="divide-y divide-gray-100">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="px-4 py-3 animate-pulse flex items-center gap-3">
+                    <div className="h-2.5 w-2.5 bg-gray-200 rounded-full shrink-0" />
+                    <div className="h-4 bg-gray-200 rounded w-16" />
+                    <div className="h-4 bg-gray-200 rounded w-32" />
+                    <div className="flex-1" />
+                    <div className="h-4 bg-gray-200 rounded w-16" />
+                  </div>
+                ))}
+              </div>
             ) : paginatedTransactions.length === 0 ? (
               <p className="text-center text-gray-400 py-12">Nu exista tranzactii.</p>
             ) : (
               <>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="text-left text-gray-500 border-b border-gray-200">
-                        <th className="pb-3 font-medium">Data</th>
-                        <th className="pb-3 font-medium">Cod Rezervare</th>
-                        <th className="pb-3 font-medium hidden md:table-cell">Serviciu</th>
-                        <th className="pb-3 font-medium">Companie</th>
-                        <th className="pb-3 font-medium text-right">Total</th>
-                        <th className="pb-3 font-medium text-right hidden md:table-cell">Companie primeste</th>
-                        <th className="pb-3 font-medium text-right hidden md:table-cell">Comision platforma</th>
-                        <th className="pb-3 font-medium text-right">Status</th>
-                        <th className="pb-3 font-medium text-right">Rambursare</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {paginatedTransactions.map((tx) => (
-                        <tr
-                          key={tx.id}
-                          className="hover:bg-gray-50 cursor-pointer transition-colors"
-                          onClick={() => {
-                            if (tx.booking?.id) {
-                              navigate(`/admin/comenzi/${tx.booking.id}`);
-                            }
-                          }}
-                        >
-                          <td className="py-3 text-gray-600 whitespace-nowrap">
-                            {new Date(tx.createdAt).toLocaleDateString('ro-RO')}
-                          </td>
-                          <td className="py-3 font-medium text-gray-900 whitespace-nowrap">
-                            {tx.booking?.referenceCode ?? '-'}
-                          </td>
-                          <td className="py-3 text-gray-600 hidden md:table-cell">
-                            {tx.booking?.serviceName ?? '-'}
-                          </td>
-                          <td className="py-3 text-gray-600">
-                            {tx.booking?.company?.companyName ?? '-'}
-                          </td>
-                          <td className="py-3 text-right font-semibold text-gray-900 whitespace-nowrap">
-                            {formatCents(tx.amountTotal)}
-                          </td>
-                          <td className="py-3 text-right text-gray-600 whitespace-nowrap hidden md:table-cell">
-                            {formatCents(tx.amountCompany)}
-                          </td>
-                          <td className="py-3 text-right text-gray-600 whitespace-nowrap hidden md:table-cell">
-                            {formatCents(tx.amountPlatformFee)}
-                          </td>
-                          <td className="py-3 text-right">
-                            <Badge variant={paymentStatusVariant[tx.status] ?? 'default'}>
-                              {paymentStatusLabel[tx.status] ?? tx.status}
-                            </Badge>
-                          </td>
-                          <td className="py-3 text-right text-gray-600 whitespace-nowrap">
-                            {tx.refundAmount > 0 ? formatCents(tx.refundAmount) : '-'}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                <div className="divide-y divide-gray-100">
+                  {paginatedTransactions.map((tx) => (
+                    <div
+                      key={tx.id}
+                      onClick={() => {
+                        if (tx.booking?.id) navigate(`/admin/comenzi/${tx.booking.id}`);
+                      }}
+                      className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors"
+                    >
+                      <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${paymentStatusDotColor[tx.status] ?? 'bg-gray-300'}`} />
+                      <span className="text-sm font-semibold text-gray-900 w-20 shrink-0">
+                        {tx.booking?.referenceCode ?? '-'}
+                      </span>
+                      <span className="text-sm text-gray-700 truncate min-w-0">
+                        {tx.booking?.serviceName ?? '-'}
+                      </span>
+                      <span className="flex-1" />
+                      <span className="hidden md:flex items-center gap-1 text-xs text-gray-400 shrink-0">
+                        <Building2 className="h-3 w-3" />
+                        <span className="max-w-[120px] truncate">{tx.booking?.company?.companyName ?? '-'}</span>
+                      </span>
+                      <span className="hidden md:flex items-center gap-1 text-xs text-gray-400 shrink-0">
+                        <Calendar className="h-3 w-3" />
+                        {formatDate(tx.createdAt)}
+                      </span>
+                      <span className="text-sm font-medium text-gray-900 shrink-0 w-20 text-right">
+                        {formatCents(tx.amountTotal)}
+                      </span>
+                      <span className="text-xs text-gray-500 shrink-0 w-24 text-right hidden sm:block">
+                        {paymentStatusLabel[tx.status] ?? tx.status}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-
-                <AdminPagination
-                  page={page}
-                  totalCount={totalCount}
-                  pageSize={PAGE_SIZE}
-                  onPageChange={setPage}
-                  noun="tranzactii"
-                />
+                <div className="px-4">
+                  <AdminPagination
+                    page={page}
+                    totalCount={totalCount}
+                    pageSize={PAGE_SIZE}
+                    onPageChange={setPage}
+                    noun="tranzactii"
+                  />
+                </div>
               </>
             )}
           </Card>

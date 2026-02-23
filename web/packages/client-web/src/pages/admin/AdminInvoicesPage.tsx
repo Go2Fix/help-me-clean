@@ -4,9 +4,7 @@ import {
   FileText,
   Download,
   Plus,
-  Receipt,
   TrendingUp,
-  Hash,
   Banknote,
   Send,
   XCircle,
@@ -14,18 +12,17 @@ import {
   AlertTriangle,
   Search,
   X,
+  Calendar,
+  Receipt,
 } from 'lucide-react';
-import StatCard from '@/components/admin/StatCard';
 import AdminPagination from '@/components/admin/AdminPagination';
-import { formatCents } from '@/utils/format';
+import { formatCents, formatDate } from '@/utils/format';
 import { useDebounce } from '@/hooks/useDebounce';
 import Card from '@/components/ui/Card';
-import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Select from '@/components/ui/Select';
 import Input from '@/components/ui/Input';
 import Modal from '@/components/ui/Modal';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import {
   ALL_INVOICES,
   GENERATE_COMMISSION_INVOICE,
@@ -87,14 +84,14 @@ interface CompanyOption {
 
 // ─── Status Maps ───────────────────────────────────────────────────────────
 
-const invoiceStatusVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
-  DRAFT: 'default',
-  ISSUED: 'info',
-  SENT: 'info',
-  TRANSMITTED: 'warning',
-  PAID: 'success',
-  CANCELLED: 'danger',
-  CREDIT_NOTE: 'info',
+const invoiceStatusDotColor: Record<string, string> = {
+  DRAFT: 'bg-gray-400',
+  ISSUED: 'bg-blue-400',
+  SENT: 'bg-blue-500',
+  TRANSMITTED: 'bg-amber-400',
+  PAID: 'bg-emerald-500',
+  CANCELLED: 'bg-red-400',
+  CREDIT_NOTE: 'bg-indigo-400',
 };
 
 const invoiceStatusLabel: Record<string, string> = {
@@ -110,14 +107,6 @@ const invoiceStatusLabel: Record<string, string> = {
 const invoiceTypeLabel: Record<string, string> = {
   CLIENT_SERVICE: 'Serviciu client',
   PLATFORM_COMMISSION: 'Comision platforma',
-};
-
-const efacturaStatusVariant: Record<string, 'default' | 'warning' | 'success' | 'danger'> = {
-  NOT_SENT: 'default',
-  transmitted: 'warning',
-  accepted: 'success',
-  rejected: 'danger',
-  error: 'danger',
 };
 
 const efacturaStatusLabel: Record<string, string> = {
@@ -407,280 +396,221 @@ export default function AdminInvoicesPage() {
   return (
     <div>
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Facturi</h1>
-            <p className="text-gray-500 mt-1">
-              Gestioneaza toate facturile emise pe platforma.
-            </p>
-          </div>
-          <div className="flex gap-3">
-            <Button variant="outline" onClick={() => setCreditNoteModalOpen(true)}>
-              <FileText className="h-4 w-4" />
-              Nota de credit
-            </Button>
-            <Button onClick={() => setCommissionModalOpen(true)}>
-              <Plus className="h-4 w-4" />
-              Genereaza factura comision
-            </Button>
-          </div>
-        </div>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">Facturi</h1>
+        <p className="text-gray-500 mt-1">Gestioneaza toate facturile emise pe platforma.</p>
       </div>
 
       {/* Analytics Summary */}
       {analyticsLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Card key={i}>
-              <div className="animate-pulse">
-                <div className="h-4 bg-gray-200 rounded w-24 mb-3" />
-                <div className="h-8 bg-gray-200 rounded w-16" />
+        <Card className="mb-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="animate-pulse flex items-center gap-3 py-3">
+                <div className="h-9 w-9 bg-gray-200 rounded-lg shrink-0" />
+                <div>
+                  <div className="h-3 bg-gray-200 rounded w-16 mb-2" />
+                  <div className="h-5 bg-gray-200 rounded w-10" />
+                </div>
               </div>
-            </Card>
-          ))}
-        </div>
+            ))}
+          </div>
+        </Card>
       ) : analytics ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <StatCard
-            icon={Hash}
-            label="Facturi emise"
-            value={String(analytics.totalIssued)}
-            color="primary"
-          />
-          <StatCard
-            icon={Banknote}
-            label="Valoare totala"
-            value={formatCents(analytics.totalAmount)}
-            color="secondary"
-          />
-          <StatCard
-            icon={TrendingUp}
-            label="TVA total"
-            value={formatCents(analytics.totalVat)}
-            color="accent"
-          />
-          <StatCard
-            icon={Receipt}
-            label="Total pe platforma"
-            value={String(totalCount) + ' facturi'}
-            color="primary"
-          />
-        </div>
+        <Card className="mb-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-1 divide-y md:divide-y-0 md:divide-x divide-gray-100">
+            {[
+              { icon: FileText, label: 'Facturi emise', value: String(analytics.totalIssued) },
+              { icon: Banknote, label: 'Valoare totala', value: formatCents(analytics.totalAmount) },
+              { icon: TrendingUp, label: 'TVA total', value: formatCents(analytics.totalVat) },
+              { icon: Receipt, label: 'Total platforma', value: `${totalCount} facturi` },
+            ].map((item, idx) => (
+              <div key={idx} className={`flex items-center gap-3 py-3 ${idx > 0 ? 'md:pl-6' : ''}`}>
+                <div className="h-9 w-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+                  <item.icon className="h-4.5 w-4.5 text-gray-500" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 leading-tight">{item.label}</p>
+                  <p className="text-lg font-semibold text-gray-900 leading-tight">{item.value}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
       ) : null}
 
-      {/* Filters */}
-      <div className="flex flex-col md:flex-row md:items-end gap-4 mb-6">
-        <div className="w-full md:w-44">
+      {/* Filters + Actions */}
+      <div className="flex flex-wrap items-end gap-3 mb-4">
+        <div className="w-40">
           <Select
-            label="Tip"
             options={typeOptions}
             value={typeFilter}
-            onChange={(e) => {
-              setTypeFilter(e.target.value);
-              resetPage();
-            }}
+            onChange={(e) => { setTypeFilter(e.target.value); resetPage(); }}
           />
         </div>
-        <div className="w-full md:w-44">
+        <div className="w-44">
           <Select
-            label="Status"
             options={statusOptions}
             value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
-              resetPage();
-            }}
+            onChange={(e) => { setStatusFilter(e.target.value); resetPage(); }}
           />
         </div>
-        <div className="w-full md:w-64">
+        <div className="w-56">
           <CompanySearchDropdown
             selectedCompanyId={companyId}
             selectedCompanyName={companyName}
-            onSelect={(id, name) => {
-              setCompanyId(id);
-              setCompanyName(name);
-              resetPage();
-            }}
-            onClear={() => {
-              setCompanyId('');
-              setCompanyName('');
-              resetPage();
-            }}
+            onSelect={(id, name) => { setCompanyId(id); setCompanyName(name); resetPage(); }}
+            onClear={() => { setCompanyId(''); setCompanyName(''); resetPage(); }}
           />
         </div>
-        <div className="w-full md:w-40">
+        <div className="flex items-end gap-2">
           <Input
-            label="De la"
             type="date"
             value={dateFrom}
-            onChange={(e) => {
-              setDateFrom(e.target.value);
-              resetPage();
-            }}
+            onChange={(e) => { setDateFrom(e.target.value); resetPage(); }}
           />
-        </div>
-        <div className="w-full md:w-40">
+          <span className="text-gray-400 pb-2.5">&mdash;</span>
           <Input
-            label="Pana la"
             type="date"
             value={dateTo}
-            onChange={(e) => {
-              setDateTo(e.target.value);
-              resetPage();
-            }}
+            onChange={(e) => { setDateTo(e.target.value); resetPage(); }}
           />
+        </div>
+        <div className="flex-1" />
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => setCreditNoteModalOpen(true)}>
+            <FileText className="h-4 w-4" />
+            Nota de credit
+          </Button>
+          <Button size="sm" onClick={() => setCommissionModalOpen(true)}>
+            <Plus className="h-4 w-4" />
+            Factura comision
+          </Button>
         </div>
       </div>
 
-      {/* Invoices Table */}
+      {/* Invoices flat list */}
       <Card padding={false}>
-        <div className="flex items-center gap-3 px-3 md:px-6 pt-4 md:pt-6 mb-6">
-          <FileText className="h-5 w-5 text-primary" />
-          <h3 className="text-lg font-semibold text-gray-900">Toate facturile</h3>
-          {totalCount > 0 && (
-            <Badge variant="info">{totalCount}</Badge>
-          )}
-        </div>
-
         {loading ? (
-          <div className="px-3 md:px-6 pb-4 md:pb-6">
-            <LoadingSpinner text="Se incarca facturile..." />
+          <div className="divide-y divide-gray-100">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="px-4 py-3 animate-pulse flex items-center gap-3">
+                <div className="h-2.5 w-2.5 bg-gray-200 rounded-full shrink-0" />
+                <div className="h-4 bg-gray-200 rounded w-24" />
+                <div className="h-4 bg-gray-200 rounded w-32" />
+                <div className="flex-1" />
+                <div className="h-4 bg-gray-200 rounded w-16" />
+              </div>
+            ))}
           </div>
         ) : paginatedInvoices.length === 0 ? (
           <p className="text-center text-gray-400 py-12">Nu exista facturi.</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-gray-500 border-b border-gray-200">
-                  <th className="px-3 md:px-6 pb-3 font-medium">Nr. Factura</th>
-                  <th className="px-3 md:px-6 pb-3 font-medium">Tip</th>
-                  <th className="px-3 md:px-6 pb-3 font-medium">Data</th>
-                  <th className="px-3 md:px-6 pb-3 font-medium hidden md:table-cell">Vanzator</th>
-                  <th className="px-3 md:px-6 pb-3 font-medium hidden md:table-cell">Cumparator</th>
-                  <th className="px-3 md:px-6 pb-3 font-medium text-right">Suma</th>
-                  <th className="px-3 md:px-6 pb-3 font-medium">Status</th>
-                  <th className="px-3 md:px-6 pb-3 font-medium hidden md:table-cell">E-Factura</th>
-                  <th className="px-3 md:px-6 pb-3 font-medium text-right">Actiuni</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {paginatedInvoices.map((invoice) => {
-                  const efStatus = invoice.efacturaStatus || 'NOT_SENT';
+          <>
+            <div className="divide-y divide-gray-100">
+              {paginatedInvoices.map((invoice) => {
+                const efStatus = invoice.efacturaStatus || 'NOT_SENT';
 
-                  return (
-                    <tr key={invoice.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-3 md:px-6 py-3 font-medium text-gray-900">
-                        {invoice.invoiceNumber}
-                      </td>
-                      <td className="px-3 md:px-6 py-3 text-gray-600">
-                        <Badge variant="default">
-                          {invoiceTypeLabel[invoice.invoiceType] ?? invoice.invoiceType}
-                        </Badge>
-                      </td>
-                      <td className="px-3 md:px-6 py-3 text-gray-600">
-                        {new Date(invoice.issuedAt || invoice.createdAt).toLocaleDateString('ro-RO')}
-                      </td>
-                      <td className="px-3 md:px-6 py-3 text-gray-600 hidden md:table-cell">
-                        {invoice.sellerCompanyName}
-                      </td>
-                      <td className="px-3 md:px-6 py-3 text-gray-600 hidden md:table-cell">
-                        {invoice.buyerName}
-                      </td>
-                      <td className="px-3 md:px-6 py-3 text-right font-semibold text-gray-900">
-                        {formatCents(invoice.totalAmount)}
-                      </td>
-                      <td className="px-3 md:px-6 py-3">
-                        <Badge variant={invoiceStatusVariant[invoice.status] ?? 'default'}>
-                          {invoiceStatusLabel[invoice.status] ?? invoice.status}
-                        </Badge>
-                      </td>
-                      <td className="px-3 md:px-6 py-3 hidden md:table-cell">
-                        <Badge variant={efacturaStatusVariant[efStatus] ?? 'default'}>
-                          {efacturaStatusLabel[efStatus] ?? efStatus}
-                        </Badge>
-                      </td>
-                      <td className="px-3 md:px-6 py-3">
-                        <div className="flex items-center justify-end gap-1">
-                          {/* Download PDF */}
-                          {invoice.downloadUrl && (
-                            <a
-                              href={invoice.downloadUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                              title="Descarca PDF"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <Download className="h-4 w-4" />
-                            </a>
-                          )}
-
-                          {/* Transmit to e-Factura */}
-                          {invoice.status !== 'CANCELLED' &&
-                            (!invoice.efacturaStatus ||
-                              invoice.efacturaStatus === 'NOT_SENT' ||
-                              invoice.efacturaStatus === 'error') && (
-                              <button
-                                onClick={() => handleTransmit(invoice.id)}
-                                disabled={transmitting}
-                                className="p-1.5 rounded-lg text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors cursor-pointer disabled:opacity-50"
-                                title="Transmite la e-Factura"
-                              >
-                                <Send className="h-4 w-4" />
-                              </button>
-                            )}
-
-                          {/* Refresh e-Factura status */}
-                          {invoice.efacturaStatus &&
-                            invoice.efacturaStatus !== 'NOT_SENT' &&
-                            invoice.efacturaStatus !== 'accepted' && (
-                              <button
-                                onClick={() => handleRefreshEfactura(invoice.id)}
-                                disabled={refreshing}
-                                className="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer disabled:opacity-50"
-                                title="Actualizeaza status e-Factura"
-                              >
-                                <RefreshCw className="h-4 w-4" />
-                              </button>
-                            )}
-
-                          {/* Cancel invoice */}
-                          {invoice.status !== 'CANCELLED' &&
-                            invoice.status !== 'PAID' &&
-                            invoice.status !== 'CREDIT_NOTE' && (
-                              <button
-                                onClick={() => {
-                                  setCancelInvoiceId(invoice.id);
-                                  setCancelModalOpen(true);
-                                }}
-                                className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
-                                title="Anuleaza factura"
-                              >
-                                <XCircle className="h-4 w-4" />
-                              </button>
-                            )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                return (
+                  <div
+                    key={invoice.id}
+                    className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
+                  >
+                    <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${invoiceStatusDotColor[invoice.status] ?? 'bg-gray-300'}`} />
+                    <span className="text-sm font-semibold text-gray-900 shrink-0">
+                      {invoice.invoiceNumber}
+                    </span>
+                    <span className="text-xs text-gray-400 shrink-0">
+                      {invoiceTypeLabel[invoice.invoiceType] ?? invoice.invoiceType}
+                    </span>
+                    <span className="hidden md:block text-sm text-gray-700 truncate max-w-[140px]" title={invoice.buyerName}>
+                      {invoice.buyerName}
+                    </span>
+                    <span className="flex-1" />
+                    {efStatus !== 'NOT_SENT' && (
+                      <span className="hidden md:block text-xs text-gray-400 shrink-0">
+                        eF: {efacturaStatusLabel[efStatus] ?? efStatus}
+                      </span>
+                    )}
+                    <span className="hidden md:flex items-center gap-1 text-xs text-gray-400 shrink-0">
+                      <Calendar className="h-3 w-3" />
+                      {formatDate(invoice.issuedAt || invoice.createdAt)}
+                    </span>
+                    <span className="text-sm font-medium text-gray-900 shrink-0 w-20 text-right">
+                      {formatCents(invoice.totalAmount)}
+                    </span>
+                    <span className="text-xs text-gray-500 shrink-0 w-28 text-right hidden sm:block">
+                      {invoiceStatusLabel[invoice.status] ?? invoice.status}
+                    </span>
+                    {/* Actions */}
+                    <div className="flex items-center gap-0.5 shrink-0">
+                      {invoice.downloadUrl && (
+                        <a
+                          href={invoice.downloadUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                          title="Descarca PDF"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Download className="h-3.5 w-3.5" />
+                        </a>
+                      )}
+                      {invoice.status !== 'CANCELLED' &&
+                        (!invoice.efacturaStatus ||
+                          invoice.efacturaStatus === 'NOT_SENT' ||
+                          invoice.efacturaStatus === 'error') && (
+                          <button
+                            onClick={() => handleTransmit(invoice.id)}
+                            disabled={transmitting}
+                            className="p-1.5 rounded-lg text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors cursor-pointer disabled:opacity-50"
+                            title="Transmite la e-Factura"
+                          >
+                            <Send className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                      {invoice.efacturaStatus &&
+                        invoice.efacturaStatus !== 'NOT_SENT' &&
+                        invoice.efacturaStatus !== 'accepted' && (
+                          <button
+                            onClick={() => handleRefreshEfactura(invoice.id)}
+                            disabled={refreshing}
+                            className="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer disabled:opacity-50"
+                            title="Actualizeaza status e-Factura"
+                          >
+                            <RefreshCw className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                      {invoice.status !== 'CANCELLED' &&
+                        invoice.status !== 'PAID' &&
+                        invoice.status !== 'CREDIT_NOTE' && (
+                          <button
+                            onClick={() => {
+                              setCancelInvoiceId(invoice.id);
+                              setCancelModalOpen(true);
+                            }}
+                            className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                            title="Anuleaza factura"
+                          >
+                            <XCircle className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="px-4">
+              <AdminPagination
+                page={page}
+                totalCount={filteredTotal}
+                pageSize={PAGE_SIZE}
+                onPageChange={setPage}
+                noun="facturi"
+              />
+            </div>
+          </>
         )}
-
-        {/* Pagination */}
-        <div className="px-3 md:px-6 pb-4 md:pb-6">
-          <AdminPagination
-            page={page}
-            totalCount={filteredTotal}
-            pageSize={PAGE_SIZE}
-            onPageChange={setPage}
-            noun="facturi"
-          />
-        </div>
       </Card>
 
       {/* Cancel Invoice Confirmation Modal */}

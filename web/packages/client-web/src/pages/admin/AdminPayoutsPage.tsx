@@ -1,16 +1,14 @@
 import { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useLazyQuery } from '@apollo/client';
-import { Wallet, Plus, Search } from 'lucide-react';
+import { Plus, Search, Calendar } from 'lucide-react';
 import AdminPagination from '@/components/admin/AdminPagination';
 import { formatCents, formatDate } from '@/utils/format';
 import { useDebounce } from '@/hooks/useDebounce';
 import Card from '@/components/ui/Card';
-import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Select from '@/components/ui/Select';
 import Input from '@/components/ui/Input';
 import Modal from '@/components/ui/Modal';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import {
   ALL_PAYOUTS,
   CREATE_MONTHLY_PAYOUT,
@@ -47,11 +45,11 @@ interface CompanySearchResult {
 
 // ─── Status Maps ────────────────────────────────────────────────────────────
 
-const payoutStatusVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
-  PENDING: 'warning',
-  PROCESSING: 'info',
-  PAID: 'success',
-  FAILED: 'danger',
+const payoutStatusDotColor: Record<string, string> = {
+  PENDING: 'bg-amber-400',
+  PROCESSING: 'bg-blue-400',
+  PAID: 'bg-emerald-500',
+  FAILED: 'bg-red-400',
 };
 
 const payoutStatusLabel: Record<string, string> = {
@@ -177,100 +175,80 @@ export default function AdminPayoutsPage() {
 
   return (
     <div>
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Plati catre companii</h1>
-            <p className="text-gray-500 mt-1">
-              Gestioneaza platile lunare catre companiile partenere.
-            </p>
-          </div>
-          <Button onClick={() => setModalOpen(true)}>
-            <Plus className="h-4 w-4" />
-            Creeaza plata lunara
-          </Button>
+      {/* Filter + Create button */}
+      <div className="mb-4 flex items-center gap-3">
+        <div className="w-48">
+          <Select
+            options={statusOptions}
+            value={statusFilter}
+            onChange={(e) => handleStatusChange(e.target.value)}
+          />
         </div>
+        <div className="flex-1" />
+        <Button onClick={() => setModalOpen(true)} size="sm">
+          <Plus className="h-4 w-4" />
+          Creeaza plata
+        </Button>
       </div>
 
-      {/* Status Filter */}
-      <div className="mb-6 w-48">
-        <Select
-          options={statusOptions}
-          value={statusFilter}
-          onChange={(e) => handleStatusChange(e.target.value)}
-          placeholder="Filtreaza dupa status"
-        />
-      </div>
-
-      {/* Payouts List */}
-      <Card>
-        <div className="flex items-center gap-3 mb-6">
-          <Wallet className="h-5 w-5 text-primary" />
-          <h3 className="text-lg font-semibold text-gray-900">Toate platile</h3>
-          {totalCount > 0 && (
-            <Badge variant="info">{totalCount}</Badge>
-          )}
-        </div>
-
+      {/* Payouts flat list */}
+      <Card padding={false}>
         {loading ? (
-          <LoadingSpinner text="Se incarca platile..." />
+          <div className="divide-y divide-gray-100">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="px-4 py-3 animate-pulse flex items-center gap-3">
+                <div className="h-2.5 w-2.5 bg-gray-200 rounded-full shrink-0" />
+                <div className="h-4 bg-gray-200 rounded w-32" />
+                <div className="flex-1" />
+                <div className="h-4 bg-gray-200 rounded w-16" />
+              </div>
+            ))}
+          </div>
         ) : payouts.length === 0 ? (
           <p className="text-center text-gray-400 py-12">Nu exista plati.</p>
         ) : (
           <>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-left text-gray-500 border-b border-gray-200">
-                    <th className="pb-3 font-medium">Companie</th>
-                    <th className="pb-3 font-medium hidden md:table-cell">Perioada</th>
-                    <th className="pb-3 font-medium text-right">Suma</th>
-                    <th className="pb-3 font-medium text-center">Rezervari</th>
-                    <th className="pb-3 font-medium hidden md:table-cell">Data platii</th>
-                    <th className="pb-3 font-medium">Creat pe</th>
-                    <th className="pb-3 font-medium text-right">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {paginatedPayouts.map((payout) => (
-                    <tr key={payout.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="py-3 font-medium text-gray-900">
-                        {payout.company?.companyName ?? '-'}
-                      </td>
-                      <td className="py-3 text-gray-600 hidden md:table-cell">
-                        {formatDate(payout.periodFrom)} - {formatDate(payout.periodTo)}
-                      </td>
-                      <td className="py-3 text-right font-semibold text-gray-900">
-                        {formatCents(payout.amount)}
-                      </td>
-                      <td className="py-3 text-center text-gray-600">
-                        {payout.bookingCount}
-                      </td>
-                      <td className="py-3 text-gray-600 hidden md:table-cell">
-                        {payout.paidAt ? formatDate(payout.paidAt) : '\u2014'}
-                      </td>
-                      <td className="py-3 text-gray-600">
-                        {formatDate(payout.createdAt)}
-                      </td>
-                      <td className="py-3 text-right">
-                        <Badge variant={payoutStatusVariant[payout.status] ?? 'default'}>
-                          {payoutStatusLabel[payout.status] ?? payout.status}
-                        </Badge>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="divide-y divide-gray-100">
+              {paginatedPayouts.map((payout) => (
+                <div
+                  key={payout.id}
+                  className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
+                >
+                  <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${payoutStatusDotColor[payout.status] ?? 'bg-gray-300'}`} />
+                  <span className="text-sm font-semibold text-gray-900 truncate max-w-[180px]">
+                    {payout.company?.companyName ?? '-'}
+                  </span>
+                  <span className="hidden md:flex items-center gap-1 text-xs text-gray-400 shrink-0">
+                    <Calendar className="h-3 w-3" />
+                    {formatDate(payout.periodFrom)} – {formatDate(payout.periodTo)}
+                  </span>
+                  <span className="text-xs text-gray-400 shrink-0">
+                    {payout.bookingCount} rez.
+                  </span>
+                  <span className="flex-1" />
+                  {payout.paidAt && (
+                    <span className="hidden md:block text-xs text-gray-400 shrink-0">
+                      Platit: {formatDate(payout.paidAt)}
+                    </span>
+                  )}
+                  <span className="text-sm font-medium text-gray-900 shrink-0 w-20 text-right">
+                    {formatCents(payout.amount)}
+                  </span>
+                  <span className="text-xs text-gray-500 shrink-0 w-24 text-right hidden sm:block">
+                    {payoutStatusLabel[payout.status] ?? payout.status}
+                  </span>
+                </div>
+              ))}
             </div>
-
-            <AdminPagination
-              page={page}
-              totalCount={totalCount}
-              pageSize={PAGE_SIZE}
-              onPageChange={setPage}
-              noun="plati"
-            />
+            <div className="px-4">
+              <AdminPagination
+                page={page}
+                totalCount={totalCount}
+                pageSize={PAGE_SIZE}
+                onPageChange={setPage}
+                noun="plati"
+              />
+            </div>
           </>
         )}
       </Card>
