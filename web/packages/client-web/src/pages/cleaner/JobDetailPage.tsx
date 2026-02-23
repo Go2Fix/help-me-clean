@@ -15,8 +15,6 @@ import {
   CLIENT_BOOKING_DETAIL,
   START_JOB,
   COMPLETE_JOB,
-  TODAYS_JOBS,
-  MY_ASSIGNED_JOBS,
   OPEN_BOOKING_CHAT,
 } from '@/graphql/operations';
 
@@ -131,14 +129,10 @@ export default function JobDetailPage() {
   });
   const booking = data?.booking as BookingData | undefined;
 
-  const refetchQueries = [
-    { query: TODAYS_JOBS },
-    { query: MY_ASSIGNED_JOBS },
-    { query: CLIENT_BOOKING_DETAIL, variables: { id } },
-  ];
-
-  const [startJob, { loading: starting }] = useMutation(START_JOB, { refetchQueries });
-  const [completeJob, { loading: completing }] = useMutation(COMPLETE_JOB, { refetchQueries });
+  // Mutations return { id, status } — Apollo auto-updates the normalized booking entity.
+  // List queries (TODAYS_JOBS, MY_ASSIGNED_JOBS) self-correct via cache-and-network on next visit.
+  const [startJob, { loading: starting }] = useMutation(START_JOB);
+  const [completeJob, { loading: completing }] = useMutation(COMPLETE_JOB);
   const [openBookingChat, { loading: openingChat }] = useMutation(OPEN_BOOKING_CHAT, {
     onCompleted: (res) => {
       const roomId = res?.openBookingChat?.id;

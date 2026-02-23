@@ -262,6 +262,7 @@ export default function OrderDetailPage() {
 
   const { data: citiesData } = useQuery(ACTIVE_CITIES, {
     skip: !assignModal,
+    fetchPolicy: 'cache-first',
   });
 
   // Resolve cityId and areaId from the booking address

@@ -165,6 +165,7 @@ class AuthService {
     const { token, user } = data.signInWithGoogle as { token: string; user: AuthUser };
     if (token) this.setToken(token);
     this.emit({ user, loading: false });
+    await this.client.resetStore();
     return user;
   }
 
@@ -186,6 +187,7 @@ class AuthService {
     const { token, user } = data.verifyEmailOtp as { token: string; user: AuthUser };
     if (token) this.setToken(token);
     this.emit({ user, loading: false });
+    await this.client.resetStore();
     return user;
   }
 

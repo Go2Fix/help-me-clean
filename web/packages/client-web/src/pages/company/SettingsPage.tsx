@@ -213,7 +213,9 @@ export default function SettingsPage() {
   const { data: scheduleData } = useQuery(MY_COMPANY_WORK_SCHEDULE);
 
   // Service areas queries & mutation
-  const { data: citiesData, loading: citiesLoading } = useQuery(ACTIVE_CITIES);
+  const { data: citiesData, loading: citiesLoading } = useQuery(ACTIVE_CITIES, {
+    fetchPolicy: 'cache-first',
+  });
   const { data: companyAreasData, loading: areasLoading } = useQuery(MY_COMPANY_SERVICE_AREAS);
   const [updateServiceAreas, { loading: savingAreas }] = useMutation(UPDATE_COMPANY_SERVICE_AREAS, {
     refetchQueries: [{ query: MY_COMPANY_SERVICE_AREAS }],

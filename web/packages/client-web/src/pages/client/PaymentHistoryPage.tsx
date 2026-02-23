@@ -86,18 +86,6 @@ export default function PaymentHistoryPage() {
         first: PAGE_SIZE,
         after: data.myPaymentHistory.pageInfo.endCursor,
       },
-      updateQuery: (prev, { fetchMoreResult }) => {
-        if (!fetchMoreResult) return prev;
-        return {
-          myPaymentHistory: {
-            ...fetchMoreResult.myPaymentHistory,
-            edges: [
-              ...prev.myPaymentHistory.edges,
-              ...fetchMoreResult.myPaymentHistory.edges,
-            ],
-          },
-        };
-      },
     });
   }, [data, fetchMore]);
 

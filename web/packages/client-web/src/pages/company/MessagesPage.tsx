@@ -191,6 +191,8 @@ export default function CompanyMessagesPage() {
       const newMessage = subData.data?.messageSent;
       if (!newMessage || !roomId) return;
 
+      // Dedup handled by ChatRoom.messages merge policy in Apollo cache config.
+      // Skip messages we sent (mutation update already added them to cache).
       if (newMessage.sender.id === user?.id) return;
 
       const existing = client.readQuery<{ chatRoom: ChatRoomDetail }>({

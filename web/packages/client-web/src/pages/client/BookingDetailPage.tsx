@@ -31,7 +31,7 @@ import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/ClientBadge';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Modal from '@/components/ui/Modal';
-import { CLIENT_BOOKING_DETAIL, CANCEL_BOOKING, MY_BOOKINGS, OPEN_BOOKING_CHAT, CREATE_BOOKING_PAYMENT_INTENT, REQUEST_REFUND, SUBMIT_REVIEW } from '@/graphql/operations';
+import { CLIENT_BOOKING_DETAIL, CANCEL_BOOKING, OPEN_BOOKING_CHAT, CREATE_BOOKING_PAYMENT_INTENT, REQUEST_REFUND, SUBMIT_REVIEW } from '@/graphql/operations';
 import { StripeElementsWrapper } from '@/context/StripeContext';
 import StripePaymentForm from '@/components/payment/StripePaymentForm';
 
@@ -201,7 +201,8 @@ export default function BookingDetailPage() {
       setCancelModalOpen(false);
       setCancelReason('');
     },
-    refetchQueries: [{ query: MY_BOOKINGS }],
+    // Mutation returns { id, status } — Apollo auto-updates the normalized booking entity.
+    // MY_BOOKINGS self-corrects via cache-and-network on next visit.
   });
 
   const [openBookingChat, { loading: openingChat }] = useMutation(OPEN_BOOKING_CHAT, {

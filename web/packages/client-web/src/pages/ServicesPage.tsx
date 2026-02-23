@@ -35,7 +35,9 @@ const SERVICE_ICONS: Record<string, string> = {
 
 export default function ServicesPage() {
   const navigate = useNavigate();
-  const { data, loading, error } = useQuery(AVAILABLE_SERVICES);
+  const { data, loading, error } = useQuery(AVAILABLE_SERVICES, {
+    fetchPolicy: 'cache-first',
+  });
 
   const services: ServiceDefinition[] = data?.availableServices ?? [];
 

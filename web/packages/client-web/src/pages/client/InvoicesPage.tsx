@@ -236,18 +236,6 @@ export default function InvoicesPage() {
         first: PAGE_SIZE,
         after: invoicesData.myInvoices.pageInfo.endCursor,
       },
-      updateQuery: (prev, { fetchMoreResult }) => {
-        if (!fetchMoreResult) return prev;
-        return {
-          myInvoices: {
-            ...fetchMoreResult.myInvoices,
-            edges: [
-              ...prev.myInvoices.edges,
-              ...fetchMoreResult.myInvoices.edges,
-            ],
-          },
-        };
-      },
     });
   }, [invoicesData, fetchMore]);
 

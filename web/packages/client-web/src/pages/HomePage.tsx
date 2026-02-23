@@ -116,7 +116,9 @@ export default function HomePage() {
   const { lang } = useLanguage();
   const { user, isAuthenticated, loading: authLoading } = useAuth();
   const { isPreRelease } = usePlatform();
-  const { data, loading } = useQuery(AVAILABLE_SERVICES);
+  const { data, loading } = useQuery(AVAILABLE_SERVICES, {
+    fetchPolicy: 'cache-first',
+  });
 
   const isClient = isAuthenticated && user?.role === 'CLIENT';
   const isCompanyOrWorker =

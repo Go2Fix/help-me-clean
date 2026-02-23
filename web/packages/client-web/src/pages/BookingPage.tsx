@@ -368,9 +368,11 @@ export default function BookingPage() {
   // ---- Data fetching --------------------------------------------------------
 
   const { data: servicesData, loading: servicesLoading } =
-    useQuery(AVAILABLE_SERVICES);
+    useQuery(AVAILABLE_SERVICES, { fetchPolicy: 'cache-first' });
 
-  const { data: extrasData } = useQuery(AVAILABLE_EXTRAS);
+  const { data: extrasData } = useQuery(AVAILABLE_EXTRAS, {
+    fetchPolicy: 'cache-first',
+  });
 
   const { data: addressesData } = useQuery<{ myAddresses: SavedAddress[] }>(
     MY_ADDRESSES,

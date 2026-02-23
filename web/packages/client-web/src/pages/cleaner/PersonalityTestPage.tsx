@@ -29,7 +29,9 @@ interface Question {
 
 export default function PersonalityTestPage() {
   const navigate = useNavigate();
-  const { data: questionsData, loading: questionsLoading } = useQuery(PERSONALITY_QUESTIONS);
+  const { data: questionsData, loading: questionsLoading } = useQuery(PERSONALITY_QUESTIONS, {
+    fetchPolicy: 'cache-first',
+  });
   const { data: assessmentData, loading: assessmentLoading } = useQuery(MY_PERSONALITY_ASSESSMENT);
   const [submitAssessment, { loading: submitting }] = useMutation(
     SUBMIT_PERSONALITY_ASSESSMENT,
