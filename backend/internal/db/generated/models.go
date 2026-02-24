@@ -900,6 +900,8 @@ type Company struct {
 	StripeConnectOnboardingComplete pgtype.Bool        `json:"stripe_connect_onboarding_complete"`
 	StripeConnectChargesEnabled     pgtype.Bool        `json:"stripe_connect_charges_enabled"`
 	StripeConnectPayoutsEnabled     pgtype.Bool        `json:"stripe_connect_payouts_enabled"`
+	// Per-company commission override. NULL means use platform default.
+	CommissionOverridePct pgtype.Numeric `json:"commission_override_pct"`
 }
 
 type CompanyDocument struct {

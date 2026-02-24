@@ -155,6 +155,13 @@ SELECT COUNT(*) FROM bookings WHERE subscription_id = $1;
 -- name: CountCompletedBookingsBySubscription :one
 SELECT COUNT(*) FROM bookings WHERE subscription_id = $1 AND status = 'completed';
 
+-- name: CancelSubscriptionsByCompany :exec
+UPDATE subscriptions
+SET status = 'cancelled', cancelled_at = NOW(),
+    cancellation_reason = $2, updated_at = NOW()
+WHERE company_id = $1
+  AND status IN ('active', 'paused');
+
 -- name: CancelFutureSubscriptionBookings :exec
 UPDATE bookings
 SET status = 'cancelled_by_client', cancelled_at = NOW(), cancellation_reason = $2, updated_at = NOW()

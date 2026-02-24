@@ -293,6 +293,9 @@ func (r *mutationResolver) ApproveCompany(ctx context.Context, id string) (*mode
 		return nil, fmt.Errorf("failed to approve company: %w", err)
 	}
 
+	// Reactivate workers that were suspended when the company was suspended
+	_ = r.Queries.ReactivateWorkersByCompany(ctx, companyUUID)
+
 	return dbCompanyToGQL(company), nil
 }
 
@@ -321,13 +324,30 @@ func (r *mutationResolver) SuspendCompany(ctx context.Context, id string, reason
 		return nil, fmt.Errorf("not authenticated")
 	}
 
+	companyUUID := stringToUUID(id)
+
 	company, err := r.Queries.UpdateCompanyStatus(ctx, db.UpdateCompanyStatusParams{
-		ID:     stringToUUID(id),
+		ID:     companyUUID,
 		Status: db.CompanyStatusSuspended,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to suspend company: %w", err)
 	}
+
+	// Cascade: suspend all active workers
+	_ = r.Queries.SuspendWorkersByCompany(ctx, companyUUID)
+
+	// Cascade: cancel future bookings
+	_, _ = r.Queries.CancelFutureBookingsByCompany(ctx, db.CancelFutureBookingsByCompanyParams{
+		CompanyID:          companyUUID,
+		CancellationReason: pgtype.Text{String: "Compania a fost suspendată", Valid: true},
+	})
+
+	// Cascade: cancel active subscriptions
+	_ = r.Queries.CancelSubscriptionsByCompany(ctx, db.CancelSubscriptionsByCompanyParams{
+		CompanyID:          companyUUID,
+		CancellationReason: pgtype.Text{String: "Compania a fost suspendată", Valid: true},
+	})
 
 	return dbCompanyToGQL(company), nil
 }
@@ -360,6 +380,40 @@ func (r *mutationResolver) ReviewCompanyDocument(ctx context.Context, id string,
 	}
 
 	return dbCompanyDocToGQL(doc), nil
+}
+
+// SetCompanyCommissionOverride is the resolver for the setCompanyCommissionOverride field.
+func (r *mutationResolver) SetCompanyCommissionOverride(ctx context.Context, id string, pct *float64) (*model.Company, error) {
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil || claims.Role != "global_admin" {
+		return nil, fmt.Errorf("not authorized")
+	}
+
+	companyUUID := stringToUUID(id)
+
+	if pct == nil {
+		// Clear override
+		company, err := r.Queries.ClearCompanyCommissionOverride(ctx, companyUUID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to clear commission override: %w", err)
+		}
+		return dbCompanyToGQL(company), nil
+	}
+
+	// Validate range
+	if *pct < 0 || *pct > 100 {
+		return nil, fmt.Errorf("commission percentage must be between 0 and 100")
+	}
+
+	// Set override
+	company, err := r.Queries.SetCompanyCommissionOverride(ctx, db.SetCompanyCommissionOverrideParams{
+		ID:                    companyUUID,
+		CommissionOverridePct: float64ToNumeric(*pct),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to set commission override: %w", err)
+	}
+	return dbCompanyToGQL(company), nil
 }
 
 // MyCompany is the resolver for the myCompany field.

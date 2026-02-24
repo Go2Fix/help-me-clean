@@ -215,27 +215,28 @@ type ComplexityRoot struct {
 	}
 
 	Company struct {
-		Address             func(childComplexity int) int
-		Admin               func(childComplexity int) int
-		City                func(childComplexity int) int
-		CompanyName         func(childComplexity int) int
-		CompanyType         func(childComplexity int) int
-		ContactEmail        func(childComplexity int) int
-		ContactPhone        func(childComplexity int) int
-		County              func(childComplexity int) int
-		CreatedAt           func(childComplexity int) int
-		Cui                 func(childComplexity int) int
-		Description         func(childComplexity int) int
-		Documents           func(childComplexity int) int
-		ID                  func(childComplexity int) int
-		LegalRepresentative func(childComplexity int) int
-		LogoURL             func(childComplexity int) int
-		MaxServiceRadiusKm  func(childComplexity int) int
-		RatingAvg           func(childComplexity int) int
-		RejectionReason     func(childComplexity int) int
-		Status              func(childComplexity int) int
-		TotalJobsCompleted  func(childComplexity int) int
-		Workers             func(childComplexity int) int
+		Address               func(childComplexity int) int
+		Admin                 func(childComplexity int) int
+		City                  func(childComplexity int) int
+		CommissionOverridePct func(childComplexity int) int
+		CompanyName           func(childComplexity int) int
+		CompanyType           func(childComplexity int) int
+		ContactEmail          func(childComplexity int) int
+		ContactPhone          func(childComplexity int) int
+		County                func(childComplexity int) int
+		CreatedAt             func(childComplexity int) int
+		Cui                   func(childComplexity int) int
+		Description           func(childComplexity int) int
+		Documents             func(childComplexity int) int
+		ID                    func(childComplexity int) int
+		LegalRepresentative   func(childComplexity int) int
+		LogoURL               func(childComplexity int) int
+		MaxServiceRadiusKm    func(childComplexity int) int
+		RatingAvg             func(childComplexity int) int
+		RejectionReason       func(childComplexity int) int
+		Status                func(childComplexity int) int
+		TotalJobsCompleted    func(childComplexity int) int
+		Workers               func(childComplexity int) int
 	}
 
 	CompanyApplicationResult struct {
@@ -470,6 +471,7 @@ type ComplexityRoot struct {
 		ReviewWorkerDocument                      func(childComplexity int, id string, approved bool, rejectionReason *string) int
 		SelectBookingTimeSlot                     func(childComplexity int, bookingID string, timeSlotID string) int
 		SendMessage                               func(childComplexity int, roomID string, content string, messageType *string) int
+		SetCompanyCommissionOverride              func(childComplexity int, id string, pct *float64) int
 		SetDefaultAddress                         func(childComplexity int, id string) int
 		SetDefaultPaymentMethod                   func(childComplexity int, id string) int
 		SetWorkerDateOverride                     func(childComplexity int, date string, isAvailable bool, startTime string, endTime string) int
@@ -1133,6 +1135,7 @@ type MutationResolver interface {
 	RejectCompany(ctx context.Context, id string, reason string) (*model.Company, error)
 	SuspendCompany(ctx context.Context, id string, reason string) (*model.Company, error)
 	ReviewCompanyDocument(ctx context.Context, id string, approved bool, rejectionReason *string) (*model.CompanyDocument, error)
+	SetCompanyCommissionOverride(ctx context.Context, id string, pct *float64) (*model.Company, error)
 	UpsertBillingProfile(ctx context.Context, input model.BillingProfileInput) (*model.ClientBillingProfile, error)
 	GenerateBookingInvoice(ctx context.Context, bookingID string) (*model.Invoice, error)
 	CancelInvoice(ctx context.Context, id string) (*model.Invoice, error)
@@ -2071,6 +2074,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Company.City(childComplexity), true
+	case "Company.commissionOverridePct":
+		if e.complexity.Company.CommissionOverridePct == nil {
+			break
+		}
+
+		return e.complexity.Company.CommissionOverridePct(childComplexity), true
 	case "Company.companyName":
 		if e.complexity.Company.CompanyName == nil {
 			break
@@ -3558,6 +3567,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.SendMessage(childComplexity, args["roomId"].(string), args["content"].(string), args["messageType"].(*string)), true
+	case "Mutation.setCompanyCommissionOverride":
+		if e.complexity.Mutation.SetCompanyCommissionOverride == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_setCompanyCommissionOverride_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SetCompanyCommissionOverride(childComplexity, args["id"].(string), args["pct"].(*float64)), true
 	case "Mutation.setDefaultAddress":
 		if e.complexity.Mutation.SetDefaultAddress == nil {
 			break
@@ -7969,6 +7989,22 @@ func (ec *executionContext) field_Mutation_sendMessage_args(ctx context.Context,
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_setCompanyCommissionOverride_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "pct", ec.unmarshalOFloat2ᚖfloat64)
+	if err != nil {
+		return nil, err
+	}
+	args["pct"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_setDefaultAddress_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -10505,6 +10541,8 @@ func (ec *executionContext) fieldContext_Booking_company(_ context.Context, fiel
 				return ec.fieldContext_Company_documents(ctx, field)
 			case "workers":
 				return ec.fieldContext_Company_workers(ctx, field)
+			case "commissionOverridePct":
+				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
 			case "admin":
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
@@ -14219,6 +14257,35 @@ func (ec *executionContext) fieldContext_Company_workers(_ context.Context, fiel
 	return fc, nil
 }
 
+func (ec *executionContext) _Company_commissionOverridePct(ctx context.Context, field graphql.CollectedField, obj *model.Company) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Company_commissionOverridePct,
+		func(ctx context.Context) (any, error) {
+			return obj.CommissionOverridePct, nil
+		},
+		nil,
+		ec.marshalOFloat2ᚖfloat64,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Company_commissionOverridePct(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Company",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Company_admin(ctx context.Context, field graphql.CollectedField, obj *model.Company) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -14361,6 +14428,8 @@ func (ec *executionContext) fieldContext_CompanyApplicationResult_company(_ cont
 				return ec.fieldContext_Company_documents(ctx, field)
 			case "workers":
 				return ec.fieldContext_Company_workers(ctx, field)
+			case "commissionOverridePct":
+				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
 			case "admin":
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
@@ -14463,6 +14532,8 @@ func (ec *executionContext) fieldContext_CompanyConnection_edges(_ context.Conte
 				return ec.fieldContext_Company_documents(ctx, field)
 			case "workers":
 				return ec.fieldContext_Company_workers(ctx, field)
+			case "commissionOverridePct":
+				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
 			case "admin":
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
@@ -15122,6 +15193,8 @@ func (ec *executionContext) fieldContext_CompanyPayout_company(_ context.Context
 				return ec.fieldContext_Company_documents(ctx, field)
 			case "workers":
 				return ec.fieldContext_Company_workers(ctx, field)
+			case "commissionOverridePct":
+				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
 			case "admin":
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
@@ -15468,6 +15541,8 @@ func (ec *executionContext) fieldContext_CompanyPerformance_company(_ context.Co
 				return ec.fieldContext_Company_documents(ctx, field)
 			case "workers":
 				return ec.fieldContext_Company_workers(ctx, field)
+			case "commissionOverridePct":
+				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
 			case "admin":
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
@@ -16753,6 +16828,8 @@ func (ec *executionContext) fieldContext_Invoice_company(_ context.Context, fiel
 				return ec.fieldContext_Company_documents(ctx, field)
 			case "workers":
 				return ec.fieldContext_Company_workers(ctx, field)
+			case "commissionOverridePct":
+				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
 			case "admin":
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
@@ -18200,6 +18277,8 @@ func (ec *executionContext) fieldContext_Mutation_adminUpdateCompanyProfile(ctx 
 				return ec.fieldContext_Company_documents(ctx, field)
 			case "workers":
 				return ec.fieldContext_Company_workers(ctx, field)
+			case "commissionOverridePct":
+				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
 			case "admin":
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
@@ -18285,6 +18364,8 @@ func (ec *executionContext) fieldContext_Mutation_adminUpdateCompanyStatus(ctx c
 				return ec.fieldContext_Company_documents(ctx, field)
 			case "workers":
 				return ec.fieldContext_Company_workers(ctx, field)
+			case "commissionOverridePct":
+				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
 			case "admin":
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
@@ -20228,6 +20309,8 @@ func (ec *executionContext) fieldContext_Mutation_claimCompany(ctx context.Conte
 				return ec.fieldContext_Company_documents(ctx, field)
 			case "workers":
 				return ec.fieldContext_Company_workers(ctx, field)
+			case "commissionOverridePct":
+				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
 			case "admin":
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
@@ -20313,6 +20396,8 @@ func (ec *executionContext) fieldContext_Mutation_updateCompanyProfile(ctx conte
 				return ec.fieldContext_Company_documents(ctx, field)
 			case "workers":
 				return ec.fieldContext_Company_workers(ctx, field)
+			case "commissionOverridePct":
+				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
 			case "admin":
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
@@ -20398,6 +20483,8 @@ func (ec *executionContext) fieldContext_Mutation_uploadCompanyLogo(ctx context.
 				return ec.fieldContext_Company_documents(ctx, field)
 			case "workers":
 				return ec.fieldContext_Company_workers(ctx, field)
+			case "commissionOverridePct":
+				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
 			case "admin":
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
@@ -20583,6 +20670,8 @@ func (ec *executionContext) fieldContext_Mutation_approveCompany(ctx context.Con
 				return ec.fieldContext_Company_documents(ctx, field)
 			case "workers":
 				return ec.fieldContext_Company_workers(ctx, field)
+			case "commissionOverridePct":
+				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
 			case "admin":
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
@@ -20668,6 +20757,8 @@ func (ec *executionContext) fieldContext_Mutation_rejectCompany(ctx context.Cont
 				return ec.fieldContext_Company_documents(ctx, field)
 			case "workers":
 				return ec.fieldContext_Company_workers(ctx, field)
+			case "commissionOverridePct":
+				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
 			case "admin":
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
@@ -20753,6 +20844,8 @@ func (ec *executionContext) fieldContext_Mutation_suspendCompany(ctx context.Con
 				return ec.fieldContext_Company_documents(ctx, field)
 			case "workers":
 				return ec.fieldContext_Company_workers(ctx, field)
+			case "commissionOverridePct":
+				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
 			case "admin":
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
@@ -20828,6 +20921,93 @@ func (ec *executionContext) fieldContext_Mutation_reviewCompanyDocument(ctx cont
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_reviewCompanyDocument_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_setCompanyCommissionOverride(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_setCompanyCommissionOverride,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().SetCompanyCommissionOverride(ctx, fc.Args["id"].(string), fc.Args["pct"].(*float64))
+		},
+		nil,
+		ec.marshalNCompany2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_setCompanyCommissionOverride(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Company_id(ctx, field)
+			case "companyName":
+				return ec.fieldContext_Company_companyName(ctx, field)
+			case "cui":
+				return ec.fieldContext_Company_cui(ctx, field)
+			case "companyType":
+				return ec.fieldContext_Company_companyType(ctx, field)
+			case "legalRepresentative":
+				return ec.fieldContext_Company_legalRepresentative(ctx, field)
+			case "contactEmail":
+				return ec.fieldContext_Company_contactEmail(ctx, field)
+			case "contactPhone":
+				return ec.fieldContext_Company_contactPhone(ctx, field)
+			case "address":
+				return ec.fieldContext_Company_address(ctx, field)
+			case "city":
+				return ec.fieldContext_Company_city(ctx, field)
+			case "county":
+				return ec.fieldContext_Company_county(ctx, field)
+			case "description":
+				return ec.fieldContext_Company_description(ctx, field)
+			case "logoUrl":
+				return ec.fieldContext_Company_logoUrl(ctx, field)
+			case "status":
+				return ec.fieldContext_Company_status(ctx, field)
+			case "rejectionReason":
+				return ec.fieldContext_Company_rejectionReason(ctx, field)
+			case "maxServiceRadiusKm":
+				return ec.fieldContext_Company_maxServiceRadiusKm(ctx, field)
+			case "ratingAvg":
+				return ec.fieldContext_Company_ratingAvg(ctx, field)
+			case "totalJobsCompleted":
+				return ec.fieldContext_Company_totalJobsCompleted(ctx, field)
+			case "documents":
+				return ec.fieldContext_Company_documents(ctx, field)
+			case "workers":
+				return ec.fieldContext_Company_workers(ctx, field)
+			case "commissionOverridePct":
+				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
+			case "admin":
+				return ec.fieldContext_Company_admin(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Company_createdAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_setCompanyCommissionOverride_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -29075,6 +29255,8 @@ func (ec *executionContext) fieldContext_Query_pendingCompanyApplications(_ cont
 				return ec.fieldContext_Company_documents(ctx, field)
 			case "workers":
 				return ec.fieldContext_Company_workers(ctx, field)
+			case "commissionOverridePct":
+				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
 			case "admin":
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
@@ -30710,6 +30892,8 @@ func (ec *executionContext) fieldContext_Query_myCompany(_ context.Context, fiel
 				return ec.fieldContext_Company_documents(ctx, field)
 			case "workers":
 				return ec.fieldContext_Company_workers(ctx, field)
+			case "commissionOverridePct":
+				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
 			case "admin":
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
@@ -30913,6 +31097,8 @@ func (ec *executionContext) fieldContext_Query_company(ctx context.Context, fiel
 				return ec.fieldContext_Company_documents(ctx, field)
 			case "workers":
 				return ec.fieldContext_Company_workers(ctx, field)
+			case "commissionOverridePct":
+				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
 			case "admin":
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
@@ -36915,6 +37101,8 @@ func (ec *executionContext) fieldContext_ServiceSubscription_company(_ context.C
 				return ec.fieldContext_Company_documents(ctx, field)
 			case "workers":
 				return ec.fieldContext_Company_workers(ctx, field)
+			case "commissionOverridePct":
+				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
 			case "admin":
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
@@ -39121,6 +39309,8 @@ func (ec *executionContext) fieldContext_SubscriptionWorkerSuggestion_company(_ 
 				return ec.fieldContext_Company_documents(ctx, field)
 			case "workers":
 				return ec.fieldContext_Company_workers(ctx, field)
+			case "commissionOverridePct":
+				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
 			case "admin":
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
@@ -41159,6 +41349,8 @@ func (ec *executionContext) fieldContext_WorkerProfile_company(_ context.Context
 				return ec.fieldContext_Company_documents(ctx, field)
 			case "workers":
 				return ec.fieldContext_Company_workers(ctx, field)
+			case "commissionOverridePct":
+				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
 			case "admin":
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
@@ -41869,6 +42061,8 @@ func (ec *executionContext) fieldContext_WorkerSuggestion_company(_ context.Cont
 				return ec.fieldContext_Company_documents(ctx, field)
 			case "workers":
 				return ec.fieldContext_Company_workers(ctx, field)
+			case "commissionOverridePct":
+				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
 			case "admin":
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
@@ -46369,6 +46563,8 @@ func (ec *executionContext) _Company(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "commissionOverridePct":
+			out.Values[i] = ec._Company_commissionOverridePct(ctx, field, obj)
 		case "admin":
 			out.Values[i] = ec._Company_admin(ctx, field, obj)
 		case "createdAt":
@@ -47824,6 +48020,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "reviewCompanyDocument":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_reviewCompanyDocument(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "setCompanyCommissionOverride":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_setCompanyCommissionOverride(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++

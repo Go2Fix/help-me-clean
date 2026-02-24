@@ -98,6 +98,14 @@ WHERE w.company_id = $1;
 -- name: CountCompletedJobsByCompany :one
 SELECT COUNT(*) FROM bookings WHERE company_id = $1 AND status = 'completed';
 
+-- name: SetCompanyCommissionOverride :one
+UPDATE companies SET commission_override_pct = $2, updated_at = NOW()
+WHERE id = $1 RETURNING *;
+
+-- name: ClearCompanyCommissionOverride :one
+UPDATE companies SET commission_override_pct = NULL, updated_at = NOW()
+WHERE id = $1 RETURNING *;
+
 -- name: CheckCompanyDocumentsReady :one
 -- Returns true if all 3 required documents exist and are approved
 SELECT

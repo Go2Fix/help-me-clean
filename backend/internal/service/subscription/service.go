@@ -540,6 +540,7 @@ func (s *Service) GenerateBookingsForPeriod(ctx context.Context, sub db.Subscrip
 			EstimatedTotal:         sub.PerSessionDiscounted,
 			RecurringGroupID:       pgtype.UUID{}, // not using old recurring groups
 			OccurrenceNumber:       pgtype.Int4{Int32: int32(i + 1), Valid: true},
+			PlatformCommissionPct:  sub.PlatformCommissionPct,
 		})
 		if err != nil {
 			log.Printf("subscription: failed to create booking for sub %s date %s: %v",

@@ -224,27 +224,28 @@ type ClientBillingProfile struct {
 }
 
 type Company struct {
-	ID                  string             `json:"id"`
-	CompanyName         string             `json:"companyName"`
-	Cui                 string             `json:"cui"`
-	CompanyType         CompanyType        `json:"companyType"`
-	LegalRepresentative string             `json:"legalRepresentative"`
-	ContactEmail        string             `json:"contactEmail"`
-	ContactPhone        string             `json:"contactPhone"`
-	Address             string             `json:"address"`
-	City                string             `json:"city"`
-	County              string             `json:"county"`
-	Description         *string            `json:"description,omitempty"`
-	LogoURL             *string            `json:"logoUrl,omitempty"`
-	Status              CompanyStatus      `json:"status"`
-	RejectionReason     *string            `json:"rejectionReason,omitempty"`
-	MaxServiceRadiusKm  int                `json:"maxServiceRadiusKm"`
-	RatingAvg           float64            `json:"ratingAvg"`
-	TotalJobsCompleted  int                `json:"totalJobsCompleted"`
-	Documents           []*CompanyDocument `json:"documents"`
-	Workers             []*WorkerProfile   `json:"workers"`
-	Admin               *User              `json:"admin,omitempty"`
-	CreatedAt           time.Time          `json:"createdAt"`
+	ID                    string             `json:"id"`
+	CompanyName           string             `json:"companyName"`
+	Cui                   string             `json:"cui"`
+	CompanyType           CompanyType        `json:"companyType"`
+	LegalRepresentative   string             `json:"legalRepresentative"`
+	ContactEmail          string             `json:"contactEmail"`
+	ContactPhone          string             `json:"contactPhone"`
+	Address               string             `json:"address"`
+	City                  string             `json:"city"`
+	County                string             `json:"county"`
+	Description           *string            `json:"description,omitempty"`
+	LogoURL               *string            `json:"logoUrl,omitempty"`
+	Status                CompanyStatus      `json:"status"`
+	RejectionReason       *string            `json:"rejectionReason,omitempty"`
+	MaxServiceRadiusKm    int                `json:"maxServiceRadiusKm"`
+	RatingAvg             float64            `json:"ratingAvg"`
+	TotalJobsCompleted    int                `json:"totalJobsCompleted"`
+	Documents             []*CompanyDocument `json:"documents"`
+	Workers               []*WorkerProfile   `json:"workers"`
+	CommissionOverridePct *float64           `json:"commissionOverridePct,omitempty"`
+	Admin                 *User              `json:"admin,omitempty"`
+	CreatedAt             time.Time          `json:"createdAt"`
 }
 
 type CompanyApplicationInput struct {

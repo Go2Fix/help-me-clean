@@ -42,6 +42,7 @@ import {
   COMPANY_FINANCIAL_SUMMARY,
   ADMIN_UPDATE_COMPANY_PROFILE,
   ADMIN_UPDATE_COMPANY_STATUS,
+  SET_COMPANY_COMMISSION_OVERRIDE,
   REVIEW_COMPANY_DOCUMENT,
   REVIEW_WORKER_DOCUMENT,
   ACTIVATE_WORKER,
@@ -217,6 +218,10 @@ export default function CompanyDetailPage() {
   const [editingField, setEditingField] = useState<EditableFieldKey | null>(null);
   const [editValue, setEditValue] = useState('');
 
+  // Commission override editing state
+  const [editingCommission, setEditingCommission] = useState(false);
+  const [commissionValue, setCommissionValue] = useState('');
+
   // Document rejection modal state
   const [docRejectModal, setDocRejectModal] = useState<{
     open: boolean;
@@ -274,6 +279,10 @@ export default function CompanyDetailPage() {
       { query: COMPANY, variables: { id } }
     ],
     awaitRefetchQueries: true,
+  });
+
+  const [setCommissionOverride, { loading: settingCommission }] = useMutation(SET_COMPANY_COMMISSION_OVERRIDE, {
+    refetchQueries: [{ query: COMPANY, variables: { id } }],
   });
 
   const company = data?.company;
@@ -388,6 +397,29 @@ export default function CompanyDetailPage() {
 
   const handleGenerateInsights = async (workerId: string) => {
     await generateInsights({ variables: { workerId } });
+  };
+
+  const handleStartEditCommission = () => {
+    setEditingCommission(true);
+    setCommissionValue(company.commissionOverridePct != null ? String(company.commissionOverridePct) : '');
+  };
+
+  const handleCancelEditCommission = () => {
+    setEditingCommission(false);
+    setCommissionValue('');
+  };
+
+  const handleSaveCommission = async () => {
+    const pct = commissionValue.trim() === '' ? null : parseFloat(commissionValue);
+    await setCommissionOverride({ variables: { id, pct } });
+    setEditingCommission(false);
+    setCommissionValue('');
+  };
+
+  const handleResetCommission = async () => {
+    await setCommissionOverride({ variables: { id, pct: null } });
+    setEditingCommission(false);
+    setCommissionValue('');
   };
 
   const companyDocuments: CompanyDocument[] = company?.documents ?? [];
@@ -802,6 +834,79 @@ export default function CompanyDetailPage() {
               </p>
             </Card>
           )}
+
+          {/* Commission Override */}
+          <Card className="mt-6">
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <Percent className="h-5 w-5" />
+                Comision platforma
+              </h3>
+              {!editingCommission && (
+                <button
+                  onClick={handleStartEditCommission}
+                  className="p-1 rounded text-gray-400 hover:text-primary transition cursor-pointer"
+                >
+                  <Pencil className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+
+            {editingCommission ? (
+              <div className="mt-3 space-y-3">
+                <div>
+                  <label className="text-sm text-gray-500 mb-1 block">Comision personalizat (%)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    step={0.5}
+                    value={commissionValue}
+                    onChange={(e) => setCommissionValue(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleSaveCommission();
+                      if (e.key === 'Escape') handleCancelEditCommission();
+                    }}
+                    autoFocus
+                    placeholder="25"
+                    className="w-full rounded-lg border border-primary bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={handleSaveCommission}
+                    loading={settingCommission}
+                    disabled={commissionValue.trim() === '' || isNaN(parseFloat(commissionValue)) || parseFloat(commissionValue) < 0 || parseFloat(commissionValue) > 100}
+                  >
+                    Salveaza
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleResetCommission}
+                    loading={settingCommission}
+                  >
+                    Reseteaza la implicit
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleCancelEditCommission}
+                  >
+                    Anuleaza
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-600 mt-1">
+                {company.commissionOverridePct != null
+                  ? `${company.commissionOverridePct}% (personalizat)`
+                  : '25% (implicit)'}
+              </p>
+            )}
+          </Card>
         </div>
       )}
 

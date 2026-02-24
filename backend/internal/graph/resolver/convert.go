@@ -120,6 +120,14 @@ func numericToFloat(n pgtype.Numeric) float64 {
 	return f.Float64
 }
 
+func numericToFloatPtr(n pgtype.Numeric) *float64 {
+	if !n.Valid {
+		return nil
+	}
+	f, _ := n.Float64Value()
+	return &f.Float64
+}
+
 func timestamptzToTime(t pgtype.Timestamptz) time.Time {
 	if !t.Valid {
 		return time.Time{}
@@ -455,24 +463,25 @@ func dbSearchBookingRowToGQL(row db.SearchBookingsWithDetailsRow) *model.Booking
 
 func dbCompanyToGQL(c db.Company) *model.Company {
 	return &model.Company{
-		ID:                  uuidToString(c.ID),
-		CompanyName:         c.CompanyName,
-		Cui:                 c.Cui,
-		CompanyType:         dbCompanyTypeToGQL(c.CompanyType),
-		LegalRepresentative: c.LegalRepresentative,
-		ContactEmail:        c.ContactEmail,
-		ContactPhone:        c.ContactPhone,
-		Address:             c.Address,
-		City:                c.City,
-		County:              c.County,
-		Description:         textPtr(c.Description),
-		LogoURL:             textPtr(c.LogoUrl),
-		Status:              dbCompanyStatusToGQL(c.Status),
-		RejectionReason:     textPtr(c.RejectionReason),
-		MaxServiceRadiusKm:  int4Val(c.MaxServiceRadiusKm),
-		RatingAvg:           numericToFloat(c.RatingAvg),
-		TotalJobsCompleted:  int4Val(c.TotalJobsCompleted),
-		CreatedAt:           timestamptzToTime(c.CreatedAt),
+		ID:                   uuidToString(c.ID),
+		CompanyName:          c.CompanyName,
+		Cui:                  c.Cui,
+		CompanyType:          dbCompanyTypeToGQL(c.CompanyType),
+		LegalRepresentative:  c.LegalRepresentative,
+		ContactEmail:         c.ContactEmail,
+		ContactPhone:         c.ContactPhone,
+		Address:              c.Address,
+		City:                 c.City,
+		County:               c.County,
+		Description:          textPtr(c.Description),
+		LogoURL:              textPtr(c.LogoUrl),
+		Status:               dbCompanyStatusToGQL(c.Status),
+		RejectionReason:      textPtr(c.RejectionReason),
+		MaxServiceRadiusKm:   int4Val(c.MaxServiceRadiusKm),
+		RatingAvg:            numericToFloat(c.RatingAvg),
+		TotalJobsCompleted:   int4Val(c.TotalJobsCompleted),
+		CommissionOverridePct: numericToFloatPtr(c.CommissionOverridePct),
+		CreatedAt:            timestamptzToTime(c.CreatedAt),
 	}
 }
 

@@ -85,6 +85,24 @@ func (q *Queries) CancelSubscription(ctx context.Context, arg CancelSubscription
 	return i, err
 }
 
+const cancelSubscriptionsByCompany = `-- name: CancelSubscriptionsByCompany :exec
+UPDATE subscriptions
+SET status = 'cancelled', cancelled_at = NOW(),
+    cancellation_reason = $2, updated_at = NOW()
+WHERE company_id = $1
+  AND status IN ('active', 'paused')
+`
+
+type CancelSubscriptionsByCompanyParams struct {
+	CompanyID          pgtype.UUID `json:"company_id"`
+	CancellationReason pgtype.Text `json:"cancellation_reason"`
+}
+
+func (q *Queries) CancelSubscriptionsByCompany(ctx context.Context, arg CancelSubscriptionsByCompanyParams) error {
+	_, err := q.db.Exec(ctx, cancelSubscriptionsByCompany, arg.CompanyID, arg.CancellationReason)
+	return err
+}
+
 const countAllSubscriptions = `-- name: CountAllSubscriptions :one
 SELECT COUNT(*) FROM subscriptions
 `

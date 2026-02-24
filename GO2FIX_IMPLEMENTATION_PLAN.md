@@ -241,12 +241,6 @@ All indexes already existed from prior migrations. No new migration needed.
 - [x] `preferredWorkerId` field in GraphQL schema (`booking.graphql` + `subscription.graphql`)
 - [x] Subscription matching engine (`subscription_matching.go`) scores worker consistency
 
-**What's missing:**
-- [ ] Booking flow UI: "Doresti acelasi lucrator de fiecare data?" toggle during recurring booking setup
-- [ ] Scheduling engine: Priority assignment for preferred worker with fallback
-- [ ] Client UI: "Solicita alt lucrator" button on booking detail page
-- [ ] Admin visibility: Show preferred worker mismatches in dashboard
-
 **Effort:** 2-3 hours (backend schema ready, mostly frontend + scheduling logic)
 
 ---
@@ -316,7 +310,7 @@ Fully covered in P2-3 above. Admin UI for discount percentages per frequency exi
 | **Platforma** | Pre-release/live mode toggle + waitlist lead stats | ✅ Done |
 
 **What's missing:**
-- [ ] VAT rate configuration (hardcoded at 19%)
+- [ ] VAT rate configuration (hardcoded at 21%)
 - [ ] Settings cache with TTL refresh (currently reads from DB each time)
 
 **Effort:** 1-2 hours

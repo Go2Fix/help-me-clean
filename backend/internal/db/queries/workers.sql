@@ -74,6 +74,14 @@ LEFT JOIN bookings b ON b.worker_id = c.id
 WHERE c.id = $1
 GROUP BY c.id, u.full_name;
 
+-- name: SuspendWorkersByCompany :exec
+UPDATE workers SET status = 'suspended', updated_at = NOW()
+WHERE company_id = $1 AND status IN ('active', 'pending_review');
+
+-- name: ReactivateWorkersByCompany :exec
+UPDATE workers SET status = 'active', updated_at = NOW()
+WHERE company_id = $1 AND status = 'suspended';
+
 -- DEPRECATED: Avatar now stored in users table (see users.sql UpdateUserAvatar)
 -- -- name: UpdateWorkerAvatar :one
 -- UPDATE workers SET avatar_url = $2, updated_at = NOW() WHERE id = $1 RETURNING *;

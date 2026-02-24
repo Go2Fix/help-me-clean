@@ -39,12 +39,32 @@ INSERT INTO bookings (
     reference_code, client_user_id, address_id, service_type, scheduled_date,
     scheduled_start_time, estimated_duration_hours, property_type, num_rooms,
     num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total,
-    recurring_group_id, occurrence_number
-) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+    recurring_group_id, occurrence_number, platform_commission_pct
+) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
 RETURNING *;
 
 -- name: UpdateBookingStatus :one
 UPDATE bookings SET status = $2, updated_at = NOW() WHERE id = $1 RETURNING *;
+
+-- name: AdminCancelBookingWithReason :one
+UPDATE bookings
+SET status = 'cancelled_by_admin',
+    cancelled_at = NOW(),
+    cancellation_reason = $2,
+    updated_at = NOW()
+WHERE id = $1
+RETURNING *;
+
+-- name: CancelFutureBookingsByCompany :many
+UPDATE bookings
+SET status = 'cancelled_by_admin',
+    cancelled_at = NOW(),
+    cancellation_reason = $2,
+    updated_at = NOW()
+WHERE company_id = $1
+  AND scheduled_date >= CURRENT_DATE
+  AND status IN ('assigned', 'confirmed')
+RETURNING *;
 
 -- name: AssignWorkerToBooking :one
 UPDATE bookings SET company_id = $2, worker_id = $3, status = 'assigned', updated_at = NOW()

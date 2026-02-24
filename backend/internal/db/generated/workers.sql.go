@@ -363,6 +363,26 @@ func (q *Queries) ListWorkersByCompany(ctx context.Context, companyID pgtype.UUI
 	return items, nil
 }
 
+const reactivateWorkersByCompany = `-- name: ReactivateWorkersByCompany :exec
+UPDATE workers SET status = 'active', updated_at = NOW()
+WHERE company_id = $1 AND status = 'suspended'
+`
+
+func (q *Queries) ReactivateWorkersByCompany(ctx context.Context, companyID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, reactivateWorkersByCompany, companyID)
+	return err
+}
+
+const suspendWorkersByCompany = `-- name: SuspendWorkersByCompany :exec
+UPDATE workers SET status = 'suspended', updated_at = NOW()
+WHERE company_id = $1 AND status IN ('active', 'pending_review')
+`
+
+func (q *Queries) SuspendWorkersByCompany(ctx context.Context, companyID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, suspendWorkersByCompany, companyID)
+	return err
+}
+
 const updateWorkerBio = `-- name: UpdateWorkerBio :one
 UPDATE workers SET
     bio = $2,

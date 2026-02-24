@@ -185,6 +185,26 @@ func (r *mutationResolver) CreateBookingRequest(ctx context.Context, input model
 
 	referenceCode := fmt.Sprintf("G2F-%d", time.Now().UnixNano()%1000000)
 
+	// Resolve commission rate: per-company override -> platform default -> hardcoded fallback.
+	commissionPct := 25.0 // hardcoded fallback
+	hasCompanyOverride := false
+	if input.PreferredWorkerID != nil && *input.PreferredWorkerID != "" {
+		workerUUID := stringToUUID(*input.PreferredWorkerID)
+		if w, wErr := r.Queries.GetWorkerByID(ctx, workerUUID); wErr == nil {
+			if company, cErr := r.Queries.GetCompanyByID(ctx, w.CompanyID); cErr == nil && company.CommissionOverridePct.Valid {
+				commissionPct = numericToFloat(company.CommissionOverridePct)
+				hasCompanyOverride = true
+			}
+		}
+	}
+	if !hasCompanyOverride {
+		if setting, sErr := r.Queries.GetPlatformSetting(ctx, "platform_commission_pct"); sErr == nil {
+			if v := numericFromString(setting.Value); v > 0 {
+				commissionPct = v
+			}
+		}
+	}
+
 	booking, err := r.Queries.CreateBooking(ctx, db.CreateBookingParams{
 		ReferenceCode: referenceCode,
 		ClientUserID:  userID,
@@ -209,6 +229,7 @@ func (r *mutationResolver) CreateBookingRequest(ctx context.Context, input model
 		EstimatedTotal:         float64ToNumeric(estimatedTotal),
 		RecurringGroupID:       pgtype.UUID{},
 		OccurrenceNumber:       pgtype.Int4{},
+		PlatformCommissionPct:  float64ToNumeric(commissionPct),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create booking: %w", err)

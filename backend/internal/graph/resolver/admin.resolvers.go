@@ -26,9 +26,9 @@ func (r *mutationResolver) AdminCancelBooking(ctx context.Context, id string, re
 		return nil, fmt.Errorf("not authenticated")
 	}
 
-	booking, err := r.Queries.UpdateBookingStatus(ctx, db.UpdateBookingStatusParams{
-		ID:     stringToUUID(id),
-		Status: db.BookingStatusCancelledByAdmin,
+	booking, err := r.Queries.AdminCancelBookingWithReason(ctx, db.AdminCancelBookingWithReasonParams{
+		ID:                 stringToUUID(id),
+		CancellationReason: pgtype.Text{String: reason, Valid: reason != ""},
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to cancel booking: %w", err)

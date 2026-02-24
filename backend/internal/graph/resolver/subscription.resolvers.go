@@ -69,9 +69,11 @@ func (r *mutationResolver) CreateSubscription(ctx context.Context, input model.C
 
 	hourlyRate := numericToFloat(service.BasePricePerHour)
 
-	// Get platform commission.
-	commissionPct := 15.0
-	if setting, err := r.Queries.GetPlatformSetting(ctx, "commission_percentage"); err == nil {
+	// Resolve commission rate: per-company override -> platform default.
+	commissionPct := 25.0 // fallback
+	if company, cErr := r.Queries.GetCompanyByID(ctx, worker.CompanyID); cErr == nil && company.CommissionOverridePct.Valid {
+		commissionPct = numericToFloat(company.CommissionOverridePct)
+	} else if setting, sErr := r.Queries.GetPlatformSetting(ctx, "platform_commission_pct"); sErr == nil {
 		if v := numericFromString(setting.Value); v > 0 {
 			commissionPct = v
 		}

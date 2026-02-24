@@ -13,15 +13,18 @@ import (
 type Querier interface {
 	ActivateWorkerStatus(ctx context.Context, id pgtype.UUID) (Worker, error)
 	AddChatParticipant(ctx context.Context, arg AddChatParticipantParams) (ChatParticipant, error)
+	AdminCancelBookingWithReason(ctx context.Context, arg AdminCancelBookingWithReasonParams) (Booking, error)
 	AdminUpdateCompanyProfile(ctx context.Context, arg AdminUpdateCompanyProfileParams) (Company, error)
 	AdminUpdateUserProfile(ctx context.Context, arg AdminUpdateUserProfileParams) (User, error)
 	ApproveCompany(ctx context.Context, id pgtype.UUID) (Company, error)
 	AssignWorkerToBooking(ctx context.Context, arg AssignWorkerToBookingParams) (Booking, error)
 	CancelBookingWithReason(ctx context.Context, arg CancelBookingWithReasonParams) (Booking, error)
+	CancelFutureBookingsByCompany(ctx context.Context, arg CancelFutureBookingsByCompanyParams) ([]Booking, error)
 	CancelFutureOccurrences(ctx context.Context, arg CancelFutureOccurrencesParams) error
 	CancelFutureSubscriptionBookings(ctx context.Context, arg CancelFutureSubscriptionBookingsParams) error
 	CancelRecurringGroup(ctx context.Context, arg CancelRecurringGroupParams) (RecurringBookingGroup, error)
 	CancelSubscription(ctx context.Context, arg CancelSubscriptionParams) (Subscription, error)
+	CancelSubscriptionsByCompany(ctx context.Context, arg CancelSubscriptionsByCompanyParams) error
 	CheckChatParticipant(ctx context.Context, arg CheckChatParticipantParams) (int64, error)
 	// Returns true if all 3 required documents exist and are approved
 	CheckCompanyDocumentsReady(ctx context.Context, companyID pgtype.UUID) (pgtype.Bool, error)
@@ -31,6 +34,7 @@ type Querier interface {
 	// Checks if a payment transaction is already part of any payout
 	CheckTransactionInPayout(ctx context.Context, paymentTransactionID pgtype.UUID) (bool, error)
 	ClaimCompanyByToken(ctx context.Context, arg ClaimCompanyByTokenParams) (Company, error)
+	ClearCompanyCommissionOverride(ctx context.Context, id pgtype.UUID) (Company, error)
 	CompleteBooking(ctx context.Context, id pgtype.UUID) (Booking, error)
 	CountActiveEmailOTPs(ctx context.Context, email string) (int64, error)
 	CountActiveRecurringGroups(ctx context.Context) (int64, error)
@@ -361,6 +365,7 @@ type Querier interface {
 	MarkNotificationRead(ctx context.Context, id pgtype.UUID) error
 	PauseRecurringGroup(ctx context.Context, id pgtype.UUID) (RecurringBookingGroup, error)
 	PauseSubscription(ctx context.Context, id pgtype.UUID) (Subscription, error)
+	ReactivateWorkersByCompany(ctx context.Context, companyID pgtype.UUID) error
 	ReassignFutureSubscriptionBookings(ctx context.Context, arg ReassignFutureSubscriptionBookingsParams) error
 	ReassignSingleBookingWorker(ctx context.Context, arg ReassignSingleBookingWorkerParams) (Booking, error)
 	RejectCompany(ctx context.Context, arg RejectCompanyParams) (Company, error)
@@ -380,6 +385,7 @@ type Querier interface {
 	SetBookingFinalTotal(ctx context.Context, arg SetBookingFinalTotalParams) (Booking, error)
 	SetBookingPreferredWorker(ctx context.Context, arg SetBookingPreferredWorkerParams) (Booking, error)
 	SetCompanyAdminUser(ctx context.Context, arg SetCompanyAdminUserParams) (Company, error)
+	SetCompanyCommissionOverride(ctx context.Context, arg SetCompanyCommissionOverrideParams) (Company, error)
 	SetCompanyStripeConnect(ctx context.Context, arg SetCompanyStripeConnectParams) error
 	SetDefaultAddress(ctx context.Context, arg SetDefaultAddressParams) error
 	SetDefaultPaymentMethod(ctx context.Context, arg SetDefaultPaymentMethodParams) error
@@ -392,6 +398,7 @@ type Querier interface {
 	SumCompanyEarnings(ctx context.Context, arg SumCompanyEarningsParams) (SumCompanyEarningsRow, error)
 	SumRefundedAmountByBooking(ctx context.Context, bookingID pgtype.UUID) (int32, error)
 	SumThisMonthEarningsByWorker(ctx context.Context, workerID pgtype.UUID) (pgtype.Numeric, error)
+	SuspendWorkersByCompany(ctx context.Context, companyID pgtype.UUID) error
 	UpdateAddress(ctx context.Context, arg UpdateAddressParams) (ClientAddress, error)
 	UpdateBillingProfile(ctx context.Context, arg UpdateBillingProfileParams) (ClientBillingProfile, error)
 	// ============================================

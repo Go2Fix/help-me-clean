@@ -20,6 +20,11 @@ func (r *mutationResolver) UpdatePlatformSetting(ctx context.Context, key string
 		return nil, fmt.Errorf("not authorized")
 	}
 
+	// Validate
+	if err := validatePlatformSetting(key, value); err != nil {
+		return nil, fmt.Errorf("invalid setting value: %w", err)
+	}
+
 	setting, err := r.Queries.UpdatePlatformSetting(ctx, db.UpdatePlatformSettingParams{
 		Key:   key,
 		Value: value,

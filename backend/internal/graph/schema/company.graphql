@@ -31,6 +31,7 @@ type Company {
   totalJobsCompleted: Int!
   documents: [CompanyDocument!]!
   workers: [WorkerProfile!]!
+  commissionOverridePct: Float
   admin: User
   createdAt: DateTime!
 }
@@ -93,6 +94,7 @@ extend type Mutation {
   rejectCompany(id: ID!, reason: String!): Company!
   suspendCompany(id: ID!, reason: String!): Company!
   reviewCompanyDocument(id: ID!, approved: Boolean!, rejectionReason: String): CompanyDocument!
+  setCompanyCommissionOverride(id: ID!, pct: Float): Company!
 }
 
 input CompanyApplicationInput {

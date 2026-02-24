@@ -1690,6 +1690,7 @@ export const COMPANY = gql`
       maxServiceRadiusKm
       ratingAvg
       totalJobsCompleted
+      commissionOverridePct
       createdAt
       documents {
         id
@@ -2281,6 +2282,15 @@ export const ADMIN_UPDATE_COMPANY_STATUS = gql`
     adminUpdateCompanyStatus(id: $id, status: $status) {
       id
       status
+    }
+  }
+`;
+
+export const SET_COMPANY_COMMISSION_OVERRIDE = gql`
+  mutation SetCompanyCommissionOverride($id: ID!, $pct: Float) {
+    setCompanyCommissionOverride(id: $id, pct: $pct) {
+      id
+      commissionOverridePct
     }
   }
 `;

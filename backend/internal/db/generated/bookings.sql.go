@@ -11,6 +11,65 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const adminCancelBookingWithReason = `-- name: AdminCancelBookingWithReason :one
+UPDATE bookings
+SET status = 'cancelled_by_admin',
+    cancelled_at = NOW(),
+    cancellation_reason = $2,
+    updated_at = NOW()
+WHERE id = $1
+RETURNING id, reference_code, client_user_id, company_id, worker_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number, reschedule_count, rescheduled_at, subscription_id
+`
+
+type AdminCancelBookingWithReasonParams struct {
+	ID                 pgtype.UUID `json:"id"`
+	CancellationReason pgtype.Text `json:"cancellation_reason"`
+}
+
+func (q *Queries) AdminCancelBookingWithReason(ctx context.Context, arg AdminCancelBookingWithReasonParams) (Booking, error) {
+	row := q.db.QueryRow(ctx, adminCancelBookingWithReason, arg.ID, arg.CancellationReason)
+	var i Booking
+	err := row.Scan(
+		&i.ID,
+		&i.ReferenceCode,
+		&i.ClientUserID,
+		&i.CompanyID,
+		&i.WorkerID,
+		&i.AddressID,
+		&i.ServiceType,
+		&i.ScheduledDate,
+		&i.ScheduledStartTime,
+		&i.EstimatedDurationHours,
+		&i.PropertyType,
+		&i.NumRooms,
+		&i.NumBathrooms,
+		&i.AreaSqm,
+		&i.HasPets,
+		&i.SpecialInstructions,
+		&i.HourlyRate,
+		&i.EstimatedTotal,
+		&i.FinalTotal,
+		&i.PlatformCommissionPct,
+		&i.PlatformCommissionAmount,
+		&i.Status,
+		&i.StartedAt,
+		&i.CompletedAt,
+		&i.CancelledAt,
+		&i.CancellationReason,
+		&i.StripePaymentIntentID,
+		&i.PaymentStatus,
+		&i.PaidAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.RecurringGroupID,
+		&i.OccurrenceNumber,
+		&i.RescheduleCount,
+		&i.RescheduledAt,
+		&i.SubscriptionID,
+	)
+	return i, err
+}
+
 const assignWorkerToBooking = `-- name: AssignWorkerToBooking :one
 UPDATE bookings SET company_id = $2, worker_id = $3, status = 'assigned', updated_at = NOW()
 WHERE id = $1 RETURNING id, reference_code, client_user_id, company_id, worker_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number, reschedule_count, rescheduled_at, subscription_id
@@ -119,6 +178,80 @@ func (q *Queries) CancelBookingWithReason(ctx context.Context, arg CancelBooking
 		&i.SubscriptionID,
 	)
 	return i, err
+}
+
+const cancelFutureBookingsByCompany = `-- name: CancelFutureBookingsByCompany :many
+UPDATE bookings
+SET status = 'cancelled_by_admin',
+    cancelled_at = NOW(),
+    cancellation_reason = $2,
+    updated_at = NOW()
+WHERE company_id = $1
+  AND scheduled_date >= CURRENT_DATE
+  AND status IN ('assigned', 'confirmed')
+RETURNING id, reference_code, client_user_id, company_id, worker_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number, reschedule_count, rescheduled_at, subscription_id
+`
+
+type CancelFutureBookingsByCompanyParams struct {
+	CompanyID          pgtype.UUID `json:"company_id"`
+	CancellationReason pgtype.Text `json:"cancellation_reason"`
+}
+
+func (q *Queries) CancelFutureBookingsByCompany(ctx context.Context, arg CancelFutureBookingsByCompanyParams) ([]Booking, error) {
+	rows, err := q.db.Query(ctx, cancelFutureBookingsByCompany, arg.CompanyID, arg.CancellationReason)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Booking
+	for rows.Next() {
+		var i Booking
+		if err := rows.Scan(
+			&i.ID,
+			&i.ReferenceCode,
+			&i.ClientUserID,
+			&i.CompanyID,
+			&i.WorkerID,
+			&i.AddressID,
+			&i.ServiceType,
+			&i.ScheduledDate,
+			&i.ScheduledStartTime,
+			&i.EstimatedDurationHours,
+			&i.PropertyType,
+			&i.NumRooms,
+			&i.NumBathrooms,
+			&i.AreaSqm,
+			&i.HasPets,
+			&i.SpecialInstructions,
+			&i.HourlyRate,
+			&i.EstimatedTotal,
+			&i.FinalTotal,
+			&i.PlatformCommissionPct,
+			&i.PlatformCommissionAmount,
+			&i.Status,
+			&i.StartedAt,
+			&i.CompletedAt,
+			&i.CancelledAt,
+			&i.CancellationReason,
+			&i.StripePaymentIntentID,
+			&i.PaymentStatus,
+			&i.PaidAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.RecurringGroupID,
+			&i.OccurrenceNumber,
+			&i.RescheduleCount,
+			&i.RescheduledAt,
+			&i.SubscriptionID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const completeBooking = `-- name: CompleteBooking :one
@@ -377,8 +510,8 @@ INSERT INTO bookings (
     reference_code, client_user_id, address_id, service_type, scheduled_date,
     scheduled_start_time, estimated_duration_hours, property_type, num_rooms,
     num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total,
-    recurring_group_id, occurrence_number
-) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+    recurring_group_id, occurrence_number, platform_commission_pct
+) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
 RETURNING id, reference_code, client_user_id, company_id, worker_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number, reschedule_count, rescheduled_at, subscription_id
 `
 
@@ -400,6 +533,7 @@ type CreateBookingParams struct {
 	EstimatedTotal         pgtype.Numeric `json:"estimated_total"`
 	RecurringGroupID       pgtype.UUID    `json:"recurring_group_id"`
 	OccurrenceNumber       pgtype.Int4    `json:"occurrence_number"`
+	PlatformCommissionPct  pgtype.Numeric `json:"platform_commission_pct"`
 }
 
 func (q *Queries) CreateBooking(ctx context.Context, arg CreateBookingParams) (Booking, error) {
@@ -421,6 +555,7 @@ func (q *Queries) CreateBooking(ctx context.Context, arg CreateBookingParams) (B
 		arg.EstimatedTotal,
 		arg.RecurringGroupID,
 		arg.OccurrenceNumber,
+		arg.PlatformCommissionPct,
 	)
 	var i Booking
 	err := row.Scan(
