@@ -180,9 +180,9 @@ describe('HomePage', () => {
     expect(screen.getByText('75 lei')).toBeInTheDocument();
   });
 
-  it('shows loading spinner while services are loading', () => {
+  it('shows skeleton cards while services are loading', () => {
     renderHomePage(loadingMock);
-    expect(screen.getByText('Se încarcă serviciile...')).toBeInTheDocument();
+    expect(screen.getByTestId('services-skeleton')).toBeInTheDocument();
   });
 
   it('shows "Rezervă acum" button in how-it-works section', () => {

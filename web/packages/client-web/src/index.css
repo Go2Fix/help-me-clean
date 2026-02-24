@@ -8,3 +8,8 @@
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --radius-lg: 12px;
 }
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

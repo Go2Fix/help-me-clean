@@ -27,9 +27,9 @@ import {
   ClipboardList,
   Receipt,
 } from 'lucide-react';
+import { cn } from '@go2fix/shared';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { AVAILABLE_SERVICES } from '@/graphql/operations';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -115,7 +115,7 @@ export default function HomePage() {
   const { t } = useTranslation('home');
   const { lang } = useLanguage();
   const { user, isAuthenticated, loading: authLoading } = useAuth();
-  const { isPreRelease } = usePlatform();
+  const { isPreRelease, loading: platformLoading } = usePlatform();
   const { data, loading } = useQuery(AVAILABLE_SERVICES, {
     fetchPolicy: 'cache-first',
   });
@@ -158,7 +158,7 @@ export default function HomePage() {
         }}
       />
 
-      {isPreRelease && (
+      {!platformLoading && isPreRelease && (
         <div className="bg-amber-50 border-b border-amber-200 py-3 text-center">
           <p className="text-sm font-medium text-amber-800">
             {t('preReleaseBanner')}{' '}
@@ -190,50 +190,48 @@ export default function HomePage() {
                 {t('hero.subheadline')}
               </p>
 
-              {authLoading ? (
-                <div className="flex flex-col sm:flex-row gap-3 mb-10">
-                  <div className="h-11 w-44 bg-gray-100 rounded-xl animate-pulse" />
-                  <div className="h-11 w-36 bg-gray-100 rounded-xl animate-pulse" />
-                </div>
-              ) : (
-                <div className="flex flex-col sm:flex-row gap-3 mb-10">
-                  {isCompanyOrWorker ? (
-                    <Button size="lg" onClick={() => navigate(dashboardPath)}>
-                      {t('hero.ctaDashboard')} <ArrowRight className="h-5 w-5" />
+              <div className="flex flex-col sm:flex-row gap-3 mb-10">
+                {authLoading || platformLoading ? (
+                  <>
+                    <div className="h-11 w-44 bg-gray-100 rounded-xl animate-pulse" />
+                    <div className="h-11 w-36 bg-gray-100 rounded-xl animate-pulse" />
+                  </>
+                ) : isCompanyOrWorker ? (
+                  <Button size="lg" className="animate-[fadeIn_0.3s_ease-out]" onClick={() => navigate(dashboardPath)}>
+                    {t('hero.ctaDashboard')} <ArrowRight className="h-5 w-5" />
+                  </Button>
+                ) : isGlobalAdmin ? (
+                  <>
+                    <Button size="lg" className="animate-[fadeIn_0.3s_ease-out]" onClick={() => navigate('/admin')}>
+                      {t('hero.ctaAdmin')} <ArrowRight className="h-5 w-5" />
                     </Button>
-                  ) : isGlobalAdmin ? (
-                    <>
-                      <Button size="lg" onClick={() => navigate('/admin')}>
-                        {t('hero.ctaAdmin')} <ArrowRight className="h-5 w-5" />
+                    <Button size="lg" variant="outline" className="animate-[fadeIn_0.3s_ease-out]" onClick={() => scrollToServices()}>
+                      {t('hero.ctaServices')}
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    {isPreRelease ? (
+                      <Button size="lg" className="animate-[fadeIn_0.3s_ease-out]" onClick={() => navigate(ROUTE_MAP.waitlist[lang])}>
+                        {t('hero.ctaWaitlist')} <ArrowRight className="h-5 w-5" />
                       </Button>
-                      <Button size="lg" variant="outline" onClick={() => scrollToServices()}>
-                        {t('hero.ctaServices')}
+                    ) : (
+                      <Button size="lg" className="animate-[fadeIn_0.3s_ease-out]" onClick={() => navigate(ROUTE_MAP.booking[lang])}>
+                        {t('hero.ctaBook')} <ArrowRight className="h-5 w-5" />
                       </Button>
-                    </>
-                  ) : (
-                    <>
-                      {isPreRelease ? (
-                        <Button size="lg" onClick={() => navigate(ROUTE_MAP.waitlist[lang])}>
-                          {t('hero.ctaWaitlist')} <ArrowRight className="h-5 w-5" />
-                        </Button>
-                      ) : (
-                        <Button size="lg" onClick={() => navigate(ROUTE_MAP.booking[lang])}>
-                          {t('hero.ctaBook')} <ArrowRight className="h-5 w-5" />
-                        </Button>
-                      )}
-                      {isClient ? (
-                        <Button size="lg" variant="outline" onClick={() => navigate('/cont')}>
-                          {t('hero.ctaMyAccount')}
-                        </Button>
-                      ) : (
-                        <Button size="lg" variant="outline" onClick={() => scrollToServices()}>
-                          {isPreRelease ? t('hero.ctaDiscover') : t('hero.ctaServices')}
-                        </Button>
-                      )}
-                    </>
-                  )}
-                </div>
-              )}
+                    )}
+                    {isClient ? (
+                      <Button size="lg" variant="outline" className="animate-[fadeIn_0.3s_ease-out]" onClick={() => navigate('/cont')}>
+                        {t('hero.ctaMyAccount')}
+                      </Button>
+                    ) : (
+                      <Button size="lg" variant="outline" className="animate-[fadeIn_0.3s_ease-out]" onClick={() => scrollToServices()}>
+                        {isPreRelease ? t('hero.ctaDiscover') : t('hero.ctaServices')}
+                      </Button>
+                    )}
+                  </>
+                )}
+              </div>
 
               {/* Social proof */}
               <div className="flex items-center gap-3">
@@ -353,9 +351,19 @@ export default function HomePage() {
           </div>
 
           {loading ? (
-            <LoadingSpinner text={t('services.loading')} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" data-testid="services-skeleton">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <Card key={i} className="border-t-4 border-t-gray-200 animate-pulse">
+                  <div className="h-8 w-8 bg-gray-200 rounded mb-4" />
+                  <div className="h-5 w-3/4 bg-gray-200 rounded mb-2" />
+                  <div className="h-4 w-full bg-gray-200 rounded mb-1" />
+                  <div className="h-4 w-2/3 bg-gray-200 rounded mb-4" />
+                  <div className="h-6 w-20 bg-gray-200 rounded" />
+                </Card>
+              ))}
+            </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 animate-[fadeIn_0.3s_ease-out]">
               {services.map((service) => (
                 <Card
                   key={service.id}
@@ -540,8 +548,11 @@ export default function HomePage() {
       </section>
 
       {/* ── For Companies ────────────────────────────────────────────────────── */}
-      {!authLoading && !isClient && !isCompanyOrWorker && (
-        <section className="py-20 sm:py-24 bg-white">
+      {(authLoading || (!isClient && !isCompanyOrWorker)) && (
+        <section className={cn(
+          "py-20 sm:py-24 bg-white transition-opacity duration-300",
+          authLoading ? "opacity-0" : "opacity-100"
+        )}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6">
             <div className="mb-12">
               <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center mb-5">

@@ -38,7 +38,7 @@ export default function Header() {
   const { t } = useTranslation('common');
   const { lang } = useLanguage();
   const { user, isAuthenticated, loading: authLoading, logout } = useAuth();
-  const { isPreRelease } = usePlatform();
+  const { isPreRelease, loading: platformLoading } = usePlatform();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -102,53 +102,8 @@ export default function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
-            {authLoading ? (
-              <div className="w-28 h-8 bg-gray-100 rounded-lg animate-pulse" />
-            ) : isAuthenticated ? (
+            {!isAuthenticated && (
               <>
-                {/* All authenticated roles — unified avatar dropdown */}
-                <div className="relative" ref={dropdownRef}>
-                  <button
-                    onClick={() => setDropdownOpen(!dropdownOpen)}
-                    className="flex items-center gap-2 text-gray-700 hover:text-primary font-medium transition cursor-pointer"
-                  >
-                    <UserAvatar name={user!.fullName || ''} avatarUrl={user?.avatarUrl} />
-                    <span className="max-w-[140px] truncate text-sm">{user!.fullName || t('nav.myAccount')}</span>
-                    <ChevronDown className={cn('h-4 w-4 transition-transform', dropdownOpen && 'rotate-180')} />
-                  </button>
-
-                  {dropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-52 bg-white rounded-xl border border-gray-200 shadow-lg py-1 z-50">
-                      <div className="px-4 py-2 border-b border-gray-100 mb-1">
-                        <p className="text-xs font-semibold text-gray-900 truncate">{user!.fullName}</p>
-                        <p className="text-xs text-gray-400 truncate">{user!.email}</p>
-                      </div>
-                      <Link
-                        to={dashboardPath}
-                        className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
-                        onClick={() => setDropdownOpen(false)}
-                      >
-                        {dashboardIcon}
-                        {dashboardLabel}
-                      </Link>
-                      <div className="h-px bg-gray-100 mx-2" />
-                      <button
-                        onClick={() => {
-                          setDropdownOpen(false);
-                          handleLogout();
-                        }}
-                        className="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-danger hover:bg-red-50 transition cursor-pointer"
-                      >
-                        <LogOut className="h-4 w-4" />
-                        {t('nav.logout')}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </>
-            ) : (
-              <>
-                {/* Public / landing page nav */}
                 <a
                   href="/#servicii"
                   className="text-sm text-gray-500 hover:text-gray-900 font-medium transition"
@@ -170,6 +125,52 @@ export default function Header() {
                 <Link to={ROUTE_MAP.contact[lang]} className="text-sm text-gray-600 hover:text-gray-900 font-medium transition-colors">
                   {t('nav.contact')}
                 </Link>
+              </>
+            )}
+
+            {authLoading || platformLoading ? (
+              <div className="w-28 h-8 bg-gray-100 rounded-lg animate-pulse" />
+            ) : isAuthenticated ? (
+              <div className="relative animate-[fadeIn_0.3s_ease-out]" ref={dropdownRef}>
+                <button
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  className="flex items-center gap-2 text-gray-700 hover:text-primary font-medium transition cursor-pointer"
+                >
+                  <UserAvatar name={user!.fullName || ''} avatarUrl={user?.avatarUrl} />
+                  <span className="max-w-[140px] truncate text-sm">{user!.fullName || t('nav.myAccount')}</span>
+                  <ChevronDown className={cn('h-4 w-4 transition-transform', dropdownOpen && 'rotate-180')} />
+                </button>
+
+                {dropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-52 bg-white rounded-xl border border-gray-200 shadow-lg py-1 z-50">
+                    <div className="px-4 py-2 border-b border-gray-100 mb-1">
+                      <p className="text-xs font-semibold text-gray-900 truncate">{user!.fullName}</p>
+                      <p className="text-xs text-gray-400 truncate">{user!.email}</p>
+                    </div>
+                    <Link
+                      to={dashboardPath}
+                      className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
+                      onClick={() => setDropdownOpen(false)}
+                    >
+                      {dashboardIcon}
+                      {dashboardLabel}
+                    </Link>
+                    <div className="h-px bg-gray-100 mx-2" />
+                    <button
+                      onClick={() => {
+                        setDropdownOpen(false);
+                        handleLogout();
+                      }}
+                      className="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-danger hover:bg-red-50 transition cursor-pointer"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      {t('nav.logout')}
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center gap-4 animate-[fadeIn_0.3s_ease-out]">
                 {!isPreRelease && (
                   <Link
                     to={ROUTE_MAP.login[lang]}
@@ -187,7 +188,7 @@ export default function Header() {
                     {t('nav.bookNow')}
                   </Button>
                 )}
-              </>
+              </div>
             )}
           </nav>
 
@@ -212,13 +213,49 @@ export default function Header() {
           )}
         >
           <nav className="flex flex-col gap-1">
-            {authLoading ? (
-              <div className="px-3 py-3">
-                <div className="h-4 w-32 bg-gray-100 rounded animate-pulse" />
-              </div>
+            {authLoading || platformLoading ? (
+              <>
+                <a
+                  href="/#servicii"
+                  className="px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 font-medium"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {t('nav.services')}
+                </a>
+                <a
+                  href="/#cum-functioneaza"
+                  className="px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 font-medium"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {t('nav.howItWorks')}
+                </a>
+                <Link
+                  to={ROUTE_MAP.blog[lang]}
+                  className="px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 font-medium"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {t('nav.blog')}
+                </Link>
+                <Link
+                  to={ROUTE_MAP.about[lang]}
+                  className="px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 font-medium"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {t('nav.about')}
+                </Link>
+                <Link
+                  to={ROUTE_MAP.contact[lang]}
+                  className="px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 font-medium"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {t('nav.contact')}
+                </Link>
+                <div className="px-3 py-3">
+                  <div className="h-10 w-full bg-gray-100 rounded-xl animate-pulse" />
+                </div>
+              </>
             ) : isAuthenticated ? (
               <>
-                {/* All authenticated roles — unified mobile nav */}
                 <div className="flex items-center gap-3 px-3 py-3 mb-1 border-b border-gray-100">
                   <UserAvatar name={user!.fullName || ''} avatarUrl={user?.avatarUrl} />
                   <div className="min-w-0">
@@ -247,7 +284,6 @@ export default function Header() {
               </>
             ) : (
               <>
-                {/* Public / landing page mobile nav */}
                 <a
                   href="/#servicii"
                   className="px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 font-medium"

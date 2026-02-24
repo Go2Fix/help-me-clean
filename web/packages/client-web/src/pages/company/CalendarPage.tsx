@@ -5,7 +5,6 @@ import { ChevronLeft, ChevronRight, Calendar, AlertTriangle } from 'lucide-react
 import { cn } from '@go2fix/shared';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
 import Modal from '@/components/ui/Modal';
 import TimeInput24h from '@/components/ui/TimeInput24h';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';

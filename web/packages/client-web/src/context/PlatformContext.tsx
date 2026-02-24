@@ -12,7 +12,7 @@ interface PlatformContextValue {
 
 const PlatformContext = createContext<PlatformContextValue>({
   platformMode: 'pre_release',
-  isPreRelease: true,
+  isPreRelease: false,
   loading: true,
 });
 
