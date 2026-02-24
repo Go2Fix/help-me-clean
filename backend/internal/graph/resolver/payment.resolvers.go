@@ -1029,12 +1029,56 @@ func (r *queryResolver) AllPaymentTransactions(ctx context.Context, status *mode
 		return nil, fmt.Errorf("failed to list payment transactions: %w", err)
 	}
 
+	// Batch-load bookings: collect unique IDs, load each once.
+	bookingIDs := map[string]bool{}
+	for _, txn := range txns {
+		bookingIDs[uuidToString(txn.BookingID)] = true
+	}
+	bookingMap := map[string]db.Booking{}
+	for bid := range bookingIDs {
+		if b, bErr := r.Queries.GetBookingByID(ctx, stringToUUID(bid)); bErr == nil {
+			bookingMap[bid] = b
+		}
+	}
+
+	// Load service names (single query for all).
+	serviceNameMap := map[string]string{}
+	if services, sErr := r.Queries.ListActiveServices(ctx); sErr == nil {
+		for _, s := range services {
+			serviceNameMap[string(s.ServiceType)] = s.NameRo
+		}
+	}
+
+	// Batch-load companies: collect unique IDs from bookings, load each once.
+	companyIDs := map[string]bool{}
+	for _, b := range bookingMap {
+		if b.CompanyID.Valid {
+			companyIDs[uuidToString(b.CompanyID)] = true
+		}
+	}
+	companyMap := map[string]db.Company{}
+	for cid := range companyIDs {
+		if c, cErr := r.Queries.GetCompanyByID(ctx, stringToUUID(cid)); cErr == nil {
+			companyMap[cid] = c
+		}
+	}
+
+	// Build results without expensive enrichBooking.
 	results := make([]*model.PaymentTransaction, len(txns))
 	for i, txn := range txns {
 		gqlTxn := dbPaymentTransactionToGQL(txn)
-		if booking, err := r.Queries.GetBookingByID(ctx, txn.BookingID); err == nil {
-			gqlBooking := dbBookingToGQL(booking)
-			r.enrichBooking(ctx, booking, gqlBooking)
+		bid := uuidToString(txn.BookingID)
+		if b, ok := bookingMap[bid]; ok {
+			gqlBooking := dbBookingToGQL(b)
+			if name, ok := serviceNameMap[string(b.ServiceType)]; ok {
+				gqlBooking.ServiceName = name
+			}
+			if b.CompanyID.Valid {
+				cid := uuidToString(b.CompanyID)
+				if c, ok := companyMap[cid]; ok {
+					gqlBooking.Company = dbCompanyToGQL(c)
+				}
+			}
 			gqlTxn.Booking = gqlBooking
 		}
 		results[i] = gqlTxn
@@ -1082,24 +1126,59 @@ func (r *queryResolver) AllRefundRequests(ctx context.Context, status *model.Ref
 		return nil, fmt.Errorf("failed to list refund requests: %w", err)
 	}
 
+	// Batch-load bookings + users: collect unique IDs first.
+	bookingIDs := map[string]bool{}
+	userIDs := map[string]bool{}
+	for _, ref := range refunds {
+		bookingIDs[uuidToString(ref.BookingID)] = true
+		if ref.RequestedByUserID.Valid {
+			userIDs[uuidToString(ref.RequestedByUserID)] = true
+		}
+		if ref.ApprovedByUserID.Valid {
+			userIDs[uuidToString(ref.ApprovedByUserID)] = true
+		}
+	}
+
+	bookingMap := map[string]db.Booking{}
+	for bid := range bookingIDs {
+		if b, bErr := r.Queries.GetBookingByID(ctx, stringToUUID(bid)); bErr == nil {
+			bookingMap[bid] = b
+		}
+	}
+	userMap := map[string]*model.User{}
+	for uid := range userIDs {
+		if u, uErr := r.Queries.GetUserByID(ctx, stringToUUID(uid)); uErr == nil {
+			userMap[uid] = dbUserToGQL(u)
+		}
+	}
+
+	// Load service names (single query).
+	serviceNameMap := map[string]string{}
+	if services, sErr := r.Queries.ListActiveServices(ctx); sErr == nil {
+		for _, s := range services {
+			serviceNameMap[string(s.ServiceType)] = s.NameRo
+		}
+	}
+
 	results := make([]*model.RefundRequest, len(refunds))
 	for i, ref := range refunds {
 		gqlRef := dbRefundRequestToGQL(ref)
-		// Enrich with booking data.
-		if booking, err := r.Queries.GetBookingByID(ctx, ref.BookingID); err == nil {
-			gqlBooking := dbBookingToGQL(booking)
-			r.enrichBooking(ctx, booking, gqlBooking)
+		bid := uuidToString(ref.BookingID)
+		if b, ok := bookingMap[bid]; ok {
+			gqlBooking := dbBookingToGQL(b)
+			if name, ok := serviceNameMap[string(b.ServiceType)]; ok {
+				gqlBooking.ServiceName = name
+			}
 			gqlRef.Booking = gqlBooking
 		}
-		// Enrich with user data.
 		if ref.RequestedByUserID.Valid {
-			if user, err := r.Queries.GetUserByID(ctx, ref.RequestedByUserID); err == nil {
-				gqlRef.RequestedBy = dbUserToGQL(user)
+			if u, ok := userMap[uuidToString(ref.RequestedByUserID)]; ok {
+				gqlRef.RequestedBy = u
 			}
 		}
 		if ref.ApprovedByUserID.Valid {
-			if user, err := r.Queries.GetUserByID(ctx, ref.ApprovedByUserID); err == nil {
-				gqlRef.ApprovedBy = dbUserToGQL(user)
+			if u, ok := userMap[uuidToString(ref.ApprovedByUserID)]; ok {
+				gqlRef.ApprovedBy = u
 			}
 		}
 		results[i] = gqlRef
@@ -1161,12 +1240,24 @@ func (r *queryResolver) AllPayouts(ctx context.Context, companyID *string, statu
 		return nil, fmt.Errorf("failed to list payouts: %w", err)
 	}
 
+	// Batch-load companies: collect unique IDs, load each once.
+	companyIDs := map[string]bool{}
+	for _, p := range payouts {
+		companyIDs[uuidToString(p.CompanyID)] = true
+	}
+	companyMap := map[string]db.Company{}
+	for cid := range companyIDs {
+		if c, cErr := r.Queries.GetCompanyByID(ctx, stringToUUID(cid)); cErr == nil {
+			companyMap[cid] = c
+		}
+	}
+
 	results := make([]*model.CompanyPayout, len(payouts))
 	for i, p := range payouts {
 		gqlPayout := dbCompanyPayoutToGQL(p)
-		// Enrich with company data.
-		if company, err := r.Queries.GetCompanyByID(ctx, p.CompanyID); err == nil {
-			gqlPayout.Company = dbCompanyToGQL(company)
+		cid := uuidToString(p.CompanyID)
+		if c, ok := companyMap[cid]; ok {
+			gqlPayout.Company = dbCompanyToGQL(c)
 		}
 		results[i] = gqlPayout
 	}

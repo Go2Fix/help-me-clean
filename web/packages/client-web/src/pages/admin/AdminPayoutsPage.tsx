@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useLazyQuery } from '@apollo/client';
 import { Plus, Search, Calendar, Download } from 'lucide-react';
 import AdminPagination from '@/components/admin/AdminPagination';
@@ -152,7 +152,10 @@ export default function AdminPayoutsPage() {
 
   const payouts: Payout[] = data?.allPayouts ?? [];
   const totalCount = payouts.length;
-  const paginatedPayouts = payouts.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+  const paginatedPayouts = useMemo(
+    () => payouts.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE),
+    [payouts, page],
+  );
   const companyResults: CompanySearchResult[] =
     companiesData?.searchCompanies?.edges ?? [];
 
