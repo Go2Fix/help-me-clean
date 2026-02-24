@@ -109,7 +109,7 @@ func (s *Service) Ping(ctx context.Context) string {
 // ---------------------------------------------------------------------------
 
 // NewInvoiceNumber generates the next sequential invoice number for a given company
-// and prefix. The format is "{prefix}-{year}-{number:04d}", for example "HMC-2026-0001".
+// and prefix. The format is "{prefix}-{year}-{number:04d}", for example "G2F-2026-0001".
 func (s *Service) NewInvoiceNumber(ctx context.Context, companyID pgtype.UUID, prefix string) (string, error) {
 	year := int32(time.Now().Year())
 

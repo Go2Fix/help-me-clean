@@ -30,7 +30,7 @@ type Company {
   ratingAvg: Float!
   totalJobsCompleted: Int!
   documents: [CompanyDocument!]!
-  cleaners: [CleanerProfile!]!
+  workers: [WorkerProfile!]!
   admin: User
   createdAt: DateTime!
 }

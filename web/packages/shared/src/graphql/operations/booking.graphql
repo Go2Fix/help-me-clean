@@ -85,7 +85,7 @@ query BookingDetail($id: ID!) {
       id
       companyName
     }
-    cleaner {
+    worker {
       id
       fullName
     }

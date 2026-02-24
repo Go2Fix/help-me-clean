@@ -183,7 +183,7 @@ func (r *mutationResolver) CreateBookingRequest(ctx context.Context, input model
 		}
 	}
 
-	referenceCode := fmt.Sprintf("HMC-%d", time.Now().UnixNano()%1000000)
+	referenceCode := fmt.Sprintf("G2F-%d", time.Now().UnixNano()%1000000)
 
 	booking, err := r.Queries.CreateBooking(ctx, db.CreateBookingParams{
 		ReferenceCode: referenceCode,
@@ -234,28 +234,28 @@ func (r *mutationResolver) CreateBookingRequest(ctx context.Context, input model
 		}
 	}
 
-	// If preferred cleaner was selected, set company_id and cleaner_id.
-	if input.PreferredCleanerID != nil && *input.PreferredCleanerID != "" {
-		cleanerUUID := stringToUUID(*input.PreferredCleanerID)
-		cleaner, err := r.Queries.GetCleanerByID(ctx, cleanerUUID)
+	// If preferred worker was selected, set company_id and worker_id.
+	if input.PreferredWorkerID != nil && *input.PreferredWorkerID != "" {
+		workerUUID := stringToUUID(*input.PreferredWorkerID)
+		worker, err := r.Queries.GetWorkerByID(ctx, workerUUID)
 		if err == nil {
-			booking, _ = r.Queries.SetBookingPreferredCleaner(ctx, db.SetBookingPreferredCleanerParams{
+			booking, _ = r.Queries.SetBookingPreferredWorker(ctx, db.SetBookingPreferredWorkerParams{
 				ID:        booking.ID,
-				CompanyID: cleaner.CompanyID,
-				CleanerID: cleanerUUID,
+				CompanyID: worker.CompanyID,
+				WorkerID:  workerUUID,
 			})
 		}
 	}
 
 	// Handle recurring bookings: generate future occurrences.
-	if input.Recurrence != nil && input.PreferredCleanerID != nil && *input.PreferredCleanerID != "" {
-		cleanerUUID := stringToUUID(*input.PreferredCleanerID)
-		cleaner, cleanerErr := r.Queries.GetCleanerByID(ctx, cleanerUUID)
-		if cleanerErr == nil {
+	if input.Recurrence != nil && input.PreferredWorkerID != nil && *input.PreferredWorkerID != "" {
+		workerUUID := stringToUUID(*input.PreferredWorkerID)
+		worker, workerErr := r.Queries.GetWorkerByID(ctx, workerUUID)
+		if workerErr == nil {
 			group, groupErr := r.createRecurringGroup(ctx, createRecurringGroupInput{
 				clientUserID:        userID,
-				companyID:           cleaner.CompanyID,
-				cleanerID:           cleanerUUID,
+				companyID:           worker.CompanyID,
+				workerID:            workerUUID,
 				addressID:           addressID,
 				recurrenceType:      gqlRecurrenceTypeToDb(input.Recurrence.Type),
 				dayOfWeek:           input.Recurrence.DayOfWeek,
@@ -338,38 +338,9 @@ func (r *mutationResolver) CancelBooking(ctx context.Context, id string, reason 
 	return dbBookingToGQL(booking), nil
 }
 
-// AssignCleanerToBooking is the resolver for the assignCleanerToBooking field.
-func (r *mutationResolver) AssignCleanerToBooking(ctx context.Context, bookingID string, cleanerID string) (*model.Booking, error) {
-	claims := auth.GetUserFromContext(ctx)
-	if claims == nil {
-		return nil, fmt.Errorf("not authenticated")
-	}
-
-	// Validate status transition.
-	current, err := r.Queries.GetBookingByID(ctx, stringToUUID(bookingID))
-	if err != nil {
-		return nil, fmt.Errorf("booking not found: %w", err)
-	}
-	if err := validateStatusTransition(current.Status, db.BookingStatusAssigned); err != nil {
-		return nil, err
-	}
-
-	// Look up the cleaner to get the company ID.
-	cleaner, err := r.Queries.GetCleanerByID(ctx, stringToUUID(cleanerID))
-	if err != nil {
-		return nil, fmt.Errorf("cleaner not found: %w", err)
-	}
-
-	booking, err := r.Queries.AssignCleanerToBooking(ctx, db.AssignCleanerToBookingParams{
-		ID:        stringToUUID(bookingID),
-		CompanyID: cleaner.CompanyID,
-		CleanerID: cleaner.ID,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to assign cleaner: %w", err)
-	}
-
-	return dbBookingToGQL(booking), nil
+// AssignWorkerToBooking is the resolver for the assignWorkerToBooking field.
+func (r *mutationResolver) AssignWorkerToBooking(ctx context.Context, bookingID string, workerID string) (*model.Booking, error) {
+	panic(fmt.Errorf("not implemented: AssignWorkerToBooking - assignWorkerToBooking"))
 }
 
 // ConfirmBooking is the resolver for the confirmBooking field.
@@ -409,7 +380,7 @@ func (r *mutationResolver) ConfirmBooking(ctx context.Context, id string) (*mode
 		return nil, fmt.Errorf("failed to confirm booking: %w", err)
 	}
 
-	// Auto-create chat room between client and cleaner (non-blocking).
+	// Auto-create chat room between client and worker (non-blocking).
 	go func() {
 		r.createBookingChat(context.Background(), booking, claims.UserID)
 	}()
@@ -697,12 +668,12 @@ func (r *queryResolver) MyAssignedJobs(ctx context.Context, status *model.Bookin
 		return nil, fmt.Errorf("not authenticated")
 	}
 
-	cleaner, err := r.Queries.GetCleanerByUserID(ctx, stringToUUID(claims.UserID))
+	worker, err := r.Queries.GetWorkerByUserID(ctx, stringToUUID(claims.UserID))
 	if err != nil {
-		return nil, fmt.Errorf("cleaner profile not found: %w", err)
+		return nil, fmt.Errorf("worker profile not found: %w", err)
 	}
 
-	bookings, err := r.Queries.ListBookingsByCleaner(ctx, cleaner.ID)
+	bookings, err := r.Queries.ListBookingsByWorker(ctx, worker.ID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list assigned jobs: %w", err)
 	}
@@ -728,12 +699,12 @@ func (r *queryResolver) TodaysJobs(ctx context.Context) ([]*model.Booking, error
 		return nil, fmt.Errorf("not authenticated")
 	}
 
-	cleaner, err := r.Queries.GetCleanerByUserID(ctx, stringToUUID(claims.UserID))
+	worker, err := r.Queries.GetWorkerByUserID(ctx, stringToUUID(claims.UserID))
 	if err != nil {
-		return nil, fmt.Errorf("cleaner profile not found: %w", err)
+		return nil, fmt.Errorf("worker profile not found: %w", err)
 	}
 
-	bookings, err := r.Queries.ListTodaysJobsByCleaner(ctx, cleaner.ID)
+	bookings, err := r.Queries.ListTodaysJobsByWorker(ctx, worker.ID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list today's jobs: %w", err)
 	}

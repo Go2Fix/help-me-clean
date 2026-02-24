@@ -635,7 +635,7 @@ func TestDbUserRoleToGQL(t *testing.T) {
 	}{
 		{db.UserRoleClient, model.UserRoleClient},
 		{db.UserRoleCompanyAdmin, model.UserRoleCompanyAdmin},
-		{db.UserRoleCleaner, model.UserRoleCleaner},
+		{db.UserRoleWorker, model.UserRoleWorker},
 		{db.UserRoleGlobalAdmin, model.UserRoleGlobalAdmin},
 	}
 
@@ -656,7 +656,7 @@ func TestGqlUserRoleToDb(t *testing.T) {
 	}{
 		{model.UserRoleClient, db.UserRoleClient},
 		{model.UserRoleCompanyAdmin, db.UserRoleCompanyAdmin},
-		{model.UserRoleCleaner, db.UserRoleCleaner},
+		{model.UserRoleWorker, db.UserRoleWorker},
 		{model.UserRoleGlobalAdmin, db.UserRoleGlobalAdmin},
 	}
 
@@ -673,7 +673,7 @@ func TestGqlUserRoleToDb(t *testing.T) {
 func TestUserRoleRoundTrip(t *testing.T) {
 	for _, role := range []db.UserRole{
 		db.UserRoleClient, db.UserRoleCompanyAdmin,
-		db.UserRoleCleaner, db.UserRoleGlobalAdmin,
+		db.UserRoleWorker, db.UserRoleGlobalAdmin,
 	} {
 		t.Run(string(role), func(t *testing.T) {
 			gql := dbUserRoleToGQL(role)
@@ -877,20 +877,20 @@ func TestGqlCompanyTypeToDb(t *testing.T) {
 	}
 }
 
-func TestDbCleanerStatusToGQL(t *testing.T) {
+func TestDbWorkerStatusToGQL(t *testing.T) {
 	tests := []struct {
-		db  db.CleanerStatus
-		gql model.CleanerStatus
+		db  db.WorkerStatus
+		gql model.WorkerStatus
 	}{
-		{db.CleanerStatusInvited, model.CleanerStatusInvited},
-		{db.CleanerStatusActive, model.CleanerStatusActive},
-		{db.CleanerStatusInactive, model.CleanerStatusInactive},
-		{db.CleanerStatusSuspended, model.CleanerStatusSuspended},
+		{db.WorkerStatusInvited, model.WorkerStatusInvited},
+		{db.WorkerStatusActive, model.WorkerStatusActive},
+		{db.WorkerStatusInactive, model.WorkerStatusInactive},
+		{db.WorkerStatusSuspended, model.WorkerStatusSuspended},
 	}
 
 	for _, tc := range tests {
 		t.Run(string(tc.db), func(t *testing.T) {
-			result := dbCleanerStatusToGQL(tc.db)
+			result := dbWorkerStatusToGQL(tc.db)
 			if result != tc.gql {
 				t.Errorf("expected %q, got %q", tc.gql, result)
 			}
@@ -898,20 +898,20 @@ func TestDbCleanerStatusToGQL(t *testing.T) {
 	}
 }
 
-func TestGqlCleanerStatusToDb(t *testing.T) {
+func TestGqlWorkerStatusToDb(t *testing.T) {
 	tests := []struct {
-		gql model.CleanerStatus
-		db  db.CleanerStatus
+		gql model.WorkerStatus
+		db  db.WorkerStatus
 	}{
-		{model.CleanerStatusInvited, db.CleanerStatusInvited},
-		{model.CleanerStatusActive, db.CleanerStatusActive},
-		{model.CleanerStatusInactive, db.CleanerStatusInactive},
-		{model.CleanerStatusSuspended, db.CleanerStatusSuspended},
+		{model.WorkerStatusInvited, db.WorkerStatusInvited},
+		{model.WorkerStatusActive, db.WorkerStatusActive},
+		{model.WorkerStatusInactive, db.WorkerStatusInactive},
+		{model.WorkerStatusSuspended, db.WorkerStatusSuspended},
 	}
 
 	for _, tc := range tests {
 		t.Run(string(tc.gql), func(t *testing.T) {
-			result := gqlCleanerStatusToDb(tc.gql)
+			result := gqlWorkerStatusToDb(tc.gql)
 			if result != tc.db {
 				t.Errorf("expected %q, got %q", tc.db, result)
 			}
@@ -1061,7 +1061,7 @@ func TestDbBookingToGQL(t *testing.T) {
 
 		dbBooking := db.Booking{
 			ID:                     makeUUID(0x11),
-			ReferenceCode:          "HMC-2025-001",
+			ReferenceCode:          "G2F-2025-001",
 			ServiceType:            db.ServiceTypeDeepCleaning,
 			ScheduledDate:          pgtype.Date{Time: time.Date(2025, 6, 15, 0, 0, 0, 0, time.UTC), Valid: true},
 			ScheduledStartTime:     pgtype.Time{Microseconds: 10 * 3_600_000_000, Valid: true}, // 10:00
@@ -1096,8 +1096,8 @@ func TestDbBookingToGQL(t *testing.T) {
 		if result.ID != expectedID {
 			t.Errorf("expected ID %q, got %q", expectedID, result.ID)
 		}
-		if result.ReferenceCode != "HMC-2025-001" {
-			t.Errorf("expected ReferenceCode 'HMC-2025-001', got %q", result.ReferenceCode)
+		if result.ReferenceCode != "G2F-2025-001" {
+			t.Errorf("expected ReferenceCode 'G2F-2025-001', got %q", result.ReferenceCode)
 		}
 		if result.ServiceType != model.ServiceTypeDeepCleaning {
 			t.Errorf("expected ServiceType DEEP_CLEANING, got %q", result.ServiceType)
@@ -1167,7 +1167,7 @@ func TestDbBookingToGQL(t *testing.T) {
 	t.Run("defaults payment status to pending when empty", func(t *testing.T) {
 		dbBooking := db.Booking{
 			ID:            makeUUID(0x22),
-			ReferenceCode: "HMC-2025-002",
+			ReferenceCode: "G2F-2025-002",
 			ServiceType:   db.ServiceTypeStandardCleaning,
 			PaymentStatus: pgtype.Text{Valid: false},
 			Status:        db.BookingStatusConfirmed,
@@ -1184,7 +1184,7 @@ func TestDbBookingToGQL(t *testing.T) {
 	t.Run("defaults payment status to pending when empty string", func(t *testing.T) {
 		dbBooking := db.Booking{
 			ID:            makeUUID(0x33),
-			ReferenceCode: "HMC-2025-003",
+			ReferenceCode: "G2F-2025-003",
 			ServiceType:   db.ServiceTypeStandardCleaning,
 			PaymentStatus: pgtype.Text{String: "", Valid: true},
 			Status:        db.BookingStatusConfirmed,
@@ -1201,7 +1201,7 @@ func TestDbBookingToGQL(t *testing.T) {
 	t.Run("nil FinalTotal is preserved as nil", func(t *testing.T) {
 		dbBooking := db.Booking{
 			ID:            makeUUID(0x44),
-			ReferenceCode: "HMC-2025-004",
+			ReferenceCode: "G2F-2025-004",
 			ServiceType:   db.ServiceTypeStandardCleaning,
 			FinalTotal:    pgtype.Numeric{Valid: false},
 			Status:        db.BookingStatusConfirmed,
@@ -1219,7 +1219,7 @@ func TestDbBookingToGQL(t *testing.T) {
 	t.Run("minimal booking with zero/invalid optional fields", func(t *testing.T) {
 		dbBooking := db.Booking{
 			ID:                     makeUUID(0x55),
-			ReferenceCode:          "HMC-2025-005",
+			ReferenceCode:          "G2F-2025-005",
 			ServiceType:            db.ServiceTypeOfficeCleaning,
 			ScheduledDate:          pgtype.Date{Valid: false},
 			ScheduledStartTime:     pgtype.Time{Valid: false},
@@ -1423,14 +1423,14 @@ func TestDbCompanyToGQL(t *testing.T) {
 	})
 }
 
-func TestDbCleanerToGQL(t *testing.T) {
-	t.Run("converts full cleaner profile", func(t *testing.T) {
+func TestDbWorkerToGQL(t *testing.T) {
+	t.Run("converts full worker profile", func(t *testing.T) {
 		now := time.Now().UTC().Truncate(time.Microsecond)
 
-		dbCleaner := db.Cleaner{
+		dbWorker := db.Worker{
 			ID:                 makeUUID(0xE1),
 			UserID:             makeUUID(0xE2),
-			Status:             db.CleanerStatusActive,
+			Status:             db.WorkerStatusActive,
 			IsCompanyAdmin:     pgtype.Bool{Bool: true, Valid: true},
 			RatingAvg:          makeNumeric("4.90"),
 			TotalJobsCompleted: pgtype.Int4{Int32: 200, Valid: true},
@@ -1445,7 +1445,7 @@ func TestDbCleanerToGQL(t *testing.T) {
 			AvatarUrl: makeText("https://example.com/maria.jpg"),
 		}
 
-		result := dbCleanerToGQL(dbCleaner, &dbUser)
+		result := dbWorkerToGQL(dbWorker, &dbUser)
 
 		if result == nil {
 			t.Fatal("expected non-nil result")
@@ -1464,7 +1464,7 @@ func TestDbCleanerToGQL(t *testing.T) {
 		if result.Email == nil || *result.Email != "maria@clean.com" {
 			t.Errorf("expected Email 'maria@clean.com', got %v", result.Email)
 		}
-		if result.Status != model.CleanerStatusActive {
+		if result.Status != model.WorkerStatusActive {
 			t.Errorf("expected Status ACTIVE, got %q", result.Status)
 		}
 		if result.IsCompanyAdmin != true {
@@ -1478,11 +1478,11 @@ func TestDbCleanerToGQL(t *testing.T) {
 		}
 	})
 
-	t.Run("cleaner with nil optional fields", func(t *testing.T) {
-		dbCleaner := db.Cleaner{
+	t.Run("worker with nil optional fields", func(t *testing.T) {
+		dbWorker := db.Worker{
 			ID:                 makeUUID(0xE2),
 			UserID:             makeUUID(0xE3),
-			Status:             db.CleanerStatusInvited,
+			Status:             db.WorkerStatusInvited,
 			IsCompanyAdmin:     pgtype.Bool{Valid: false},
 			RatingAvg:          pgtype.Numeric{Valid: false},
 			TotalJobsCompleted: pgtype.Int4{Valid: false},
@@ -1491,13 +1491,13 @@ func TestDbCleanerToGQL(t *testing.T) {
 
 		dbUser := db.User{
 			ID:        makeUUID(0xE3),
-			FullName:  "Minimal Cleaner",
+			FullName:  "Minimal Worker",
 			Email:     "minimal@clean.com",
 			Phone:     pgtype.Text{Valid: false},
 			AvatarUrl: pgtype.Text{Valid: false},
 		}
 
-		result := dbCleanerToGQL(dbCleaner, &dbUser)
+		result := dbWorkerToGQL(dbWorker, &dbUser)
 
 		if result.Phone != nil {
 			t.Errorf("expected nil Phone, got %v", result.Phone)
@@ -1669,7 +1669,7 @@ func TestDbReviewToGQL(t *testing.T) {
 			ID:         makeUUID(0xB1),
 			Rating:     5,
 			Comment:    makeText("Excellent service!"),
-			ReviewType: "client_to_cleaner",
+			ReviewType: "client_to_worker",
 			CreatedAt:  makeTimestamptz(now),
 		}
 
@@ -1684,8 +1684,8 @@ func TestDbReviewToGQL(t *testing.T) {
 		if result.Comment == nil || *result.Comment != "Excellent service!" {
 			t.Errorf("expected Comment 'Excellent service!', got %v", result.Comment)
 		}
-		if result.ReviewType != "client_to_cleaner" {
-			t.Errorf("expected ReviewType 'client_to_cleaner', got %q", result.ReviewType)
+		if result.ReviewType != "client_to_worker" {
+			t.Errorf("expected ReviewType 'client_to_worker', got %q", result.ReviewType)
 		}
 	})
 
@@ -1694,7 +1694,7 @@ func TestDbReviewToGQL(t *testing.T) {
 			ID:         makeUUID(0xB2),
 			Rating:     3,
 			Comment:    pgtype.Text{Valid: false},
-			ReviewType: "cleaner_to_client",
+			ReviewType: "worker_to_client",
 			CreatedAt:  makeTimestamptz(time.Now().UTC()),
 		}
 
@@ -2442,7 +2442,7 @@ func TestDbInvoiceToGQL(t *testing.T) {
 		dbInvoice := db.Invoice{
 			ID:                    makeUUID(0x40),
 			InvoiceType:           db.InvoiceTypeClientService,
-			InvoiceNumber:         makeText("HMC-INV-2025-00001"),
+			InvoiceNumber:         makeText("G2F-INV-2025-00001"),
 			Status:                db.InvoiceStatusIssued,
 			SellerCompanyName:     "CleanCo SRL",
 			SellerCui:             "RO12345678",
@@ -2473,8 +2473,8 @@ func TestDbInvoiceToGQL(t *testing.T) {
 		if result.InvoiceType != model.InvoiceTypeClientService {
 			t.Errorf("expected InvoiceType CLIENT_SERVICE, got %q", result.InvoiceType)
 		}
-		if result.InvoiceNumber == nil || *result.InvoiceNumber != "HMC-INV-2025-00001" {
-			t.Errorf("expected InvoiceNumber 'HMC-INV-2025-00001', got %v", result.InvoiceNumber)
+		if result.InvoiceNumber == nil || *result.InvoiceNumber != "G2F-INV-2025-00001" {
+			t.Errorf("expected InvoiceNumber 'G2F-INV-2025-00001', got %v", result.InvoiceNumber)
 		}
 		if result.Status != model.InvoiceStatusIssued {
 			t.Errorf("expected Status ISSUED, got %q", result.Status)
@@ -2963,17 +2963,17 @@ func TestDbDocStatusToGQL(t *testing.T) {
 }
 
 // ---------------------------------------------------------------------------
-// Cleaner document converter
+// Worker document converter
 // ---------------------------------------------------------------------------
 
-func TestDbCleanerDocToGQL(t *testing.T) {
-	t.Run("converts cleaner document with all fields populated", func(t *testing.T) {
+func TestDbWorkerDocToGQL(t *testing.T) {
+	t.Run("converts worker document with all fields populated", func(t *testing.T) {
 		now := time.Now().UTC().Truncate(time.Microsecond)
 		reviewedAt := now.Add(3 * time.Hour)
 
-		dbDoc := db.CleanerDocument{
+		dbDoc := db.WorkerDocument{
 			ID:              makeUUID(0xC1),
-			CleanerID:       makeUUID(0xC2),
+			WorkerID:       makeUUID(0xC2),
 			DocumentType:    "identity_card",
 			FileUrl:         "https://example.com/docs/id_card.pdf",
 			FileName:        "id_card.pdf",
@@ -2983,7 +2983,7 @@ func TestDbCleanerDocToGQL(t *testing.T) {
 			RejectionReason: makeText("Photo too blurry"),
 		}
 
-		result := dbCleanerDocToGQL(dbDoc)
+		result := dbWorkerDocToGQL(dbDoc)
 
 		if result == nil {
 			t.Fatal("expected non-nil result")
@@ -3021,12 +3021,12 @@ func TestDbCleanerDocToGQL(t *testing.T) {
 		}
 	})
 
-	t.Run("converts cleaner document with null optional fields", func(t *testing.T) {
+	t.Run("converts worker document with null optional fields", func(t *testing.T) {
 		now := time.Now().UTC().Truncate(time.Microsecond)
 
-		dbDoc := db.CleanerDocument{
+		dbDoc := db.WorkerDocument{
 			ID:              makeUUID(0xC3),
-			CleanerID:       makeUUID(0xC4),
+			WorkerID:       makeUUID(0xC4),
 			DocumentType:    "criminal_record",
 			FileUrl:         "https://example.com/docs/record.pdf",
 			FileName:        "record.pdf",
@@ -3036,7 +3036,7 @@ func TestDbCleanerDocToGQL(t *testing.T) {
 			RejectionReason: pgtype.Text{Valid: false},
 		}
 
-		result := dbCleanerDocToGQL(dbDoc)
+		result := dbWorkerDocToGQL(dbDoc)
 
 		if result == nil {
 			t.Fatal("expected non-nil result")
@@ -3055,13 +3055,13 @@ func TestDbCleanerDocToGQL(t *testing.T) {
 		}
 	})
 
-	t.Run("converts cleaner document with rejected status", func(t *testing.T) {
+	t.Run("converts worker document with rejected status", func(t *testing.T) {
 		now := time.Now().UTC().Truncate(time.Microsecond)
 		reviewedAt := now.Add(time.Hour)
 
-		dbDoc := db.CleanerDocument{
+		dbDoc := db.WorkerDocument{
 			ID:              makeUUID(0xC5),
-			CleanerID:       makeUUID(0xC6),
+			WorkerID:       makeUUID(0xC6),
 			DocumentType:    "medical_certificate",
 			FileUrl:         "https://example.com/docs/med.pdf",
 			FileName:        "med.pdf",
@@ -3071,7 +3071,7 @@ func TestDbCleanerDocToGQL(t *testing.T) {
 			RejectionReason: makeText("Document expired"),
 		}
 
-		result := dbCleanerDocToGQL(dbDoc)
+		result := dbWorkerDocToGQL(dbDoc)
 
 		if result == nil {
 			t.Fatal("expected non-nil result")

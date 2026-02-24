@@ -58,51 +58,6 @@ func (ns NullBookingStatus) Value() (driver.Value, error) {
 	return string(ns.BookingStatus), nil
 }
 
-type CleanerStatus string
-
-const (
-	CleanerStatusInvited       CleanerStatus = "invited"
-	CleanerStatusPendingReview CleanerStatus = "pending_review"
-	CleanerStatusActive        CleanerStatus = "active"
-	CleanerStatusInactive      CleanerStatus = "inactive"
-	CleanerStatusSuspended     CleanerStatus = "suspended"
-)
-
-func (e *CleanerStatus) Scan(src interface{}) error {
-	switch s := src.(type) {
-	case []byte:
-		*e = CleanerStatus(s)
-	case string:
-		*e = CleanerStatus(s)
-	default:
-		return fmt.Errorf("unsupported scan type for CleanerStatus: %T", src)
-	}
-	return nil
-}
-
-type NullCleanerStatus struct {
-	CleanerStatus CleanerStatus `json:"cleaner_status"`
-	Valid         bool          `json:"valid"` // Valid is true if CleanerStatus is not NULL
-}
-
-// Scan implements the Scanner interface.
-func (ns *NullCleanerStatus) Scan(value interface{}) error {
-	if value == nil {
-		ns.CleanerStatus, ns.Valid = "", false
-		return nil
-	}
-	ns.Valid = true
-	return ns.CleanerStatus.Scan(value)
-}
-
-// Value implements the driver Valuer interface.
-func (ns NullCleanerStatus) Value() (driver.Value, error) {
-	if !ns.Valid {
-		return nil, nil
-	}
-	return string(ns.CleanerStatus), nil
-}
-
 type CompanyStatus string
 
 const (
@@ -342,6 +297,7 @@ const (
 	PaymentTransactionStatusRefunded          PaymentTransactionStatus = "refunded"
 	PaymentTransactionStatusPartiallyRefunded PaymentTransactionStatus = "partially_refunded"
 	PaymentTransactionStatusCancelled         PaymentTransactionStatus = "cancelled"
+	PaymentTransactionStatusDisputed          PaymentTransactionStatus = "disputed"
 )
 
 func (e *PaymentTransactionStatus) Scan(src interface{}) error {
@@ -562,7 +518,7 @@ type UserRole string
 const (
 	UserRoleClient       UserRole = "client"
 	UserRoleCompanyAdmin UserRole = "company_admin"
-	UserRoleCleaner      UserRole = "cleaner"
+	UserRoleWorker       UserRole = "worker"
 	UserRoleGlobalAdmin  UserRole = "global_admin"
 )
 
@@ -687,12 +643,57 @@ func (ns NullWaitlistLeadType) Value() (driver.Value, error) {
 	return string(ns.WaitlistLeadType), nil
 }
 
+type WorkerStatus string
+
+const (
+	WorkerStatusInvited       WorkerStatus = "invited"
+	WorkerStatusPendingReview WorkerStatus = "pending_review"
+	WorkerStatusActive        WorkerStatus = "active"
+	WorkerStatusInactive      WorkerStatus = "inactive"
+	WorkerStatusSuspended     WorkerStatus = "suspended"
+)
+
+func (e *WorkerStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = WorkerStatus(s)
+	case string:
+		*e = WorkerStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for WorkerStatus: %T", src)
+	}
+	return nil
+}
+
+type NullWorkerStatus struct {
+	WorkerStatus WorkerStatus `json:"worker_status"`
+	Valid        bool         `json:"valid"` // Valid is true if WorkerStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullWorkerStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.WorkerStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.WorkerStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullWorkerStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.WorkerStatus), nil
+}
+
 type Booking struct {
 	ID                       pgtype.UUID        `json:"id"`
 	ReferenceCode            string             `json:"reference_code"`
 	ClientUserID             pgtype.UUID        `json:"client_user_id"`
 	CompanyID                pgtype.UUID        `json:"company_id"`
-	CleanerID                pgtype.UUID        `json:"cleaner_id"`
+	WorkerID                 pgtype.UUID        `json:"worker_id"`
 	AddressID                pgtype.UUID        `json:"address_id"`
 	ServiceType              ServiceType        `json:"service_type"`
 	ScheduledDate            pgtype.Date        `json:"scheduled_date"`
@@ -770,60 +771,6 @@ type CityArea struct {
 	CityID    pgtype.UUID        `json:"city_id"`
 	Name      string             `json:"name"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
-}
-
-type Cleaner struct {
-	ID                 pgtype.UUID        `json:"id"`
-	UserID             pgtype.UUID        `json:"user_id"`
-	CompanyID          pgtype.UUID        `json:"company_id"`
-	Status             CleanerStatus      `json:"status"`
-	IsCompanyAdmin     pgtype.Bool        `json:"is_company_admin"`
-	InviteToken        pgtype.Text        `json:"invite_token"`
-	InviteExpiresAt    pgtype.Timestamptz `json:"invite_expires_at"`
-	RatingAvg          pgtype.Numeric     `json:"rating_avg"`
-	TotalJobsCompleted pgtype.Int4        `json:"total_jobs_completed"`
-	CreatedAt          pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt          pgtype.Timestamptz `json:"updated_at"`
-	Bio                pgtype.Text        `json:"bio"`
-}
-
-type CleanerAvailability struct {
-	ID          pgtype.UUID `json:"id"`
-	CleanerID   pgtype.UUID `json:"cleaner_id"`
-	DayOfWeek   int32       `json:"day_of_week"`
-	StartTime   pgtype.Time `json:"start_time"`
-	EndTime     pgtype.Time `json:"end_time"`
-	IsAvailable pgtype.Bool `json:"is_available"`
-}
-
-type CleanerDateOverride struct {
-	ID           pgtype.UUID        `json:"id"`
-	CleanerID    pgtype.UUID        `json:"cleaner_id"`
-	OverrideDate pgtype.Date        `json:"override_date"`
-	IsAvailable  bool               `json:"is_available"`
-	StartTime    pgtype.Time        `json:"start_time"`
-	EndTime      pgtype.Time        `json:"end_time"`
-	CreatedAt    pgtype.Timestamptz `json:"created_at"`
-}
-
-type CleanerDocument struct {
-	ID              pgtype.UUID        `json:"id"`
-	CleanerID       pgtype.UUID        `json:"cleaner_id"`
-	DocumentType    string             `json:"document_type"`
-	FileUrl         string             `json:"file_url"`
-	FileName        string             `json:"file_name"`
-	Status          string             `json:"status"`
-	UploadedAt      pgtype.Timestamptz `json:"uploaded_at"`
-	ReviewedAt      pgtype.Timestamptz `json:"reviewed_at"`
-	ReviewedBy      pgtype.UUID        `json:"reviewed_by"`
-	RejectionReason pgtype.Text        `json:"rejection_reason"`
-}
-
-type CleanerServiceArea struct {
-	ID         pgtype.UUID        `json:"id"`
-	CleanerID  pgtype.UUID        `json:"cleaner_id"`
-	CityAreaID pgtype.UUID        `json:"city_area_id"`
-	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 }
 
 type ClientAddress struct {
@@ -1059,6 +1006,7 @@ type PaymentTransaction struct {
 	Metadata              []byte                   `json:"metadata"`
 	CreatedAt             pgtype.Timestamptz       `json:"created_at"`
 	UpdatedAt             pgtype.Timestamptz       `json:"updated_at"`
+	StripeDisputeID       pgtype.Text              `json:"stripe_dispute_id"`
 }
 
 type PayoutLineItem struct {
@@ -1074,7 +1022,7 @@ type PayoutLineItem struct {
 
 type PersonalityAssessment struct {
 	ID                  pgtype.UUID        `json:"id"`
-	CleanerID           pgtype.UUID        `json:"cleaner_id"`
+	WorkerID            pgtype.UUID        `json:"worker_id"`
 	TrustScore          int32              `json:"trust_score"`
 	MoralityScore       int32              `json:"morality_score"`
 	AltruismScore       int32              `json:"altruism_score"`
@@ -1151,7 +1099,7 @@ type RecurringBookingGroup struct {
 	ID                          pgtype.UUID        `json:"id"`
 	ClientUserID                pgtype.UUID        `json:"client_user_id"`
 	CompanyID                   pgtype.UUID        `json:"company_id"`
-	PreferredCleanerID          pgtype.UUID        `json:"preferred_cleaner_id"`
+	PreferredWorkerID           pgtype.UUID        `json:"preferred_worker_id"`
 	AddressID                   pgtype.UUID        `json:"address_id"`
 	RecurrenceType              RecurrenceType     `json:"recurrence_type"`
 	DayOfWeek                   pgtype.Int4        `json:"day_of_week"`
@@ -1195,15 +1143,15 @@ type RefundRequest struct {
 }
 
 type Review struct {
-	ID                pgtype.UUID        `json:"id"`
-	BookingID         pgtype.UUID        `json:"booking_id"`
-	ReviewerUserID    pgtype.UUID        `json:"reviewer_user_id"`
-	ReviewedUserID    pgtype.UUID        `json:"reviewed_user_id"`
-	ReviewedCleanerID pgtype.UUID        `json:"reviewed_cleaner_id"`
-	Rating            int32              `json:"rating"`
-	Comment           pgtype.Text        `json:"comment"`
-	ReviewType        string             `json:"review_type"`
-	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+	ID               pgtype.UUID        `json:"id"`
+	BookingID        pgtype.UUID        `json:"booking_id"`
+	ReviewerUserID   pgtype.UUID        `json:"reviewer_user_id"`
+	ReviewedUserID   pgtype.UUID        `json:"reviewed_user_id"`
+	ReviewedWorkerID pgtype.UUID        `json:"reviewed_worker_id"`
+	Rating           int32              `json:"rating"`
+	Comment          pgtype.Text        `json:"comment"`
+	ReviewType       string             `json:"review_type"`
+	CreatedAt        pgtype.Timestamptz `json:"created_at"`
 }
 
 type ServiceDefinition struct {
@@ -1264,4 +1212,58 @@ type WaitlistLead struct {
 	CompanyName pgtype.Text        `json:"company_name"`
 	Message     pgtype.Text        `json:"message"`
 	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+}
+
+type Worker struct {
+	ID                 pgtype.UUID        `json:"id"`
+	UserID             pgtype.UUID        `json:"user_id"`
+	CompanyID          pgtype.UUID        `json:"company_id"`
+	Status             WorkerStatus       `json:"status"`
+	IsCompanyAdmin     pgtype.Bool        `json:"is_company_admin"`
+	InviteToken        pgtype.Text        `json:"invite_token"`
+	InviteExpiresAt    pgtype.Timestamptz `json:"invite_expires_at"`
+	RatingAvg          pgtype.Numeric     `json:"rating_avg"`
+	TotalJobsCompleted pgtype.Int4        `json:"total_jobs_completed"`
+	CreatedAt          pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt          pgtype.Timestamptz `json:"updated_at"`
+	Bio                pgtype.Text        `json:"bio"`
+}
+
+type WorkerAvailability struct {
+	ID          pgtype.UUID `json:"id"`
+	WorkerID    pgtype.UUID `json:"worker_id"`
+	DayOfWeek   int32       `json:"day_of_week"`
+	StartTime   pgtype.Time `json:"start_time"`
+	EndTime     pgtype.Time `json:"end_time"`
+	IsAvailable pgtype.Bool `json:"is_available"`
+}
+
+type WorkerDateOverride struct {
+	ID           pgtype.UUID        `json:"id"`
+	WorkerID     pgtype.UUID        `json:"worker_id"`
+	OverrideDate pgtype.Date        `json:"override_date"`
+	IsAvailable  bool               `json:"is_available"`
+	StartTime    pgtype.Time        `json:"start_time"`
+	EndTime      pgtype.Time        `json:"end_time"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+}
+
+type WorkerDocument struct {
+	ID              pgtype.UUID        `json:"id"`
+	WorkerID        pgtype.UUID        `json:"worker_id"`
+	DocumentType    string             `json:"document_type"`
+	FileUrl         string             `json:"file_url"`
+	FileName        string             `json:"file_name"`
+	Status          string             `json:"status"`
+	UploadedAt      pgtype.Timestamptz `json:"uploaded_at"`
+	ReviewedAt      pgtype.Timestamptz `json:"reviewed_at"`
+	ReviewedBy      pgtype.UUID        `json:"reviewed_by"`
+	RejectionReason pgtype.Text        `json:"rejection_reason"`
+}
+
+type WorkerServiceArea struct {
+	ID         pgtype.UUID        `json:"id"`
+	WorkerID   pgtype.UUID        `json:"worker_id"`
+	CityAreaID pgtype.UUID        `json:"city_area_id"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 }

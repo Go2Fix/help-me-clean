@@ -331,6 +331,10 @@ func (s *Service) HandleWebhookEvent(ctx context.Context, payload []byte, sigHea
 		return s.handleChargeRefunded(ctx, event)
 	case "account.updated":
 		return s.handleAccountUpdated(ctx, event)
+	case "charge.dispute.created":
+		return s.handleChargeDisputeCreated(ctx, event)
+	case "payout.failed":
+		return s.handlePayoutFailed(ctx, event)
 	default:
 		log.Printf("payment: unhandled webhook event type: %s", event.Type)
 		return nil
@@ -519,6 +523,77 @@ func (s *Service) handleAccountUpdated(ctx context.Context, event stripe.Event) 
 
 	log.Printf("payment: account.updated processed for account %s, charges=%v, payouts=%v, onboarding=%v",
 		acct.ID, chargesEnabled, payoutsEnabled, onboardingComplete)
+	return nil
+}
+
+// handleChargeDisputeCreated processes a charge dispute event.
+// When a customer disputes a charge, this marks the transaction as disputed
+// and records the dispute ID for tracking. No booking status change is made
+// since a dispute does not necessarily mean the charge was invalid.
+func (s *Service) handleChargeDisputeCreated(ctx context.Context, event stripe.Event) error {
+	var dispute stripe.Dispute
+	if err := json.Unmarshal(event.Data.Raw, &dispute); err != nil {
+		return fmt.Errorf("payment: failed to unmarshal charge.dispute.created: %w", err)
+	}
+
+	if dispute.PaymentIntent == nil {
+		log.Printf("payment: charge.dispute.created event for dispute %s has no payment intent, skipping", dispute.ID)
+		return nil
+	}
+
+	piID := dispute.PaymentIntent.ID
+	reason := string(dispute.Reason)
+
+	_, err := s.queries.UpdatePaymentTransactionDisputed(ctx, db.UpdatePaymentTransactionDisputedParams{
+		StripePaymentIntentID: piID,
+		StripeDisputeID: pgtype.Text{
+			String: dispute.ID,
+			Valid:  true,
+		},
+		FailureReason: pgtype.Text{
+			String: reason,
+			Valid:  reason != "",
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("payment: failed to update transaction dispute for PI %s: %w", piID, err)
+	}
+
+	log.Printf("payment: charge.dispute.created processed for PI %s, dispute=%s, reason=%s", piID, dispute.ID, reason)
+	return nil
+}
+
+// handlePayoutFailed processes a failed payout event.
+// When a payout to a connected company account fails, this updates
+// the payout record with the failure reason for admin visibility.
+func (s *Service) handlePayoutFailed(ctx context.Context, event stripe.Event) error {
+	var payout stripe.Payout
+	if err := json.Unmarshal(event.Data.Raw, &payout); err != nil {
+		return fmt.Errorf("payment: failed to unmarshal payout.failed: %w", err)
+	}
+
+	failureMessage := string(payout.FailureCode)
+	if payout.FailureMessage != "" {
+		failureMessage = payout.FailureMessage
+	}
+
+	_, err := s.queries.UpdatePayoutFailed(ctx, db.UpdatePayoutFailedParams{
+		StripePayoutID: pgtype.Text{
+			String: payout.ID,
+			Valid:  true,
+		},
+		FailureReason: pgtype.Text{
+			String: failureMessage,
+			Valid:  failureMessage != "",
+		},
+	})
+	if err != nil {
+		// The payout may not exist in our system (e.g. manual Stripe payouts).
+		log.Printf("payment: warning: failed to update payout record for payout %s: %v", payout.ID, err)
+		return nil
+	}
+
+	log.Printf("payment: payout.failed processed for payout %s, reason: %s", payout.ID, failureMessage)
 	return nil
 }
 

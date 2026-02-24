@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { useQuery, useMutation } from '@apollo/client';
@@ -70,18 +70,17 @@ describe('CompaniesPage', () => {
     expect(screen.getByText('Nu exista aplicatii in asteptare.')).toBeInTheDocument();
   });
 
-  it('shows empty state when no companies on all tab', async () => {
-    const user = userEvent.setup();
+  it('shows empty state when no companies on all tab', () => {
     renderCompaniesPage();
-    await user.click(screen.getByText('Toate'));
+    const select = screen.getByDisplayValue('In asteptare');
+    fireEvent.change(select, { target: { value: 'all' } });
     expect(screen.getByText('Nu exista companii.')).toBeInTheDocument();
   });
 
-  it('tab switching works', async () => {
-    const user = userEvent.setup();
+  it('tab switching works', () => {
     renderCompaniesPage();
-    const aprobateTab = screen.getByText('Aprobate');
-    await user.click(aprobateTab);
+    const select = screen.getByDisplayValue('In asteptare');
+    fireEvent.change(select, { target: { value: 'approved' } });
     expect(screen.getByText('Nu exista companii aprobate.')).toBeInTheDocument();
   });
 
@@ -106,6 +105,7 @@ describe('CompaniesPage', () => {
                 description: 'Test company',
                 status: 'PENDING_APPROVAL',
                 createdAt: '2024-01-01T00:00:00Z',
+                documents: [],
               },
             ],
           },

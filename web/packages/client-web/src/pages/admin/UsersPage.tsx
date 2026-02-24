@@ -18,7 +18,7 @@ const roleOptions = [
   { value: '', label: 'Toate rolurile' },
   { value: 'CLIENT', label: 'Client' },
   { value: 'COMPANY_ADMIN', label: 'Admin Companie' },
-  { value: 'CLEANER', label: 'Curatator' },
+  { value: 'WORKER', label: 'Curatator' },
   { value: 'GLOBAL_ADMIN', label: 'Admin Global' },
 ];
 
@@ -31,14 +31,14 @@ const statusOptions = [
 const roleLabel: Record<string, string> = {
   CLIENT: 'Client',
   COMPANY_ADMIN: 'Admin Companie',
-  CLEANER: 'Curatator',
+  WORKER: 'Curatator',
   GLOBAL_ADMIN: 'Admin Global',
 };
 
 const roleVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
   CLIENT: 'default',
   COMPANY_ADMIN: 'info',
-  CLEANER: 'success',
+  WORKER: 'success',
   GLOBAL_ADMIN: 'warning',
 };
 

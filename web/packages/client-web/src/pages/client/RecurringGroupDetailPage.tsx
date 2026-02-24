@@ -38,7 +38,7 @@ interface Occurrence {
   status: string;
   paymentStatus: string;
   occurrenceNumber: number;
-  cleaner: {
+  worker: {
     id: string;
     fullName: string;
   } | null;
@@ -60,7 +60,7 @@ interface RecurringGroup {
   completedOccurrences: number;
   createdAt: string;
   client: { id: string; fullName: string; email: string; phone: string } | null;
-  preferredCleaner: { id: string; fullName: string; phone: string } | null;
+  preferredWorker: { id: string; fullName: string; phone: string } | null;
   company: { id: string; companyName: string; contactPhone: string } | null;
   address: {
     streetAddress: string;
@@ -225,8 +225,8 @@ export default function RecurringGroupDetailPage() {
 
         {/* Info cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-          {/* Preferred cleaner */}
-          {group.preferredCleaner && (
+          {/* Preferred worker */}
+          {group.preferredWorker && (
             <Card>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
@@ -234,7 +234,7 @@ export default function RecurringGroupDetailPage() {
                 </div>
                 <div>
                   <p className="text-xs text-gray-500">Curatator preferat</p>
-                  <p className="font-semibold text-gray-900">{group.preferredCleaner.fullName}</p>
+                  <p className="font-semibold text-gray-900">{group.preferredWorker.fullName}</p>
                 </div>
               </div>
             </Card>
@@ -313,9 +313,9 @@ export default function RecurringGroupDetailPage() {
         <div className="space-y-3">
           {group.occurrences.map((occ) => {
             const isSubstitute =
-              group.preferredCleaner &&
-              occ.cleaner &&
-              occ.cleaner.id !== group.preferredCleaner.id;
+              group.preferredWorker &&
+              occ.worker &&
+              occ.worker.id !== group.preferredWorker.id;
 
             return (
               <Card
@@ -345,10 +345,10 @@ export default function RecurringGroupDetailPage() {
                         <Clock className="h-3.5 w-3.5" />
                         {formatTime(occ.scheduledStartTime)}
                       </span>
-                      {occ.cleaner && (
+                      {occ.worker && (
                         <span className="flex items-center gap-1">
                           <User className="h-3.5 w-3.5" />
-                          {occ.cleaner.fullName}
+                          {occ.worker.fullName}
                           {isSubstitute && (
                             <span className="text-xs text-amber-600 font-medium">
                               (Inlocuitor)

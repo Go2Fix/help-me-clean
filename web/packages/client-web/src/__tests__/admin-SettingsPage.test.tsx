@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { useQuery, useMutation } from '@apollo/client';
@@ -78,11 +78,14 @@ describe('Admin SettingsPage', () => {
     expect(screen.getByText('Setari Platforma')).toBeInTheDocument();
   });
 
-  it('shows 3 tab buttons', () => {
+  it('shows 5 tab options', () => {
     renderSettingsPage();
-    expect(screen.getByText('Setari Generale')).toBeInTheDocument();
-    expect(screen.getByText('Servicii')).toBeInTheDocument();
-    expect(screen.getByText('Extra-uri')).toBeInTheDocument();
+    // Both mobile Select and desktop buttons render in JSDOM, so use getAllByText
+    expect(screen.getAllByText('Setari Generale').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Servicii').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Extra-uri').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Orase').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Platforma').length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows loading skeletons when general tab is loading', () => {
@@ -111,35 +114,35 @@ describe('Admin SettingsPage', () => {
     expect(screen.getByText('Politici')).toBeInTheDocument();
   });
 
-  it('shows "Adauga serviciu" button when Services tab is active', async () => {
-    const user = userEvent.setup();
+  it('shows "Adauga serviciu" button when Services tab is active', () => {
     renderSettingsPage();
-    await user.click(screen.getByText('Servicii'));
+    const select = screen.getByDisplayValue('Setari Generale');
+    fireEvent.change(select, { target: { value: 'services' } });
     expect(screen.getByText('Adauga serviciu')).toBeInTheDocument();
   });
 
-  it('shows services table when Services tab is active', async () => {
-    const user = userEvent.setup();
+  it('shows services table when Services tab is active', () => {
     renderSettingsPage();
-    await user.click(screen.getByText('Servicii'));
+    const select = screen.getByDisplayValue('Setari Generale');
+    fireEvent.change(select, { target: { value: 'services' } });
     expect(screen.getByText('Curatenie standard')).toBeInTheDocument();
     expect(screen.getByText('Curatenie generala')).toBeInTheDocument();
     expect(screen.getByText('2 servicii definite')).toBeInTheDocument();
   });
 
-  it('shows extras table when Extra-uri tab is active', async () => {
-    const user = userEvent.setup();
+  it('shows extras table when Extra-uri tab is active', () => {
     renderSettingsPage();
-    await user.click(screen.getByText('Extra-uri'));
+    const select = screen.getByDisplayValue('Setari Generale');
+    fireEvent.change(select, { target: { value: 'extras' } });
     expect(screen.getByText('Curatare geamuri')).toBeInTheDocument();
     expect(screen.getByText('Calcat rufe')).toBeInTheDocument();
     expect(screen.getByText('2 extra-uri definite')).toBeInTheDocument();
   });
 
-  it('shows "Adauga extra" button when Extra-uri tab is active', async () => {
-    const user = userEvent.setup();
+  it('shows "Adauga extra" button when Extra-uri tab is active', () => {
     renderSettingsPage();
-    await user.click(screen.getByText('Extra-uri'));
+    const select = screen.getByDisplayValue('Setari Generale');
+    fireEvent.change(select, { target: { value: 'extras' } });
     expect(screen.getByText('Adauga extra')).toBeInTheDocument();
   });
 });

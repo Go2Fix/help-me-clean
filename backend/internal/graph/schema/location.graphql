@@ -13,8 +13,8 @@ type CityArea {
   cityName: String!
 }
 
-type CleanerSuggestion {
-  cleaner: CleanerProfile!
+type WorkerSuggestion {
+  worker: WorkerProfile!
   company: Company!
   availabilityStatus: String!
   availableFrom: String
@@ -37,19 +37,19 @@ extend type Query {
   # Company admin
   myCompanyServiceAreas: [CityArea!]!
 
-  # Company admin (per-cleaner read)
-  cleanerServiceAreas(cleanerId: ID!): [CityArea!]!
+  # Company admin (per-worker read)
+  workerServiceAreas(workerId: ID!): [CityArea!]!
 
   # Worker (read-only)
-  myCleanerServiceAreas: [CityArea!]!
+  myWorkerServiceAreas: [CityArea!]!
 
   # Match-making (client booking flow)
-  suggestCleaners(
+  suggestWorkers(
     cityId: ID!
     areaId: ID!
     timeSlots: [TimeSlotInput!]!
     estimatedDurationHours: Float!
-  ): [CleanerSuggestion!]!
+  ): [WorkerSuggestion!]!
 
   # Validate city is supported
   isCitySupported(city: String!): Boolean!
@@ -65,6 +65,6 @@ extend type Mutation {
   # Company admin
   updateCompanyServiceAreas(areaIds: [ID!]!): [CityArea!]!
 
-  # Company admin (per-cleaner)
-  updateCleanerServiceAreas(cleanerId: ID!, areaIds: [ID!]!): [CityArea!]!
+  # Company admin (per-worker)
+  updateWorkerServiceAreas(workerId: ID!, areaIds: [ID!]!): [CityArea!]!
 }

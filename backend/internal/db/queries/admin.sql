@@ -2,7 +2,7 @@
 SELECT
     (SELECT COUNT(*) FROM users) AS total_users,
     (SELECT COUNT(*) FROM companies WHERE status = 'approved') AS active_companies,
-    (SELECT COUNT(*) FROM cleaners WHERE status = 'active') AS active_cleaners,
+    (SELECT COUNT(*) FROM workers WHERE status = 'active') AS active_workers,
     (SELECT COUNT(*) FROM bookings) AS total_bookings,
     (SELECT COUNT(*) FROM bookings WHERE status = 'completed') AS completed_bookings,
     (SELECT COALESCE(SUM(COALESCE(final_total, estimated_total)), 0) FROM bookings WHERE status = 'completed') AS total_revenue,

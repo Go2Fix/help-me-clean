@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { useQuery } from '@apollo/client';
@@ -125,27 +125,32 @@ describe('BookingsPage', () => {
     expect(screen.getByPlaceholderText('Cauta dupa cod referinta, client, companie...')).toBeInTheDocument();
   });
 
-  it('shows status filter tabs', () => {
+  it('shows status filter options in select dropdown', () => {
     renderBookingsPage();
-    expect(screen.getByText('Toate')).toBeInTheDocument();
+    expect(screen.getByText('Toate statusurile')).toBeInTheDocument();
     expect(screen.getByText('Confirmate')).toBeInTheDocument();
     expect(screen.getByText('In desfasurare')).toBeInTheDocument();
     expect(screen.getByText('Finalizate')).toBeInTheDocument();
     expect(screen.getByText('Anulate')).toBeInTheDocument();
   });
 
-  it('shows total count badge when there are bookings', () => {
+  it('shows pagination info when there are many bookings', () => {
+    const edges = Array.from({ length: 20 }, (_, i) => ({
+      ...sampleBooking,
+      id: `b-${i}`,
+      referenceCode: `REF-${String(i).padStart(3, '0')}`,
+    }));
     vi.mocked(useQuery).mockReturnValue({
       data: {
         searchBookings: {
-          edges: [sampleBooking],
-          totalCount: 5,
+          edges,
+          totalCount: 25,
         },
       },
       loading: false,
     } as ReturnType<typeof useQuery>);
     renderBookingsPage();
-    expect(screen.getByText('5 comenzi')).toBeInTheDocument();
+    expect(screen.getByText('1-20 din 25 comenzi')).toBeInTheDocument();
   });
 
   it('navigates to /admin/comenzi/:id on booking click', async () => {
@@ -178,10 +183,10 @@ describe('BookingsPage', () => {
     expect(screen.getByText('Asignat')).toBeInTheDocument();
   });
 
-  it('tab filtering can be clicked', async () => {
-    const user = userEvent.setup();
+  it('status filter can be changed via select', () => {
     renderBookingsPage();
-    await user.click(screen.getByText('Confirmate'));
-    expect(screen.getByText('Confirmate')).toBeInTheDocument();
+    const select = screen.getByDisplayValue('Toate statusurile');
+    fireEvent.change(select, { target: { value: 'CONFIRMED' } });
+    expect(select).toHaveValue('CONFIRMED');
   });
 });

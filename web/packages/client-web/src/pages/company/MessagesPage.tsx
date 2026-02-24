@@ -6,7 +6,7 @@ import { cn } from '@go2fix/shared';
 import { useAuth } from '@/context/AuthContext';
 import {
   COMPANY_CHAT_ROOMS,
-  MY_CLEANERS,
+  MY_WORKERS,
   CREATE_ADMIN_CHAT_ROOM,
   CHAT_ROOM_DETAIL,
   SEND_MESSAGE,
@@ -58,7 +58,7 @@ interface ChatRoomDetail {
   };
 }
 
-interface CleanerItem {
+interface WorkerItem {
   id: string;
   userId?: string;
   fullName: string;
@@ -103,7 +103,7 @@ function getRoleLabel(role: string): string {
     case 'CLIENT': return 'Client';
     case 'COMPANY_ADMIN': return 'Admin Firma';
     case 'GLOBAL_ADMIN': return 'Admin';
-    case 'CLEANER': return 'Curatator';
+    case 'WORKER': return 'Curatator';
     default: return role;
   }
 }
@@ -118,7 +118,7 @@ export default function CompanyMessagesPage() {
   const [messageText, setMessageText] = useState('');
   const [showNewChat, setShowNewChat] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCleanerIds, setSelectedCleanerIds] = useState<string[]>([]);
+  const [selectedWorkerIds, setSelectedWorkerIds] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // ─── Queries ────────────────────────────────────────────────────────────────
@@ -134,7 +134,7 @@ export default function CompanyMessagesPage() {
     skip: !roomId,
   });
 
-  const { data: cleanersData } = useQuery<{ myCleaners: CleanerItem[] }>(MY_CLEANERS, {
+  const { data: workersData } = useQuery<{ myWorkers: WorkerItem[] }>(MY_WORKERS, {
     skip: !showNewChat,
   });
 
@@ -176,7 +176,7 @@ export default function CompanyMessagesPage() {
       if (data?.createAdminChatRoom?.id) {
         navigate(`/firma/mesaje/${data.createAdminChatRoom.id}`);
         setShowNewChat(false);
-        setSelectedCleanerIds([]);
+        setSelectedWorkerIds([]);
       }
     },
     refetchQueries: [{ query: COMPANY_CHAT_ROOMS }],
@@ -255,7 +255,7 @@ export default function CompanyMessagesPage() {
   const messages = chatRoom?.messages?.edges || [];
   const myId = user?.id || '';
 
-  const availableCleaners = (cleanersData?.myCleaners || [])
+  const availableWorkers = (workersData?.myWorkers || [])
     .filter((c) => c.userId)
     .filter(
       (c) =>
@@ -505,7 +505,7 @@ export default function CompanyMessagesPage() {
                 onClick={() => {
                   setShowNewChat(false);
                   setSearchQuery('');
-                  setSelectedCleanerIds([]);
+                  setSelectedWorkerIds([]);
                 }}
                 className="p-1 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
               >
@@ -528,10 +528,10 @@ export default function CompanyMessagesPage() {
             </div>
 
             {/* Selected Chips */}
-            {selectedCleanerIds.length > 0 && (
+            {selectedWorkerIds.length > 0 && (
               <div className="px-5 py-2 border-b border-gray-100 flex flex-wrap gap-1.5">
-                {availableCleaners
-                  .filter((c) => selectedCleanerIds.includes(c.userId!))
+                {availableWorkers
+                  .filter((c) => selectedWorkerIds.includes(c.userId!))
                   .map((c) => (
                     <span
                       key={c.id}
@@ -539,7 +539,7 @@ export default function CompanyMessagesPage() {
                     >
                       {c.fullName}
                       <button
-                        onClick={() => setSelectedCleanerIds((prev) => prev.filter((id) => id !== c.userId))}
+                        onClick={() => setSelectedWorkerIds((prev) => prev.filter((id) => id !== c.userId))}
                         className="hover:text-primary/70 cursor-pointer"
                       >
                         <X className="h-3 w-3" />
@@ -549,15 +549,15 @@ export default function CompanyMessagesPage() {
               </div>
             )}
 
-            {/* Cleaner List */}
+            {/* Worker List */}
             <div className="flex-1 overflow-y-auto">
-              {availableCleaners.length === 0 ? (
+              {availableWorkers.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
                   <p className="text-sm text-gray-500">Niciun curatator gasit</p>
                 </div>
               ) : (
-                availableCleaners.map((cleaner) => {
-                  const isSelected = selectedCleanerIds.includes(cleaner.userId!);
+                availableWorkers.map((worker) => {
+                  const isSelected = selectedWorkerIds.includes(worker.userId!);
                   const statusColors: Record<string, string> = {
                     active: 'bg-emerald-100 text-emerald-700',
                     inactive: 'bg-gray-100 text-gray-600',
@@ -573,12 +573,12 @@ export default function CompanyMessagesPage() {
 
                   return (
                     <button
-                      key={cleaner.id}
+                      key={worker.id}
                       onClick={() => {
-                        setSelectedCleanerIds((prev) =>
+                        setSelectedWorkerIds((prev) =>
                           isSelected
-                            ? prev.filter((id) => id !== cleaner.userId)
-                            : [...prev, cleaner.userId!],
+                            ? prev.filter((id) => id !== worker.userId)
+                            : [...prev, worker.userId!],
                         );
                       }}
                       className={cn(
@@ -598,24 +598,24 @@ export default function CompanyMessagesPage() {
                       </div>
                       <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                         <span className="text-xs font-semibold text-primary">
-                          {getInitials(cleaner.fullName)}
+                          {getInitials(worker.fullName)}
                         </span>
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-900 truncate">
-                          {cleaner.fullName}
+                          {worker.fullName}
                         </p>
-                        {cleaner.email && (
-                          <p className="text-xs text-gray-500 truncate">{cleaner.email}</p>
+                        {worker.email && (
+                          <p className="text-xs text-gray-500 truncate">{worker.email}</p>
                         )}
                       </div>
                       <span
                         className={cn(
                           'text-[11px] font-medium px-2 py-0.5 rounded-full shrink-0',
-                          statusColors[cleaner.status] || 'bg-gray-100 text-gray-600',
+                          statusColors[worker.status] || 'bg-gray-100 text-gray-600',
                         )}
                       >
-                        {statusLabels[cleaner.status] || cleaner.status}
+                        {statusLabels[worker.status] || worker.status}
                       </span>
                     </button>
                   );
@@ -627,16 +627,16 @@ export default function CompanyMessagesPage() {
             <div className="px-5 py-3 border-t border-gray-200">
               <button
                 onClick={() =>
-                  createAdminChatRoom({ variables: { userIds: selectedCleanerIds } })
+                  createAdminChatRoom({ variables: { userIds: selectedWorkerIds } })
                 }
-                disabled={selectedCleanerIds.length === 0}
+                disabled={selectedWorkerIds.length === 0}
                 className={cn(
                   'w-full rounded-xl py-2.5 text-sm font-semibold transition-colors cursor-pointer',
                   'bg-primary text-white hover:bg-blue-700',
                   'disabled:opacity-50 disabled:cursor-not-allowed',
                 )}
               >
-                Incepe conversatia ({selectedCleanerIds.length})
+                Incepe conversatia ({selectedWorkerIds.length})
               </button>
             </div>
           </div>

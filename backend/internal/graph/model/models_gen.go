@@ -87,7 +87,7 @@ type Booking struct {
 	ReferenceCode          string             `json:"referenceCode"`
 	Client                 *User              `json:"client,omitempty"`
 	Company                *Company           `json:"company,omitempty"`
-	Cleaner                *CleanerProfile    `json:"cleaner,omitempty"`
+	Worker                 *WorkerProfile     `json:"worker,omitempty"`
 	Address                *Address           `json:"address,omitempty"`
 	ServiceType            ServiceType        `json:"serviceType"`
 	ServiceName            string             `json:"serviceName"`
@@ -182,81 +182,6 @@ type CityArea struct {
 	CityName string `json:"cityName"`
 }
 
-type CleanerDailyEarnings struct {
-	Date   string  `json:"date"`
-	Amount float64 `json:"amount"`
-}
-
-type CleanerDateOverride struct {
-	ID          string `json:"id"`
-	Date        string `json:"date"`
-	IsAvailable bool   `json:"isAvailable"`
-	StartTime   string `json:"startTime"`
-	EndTime     string `json:"endTime"`
-}
-
-type CleanerDocument struct {
-	ID              string         `json:"id"`
-	DocumentType    string         `json:"documentType"`
-	FileURL         string         `json:"fileUrl"`
-	FileName        string         `json:"fileName"`
-	Status          DocumentStatus `json:"status"`
-	UploadedAt      time.Time      `json:"uploadedAt"`
-	ReviewedAt      *time.Time     `json:"reviewedAt,omitempty"`
-	RejectionReason *string        `json:"rejectionReason,omitempty"`
-}
-
-type CleanerPerformance struct {
-	CleanerID          string  `json:"cleanerId"`
-	FullName           string  `json:"fullName"`
-	RatingAvg          float64 `json:"ratingAvg"`
-	TotalCompletedJobs int     `json:"totalCompletedJobs"`
-	ThisMonthCompleted int     `json:"thisMonthCompleted"`
-	TotalEarnings      float64 `json:"totalEarnings"`
-	ThisMonthEarnings  float64 `json:"thisMonthEarnings"`
-}
-
-type CleanerProfile struct {
-	ID                    string                 `json:"id"`
-	UserID                *string                `json:"userId,omitempty"`
-	User                  *User                  `json:"user,omitempty"`
-	Company               *Company               `json:"company,omitempty"`
-	FullName              string                 `json:"fullName"`
-	Phone                 *string                `json:"phone,omitempty"`
-	Email                 *string                `json:"email,omitempty"`
-	Bio                   *string                `json:"bio,omitempty"`
-	Status                CleanerStatus          `json:"status"`
-	IsCompanyAdmin        bool                   `json:"isCompanyAdmin"`
-	InviteToken           *string                `json:"inviteToken,omitempty"`
-	RatingAvg             float64                `json:"ratingAvg"`
-	TotalJobsCompleted    int                    `json:"totalJobsCompleted"`
-	Documents             []*CleanerDocument     `json:"documents"`
-	PersonalityAssessment *PersonalityAssessment `json:"personalityAssessment,omitempty"`
-	Availability          []*AvailabilitySlot    `json:"availability"`
-	CreatedAt             time.Time              `json:"createdAt"`
-}
-
-type CleanerStats struct {
-	TotalJobsCompleted int     `json:"totalJobsCompleted"`
-	AverageRating      float64 `json:"averageRating"`
-	TotalReviews       int     `json:"totalReviews"`
-	ThisMonthJobs      int     `json:"thisMonthJobs"`
-	ThisMonthEarnings  float64 `json:"thisMonthEarnings"`
-}
-
-type CleanerSuggestion struct {
-	Cleaner            *CleanerProfile `json:"cleaner"`
-	Company            *Company        `json:"company"`
-	AvailabilityStatus string          `json:"availabilityStatus"`
-	AvailableFrom      *string         `json:"availableFrom,omitempty"`
-	AvailableTo        *string         `json:"availableTo,omitempty"`
-	SuggestedStartTime *string         `json:"suggestedStartTime,omitempty"`
-	SuggestedEndTime   *string         `json:"suggestedEndTime,omitempty"`
-	SuggestedSlotIndex *int            `json:"suggestedSlotIndex,omitempty"`
-	SuggestedDate      *string         `json:"suggestedDate,omitempty"`
-	MatchScore         float64         `json:"matchScore"`
-}
-
 type ClientBillingProfile struct {
 	ID          string  `json:"id"`
 	IsCompany   bool    `json:"isCompany"`
@@ -291,7 +216,7 @@ type Company struct {
 	RatingAvg           float64            `json:"ratingAvg"`
 	TotalJobsCompleted  int                `json:"totalJobsCompleted"`
 	Documents           []*CompanyDocument `json:"documents"`
-	Cleaners            []*CleanerProfile  `json:"cleaners"`
+	Workers             []*WorkerProfile   `json:"workers"`
 	Admin               *User              `json:"admin,omitempty"`
 	CreatedAt           time.Time          `json:"createdAt"`
 }
@@ -402,7 +327,7 @@ type CreateBookingInput struct {
 	GuestEmail          *string          `json:"guestEmail,omitempty"`
 	GuestName           *string          `json:"guestName,omitempty"`
 	GuestPhone          *string          `json:"guestPhone,omitempty"`
-	PreferredCleanerID  *string          `json:"preferredCleanerId,omitempty"`
+	PreferredWorkerID   *string          `json:"preferredWorkerId,omitempty"`
 	SuggestedStartTime  *string          `json:"suggestedStartTime,omitempty"`
 	Recurrence          *RecurrenceInput `json:"recurrence,omitempty"`
 }
@@ -458,7 +383,7 @@ type ExtraLineItem struct {
 	LineTotal float64       `json:"lineTotal"`
 }
 
-type InviteCleanerInput struct {
+type InviteWorkerInput struct {
 	FullName string  `json:"fullName"`
 	Email    string  `json:"email"`
 	Phone    *string `json:"phone,omitempty"`
@@ -624,7 +549,7 @@ type PersonalityAnswerInput struct {
 
 type PersonalityAssessment struct {
 	ID             string                   `json:"id"`
-	CleanerID      string                   `json:"cleanerId"`
+	WorkerID       string                   `json:"workerId"`
 	FacetScores    []*PersonalityFacetScore `json:"facetScores"`
 	IntegrityAvg   float64                  `json:"integrityAvg"`
 	WorkQualityAvg float64                  `json:"workQualityAvg"`
@@ -680,7 +605,7 @@ type PlatformSetting struct {
 type PlatformStats struct {
 	TotalClients            int     `json:"totalClients"`
 	TotalCompanies          int     `json:"totalCompanies"`
-	TotalCleaners           int     `json:"totalCleaners"`
+	TotalWorkers            int     `json:"totalWorkers"`
 	TotalBookings           int     `json:"totalBookings"`
 	TotalRevenue            float64 `json:"totalRevenue"`
 	PlatformCommissionTotal float64 `json:"platformCommissionTotal"`
@@ -729,32 +654,32 @@ type RecurrenceInput struct {
 }
 
 type RecurringBookingGroup struct {
-	ID                          string          `json:"id"`
-	Client                      *User           `json:"client,omitempty"`
-	Company                     *Company        `json:"company,omitempty"`
-	PreferredCleaner            *CleanerProfile `json:"preferredCleaner,omitempty"`
-	Address                     *Address        `json:"address,omitempty"`
-	RecurrenceType              RecurrenceType  `json:"recurrenceType"`
-	DayOfWeek                   *int            `json:"dayOfWeek,omitempty"`
-	PreferredTime               string          `json:"preferredTime"`
-	ServiceType                 ServiceType     `json:"serviceType"`
-	ServiceName                 string          `json:"serviceName"`
-	PropertyType                *string         `json:"propertyType,omitempty"`
-	NumRooms                    *int            `json:"numRooms,omitempty"`
-	NumBathrooms                *int            `json:"numBathrooms,omitempty"`
-	AreaSqm                     *int            `json:"areaSqm,omitempty"`
-	HasPets                     *bool           `json:"hasPets,omitempty"`
-	SpecialInstructions         *string         `json:"specialInstructions,omitempty"`
-	HourlyRate                  float64         `json:"hourlyRate"`
-	EstimatedTotalPerOccurrence float64         `json:"estimatedTotalPerOccurrence"`
-	IsActive                    bool            `json:"isActive"`
-	CancelledAt                 *time.Time      `json:"cancelledAt,omitempty"`
-	CancellationReason          *string         `json:"cancellationReason,omitempty"`
-	Occurrences                 []*Booking      `json:"occurrences"`
-	UpcomingOccurrences         []*Booking      `json:"upcomingOccurrences"`
-	TotalOccurrences            int             `json:"totalOccurrences"`
-	CompletedOccurrences        int             `json:"completedOccurrences"`
-	CreatedAt                   time.Time       `json:"createdAt"`
+	ID                          string         `json:"id"`
+	Client                      *User          `json:"client,omitempty"`
+	Company                     *Company       `json:"company,omitempty"`
+	PreferredWorker             *WorkerProfile `json:"preferredWorker,omitempty"`
+	Address                     *Address       `json:"address,omitempty"`
+	RecurrenceType              RecurrenceType `json:"recurrenceType"`
+	DayOfWeek                   *int           `json:"dayOfWeek,omitempty"`
+	PreferredTime               string         `json:"preferredTime"`
+	ServiceType                 ServiceType    `json:"serviceType"`
+	ServiceName                 string         `json:"serviceName"`
+	PropertyType                *string        `json:"propertyType,omitempty"`
+	NumRooms                    *int           `json:"numRooms,omitempty"`
+	NumBathrooms                *int           `json:"numBathrooms,omitempty"`
+	AreaSqm                     *int           `json:"areaSqm,omitempty"`
+	HasPets                     *bool          `json:"hasPets,omitempty"`
+	SpecialInstructions         *string        `json:"specialInstructions,omitempty"`
+	HourlyRate                  float64        `json:"hourlyRate"`
+	EstimatedTotalPerOccurrence float64        `json:"estimatedTotalPerOccurrence"`
+	IsActive                    bool           `json:"isActive"`
+	CancelledAt                 *time.Time     `json:"cancelledAt,omitempty"`
+	CancellationReason          *string        `json:"cancellationReason,omitempty"`
+	Occurrences                 []*Booking     `json:"occurrences"`
+	UpcomingOccurrences         []*Booking     `json:"upcomingOccurrences"`
+	TotalOccurrences            int            `json:"totalOccurrences"`
+	CompletedOccurrences        int            `json:"completedOccurrences"`
+	CreatedAt                   time.Time      `json:"createdAt"`
 }
 
 type RefundRequest struct {
@@ -878,11 +803,6 @@ type UpdateAddressInput struct {
 	Notes         *string  `json:"notes,omitempty"`
 }
 
-type UpdateCleanerProfileInput struct {
-	Bio   *string `json:"bio,omitempty"`
-	Phone *string `json:"phone,omitempty"`
-}
-
 type UpdateCompanyInput struct {
 	Description        *string                 `json:"description,omitempty"`
 	ContactPhone       *string                 `json:"contactPhone,omitempty"`
@@ -924,22 +844,27 @@ type UpdateServiceExtraInput struct {
 	UnitLabel       *string `json:"unitLabel,omitempty"`
 }
 
+type UpdateWorkerProfileInput struct {
+	Bio   *string `json:"bio,omitempty"`
+	Phone *string `json:"phone,omitempty"`
+}
+
 type UploadResult struct {
 	URL      string `json:"url"`
 	FileName string `json:"fileName"`
 }
 
 type User struct {
-	ID                string          `json:"id"`
-	Email             string          `json:"email"`
-	FullName          string          `json:"fullName"`
-	Phone             *string         `json:"phone,omitempty"`
-	AvatarURL         *string         `json:"avatarUrl,omitempty"`
-	Role              UserRole        `json:"role"`
-	Status            UserStatus      `json:"status"`
-	PreferredLanguage string          `json:"preferredLanguage"`
-	CreatedAt         time.Time       `json:"createdAt"`
-	CleanerProfile    *CleanerProfile `json:"cleanerProfile,omitempty"`
+	ID                string         `json:"id"`
+	Email             string         `json:"email"`
+	FullName          string         `json:"fullName"`
+	Phone             *string        `json:"phone,omitempty"`
+	AvatarURL         *string        `json:"avatarUrl,omitempty"`
+	Role              UserRole       `json:"role"`
+	Status            UserStatus     `json:"status"`
+	PreferredLanguage string         `json:"preferredLanguage"`
+	CreatedAt         time.Time      `json:"createdAt"`
+	WorkerProfile     *WorkerProfile `json:"workerProfile,omitempty"`
 }
 
 type UserConnection struct {
@@ -970,6 +895,81 @@ type WorkScheduleDayInput struct {
 	StartTime string `json:"startTime"`
 	EndTime   string `json:"endTime"`
 	IsWorkDay bool   `json:"isWorkDay"`
+}
+
+type WorkerDailyEarnings struct {
+	Date   string  `json:"date"`
+	Amount float64 `json:"amount"`
+}
+
+type WorkerDateOverride struct {
+	ID          string `json:"id"`
+	Date        string `json:"date"`
+	IsAvailable bool   `json:"isAvailable"`
+	StartTime   string `json:"startTime"`
+	EndTime     string `json:"endTime"`
+}
+
+type WorkerDocument struct {
+	ID              string         `json:"id"`
+	DocumentType    string         `json:"documentType"`
+	FileURL         string         `json:"fileUrl"`
+	FileName        string         `json:"fileName"`
+	Status          DocumentStatus `json:"status"`
+	UploadedAt      time.Time      `json:"uploadedAt"`
+	ReviewedAt      *time.Time     `json:"reviewedAt,omitempty"`
+	RejectionReason *string        `json:"rejectionReason,omitempty"`
+}
+
+type WorkerPerformance struct {
+	WorkerID           string  `json:"workerId"`
+	FullName           string  `json:"fullName"`
+	RatingAvg          float64 `json:"ratingAvg"`
+	TotalCompletedJobs int     `json:"totalCompletedJobs"`
+	ThisMonthCompleted int     `json:"thisMonthCompleted"`
+	TotalEarnings      float64 `json:"totalEarnings"`
+	ThisMonthEarnings  float64 `json:"thisMonthEarnings"`
+}
+
+type WorkerProfile struct {
+	ID                    string                 `json:"id"`
+	UserID                *string                `json:"userId,omitempty"`
+	User                  *User                  `json:"user,omitempty"`
+	Company               *Company               `json:"company,omitempty"`
+	FullName              string                 `json:"fullName"`
+	Phone                 *string                `json:"phone,omitempty"`
+	Email                 *string                `json:"email,omitempty"`
+	Bio                   *string                `json:"bio,omitempty"`
+	Status                WorkerStatus           `json:"status"`
+	IsCompanyAdmin        bool                   `json:"isCompanyAdmin"`
+	InviteToken           *string                `json:"inviteToken,omitempty"`
+	RatingAvg             float64                `json:"ratingAvg"`
+	TotalJobsCompleted    int                    `json:"totalJobsCompleted"`
+	Documents             []*WorkerDocument      `json:"documents"`
+	PersonalityAssessment *PersonalityAssessment `json:"personalityAssessment,omitempty"`
+	Availability          []*AvailabilitySlot    `json:"availability"`
+	CreatedAt             time.Time              `json:"createdAt"`
+}
+
+type WorkerStats struct {
+	TotalJobsCompleted int     `json:"totalJobsCompleted"`
+	AverageRating      float64 `json:"averageRating"`
+	TotalReviews       int     `json:"totalReviews"`
+	ThisMonthJobs      int     `json:"thisMonthJobs"`
+	ThisMonthEarnings  float64 `json:"thisMonthEarnings"`
+}
+
+type WorkerSuggestion struct {
+	Worker             *WorkerProfile `json:"worker"`
+	Company            *Company       `json:"company"`
+	AvailabilityStatus string         `json:"availabilityStatus"`
+	AvailableFrom      *string        `json:"availableFrom,omitempty"`
+	AvailableTo        *string        `json:"availableTo,omitempty"`
+	SuggestedStartTime *string        `json:"suggestedStartTime,omitempty"`
+	SuggestedEndTime   *string        `json:"suggestedEndTime,omitempty"`
+	SuggestedSlotIndex *int           `json:"suggestedSlotIndex,omitempty"`
+	SuggestedDate      *string        `json:"suggestedDate,omitempty"`
+	MatchScore         float64        `json:"matchScore"`
 }
 
 type BookingStatus string
@@ -1032,67 +1032,6 @@ func (e *BookingStatus) UnmarshalJSON(b []byte) error {
 }
 
 func (e BookingStatus) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
-type CleanerStatus string
-
-const (
-	CleanerStatusInvited       CleanerStatus = "INVITED"
-	CleanerStatusPendingReview CleanerStatus = "PENDING_REVIEW"
-	CleanerStatusActive        CleanerStatus = "ACTIVE"
-	CleanerStatusInactive      CleanerStatus = "INACTIVE"
-	CleanerStatusSuspended     CleanerStatus = "SUSPENDED"
-)
-
-var AllCleanerStatus = []CleanerStatus{
-	CleanerStatusInvited,
-	CleanerStatusPendingReview,
-	CleanerStatusActive,
-	CleanerStatusInactive,
-	CleanerStatusSuspended,
-}
-
-func (e CleanerStatus) IsValid() bool {
-	switch e {
-	case CleanerStatusInvited, CleanerStatusPendingReview, CleanerStatusActive, CleanerStatusInactive, CleanerStatusSuspended:
-		return true
-	}
-	return false
-}
-
-func (e CleanerStatus) String() string {
-	return string(e)
-}
-
-func (e *CleanerStatus) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = CleanerStatus(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid CleanerStatus", str)
-	}
-	return nil
-}
-
-func (e CleanerStatus) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *CleanerStatus) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e CleanerStatus) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil
@@ -1762,20 +1701,20 @@ type UserRole string
 const (
 	UserRoleClient       UserRole = "CLIENT"
 	UserRoleCompanyAdmin UserRole = "COMPANY_ADMIN"
-	UserRoleCleaner      UserRole = "CLEANER"
+	UserRoleWorker       UserRole = "WORKER"
 	UserRoleGlobalAdmin  UserRole = "GLOBAL_ADMIN"
 )
 
 var AllUserRole = []UserRole{
 	UserRoleClient,
 	UserRoleCompanyAdmin,
-	UserRoleCleaner,
+	UserRoleWorker,
 	UserRoleGlobalAdmin,
 }
 
 func (e UserRole) IsValid() bool {
 	switch e {
-	case UserRoleClient, UserRoleCompanyAdmin, UserRoleCleaner, UserRoleGlobalAdmin:
+	case UserRoleClient, UserRoleCompanyAdmin, UserRoleWorker, UserRoleGlobalAdmin:
 		return true
 	}
 	return false
@@ -1925,6 +1864,67 @@ func (e *WaitlistLeadType) UnmarshalJSON(b []byte) error {
 }
 
 func (e WaitlistLeadType) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+type WorkerStatus string
+
+const (
+	WorkerStatusInvited       WorkerStatus = "INVITED"
+	WorkerStatusPendingReview WorkerStatus = "PENDING_REVIEW"
+	WorkerStatusActive        WorkerStatus = "ACTIVE"
+	WorkerStatusInactive      WorkerStatus = "INACTIVE"
+	WorkerStatusSuspended     WorkerStatus = "SUSPENDED"
+)
+
+var AllWorkerStatus = []WorkerStatus{
+	WorkerStatusInvited,
+	WorkerStatusPendingReview,
+	WorkerStatusActive,
+	WorkerStatusInactive,
+	WorkerStatusSuspended,
+}
+
+func (e WorkerStatus) IsValid() bool {
+	switch e {
+	case WorkerStatusInvited, WorkerStatusPendingReview, WorkerStatusActive, WorkerStatusInactive, WorkerStatusSuspended:
+		return true
+	}
+	return false
+}
+
+func (e WorkerStatus) String() string {
+	return string(e)
+}
+
+func (e *WorkerStatus) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = WorkerStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid WorkerStatus", str)
+	}
+	return nil
+}
+
+func (e WorkerStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *WorkerStatus) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e WorkerStatus) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil

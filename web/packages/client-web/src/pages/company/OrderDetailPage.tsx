@@ -14,10 +14,10 @@ import Modal from '@/components/ui/Modal';
 import {
   COMPANY_BOOKING_DETAIL,
   COMPANY_BOOKINGS,
-  MY_CLEANERS,
-  ASSIGN_CLEANER,
+  MY_WORKERS,
+  ASSIGN_WORKER,
   CANCEL_BOOKING,
-  SUGGEST_CLEANERS,
+  SUGGEST_WORKERS,
   ACTIVE_CITIES,
   SELECT_BOOKING_TIME_SLOT,
   COMPANY_INVOICE_FOR_BOOKING,
@@ -174,7 +174,7 @@ function Avatar({
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-interface CleanerOption {
+interface WorkerOption {
   id: string;
   fullName: string;
   phone: string | null;
@@ -184,8 +184,8 @@ interface CleanerOption {
   totalJobsCompleted: number;
 }
 
-interface SuggestedCleaner {
-  cleaner: {
+interface SuggestedWorker {
+  worker: {
     id: string;
     fullName: string;
     avatarUrl: string | null;
@@ -230,7 +230,7 @@ export default function OrderDetailPage() {
 
   // Modal state
   const [assignModal, setAssignModal] = useState(false);
-  const [cleanerSearch, setCleanerSearch] = useState('');
+  const [workerSearch, setWorkerSearch] = useState('');
   const [cancelModal, setCancelModal] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [invoiceExpanded, setInvoiceExpanded] = useState(false);
@@ -256,7 +256,7 @@ export default function OrderDetailPage() {
     skip: !id || !isPaid,
   });
 
-  const { data: cleanersData, loading: loadingCleaners } = useQuery(MY_CLEANERS, {
+  const { data: workersData, loading: loadingWorkers } = useQuery(MY_WORKERS, {
     skip: !assignModal,
   });
 
@@ -278,7 +278,7 @@ export default function OrderDetailPage() {
     return { cityId: matchedCity.id, areaId: firstArea.id };
   })();
 
-  // Build timeSlots for SUGGEST_CLEANERS query
+  // Build timeSlots for SUGGEST_WORKERS query
   const suggestTimeSlots = (() => {
     if (!booking?.scheduledDate || !booking?.scheduledStartTime) return [];
     const durationHours = booking.estimatedDurationHours ?? 2;
@@ -289,7 +289,7 @@ export default function OrderDetailPage() {
     return [{ date: booking.scheduledDate, startTime: booking.scheduledStartTime, endTime }];
   })();
 
-  const { data: suggestionsData, loading: loadingSuggestions } = useQuery(SUGGEST_CLEANERS, {
+  const { data: suggestionsData, loading: loadingSuggestions } = useQuery(SUGGEST_WORKERS, {
     variables: {
       cityId: resolvedLocation?.cityId ?? '',
       areaId: resolvedLocation?.areaId ?? '',
@@ -299,11 +299,11 @@ export default function OrderDetailPage() {
     skip: !assignModal || !resolvedLocation || suggestTimeSlots.length === 0,
   });
 
-  const suggestedCleaners: SuggestedCleaner[] = suggestionsData?.suggestCleaners ?? [];
+  const suggestedWorkers: SuggestedWorker[] = suggestionsData?.suggestWorkers ?? [];
 
   // ─── Mutations ───────────────────────────────────────────────────────────
 
-  const [assignCleaner, { loading: assigning }] = useMutation(ASSIGN_CLEANER, {
+  const [assignWorker, { loading: assigning }] = useMutation(ASSIGN_WORKER, {
     refetchQueries: [{ query: COMPANY_BOOKING_DETAIL, variables: { id } }],
   });
 
@@ -324,10 +324,10 @@ export default function OrderDetailPage() {
 
   // ─── Handlers ────────────────────────────────────────────────────────────
 
-  const handleAssign = async (cleanerId: string) => {
-    await assignCleaner({ variables: { bookingId: id, cleanerId } });
+  const handleAssign = async (workerId: string) => {
+    await assignWorker({ variables: { bookingId: id, workerId } });
     setAssignModal(false);
-    setCleanerSearch('');
+    setWorkerSearch('');
   };
 
   const handleCancel = async () => {
@@ -341,16 +341,16 @@ export default function OrderDetailPage() {
     await generateInvoice({ variables: { bookingId: id } });
   };
 
-  // Filter cleaners by search
-  const allCleaners: CleanerOption[] = cleanersData?.myCleaners ?? [];
-  const filteredCleaners = cleanerSearch.trim()
-    ? allCleaners.filter((c) =>
-        c.fullName.toLowerCase().includes(cleanerSearch.toLowerCase()) ||
-        c.email?.toLowerCase().includes(cleanerSearch.toLowerCase()),
+  // Filter workers by search
+  const allWorkers: WorkerOption[] = workersData?.myWorkers ?? [];
+  const filteredWorkers = workerSearch.trim()
+    ? allWorkers.filter((c) =>
+        c.fullName.toLowerCase().includes(workerSearch.toLowerCase()) ||
+        c.email?.toLowerCase().includes(workerSearch.toLowerCase()),
       )
-    : allCleaners;
+    : allWorkers;
 
-  const suggestedCleanerIds = new Set(suggestedCleaners.map((s) => s.cleaner.id));
+  const suggestedWorkerIds = new Set(suggestedWorkers.map((s) => s.worker.id));
 
   // ─── Derived data ────────────────────────────────────────────────────────
 
@@ -902,52 +902,52 @@ export default function OrderDetailPage() {
             </Card>
           )}
 
-          {/* Worker (Cleaner) */}
+          {/* Worker */}
           <Card>
             <h2 className="font-semibold text-gray-900 mb-3">Lucrator asignat</h2>
-            {booking.cleaner ? (
+            {booking.worker ? (
               <div>
                 <Link
-                  to={`/firma/echipa/${booking.cleaner.id}`}
+                  to={`/firma/echipa/${booking.worker.id}`}
                   className="flex items-center gap-3 mb-3 p-2 -mx-2 rounded-lg hover:bg-gray-50 transition-colors group"
                 >
-                  <Avatar src={booking.cleaner.user?.avatarUrl} name={booking.cleaner.fullName} color="emerald" />
+                  <Avatar src={booking.worker.user?.avatarUrl} name={booking.worker.fullName} color="emerald" />
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium text-gray-900 truncate group-hover:text-blue-600 transition-colors">
-                      {booking.cleaner.fullName}
+                      {booking.worker.fullName}
                     </p>
                     <p className="text-xs text-gray-400">Vezi profil &rarr;</p>
                   </div>
                 </Link>
-                {(booking.cleaner.phone || booking.cleaner.email) && (
+                {(booking.worker.phone || booking.worker.email) && (
                   <div className="space-y-1.5 mb-3">
-                    {booking.cleaner.phone && (
-                      <a href={`tel:${booking.cleaner.phone}`} className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                    {booking.worker.phone && (
+                      <a href={`tel:${booking.worker.phone}`} className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 transition-colors">
                         <Phone className="h-3.5 w-3.5 text-gray-400 shrink-0" />
-                        {booking.cleaner.phone}
+                        {booking.worker.phone}
                       </a>
                     )}
-                    {booking.cleaner.email && (
-                      <a href={`mailto:${booking.cleaner.email}`} className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 transition-colors truncate">
+                    {booking.worker.email && (
+                      <a href={`mailto:${booking.worker.email}`} className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 transition-colors truncate">
                         <Mail className="h-3.5 w-3.5 text-gray-400 shrink-0" />
-                        <span className="truncate">{booking.cleaner.email}</span>
+                        <span className="truncate">{booking.worker.email}</span>
                       </a>
                     )}
                   </div>
                 )}
                 <div className="flex gap-2">
-                  {booking.cleaner.phone && (
+                  {booking.worker.phone && (
                     <a
-                      href={`tel:${booking.cleaner.phone}`}
+                      href={`tel:${booking.worker.phone}`}
                       className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors"
                     >
                       <Phone className="h-3.5 w-3.5" />
                       Suna
                     </a>
                   )}
-                  {booking.cleaner.email && (
+                  {booking.worker.email && (
                     <a
-                      href={`mailto:${booking.cleaner.email}`}
+                      href={`mailto:${booking.worker.email}`}
                       className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors"
                     >
                       <Mail className="h-3.5 w-3.5" />
@@ -1206,18 +1206,18 @@ export default function OrderDetailPage() {
         </div>
       </div>
 
-      {/* ─── Assign Cleaner Modal ─────────────────────────────────────────── */}
+      {/* ─── Assign Worker Modal ─────────────────────────────────────────── */}
       <Modal
         open={assignModal}
         onClose={() => {
           setAssignModal(false);
-          setCleanerSearch('');
+          setWorkerSearch('');
         }}
         title="Asigneaza lucrator"
       >
         <div className="space-y-4">
           {/* Suggestions Section */}
-          {resolvedLocation && suggestedCleaners.length > 0 && !cleanerSearch.trim() && (
+          {resolvedLocation && suggestedWorkers.length > 0 && !workerSearch.trim() && (
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <Star className="h-4 w-4 text-accent" />
@@ -1230,26 +1230,26 @@ export default function OrderDetailPage() {
                 </div>
               ) : (
                 <div className="space-y-2 mb-4">
-                  {suggestedCleaners.slice(0, 3).map((suggestion) => (
+                  {suggestedWorkers.slice(0, 3).map((suggestion) => (
                     <div
-                      key={suggestion.cleaner.id}
+                      key={suggestion.worker.id}
                       className="flex items-center justify-between p-3 rounded-xl border border-blue-200 bg-blue-50/50 hover:border-blue-400 transition-colors"
                     >
                       <div className="flex items-center gap-3 min-w-0">
-                        <Avatar src={suggestion.cleaner.avatarUrl} name={suggestion.cleaner.fullName} color="blue" />
+                        <Avatar src={suggestion.worker.avatarUrl} name={suggestion.worker.fullName} color="blue" />
                         <div className="min-w-0">
                           <p className="font-medium text-gray-900 text-sm truncate">
-                            {suggestion.cleaner.fullName}
+                            {suggestion.worker.fullName}
                           </p>
                           <div className="flex items-center gap-3 mt-0.5">
                             <span className="flex items-center gap-1 text-xs text-gray-500">
                               <Star className="h-3 w-3 text-accent" />
-                              {suggestion.cleaner.ratingAvg > 0
-                                ? suggestion.cleaner.ratingAvg.toFixed(1)
+                              {suggestion.worker.ratingAvg > 0
+                                ? suggestion.worker.ratingAvg.toFixed(1)
                                 : '--'}
                             </span>
                             <span className="text-xs text-gray-400">
-                              {suggestion.cleaner.totalJobsCompleted} joburi
+                              {suggestion.worker.totalJobsCompleted} joburi
                             </span>
                             <Badge
                               variant={
@@ -1266,7 +1266,7 @@ export default function OrderDetailPage() {
                       </div>
                       <Button
                         size="sm"
-                        onClick={() => handleAssign(suggestion.cleaner.id)}
+                        onClick={() => handleAssign(suggestion.worker.id)}
                         loading={assigning}
                         className="shrink-0 ml-3"
                       >
@@ -1289,37 +1289,37 @@ export default function OrderDetailPage() {
             <input
               type="text"
               placeholder="Cauta dupa nume sau email..."
-              value={cleanerSearch}
-              onChange={(e) => setCleanerSearch(e.target.value)}
+              value={workerSearch}
+              onChange={(e) => setWorkerSearch(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
             />
           </div>
 
-          {loadingCleaners ? (
+          {loadingWorkers ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-6 w-6 animate-spin text-primary" />
             </div>
-          ) : filteredCleaners.length === 0 ? (
+          ) : filteredWorkers.length === 0 ? (
             <p className="text-sm text-gray-400 text-center py-6">Niciun lucrator gasit.</p>
           ) : (
             <div className="max-h-80 overflow-y-auto space-y-2">
-              {filteredCleaners.map((cleaner) => (
+              {filteredWorkers.map((worker) => (
                 <div
-                  key={cleaner.id}
+                  key={worker.id}
                   className={`flex items-center justify-between p-3 rounded-xl border transition-colors ${
-                    suggestedCleanerIds.has(cleaner.id)
+                    suggestedWorkerIds.has(worker.id)
                       ? 'border-blue-200 bg-blue-50/30 hover:border-blue-400'
                       : 'border-gray-200 hover:border-primary/30 hover:bg-primary/5'
                   }`}
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <Avatar name={cleaner.fullName} color="primary" />
+                    <Avatar name={worker.fullName} color="primary" />
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
                         <p className="font-medium text-gray-900 text-sm truncate">
-                          {cleaner.fullName}
+                          {worker.fullName}
                         </p>
-                        {suggestedCleanerIds.has(cleaner.id) && (
+                        {suggestedWorkerIds.has(worker.id) && (
                           <Badge variant="info" className="text-[10px] px-1.5 py-0">
                             Recomandat
                           </Badge>
@@ -1328,17 +1328,17 @@ export default function OrderDetailPage() {
                       <div className="flex items-center gap-3 mt-0.5">
                         <span className="flex items-center gap-1 text-xs text-gray-400">
                           <Star className="h-3 w-3 text-accent" />
-                          {cleaner.ratingAvg > 0 ? cleaner.ratingAvg.toFixed(1) : '--'}
+                          {worker.ratingAvg > 0 ? worker.ratingAvg.toFixed(1) : '--'}
                         </span>
                         <span className="text-xs text-gray-400">
-                          {cleaner.totalJobsCompleted} joburi
+                          {worker.totalJobsCompleted} joburi
                         </span>
                       </div>
                     </div>
                   </div>
                   <Button
                     size="sm"
-                    onClick={() => handleAssign(cleaner.id)}
+                    onClick={() => handleAssign(worker.id)}
                     loading={assigning}
                     className="shrink-0 ml-3"
                   >

@@ -11,31 +11,31 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const deleteCleanerAvailability = `-- name: DeleteCleanerAvailability :exec
-DELETE FROM cleaner_availability WHERE cleaner_id = $1
+const deleteWorkerAvailability = `-- name: DeleteWorkerAvailability :exec
+DELETE FROM worker_availability WHERE worker_id = $1
 `
 
-func (q *Queries) DeleteCleanerAvailability(ctx context.Context, cleanerID pgtype.UUID) error {
-	_, err := q.db.Exec(ctx, deleteCleanerAvailability, cleanerID)
+func (q *Queries) DeleteWorkerAvailability(ctx context.Context, workerID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteWorkerAvailability, workerID)
 	return err
 }
 
-const listCleanerAvailability = `-- name: ListCleanerAvailability :many
-SELECT id, cleaner_id, day_of_week, start_time, end_time, is_available FROM cleaner_availability WHERE cleaner_id = $1 ORDER BY day_of_week, start_time
+const listWorkerAvailability = `-- name: ListWorkerAvailability :many
+SELECT id, worker_id, day_of_week, start_time, end_time, is_available FROM worker_availability WHERE worker_id = $1 ORDER BY day_of_week, start_time
 `
 
-func (q *Queries) ListCleanerAvailability(ctx context.Context, cleanerID pgtype.UUID) ([]CleanerAvailability, error) {
-	rows, err := q.db.Query(ctx, listCleanerAvailability, cleanerID)
+func (q *Queries) ListWorkerAvailability(ctx context.Context, workerID pgtype.UUID) ([]WorkerAvailability, error) {
+	rows, err := q.db.Query(ctx, listWorkerAvailability, workerID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []CleanerAvailability
+	var items []WorkerAvailability
 	for rows.Next() {
-		var i CleanerAvailability
+		var i WorkerAvailability
 		if err := rows.Scan(
 			&i.ID,
-			&i.CleanerID,
+			&i.WorkerID,
 			&i.DayOfWeek,
 			&i.StartTime,
 			&i.EndTime,
@@ -51,32 +51,32 @@ func (q *Queries) ListCleanerAvailability(ctx context.Context, cleanerID pgtype.
 	return items, nil
 }
 
-const setCleanerAvailability = `-- name: SetCleanerAvailability :one
-INSERT INTO cleaner_availability (cleaner_id, day_of_week, start_time, end_time, is_available)
+const setWorkerAvailability = `-- name: SetWorkerAvailability :one
+INSERT INTO worker_availability (worker_id, day_of_week, start_time, end_time, is_available)
 VALUES ($1, $2, $3, $4, $5)
-RETURNING id, cleaner_id, day_of_week, start_time, end_time, is_available
+RETURNING id, worker_id, day_of_week, start_time, end_time, is_available
 `
 
-type SetCleanerAvailabilityParams struct {
-	CleanerID   pgtype.UUID `json:"cleaner_id"`
+type SetWorkerAvailabilityParams struct {
+	WorkerID    pgtype.UUID `json:"worker_id"`
 	DayOfWeek   int32       `json:"day_of_week"`
 	StartTime   pgtype.Time `json:"start_time"`
 	EndTime     pgtype.Time `json:"end_time"`
 	IsAvailable pgtype.Bool `json:"is_available"`
 }
 
-func (q *Queries) SetCleanerAvailability(ctx context.Context, arg SetCleanerAvailabilityParams) (CleanerAvailability, error) {
-	row := q.db.QueryRow(ctx, setCleanerAvailability,
-		arg.CleanerID,
+func (q *Queries) SetWorkerAvailability(ctx context.Context, arg SetWorkerAvailabilityParams) (WorkerAvailability, error) {
+	row := q.db.QueryRow(ctx, setWorkerAvailability,
+		arg.WorkerID,
 		arg.DayOfWeek,
 		arg.StartTime,
 		arg.EndTime,
 		arg.IsAvailable,
 	)
-	var i CleanerAvailability
+	var i WorkerAvailability
 	err := row.Scan(
 		&i.ID,
-		&i.CleanerID,
+		&i.WorkerID,
 		&i.DayOfWeek,
 		&i.StartTime,
 		&i.EndTime,

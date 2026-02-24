@@ -139,7 +139,7 @@ INSERT INTO payment_transactions (
   booking_id, stripe_payment_intent_id, amount_total, amount_company,
   amount_platform_fee, currency, status, metadata
 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-RETURNING id, booking_id, stripe_payment_intent_id, stripe_charge_id, amount_total, amount_company, amount_platform_fee, currency, status, failure_reason, refund_amount, stripe_refund_id, metadata, created_at, updated_at
+RETURNING id, booking_id, stripe_payment_intent_id, stripe_charge_id, amount_total, amount_company, amount_platform_fee, currency, status, failure_reason, refund_amount, stripe_refund_id, metadata, created_at, updated_at, stripe_dispute_id
 `
 
 type CreatePaymentTransactionParams struct {
@@ -184,6 +184,7 @@ func (q *Queries) CreatePaymentTransaction(ctx context.Context, arg CreatePaymen
 		&i.Metadata,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.StripeDisputeID,
 	)
 	return i, err
 }
@@ -333,7 +334,7 @@ func (q *Queries) GetPaymentMethodByStripeID(ctx context.Context, stripePaymentM
 }
 
 const getPaymentTransactionByBookingID = `-- name: GetPaymentTransactionByBookingID :one
-SELECT id, booking_id, stripe_payment_intent_id, stripe_charge_id, amount_total, amount_company, amount_platform_fee, currency, status, failure_reason, refund_amount, stripe_refund_id, metadata, created_at, updated_at FROM payment_transactions WHERE booking_id = $1 ORDER BY created_at DESC LIMIT 1
+SELECT id, booking_id, stripe_payment_intent_id, stripe_charge_id, amount_total, amount_company, amount_platform_fee, currency, status, failure_reason, refund_amount, stripe_refund_id, metadata, created_at, updated_at, stripe_dispute_id FROM payment_transactions WHERE booking_id = $1 ORDER BY created_at DESC LIMIT 1
 `
 
 func (q *Queries) GetPaymentTransactionByBookingID(ctx context.Context, bookingID pgtype.UUID) (PaymentTransaction, error) {
@@ -355,12 +356,13 @@ func (q *Queries) GetPaymentTransactionByBookingID(ctx context.Context, bookingI
 		&i.Metadata,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.StripeDisputeID,
 	)
 	return i, err
 }
 
 const getPaymentTransactionByStripePI = `-- name: GetPaymentTransactionByStripePI :one
-SELECT id, booking_id, stripe_payment_intent_id, stripe_charge_id, amount_total, amount_company, amount_platform_fee, currency, status, failure_reason, refund_amount, stripe_refund_id, metadata, created_at, updated_at FROM payment_transactions WHERE stripe_payment_intent_id = $1
+SELECT id, booking_id, stripe_payment_intent_id, stripe_charge_id, amount_total, amount_company, amount_platform_fee, currency, status, failure_reason, refund_amount, stripe_refund_id, metadata, created_at, updated_at, stripe_dispute_id FROM payment_transactions WHERE stripe_payment_intent_id = $1
 `
 
 func (q *Queries) GetPaymentTransactionByStripePI(ctx context.Context, stripePaymentIntentID string) (PaymentTransaction, error) {
@@ -382,6 +384,7 @@ func (q *Queries) GetPaymentTransactionByStripePI(ctx context.Context, stripePay
 		&i.Metadata,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.StripeDisputeID,
 	)
 	return i, err
 }
@@ -551,7 +554,7 @@ func (q *Queries) GetUserStripeCustomerID(ctx context.Context, id pgtype.UUID) (
 }
 
 const listAllPaymentTransactions = `-- name: ListAllPaymentTransactions :many
-SELECT id, booking_id, stripe_payment_intent_id, stripe_charge_id, amount_total, amount_company, amount_platform_fee, currency, status, failure_reason, refund_amount, stripe_refund_id, metadata, created_at, updated_at FROM payment_transactions ORDER BY created_at DESC LIMIT $1 OFFSET $2
+SELECT id, booking_id, stripe_payment_intent_id, stripe_charge_id, amount_total, amount_company, amount_platform_fee, currency, status, failure_reason, refund_amount, stripe_refund_id, metadata, created_at, updated_at, stripe_dispute_id FROM payment_transactions ORDER BY created_at DESC LIMIT $1 OFFSET $2
 `
 
 type ListAllPaymentTransactionsParams struct {
@@ -584,6 +587,7 @@ func (q *Queries) ListAllPaymentTransactions(ctx context.Context, arg ListAllPay
 			&i.Metadata,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.StripeDisputeID,
 		); err != nil {
 			return nil, err
 		}
@@ -683,7 +687,7 @@ func (q *Queries) ListAllRefundRequests(ctx context.Context, arg ListAllRefundRe
 
 const listPaymentHistoryByUser = `-- name: ListPaymentHistoryByUser :many
 
-SELECT pt.id, pt.booking_id, pt.stripe_payment_intent_id, pt.stripe_charge_id, pt.amount_total, pt.amount_company, pt.amount_platform_fee, pt.currency, pt.status, pt.failure_reason, pt.refund_amount, pt.stripe_refund_id, pt.metadata, pt.created_at, pt.updated_at FROM payment_transactions pt
+SELECT pt.id, pt.booking_id, pt.stripe_payment_intent_id, pt.stripe_charge_id, pt.amount_total, pt.amount_company, pt.amount_platform_fee, pt.currency, pt.status, pt.failure_reason, pt.refund_amount, pt.stripe_refund_id, pt.metadata, pt.created_at, pt.updated_at, pt.stripe_dispute_id FROM payment_transactions pt
 JOIN bookings b ON b.id = pt.booking_id
 WHERE b.client_user_id = $1
 ORDER BY pt.created_at DESC
@@ -724,6 +728,7 @@ func (q *Queries) ListPaymentHistoryByUser(ctx context.Context, arg ListPaymentH
 			&i.Metadata,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.StripeDisputeID,
 		); err != nil {
 			return nil, err
 		}
@@ -774,7 +779,7 @@ func (q *Queries) ListPaymentMethodsByUser(ctx context.Context, userID pgtype.UU
 }
 
 const listPaymentTransactionsByBooking = `-- name: ListPaymentTransactionsByBooking :many
-SELECT id, booking_id, stripe_payment_intent_id, stripe_charge_id, amount_total, amount_company, amount_platform_fee, currency, status, failure_reason, refund_amount, stripe_refund_id, metadata, created_at, updated_at FROM payment_transactions WHERE booking_id = $1 ORDER BY created_at DESC
+SELECT id, booking_id, stripe_payment_intent_id, stripe_charge_id, amount_total, amount_company, amount_platform_fee, currency, status, failure_reason, refund_amount, stripe_refund_id, metadata, created_at, updated_at, stripe_dispute_id FROM payment_transactions WHERE booking_id = $1 ORDER BY created_at DESC
 `
 
 func (q *Queries) ListPaymentTransactionsByBooking(ctx context.Context, bookingID pgtype.UUID) ([]PaymentTransaction, error) {
@@ -802,6 +807,7 @@ func (q *Queries) ListPaymentTransactionsByBooking(ctx context.Context, bookingI
 			&i.Metadata,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.StripeDisputeID,
 		); err != nil {
 			return nil, err
 		}
@@ -814,7 +820,7 @@ func (q *Queries) ListPaymentTransactionsByBooking(ctx context.Context, bookingI
 }
 
 const listPaymentTransactionsByStatus = `-- name: ListPaymentTransactionsByStatus :many
-SELECT id, booking_id, stripe_payment_intent_id, stripe_charge_id, amount_total, amount_company, amount_platform_fee, currency, status, failure_reason, refund_amount, stripe_refund_id, metadata, created_at, updated_at FROM payment_transactions WHERE status = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3
+SELECT id, booking_id, stripe_payment_intent_id, stripe_charge_id, amount_total, amount_company, amount_platform_fee, currency, status, failure_reason, refund_amount, stripe_refund_id, metadata, created_at, updated_at, stripe_dispute_id FROM payment_transactions WHERE status = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3
 `
 
 type ListPaymentTransactionsByStatusParams struct {
@@ -848,6 +854,7 @@ func (q *Queries) ListPaymentTransactionsByStatus(ctx context.Context, arg ListP
 			&i.Metadata,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.StripeDisputeID,
 		); err != nil {
 			return nil, err
 		}
@@ -1114,7 +1121,7 @@ func (q *Queries) ListRefundRequestsByUser(ctx context.Context, requestedByUserI
 }
 
 const listUnpaidCompanyTransactions = `-- name: ListUnpaidCompanyTransactions :many
-SELECT pt.id, pt.booking_id, pt.stripe_payment_intent_id, pt.stripe_charge_id, pt.amount_total, pt.amount_company, pt.amount_platform_fee, pt.currency, pt.status, pt.failure_reason, pt.refund_amount, pt.stripe_refund_id, pt.metadata, pt.created_at, pt.updated_at FROM payment_transactions pt
+SELECT pt.id, pt.booking_id, pt.stripe_payment_intent_id, pt.stripe_charge_id, pt.amount_total, pt.amount_company, pt.amount_platform_fee, pt.currency, pt.status, pt.failure_reason, pt.refund_amount, pt.stripe_refund_id, pt.metadata, pt.created_at, pt.updated_at, pt.stripe_dispute_id FROM payment_transactions pt
 JOIN bookings b ON b.id = pt.booking_id
 LEFT JOIN payout_line_items pli ON pli.payment_transaction_id = pt.id
 WHERE b.company_id = $1
@@ -1155,6 +1162,7 @@ func (q *Queries) ListUnpaidCompanyTransactions(ctx context.Context, arg ListUnp
 			&i.Metadata,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.StripeDisputeID,
 		); err != nil {
 			return nil, err
 		}
@@ -1168,7 +1176,7 @@ func (q *Queries) ListUnpaidCompanyTransactions(ctx context.Context, arg ListUnp
 
 const markBookingPaid = `-- name: MarkBookingPaid :one
 UPDATE bookings SET payment_status = 'paid', paid_at = NOW(), updated_at = NOW()
-WHERE id = $1 RETURNING id, reference_code, client_user_id, company_id, cleaner_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number
+WHERE id = $1 RETURNING id, reference_code, client_user_id, company_id, worker_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number
 `
 
 func (q *Queries) MarkBookingPaid(ctx context.Context, id pgtype.UUID) (Booking, error) {
@@ -1179,7 +1187,7 @@ func (q *Queries) MarkBookingPaid(ctx context.Context, id pgtype.UUID) (Booking,
 		&i.ReferenceCode,
 		&i.ClientUserID,
 		&i.CompanyID,
-		&i.CleanerID,
+		&i.WorkerID,
 		&i.AddressID,
 		&i.ServiceType,
 		&i.ScheduledDate,
@@ -1217,7 +1225,7 @@ UPDATE bookings
 SET payment_status = 'paid', paid_at = NOW(),
     status = CASE WHEN status = 'assigned' THEN 'confirmed'::booking_status ELSE status END,
     updated_at = NOW()
-WHERE id = $1 RETURNING id, reference_code, client_user_id, company_id, cleaner_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number
+WHERE id = $1 RETURNING id, reference_code, client_user_id, company_id, worker_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number
 `
 
 // Atomically marks a booking as paid AND auto-confirms it if still assigned.
@@ -1230,7 +1238,7 @@ func (q *Queries) MarkBookingPaidAndConfirmed(ctx context.Context, id pgtype.UUI
 		&i.ReferenceCode,
 		&i.ClientUserID,
 		&i.CompanyID,
-		&i.CleanerID,
+		&i.WorkerID,
 		&i.AddressID,
 		&i.ServiceType,
 		&i.ScheduledDate,
@@ -1377,7 +1385,7 @@ func (q *Queries) SumRefundedAmountByBooking(ctx context.Context, bookingID pgty
 const updateBookingPayment = `-- name: UpdateBookingPayment :one
 
 UPDATE bookings SET stripe_payment_intent_id = $2, payment_status = $3, updated_at = NOW()
-WHERE id = $1 RETURNING id, reference_code, client_user_id, company_id, cleaner_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number
+WHERE id = $1 RETURNING id, reference_code, client_user_id, company_id, worker_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number
 `
 
 type UpdateBookingPaymentParams struct {
@@ -1397,7 +1405,7 @@ func (q *Queries) UpdateBookingPayment(ctx context.Context, arg UpdateBookingPay
 		&i.ReferenceCode,
 		&i.ClientUserID,
 		&i.CompanyID,
-		&i.CleanerID,
+		&i.WorkerID,
 		&i.AddressID,
 		&i.ServiceType,
 		&i.ScheduledDate,
@@ -1430,9 +1438,49 @@ func (q *Queries) UpdateBookingPayment(ctx context.Context, arg UpdateBookingPay
 	return i, err
 }
 
+const updatePaymentTransactionDisputed = `-- name: UpdatePaymentTransactionDisputed :one
+UPDATE payment_transactions
+SET status = 'disputed',
+    stripe_dispute_id = $2,
+    failure_reason = $3,
+    updated_at = NOW()
+WHERE stripe_payment_intent_id = $1
+RETURNING id, booking_id, stripe_payment_intent_id, stripe_charge_id, amount_total, amount_company, amount_platform_fee, currency, status, failure_reason, refund_amount, stripe_refund_id, metadata, created_at, updated_at, stripe_dispute_id
+`
+
+type UpdatePaymentTransactionDisputedParams struct {
+	StripePaymentIntentID string      `json:"stripe_payment_intent_id"`
+	StripeDisputeID       pgtype.Text `json:"stripe_dispute_id"`
+	FailureReason         pgtype.Text `json:"failure_reason"`
+}
+
+func (q *Queries) UpdatePaymentTransactionDisputed(ctx context.Context, arg UpdatePaymentTransactionDisputedParams) (PaymentTransaction, error) {
+	row := q.db.QueryRow(ctx, updatePaymentTransactionDisputed, arg.StripePaymentIntentID, arg.StripeDisputeID, arg.FailureReason)
+	var i PaymentTransaction
+	err := row.Scan(
+		&i.ID,
+		&i.BookingID,
+		&i.StripePaymentIntentID,
+		&i.StripeChargeID,
+		&i.AmountTotal,
+		&i.AmountCompany,
+		&i.AmountPlatformFee,
+		&i.Currency,
+		&i.Status,
+		&i.FailureReason,
+		&i.RefundAmount,
+		&i.StripeRefundID,
+		&i.Metadata,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.StripeDisputeID,
+	)
+	return i, err
+}
+
 const updatePaymentTransactionFailed = `-- name: UpdatePaymentTransactionFailed :one
 UPDATE payment_transactions SET status = 'failed', failure_reason = $2, updated_at = NOW()
-WHERE stripe_payment_intent_id = $1 RETURNING id, booking_id, stripe_payment_intent_id, stripe_charge_id, amount_total, amount_company, amount_platform_fee, currency, status, failure_reason, refund_amount, stripe_refund_id, metadata, created_at, updated_at
+WHERE stripe_payment_intent_id = $1 RETURNING id, booking_id, stripe_payment_intent_id, stripe_charge_id, amount_total, amount_company, amount_platform_fee, currency, status, failure_reason, refund_amount, stripe_refund_id, metadata, created_at, updated_at, stripe_dispute_id
 `
 
 type UpdatePaymentTransactionFailedParams struct {
@@ -1459,13 +1507,14 @@ func (q *Queries) UpdatePaymentTransactionFailed(ctx context.Context, arg Update
 		&i.Metadata,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.StripeDisputeID,
 	)
 	return i, err
 }
 
 const updatePaymentTransactionRefund = `-- name: UpdatePaymentTransactionRefund :one
 UPDATE payment_transactions SET status = $2, refund_amount = $3, stripe_refund_id = $4, updated_at = NOW()
-WHERE stripe_payment_intent_id = $1 RETURNING id, booking_id, stripe_payment_intent_id, stripe_charge_id, amount_total, amount_company, amount_platform_fee, currency, status, failure_reason, refund_amount, stripe_refund_id, metadata, created_at, updated_at
+WHERE stripe_payment_intent_id = $1 RETURNING id, booking_id, stripe_payment_intent_id, stripe_charge_id, amount_total, amount_company, amount_platform_fee, currency, status, failure_reason, refund_amount, stripe_refund_id, metadata, created_at, updated_at, stripe_dispute_id
 `
 
 type UpdatePaymentTransactionRefundParams struct {
@@ -1499,13 +1548,14 @@ func (q *Queries) UpdatePaymentTransactionRefund(ctx context.Context, arg Update
 		&i.Metadata,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.StripeDisputeID,
 	)
 	return i, err
 }
 
 const updatePaymentTransactionStatus = `-- name: UpdatePaymentTransactionStatus :one
 UPDATE payment_transactions SET status = $2, stripe_charge_id = $3, updated_at = NOW()
-WHERE stripe_payment_intent_id = $1 RETURNING id, booking_id, stripe_payment_intent_id, stripe_charge_id, amount_total, amount_company, amount_platform_fee, currency, status, failure_reason, refund_amount, stripe_refund_id, metadata, created_at, updated_at
+WHERE stripe_payment_intent_id = $1 RETURNING id, booking_id, stripe_payment_intent_id, stripe_charge_id, amount_total, amount_company, amount_platform_fee, currency, status, failure_reason, refund_amount, stripe_refund_id, metadata, created_at, updated_at, stripe_dispute_id
 `
 
 type UpdatePaymentTransactionStatusParams struct {
@@ -1531,6 +1581,43 @@ func (q *Queries) UpdatePaymentTransactionStatus(ctx context.Context, arg Update
 		&i.RefundAmount,
 		&i.StripeRefundID,
 		&i.Metadata,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.StripeDisputeID,
+	)
+	return i, err
+}
+
+const updatePayoutFailed = `-- name: UpdatePayoutFailed :one
+UPDATE company_payouts
+SET status = 'failed',
+    failure_reason = $2,
+    updated_at = NOW()
+WHERE stripe_payout_id = $1
+RETURNING id, company_id, stripe_transfer_id, stripe_payout_id, amount, currency, period_from, period_to, booking_count, status, paid_at, failure_reason, created_at, updated_at
+`
+
+type UpdatePayoutFailedParams struct {
+	StripePayoutID pgtype.Text `json:"stripe_payout_id"`
+	FailureReason  pgtype.Text `json:"failure_reason"`
+}
+
+func (q *Queries) UpdatePayoutFailed(ctx context.Context, arg UpdatePayoutFailedParams) (CompanyPayout, error) {
+	row := q.db.QueryRow(ctx, updatePayoutFailed, arg.StripePayoutID, arg.FailureReason)
+	var i CompanyPayout
+	err := row.Scan(
+		&i.ID,
+		&i.CompanyID,
+		&i.StripeTransferID,
+		&i.StripePayoutID,
+		&i.Amount,
+		&i.Currency,
+		&i.PeriodFrom,
+		&i.PeriodTo,
+		&i.BookingCount,
+		&i.Status,
+		&i.PaidAt,
+		&i.FailureReason,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)

@@ -11,41 +11,41 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const countCleanerBookingsInDateRange = `-- name: CountCleanerBookingsInDateRange :one
+const countWorkerBookingsInDateRange = `-- name: CountWorkerBookingsInDateRange :one
 SELECT COUNT(*) FROM bookings
-WHERE cleaner_id = $1
+WHERE worker_id = $1
   AND scheduled_date >= $2
   AND scheduled_date <= $3
   AND status NOT IN ('cancelled_by_client', 'cancelled_by_company', 'cancelled_by_admin')
 `
 
-type CountCleanerBookingsInDateRangeParams struct {
-	CleanerID       pgtype.UUID `json:"cleaner_id"`
+type CountWorkerBookingsInDateRangeParams struct {
+	WorkerID        pgtype.UUID `json:"worker_id"`
 	ScheduledDate   pgtype.Date `json:"scheduled_date"`
 	ScheduledDate_2 pgtype.Date `json:"scheduled_date_2"`
 }
 
-func (q *Queries) CountCleanerBookingsInDateRange(ctx context.Context, arg CountCleanerBookingsInDateRangeParams) (int64, error) {
-	row := q.db.QueryRow(ctx, countCleanerBookingsInDateRange, arg.CleanerID, arg.ScheduledDate, arg.ScheduledDate_2)
+func (q *Queries) CountWorkerBookingsInDateRange(ctx context.Context, arg CountWorkerBookingsInDateRangeParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countWorkerBookingsInDateRange, arg.WorkerID, arg.ScheduledDate, arg.ScheduledDate_2)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
 }
 
-const findMatchingCleaners = `-- name: FindMatchingCleaners :many
+const findMatchingWorkers = `-- name: FindMatchingWorkers :many
 SELECT DISTINCT c.id, u.full_name, c.rating_avg, c.total_jobs_completed,
        co.company_name, co.id AS company_id
-FROM cleaners c
+FROM workers c
 JOIN users u ON c.user_id = u.id
 JOIN companies co ON c.company_id = co.id
 JOIN company_service_areas csa ON csa.company_id = co.id AND csa.city_area_id = $1
-JOIN cleaner_service_areas cla ON cla.cleaner_id = c.id AND cla.city_area_id = $1
+JOIN worker_service_areas wsa ON wsa.worker_id = c.id AND wsa.city_area_id = $1
 WHERE c.status = 'active'
   AND co.status = 'approved'
 ORDER BY c.rating_avg DESC, c.total_jobs_completed DESC
 `
 
-type FindMatchingCleanersRow struct {
+type FindMatchingWorkersRow struct {
 	ID                 pgtype.UUID    `json:"id"`
 	FullName           string         `json:"full_name"`
 	RatingAvg          pgtype.Numeric `json:"rating_avg"`
@@ -54,15 +54,15 @@ type FindMatchingCleanersRow struct {
 	CompanyID          pgtype.UUID    `json:"company_id"`
 }
 
-func (q *Queries) FindMatchingCleaners(ctx context.Context, cityAreaID pgtype.UUID) ([]FindMatchingCleanersRow, error) {
-	rows, err := q.db.Query(ctx, findMatchingCleaners, cityAreaID)
+func (q *Queries) FindMatchingWorkers(ctx context.Context, cityAreaID pgtype.UUID) ([]FindMatchingWorkersRow, error) {
+	rows, err := q.db.Query(ctx, findMatchingWorkers, cityAreaID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []FindMatchingCleanersRow
+	var items []FindMatchingWorkersRow
 	for rows.Next() {
-		var i FindMatchingCleanersRow
+		var i FindMatchingWorkersRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.FullName,
@@ -81,35 +81,35 @@ func (q *Queries) FindMatchingCleaners(ctx context.Context, cityAreaID pgtype.UU
 	return items, nil
 }
 
-const listCleanerBookingsForDate = `-- name: ListCleanerBookingsForDate :many
+const listWorkerBookingsForDate = `-- name: ListWorkerBookingsForDate :many
 SELECT id, scheduled_start_time, estimated_duration_hours
 FROM bookings
-WHERE cleaner_id = $1
+WHERE worker_id = $1
   AND scheduled_date = $2
   AND status NOT IN ('cancelled_by_client', 'cancelled_by_company', 'cancelled_by_admin')
 ORDER BY scheduled_start_time
 `
 
-type ListCleanerBookingsForDateParams struct {
-	CleanerID     pgtype.UUID `json:"cleaner_id"`
+type ListWorkerBookingsForDateParams struct {
+	WorkerID      pgtype.UUID `json:"worker_id"`
 	ScheduledDate pgtype.Date `json:"scheduled_date"`
 }
 
-type ListCleanerBookingsForDateRow struct {
+type ListWorkerBookingsForDateRow struct {
 	ID                     pgtype.UUID    `json:"id"`
 	ScheduledStartTime     pgtype.Time    `json:"scheduled_start_time"`
 	EstimatedDurationHours pgtype.Numeric `json:"estimated_duration_hours"`
 }
 
-func (q *Queries) ListCleanerBookingsForDate(ctx context.Context, arg ListCleanerBookingsForDateParams) ([]ListCleanerBookingsForDateRow, error) {
-	rows, err := q.db.Query(ctx, listCleanerBookingsForDate, arg.CleanerID, arg.ScheduledDate)
+func (q *Queries) ListWorkerBookingsForDate(ctx context.Context, arg ListWorkerBookingsForDateParams) ([]ListWorkerBookingsForDateRow, error) {
+	rows, err := q.db.Query(ctx, listWorkerBookingsForDate, arg.WorkerID, arg.ScheduledDate)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []ListCleanerBookingsForDateRow
+	var items []ListWorkerBookingsForDateRow
 	for rows.Next() {
-		var i ListCleanerBookingsForDateRow
+		var i ListWorkerBookingsForDateRow
 		if err := rows.Scan(&i.ID, &i.ScheduledStartTime, &i.EstimatedDurationHours); err != nil {
 			return nil, err
 		}

@@ -55,7 +55,7 @@ interface RecurringGroup {
   estimatedTotalPerOccurrence: number;
   totalOccurrences: number;
   completedOccurrences: number;
-  preferredCleaner: { fullName: string } | null;
+  preferredWorker: { fullName: string } | null;
   upcomingOccurrences: { scheduledDate: string }[];
 }
 
@@ -411,8 +411,8 @@ export default function MyBookingsPage() {
                                 Urmatoarea: {formatDate(nextDate)}
                               </span>
                             )}
-                            {group.preferredCleaner && (
-                              <span>Curatator: {group.preferredCleaner.fullName}</span>
+                            {group.preferredWorker && (
+                              <span>Curatator: {group.preferredWorker.fullName}</span>
                             )}
                           </div>
                         </div>

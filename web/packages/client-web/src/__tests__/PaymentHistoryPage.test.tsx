@@ -38,7 +38,7 @@ const samplePayment = {
   paidAt: '2025-01-15T10:01:00Z',
   booking: {
     id: 'b1',
-    referenceCode: 'HMC-001',
+    referenceCode: 'G2F-001',
     serviceName: 'Curatenie standard',
   },
 };
@@ -92,7 +92,7 @@ describe('PaymentHistoryPage', () => {
   it('renders payment history table with mock data', () => {
     mockQuery({ data: makePaymentHistoryData([samplePayment], 1) });
     renderPage();
-    expect(screen.getByText('HMC-001')).toBeInTheDocument();
+    expect(screen.getByText('G2F-001')).toBeInTheDocument();
     expect(screen.getByText('Curatenie standard')).toBeInTheDocument();
     expect(screen.getByText('Istoric plati')).toBeInTheDocument();
   });
@@ -100,8 +100,8 @@ describe('PaymentHistoryPage', () => {
   it('shows correct status badges for SUCCEEDED, FAILED, and PENDING', () => {
     const payments = [
       { ...samplePayment, id: 'pay_1', status: 'SUCCEEDED' },
-      { ...samplePayment, id: 'pay_2', status: 'FAILED', booking: { ...samplePayment.booking, id: 'b2', referenceCode: 'HMC-002' } },
-      { ...samplePayment, id: 'pay_3', status: 'PENDING', booking: { ...samplePayment.booking, id: 'b3', referenceCode: 'HMC-003' } },
+      { ...samplePayment, id: 'pay_2', status: 'FAILED', booking: { ...samplePayment.booking, id: 'b2', referenceCode: 'G2F-002' } },
+      { ...samplePayment, id: 'pay_3', status: 'PENDING', booking: { ...samplePayment.booking, id: 'b3', referenceCode: 'G2F-003' } },
     ];
     mockQuery({ data: makePaymentHistoryData(payments, 3) });
     renderPage();

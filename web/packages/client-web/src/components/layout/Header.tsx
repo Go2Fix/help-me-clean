@@ -64,14 +64,14 @@ export default function Header() {
 
   const isClient = isAuthenticated && user?.role === 'CLIENT';
   const isCompany = isAuthenticated && user?.role === 'COMPANY_ADMIN';
-  const isCleaner = isAuthenticated && user?.role === 'CLEANER';
+  const isWorker = isAuthenticated && user?.role === 'WORKER';
   const isAdmin = isAuthenticated && user?.role === 'GLOBAL_ADMIN';
 
   const dashboardPath = isClient
     ? '/cont'
     : isCompany
       ? '/firma'
-      : isCleaner
+      : isWorker
         ? '/worker'
         : '/admin';
 
@@ -79,11 +79,11 @@ export default function Header() {
     ? t('nav.myAccount')
     : isCompany
       ? t('nav.companyPanel')
-      : isCleaner
+      : isWorker
         ? t('nav.myPanel')
         : t('nav.adminPanel');
 
-  const dashboardIcon = isCompany || isCleaner
+  const dashboardIcon = isCompany || isWorker
     ? <Building2 className="h-4 w-4" />
     : isAdmin
       ? <Shield className="h-4 w-4" />

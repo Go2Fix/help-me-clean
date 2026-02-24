@@ -89,7 +89,7 @@ func (r *mutationResolver) UploadFile(ctx context.Context, file graphql.Upload, 
 
 	// Determine storage type based on purpose
 	storageType := storage.StorageTypePublic
-	if purpose == "document" || purpose == "cleaner_document" || purpose == "company_document" {
+	if purpose == "document" || purpose == "worker_document" || purpose == "company_document" {
 		storageType = storage.StorageTypePrivate
 	}
 
@@ -176,7 +176,7 @@ func (r *queryResolver) PlatformStats(ctx context.Context, dateFrom *string, dat
 	return &model.PlatformStats{
 		TotalClients:            int(stats.TotalUsers),
 		TotalCompanies:          int(stats.ActiveCompanies),
-		TotalCleaners:           int(stats.ActiveCleaners),
+		TotalWorkers:            int(stats.ActiveWorkers),
 		TotalBookings:           int(stats.TotalBookings),
 		TotalRevenue:            interfaceToFloat(stats.TotalRevenue),
 		PlatformCommissionTotal: interfaceToFloat(stats.TotalCommission),
@@ -305,35 +305,9 @@ func (r *queryResolver) PendingCompanyApplications(ctx context.Context) ([]*mode
 	return result, nil
 }
 
-// AllCleaners is the resolver for the allCleaners field.
-func (r *queryResolver) AllCleaners(ctx context.Context) ([]*model.CleanerProfile, error) {
-	claims := auth.GetUserFromContext(ctx)
-	if claims == nil {
-		return nil, fmt.Errorf("not authenticated")
-	}
-
-	cleaners, err := r.Queries.ListAllActiveCleaners(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to list cleaners: %w", err)
-	}
-
-	result := make([]*model.CleanerProfile, len(cleaners))
-	for i, cleanerRow := range cleaners {
-		// Load full cleaner record
-		cleaner, err := r.Queries.GetCleanerByID(ctx, cleanerRow.ID)
-		if err != nil {
-			return nil, fmt.Errorf("failed to load cleaner %s: %w", uuidToString(cleanerRow.ID), err)
-		}
-
-		// Load full cleaner profile with User/Company/Documents/PersonalityAssessment relationships
-		profile, err := r.cleanerWithCompany(ctx, cleaner)
-		if err != nil {
-			return nil, fmt.Errorf("failed to load cleaner profile %s: %w", uuidToString(cleaner.ID), err)
-		}
-		result[i] = profile
-	}
-
-	return result, nil
+// AllWorkers is the resolver for the allWorkers field.
+func (r *queryResolver) AllWorkers(ctx context.Context) ([]*model.WorkerProfile, error) {
+	panic(fmt.Errorf("not implemented: AllWorkers - allWorkers"))
 }
 
 // AllChatRooms is the resolver for the allChatRooms field.

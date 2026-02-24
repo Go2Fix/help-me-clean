@@ -13,14 +13,14 @@ SELECT * FROM bookings WHERE company_id = $1 ORDER BY created_at DESC LIMIT $2 O
 -- name: ListBookingsByCompanyAndStatus :many
 SELECT * FROM bookings WHERE company_id = $1 AND status = $2 ORDER BY created_at DESC LIMIT $3 OFFSET $4;
 
--- name: ListBookingsByCleaner :many
-SELECT * FROM bookings WHERE cleaner_id = $1 ORDER BY scheduled_date DESC;
+-- name: ListBookingsByWorker :many
+SELECT * FROM bookings WHERE worker_id = $1 ORDER BY scheduled_date DESC;
 
 -- name: ListBookingsByStatus :many
 SELECT * FROM bookings WHERE status = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3;
 
--- name: ListTodaysJobsByCleaner :many
-SELECT * FROM bookings WHERE cleaner_id = $1 AND scheduled_date = CURRENT_DATE ORDER BY scheduled_start_time;
+-- name: ListTodaysJobsByWorker :many
+SELECT * FROM bookings WHERE worker_id = $1 AND scheduled_date = CURRENT_DATE ORDER BY scheduled_start_time;
 
 -- name: CreateBooking :one
 INSERT INTO bookings (
@@ -34,8 +34,8 @@ RETURNING *;
 -- name: UpdateBookingStatus :one
 UPDATE bookings SET status = $2, updated_at = NOW() WHERE id = $1 RETURNING *;
 
--- name: AssignCleanerToBooking :one
-UPDATE bookings SET company_id = $2, cleaner_id = $3, status = 'assigned', updated_at = NOW()
+-- name: AssignWorkerToBooking :one
+UPDATE bookings SET company_id = $2, worker_id = $3, status = 'assigned', updated_at = NOW()
 WHERE id = $1 RETURNING *;
 
 -- name: StartBooking :one
@@ -52,19 +52,19 @@ SELECT COUNT(*) FROM bookings WHERE status = $1;
 -- name: CountAllBookings :one
 SELECT COUNT(*) FROM bookings;
 
--- name: CountCompletedJobsByCleaner :one
-SELECT COUNT(*) FROM bookings WHERE cleaner_id = $1 AND status = 'completed';
+-- name: CountCompletedJobsByWorker :one
+SELECT COUNT(*) FROM bookings WHERE worker_id = $1 AND status = 'completed';
 
--- name: CountThisMonthJobsByCleaner :one
+-- name: CountThisMonthJobsByWorker :one
 SELECT COUNT(*) FROM bookings
-WHERE cleaner_id = $1
+WHERE worker_id = $1
   AND scheduled_date >= date_trunc('month', CURRENT_DATE)::date
   AND status NOT IN ('cancelled_by_client', 'cancelled_by_company', 'cancelled_by_admin');
 
--- name: SumThisMonthEarningsByCleaner :one
+-- name: SumThisMonthEarningsByWorker :one
 SELECT COALESCE(SUM(COALESCE(final_total, estimated_total)), 0)::numeric AS total
 FROM bookings
-WHERE cleaner_id = $1
+WHERE worker_id = $1
   AND status = 'completed'
   AND completed_at >= date_trunc('month', CURRENT_DATE);
 
@@ -98,9 +98,9 @@ WHERE company_id = $1
   AND status NOT IN ('cancelled_by_client', 'cancelled_by_company', 'cancelled_by_admin')
 ORDER BY scheduled_date, scheduled_start_time;
 
--- name: ListBookingsByCleanerAndDateRange :many
+-- name: ListBookingsByWorkerAndDateRange :many
 SELECT * FROM bookings
-WHERE cleaner_id = $1
+WHERE worker_id = $1
   AND scheduled_date >= @date_from::date
   AND scheduled_date <= @date_to::date
   AND status NOT IN ('cancelled_by_client', 'cancelled_by_company', 'cancelled_by_admin')
@@ -123,22 +123,22 @@ SELECT COUNT(*) FROM bookings WHERE
     AND (@date_from::date = '0001-01-01' OR scheduled_date >= @date_from::date)
     AND (@date_to::date = '0001-01-01' OR scheduled_date <= @date_to::date);
 
--- name: SetBookingPreferredCleaner :one
-UPDATE bookings SET company_id = $2, cleaner_id = $3, status = 'confirmed', updated_at = NOW()
+-- name: SetBookingPreferredWorker :one
+UPDATE bookings SET company_id = $2, worker_id = $3, status = 'confirmed', updated_at = NOW()
 WHERE id = $1 RETURNING *;
 
--- name: SearchCleanerBookings :many
+-- name: SearchWorkerBookings :many
 SELECT * FROM bookings WHERE
-    cleaner_id = $1
+    worker_id = $1
     AND (@query::text = '' OR reference_code ILIKE '%' || @query::text || '%')
     AND (@status_filter::text = '' OR status::text = @status_filter::text OR (@status_filter::text = 'cancelled' AND status::text LIKE 'cancelled%'))
     AND (@date_from::date = '0001-01-01' OR scheduled_date >= @date_from::date)
     AND (@date_to::date = '0001-01-01' OR scheduled_date <= @date_to::date)
 ORDER BY created_at DESC LIMIT $2 OFFSET $3;
 
--- name: CountSearchCleanerBookings :one
+-- name: CountSearchWorkerBookings :one
 SELECT COUNT(*) FROM bookings WHERE
-    cleaner_id = $1
+    worker_id = $1
     AND (@query::text = '' OR reference_code ILIKE '%' || @query::text || '%')
     AND (@status_filter::text = '' OR status::text = @status_filter::text OR (@status_filter::text = 'cancelled' AND status::text LIKE 'cancelled%'))
     AND (@date_from::date = '0001-01-01' OR scheduled_date >= @date_from::date)

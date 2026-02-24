@@ -260,7 +260,7 @@ func TestFindOptimalPlacement(t *testing.T) {
 		},
 		{
 			name: "adjacent placement example from plan",
-			// Cleaner day: [08:00-10:00 busy] [free] [14:00-16:00 busy] [free] [17:00 end]
+			// Worker day: [08:00-10:00 busy] [free] [14:00-16:00 busy] [free] [17:00 end]
 			freeIntervals: []FreeInterval{
 				{Start: hm(10, 15), End: hm(13, 45)},
 				{Start: hm(16, 15), End: h(17)},

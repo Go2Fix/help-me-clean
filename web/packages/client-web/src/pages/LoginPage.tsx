@@ -13,7 +13,7 @@ import type { AuthUser } from '@/services/AuthService';
 const ROLE_HOME: Record<string, string> = {
   CLIENT: '/cont',
   COMPANY_ADMIN: '/firma',
-  CLEANER: '/worker',
+  WORKER: '/worker',
   GLOBAL_ADMIN: '/admin',
 };
 

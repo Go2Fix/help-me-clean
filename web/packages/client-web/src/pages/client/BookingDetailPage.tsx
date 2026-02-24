@@ -54,7 +54,7 @@ interface BookingCompany {
   logoUrl?: string;
 }
 
-interface BookingCleaner {
+interface BookingWorker {
   id: string;
   fullName: string;
   phone?: string;
@@ -105,7 +105,7 @@ interface BookingData {
   completedAt?: string;
   address: BookingAddress;
   company?: BookingCompany;
-  cleaner?: BookingCleaner;
+  worker?: BookingWorker;
   includedItems: string[];
   extras: {
     extra: {
@@ -733,8 +733,8 @@ export default function BookingDetailPage() {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Company / Cleaner info */}
-            {(booking.company || booking.cleaner) && (
+            {/* Company / Worker info */}
+            {(booking.company || booking.worker) && (
               <Card>
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">
                   Echipa de curatenie
@@ -766,18 +766,18 @@ export default function BookingDetailPage() {
                       </div>
                     </div>
                   )}
-                  {booking.cleaner && (
+                  {booking.worker && (
                     <div className="flex items-center gap-3">
-                      {booking.cleaner.user?.avatarUrl ? (
+                      {booking.worker.user?.avatarUrl ? (
                         <img
-                          src={booking.cleaner.user.avatarUrl}
-                          alt={booking.cleaner.fullName}
+                          src={booking.worker.user.avatarUrl}
+                          alt={booking.worker.fullName}
                           className="w-10 h-10 rounded-full object-cover shrink-0"
                         />
                       ) : (
                         <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                           <span className="text-sm font-semibold text-primary">
-                            {booking.cleaner.fullName
+                            {booking.worker.fullName
                               .split(' ')
                               .map((w) => w.charAt(0))
                               .slice(0, 2)
@@ -788,12 +788,12 @@ export default function BookingDetailPage() {
                       )}
                       <div>
                         <div className="text-sm font-medium text-gray-900">
-                          {booking.cleaner.fullName}
+                          {booking.worker.fullName}
                         </div>
-                        {booking.cleaner.phone && (
+                        {booking.worker.phone && (
                           <div className="flex items-center gap-1 text-xs text-gray-500 mt-0.5">
                             <Phone className="h-3 w-3" />
-                            {booking.cleaner.phone}
+                            {booking.worker.phone}
                           </div>
                         )}
                       </div>

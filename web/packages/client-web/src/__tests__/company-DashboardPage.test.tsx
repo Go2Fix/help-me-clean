@@ -71,7 +71,7 @@ const defaultBookings = {
       status: 'CONFIRMED',
       createdAt: '2025-03-15',
       client: { id: 'c1', fullName: 'Maria Ionescu', phone: '0700000000' },
-      cleaner: null,
+      worker: null,
       address: { streetAddress: 'Str. Test 1', city: 'Bucuresti', county: 'Bucuresti' },
     },
   ],

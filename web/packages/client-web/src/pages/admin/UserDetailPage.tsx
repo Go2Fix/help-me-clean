@@ -24,7 +24,7 @@ import Modal from '@/components/ui/Modal';
 import PersonalityScoreCard from '@/components/PersonalityScoreCard';
 import DocumentCard from '@/components/ui/DocumentCard';
 import {
-  GET_USER_WITH_CLEANER,
+  GET_USER_WITH_WORKER,
   UPDATE_USER_ROLE,
   ADMIN_UPDATE_USER_PROFILE,
   SUSPEND_USER,
@@ -39,14 +39,14 @@ import { formatDate } from '@/utils/format';
 const roleLabel: Record<string, string> = {
   CLIENT: 'Client',
   COMPANY_ADMIN: 'Admin Companie',
-  CLEANER: 'Curatator',
+  WORKER: 'Curatator',
   GLOBAL_ADMIN: 'Admin Global',
 };
 
 const roleVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
   CLIENT: 'default',
   COMPANY_ADMIN: 'info',
-  CLEANER: 'success',
+  WORKER: 'success',
   GLOBAL_ADMIN: 'warning',
 };
 
@@ -68,32 +68,32 @@ const languageLabel: Record<string, string> = {
 const roleOptions = [
   { value: 'CLIENT', label: 'Client' },
   { value: 'COMPANY_ADMIN', label: 'Admin Companie' },
-  { value: 'CLEANER', label: 'Curatator' },
+  { value: 'WORKER', label: 'Curatator' },
   { value: 'GLOBAL_ADMIN', label: 'Admin Global' },
 ];
 
-const cleanerStatusVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
+const workerStatusVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
   ACTIVE: 'success',
   PENDING_REVIEW: 'warning',
   INACTIVE: 'default',
   INVITED: 'info',
 };
 
-const cleanerStatusLabel: Record<string, string> = {
+const workerStatusLabel: Record<string, string> = {
   ACTIVE: 'Activ',
   PENDING_REVIEW: 'In asteptare',
   INACTIVE: 'Inactiv',
   INVITED: 'Invitat',
 };
 
-const cleanerDocTypeLabel: Record<string, string> = {
+const workerDocTypeLabel: Record<string, string> = {
   cazier_judiciar: 'Cazier Judiciar',
   contract_munca: 'Contract de Munca',
 };
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
-interface CleanerDocument {
+interface WorkerDocument {
   id: string;
   documentType: string;
   fileName: string;
@@ -132,7 +132,7 @@ interface PersonalityAssessment {
   insights?: PersonalityInsights | null;
 }
 
-interface CleanerProfile {
+interface WorkerProfile {
   id: string;
   fullName: string;
   bio?: string | null;
@@ -143,7 +143,7 @@ interface CleanerProfile {
     id: string;
     companyName: string;
   } | null;
-  documents: CleanerDocument[];
+  documents: WorkerDocument[];
   personalityAssessment?: PersonalityAssessment | null;
 }
 
@@ -157,7 +157,7 @@ interface UserData {
   status: string;
   preferredLanguage: string;
   createdAt: string;
-  cleanerProfile?: CleanerProfile | null;
+  workerProfile?: WorkerProfile | null;
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -185,7 +185,7 @@ export default function UserDetailPage() {
   const [suspendReason, setSuspendReason] = useState('');
 
   // Queries
-  const { data, loading } = useQuery(GET_USER_WITH_CLEANER, {
+  const { data, loading } = useQuery(GET_USER_WITH_WORKER, {
     variables: { id },
     onCompleted: (result) => {
       const u = result?.user as UserData | undefined;
@@ -198,7 +198,7 @@ export default function UserDetailPage() {
   });
 
   const refetchQueries = [
-    { query: GET_USER_WITH_CLEANER, variables: { id } },
+    { query: GET_USER_WITH_WORKER, variables: { id } },
     { query: SEARCH_USERS },
   ];
 
@@ -286,8 +286,8 @@ export default function UserDetailPage() {
     await reactivateUser({ variables: { id: user.id } });
   };
 
-  const handleGenerateInsights = async (cleanerId: string) => {
-    await generateInsights({ variables: { cleanerId } });
+  const handleGenerateInsights = async (workerId: string) => {
+    await generateInsights({ variables: { workerId } });
   };
 
   // Loading skeleton
@@ -496,25 +496,25 @@ export default function UserDetailPage() {
             </div>
           </Card>
 
-          {/* Cleaner Profile Section - Only for CLEANER role */}
-          {user.role === 'CLEANER' && user.cleanerProfile && (
+          {/* Worker Profile Section - Only for WORKER role */}
+          {user.role === 'WORKER' && user.workerProfile && (
             <div className="space-y-6">
-              {/* Cleaner Info Card */}
+              {/* Worker Info Card */}
               <Card>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
                   Informatii curator
                 </h3>
                 <div className="space-y-3">
-                  {user.cleanerProfile.company && (
+                  {user.workerProfile.company && (
                     <div className="flex items-start gap-3">
                       <Building2 className="h-4 w-4 text-gray-400 mt-0.5 shrink-0" />
                       <div>
                         <p className="text-xs text-gray-400">Companie</p>
                         <Link
-                          to={`/admin/companii/${user.cleanerProfile.company.id}`}
+                          to={`/admin/companii/${user.workerProfile.company.id}`}
                           className="text-sm text-primary hover:underline font-medium"
                         >
-                          {user.cleanerProfile.company.companyName}
+                          {user.workerProfile.company.companyName}
                         </Link>
                       </div>
                     </div>
@@ -524,8 +524,8 @@ export default function UserDetailPage() {
                     <div>
                       <p className="text-xs text-gray-400">Rating</p>
                       <p className="text-sm text-gray-900">
-                        {user.cleanerProfile.ratingAvg
-                          ? Number(user.cleanerProfile.ratingAvg).toFixed(1)
+                        {user.workerProfile.ratingAvg
+                          ? Number(user.workerProfile.ratingAvg).toFixed(1)
                           : '--'}
                       </p>
                     </div>
@@ -535,43 +535,43 @@ export default function UserDetailPage() {
                     <div>
                       <p className="text-xs text-gray-400">Lucrari finalizate</p>
                       <p className="text-sm text-gray-900">
-                        {user.cleanerProfile.totalJobsCompleted}
+                        {user.workerProfile.totalJobsCompleted}
                       </p>
                     </div>
                   </div>
-                  {user.cleanerProfile.bio && (
+                  {user.workerProfile.bio && (
                     <div className="flex items-start gap-3">
                       <User className="h-4 w-4 text-gray-400 mt-0.5 shrink-0" />
                       <div>
                         <p className="text-xs text-gray-400">Bio</p>
-                        <p className="text-sm text-gray-900">{user.cleanerProfile.bio}</p>
+                        <p className="text-sm text-gray-900">{user.workerProfile.bio}</p>
                       </div>
                     </div>
                   )}
                   <div className="pt-3 border-t">
                     <Badge
                       variant={
-                        cleanerStatusVariant[user.cleanerProfile.status] ?? 'default'
+                        workerStatusVariant[user.workerProfile.status] ?? 'default'
                       }
                     >
-                      {cleanerStatusLabel[user.cleanerProfile.status] ??
-                        user.cleanerProfile.status}
+                      {workerStatusLabel[user.workerProfile.status] ??
+                        user.workerProfile.status}
                     </Badge>
                   </div>
                 </div>
               </Card>
 
               {/* Personality Assessment Card */}
-              {user.cleanerProfile.personalityAssessment && (
+              {user.workerProfile.personalityAssessment && (
                 <Card>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">
                     Test de personalitate
                   </h3>
                   <PersonalityScoreCard
-                    assessment={user.cleanerProfile.personalityAssessment}
+                    assessment={user.workerProfile.personalityAssessment}
                     compact={false}
                     onGenerateInsights={() =>
-                      handleGenerateInsights(user.cleanerProfile!.id)
+                      handleGenerateInsights(user.workerProfile!.id)
                     }
                     generatingInsights={generatingInsights}
                   />
@@ -583,17 +583,17 @@ export default function UserDetailPage() {
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
                   Documente obligatorii
                 </h3>
-                {user.cleanerProfile.documents.length === 0 ? (
+                {user.workerProfile.documents.length === 0 ? (
                   <p className="text-sm text-gray-400">Niciun document incarcat.</p>
                 ) : (
                   <div className="space-y-3">
-                    {user.cleanerProfile.documents.map((doc) => (
+                    {user.workerProfile.documents.map((doc) => (
                       <DocumentCard
                         key={doc.id}
                         id={doc.id}
                         documentType={doc.documentType}
                         documentTypeLabel={
-                          cleanerDocTypeLabel[doc.documentType] ?? doc.documentType
+                          workerDocTypeLabel[doc.documentType] ?? doc.documentType
                         }
                         fileName={doc.fileName}
                         fileUrl={doc.fileUrl}

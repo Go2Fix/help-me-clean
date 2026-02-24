@@ -19,7 +19,7 @@ type TimeSlot struct {
 	EndMicros   int64
 }
 
-// FreeInterval represents an available time block in a cleaner's day.
+// FreeInterval represents an available time block in a worker's day.
 type FreeInterval struct {
 	Start int64
 	End   int64
@@ -204,7 +204,7 @@ type DatedPlacementResult struct {
 // MatchConfig holds admin-configurable parameters for the matchmaking algorithm.
 type MatchConfig struct {
 	BufferMinutes     int     // buffer between jobs in minutes (default 15)
-	MaxJobsPerDay     int     // max bookings per cleaner per day (default 6)
+	MaxJobsPerDay     int     // max bookings per worker per day (default 6)
 	LoadBalanceWeight float64 // weight for workload penalty, 0=disabled (default 10)
 	MaxResults        int     // max suggestions to return (default 5)
 	MinAvailableCount int     // min available workers before showing unavailable (default 5)
@@ -304,7 +304,7 @@ func FindBestPlacementAcrossDates(
 	return *bestResult
 }
 
-// ScoreInput holds all the factors used to compute a cleaner's match score.
+// ScoreInput holds all the factors used to compute a worker's match score.
 type ScoreInput struct {
 	RatingAvg        float64
 	TotalJobsDone    int
@@ -316,7 +316,7 @@ type ScoreInput struct {
 	Config           MatchConfig
 }
 
-// ComputeMatchScore returns a 0-100 score for a cleaner suggestion.
+// ComputeMatchScore returns a 0-100 score for a worker suggestion.
 func ComputeMatchScore(input ScoreInput) float64 {
 	score := 50.0
 

@@ -57,7 +57,7 @@ import {
   CREATE_BOOKING_REQUEST,
   MY_ADDRESSES,
   ACTIVE_CITIES,
-  SUGGEST_CLEANERS,
+  SUGGEST_WORKERS,
   MY_PAYMENT_METHODS,
   CREATE_BOOKING_PAYMENT_INTENT,
 } from '@/graphql/operations';
@@ -145,8 +145,8 @@ interface ActiveCity {
   areas: CityArea[];
 }
 
-interface CleanerSuggestion {
-  cleaner: {
+interface WorkerSuggestion {
+  worker: {
     id: string;
     fullName: string;
     user: {
@@ -199,7 +199,7 @@ interface BookingFormState {
   useSavedAddress: string;
   selectedCityId: string;
   selectedAreaId: string;
-  preferredCleanerId: string;
+  preferredWorkerId: string;
   suggestedStartTime: string;
   specialInstructions: string;
   isRecurring: boolean;
@@ -214,7 +214,7 @@ const STEPS_BASE = [
   { key: 'details', label: 'Detalii', icon: Home },
   { key: 'schedule', label: 'Programare', icon: Calendar },
   { key: 'address', label: 'Adresă', icon: MapPin },
-  { key: 'cleaner', label: 'Curățător', icon: Users },
+  { key: 'worker', label: 'Curățător', icon: Users },
   { key: 'summary', label: 'Sumar', icon: ClipboardList },
   { key: 'payment', label: 'Plată', icon: CreditCard },
 ] as const;
@@ -256,7 +256,7 @@ const NEXT_STEP_LABELS: Record<string, string> = {
   details: 'Alege data și ora',
   schedule: 'Adresa de curățenie',
   address: 'Alege curățătorul',
-  cleaner: 'Sumar și confirmare',
+  worker: 'Sumar și confirmare',
   summary: 'Plată',
 };
 
@@ -357,7 +357,7 @@ export default function BookingPage() {
     useSavedAddress: '',
     selectedCityId: '',
     selectedAreaId: '',
-    preferredCleanerId: '',
+    preferredWorkerId: '',
     suggestedStartTime: '',
     specialInstructions: '',
     isRecurring: false,
@@ -475,8 +475,8 @@ export default function BookingPage() {
           !!form.selectedCityId &&
           !!form.selectedAreaId
         );
-      case 'cleaner':
-        return !!form.preferredCleanerId;
+      case 'worker':
+        return !!form.preferredWorkerId;
       case 'summary':
         return isAuthenticated;
       case 'payment':
@@ -555,7 +555,7 @@ export default function BookingPage() {
         hasPets: form.hasPets,
         specialInstructions: form.specialInstructions || undefined,
         extras: form.extras.filter((e) => e.quantity > 0),
-        preferredCleanerId: form.preferredCleanerId || undefined,
+        preferredWorkerId: form.preferredWorkerId || undefined,
         suggestedStartTime: form.suggestedStartTime || undefined,
         ...(form.isRecurring && form.recurrenceType ? {
           recurrence: {
@@ -607,7 +607,7 @@ export default function BookingPage() {
       hasPets: form.hasPets,
       specialInstructions: form.specialInstructions || undefined,
       extras: form.extras.filter((e) => e.quantity > 0),
-      preferredCleanerId: form.preferredCleanerId || undefined,
+      preferredWorkerId: form.preferredWorkerId || undefined,
       suggestedStartTime: form.suggestedStartTime || undefined,
       ...(form.isRecurring && form.recurrenceType ? {
         recurrence: {
@@ -872,8 +872,8 @@ export default function BookingPage() {
               />
             )}
 
-            {STEPS[currentStep]?.key === 'cleaner' && (
-              <StepCleaner
+            {STEPS[currentStep]?.key === 'worker' && (
+              <StepWorker
                 form={form}
                 updateForm={updateForm}
                 estimatedHours={estimate?.estimatedHours}
@@ -2674,9 +2674,9 @@ function AIMatchingLoader() {
   );
 }
 
-// ---- Step 4: Cleaner Suggestions --------------------------------------------
+// ---- Step 4: Worker Suggestions --------------------------------------------
 
-function StepCleaner({
+function StepWorker({
   form,
   updateForm,
   estimatedHours,
@@ -2696,8 +2696,8 @@ function StepCleaner({
   const loadingStartTimeRef = useRef<number | null>(null);
 
   const { data: suggestionsData, loading: suggestionsLoading, refetch } = useQuery<{
-    suggestCleaners: CleanerSuggestion[];
-  }>(SUGGEST_CLEANERS, {
+    suggestWorkers: WorkerSuggestion[];
+  }>(SUGGEST_WORKERS, {
     variables: {
       cityId: form.selectedCityId,
       areaId: form.selectedAreaId,
@@ -2716,8 +2716,8 @@ function StepCleaner({
     fetchPolicy: 'network-only',
   });
 
-  const suggestions: CleanerSuggestion[] =
-    suggestionsData?.suggestCleaners ?? [];
+  const suggestions: WorkerSuggestion[] =
+    suggestionsData?.suggestWorkers ?? [];
   const topSuggestions = suggestions.slice(0, 5);
 
   // Force refetch when critical dependencies change
@@ -2842,14 +2842,14 @@ function StepCleaner({
       ) : topSuggestions.length > 0 ? (
         <div className="flex flex-col sm:flex-row gap-4 sm:overflow-x-auto p-1">
           {topSuggestions.slice(0, 2).map((suggestion) => {
-            const { cleaner, availabilityStatus, availableFrom, availableTo, suggestedStartTime, suggestedEndTime, suggestedDate } = suggestion;
-            const isSelected = form.preferredCleanerId === cleaner.id;
+            const { worker, availabilityStatus, availableFrom, availableTo, suggestedStartTime, suggestedEndTime, suggestedDate } = suggestion;
+            const isSelected = form.preferredWorkerId === worker.id;
             const badge = getAvailabilityBadge(availabilityStatus);
-            const initial = cleaner.fullName.charAt(0).toUpperCase();
+            const initial = worker.fullName.charAt(0).toUpperCase();
 
             return (
               <Card
-                key={cleaner.id}
+                key={worker.id}
                 className={cn(
                   'transition-all cursor-pointer shrink-0 w-full sm:w-64 relative',
                   isSelected
@@ -2858,7 +2858,7 @@ function StepCleaner({
                 )}
                 onClick={() =>
                   updateForm({
-                    preferredCleanerId: isSelected ? '' : cleaner.id,
+                    preferredWorkerId: isSelected ? '' : worker.id,
                     suggestedStartTime: isSelected ? '' : (suggestedStartTime ?? ''),
                   })
                 }
@@ -2872,17 +2872,17 @@ function StepCleaner({
                   )}
 
                   {/* Avatar or initial */}
-                  {cleaner.user?.avatarUrl ? (
+                  {worker.user?.avatarUrl ? (
                     <img
-                      src={cleaner.user.avatarUrl}
-                      alt={cleaner.fullName}
+                      src={worker.user.avatarUrl}
+                      alt={worker.fullName}
                       className="w-24 h-24 rounded-xl object-cover shrink-0"
                     />
                   ) : (
                     <div
                       className={cn(
                         'w-24 h-24 rounded-xl flex items-center justify-center text-white font-bold text-3xl shrink-0',
-                        getInitialColor(cleaner.fullName),
+                        getInitialColor(worker.fullName),
                       )}
                     >
                       {initial}
@@ -2892,7 +2892,7 @@ function StepCleaner({
                   {/* Info */}
                   <div className="w-full mt-4 text-center">
                     <h3 className="font-semibold text-gray-900 text-base mb-2">
-                      {cleaner.fullName}
+                      {worker.fullName}
                     </h3>
 
                     <span
@@ -2940,8 +2940,8 @@ function StepCleaner({
                     <div className="flex items-center justify-center gap-1 mt-3 text-sm">
                       <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
                       <span className="font-medium text-gray-900">
-                        {cleaner.ratingAvg > 0
-                          ? cleaner.ratingAvg.toFixed(1)
+                        {worker.ratingAvg > 0
+                          ? worker.ratingAvg.toFixed(1)
                           : '5.0'}
                       </span>
                     </div>
@@ -3003,10 +3003,10 @@ function StepSummary({
 
   const firstSlot = form.timeSlots[0];
 
-  // Fetch cleaner suggestions to resolve selected cleaner name
+  // Fetch worker suggestions to resolve selected worker name
   const { data: suggestionsData } = useQuery<{
-    suggestCleaners: CleanerSuggestion[];
-  }>(SUGGEST_CLEANERS, {
+    suggestWorkers: WorkerSuggestion[];
+  }>(SUGGEST_WORKERS, {
     variables: {
       cityId: form.selectedCityId,
       areaId: form.selectedAreaId,
@@ -3018,7 +3018,7 @@ function StepSummary({
       estimatedDurationHours: estimate?.estimatedHours ?? selectedService?.minHours ?? 2,
     },
     skip:
-      !form.preferredCleanerId ||
+      !form.preferredWorkerId ||
       !form.selectedCityId ||
       !form.selectedAreaId ||
       !firstSlot?.date ||
@@ -3026,13 +3026,13 @@ function StepSummary({
     fetchPolicy: 'cache-first',
   });
 
-  const selectedCleaner = useMemo(() => {
-    if (!form.preferredCleanerId) return null;
-    const suggestions = suggestionsData?.suggestCleaners ?? [];
+  const selectedWorker = useMemo(() => {
+    if (!form.preferredWorkerId) return null;
+    const suggestions = suggestionsData?.suggestWorkers ?? [];
     return (
-      suggestions.find((s) => s.cleaner.id === form.preferredCleanerId) ?? null
+      suggestions.find((s) => s.worker.id === form.preferredWorkerId) ?? null
     );
-  }, [form.preferredCleanerId, suggestionsData]);
+  }, [form.preferredWorkerId, suggestionsData]);
 
   const propertyLabel = useMemo(() => {
     const pt = PROPERTY_TYPES.find((p) => p.value === form.propertyType);
@@ -3134,11 +3134,11 @@ function StepSummary({
             </div>
             <div>
               <div className="text-lg font-semibold text-gray-900">
-                {formatDateRo(selectedCleaner?.suggestedDate || firstSlot?.date || '')}
+                {formatDateRo(selectedWorker?.suggestedDate || firstSlot?.date || '')}
               </div>
               <div className="flex items-center gap-1.5 text-blue-600 font-semibold text-base mt-0.5">
                 <Clock className="h-4 w-4" />
-                {selectedCleaner?.suggestedStartTime || firstSlot?.startTime} - {selectedCleaner?.suggestedEndTime || firstSlot?.endTime}
+                {selectedWorker?.suggestedStartTime || firstSlot?.startTime} - {selectedWorker?.suggestedEndTime || firstSlot?.endTime}
               </div>
             </div>
           </div>
@@ -3198,44 +3198,44 @@ function StepSummary({
           })()}
         </Card>
 
-        {/* Cleaner summary */}
+        {/* Worker summary */}
         <Card>
           <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
             Curățător preferat
           </h3>
-          {selectedCleaner ? (
+          {selectedWorker ? (
             <div className="flex items-center gap-4">
-              {selectedCleaner.cleaner.user.avatarUrl ? (
+              {selectedWorker.worker.user.avatarUrl ? (
                 <img
-                  src={selectedCleaner.cleaner.user.avatarUrl}
-                  alt={selectedCleaner.cleaner.fullName}
+                  src={selectedWorker.worker.user.avatarUrl}
+                  alt={selectedWorker.worker.fullName}
                   className="w-16 h-16 rounded-xl object-cover shrink-0"
                 />
               ) : (
                 <div
                   className={cn(
                     'w-16 h-16 rounded-xl flex items-center justify-center text-white font-bold text-xl shrink-0',
-                    getInitialColor(selectedCleaner.cleaner.fullName),
+                    getInitialColor(selectedWorker.worker.fullName),
                   )}
                 >
-                  {selectedCleaner.cleaner.fullName.charAt(0).toUpperCase()}
+                  {selectedWorker.worker.fullName.charAt(0).toUpperCase()}
                 </div>
               )}
               <div>
                 <div className="text-base font-semibold text-gray-900">
-                  {selectedCleaner.cleaner.fullName}
+                  {selectedWorker.worker.fullName}
                 </div>
                 <div className="flex items-center gap-1 mt-1">
                   <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
                   <span className="text-sm font-semibold text-gray-900">
-                    {selectedCleaner.cleaner.ratingAvg.toFixed(1)}
+                    {selectedWorker.worker.ratingAvg.toFixed(1)}
                   </span>
                   <span className="text-xs text-gray-400 ml-1">
-                    ({selectedCleaner.cleaner.totalJobsCompleted} lucrări)
+                    ({selectedWorker.worker.totalJobsCompleted} lucrări)
                   </span>
                 </div>
                 <div className="text-sm text-gray-500 mt-0.5">
-                  {selectedCleaner.company.companyName}
+                  {selectedWorker.company.companyName}
                 </div>
               </div>
             </div>

@@ -9,7 +9,7 @@ import {
   REVENUE_BY_MONTH,
   PENDING_COMPANY_APPLICATIONS,
   PENDING_COMPANY_DOCUMENTS,
-  PENDING_CLEANER_DOCUMENTS,
+  PENDING_WORKER_DOCUMENTS,
 } from '@/graphql/operations';
 
 vi.mock('@go2fix/shared', () => ({
@@ -54,7 +54,7 @@ const mockStats = {
   platformStats: {
     totalClients: 42,
     totalCompanies: 8,
-    totalCleaners: 15,
+    totalWorkers: 15,
     totalBookings: 120,
     totalRevenue: 15000,
     platformCommissionTotal: 3750,
@@ -71,7 +71,7 @@ const mockPendingCompanyDocs = [
   { id: 'd2', documentType: 'ins', fileUrl: '/ins.pdf', fileName: 'ins.pdf', status: 'PENDING', uploadedAt: '2025-01-01' },
 ];
 
-const mockPendingCleanerDocs = [
+const mockPendingWorkerDocs = [
   { id: 'cd1', documentType: 'cazier', fileUrl: '/c.pdf', fileName: 'c.pdf', status: 'PENDING', uploadedAt: '2025-01-01' },
 ];
 
@@ -96,23 +96,24 @@ describe('Admin DashboardPage', () => {
         return { data: { pendingCompanyApplications: [] }, loading: false } as ReturnType<typeof useQuery>;
       if (query === PENDING_COMPANY_DOCUMENTS)
         return { data: { pendingCompanyDocuments: mockPendingCompanyDocs }, loading: false } as ReturnType<typeof useQuery>;
-      if (query === PENDING_CLEANER_DOCUMENTS)
-        return { data: { pendingCleanerDocuments: mockPendingCleanerDocs }, loading: false } as ReturnType<typeof useQuery>;
+      if (query === PENDING_WORKER_DOCUMENTS)
+        return { data: { pendingWorkerDocuments: mockPendingWorkerDocs }, loading: false } as ReturnType<typeof useQuery>;
       return { data: null, loading: false } as ReturnType<typeof useQuery>;
     });
   });
 
-  it('shows "Platform Overview" title', () => {
+  it('shows "Dashboard" title', () => {
     renderDashboard();
-    expect(screen.getByText('Platform Overview')).toBeInTheDocument();
+    expect(screen.getByText('Dashboard')).toBeInTheDocument();
   });
 
   it('shows stat cards with values', () => {
     renderDashboard();
     expect(screen.getByText('42')).toBeInTheDocument();
     expect(screen.getByText('8')).toBeInTheDocument();
-    expect(screen.getByText('Total Clienti')).toBeInTheDocument();
-    expect(screen.getByText('Total Companii')).toBeInTheDocument();
+    expect(screen.getByText('Clienti')).toBeInTheDocument();
+    // "Companii" appears both as a stat label and a nav link
+    expect(screen.getAllByText('Companii').length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows "Venit pe luni" chart section title', () => {
@@ -125,20 +126,39 @@ describe('Admin DashboardPage', () => {
     expect(screen.getByText('Rezervari dupa status')).toBeInTheDocument();
   });
 
-  it('shows "Aplicatii in asteptare" section', () => {
+  it('shows "Aplicatii in asteptare" section when there are pending apps', () => {
+    vi.mocked(useQuery).mockImplementation((query: unknown) => {
+      if (query === PLATFORM_STATS) return { data: mockStats, loading: false } as ReturnType<typeof useQuery>;
+      if (query === BOOKINGS_BY_STATUS)
+        return { data: { bookingsByStatus: [] }, loading: false } as ReturnType<typeof useQuery>;
+      if (query === REVENUE_BY_MONTH)
+        return { data: { revenueByMonth: [] }, loading: false } as ReturnType<typeof useQuery>;
+      if (query === PENDING_COMPANY_APPLICATIONS)
+        return {
+          data: {
+            pendingCompanyApplications: [
+              { id: 'a1', companyName: 'Test SRL', cui: 'RO123', city: 'Bucuresti', county: 'Bucuresti', createdAt: '2025-01-01T00:00:00Z' },
+            ],
+          },
+          loading: false,
+        } as ReturnType<typeof useQuery>;
+      if (query === PENDING_COMPANY_DOCUMENTS)
+        return { data: { pendingCompanyDocuments: mockPendingCompanyDocs }, loading: false } as ReturnType<typeof useQuery>;
+      if (query === PENDING_WORKER_DOCUMENTS)
+        return { data: { pendingWorkerDocuments: mockPendingWorkerDocs }, loading: false } as ReturnType<typeof useQuery>;
+      return { data: null, loading: false } as ReturnType<typeof useQuery>;
+    });
     renderDashboard();
     expect(screen.getByText('Aplicatii in asteptare')).toBeInTheDocument();
   });
 
   it('shows pending company documents count', () => {
     renderDashboard();
-    expect(screen.getByText('Documente companie in asteptare')).toBeInTheDocument();
-    expect(screen.getByText('2')).toBeInTheDocument();
+    expect(screen.getByText('2 documente companie')).toBeInTheDocument();
   });
 
-  it('shows pending cleaner documents count', () => {
+  it('shows pending worker documents count', () => {
     renderDashboard();
-    expect(screen.getByText('Documente lucratori in asteptare')).toBeInTheDocument();
-    expect(screen.getByText('1')).toBeInTheDocument();
+    expect(screen.getByText('1 documente lucratori')).toBeInTheDocument();
   });
 });

@@ -32,7 +32,7 @@ func (q *Queries) CancelFutureOccurrences(ctx context.Context, arg CancelFutureO
 const cancelRecurringGroup = `-- name: CancelRecurringGroup :one
 UPDATE recurring_booking_groups
 SET is_active = FALSE, cancelled_at = NOW(), cancellation_reason = $2, updated_at = NOW()
-WHERE id = $1 RETURNING id, client_user_id, company_id, preferred_cleaner_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total_per_occurrence, is_active, cancelled_at, cancellation_reason, created_at, updated_at
+WHERE id = $1 RETURNING id, client_user_id, company_id, preferred_worker_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total_per_occurrence, is_active, cancelled_at, cancellation_reason, created_at, updated_at
 `
 
 type CancelRecurringGroupParams struct {
@@ -47,7 +47,7 @@ func (q *Queries) CancelRecurringGroup(ctx context.Context, arg CancelRecurringG
 		&i.ID,
 		&i.ClientUserID,
 		&i.CompanyID,
-		&i.PreferredCleanerID,
+		&i.PreferredWorkerID,
 		&i.AddressID,
 		&i.RecurrenceType,
 		&i.DayOfWeek,
@@ -83,18 +83,18 @@ func (q *Queries) CountActiveRecurringGroups(ctx context.Context) (int64, error)
 
 const createRecurringGroup = `-- name: CreateRecurringGroup :one
 INSERT INTO recurring_booking_groups (
-    client_user_id, company_id, preferred_cleaner_id, address_id,
+    client_user_id, company_id, preferred_worker_id, address_id,
     recurrence_type, day_of_week, preferred_time, service_type,
     property_type, num_rooms, num_bathrooms, area_sqm, has_pets,
     special_instructions, hourly_rate, estimated_total_per_occurrence
 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
-RETURNING id, client_user_id, company_id, preferred_cleaner_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total_per_occurrence, is_active, cancelled_at, cancellation_reason, created_at, updated_at
+RETURNING id, client_user_id, company_id, preferred_worker_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total_per_occurrence, is_active, cancelled_at, cancellation_reason, created_at, updated_at
 `
 
 type CreateRecurringGroupParams struct {
 	ClientUserID                pgtype.UUID    `json:"client_user_id"`
 	CompanyID                   pgtype.UUID    `json:"company_id"`
-	PreferredCleanerID          pgtype.UUID    `json:"preferred_cleaner_id"`
+	PreferredWorkerID           pgtype.UUID    `json:"preferred_worker_id"`
 	AddressID                   pgtype.UUID    `json:"address_id"`
 	RecurrenceType              RecurrenceType `json:"recurrence_type"`
 	DayOfWeek                   pgtype.Int4    `json:"day_of_week"`
@@ -114,7 +114,7 @@ func (q *Queries) CreateRecurringGroup(ctx context.Context, arg CreateRecurringG
 	row := q.db.QueryRow(ctx, createRecurringGroup,
 		arg.ClientUserID,
 		arg.CompanyID,
-		arg.PreferredCleanerID,
+		arg.PreferredWorkerID,
 		arg.AddressID,
 		arg.RecurrenceType,
 		arg.DayOfWeek,
@@ -134,7 +134,7 @@ func (q *Queries) CreateRecurringGroup(ctx context.Context, arg CreateRecurringG
 		&i.ID,
 		&i.ClientUserID,
 		&i.CompanyID,
-		&i.PreferredCleanerID,
+		&i.PreferredWorkerID,
 		&i.AddressID,
 		&i.RecurrenceType,
 		&i.DayOfWeek,
@@ -158,7 +158,7 @@ func (q *Queries) CreateRecurringGroup(ctx context.Context, arg CreateRecurringG
 }
 
 const getBookingsByRecurringGroup = `-- name: GetBookingsByRecurringGroup :many
-SELECT id, reference_code, client_user_id, company_id, cleaner_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number FROM bookings
+SELECT id, reference_code, client_user_id, company_id, worker_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number FROM bookings
 WHERE recurring_group_id = $1
 ORDER BY scheduled_date, scheduled_start_time
 `
@@ -177,7 +177,7 @@ func (q *Queries) GetBookingsByRecurringGroup(ctx context.Context, recurringGrou
 			&i.ReferenceCode,
 			&i.ClientUserID,
 			&i.CompanyID,
-			&i.CleanerID,
+			&i.WorkerID,
 			&i.AddressID,
 			&i.ServiceType,
 			&i.ScheduledDate,
@@ -218,7 +218,7 @@ func (q *Queries) GetBookingsByRecurringGroup(ctx context.Context, recurringGrou
 }
 
 const getRecurringGroupByID = `-- name: GetRecurringGroupByID :one
-SELECT id, client_user_id, company_id, preferred_cleaner_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total_per_occurrence, is_active, cancelled_at, cancellation_reason, created_at, updated_at FROM recurring_booking_groups WHERE id = $1
+SELECT id, client_user_id, company_id, preferred_worker_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total_per_occurrence, is_active, cancelled_at, cancellation_reason, created_at, updated_at FROM recurring_booking_groups WHERE id = $1
 `
 
 func (q *Queries) GetRecurringGroupByID(ctx context.Context, id pgtype.UUID) (RecurringBookingGroup, error) {
@@ -228,7 +228,7 @@ func (q *Queries) GetRecurringGroupByID(ctx context.Context, id pgtype.UUID) (Re
 		&i.ID,
 		&i.ClientUserID,
 		&i.CompanyID,
-		&i.PreferredCleanerID,
+		&i.PreferredWorkerID,
 		&i.AddressID,
 		&i.RecurrenceType,
 		&i.DayOfWeek,
@@ -299,7 +299,7 @@ func (q *Queries) GetRecurringGroupExtras(ctx context.Context, groupID pgtype.UU
 }
 
 const getUpcomingBookingsByRecurringGroup = `-- name: GetUpcomingBookingsByRecurringGroup :many
-SELECT id, reference_code, client_user_id, company_id, cleaner_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number FROM bookings
+SELECT id, reference_code, client_user_id, company_id, worker_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number FROM bookings
 WHERE recurring_group_id = $1
   AND scheduled_date >= CURRENT_DATE
   AND status NOT IN ('cancelled_by_client', 'cancelled_by_company', 'cancelled_by_admin')
@@ -320,7 +320,7 @@ func (q *Queries) GetUpcomingBookingsByRecurringGroup(ctx context.Context, recur
 			&i.ReferenceCode,
 			&i.ClientUserID,
 			&i.CompanyID,
-			&i.CleanerID,
+			&i.WorkerID,
 			&i.AddressID,
 			&i.ServiceType,
 			&i.ScheduledDate,
@@ -377,7 +377,7 @@ func (q *Queries) InsertRecurringGroupExtra(ctx context.Context, arg InsertRecur
 }
 
 const listActiveRecurringGroupsByClient = `-- name: ListActiveRecurringGroupsByClient :many
-SELECT id, client_user_id, company_id, preferred_cleaner_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total_per_occurrence, is_active, cancelled_at, cancellation_reason, created_at, updated_at FROM recurring_booking_groups
+SELECT id, client_user_id, company_id, preferred_worker_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total_per_occurrence, is_active, cancelled_at, cancellation_reason, created_at, updated_at FROM recurring_booking_groups
 WHERE client_user_id = $1 AND is_active = TRUE
 ORDER BY created_at DESC
 `
@@ -395,7 +395,7 @@ func (q *Queries) ListActiveRecurringGroupsByClient(ctx context.Context, clientU
 			&i.ID,
 			&i.ClientUserID,
 			&i.CompanyID,
-			&i.PreferredCleanerID,
+			&i.PreferredWorkerID,
 			&i.AddressID,
 			&i.RecurrenceType,
 			&i.DayOfWeek,
@@ -426,7 +426,7 @@ func (q *Queries) ListActiveRecurringGroupsByClient(ctx context.Context, clientU
 }
 
 const listRecurringGroupsByClient = `-- name: ListRecurringGroupsByClient :many
-SELECT id, client_user_id, company_id, preferred_cleaner_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total_per_occurrence, is_active, cancelled_at, cancellation_reason, created_at, updated_at FROM recurring_booking_groups
+SELECT id, client_user_id, company_id, preferred_worker_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total_per_occurrence, is_active, cancelled_at, cancellation_reason, created_at, updated_at FROM recurring_booking_groups
 WHERE client_user_id = $1
 ORDER BY created_at DESC
 `
@@ -444,7 +444,7 @@ func (q *Queries) ListRecurringGroupsByClient(ctx context.Context, clientUserID 
 			&i.ID,
 			&i.ClientUserID,
 			&i.CompanyID,
-			&i.PreferredCleanerID,
+			&i.PreferredWorkerID,
 			&i.AddressID,
 			&i.RecurrenceType,
 			&i.DayOfWeek,
@@ -477,7 +477,7 @@ func (q *Queries) ListRecurringGroupsByClient(ctx context.Context, clientUserID 
 const pauseRecurringGroup = `-- name: PauseRecurringGroup :one
 UPDATE recurring_booking_groups
 SET is_active = FALSE, updated_at = NOW()
-WHERE id = $1 RETURNING id, client_user_id, company_id, preferred_cleaner_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total_per_occurrence, is_active, cancelled_at, cancellation_reason, created_at, updated_at
+WHERE id = $1 RETURNING id, client_user_id, company_id, preferred_worker_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total_per_occurrence, is_active, cancelled_at, cancellation_reason, created_at, updated_at
 `
 
 func (q *Queries) PauseRecurringGroup(ctx context.Context, id pgtype.UUID) (RecurringBookingGroup, error) {
@@ -487,7 +487,7 @@ func (q *Queries) PauseRecurringGroup(ctx context.Context, id pgtype.UUID) (Recu
 		&i.ID,
 		&i.ClientUserID,
 		&i.CompanyID,
-		&i.PreferredCleanerID,
+		&i.PreferredWorkerID,
 		&i.AddressID,
 		&i.RecurrenceType,
 		&i.DayOfWeek,
@@ -513,7 +513,7 @@ func (q *Queries) PauseRecurringGroup(ctx context.Context, id pgtype.UUID) (Recu
 const resumeRecurringGroup = `-- name: ResumeRecurringGroup :one
 UPDATE recurring_booking_groups
 SET is_active = TRUE, cancelled_at = NULL, cancellation_reason = NULL, updated_at = NOW()
-WHERE id = $1 RETURNING id, client_user_id, company_id, preferred_cleaner_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total_per_occurrence, is_active, cancelled_at, cancellation_reason, created_at, updated_at
+WHERE id = $1 RETURNING id, client_user_id, company_id, preferred_worker_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total_per_occurrence, is_active, cancelled_at, cancellation_reason, created_at, updated_at
 `
 
 func (q *Queries) ResumeRecurringGroup(ctx context.Context, id pgtype.UUID) (RecurringBookingGroup, error) {
@@ -523,7 +523,7 @@ func (q *Queries) ResumeRecurringGroup(ctx context.Context, id pgtype.UUID) (Rec
 		&i.ID,
 		&i.ClientUserID,
 		&i.CompanyID,
-		&i.PreferredCleanerID,
+		&i.PreferredWorkerID,
 		&i.AddressID,
 		&i.RecurrenceType,
 		&i.DayOfWeek,

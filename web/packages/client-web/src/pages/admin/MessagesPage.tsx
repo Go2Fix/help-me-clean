@@ -107,7 +107,7 @@ function getRoleBadge(role: string): { label: string; className: string } {
       return { label: 'Admin Firma', className: 'bg-emerald-100 text-emerald-700' };
     case 'GLOBAL_ADMIN':
       return { label: 'Admin', className: 'bg-amber-100 text-amber-700' };
-    case 'CLEANER':
+    case 'WORKER':
       return { label: 'Curatator', className: 'bg-purple-100 text-purple-700' };
     default:
       return { label: role, className: 'bg-gray-100 text-gray-700' };

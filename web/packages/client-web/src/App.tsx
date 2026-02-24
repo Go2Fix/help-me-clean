@@ -13,7 +13,7 @@ import PublicLayout from '@/components/layout/PublicLayout';
 import BookingLayout from '@/components/layout/BookingLayout';
 import ClientLayout from '@/components/layout/ClientLayout';
 import CompanyLayout from '@/components/layout/CompanyLayout';
-import CleanerLayout from '@/components/layout/CleanerLayout';
+import WorkerLayout from '@/components/layout/WorkerLayout';
 import AdminLayout from '@/components/layout/AdminLayout';
 
 // Public pages
@@ -57,15 +57,15 @@ import CompanyCalendarPage from '@/pages/company/CalendarPage';
 import CompanyPayoutsPage from '@/pages/company/PayoutsPage';
 import CompanyInvoicesPage from '@/pages/company/CompanyInvoicesPage';
 
-// Cleaner pages
-import AcceptInvitePage from '@/pages/cleaner/AcceptInvitePage';
-import CleanerDashboardPage from '@/pages/cleaner/DashboardPage';
-import CleanerOrdersPage from '@/pages/cleaner/OrdersPage';
-import CleanerCalendarPage from '@/pages/cleaner/CalendarPage';
-import CleanerJobDetailPage from '@/pages/cleaner/JobDetailPage';
-import CleanerSettingsPage from '@/pages/cleaner/SettingsPage';
-import PersonalityTestPage from '@/pages/cleaner/PersonalityTestPage';
-import CleanerDocumentUploadPage from '@/pages/cleaner/DocumentUploadPage';
+// Worker pages
+import AcceptInvitePage from '@/pages/worker/AcceptInvitePage';
+import WorkerDashboardPage from '@/pages/worker/DashboardPage';
+import WorkerOrdersPage from '@/pages/worker/OrdersPage';
+import WorkerCalendarPage from '@/pages/worker/CalendarPage';
+import WorkerJobDetailPage from '@/pages/worker/JobDetailPage';
+import WorkerSettingsPage from '@/pages/worker/SettingsPage';
+import PersonalityTestPage from '@/pages/worker/PersonalityTestPage';
+import WorkerDocumentUploadPage from '@/pages/worker/DocumentUploadPage';
 
 // Admin pages
 import AdminDashboardPage from '@/pages/admin/DashboardPage';
@@ -105,7 +105,7 @@ function BookingGateRoute() {
 const ROLE_HOME: Record<string, string> = {
   CLIENT: '/cont',
   COMPANY_ADMIN: '/firma',
-  CLEANER: '/worker',
+  WORKER: '/worker',
   GLOBAL_ADMIN: '/admin',
 };
 
@@ -242,26 +242,26 @@ function AppRoutes() {
         <Route path="setari" element={<CompanySettingsPage />} />
       </Route>
 
-      {/* Cleaner routes - Sidebar layout, auth + CLEANER role */}
+      {/* Worker routes - Sidebar layout, auth + WORKER role */}
       <Route
         path="/worker"
         element={
           <ProtectedRoute>
-            <RoleRoute role="CLEANER">
-              <CleanerLayout />
+            <RoleRoute role="WORKER">
+              <WorkerLayout />
             </RoleRoute>
           </ProtectedRoute>
         }
       >
-        <Route index element={<CleanerDashboardPage />} />
+        <Route index element={<WorkerDashboardPage />} />
         <Route path="test-personalitate" element={<PersonalityTestPage />} />
-        <Route path="documente-obligatorii" element={<CleanerDocumentUploadPage />} />
-        <Route path="comenzi" element={<CleanerOrdersPage />} />
-        <Route path="comenzi/:id" element={<CleanerJobDetailPage />} />
-        <Route path="program" element={<CleanerCalendarPage />} />
+        <Route path="documente-obligatorii" element={<WorkerDocumentUploadPage />} />
+        <Route path="comenzi" element={<WorkerOrdersPage />} />
+        <Route path="comenzi/:id" element={<WorkerJobDetailPage />} />
+        <Route path="program" element={<WorkerCalendarPage />} />
         <Route path="mesaje" element={<ChatPage />} />
         <Route path="mesaje/:roomId" element={<ChatPage />} />
-        <Route path="profil" element={<CleanerSettingsPage />} />
+        <Route path="profil" element={<WorkerSettingsPage />} />
       </Route>
 
       {/* Admin routes - Sidebar layout, auth + GLOBAL_ADMIN role */}

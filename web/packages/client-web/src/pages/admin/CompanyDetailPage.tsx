@@ -43,8 +43,8 @@ import {
   ADMIN_UPDATE_COMPANY_PROFILE,
   ADMIN_UPDATE_COMPANY_STATUS,
   REVIEW_COMPANY_DOCUMENT,
-  REVIEW_CLEANER_DOCUMENT,
-  ACTIVATE_CLEANER,
+  REVIEW_WORKER_DOCUMENT,
+  ACTIVATE_WORKER,
   GENERATE_PERSONALITY_INSIGHTS,
 } from '@/graphql/operations';
 
@@ -88,19 +88,19 @@ const companyDocTypeLabel: Record<string, string> = {
   cui_document: 'Document CUI',
 };
 
-const cleanerDocTypeLabel: Record<string, string> = {
+const workerDocTypeLabel: Record<string, string> = {
   cazier_judiciar: 'Cazier Judiciar',
   contract_munca: 'Contract de Munca',
 };
 
-const cleanerStatusVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
+const workerStatusVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
   ACTIVE: 'success',
   PENDING_REVIEW: 'warning',
   INACTIVE: 'default',
   INVITED: 'info',
 };
 
-const cleanerStatusLabel: Record<string, string> = {
+const workerStatusLabel: Record<string, string> = {
   ACTIVE: 'Activ',
   PENDING_REVIEW: 'In asteptare',
   INACTIVE: 'Inactiv',
@@ -134,7 +134,7 @@ interface PersonalityAssessment {
   completedAt: string;
 }
 
-interface CleanerWithDocs {
+interface WorkerWithDocs {
   id: string;
   fullName: string;
   email: string;
@@ -221,7 +221,7 @@ export default function CompanyDetailPage() {
   const [docRejectModal, setDocRejectModal] = useState<{
     open: boolean;
     docId: string;
-    docType: 'company' | 'cleaner';
+    docType: 'company' | 'worker';
   }>({ open: false, docId: '', docType: 'company' });
   const [docRejectReason, setDocRejectReason] = useState('');
 
@@ -261,11 +261,11 @@ export default function CompanyDetailPage() {
     refetchQueries: [{ query: COMPANY, variables: { id } }],
   });
 
-  const [reviewCleanerDoc, { loading: reviewingCleanerDoc }] = useMutation(REVIEW_CLEANER_DOCUMENT, {
+  const [reviewWorkerDoc, { loading: reviewingWorkerDoc }] = useMutation(REVIEW_WORKER_DOCUMENT, {
     refetchQueries: [{ query: COMPANY, variables: { id } }],
   });
 
-  const [activateCleaner, { loading: activatingCleaner }] = useMutation(ACTIVATE_CLEANER, {
+  const [activateWorker, { loading: activatingWorker }] = useMutation(ACTIVATE_WORKER, {
     refetchQueries: [{ query: COMPANY, variables: { id } }],
   });
 
@@ -359,12 +359,12 @@ export default function CompanyDetailPage() {
     setDocRejectModal({ open: true, docId, docType: 'company' });
   };
 
-  const handleApproveCleanerDoc = async (docId: string) => {
-    await reviewCleanerDoc({ variables: { id: docId, approved: true } });
+  const handleApproveWorkerDoc = async (docId: string) => {
+    await reviewWorkerDoc({ variables: { id: docId, approved: true } });
   };
 
-  const handleRejectCleanerDoc = (docId: string) => {
-    setDocRejectModal({ open: true, docId, docType: 'cleaner' });
+  const handleRejectWorkerDoc = (docId: string) => {
+    setDocRejectModal({ open: true, docId, docType: 'worker' });
   };
 
   const handleConfirmDocReject = async () => {
@@ -374,7 +374,7 @@ export default function CompanyDetailPage() {
         variables: { id: docRejectModal.docId, approved: false, rejectionReason: docRejectReason.trim() },
       });
     } else {
-      await reviewCleanerDoc({
+      await reviewWorkerDoc({
         variables: { id: docRejectModal.docId, approved: false, rejectionReason: docRejectReason.trim() },
       });
     }
@@ -382,16 +382,16 @@ export default function CompanyDetailPage() {
     setDocRejectReason('');
   };
 
-  const handleActivateCleaner = async (cleanerId: string) => {
-    await activateCleaner({ variables: { id: cleanerId } });
+  const handleActivateWorker = async (workerId: string) => {
+    await activateWorker({ variables: { id: workerId } });
   };
 
-  const handleGenerateInsights = async (cleanerId: string) => {
-    await generateInsights({ variables: { cleanerId } });
+  const handleGenerateInsights = async (workerId: string) => {
+    await generateInsights({ variables: { workerId } });
   };
 
   const companyDocuments: CompanyDocument[] = company?.documents ?? [];
-  const companyCleaner: CleanerWithDocs[] = company?.cleaners ?? [];
+  const companyWorkers: WorkerWithDocs[] = company?.workers ?? [];
 
   // Check document completion status for approval
   const docStatus = getDocumentCompletionStatus(companyDocuments);
@@ -900,26 +900,26 @@ export default function CompanyDetailPage() {
       {/* Echipa Tab */}
       {activeTab === 'echipa' && (
         <div>
-          {companyCleaner.length === 0 ? (
+          {companyWorkers.length === 0 ? (
             <p className="text-sm text-gray-400">Niciun angajat inregistrat.</p>
           ) : (
             <div className="space-y-4">
-              {companyCleaner.map((cleaner) => {
+              {companyWorkers.map((worker) => {
                 const allDocsApproved =
-                  cleaner.documents.length > 0 &&
-                  cleaner.documents.every((d) => d.status === 'APPROVED');
-                const hasPersonalityAssessment = !!cleaner.personalityAssessment;
+                  worker.documents.length > 0 &&
+                  worker.documents.every((d) => d.status === 'APPROVED');
+                const hasPersonalityAssessment = !!worker.personalityAssessment;
                 const canActivate =
-                  cleaner.status === 'PENDING_REVIEW' && allDocsApproved && hasPersonalityAssessment;
+                  worker.status === 'PENDING_REVIEW' && allDocsApproved && hasPersonalityAssessment;
 
                 return (
-                  <Card key={cleaner.id}>
+                  <Card key={worker.id}>
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-3">
-                        {cleaner.user?.avatarUrl ? (
+                        {worker.user?.avatarUrl ? (
                           <img
-                            src={cleaner.user.avatarUrl}
-                            alt={cleaner.fullName}
+                            src={worker.user.avatarUrl}
+                            alt={worker.fullName}
                             className="w-14 h-14 rounded-xl object-cover border-2 border-gray-200 shrink-0"
                           />
                         ) : (
@@ -929,29 +929,29 @@ export default function CompanyDetailPage() {
                         )}
                         <div>
                           <div className="flex items-center gap-2">
-                            {cleaner.user?.id ? (
+                            {worker.user?.id ? (
                               <Link
-                                to={`/admin/utilizatori/${cleaner.user.id}`}
+                                to={`/admin/utilizatori/${worker.user.id}`}
                                 className="font-semibold text-gray-900 hover:text-primary transition-colors"
                                 onClick={(e) => e.stopPropagation()}
                               >
-                                {cleaner.fullName}
+                                {worker.fullName}
                               </Link>
                             ) : (
                               <h4 className="font-semibold text-gray-900">
-                                {cleaner.fullName}
+                                {worker.fullName}
                               </h4>
                             )}
                             <Badge
                               variant={
-                                cleanerStatusVariant[cleaner.status] ?? 'default'
+                                workerStatusVariant[worker.status] ?? 'default'
                               }
                             >
-                              {cleanerStatusLabel[cleaner.status] ?? cleaner.status}
+                              {workerStatusLabel[worker.status] ?? worker.status}
                             </Badge>
                           </div>
-                          <p className="text-sm text-gray-500">{cleaner.email}</p>
-                          {!cleaner.user?.avatarUrl && cleaner.status === 'PENDING_REVIEW' && (
+                          <p className="text-sm text-gray-500">{worker.email}</p>
+                          {!worker.user?.avatarUrl && worker.status === 'PENDING_REVIEW' && (
                             <p className="text-xs text-amber-600 flex items-center gap-1 mt-0.5">
                               <AlertCircle className="h-3 w-3" />
                               Lipsă fotografie profil
@@ -963,8 +963,8 @@ export default function CompanyDetailPage() {
                         <Button
                           variant="secondary"
                           size="sm"
-                          onClick={() => handleActivateCleaner(cleaner.id)}
-                          loading={activatingCleaner}
+                          onClick={() => handleActivateWorker(worker.id)}
+                          loading={activatingWorker}
                         >
                           <ShieldCheck className="h-4 w-4 mr-1.5" />
                           Activeaza
@@ -976,9 +976,9 @@ export default function CompanyDetailPage() {
                     <div className="mb-4">
                       <h5 className="text-sm font-semibold text-gray-700 mb-2">Test de personalitate</h5>
                       <PersonalityScoreCard
-                        assessment={cleaner.personalityAssessment as any}
+                        assessment={worker.personalityAssessment as any}
                         compact={false}
-                        onGenerateInsights={() => handleGenerateInsights(cleaner.id)}
+                        onGenerateInsights={() => handleGenerateInsights(worker.id)}
                         generatingInsights={generatingInsights}
                       />
                     </div>
@@ -986,28 +986,28 @@ export default function CompanyDetailPage() {
                     {/* Documents */}
                     <div>
                       <h5 className="text-sm font-semibold text-gray-700 mb-2">Documente</h5>
-                      {cleaner.documents.length === 0 ? (
+                      {worker.documents.length === 0 ? (
                         <p className="text-sm text-gray-400">
                           Niciun document incarcat.
                         </p>
                       ) : (
                         <div className="space-y-3">
-                          {cleaner.documents.map((doc) => (
+                          {worker.documents.map((doc) => (
                             <DocumentCard
                               key={doc.id}
                               id={doc.id}
                               documentType={doc.documentType}
                               documentTypeLabel={
-                                cleanerDocTypeLabel[doc.documentType] ?? doc.documentType
+                                workerDocTypeLabel[doc.documentType] ?? doc.documentType
                               }
                               fileName={doc.fileName}
                               fileUrl={doc.fileUrl}
                               status={doc.status}
                               uploadedAt={doc.uploadedAt}
                               rejectionReason={doc.rejectionReason}
-                              onApprove={handleApproveCleanerDoc}
-                              onReject={handleRejectCleanerDoc}
-                              reviewLoading={reviewingCleanerDoc}
+                              onApprove={handleApproveWorkerDoc}
+                              onReject={handleRejectWorkerDoc}
+                              reviewLoading={reviewingWorkerDoc}
                             />
                           ))}
                         </div>
@@ -1044,7 +1044,7 @@ export default function CompanyDetailPage() {
             <Button
               variant="danger"
               onClick={handleConfirmDocReject}
-              loading={reviewingCompanyDoc || reviewingCleanerDoc}
+              loading={reviewingCompanyDoc || reviewingWorkerDoc}
               disabled={!docRejectReason.trim()}
             >
               Respinge

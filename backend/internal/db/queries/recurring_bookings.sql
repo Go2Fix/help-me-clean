@@ -1,6 +1,6 @@
 -- name: CreateRecurringGroup :one
 INSERT INTO recurring_booking_groups (
-    client_user_id, company_id, preferred_cleaner_id, address_id,
+    client_user_id, company_id, preferred_worker_id, address_id,
     recurrence_type, day_of_week, preferred_time, service_type,
     property_type, num_rooms, num_bathrooms, area_sqm, has_pets,
     special_instructions, hourly_rate, estimated_total_per_occurrence

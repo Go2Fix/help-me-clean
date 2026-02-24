@@ -247,7 +247,7 @@ export const CLIENT_BOOKING_DETAIL = gql`
         email
         phone
       }
-      cleaner {
+      worker {
         id
         fullName
         phone
@@ -336,7 +336,7 @@ export const MY_RECURRING_GROUPS = gql`
       totalOccurrences
       completedOccurrences
       createdAt
-      preferredCleaner {
+      preferredWorker {
         id
         fullName
       }
@@ -377,7 +377,7 @@ export const RECURRING_GROUP_DETAIL = gql`
         email
         phone
       }
-      preferredCleaner {
+      preferredWorker {
         id
         fullName
         phone
@@ -403,7 +403,7 @@ export const RECURRING_GROUP_DETAIL = gql`
         status
         paymentStatus
         occurrenceNumber
-        cleaner {
+        worker {
           id
           fullName
         }
@@ -763,11 +763,11 @@ export const UPDATE_COMPANY_PROFILE = gql`
   }
 `;
 
-// ─── Cleaners ────────────────────────────────────────────────────────────────
+// ─── Workers ─────────────────────────────────────────────────────────────────
 
-export const MY_CLEANERS_LIST = gql`
-  query MyCleanersList {
-    myCleaners {
+export const MY_WORKERS_LIST = gql`
+  query MyWorkersList {
+    myWorkers {
       id
       fullName
       phone
@@ -785,9 +785,9 @@ export const MY_CLEANERS_LIST = gql`
   }
 `;
 
-export const MY_CLEANERS = gql`
-  query MyCleaners {
-    myCleaners {
+export const MY_WORKERS = gql`
+  query MyWorkers {
+    myWorkers {
       id
       userId
       fullName
@@ -854,9 +854,9 @@ export const MY_CLEANERS = gql`
   }
 `;
 
-export const INVITE_CLEANER = gql`
-  mutation InviteCleaner($input: InviteCleanerInput!) {
-    inviteCleaner(input: $input) {
+export const INVITE_WORKER = gql`
+  mutation InviteWorker($input: InviteWorkerInput!) {
+    inviteWorker(input: $input) {
       id
       fullName
       email
@@ -866,9 +866,9 @@ export const INVITE_CLEANER = gql`
   }
 `;
 
-export const INVITE_SELF_AS_CLEANER = gql`
-  mutation InviteSelfAsCleaner {
-    inviteSelfAsCleaner {
+export const INVITE_SELF_AS_WORKER = gql`
+  mutation InviteSelfAsWorker {
+    inviteSelfAsWorker {
       id
       fullName
       status
@@ -877,9 +877,9 @@ export const INVITE_SELF_AS_CLEANER = gql`
   }
 `;
 
-export const UPDATE_CLEANER_STATUS = gql`
-  mutation UpdateCleanerStatus($id: ID!, $status: CleanerStatus!) {
-    updateCleanerStatus(id: $id, status: $status) {
+export const UPDATE_WORKER_STATUS = gql`
+  mutation UpdateWorkerStatus($id: ID!, $status: WorkerStatus!) {
+    updateWorkerStatus(id: $id, status: $status) {
       id
       fullName
       status
@@ -907,7 +907,7 @@ export const COMPANY_BOOKINGS = gql`
           fullName
           phone
         }
-        cleaner {
+        worker {
           id
           fullName
         }
@@ -989,7 +989,7 @@ export const COMPANY_BOOKING_DETAIL = gql`
         floor
         apartment
       }
-      cleaner {
+      worker {
         id
         fullName
         phone
@@ -1044,12 +1044,12 @@ export const COMPANY_INVOICE_FOR_BOOKING = gql`
   }
 `;
 
-export const ASSIGN_CLEANER = gql`
-  mutation AssignCleaner($bookingId: ID!, $cleanerId: ID!) {
-    assignCleanerToBooking(bookingId: $bookingId, cleanerId: $cleanerId) {
+export const ASSIGN_WORKER = gql`
+  mutation AssignWorker($bookingId: ID!, $workerId: ID!) {
+    assignWorkerToBooking(bookingId: $bookingId, workerId: $workerId) {
       id
       status
-      cleaner {
+      worker {
         id
         fullName
       }
@@ -1064,7 +1064,7 @@ export const PLATFORM_STATS = gql`
     platformStats {
       totalClients
       totalCompanies
-      totalCleaners
+      totalWorkers
       totalBookings
       totalRevenue
       platformCommissionTotal
@@ -1198,7 +1198,7 @@ export const COMPANY = gql`
         reviewedAt
         rejectionReason
       }
-      cleaners {
+      workers {
         id
         fullName
         email
@@ -1321,7 +1321,7 @@ export const ADMIN_BOOKING_DETAIL = gql`
         companyName
         contactEmail
       }
-      cleaner {
+      worker {
         id
         fullName
         phone
@@ -1363,9 +1363,9 @@ export const SELECT_BOOKING_TIME_SLOT = gql`
   }
 `;
 
-export const ALL_CLEANERS = gql`
-  query AllCleaners {
-    allCleaners {
+export const ALL_WORKERS = gql`
+  query AllWorkers {
+    allWorkers {
       id
       fullName
       email
@@ -1608,8 +1608,8 @@ export const GET_USER = gql`
   }
 `;
 
-export const GET_USER_WITH_CLEANER = gql`
-  query GetUserWithCleaner($id: ID!) {
+export const GET_USER_WITH_WORKER = gql`
+  query GetUserWithWorker($id: ID!) {
     user(id: $id) {
       id
       fullName
@@ -1621,8 +1621,8 @@ export const GET_USER_WITH_CLEANER = gql`
       preferredLanguage
       createdAt
 
-      # Cleaner data (null if not CLEANER role)
-      cleanerProfile {
+      # Worker data (null if not WORKER role)
+      workerProfile {
         id
         userId
         fullName
@@ -1906,7 +1906,7 @@ export const COMPANY_BOOKINGS_BY_DATE_RANGE = gql`
         fullName
         phone
       }
-      cleaner {
+      worker {
         id
         fullName
       }
@@ -1934,10 +1934,10 @@ export const SEARCH_COMPANY_BOOKINGS = gql`
   }
 `;
 
-export const CLEANER_PERFORMANCE = gql`
-  query CleanerPerformance($cleanerId: ID!) {
-    cleanerPerformance(cleanerId: $cleanerId) {
-      cleanerId
+export const WORKER_PERFORMANCE = gql`
+  query WorkerPerformance($workerId: ID!) {
+    workerPerformance(workerId: $workerId) {
+      workerId
       fullName
       ratingAvg
       totalCompletedJobs
@@ -1960,9 +1960,9 @@ export const MY_COMPANY_WORK_SCHEDULE = gql`
   }
 `;
 
-export const UPDATE_CLEANER_AVAILABILITY = gql`
-  mutation UpdateCleanerAvailability($cleanerId: ID!, $slots: [AvailabilitySlotInput!]!) {
-    updateCleanerAvailability(cleanerId: $cleanerId, slots: $slots) {
+export const UPDATE_WORKER_AVAILABILITY = gql`
+  mutation UpdateWorkerAvailability($workerId: ID!, $slots: [AvailabilitySlotInput!]!) {
+    updateWorkerAvailability(workerId: $workerId, slots: $slots) {
       id
       dayOfWeek
       startTime
@@ -1972,9 +1972,9 @@ export const UPDATE_CLEANER_AVAILABILITY = gql`
   }
 `;
 
-export const CLEANER_DATE_OVERRIDES = gql`
-  query CleanerDateOverrides($cleanerId: ID!, $from: String!, $to: String!) {
-    cleanerDateOverrides(cleanerId: $cleanerId, from: $from, to: $to) {
+export const WORKER_DATE_OVERRIDES = gql`
+  query WorkerDateOverrides($workerId: ID!, $from: String!, $to: String!) {
+    workerDateOverrides(workerId: $workerId, from: $from, to: $to) {
       id
       date
       isAvailable
@@ -1984,9 +1984,9 @@ export const CLEANER_DATE_OVERRIDES = gql`
   }
 `;
 
-export const SET_CLEANER_DATE_OVERRIDE_BY_ADMIN = gql`
-  mutation SetCleanerDateOverrideByAdmin($cleanerId: ID!, $date: String!, $isAvailable: Boolean!, $startTime: String!, $endTime: String!) {
-    setCleanerDateOverrideByAdmin(cleanerId: $cleanerId, date: $date, isAvailable: $isAvailable, startTime: $startTime, endTime: $endTime) {
+export const SET_WORKER_DATE_OVERRIDE_BY_ADMIN = gql`
+  mutation SetWorkerDateOverrideByAdmin($workerId: ID!, $date: String!, $isAvailable: Boolean!, $startTime: String!, $endTime: String!) {
+    setWorkerDateOverrideByAdmin(workerId: $workerId, date: $date, isAvailable: $isAvailable, startTime: $startTime, endTime: $endTime) {
       id
       date
       isAvailable
@@ -1996,7 +1996,7 @@ export const SET_CLEANER_DATE_OVERRIDE_BY_ADMIN = gql`
   }
 `;
 
-// ─── Cleaner ──────────────────────────────────────────────────────────────────
+// ─── Worker ──────────────────────────────────────────────────────────────────
 
 export const TODAYS_JOBS = gql`
   query TodaysJobs {
@@ -2045,9 +2045,9 @@ export const MY_ASSIGNED_JOBS = gql`
   }
 `;
 
-export const MY_CLEANER_PROFILE = gql`
-  query MyCleanerProfile {
-    myCleanerProfile {
+export const MY_WORKER_PROFILE = gql`
+  query MyWorkerProfile {
+    myWorkerProfile {
       id
       userId
       fullName
@@ -2083,9 +2083,9 @@ export const MY_CLEANER_PROFILE = gql`
   }
 `;
 
-export const MY_CLEANER_STATS = gql`
-  query MyCleanerStats {
-    myCleanerStats {
+export const MY_WORKER_STATS = gql`
+  query MyWorkerStats {
+    myWorkerStats {
       totalJobsCompleted
       thisMonthJobs
       averageRating
@@ -2152,18 +2152,18 @@ export const COMPLETE_JOB = gql`
 
 // ─── Worker Dashboard Operations ────────────────────────────────────────────
 
-export const CLEANER_EARNINGS_BY_DATE_RANGE = gql`
-  query CleanerEarningsByDateRange($from: String!, $to: String!) {
-    cleanerEarningsByDateRange(from: $from, to: $to) {
+export const WORKER_EARNINGS_BY_DATE_RANGE = gql`
+  query WorkerEarningsByDateRange($from: String!, $to: String!) {
+    workerEarningsByDateRange(from: $from, to: $to) {
       date
       amount
     }
   }
 `;
 
-export const SEARCH_CLEANER_BOOKINGS = gql`
-  query SearchCleanerBookings($query: String, $status: String, $dateFrom: String, $dateTo: String, $limit: Int, $offset: Int) {
-    searchCleanerBookings(query: $query, status: $status, dateFrom: $dateFrom, dateTo: $dateTo, limit: $limit, offset: $offset) {
+export const SEARCH_WORKER_BOOKINGS = gql`
+  query SearchWorkerBookings($query: String, $status: String, $dateFrom: String, $dateTo: String, $limit: Int, $offset: Int) {
+    searchWorkerBookings(query: $query, status: $status, dateFrom: $dateFrom, dateTo: $dateTo, limit: $limit, offset: $offset) {
       edges {
         id
         referenceCode
@@ -2197,9 +2197,9 @@ export const SEARCH_CLEANER_BOOKINGS = gql`
   }
 `;
 
-export const MY_CLEANER_AVAILABILITY = gql`
-  query MyCleanerAvailability {
-    myCleanerAvailability {
+export const MY_WORKER_AVAILABILITY = gql`
+  query MyWorkerAvailability {
+    myWorkerAvailability {
       id
       dayOfWeek
       startTime
@@ -2209,9 +2209,9 @@ export const MY_CLEANER_AVAILABILITY = gql`
   }
 `;
 
-export const MY_CLEANER_BOOKINGS_BY_DATE_RANGE = gql`
-  query MyCleanerBookingsByDateRange($from: String!, $to: String!) {
-    myCleanerBookingsByDateRange(from: $from, to: $to) {
+export const MY_WORKER_BOOKINGS_BY_DATE_RANGE = gql`
+  query MyWorkerBookingsByDateRange($from: String!, $to: String!) {
+    myWorkerBookingsByDateRange(from: $from, to: $to) {
       id
       referenceCode
       serviceType
@@ -2232,9 +2232,9 @@ export const MY_CLEANER_BOOKINGS_BY_DATE_RANGE = gql`
   }
 `;
 
-export const MY_CLEANER_REVIEWS = gql`
-  query MyCleanerReviews($limit: Int, $offset: Int) {
-    myCleanerReviews(limit: $limit, offset: $offset) {
+export const MY_WORKER_REVIEWS = gql`
+  query MyWorkerReviews($limit: Int, $offset: Int) {
+    myWorkerReviews(limit: $limit, offset: $offset) {
       reviews {
         id
         rating
@@ -2255,9 +2255,9 @@ export const MY_CLEANER_REVIEWS = gql`
   }
 `;
 
-export const MY_CLEANER_COMPANY_SCHEDULE = gql`
-  query MyCleanerCompanySchedule {
-    myCleanerCompanySchedule {
+export const MY_WORKER_COMPANY_SCHEDULE = gql`
+  query MyWorkerCompanySchedule {
+    myWorkerCompanySchedule {
       id
       dayOfWeek
       startTime
@@ -2267,9 +2267,9 @@ export const MY_CLEANER_COMPANY_SCHEDULE = gql`
   }
 `;
 
-export const MY_CLEANER_DATE_OVERRIDES = gql`
-  query MyCleanerDateOverrides($from: String!, $to: String!) {
-    myCleanerDateOverrides(from: $from, to: $to) {
+export const MY_WORKER_DATE_OVERRIDES = gql`
+  query MyWorkerDateOverrides($from: String!, $to: String!) {
+    myWorkerDateOverrides(from: $from, to: $to) {
       id
       date
       isAvailable
@@ -2279,9 +2279,9 @@ export const MY_CLEANER_DATE_OVERRIDES = gql`
   }
 `;
 
-export const SET_CLEANER_DATE_OVERRIDE = gql`
-  mutation SetCleanerDateOverride($date: String!, $isAvailable: Boolean!, $startTime: String!, $endTime: String!) {
-    setCleanerDateOverride(date: $date, isAvailable: $isAvailable, startTime: $startTime, endTime: $endTime) {
+export const SET_WORKER_DATE_OVERRIDE = gql`
+  mutation SetWorkerDateOverride($date: String!, $isAvailable: Boolean!, $startTime: String!, $endTime: String!) {
+    setWorkerDateOverride(date: $date, isAvailable: $isAvailable, startTime: $startTime, endTime: $endTime) {
       id
       date
       isAvailable
@@ -2291,9 +2291,9 @@ export const SET_CLEANER_DATE_OVERRIDE = gql`
   }
 `;
 
-export const UPDATE_CLEANER_PROFILE = gql`
-  mutation UpdateCleanerProfile($input: UpdateCleanerProfileInput!) {
-    updateCleanerProfile(input: $input) {
+export const UPDATE_WORKER_PROFILE = gql`
+  mutation UpdateWorkerProfile($input: UpdateWorkerProfileInput!) {
+    updateWorkerProfile(input: $input) {
       id
       fullName
       phone
@@ -2412,10 +2412,10 @@ export const IS_CITY_SUPPORTED = gql`
   }
 `;
 
-export const SUGGEST_CLEANERS = gql`
-  query SuggestCleaners($cityId: ID!, $areaId: ID!, $timeSlots: [TimeSlotInput!]!, $estimatedDurationHours: Float!) {
-    suggestCleaners(cityId: $cityId, areaId: $areaId, timeSlots: $timeSlots, estimatedDurationHours: $estimatedDurationHours) {
-      cleaner {
+export const SUGGEST_WORKERS = gql`
+  query SuggestWorkers($cityId: ID!, $areaId: ID!, $timeSlots: [TimeSlotInput!]!, $estimatedDurationHours: Float!) {
+    suggestWorkers(cityId: $cityId, areaId: $areaId, timeSlots: $timeSlots, estimatedDurationHours: $estimatedDurationHours) {
+      worker {
         id
         fullName
         user {
@@ -2463,9 +2463,9 @@ export const UPDATE_COMPANY_SERVICE_AREAS = gql`
   }
 `;
 
-export const CLEANER_SERVICE_AREAS = gql`
-  query CleanerServiceAreas($cleanerId: ID!) {
-    cleanerServiceAreas(cleanerId: $cleanerId) {
+export const WORKER_SERVICE_AREAS = gql`
+  query WorkerServiceAreas($workerId: ID!) {
+    workerServiceAreas(workerId: $workerId) {
       id
       name
       cityId
@@ -2474,9 +2474,9 @@ export const CLEANER_SERVICE_AREAS = gql`
   }
 `;
 
-export const MY_CLEANER_SERVICE_AREAS = gql`
-  query MyCleanerServiceAreas {
-    myCleanerServiceAreas {
+export const MY_WORKER_SERVICE_AREAS = gql`
+  query MyWorkerServiceAreas {
+    myWorkerServiceAreas {
       id
       name
       cityId
@@ -2485,9 +2485,9 @@ export const MY_CLEANER_SERVICE_AREAS = gql`
   }
 `;
 
-export const UPDATE_CLEANER_SERVICE_AREAS = gql`
-  mutation UpdateCleanerServiceAreas($cleanerId: ID!, $areaIds: [ID!]!) {
-    updateCleanerServiceAreas(cleanerId: $cleanerId, areaIds: $areaIds) {
+export const UPDATE_WORKER_SERVICE_AREAS = gql`
+  mutation UpdateWorkerServiceAreas($workerId: ID!, $areaIds: [ID!]!) {
+    updateWorkerServiceAreas(workerId: $workerId, areaIds: $areaIds) {
       id
       name
       cityId
@@ -3214,11 +3214,11 @@ export const PENDING_COMPANY_DOCUMENTS = gql`
   }
 `;
 
-// ─── Cleaner Documents ────────────────────────────────────────────────────────
+// ─── Worker Documents ─────────────────────────────────────────────────────────
 
-export const CLEANER_DOCUMENTS = gql`
-  query CleanerDocuments($cleanerId: ID!) {
-    cleanerDocuments(cleanerId: $cleanerId) {
+export const WORKER_DOCUMENTS = gql`
+  query WorkerDocuments($workerId: ID!) {
+    workerDocuments(workerId: $workerId) {
       id
       documentType
       fileUrl
@@ -3231,9 +3231,9 @@ export const CLEANER_DOCUMENTS = gql`
   }
 `;
 
-export const MY_CLEANER_DOCUMENTS = gql`
-  query MyCleanerDocuments {
-    myCleanerProfile {
+export const MY_WORKER_DOCUMENTS = gql`
+  query MyWorkerDocuments {
+    myWorkerProfile {
       id
       documents {
         id
@@ -3249,9 +3249,9 @@ export const MY_CLEANER_DOCUMENTS = gql`
   }
 `;
 
-export const UPLOAD_CLEANER_DOCUMENT = gql`
-  mutation UploadCleanerDocument($cleanerId: ID!, $documentType: String!, $file: Upload!) {
-    uploadCleanerDocument(cleanerId: $cleanerId, documentType: $documentType, file: $file) {
+export const UPLOAD_WORKER_DOCUMENT = gql`
+  mutation UploadWorkerDocument($workerId: ID!, $documentType: String!, $file: Upload!) {
+    uploadWorkerDocument(workerId: $workerId, documentType: $documentType, file: $file) {
       id
       documentType
       fileUrl
@@ -3262,15 +3262,15 @@ export const UPLOAD_CLEANER_DOCUMENT = gql`
   }
 `;
 
-export const DELETE_CLEANER_DOCUMENT = gql`
-  mutation DeleteCleanerDocument($id: ID!) {
-    deleteCleanerDocument(id: $id)
+export const DELETE_WORKER_DOCUMENT = gql`
+  mutation DeleteWorkerDocument($id: ID!) {
+    deleteWorkerDocument(id: $id)
   }
 `;
 
-export const REVIEW_CLEANER_DOCUMENT = gql`
-  mutation ReviewCleanerDocument($id: ID!, $approved: Boolean!, $rejectionReason: String) {
-    reviewCleanerDocument(id: $id, approved: $approved, rejectionReason: $rejectionReason) {
+export const REVIEW_WORKER_DOCUMENT = gql`
+  mutation ReviewWorkerDocument($id: ID!, $approved: Boolean!, $rejectionReason: String) {
+    reviewWorkerDocument(id: $id, approved: $approved, rejectionReason: $rejectionReason) {
       id
       status
       reviewedAt
@@ -3279,9 +3279,9 @@ export const REVIEW_CLEANER_DOCUMENT = gql`
   }
 `;
 
-export const PENDING_CLEANER_DOCUMENTS = gql`
-  query PendingCleanerDocuments {
-    pendingCleanerDocuments {
+export const PENDING_WORKER_DOCUMENTS = gql`
+  query PendingWorkerDocuments {
+    pendingWorkerDocuments {
       id
       documentType
       fileUrl
@@ -3292,9 +3292,9 @@ export const PENDING_CLEANER_DOCUMENTS = gql`
   }
 `;
 
-export const ACTIVATE_CLEANER = gql`
-  mutation ActivateCleaner($id: ID!) {
-    activateCleaner(id: $id) {
+export const ACTIVATE_WORKER = gql`
+  mutation ActivateWorker($id: ID!) {
+    activateWorker(id: $id) {
       id
       status
     }
@@ -3333,9 +3333,9 @@ export const MY_PERSONALITY_ASSESSMENT = gql`
   }
 `;
 
-export const CLEANER_PERSONALITY_ASSESSMENT = gql`
-  query CleanerPersonalityAssessment($cleanerId: ID!) {
-    cleanerPersonalityAssessment(cleanerId: $cleanerId) {
+export const WORKER_PERSONALITY_ASSESSMENT = gql`
+  query WorkerPersonalityAssessment($workerId: ID!) {
+    workerPersonalityAssessment(workerId: $workerId) {
       id
       facetScores {
         facetCode
@@ -3374,8 +3374,8 @@ export const SUBMIT_PERSONALITY_ASSESSMENT = gql`
 `;
 
 export const GENERATE_PERSONALITY_INSIGHTS = gql`
-  mutation GeneratePersonalityInsights($cleanerId: ID!) {
-    generatePersonalityInsights(cleanerId: $cleanerId) {
+  mutation GeneratePersonalityInsights($workerId: ID!) {
+    generatePersonalityInsights(workerId: $workerId) {
       summary
       strengths
       concerns
@@ -3419,9 +3419,9 @@ export const UPLOAD_COMPANY_LOGO = gql`
   }
 `;
 
-export const UPLOAD_CLEANER_AVATAR = gql`
-  mutation UploadCleanerAvatar($cleanerId: ID!, $file: Upload!) {
-    uploadCleanerAvatar(cleanerId: $cleanerId, file: $file) {
+export const UPLOAD_WORKER_AVATAR = gql`
+  mutation UploadWorkerAvatar($workerId: ID!, $file: Upload!) {
+    uploadWorkerAvatar(workerId: $workerId, file: $file) {
       id
       user {
         id

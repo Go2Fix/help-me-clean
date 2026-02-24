@@ -23,19 +23,19 @@ func (r *mutationResolver) SubmitPersonalityAssessment(ctx context.Context, answ
 		return nil, fmt.Errorf("not authenticated")
 	}
 
-	// Get the cleaner profile for this user.
-	cleaner, err := r.Queries.GetCleanerByUserID(ctx, stringToUUID(claims.UserID))
+	// Get the worker profile for this user.
+	worker, err := r.Queries.GetWorkerByUserID(ctx, stringToUUID(claims.UserID))
 	if err != nil {
-		return nil, fmt.Errorf("cleaner profile not found: %w", err)
+		return nil, fmt.Errorf("worker profile not found: %w", err)
 	}
 
 	// Must be in PENDING_REVIEW status.
-	if string(cleaner.Status) != "pending_review" {
+	if string(worker.Status) != "pending_review" {
 		return nil, fmt.Errorf("assessment can only be taken during pending review")
 	}
 
 	// Check not already submitted.
-	has, err := r.Queries.HasPersonalityAssessment(ctx, cleaner.ID)
+	has, err := r.Queries.HasPersonalityAssessment(ctx, worker.ID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check existing assessment: %w", err)
 	}
@@ -69,7 +69,7 @@ func (r *mutationResolver) SubmitPersonalityAssessment(ctx context.Context, answ
 
 	// Insert the assessment.
 	assessment, err := qtx.CreatePersonalityAssessment(ctx, db.CreatePersonalityAssessmentParams{
-		CleanerID:           cleaner.ID,
+		WorkerID:            worker.ID,
 		TrustScore:          int32(result.FacetScores["A1"].Score),
 		MoralityScore:       int32(result.FacetScores["A2"].Score),
 		AltruismScore:       int32(result.FacetScores["A3"].Score),
@@ -109,17 +109,17 @@ func (r *mutationResolver) SubmitPersonalityAssessment(ctx context.Context, answ
 }
 
 // GeneratePersonalityInsights is the resolver for the generatePersonalityInsights field.
-func (r *mutationResolver) GeneratePersonalityInsights(ctx context.Context, cleanerID string) (*model.PersonalityInsights, error) {
+func (r *mutationResolver) GeneratePersonalityInsights(ctx context.Context, workerID string) (*model.PersonalityInsights, error) {
 	// Auth check: GLOBAL_ADMIN only
 	claims := auth.GetUserFromContext(ctx)
 	if claims == nil || claims.Role != "global_admin" {
 		return nil, fmt.Errorf("unauthorized: global admin access required")
 	}
 
-	// Get assessment for this cleaner
-	assessment, err := r.Queries.GetPersonalityAssessmentByCleanerID(ctx, stringToUUID(cleanerID))
+	// Get assessment for this worker
+	assessment, err := r.Queries.GetPersonalityAssessmentByWorkerID(ctx, stringToUUID(workerID))
 	if err != nil {
-		return nil, fmt.Errorf("personality assessment not found for cleaner: %w", err)
+		return nil, fmt.Errorf("personality assessment not found for worker: %w", err)
 	}
 
 	// Check if insights already cached
@@ -169,17 +169,17 @@ func (r *mutationResolver) GeneratePersonalityInsights(ctx context.Context, clea
 }
 
 // RegeneratePersonalityInsights is the resolver for the regeneratePersonalityInsights field.
-func (r *mutationResolver) RegeneratePersonalityInsights(ctx context.Context, cleanerID string) (*model.PersonalityInsights, error) {
+func (r *mutationResolver) RegeneratePersonalityInsights(ctx context.Context, workerID string) (*model.PersonalityInsights, error) {
 	// Auth check: GLOBAL_ADMIN only
 	claims := auth.GetUserFromContext(ctx)
 	if claims == nil || claims.Role != "global_admin" {
 		return nil, fmt.Errorf("unauthorized: global admin access required")
 	}
 
-	// Get assessment for this cleaner
-	assessment, err := r.Queries.GetPersonalityAssessmentByCleanerID(ctx, stringToUUID(cleanerID))
+	// Get assessment for this worker
+	assessment, err := r.Queries.GetPersonalityAssessmentByWorkerID(ctx, stringToUUID(workerID))
 	if err != nil {
-		return nil, fmt.Errorf("personality assessment not found for cleaner: %w", err)
+		return nil, fmt.Errorf("personality assessment not found for worker: %w", err)
 	}
 
 	// Delete existing insights (if any)
@@ -256,12 +256,12 @@ func (r *queryResolver) MyPersonalityAssessment(ctx context.Context) (*model.Per
 		return nil, fmt.Errorf("not authenticated")
 	}
 
-	cleaner, err := r.Queries.GetCleanerByUserID(ctx, stringToUUID(claims.UserID))
+	worker, err := r.Queries.GetWorkerByUserID(ctx, stringToUUID(claims.UserID))
 	if err != nil {
-		return nil, nil // No cleaner profile → no assessment.
+		return nil, nil // No worker profile → no assessment.
 	}
 
-	assessment, err := r.Queries.GetPersonalityAssessmentByCleanerID(ctx, cleaner.ID)
+	assessment, err := r.Queries.GetPersonalityAssessmentByWorkerID(ctx, worker.ID)
 	if err != nil {
 		return nil, nil // No assessment yet.
 	}
@@ -269,19 +269,9 @@ func (r *queryResolver) MyPersonalityAssessment(ctx context.Context) (*model.Per
 	return dbPersonalityAssessmentToGQL(assessment), nil
 }
 
-// CleanerPersonalityAssessment is the resolver for the cleanerPersonalityAssessment field.
-func (r *queryResolver) CleanerPersonalityAssessment(ctx context.Context, cleanerID string) (*model.PersonalityAssessment, error) {
-	claims := auth.GetUserFromContext(ctx)
-	if claims == nil || (claims.Role != "admin" && claims.Role != "company_admin") {
-		return nil, fmt.Errorf("not authorized")
-	}
-
-	assessment, err := r.Queries.GetPersonalityAssessmentByCleanerID(ctx, stringToUUID(cleanerID))
-	if err != nil {
-		return nil, nil // No assessment yet.
-	}
-
-	return dbPersonalityAssessmentToGQL(assessment), nil
+// WorkerPersonalityAssessment is the resolver for the workerPersonalityAssessment field.
+func (r *queryResolver) WorkerPersonalityAssessment(ctx context.Context, workerID string) (*model.PersonalityAssessment, error) {
+	panic(fmt.Errorf("not implemented: WorkerPersonalityAssessment - workerPersonalityAssessment"))
 }
 
 // PersonalityAssessment returns graph.PersonalityAssessmentResolver implementation.

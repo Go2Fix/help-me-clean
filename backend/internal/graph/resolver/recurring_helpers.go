@@ -16,7 +16,7 @@ import (
 type createRecurringGroupInput struct {
 	clientUserID        pgtype.UUID
 	companyID           pgtype.UUID
-	cleanerID           pgtype.UUID
+	workerID           pgtype.UUID
 	addressID           pgtype.UUID
 	recurrenceType      db.RecurrenceType
 	dayOfWeek           int
@@ -43,7 +43,7 @@ func (r *Resolver) createRecurringGroup(ctx context.Context, input createRecurri
 	group, err := r.Queries.CreateRecurringGroup(ctx, db.CreateRecurringGroupParams{
 		ClientUserID:                input.clientUserID,
 		CompanyID:                   input.companyID,
-		PreferredCleanerID:          input.cleanerID,
+		PreferredWorkerID:          input.workerID,
 		AddressID:                   input.addressID,
 		RecurrenceType:              input.recurrenceType,
 		DayOfWeek:                   pgtype.Int4{Int32: int32(input.dayOfWeek), Valid: true},
@@ -89,10 +89,10 @@ func (r *Resolver) createRecurringGroup(ctx context.Context, input createRecurri
 	for i, occDate := range futureDates {
 		occNum := i + 2 // occurrence 2 through 8
 
-		// Find available cleaner for this date.
-		assignedCleanerID := r.findAvailableCleanerForDate(ctx, input.cleanerID, input.companyID, occDate)
+		// Find available worker for this date.
+		assignedWorkerID := r.findAvailableWorkerForDate(ctx, input.workerID, input.companyID, occDate)
 
-		refCode := fmt.Sprintf("HMC-%d", time.Now().UnixNano()%1000000+int64(occNum))
+		refCode := fmt.Sprintf("G2F-%d", time.Now().UnixNano()%1000000+int64(occNum))
 
 		booking, createErr := r.Queries.CreateBooking(ctx, db.CreateBookingParams{
 			ReferenceCode:          refCode,
@@ -118,11 +118,11 @@ func (r *Resolver) createRecurringGroup(ctx context.Context, input createRecurri
 			continue
 		}
 
-		// Assign cleaner + company to the occurrence.
-		_, _ = r.Queries.SetBookingPreferredCleaner(ctx, db.SetBookingPreferredCleanerParams{
+		// Assign worker + company to the occurrence.
+		_, _ = r.Queries.SetBookingPreferredWorker(ctx, db.SetBookingPreferredWorkerParams{
 			ID:        booking.ID,
 			CompanyID: input.companyID,
-			CleanerID: assignedCleanerID,
+			WorkerID: assignedWorkerID,
 		})
 
 		// Copy extras to booking_extras.
@@ -165,23 +165,23 @@ func generateOccurrenceDates(recType db.RecurrenceType, firstDate time.Time, cou
 	return dates
 }
 
-// findAvailableCleanerForDate checks if the preferred cleaner is available on the given date.
+// findAvailableWorkerForDate checks if the preferred worker is available on the given date.
 // If not, returns an available teammate from the same company.
-// Falls back to the preferred cleaner if no teammate is available.
-func (r *Resolver) findAvailableCleanerForDate(ctx context.Context, preferredCleanerID, companyID pgtype.UUID, date time.Time) pgtype.UUID {
-	// Check if preferred cleaner has a conflicting booking on this date.
-	if !r.hasConflictOnDate(ctx, preferredCleanerID, date) {
-		return preferredCleanerID
+// Falls back to the preferred worker if no teammate is available.
+func (r *Resolver) findAvailableWorkerForDate(ctx context.Context, preferredWorkerID, companyID pgtype.UUID, date time.Time) pgtype.UUID {
+	// Check if preferred worker has a conflicting booking on this date.
+	if !r.hasConflictOnDate(ctx, preferredWorkerID, date) {
+		return preferredWorkerID
 	}
 
 	// Find a teammate from the same company who is available.
-	teammates, err := r.Queries.ListCleanersByCompany(ctx, companyID)
+	teammates, err := r.Queries.ListWorkersByCompany(ctx, companyID)
 	if err != nil {
-		return preferredCleanerID // fallback
+		return preferredWorkerID // fallback
 	}
 
 	for _, mate := range teammates {
-		if mate.ID == preferredCleanerID {
+		if mate.ID == preferredWorkerID {
 			continue
 		}
 		if string(mate.Status) != "active" {
@@ -192,14 +192,14 @@ func (r *Resolver) findAvailableCleanerForDate(ctx context.Context, preferredCle
 		}
 	}
 
-	// No available teammate — fall back to preferred cleaner.
-	return preferredCleanerID
+	// No available teammate — fall back to preferred worker.
+	return preferredWorkerID
 }
 
-// hasConflictOnDate checks if a cleaner already has a booking on the given date.
-func (r *Resolver) hasConflictOnDate(ctx context.Context, cleanerID pgtype.UUID, date time.Time) bool {
-	bookings, err := r.Queries.ListBookingsByCleanerAndDateRange(ctx, db.ListBookingsByCleanerAndDateRangeParams{
-		CleanerID: cleanerID,
+// hasConflictOnDate checks if a worker already has a booking on the given date.
+func (r *Resolver) hasConflictOnDate(ctx context.Context, workerID pgtype.UUID, date time.Time) bool {
+	bookings, err := r.Queries.ListBookingsByWorkerAndDateRange(ctx, db.ListBookingsByWorkerAndDateRangeParams{
+		WorkerID: workerID,
 		DateFrom:  pgtype.Date{Time: date, Valid: true},
 		DateTo:    pgtype.Date{Time: date, Valid: true},
 	})
@@ -234,16 +234,16 @@ func (r *Resolver) enrichRecurringGroup(ctx context.Context, g db.RecurringBooki
 		}
 	}
 
-	// Preferred cleaner with full profile (User/Company/Documents/PersonalityAssessment).
-	if g.PreferredCleanerID.Valid {
-		if cleaner, err := r.Queries.GetCleanerByID(ctx, g.PreferredCleanerID); err == nil {
-			if profile, err := r.cleanerWithCompany(ctx, cleaner); err == nil {
-				gql.PreferredCleaner = profile
+	// Preferred worker with full profile (User/Company/Documents/PersonalityAssessment).
+	if g.PreferredWorkerID.Valid {
+		if worker, err := r.Queries.GetWorkerByID(ctx, g.PreferredWorkerID); err == nil {
+			if profile, err := r.workerWithCompany(ctx, worker); err == nil {
+				gql.PreferredWorker = profile
 			} else {
-				log.Printf("Failed to load preferred cleaner: %v", err)
+				log.Printf("Failed to load preferred worker: %v", err)
 				// Fallback: load user separately and create basic profile
-				if user, userErr := r.Queries.GetUserByID(ctx, cleaner.UserID); userErr == nil {
-					gql.PreferredCleaner = dbCleanerToGQL(cleaner, &user)
+				if user, userErr := r.Queries.GetUserByID(ctx, worker.UserID); userErr == nil {
+					gql.PreferredWorker = dbWorkerToGQL(worker, &user)
 				}
 			}
 		}

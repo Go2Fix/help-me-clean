@@ -36,7 +36,7 @@ const sampleRefund = {
   createdAt: '2025-01-20T10:00:00Z',
   booking: {
     id: 'b1',
-    referenceCode: 'HMC-200',
+    referenceCode: 'G2F-200',
     serviceName: 'Curatenie generala',
   },
   requestedBy: {
@@ -98,7 +98,7 @@ describe('RefundsPage (Admin)', () => {
   it('shows refund requests table with booking reference and user name', () => {
     mockQueries({ refunds: [sampleRefund] });
     renderPage();
-    expect(screen.getByText('HMC-200')).toBeInTheDocument();
+    expect(screen.getByText('G2F-200')).toBeInTheDocument();
     expect(screen.getByText('Maria Ionescu')).toBeInTheDocument();
     expect(screen.getByText('Curatenie nesatisfacatoare')).toBeInTheDocument();
     // 15000 cents = 150.00 lei

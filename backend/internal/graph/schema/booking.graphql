@@ -22,7 +22,7 @@ type Booking {
   referenceCode: String!
   client: User
   company: Company
-  cleaner: CleanerProfile
+  worker: WorkerProfile
   address: Address
   serviceType: ServiceType!
   serviceName: String!
@@ -96,7 +96,7 @@ extend type Query {
 extend type Mutation {
   createBookingRequest(input: CreateBookingInput!): Booking!
   cancelBooking(id: ID!, reason: String): Booking!
-  assignCleanerToBooking(bookingId: ID!, cleanerId: ID!): Booking!
+  assignWorkerToBooking(bookingId: ID!, workerId: ID!): Booking!
   confirmBooking(id: ID!): Booking!
   startJob(id: ID!): Booking!
   completeJob(id: ID!): Booking!
@@ -120,7 +120,7 @@ input CreateBookingInput {
   guestEmail: String
   guestName: String
   guestPhone: String
-  preferredCleanerId: ID
+  preferredWorkerId: ID
   suggestedStartTime: String
   recurrence: RecurrenceInput
 }

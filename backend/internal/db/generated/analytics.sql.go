@@ -11,45 +11,6 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const getCleanerEarningsByDateRange = `-- name: GetCleanerEarningsByDateRange :many
-SELECT DATE(completed_at) AS date,
-    COALESCE(SUM(COALESCE(final_total, estimated_total)), 0)::numeric AS amount
-FROM bookings
-WHERE cleaner_id = $1 AND status = 'completed' AND completed_at >= $2 AND completed_at <= $3
-GROUP BY DATE(completed_at) ORDER BY date
-`
-
-type GetCleanerEarningsByDateRangeParams struct {
-	CleanerID     pgtype.UUID        `json:"cleaner_id"`
-	CompletedAt   pgtype.Timestamptz `json:"completed_at"`
-	CompletedAt_2 pgtype.Timestamptz `json:"completed_at_2"`
-}
-
-type GetCleanerEarningsByDateRangeRow struct {
-	Date   pgtype.Date    `json:"date"`
-	Amount pgtype.Numeric `json:"amount"`
-}
-
-func (q *Queries) GetCleanerEarningsByDateRange(ctx context.Context, arg GetCleanerEarningsByDateRangeParams) ([]GetCleanerEarningsByDateRangeRow, error) {
-	rows, err := q.db.Query(ctx, getCleanerEarningsByDateRange, arg.CleanerID, arg.CompletedAt, arg.CompletedAt_2)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []GetCleanerEarningsByDateRangeRow
-	for rows.Next() {
-		var i GetCleanerEarningsByDateRangeRow
-		if err := rows.Scan(&i.Date, &i.Amount); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const getCompanyRevenueByDateRange = `-- name: GetCompanyRevenueByDateRange :many
 SELECT DATE(completed_at) AS date,
     COUNT(*)::bigint AS booking_count,
@@ -259,6 +220,45 @@ func (q *Queries) GetTopCompaniesByRevenue(ctx context.Context, arg GetTopCompan
 			&i.Revenue,
 			&i.Commission,
 		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getWorkerEarningsByDateRange = `-- name: GetWorkerEarningsByDateRange :many
+SELECT DATE(completed_at) AS date,
+    COALESCE(SUM(COALESCE(final_total, estimated_total)), 0)::numeric AS amount
+FROM bookings
+WHERE worker_id = $1 AND status = 'completed' AND completed_at >= $2 AND completed_at <= $3
+GROUP BY DATE(completed_at) ORDER BY date
+`
+
+type GetWorkerEarningsByDateRangeParams struct {
+	WorkerID      pgtype.UUID        `json:"worker_id"`
+	CompletedAt   pgtype.Timestamptz `json:"completed_at"`
+	CompletedAt_2 pgtype.Timestamptz `json:"completed_at_2"`
+}
+
+type GetWorkerEarningsByDateRangeRow struct {
+	Date   pgtype.Date    `json:"date"`
+	Amount pgtype.Numeric `json:"amount"`
+}
+
+func (q *Queries) GetWorkerEarningsByDateRange(ctx context.Context, arg GetWorkerEarningsByDateRangeParams) ([]GetWorkerEarningsByDateRangeRow, error) {
+	rows, err := q.db.Query(ctx, getWorkerEarningsByDateRange, arg.WorkerID, arg.CompletedAt, arg.CompletedAt_2)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetWorkerEarningsByDateRangeRow
+	for rows.Next() {
+		var i GetWorkerEarningsByDateRangeRow
+		if err := rows.Scan(&i.Date, &i.Amount); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

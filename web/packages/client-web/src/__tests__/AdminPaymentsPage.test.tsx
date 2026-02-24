@@ -52,7 +52,7 @@ const sampleTransaction = {
   createdAt: '2025-01-15T10:00:00Z',
   booking: {
     id: 'b1',
-    referenceCode: 'HMC-100',
+    referenceCode: 'G2F-100',
     serviceName: 'Curatenie generala',
     company: { id: 'co1', companyName: 'Clean Pro SRL' },
   },
@@ -122,7 +122,7 @@ describe('PaymentsPage (Admin)', () => {
   it('renders transactions table with booking data', () => {
     mockQueries({ transactions: [sampleTransaction] });
     renderPage();
-    expect(screen.getByText('HMC-100')).toBeInTheDocument();
+    expect(screen.getByText('G2F-100')).toBeInTheDocument();
     expect(screen.getByText('Clean Pro SRL')).toBeInTheDocument();
     // 25000 cents = 250.00 lei
     expect(screen.getByText('250.00 lei')).toBeInTheDocument();

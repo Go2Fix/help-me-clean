@@ -11,26 +11,26 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const assignCleanerToBooking = `-- name: AssignCleanerToBooking :one
-UPDATE bookings SET company_id = $2, cleaner_id = $3, status = 'assigned', updated_at = NOW()
-WHERE id = $1 RETURNING id, reference_code, client_user_id, company_id, cleaner_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number
+const assignWorkerToBooking = `-- name: AssignWorkerToBooking :one
+UPDATE bookings SET company_id = $2, worker_id = $3, status = 'assigned', updated_at = NOW()
+WHERE id = $1 RETURNING id, reference_code, client_user_id, company_id, worker_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number
 `
 
-type AssignCleanerToBookingParams struct {
+type AssignWorkerToBookingParams struct {
 	ID        pgtype.UUID `json:"id"`
 	CompanyID pgtype.UUID `json:"company_id"`
-	CleanerID pgtype.UUID `json:"cleaner_id"`
+	WorkerID  pgtype.UUID `json:"worker_id"`
 }
 
-func (q *Queries) AssignCleanerToBooking(ctx context.Context, arg AssignCleanerToBookingParams) (Booking, error) {
-	row := q.db.QueryRow(ctx, assignCleanerToBooking, arg.ID, arg.CompanyID, arg.CleanerID)
+func (q *Queries) AssignWorkerToBooking(ctx context.Context, arg AssignWorkerToBookingParams) (Booking, error) {
+	row := q.db.QueryRow(ctx, assignWorkerToBooking, arg.ID, arg.CompanyID, arg.WorkerID)
 	var i Booking
 	err := row.Scan(
 		&i.ID,
 		&i.ReferenceCode,
 		&i.ClientUserID,
 		&i.CompanyID,
-		&i.CleanerID,
+		&i.WorkerID,
 		&i.AddressID,
 		&i.ServiceType,
 		&i.ScheduledDate,
@@ -65,7 +65,7 @@ func (q *Queries) AssignCleanerToBooking(ctx context.Context, arg AssignCleanerT
 
 const cancelBookingWithReason = `-- name: CancelBookingWithReason :one
 UPDATE bookings SET status = $2, cancelled_at = NOW(), cancellation_reason = $3, updated_at = NOW()
-WHERE id = $1 RETURNING id, reference_code, client_user_id, company_id, cleaner_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number
+WHERE id = $1 RETURNING id, reference_code, client_user_id, company_id, worker_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number
 `
 
 type CancelBookingWithReasonParams struct {
@@ -82,7 +82,7 @@ func (q *Queries) CancelBookingWithReason(ctx context.Context, arg CancelBooking
 		&i.ReferenceCode,
 		&i.ClientUserID,
 		&i.CompanyID,
-		&i.CleanerID,
+		&i.WorkerID,
 		&i.AddressID,
 		&i.ServiceType,
 		&i.ScheduledDate,
@@ -117,7 +117,7 @@ func (q *Queries) CancelBookingWithReason(ctx context.Context, arg CancelBooking
 
 const completeBooking = `-- name: CompleteBooking :one
 UPDATE bookings SET status = 'completed', completed_at = NOW(), updated_at = NOW()
-WHERE id = $1 RETURNING id, reference_code, client_user_id, company_id, cleaner_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number
+WHERE id = $1 RETURNING id, reference_code, client_user_id, company_id, worker_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number
 `
 
 func (q *Queries) CompleteBooking(ctx context.Context, id pgtype.UUID) (Booking, error) {
@@ -128,7 +128,7 @@ func (q *Queries) CompleteBooking(ctx context.Context, id pgtype.UUID) (Booking,
 		&i.ReferenceCode,
 		&i.ClientUserID,
 		&i.CompanyID,
-		&i.CleanerID,
+		&i.WorkerID,
 		&i.AddressID,
 		&i.ServiceType,
 		&i.ScheduledDate,
@@ -183,12 +183,12 @@ func (q *Queries) CountBookingsByStatus(ctx context.Context, status BookingStatu
 	return count, err
 }
 
-const countCompletedJobsByCleaner = `-- name: CountCompletedJobsByCleaner :one
-SELECT COUNT(*) FROM bookings WHERE cleaner_id = $1 AND status = 'completed'
+const countCompletedJobsByWorker = `-- name: CountCompletedJobsByWorker :one
+SELECT COUNT(*) FROM bookings WHERE worker_id = $1 AND status = 'completed'
 `
 
-func (q *Queries) CountCompletedJobsByCleaner(ctx context.Context, cleanerID pgtype.UUID) (int64, error) {
-	row := q.db.QueryRow(ctx, countCompletedJobsByCleaner, cleanerID)
+func (q *Queries) CountCompletedJobsByWorker(ctx context.Context, workerID pgtype.UUID) (int64, error) {
+	row := q.db.QueryRow(ctx, countCompletedJobsByWorker, workerID)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -207,36 +207,6 @@ type CountSearchBookingsParams struct {
 
 func (q *Queries) CountSearchBookings(ctx context.Context, arg CountSearchBookingsParams) (int64, error) {
 	row := q.db.QueryRow(ctx, countSearchBookings, arg.Query, arg.StatusFilter)
-	var count int64
-	err := row.Scan(&count)
-	return count, err
-}
-
-const countSearchCleanerBookings = `-- name: CountSearchCleanerBookings :one
-SELECT COUNT(*) FROM bookings WHERE
-    cleaner_id = $1
-    AND ($2::text = '' OR reference_code ILIKE '%' || $2::text || '%')
-    AND ($3::text = '' OR status::text = $3::text OR ($3::text = 'cancelled' AND status::text LIKE 'cancelled%'))
-    AND ($4::date = '0001-01-01' OR scheduled_date >= $4::date)
-    AND ($5::date = '0001-01-01' OR scheduled_date <= $5::date)
-`
-
-type CountSearchCleanerBookingsParams struct {
-	CleanerID    pgtype.UUID `json:"cleaner_id"`
-	Query        string      `json:"query"`
-	StatusFilter string      `json:"status_filter"`
-	DateFrom     pgtype.Date `json:"date_from"`
-	DateTo       pgtype.Date `json:"date_to"`
-}
-
-func (q *Queries) CountSearchCleanerBookings(ctx context.Context, arg CountSearchCleanerBookingsParams) (int64, error) {
-	row := q.db.QueryRow(ctx, countSearchCleanerBookings,
-		arg.CleanerID,
-		arg.Query,
-		arg.StatusFilter,
-		arg.DateFrom,
-		arg.DateTo,
-	)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -272,15 +242,45 @@ func (q *Queries) CountSearchCompanyBookings(ctx context.Context, arg CountSearc
 	return count, err
 }
 
-const countThisMonthJobsByCleaner = `-- name: CountThisMonthJobsByCleaner :one
+const countSearchWorkerBookings = `-- name: CountSearchWorkerBookings :one
+SELECT COUNT(*) FROM bookings WHERE
+    worker_id = $1
+    AND ($2::text = '' OR reference_code ILIKE '%' || $2::text || '%')
+    AND ($3::text = '' OR status::text = $3::text OR ($3::text = 'cancelled' AND status::text LIKE 'cancelled%'))
+    AND ($4::date = '0001-01-01' OR scheduled_date >= $4::date)
+    AND ($5::date = '0001-01-01' OR scheduled_date <= $5::date)
+`
+
+type CountSearchWorkerBookingsParams struct {
+	WorkerID     pgtype.UUID `json:"worker_id"`
+	Query        string      `json:"query"`
+	StatusFilter string      `json:"status_filter"`
+	DateFrom     pgtype.Date `json:"date_from"`
+	DateTo       pgtype.Date `json:"date_to"`
+}
+
+func (q *Queries) CountSearchWorkerBookings(ctx context.Context, arg CountSearchWorkerBookingsParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countSearchWorkerBookings,
+		arg.WorkerID,
+		arg.Query,
+		arg.StatusFilter,
+		arg.DateFrom,
+		arg.DateTo,
+	)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countThisMonthJobsByWorker = `-- name: CountThisMonthJobsByWorker :one
 SELECT COUNT(*) FROM bookings
-WHERE cleaner_id = $1
+WHERE worker_id = $1
   AND scheduled_date >= date_trunc('month', CURRENT_DATE)::date
   AND status NOT IN ('cancelled_by_client', 'cancelled_by_company', 'cancelled_by_admin')
 `
 
-func (q *Queries) CountThisMonthJobsByCleaner(ctx context.Context, cleanerID pgtype.UUID) (int64, error) {
-	row := q.db.QueryRow(ctx, countThisMonthJobsByCleaner, cleanerID)
+func (q *Queries) CountThisMonthJobsByWorker(ctx context.Context, workerID pgtype.UUID) (int64, error) {
+	row := q.db.QueryRow(ctx, countThisMonthJobsByWorker, workerID)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -293,7 +293,7 @@ INSERT INTO bookings (
     num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total,
     recurring_group_id, occurrence_number
 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
-RETURNING id, reference_code, client_user_id, company_id, cleaner_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number
+RETURNING id, reference_code, client_user_id, company_id, worker_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number
 `
 
 type CreateBookingParams struct {
@@ -342,7 +342,7 @@ func (q *Queries) CreateBooking(ctx context.Context, arg CreateBookingParams) (B
 		&i.ReferenceCode,
 		&i.ClientUserID,
 		&i.CompanyID,
-		&i.CleanerID,
+		&i.WorkerID,
 		&i.AddressID,
 		&i.ServiceType,
 		&i.ScheduledDate,
@@ -376,7 +376,7 @@ func (q *Queries) CreateBooking(ctx context.Context, arg CreateBookingParams) (B
 }
 
 const getBookingByID = `-- name: GetBookingByID :one
-SELECT id, reference_code, client_user_id, company_id, cleaner_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number FROM bookings WHERE id = $1
+SELECT id, reference_code, client_user_id, company_id, worker_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number FROM bookings WHERE id = $1
 `
 
 func (q *Queries) GetBookingByID(ctx context.Context, id pgtype.UUID) (Booking, error) {
@@ -387,7 +387,7 @@ func (q *Queries) GetBookingByID(ctx context.Context, id pgtype.UUID) (Booking, 
 		&i.ReferenceCode,
 		&i.ClientUserID,
 		&i.CompanyID,
-		&i.CleanerID,
+		&i.WorkerID,
 		&i.AddressID,
 		&i.ServiceType,
 		&i.ScheduledDate,
@@ -421,7 +421,7 @@ func (q *Queries) GetBookingByID(ctx context.Context, id pgtype.UUID) (Booking, 
 }
 
 const getBookingByReferenceCode = `-- name: GetBookingByReferenceCode :one
-SELECT id, reference_code, client_user_id, company_id, cleaner_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number FROM bookings WHERE reference_code = $1
+SELECT id, reference_code, client_user_id, company_id, worker_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number FROM bookings WHERE reference_code = $1
 `
 
 func (q *Queries) GetBookingByReferenceCode(ctx context.Context, referenceCode string) (Booking, error) {
@@ -432,7 +432,7 @@ func (q *Queries) GetBookingByReferenceCode(ctx context.Context, referenceCode s
 		&i.ReferenceCode,
 		&i.ClientUserID,
 		&i.CompanyID,
-		&i.CleanerID,
+		&i.WorkerID,
 		&i.AddressID,
 		&i.ServiceType,
 		&i.ScheduledDate,
@@ -543,135 +543,8 @@ func (q *Queries) ListBookingExtras(ctx context.Context, bookingID pgtype.UUID) 
 	return items, nil
 }
 
-const listBookingsByCleaner = `-- name: ListBookingsByCleaner :many
-SELECT id, reference_code, client_user_id, company_id, cleaner_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number FROM bookings WHERE cleaner_id = $1 ORDER BY scheduled_date DESC
-`
-
-func (q *Queries) ListBookingsByCleaner(ctx context.Context, cleanerID pgtype.UUID) ([]Booking, error) {
-	rows, err := q.db.Query(ctx, listBookingsByCleaner, cleanerID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Booking
-	for rows.Next() {
-		var i Booking
-		if err := rows.Scan(
-			&i.ID,
-			&i.ReferenceCode,
-			&i.ClientUserID,
-			&i.CompanyID,
-			&i.CleanerID,
-			&i.AddressID,
-			&i.ServiceType,
-			&i.ScheduledDate,
-			&i.ScheduledStartTime,
-			&i.EstimatedDurationHours,
-			&i.PropertyType,
-			&i.NumRooms,
-			&i.NumBathrooms,
-			&i.AreaSqm,
-			&i.HasPets,
-			&i.SpecialInstructions,
-			&i.HourlyRate,
-			&i.EstimatedTotal,
-			&i.FinalTotal,
-			&i.PlatformCommissionPct,
-			&i.PlatformCommissionAmount,
-			&i.Status,
-			&i.StartedAt,
-			&i.CompletedAt,
-			&i.CancelledAt,
-			&i.CancellationReason,
-			&i.StripePaymentIntentID,
-			&i.PaymentStatus,
-			&i.PaidAt,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-			&i.RecurringGroupID,
-			&i.OccurrenceNumber,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const listBookingsByCleanerAndDateRange = `-- name: ListBookingsByCleanerAndDateRange :many
-SELECT id, reference_code, client_user_id, company_id, cleaner_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number FROM bookings
-WHERE cleaner_id = $1
-  AND scheduled_date >= $2::date
-  AND scheduled_date <= $3::date
-  AND status NOT IN ('cancelled_by_client', 'cancelled_by_company', 'cancelled_by_admin')
-ORDER BY scheduled_date, scheduled_start_time
-`
-
-type ListBookingsByCleanerAndDateRangeParams struct {
-	CleanerID pgtype.UUID `json:"cleaner_id"`
-	DateFrom  pgtype.Date `json:"date_from"`
-	DateTo    pgtype.Date `json:"date_to"`
-}
-
-func (q *Queries) ListBookingsByCleanerAndDateRange(ctx context.Context, arg ListBookingsByCleanerAndDateRangeParams) ([]Booking, error) {
-	rows, err := q.db.Query(ctx, listBookingsByCleanerAndDateRange, arg.CleanerID, arg.DateFrom, arg.DateTo)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Booking
-	for rows.Next() {
-		var i Booking
-		if err := rows.Scan(
-			&i.ID,
-			&i.ReferenceCode,
-			&i.ClientUserID,
-			&i.CompanyID,
-			&i.CleanerID,
-			&i.AddressID,
-			&i.ServiceType,
-			&i.ScheduledDate,
-			&i.ScheduledStartTime,
-			&i.EstimatedDurationHours,
-			&i.PropertyType,
-			&i.NumRooms,
-			&i.NumBathrooms,
-			&i.AreaSqm,
-			&i.HasPets,
-			&i.SpecialInstructions,
-			&i.HourlyRate,
-			&i.EstimatedTotal,
-			&i.FinalTotal,
-			&i.PlatformCommissionPct,
-			&i.PlatformCommissionAmount,
-			&i.Status,
-			&i.StartedAt,
-			&i.CompletedAt,
-			&i.CancelledAt,
-			&i.CancellationReason,
-			&i.StripePaymentIntentID,
-			&i.PaymentStatus,
-			&i.PaidAt,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-			&i.RecurringGroupID,
-			&i.OccurrenceNumber,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const listBookingsByClient = `-- name: ListBookingsByClient :many
-SELECT id, reference_code, client_user_id, company_id, cleaner_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number FROM bookings WHERE client_user_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3
+SELECT id, reference_code, client_user_id, company_id, worker_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number FROM bookings WHERE client_user_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3
 `
 
 type ListBookingsByClientParams struct {
@@ -694,7 +567,7 @@ func (q *Queries) ListBookingsByClient(ctx context.Context, arg ListBookingsByCl
 			&i.ReferenceCode,
 			&i.ClientUserID,
 			&i.CompanyID,
-			&i.CleanerID,
+			&i.WorkerID,
 			&i.AddressID,
 			&i.ServiceType,
 			&i.ScheduledDate,
@@ -735,7 +608,7 @@ func (q *Queries) ListBookingsByClient(ctx context.Context, arg ListBookingsByCl
 }
 
 const listBookingsByClientAndStatus = `-- name: ListBookingsByClientAndStatus :many
-SELECT id, reference_code, client_user_id, company_id, cleaner_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number FROM bookings WHERE client_user_id = $1 AND status = $2 ORDER BY created_at DESC LIMIT $3 OFFSET $4
+SELECT id, reference_code, client_user_id, company_id, worker_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number FROM bookings WHERE client_user_id = $1 AND status = $2 ORDER BY created_at DESC LIMIT $3 OFFSET $4
 `
 
 type ListBookingsByClientAndStatusParams struct {
@@ -764,7 +637,7 @@ func (q *Queries) ListBookingsByClientAndStatus(ctx context.Context, arg ListBoo
 			&i.ReferenceCode,
 			&i.ClientUserID,
 			&i.CompanyID,
-			&i.CleanerID,
+			&i.WorkerID,
 			&i.AddressID,
 			&i.ServiceType,
 			&i.ScheduledDate,
@@ -805,7 +678,7 @@ func (q *Queries) ListBookingsByClientAndStatus(ctx context.Context, arg ListBoo
 }
 
 const listBookingsByCompany = `-- name: ListBookingsByCompany :many
-SELECT id, reference_code, client_user_id, company_id, cleaner_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number FROM bookings WHERE company_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3
+SELECT id, reference_code, client_user_id, company_id, worker_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number FROM bookings WHERE company_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3
 `
 
 type ListBookingsByCompanyParams struct {
@@ -828,7 +701,7 @@ func (q *Queries) ListBookingsByCompany(ctx context.Context, arg ListBookingsByC
 			&i.ReferenceCode,
 			&i.ClientUserID,
 			&i.CompanyID,
-			&i.CleanerID,
+			&i.WorkerID,
 			&i.AddressID,
 			&i.ServiceType,
 			&i.ScheduledDate,
@@ -869,7 +742,7 @@ func (q *Queries) ListBookingsByCompany(ctx context.Context, arg ListBookingsByC
 }
 
 const listBookingsByCompanyAndDateRange = `-- name: ListBookingsByCompanyAndDateRange :many
-SELECT id, reference_code, client_user_id, company_id, cleaner_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number FROM bookings
+SELECT id, reference_code, client_user_id, company_id, worker_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number FROM bookings
 WHERE company_id = $1
   AND scheduled_date >= $2::date
   AND scheduled_date <= $3::date
@@ -897,7 +770,7 @@ func (q *Queries) ListBookingsByCompanyAndDateRange(ctx context.Context, arg Lis
 			&i.ReferenceCode,
 			&i.ClientUserID,
 			&i.CompanyID,
-			&i.CleanerID,
+			&i.WorkerID,
 			&i.AddressID,
 			&i.ServiceType,
 			&i.ScheduledDate,
@@ -938,7 +811,7 @@ func (q *Queries) ListBookingsByCompanyAndDateRange(ctx context.Context, arg Lis
 }
 
 const listBookingsByCompanyAndStatus = `-- name: ListBookingsByCompanyAndStatus :many
-SELECT id, reference_code, client_user_id, company_id, cleaner_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number FROM bookings WHERE company_id = $1 AND status = $2 ORDER BY created_at DESC LIMIT $3 OFFSET $4
+SELECT id, reference_code, client_user_id, company_id, worker_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number FROM bookings WHERE company_id = $1 AND status = $2 ORDER BY created_at DESC LIMIT $3 OFFSET $4
 `
 
 type ListBookingsByCompanyAndStatusParams struct {
@@ -967,7 +840,7 @@ func (q *Queries) ListBookingsByCompanyAndStatus(ctx context.Context, arg ListBo
 			&i.ReferenceCode,
 			&i.ClientUserID,
 			&i.CompanyID,
-			&i.CleanerID,
+			&i.WorkerID,
 			&i.AddressID,
 			&i.ServiceType,
 			&i.ScheduledDate,
@@ -1008,7 +881,7 @@ func (q *Queries) ListBookingsByCompanyAndStatus(ctx context.Context, arg ListBo
 }
 
 const listBookingsByStatus = `-- name: ListBookingsByStatus :many
-SELECT id, reference_code, client_user_id, company_id, cleaner_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number FROM bookings WHERE status = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3
+SELECT id, reference_code, client_user_id, company_id, worker_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number FROM bookings WHERE status = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3
 `
 
 type ListBookingsByStatusParams struct {
@@ -1031,7 +904,7 @@ func (q *Queries) ListBookingsByStatus(ctx context.Context, arg ListBookingsBySt
 			&i.ReferenceCode,
 			&i.ClientUserID,
 			&i.CompanyID,
-			&i.CleanerID,
+			&i.WorkerID,
 			&i.AddressID,
 			&i.ServiceType,
 			&i.ScheduledDate,
@@ -1071,12 +944,12 @@ func (q *Queries) ListBookingsByStatus(ctx context.Context, arg ListBookingsBySt
 	return items, nil
 }
 
-const listTodaysJobsByCleaner = `-- name: ListTodaysJobsByCleaner :many
-SELECT id, reference_code, client_user_id, company_id, cleaner_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number FROM bookings WHERE cleaner_id = $1 AND scheduled_date = CURRENT_DATE ORDER BY scheduled_start_time
+const listBookingsByWorker = `-- name: ListBookingsByWorker :many
+SELECT id, reference_code, client_user_id, company_id, worker_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number FROM bookings WHERE worker_id = $1 ORDER BY scheduled_date DESC
 `
 
-func (q *Queries) ListTodaysJobsByCleaner(ctx context.Context, cleanerID pgtype.UUID) ([]Booking, error) {
-	rows, err := q.db.Query(ctx, listTodaysJobsByCleaner, cleanerID)
+func (q *Queries) ListBookingsByWorker(ctx context.Context, workerID pgtype.UUID) ([]Booking, error) {
+	rows, err := q.db.Query(ctx, listBookingsByWorker, workerID)
 	if err != nil {
 		return nil, err
 	}
@@ -1089,7 +962,134 @@ func (q *Queries) ListTodaysJobsByCleaner(ctx context.Context, cleanerID pgtype.
 			&i.ReferenceCode,
 			&i.ClientUserID,
 			&i.CompanyID,
-			&i.CleanerID,
+			&i.WorkerID,
+			&i.AddressID,
+			&i.ServiceType,
+			&i.ScheduledDate,
+			&i.ScheduledStartTime,
+			&i.EstimatedDurationHours,
+			&i.PropertyType,
+			&i.NumRooms,
+			&i.NumBathrooms,
+			&i.AreaSqm,
+			&i.HasPets,
+			&i.SpecialInstructions,
+			&i.HourlyRate,
+			&i.EstimatedTotal,
+			&i.FinalTotal,
+			&i.PlatformCommissionPct,
+			&i.PlatformCommissionAmount,
+			&i.Status,
+			&i.StartedAt,
+			&i.CompletedAt,
+			&i.CancelledAt,
+			&i.CancellationReason,
+			&i.StripePaymentIntentID,
+			&i.PaymentStatus,
+			&i.PaidAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.RecurringGroupID,
+			&i.OccurrenceNumber,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listBookingsByWorkerAndDateRange = `-- name: ListBookingsByWorkerAndDateRange :many
+SELECT id, reference_code, client_user_id, company_id, worker_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number FROM bookings
+WHERE worker_id = $1
+  AND scheduled_date >= $2::date
+  AND scheduled_date <= $3::date
+  AND status NOT IN ('cancelled_by_client', 'cancelled_by_company', 'cancelled_by_admin')
+ORDER BY scheduled_date, scheduled_start_time
+`
+
+type ListBookingsByWorkerAndDateRangeParams struct {
+	WorkerID pgtype.UUID `json:"worker_id"`
+	DateFrom pgtype.Date `json:"date_from"`
+	DateTo   pgtype.Date `json:"date_to"`
+}
+
+func (q *Queries) ListBookingsByWorkerAndDateRange(ctx context.Context, arg ListBookingsByWorkerAndDateRangeParams) ([]Booking, error) {
+	rows, err := q.db.Query(ctx, listBookingsByWorkerAndDateRange, arg.WorkerID, arg.DateFrom, arg.DateTo)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Booking
+	for rows.Next() {
+		var i Booking
+		if err := rows.Scan(
+			&i.ID,
+			&i.ReferenceCode,
+			&i.ClientUserID,
+			&i.CompanyID,
+			&i.WorkerID,
+			&i.AddressID,
+			&i.ServiceType,
+			&i.ScheduledDate,
+			&i.ScheduledStartTime,
+			&i.EstimatedDurationHours,
+			&i.PropertyType,
+			&i.NumRooms,
+			&i.NumBathrooms,
+			&i.AreaSqm,
+			&i.HasPets,
+			&i.SpecialInstructions,
+			&i.HourlyRate,
+			&i.EstimatedTotal,
+			&i.FinalTotal,
+			&i.PlatformCommissionPct,
+			&i.PlatformCommissionAmount,
+			&i.Status,
+			&i.StartedAt,
+			&i.CompletedAt,
+			&i.CancelledAt,
+			&i.CancellationReason,
+			&i.StripePaymentIntentID,
+			&i.PaymentStatus,
+			&i.PaidAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.RecurringGroupID,
+			&i.OccurrenceNumber,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listTodaysJobsByWorker = `-- name: ListTodaysJobsByWorker :many
+SELECT id, reference_code, client_user_id, company_id, worker_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number FROM bookings WHERE worker_id = $1 AND scheduled_date = CURRENT_DATE ORDER BY scheduled_start_time
+`
+
+func (q *Queries) ListTodaysJobsByWorker(ctx context.Context, workerID pgtype.UUID) ([]Booking, error) {
+	rows, err := q.db.Query(ctx, listTodaysJobsByWorker, workerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Booking
+	for rows.Next() {
+		var i Booking
+		if err := rows.Scan(
+			&i.ID,
+			&i.ReferenceCode,
+			&i.ClientUserID,
+			&i.CompanyID,
+			&i.WorkerID,
 			&i.AddressID,
 			&i.ServiceType,
 			&i.ScheduledDate,
@@ -1130,7 +1130,7 @@ func (q *Queries) ListTodaysJobsByCleaner(ctx context.Context, cleanerID pgtype.
 }
 
 const searchBookings = `-- name: SearchBookings :many
-SELECT id, reference_code, client_user_id, company_id, cleaner_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number FROM bookings WHERE
+SELECT id, reference_code, client_user_id, company_id, worker_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number FROM bookings WHERE
     ($3::text = '' OR reference_code ILIKE '%' || $3::text || '%')
     AND ($4::text = '' OR status::text = $4::text)
 ORDER BY created_at DESC LIMIT $1 OFFSET $2
@@ -1162,89 +1162,7 @@ func (q *Queries) SearchBookings(ctx context.Context, arg SearchBookingsParams) 
 			&i.ReferenceCode,
 			&i.ClientUserID,
 			&i.CompanyID,
-			&i.CleanerID,
-			&i.AddressID,
-			&i.ServiceType,
-			&i.ScheduledDate,
-			&i.ScheduledStartTime,
-			&i.EstimatedDurationHours,
-			&i.PropertyType,
-			&i.NumRooms,
-			&i.NumBathrooms,
-			&i.AreaSqm,
-			&i.HasPets,
-			&i.SpecialInstructions,
-			&i.HourlyRate,
-			&i.EstimatedTotal,
-			&i.FinalTotal,
-			&i.PlatformCommissionPct,
-			&i.PlatformCommissionAmount,
-			&i.Status,
-			&i.StartedAt,
-			&i.CompletedAt,
-			&i.CancelledAt,
-			&i.CancellationReason,
-			&i.StripePaymentIntentID,
-			&i.PaymentStatus,
-			&i.PaidAt,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-			&i.RecurringGroupID,
-			&i.OccurrenceNumber,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const searchCleanerBookings = `-- name: SearchCleanerBookings :many
-SELECT id, reference_code, client_user_id, company_id, cleaner_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number FROM bookings WHERE
-    cleaner_id = $1
-    AND ($4::text = '' OR reference_code ILIKE '%' || $4::text || '%')
-    AND ($5::text = '' OR status::text = $5::text OR ($5::text = 'cancelled' AND status::text LIKE 'cancelled%'))
-    AND ($6::date = '0001-01-01' OR scheduled_date >= $6::date)
-    AND ($7::date = '0001-01-01' OR scheduled_date <= $7::date)
-ORDER BY created_at DESC LIMIT $2 OFFSET $3
-`
-
-type SearchCleanerBookingsParams struct {
-	CleanerID    pgtype.UUID `json:"cleaner_id"`
-	Limit        int32       `json:"limit"`
-	Offset       int32       `json:"offset"`
-	Query        string      `json:"query"`
-	StatusFilter string      `json:"status_filter"`
-	DateFrom     pgtype.Date `json:"date_from"`
-	DateTo       pgtype.Date `json:"date_to"`
-}
-
-func (q *Queries) SearchCleanerBookings(ctx context.Context, arg SearchCleanerBookingsParams) ([]Booking, error) {
-	rows, err := q.db.Query(ctx, searchCleanerBookings,
-		arg.CleanerID,
-		arg.Limit,
-		arg.Offset,
-		arg.Query,
-		arg.StatusFilter,
-		arg.DateFrom,
-		arg.DateTo,
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Booking
-	for rows.Next() {
-		var i Booking
-		if err := rows.Scan(
-			&i.ID,
-			&i.ReferenceCode,
-			&i.ClientUserID,
-			&i.CompanyID,
-			&i.CleanerID,
+			&i.WorkerID,
 			&i.AddressID,
 			&i.ServiceType,
 			&i.ScheduledDate,
@@ -1285,7 +1203,7 @@ func (q *Queries) SearchCleanerBookings(ctx context.Context, arg SearchCleanerBo
 }
 
 const searchCompanyBookings = `-- name: SearchCompanyBookings :many
-SELECT id, reference_code, client_user_id, company_id, cleaner_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number FROM bookings WHERE
+SELECT id, reference_code, client_user_id, company_id, worker_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number FROM bookings WHERE
     company_id = $1
     AND ($4::text = '' OR reference_code ILIKE '%' || $4::text || '%')
     AND ($5::text = '' OR status::text = $5::text OR ($5::text = 'cancelled' AND status::text LIKE 'cancelled%'))
@@ -1326,7 +1244,89 @@ func (q *Queries) SearchCompanyBookings(ctx context.Context, arg SearchCompanyBo
 			&i.ReferenceCode,
 			&i.ClientUserID,
 			&i.CompanyID,
-			&i.CleanerID,
+			&i.WorkerID,
+			&i.AddressID,
+			&i.ServiceType,
+			&i.ScheduledDate,
+			&i.ScheduledStartTime,
+			&i.EstimatedDurationHours,
+			&i.PropertyType,
+			&i.NumRooms,
+			&i.NumBathrooms,
+			&i.AreaSqm,
+			&i.HasPets,
+			&i.SpecialInstructions,
+			&i.HourlyRate,
+			&i.EstimatedTotal,
+			&i.FinalTotal,
+			&i.PlatformCommissionPct,
+			&i.PlatformCommissionAmount,
+			&i.Status,
+			&i.StartedAt,
+			&i.CompletedAt,
+			&i.CancelledAt,
+			&i.CancellationReason,
+			&i.StripePaymentIntentID,
+			&i.PaymentStatus,
+			&i.PaidAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.RecurringGroupID,
+			&i.OccurrenceNumber,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const searchWorkerBookings = `-- name: SearchWorkerBookings :many
+SELECT id, reference_code, client_user_id, company_id, worker_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number FROM bookings WHERE
+    worker_id = $1
+    AND ($4::text = '' OR reference_code ILIKE '%' || $4::text || '%')
+    AND ($5::text = '' OR status::text = $5::text OR ($5::text = 'cancelled' AND status::text LIKE 'cancelled%'))
+    AND ($6::date = '0001-01-01' OR scheduled_date >= $6::date)
+    AND ($7::date = '0001-01-01' OR scheduled_date <= $7::date)
+ORDER BY created_at DESC LIMIT $2 OFFSET $3
+`
+
+type SearchWorkerBookingsParams struct {
+	WorkerID     pgtype.UUID `json:"worker_id"`
+	Limit        int32       `json:"limit"`
+	Offset       int32       `json:"offset"`
+	Query        string      `json:"query"`
+	StatusFilter string      `json:"status_filter"`
+	DateFrom     pgtype.Date `json:"date_from"`
+	DateTo       pgtype.Date `json:"date_to"`
+}
+
+func (q *Queries) SearchWorkerBookings(ctx context.Context, arg SearchWorkerBookingsParams) ([]Booking, error) {
+	rows, err := q.db.Query(ctx, searchWorkerBookings,
+		arg.WorkerID,
+		arg.Limit,
+		arg.Offset,
+		arg.Query,
+		arg.StatusFilter,
+		arg.DateFrom,
+		arg.DateTo,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Booking
+	for rows.Next() {
+		var i Booking
+		if err := rows.Scan(
+			&i.ID,
+			&i.ReferenceCode,
+			&i.ClientUserID,
+			&i.CompanyID,
+			&i.WorkerID,
 			&i.AddressID,
 			&i.ServiceType,
 			&i.ScheduledDate,
@@ -1368,7 +1368,7 @@ func (q *Queries) SearchCompanyBookings(ctx context.Context, arg SearchCompanyBo
 
 const setBookingFinalTotal = `-- name: SetBookingFinalTotal :one
 UPDATE bookings SET final_total = $2, platform_commission_amount = $3, updated_at = NOW()
-WHERE id = $1 RETURNING id, reference_code, client_user_id, company_id, cleaner_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number
+WHERE id = $1 RETURNING id, reference_code, client_user_id, company_id, worker_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number
 `
 
 type SetBookingFinalTotalParams struct {
@@ -1385,7 +1385,7 @@ func (q *Queries) SetBookingFinalTotal(ctx context.Context, arg SetBookingFinalT
 		&i.ReferenceCode,
 		&i.ClientUserID,
 		&i.CompanyID,
-		&i.CleanerID,
+		&i.WorkerID,
 		&i.AddressID,
 		&i.ServiceType,
 		&i.ScheduledDate,
@@ -1418,26 +1418,26 @@ func (q *Queries) SetBookingFinalTotal(ctx context.Context, arg SetBookingFinalT
 	return i, err
 }
 
-const setBookingPreferredCleaner = `-- name: SetBookingPreferredCleaner :one
-UPDATE bookings SET company_id = $2, cleaner_id = $3, status = 'confirmed', updated_at = NOW()
-WHERE id = $1 RETURNING id, reference_code, client_user_id, company_id, cleaner_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number
+const setBookingPreferredWorker = `-- name: SetBookingPreferredWorker :one
+UPDATE bookings SET company_id = $2, worker_id = $3, status = 'confirmed', updated_at = NOW()
+WHERE id = $1 RETURNING id, reference_code, client_user_id, company_id, worker_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number
 `
 
-type SetBookingPreferredCleanerParams struct {
+type SetBookingPreferredWorkerParams struct {
 	ID        pgtype.UUID `json:"id"`
 	CompanyID pgtype.UUID `json:"company_id"`
-	CleanerID pgtype.UUID `json:"cleaner_id"`
+	WorkerID  pgtype.UUID `json:"worker_id"`
 }
 
-func (q *Queries) SetBookingPreferredCleaner(ctx context.Context, arg SetBookingPreferredCleanerParams) (Booking, error) {
-	row := q.db.QueryRow(ctx, setBookingPreferredCleaner, arg.ID, arg.CompanyID, arg.CleanerID)
+func (q *Queries) SetBookingPreferredWorker(ctx context.Context, arg SetBookingPreferredWorkerParams) (Booking, error) {
+	row := q.db.QueryRow(ctx, setBookingPreferredWorker, arg.ID, arg.CompanyID, arg.WorkerID)
 	var i Booking
 	err := row.Scan(
 		&i.ID,
 		&i.ReferenceCode,
 		&i.ClientUserID,
 		&i.CompanyID,
-		&i.CleanerID,
+		&i.WorkerID,
 		&i.AddressID,
 		&i.ServiceType,
 		&i.ScheduledDate,
@@ -1472,7 +1472,7 @@ func (q *Queries) SetBookingPreferredCleaner(ctx context.Context, arg SetBooking
 
 const startBooking = `-- name: StartBooking :one
 UPDATE bookings SET status = 'in_progress', started_at = NOW(), updated_at = NOW()
-WHERE id = $1 RETURNING id, reference_code, client_user_id, company_id, cleaner_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number
+WHERE id = $1 RETURNING id, reference_code, client_user_id, company_id, worker_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number
 `
 
 func (q *Queries) StartBooking(ctx context.Context, id pgtype.UUID) (Booking, error) {
@@ -1483,7 +1483,7 @@ func (q *Queries) StartBooking(ctx context.Context, id pgtype.UUID) (Booking, er
 		&i.ReferenceCode,
 		&i.ClientUserID,
 		&i.CompanyID,
-		&i.CleanerID,
+		&i.WorkerID,
 		&i.AddressID,
 		&i.ServiceType,
 		&i.ScheduledDate,
@@ -1516,16 +1516,16 @@ func (q *Queries) StartBooking(ctx context.Context, id pgtype.UUID) (Booking, er
 	return i, err
 }
 
-const sumThisMonthEarningsByCleaner = `-- name: SumThisMonthEarningsByCleaner :one
+const sumThisMonthEarningsByWorker = `-- name: SumThisMonthEarningsByWorker :one
 SELECT COALESCE(SUM(COALESCE(final_total, estimated_total)), 0)::numeric AS total
 FROM bookings
-WHERE cleaner_id = $1
+WHERE worker_id = $1
   AND status = 'completed'
   AND completed_at >= date_trunc('month', CURRENT_DATE)
 `
 
-func (q *Queries) SumThisMonthEarningsByCleaner(ctx context.Context, cleanerID pgtype.UUID) (pgtype.Numeric, error) {
-	row := q.db.QueryRow(ctx, sumThisMonthEarningsByCleaner, cleanerID)
+func (q *Queries) SumThisMonthEarningsByWorker(ctx context.Context, workerID pgtype.UUID) (pgtype.Numeric, error) {
+	row := q.db.QueryRow(ctx, sumThisMonthEarningsByWorker, workerID)
 	var total pgtype.Numeric
 	err := row.Scan(&total)
 	return total, err
@@ -1533,7 +1533,7 @@ func (q *Queries) SumThisMonthEarningsByCleaner(ctx context.Context, cleanerID p
 
 const updateBookingSchedule = `-- name: UpdateBookingSchedule :one
 UPDATE bookings SET scheduled_date = $2, scheduled_start_time = $3, updated_at = NOW()
-WHERE id = $1 RETURNING id, reference_code, client_user_id, company_id, cleaner_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number
+WHERE id = $1 RETURNING id, reference_code, client_user_id, company_id, worker_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number
 `
 
 type UpdateBookingScheduleParams struct {
@@ -1550,7 +1550,7 @@ func (q *Queries) UpdateBookingSchedule(ctx context.Context, arg UpdateBookingSc
 		&i.ReferenceCode,
 		&i.ClientUserID,
 		&i.CompanyID,
-		&i.CleanerID,
+		&i.WorkerID,
 		&i.AddressID,
 		&i.ServiceType,
 		&i.ScheduledDate,
@@ -1584,7 +1584,7 @@ func (q *Queries) UpdateBookingSchedule(ctx context.Context, arg UpdateBookingSc
 }
 
 const updateBookingStatus = `-- name: UpdateBookingStatus :one
-UPDATE bookings SET status = $2, updated_at = NOW() WHERE id = $1 RETURNING id, reference_code, client_user_id, company_id, cleaner_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number
+UPDATE bookings SET status = $2, updated_at = NOW() WHERE id = $1 RETURNING id, reference_code, client_user_id, company_id, worker_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number
 `
 
 type UpdateBookingStatusParams struct {
@@ -1600,7 +1600,7 @@ func (q *Queries) UpdateBookingStatus(ctx context.Context, arg UpdateBookingStat
 		&i.ReferenceCode,
 		&i.ClientUserID,
 		&i.CompanyID,
-		&i.CleanerID,
+		&i.WorkerID,
 		&i.AddressID,
 		&i.ServiceType,
 		&i.ScheduledDate,

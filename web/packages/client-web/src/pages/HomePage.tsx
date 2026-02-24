@@ -122,7 +122,7 @@ export default function HomePage() {
 
   const isClient = isAuthenticated && user?.role === 'CLIENT';
   const isCompanyOrWorker =
-    isAuthenticated && (user?.role === 'COMPANY_ADMIN' || user?.role === 'CLEANER');
+    isAuthenticated && (user?.role === 'COMPANY_ADMIN' || user?.role === 'WORKER');
   const isGlobalAdmin = isAuthenticated && user?.role === 'GLOBAL_ADMIN';
 
   const dashboardPath = isClient

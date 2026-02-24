@@ -251,12 +251,12 @@ func gqlCompanyTypeToDb(t model.CompanyType) db.CompanyType {
 	return db.CompanyType(strings.ToLower(string(t)))
 }
 
-func dbCleanerStatusToGQL(s db.CleanerStatus) model.CleanerStatus {
-	return model.CleanerStatus(strings.ToUpper(string(s)))
+func dbWorkerStatusToGQL(s db.WorkerStatus) model.WorkerStatus {
+	return model.WorkerStatus(strings.ToUpper(string(s)))
 }
 
-func gqlCleanerStatusToDb(s model.CleanerStatus) db.CleanerStatus {
-	return db.CleanerStatus(strings.ToLower(string(s)))
+func gqlWorkerStatusToDb(s model.WorkerStatus) db.WorkerStatus {
+	return db.WorkerStatus(strings.ToLower(string(s)))
 }
 
 // Model converters
@@ -383,18 +383,18 @@ func dbCompanyToGQL(c db.Company) *model.Company {
 	}
 }
 
-func dbCleanerToGQL(c db.Cleaner, u *db.User) *model.CleanerProfile {
+func dbWorkerToGQL(c db.Worker, u *db.User) *model.WorkerProfile {
 	var userID *string
 	if c.UserID.Valid {
 		s := uuidToString(c.UserID)
 		userID = &s
 	}
 
-	profile := &model.CleanerProfile{
+	profile := &model.WorkerProfile{
 		ID:                 uuidToString(c.ID),
 		UserID:             userID,
 		Bio:                textPtr(c.Bio),
-		Status:             dbCleanerStatusToGQL(c.Status),
+		Status:             dbWorkerStatusToGQL(c.Status),
 		IsCompanyAdmin:     boolVal(c.IsCompanyAdmin),
 		InviteToken:        textPtr(c.InviteToken),
 		RatingAvg:          numericToFloat(c.RatingAvg),
@@ -623,8 +623,8 @@ func dbCompanyDocToGQL(d db.CompanyDocument) *model.CompanyDocument {
 	}
 }
 
-func dbCleanerDocToGQL(d db.CleanerDocument) *model.CleanerDocument {
-	return &model.CleanerDocument{
+func dbWorkerDocToGQL(d db.WorkerDocument) *model.WorkerDocument {
+	return &model.WorkerDocument{
 		ID:              uuidToString(d.ID),
 		DocumentType:    d.DocumentType,
 		FileURL:         d.FileUrl,
@@ -654,7 +654,7 @@ func dbPersonalityAssessmentToGQL(a db.PersonalityAssessment) *model.Personality
 
 	return &model.PersonalityAssessment{
 		ID:             uuidToString(a.ID),
-		CleanerID:      uuidToString(a.CleanerID),
+		WorkerID:      uuidToString(a.WorkerID),
 		FacetScores:    facetScores,
 		IntegrityAvg:   numericToFloat(a.IntegrityAvg),
 		WorkQualityAvg: numericToFloat(a.WorkQualityAvg),

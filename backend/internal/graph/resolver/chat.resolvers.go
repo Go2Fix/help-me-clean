@@ -149,7 +149,7 @@ func (r *mutationResolver) OpenBookingChat(ctx context.Context, bookingID string
 		return dbChatRoomToGQL(existing), nil
 	}
 
-	// Get the booking to find client + cleaner.
+	// Get the booking to find client + worker.
 	booking, err := r.Queries.GetBookingByID(ctx, stringToUUID(bookingID))
 	if err != nil {
 		return nil, fmt.Errorf("booking not found: %w", err)
@@ -172,13 +172,13 @@ func (r *mutationResolver) OpenBookingChat(ctx context.Context, bookingID string
 		})
 	}
 
-	// Add the cleaner's user as a participant.
-	if booking.CleanerID.Valid {
-		cleaner, err := r.Queries.GetCleanerByID(ctx, booking.CleanerID)
-		if err == nil && cleaner.UserID.Valid {
+	// Add the worker's user as a participant.
+	if booking.WorkerID.Valid {
+		worker, err := r.Queries.GetWorkerByID(ctx, booking.WorkerID)
+		if err == nil && worker.UserID.Valid {
 			_, _ = r.Queries.AddChatParticipant(ctx, db.AddChatParticipantParams{
 				RoomID: room.ID,
-				UserID: cleaner.UserID,
+				UserID: worker.UserID,
 			})
 		}
 	}

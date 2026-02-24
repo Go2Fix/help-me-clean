@@ -28,16 +28,16 @@ type Resolver struct {
 	AuthzHelper    *middleware.AuthzHelper
 }
 
-// cleanerWithCompany loads a cleaner's company, user, documents, and assessment, returns the full CleanerProfile.
-func (r *Resolver) cleanerWithCompany(ctx context.Context, c db.Cleaner) (*model.CleanerProfile, error) {
+// workerWithCompany loads a worker's company, user, documents, and assessment, returns the full WorkerProfile.
+func (r *Resolver) workerWithCompany(ctx context.Context, c db.Worker) (*model.WorkerProfile, error) {
 	// Load user (REQUIRED - user_id is now NOT NULL after migration)
 	user, err := r.Queries.GetUserByID(ctx, c.UserID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to load user for cleaner: %w", err)
+		return nil, fmt.Errorf("failed to load user for worker: %w", err)
 	}
 
-	// Convert cleaner with user data
-	profile := dbCleanerToGQL(c, &user)
+	// Convert worker with user data
+	profile := dbWorkerToGQL(c, &user)
 
 	// Attach user to profile
 	profile.User = dbUserToGQL(user)
@@ -49,15 +49,15 @@ func (r *Resolver) cleanerWithCompany(ctx context.Context, c db.Cleaner) (*model
 	}
 	profile.Company = dbCompanyToGQL(company)
 
-	// Load cleaner documents
-	if docs, err := r.Queries.ListCleanerDocuments(ctx, c.ID); err == nil {
+	// Load worker documents
+	if docs, err := r.Queries.ListWorkerDocuments(ctx, c.ID); err == nil {
 		for _, d := range docs {
-			profile.Documents = append(profile.Documents, dbCleanerDocToGQL(d))
+			profile.Documents = append(profile.Documents, dbWorkerDocToGQL(d))
 		}
 	}
 
 	// Load personality assessment if exists
-	if assessment, err := r.Queries.GetPersonalityAssessmentByCleanerID(ctx, c.ID); err == nil {
+	if assessment, err := r.Queries.GetPersonalityAssessmentByWorkerID(ctx, c.ID); err == nil {
 		profile.PersonalityAssessment = dbPersonalityAssessmentToGQL(assessment)
 	}
 
@@ -92,20 +92,20 @@ func (r *Resolver) createBookingChat(ctx context.Context, booking db.Booking, co
 		})
 	}
 
-	// Add cleaner's user as participant.
+	// Add worker's user as participant.
 	var senderID pgtype.UUID
-	if booking.CleanerID.Valid {
-		cleaner, err := r.Queries.GetCleanerByID(ctx, booking.CleanerID)
-		if err == nil && cleaner.UserID.Valid {
+	if booking.WorkerID.Valid {
+		worker, err := r.Queries.GetWorkerByID(ctx, booking.WorkerID)
+		if err == nil && worker.UserID.Valid {
 			_, _ = r.Queries.AddChatParticipant(ctx, db.AddChatParticipantParams{
 				RoomID: room.ID,
-				UserID: cleaner.UserID,
+				UserID: worker.UserID,
 			})
-			senderID = cleaner.UserID
+			senderID = worker.UserID
 		}
 	}
 
-	// Fallback sender: use the confirmer's user ID if cleaner user not available.
+	// Fallback sender: use the confirmer's user ID if worker user not available.
 	if !senderID.Valid {
 		senderID = stringToUUID(confirmerUserID)
 	}
@@ -126,14 +126,14 @@ func (r *Resolver) createBookingChat(ctx context.Context, booking db.Booking, co
 }
 
 // CreateBookingChatFromPayment creates a chat room for a booking that was auto-confirmed
-// via payment webhook. Uses the cleaner's or client's user ID as system message sender.
+// via payment webhook. Uses the worker's or client's user ID as system message sender.
 // Errors are logged, not propagated.
 func (r *Resolver) CreateBookingChatFromPayment(ctx context.Context, booking db.Booking) {
 	senderUserID := ""
-	if booking.CleanerID.Valid {
-		cleaner, err := r.Queries.GetCleanerByID(ctx, booking.CleanerID)
-		if err == nil && cleaner.UserID.Valid {
-			senderUserID = uuidToString(cleaner.UserID)
+	if booking.WorkerID.Valid {
+		worker, err := r.Queries.GetWorkerByID(ctx, booking.WorkerID)
+		if err == nil && worker.UserID.Valid {
+			senderUserID = uuidToString(worker.UserID)
 		}
 	}
 	if senderUserID == "" && booking.ClientUserID.Valid {
@@ -146,21 +146,21 @@ func (r *Resolver) CreateBookingChatFromPayment(ctx context.Context, booking db.
 	r.createBookingChat(ctx, booking, senderUserID)
 }
 
-// copyCompanyAreasToCleanerHelper copies all company service areas to a newly created cleaner.
+// copyCompanyAreasToWorkerHelper copies all company service areas to a newly created worker.
 // Errors are logged but not propagated (best-effort).
-func (r *Resolver) copyCompanyAreasToCleanerHelper(ctx context.Context, companyID pgtype.UUID, cleanerID pgtype.UUID) {
+func (r *Resolver) copyCompanyAreasToWorkerHelper(ctx context.Context, companyID pgtype.UUID, workerID pgtype.UUID) {
 	areas, err := r.Queries.ListCompanyServiceAreas(ctx, companyID)
 	if err != nil {
-		log.Printf("copyCompanyAreasToCleanerHelper: failed to list company areas: %v", err)
+		log.Printf("copyCompanyAreasToWorkerHelper: failed to list company areas: %v", err)
 		return
 	}
 	for _, area := range areas {
-		_, err := r.Queries.InsertCleanerServiceArea(ctx, db.InsertCleanerServiceAreaParams{
-			CleanerID:  cleanerID,
+		_, err := r.Queries.InsertWorkerServiceArea(ctx, db.InsertWorkerServiceAreaParams{
+			WorkerID:  workerID,
 			CityAreaID: area.CityAreaID,
 		})
 		if err != nil {
-			log.Printf("copyCompanyAreasToCleanerHelper: failed to insert area %s: %v", area.AreaName, err)
+			log.Printf("copyCompanyAreasToWorkerHelper: failed to insert area %s: %v", area.AreaName, err)
 		}
 	}
 }
@@ -174,7 +174,7 @@ func (r *Resolver) populateCompanyDocuments(ctx context.Context, company *model.
 	}
 }
 
-// enrichBooking populates related entities (client, address, serviceName, company, cleaner)
+// enrichBooking populates related entities (client, address, serviceName, company, worker)
 // on a GQL booking from the DB booking's foreign keys.
 func (r *Resolver) enrichBooking(ctx context.Context, dbB db.Booking, gqlB *model.Booking) {
 	if dbB.AddressID.Valid {
@@ -199,10 +199,10 @@ func (r *Resolver) enrichBooking(ctx context.Context, dbB db.Booking, gqlB *mode
 			gqlB.Company = dbCompanyToGQL(company)
 		}
 	}
-	if dbB.CleanerID.Valid {
-		if cleaner, err := r.Queries.GetCleanerByID(ctx, dbB.CleanerID); err == nil {
-			if profile, err := r.cleanerWithCompany(ctx, cleaner); err == nil {
-				gqlB.Cleaner = profile
+	if dbB.WorkerID.Valid {
+		if worker, err := r.Queries.GetWorkerByID(ctx, dbB.WorkerID); err == nil {
+			if profile, err := r.workerWithCompany(ctx, worker); err == nil {
+				gqlB.Worker = profile
 			}
 		}
 	}

@@ -25,7 +25,7 @@ import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
-import { ADMIN_BOOKING_DETAIL, ADMIN_CANCEL_BOOKING, ALL_BOOKINGS, ALL_CLEANERS, ASSIGN_CLEANER, MARK_BOOKING_PAID } from '@/graphql/operations';
+import { ADMIN_BOOKING_DETAIL, ADMIN_CANCEL_BOOKING, ALL_BOOKINGS, ALL_WORKERS, ASSIGN_WORKER, MARK_BOOKING_PAID } from '@/graphql/operations';
 import { formatCurrency, formatDate, formatDateTime } from '@/utils/format';
 
 const statusVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
@@ -50,7 +50,7 @@ const statusLabel: Record<string, string> = {
   CANCELLED_BY_ADMIN: 'Anulat de admin',
 };
 
-interface CleanerOption {
+interface WorkerOption {
   id: string;
   fullName: string;
   email: string | null;
@@ -67,7 +67,7 @@ export default function BookingDetailPage() {
   const [cancelModal, setCancelModal] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [assignModal, setAssignModal] = useState(false);
-  const [cleanerSearch, setCleanerSearch] = useState('');
+  const [workerSearch, setWorkerSearch] = useState('');
 
   const { data, loading } = useQuery(ADMIN_BOOKING_DETAIL, { variables: { id } });
   const [adminCancel, { loading: cancelling }] = useMutation(ADMIN_CANCEL_BOOKING, {
@@ -77,11 +77,11 @@ export default function BookingDetailPage() {
     ],
   });
 
-  const { data: cleanersData, loading: loadingCleaners } = useQuery(ALL_CLEANERS, {
+  const { data: workersData, loading: loadingWorkers } = useQuery(ALL_WORKERS, {
     skip: !assignModal,
   });
 
-  const [assignCleaner, { loading: assigning }] = useMutation(ASSIGN_CLEANER, {
+  const [assignWorker, { loading: assigning }] = useMutation(ASSIGN_WORKER, {
     refetchQueries: [
       { query: ADMIN_BOOKING_DETAIL, variables: { id } },
       { query: ALL_BOOKINGS, variables: { first: 50 } },
@@ -123,10 +123,10 @@ export default function BookingDetailPage() {
     setCancelReason('');
   };
 
-  const handleAssign = async (cleanerId: string) => {
-    await assignCleaner({ variables: { bookingId: id, cleanerId } });
+  const handleAssign = async (workerId: string) => {
+    await assignWorker({ variables: { bookingId: id, workerId } });
     setAssignModal(false);
-    setCleanerSearch('');
+    setWorkerSearch('');
   };
 
   const handleMarkPaid = async () => {
@@ -135,17 +135,17 @@ export default function BookingDetailPage() {
 
   const isCancelled = booking.status.startsWith('CANCELLED');
   const canCancel = !['COMPLETED'].includes(booking.status) && !isCancelled;
-  const canAssign = booking.status === 'ASSIGNED' && !booking.cleaner;
+  const canAssign = booking.status === 'ASSIGNED' && !booking.worker;
 
-  // Filter cleaners by search
-  const allCleaners: CleanerOption[] = cleanersData?.allCleaners ?? [];
-  const filteredCleaners = cleanerSearch.trim()
-    ? allCleaners.filter((c) =>
-        c.fullName.toLowerCase().includes(cleanerSearch.toLowerCase()) ||
-        c.company?.companyName?.toLowerCase().includes(cleanerSearch.toLowerCase()) ||
-        c.email?.toLowerCase().includes(cleanerSearch.toLowerCase())
+  // Filter workers by search
+  const allWorkers: WorkerOption[] = workersData?.allWorkers ?? [];
+  const filteredWorkers = workerSearch.trim()
+    ? allWorkers.filter((c) =>
+        c.fullName.toLowerCase().includes(workerSearch.toLowerCase()) ||
+        c.company?.companyName?.toLowerCase().includes(workerSearch.toLowerCase()) ||
+        c.email?.toLowerCase().includes(workerSearch.toLowerCase())
       )
-    : allCleaners;
+    : allWorkers;
 
   // Build status timeline
   const timelineSteps = [
@@ -443,8 +443,8 @@ export default function BookingDetailPage() {
             </Card>
           )}
 
-          {/* Cleaner */}
-          {booking.cleaner && (
+          {/* Worker */}
+          {booking.worker && (
             <Card>
               <h3 className="text-sm font-medium text-gray-500 mb-3">Curatator</h3>
               <div className="flex items-center gap-3">
@@ -452,23 +452,23 @@ export default function BookingDetailPage() {
                   <User className="h-5 w-5 text-accent" />
                 </div>
                 <div>
-                  <p className="font-medium text-gray-900">{booking.cleaner.fullName}</p>
-                  {booking.cleaner.phone && (
-                    <p className="text-sm text-gray-500">{booking.cleaner.phone}</p>
+                  <p className="font-medium text-gray-900">{booking.worker.fullName}</p>
+                  {booking.worker.phone && (
+                    <p className="text-sm text-gray-500">{booking.worker.phone}</p>
                   )}
                 </div>
               </div>
             </Card>
           )}
 
-          {!booking.cleaner && (
+          {!booking.worker && (
             <Card>
               <h3 className="text-sm font-medium text-gray-500 mb-3">Curatator</h3>
               <p className="text-sm text-gray-400 mb-3">Niciun curatator asignat</p>
               {canAssign && (
                 <Button onClick={() => setAssignModal(true)} className="w-full">
                   <UserPlus className="h-4 w-4" />
-                  Asigneaza cleaner
+                  Asigneaza lucrator
                 </Button>
               )}
             </Card>
@@ -508,11 +508,11 @@ export default function BookingDetailPage() {
         </div>
       </Modal>
 
-      {/* Assign Cleaner Modal */}
+      {/* Assign Worker Modal */}
       <Modal
         open={assignModal}
-        onClose={() => { setAssignModal(false); setCleanerSearch(''); }}
-        title="Asigneaza cleaner"
+        onClose={() => { setAssignModal(false); setWorkerSearch(''); }}
+        title="Asigneaza lucrator"
       >
         <div className="space-y-4">
           <div className="relative">
@@ -520,50 +520,50 @@ export default function BookingDetailPage() {
             <input
               type="text"
               placeholder="Cauta dupa nume, companie, email..."
-              value={cleanerSearch}
-              onChange={(e) => setCleanerSearch(e.target.value)}
+              value={workerSearch}
+              onChange={(e) => setWorkerSearch(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
             />
           </div>
 
-          {loadingCleaners ? (
+          {loadingWorkers ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-6 w-6 animate-spin text-primary" />
             </div>
-          ) : filteredCleaners.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-6">Niciun cleaner gasit.</p>
+          ) : filteredWorkers.length === 0 ? (
+            <p className="text-sm text-gray-400 text-center py-6">Niciun lucrator gasit.</p>
           ) : (
             <div className="max-h-80 overflow-y-auto space-y-2">
-              {filteredCleaners.map((cleaner) => (
+              {filteredWorkers.map((worker) => (
                 <div
-                  key={cleaner.id}
+                  key={worker.id}
                   className="flex items-center justify-between p-3 rounded-xl border border-gray-200 hover:border-primary/30 hover:bg-primary/5 transition-colors"
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                       <span className="text-sm font-semibold text-primary">
-                        {cleaner.fullName.charAt(0).toUpperCase()}
+                        {worker.fullName.charAt(0).toUpperCase()}
                       </span>
                     </div>
                     <div className="min-w-0">
-                      <p className="font-medium text-gray-900 text-sm truncate">{cleaner.fullName}</p>
+                      <p className="font-medium text-gray-900 text-sm truncate">{worker.fullName}</p>
                       <p className="text-xs text-gray-500 truncate">
-                        {cleaner.company?.companyName ?? 'Fara companie'}
+                        {worker.company?.companyName ?? 'Fara companie'}
                       </p>
                       <div className="flex items-center gap-3 mt-0.5">
                         <span className="flex items-center gap-1 text-xs text-gray-400">
                           <Star className="h-3 w-3 text-accent" />
-                          {cleaner.ratingAvg > 0 ? cleaner.ratingAvg.toFixed(1) : '--'}
+                          {worker.ratingAvg > 0 ? worker.ratingAvg.toFixed(1) : '--'}
                         </span>
                         <span className="text-xs text-gray-400">
-                          {cleaner.totalJobsCompleted} joburi
+                          {worker.totalJobsCompleted} joburi
                         </span>
                       </div>
                     </div>
                   </div>
                   <Button
                     size="sm"
-                    onClick={() => handleAssign(cleaner.id)}
+                    onClick={() => handleAssign(worker.id)}
                     loading={assigning}
                     className="shrink-0 ml-3"
                   >

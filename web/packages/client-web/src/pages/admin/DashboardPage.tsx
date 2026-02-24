@@ -31,7 +31,7 @@ import {
   REVENUE_BY_MONTH,
   PENDING_COMPANY_APPLICATIONS,
   PENDING_COMPANY_DOCUMENTS,
-  PENDING_CLEANER_DOCUMENTS,
+  PENDING_WORKER_DOCUMENTS,
 } from '@/graphql/operations';
 
 // ─── Status Maps ────────────────────────────────────────────────────────────
@@ -96,16 +96,16 @@ export default function DashboardPage() {
   });
   const { data: pendingData } = useQuery(PENDING_COMPANY_APPLICATIONS);
   const { data: pendingCompanyDocsData } = useQuery(PENDING_COMPANY_DOCUMENTS);
-  const { data: pendingCleanerDocsData } = useQuery(PENDING_CLEANER_DOCUMENTS);
+  const { data: pendingWorkerDocsData } = useQuery(PENDING_WORKER_DOCUMENTS);
 
   const stats = statsData?.platformStats;
   const bookingStatuses = statusData?.bookingsByStatus ?? [];
   const revenueMonths = revenueData?.revenueByMonth ?? [];
   const pendingApps = pendingData?.pendingCompanyApplications ?? [];
   const pendingCompanyDocs = pendingCompanyDocsData?.pendingCompanyDocuments ?? [];
-  const pendingCleanerDocs = pendingCleanerDocsData?.pendingCleanerDocuments ?? [];
+  const pendingWorkerDocs = pendingWorkerDocsData?.pendingWorkerDocuments ?? [];
 
-  const pendingCount = pendingApps.length + pendingCompanyDocs.length + pendingCleanerDocs.length;
+  const pendingCount = pendingApps.length + pendingCompanyDocs.length + pendingWorkerDocs.length;
 
   return (
     <div>
@@ -180,14 +180,14 @@ export default function DashboardPage() {
               <ChevronRight className="h-4 w-4 text-blue-400" />
             </Link>
           )}
-          {pendingCleanerDocs.length > 0 && (
+          {pendingWorkerDocs.length > 0 && (
             <Link
               to="/admin/companii"
               className="flex items-center gap-3 flex-1 px-4 py-3 bg-red-50 border border-red-200 rounded-xl hover:bg-red-100 transition-colors"
             >
               <FileText className="h-4 w-4 text-red-600 shrink-0" />
               <span className="text-sm font-medium text-red-800 flex-1">
-                {pendingCleanerDocs.length} documente lucratori
+                {pendingWorkerDocs.length} documente lucratori
               </span>
               <ChevronRight className="h-4 w-4 text-red-400" />
             </Link>

@@ -79,6 +79,15 @@ WHERE stripe_payment_intent_id = $1 RETURNING *;
 UPDATE payment_transactions SET status = $2, refund_amount = $3, stripe_refund_id = $4, updated_at = NOW()
 WHERE stripe_payment_intent_id = $1 RETURNING *;
 
+-- name: UpdatePaymentTransactionDisputed :one
+UPDATE payment_transactions
+SET status = 'disputed',
+    stripe_dispute_id = $2,
+    failure_reason = $3,
+    updated_at = NOW()
+WHERE stripe_payment_intent_id = $1
+RETURNING *;
+
 -- name: ListPaymentTransactionsByBooking :many
 SELECT * FROM payment_transactions WHERE booking_id = $1 ORDER BY created_at DESC;
 
@@ -117,6 +126,14 @@ RETURNING *;
 -- name: UpdatePayoutStatus :one
 UPDATE company_payouts SET status = $2, stripe_transfer_id = $3, paid_at = CASE WHEN $2 = 'paid' THEN NOW() ELSE paid_at END, updated_at = NOW()
 WHERE id = $1 RETURNING *;
+
+-- name: UpdatePayoutFailed :one
+UPDATE company_payouts
+SET status = 'failed',
+    failure_reason = $2,
+    updated_at = NOW()
+WHERE stripe_payout_id = $1
+RETURNING *;
 
 -- name: ListPayoutsByCompany :many
 SELECT * FROM company_payouts WHERE company_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3;

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { useQuery, useMutation } from '@apollo/client';
@@ -80,7 +80,7 @@ const mockCompanyWithDocs = {
         rejectionReason: null,
       },
     ],
-    cleaners: [
+    workers: [
       {
         id: 'cl-1',
         fullName: 'Maria Ionescu',
@@ -95,7 +95,7 @@ const mockCompanyWithDocs = {
         },
         personalityAssessment: {
           id: 'pa-1',
-          cleanerId: 'cl-1',
+          workerId: 'cl-1',
           integrityAvg: 16.5,
           workQualityAvg: 17.0,
           hasConcerns: false,
@@ -110,7 +110,7 @@ const mockCompanyWithDocs = {
           {
             id: 'cdoc-1',
             documentType: 'cazier_judiciar',
-            fileUrl: '/uploads/cleaners/cl-1/cazier.pdf',
+            fileUrl: '/uploads/workers/cl-1/cazier.pdf',
             fileName: 'cazier.pdf',
             status: 'APPROVED',
             uploadedAt: '2025-06-01T00:00:00Z',
@@ -120,7 +120,7 @@ const mockCompanyWithDocs = {
           {
             id: 'cdoc-2',
             documentType: 'contract_munca',
-            fileUrl: '/uploads/cleaners/cl-1/contract.pdf',
+            fileUrl: '/uploads/workers/cl-1/contract.pdf',
             fileName: 'contract.pdf',
             status: 'APPROVED',
             uploadedAt: '2025-06-01T00:00:00Z',
@@ -171,24 +171,24 @@ describe('CompanyDetailPage - Documente tab', () => {
     expect(screen.getByText('Documente')).toBeInTheDocument();
   });
 
-  it('shows company documents when Documente tab is clicked', async () => {
+  it('shows company documents when Documente tab is clicked', () => {
     setupMocks();
     renderPage();
 
-    const user = userEvent.setup();
-    await user.click(screen.getByText('Documente'));
+    const select = screen.getByDisplayValue('Detalii');
+    fireEvent.change(select, { target: { value: 'documente' } });
 
     // Check that documents are shown (by fileName)
     expect(screen.getByText('cert.pdf')).toBeInTheDocument();
     expect(screen.getByText('insurance.pdf')).toBeInTheDocument();
   });
 
-  it('shows company document cards', async () => {
+  it('shows company document cards', () => {
     setupMocks();
     renderPage();
 
-    const user = userEvent.setup();
-    await user.click(screen.getByText('Documente'));
+    const select = screen.getByDisplayValue('Detalii');
+    fireEvent.change(select, { target: { value: 'documente' } });
 
     expect(screen.getByText('cert.pdf')).toBeInTheDocument();
     expect(screen.getByText('insurance.pdf')).toBeInTheDocument();
@@ -196,62 +196,58 @@ describe('CompanyDetailPage - Documente tab', () => {
     expect(screen.getByText('Asigurare Raspundere Civila')).toBeInTheDocument();
   });
 
-  it('shows "Echipa si documente" section', async () => {
+  it('shows "Echipa si documente" section', () => {
     setupMocks();
     renderPage();
 
-    const user = userEvent.setup();
-    // Cleaners are shown on the "Echipa" tab, not "Documente"
-    await user.click(screen.getByText('Echipa'));
+    const select = screen.getByDisplayValue('Detalii');
+    fireEvent.change(select, { target: { value: 'echipa' } });
 
-    // Check that cleaner information is shown
+    // Check that worker information is shown
     expect(screen.getByText('Maria Ionescu')).toBeInTheDocument();
   });
 
-  it('shows cleaner name and status', async () => {
+  it('shows worker name and status', () => {
     setupMocks();
     renderPage();
 
-    const user = userEvent.setup();
-    // Cleaners are shown on the "Echipa" tab
-    await user.click(screen.getByText('Echipa'));
+    const select = screen.getByDisplayValue('Detalii');
+    fireEvent.change(select, { target: { value: 'echipa' } });
 
     expect(screen.getByText('Maria Ionescu')).toBeInTheDocument();
     expect(screen.getByText('maria@test.com')).toBeInTheDocument();
-    // Cleaner status PENDING_REVIEW maps to "In asteptare" label
+    // Worker status PENDING_REVIEW maps to "In asteptare" label
     const allInAsteptare = screen.getAllByText('In asteptare');
     expect(allInAsteptare.length).toBeGreaterThanOrEqual(1);
   });
 
-  it('shows "Activeaza" button when all cleaner docs are approved and cleaner is PENDING_REVIEW', async () => {
+  it('shows "Activeaza" button when all worker docs are approved and worker is PENDING_REVIEW', () => {
     setupMocks();
     renderPage();
 
-    const user = userEvent.setup();
-    // Cleaners are shown on the "Echipa" tab
-    await user.click(screen.getByText('Echipa'));
+    const select = screen.getByDisplayValue('Detalii');
+    fireEvent.change(select, { target: { value: 'echipa' } });
 
     expect(screen.getByText('Activeaza')).toBeInTheDocument();
   });
 
-  it('does not show Activeaza button when cleaner status is ACTIVE', async () => {
-    const dataWithActiveCleaner = {
+  it('does not show Activeaza button when worker status is ACTIVE', () => {
+    const dataWithActiveWorker = {
       company: {
         ...mockCompanyWithDocs.company,
-        cleaners: [
+        workers: [
           {
-            ...mockCompanyWithDocs.company.cleaners[0],
+            ...mockCompanyWithDocs.company.workers[0],
             status: 'ACTIVE',
           },
         ],
       },
     };
-    setupMocks(dataWithActiveCleaner);
+    setupMocks(dataWithActiveWorker);
     renderPage();
 
-    const user = userEvent.setup();
-    // Cleaners are shown on the "Echipa" tab
-    await user.click(screen.getByText('Echipa'));
+    const select = screen.getByDisplayValue('Detalii');
+    fireEvent.change(select, { target: { value: 'echipa' } });
 
     expect(screen.queryByText('Activeaza')).not.toBeInTheDocument();
   });

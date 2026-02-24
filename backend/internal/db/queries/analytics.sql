@@ -33,11 +33,11 @@ FROM bookings
 WHERE company_id = $1 AND status = 'completed' AND completed_at >= $2 AND completed_at <= $3
 GROUP BY DATE(completed_at) ORDER BY date;
 
--- name: GetCleanerEarningsByDateRange :many
+-- name: GetWorkerEarningsByDateRange :many
 SELECT DATE(completed_at) AS date,
     COALESCE(SUM(COALESCE(final_total, estimated_total)), 0)::numeric AS amount
 FROM bookings
-WHERE cleaner_id = $1 AND status = 'completed' AND completed_at >= $2 AND completed_at <= $3
+WHERE worker_id = $1 AND status = 'completed' AND completed_at >= $2 AND completed_at <= $3
 GROUP BY DATE(completed_at) ORDER BY date;
 
 -- name: GetPlatformTotals :one

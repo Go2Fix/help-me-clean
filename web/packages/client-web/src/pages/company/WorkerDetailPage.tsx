@@ -14,14 +14,14 @@ import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import {
-  MY_CLEANERS, UPDATE_CLEANER_STATUS, CLEANER_PERFORMANCE,
-  MY_COMPANY_SERVICE_AREAS, CLEANER_SERVICE_AREAS, UPDATE_CLEANER_SERVICE_AREAS,
-  UPLOAD_CLEANER_DOCUMENT, UPLOAD_CLEANER_AVATAR,
+  MY_WORKERS, UPDATE_WORKER_STATUS, WORKER_PERFORMANCE,
+  MY_COMPANY_SERVICE_AREAS, WORKER_SERVICE_AREAS, UPDATE_WORKER_SERVICE_AREAS,
+  UPLOAD_WORKER_DOCUMENT, UPLOAD_WORKER_AVATAR,
 } from '@/graphql/operations';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
-type CleanerStatus = 'ACTIVE' | 'INACTIVE' | 'SUSPENDED' | 'INVITED' | 'PENDING';
+type WorkerStatus = 'ACTIVE' | 'INACTIVE' | 'SUSPENDED' | 'INVITED' | 'PENDING';
 type MutableStatus = 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
 
 interface AvailabilitySlot {
@@ -32,7 +32,7 @@ interface AvailabilitySlot {
   isAvailable: boolean;
 }
 
-interface CleanerDocument {
+interface WorkerDocument {
   id: string;
   documentType: string;
   fileName: string;
@@ -71,7 +71,7 @@ interface PersonalityAssessment {
   insights?: PersonalityInsights | null;
 }
 
-interface Cleaner {
+interface Worker {
   id: string;
   userId: string;
   fullName: string;
@@ -79,20 +79,20 @@ interface Cleaner {
   email: string;
   bio?: string | null;
   user: { id: string; avatarUrl: string | null } | null;
-  status: CleanerStatus;
+  status: WorkerStatus;
   isCompanyAdmin: boolean;
   inviteToken: string | null;
   ratingAvg: number | null;
   totalJobsCompleted: number;
   availability: AvailabilitySlot[];
   createdAt: string;
-  documents: CleanerDocument[];
+  documents: WorkerDocument[];
   personalityAssessment?: PersonalityAssessment | null;
   company?: { id: string; companyName: string } | null;
 }
 
-interface CleanerPerformance {
-  cleanerId: string;
+interface WorkerPerformance {
+  workerId: string;
   fullName: string;
   ratingAvg: number;
   totalCompletedJobs: number;
@@ -180,7 +180,7 @@ function StatusBadge({
   onChange,
   disabled = false,
 }: {
-  currentStatus: CleanerStatus;
+  currentStatus: WorkerStatus;
   onChange: (newStatus: MutableStatus) => void;
   disabled?: boolean;
 }) {
@@ -272,30 +272,30 @@ export default function WorkerDetailPage() {
   const docInputRef = useRef<HTMLInputElement>(null);
 
   // ─── Queries ────────────────────────────────────────────────────────────
-  const { data, loading, refetch } = useQuery(MY_CLEANERS);
+  const { data, loading, refetch } = useQuery(MY_WORKERS);
 
   const [fetchPerformance, { data: perfData, loading: perfLoading }] = useLazyQuery<{
-    cleanerPerformance: CleanerPerformance;
-  }>(CLEANER_PERFORMANCE);
+    workerPerformance: WorkerPerformance;
+  }>(WORKER_PERFORMANCE);
 
   const { data: companyAreasData, loading: loadingCompanyAreas } = useQuery<{
     myCompanyServiceAreas: CityArea[];
   }>(MY_COMPANY_SERVICE_AREAS);
 
-  const [fetchCleanerAreas, { loading: loadingCleanerAreas }] = useLazyQuery<{
-    cleanerServiceAreas: CityArea[];
-  }>(CLEANER_SERVICE_AREAS);
+  const [fetchWorkerAreas, { loading: loadingWorkerAreas }] = useLazyQuery<{
+    workerServiceAreas: CityArea[];
+  }>(WORKER_SERVICE_AREAS);
 
   // ─── Mutations ──────────────────────────────────────────────────────────
-  const [updateStatus, { loading: updatingStatus }] = useMutation(UPDATE_CLEANER_STATUS);
-  const [updateCleanerAreas, { loading: savingAreas }] = useMutation(UPDATE_CLEANER_SERVICE_AREAS);
-  const [uploadDocument] = useMutation(UPLOAD_CLEANER_DOCUMENT);
-  const [uploadAvatar] = useMutation(UPLOAD_CLEANER_AVATAR);
+  const [updateStatus, { loading: updatingStatus }] = useMutation(UPDATE_WORKER_STATUS);
+  const [updateWorkerAreas, { loading: savingAreas }] = useMutation(UPDATE_WORKER_SERVICE_AREAS);
+  const [uploadDocument] = useMutation(UPLOAD_WORKER_DOCUMENT);
+  const [uploadAvatar] = useMutation(UPLOAD_WORKER_AVATAR);
 
   // ─── Derived data ──────────────────────────────────────────────────────
-  const cleaners: Cleaner[] = data?.myCleaners ?? [];
-  const cleaner = cleaners.find((c) => c.id === id) ?? null;
-  const perf = perfData?.cleanerPerformance ?? null;
+  const workers: Worker[] = data?.myWorkers ?? [];
+  const worker = workers.find((c) => c.id === id) ?? null;
+  const perf = perfData?.workerPerformance ?? null;
   const companyAreas: CityArea[] = companyAreasData?.myCompanyServiceAreas ?? [];
 
   // Group company areas by city
@@ -309,18 +309,18 @@ export default function WorkerDetailPage() {
 
   // ─── Effects ────────────────────────────────────────────────────────────
 
-  // Fetch performance data when cleaner is loaded
+  // Fetch performance data when worker is loaded
   useEffect(() => {
-    if (cleaner) {
-      fetchPerformance({ variables: { cleanerId: cleaner.id } });
+    if (worker) {
+      fetchPerformance({ variables: { workerId: worker.id } });
     }
-  }, [cleaner, fetchPerformance]);
+  }, [worker, fetchPerformance]);
 
-  // Fetch cleaner service areas when cleaner is loaded
+  // Fetch worker service areas when worker is loaded
   useEffect(() => {
-    if (cleaner) {
-      fetchCleanerAreas({ variables: { cleanerId: cleaner.id } }).then((res) => {
-        const areas = res.data?.cleanerServiceAreas ?? [];
+    if (worker) {
+      fetchWorkerAreas({ variables: { workerId: worker.id } }).then((res) => {
+        const areas = res.data?.workerServiceAreas ?? [];
         if (areas.length > 0) {
           setSelectedAreaIds(new Set(areas.map((a) => a.id)));
         } else {
@@ -328,7 +328,7 @@ export default function WorkerDetailPage() {
         }
       });
     }
-  }, [cleaner, fetchCleanerAreas, companyAreas]);
+  }, [worker, fetchWorkerAreas, companyAreas]);
 
   // ─── Handlers ───────────────────────────────────────────────────────────
 
@@ -339,9 +339,9 @@ export default function WorkerDetailPage() {
   }, []);
 
   const handleStatusChange = async () => {
-    if (!statusModal || !cleaner) return;
+    if (!statusModal || !worker) return;
     try {
-      await updateStatus({ variables: { id: cleaner.id, status: statusModal.newStatus } });
+      await updateStatus({ variables: { id: worker.id, status: statusModal.newStatus } });
       setStatusModal(null);
       refetch();
     } catch {
@@ -380,11 +380,11 @@ export default function WorkerDetailPage() {
   };
 
   const handleSaveAreas = async () => {
-    if (!cleaner) return;
+    if (!worker) return;
     try {
-      await updateCleanerAreas({
+      await updateWorkerAreas({
         variables: {
-          cleanerId: cleaner.id,
+          workerId: worker.id,
           areaIds: Array.from(selectedAreaIds),
         },
       });
@@ -400,10 +400,10 @@ export default function WorkerDetailPage() {
   };
 
   const handleDocTypeSelect = async (type: string) => {
-    if (!docTypeModal || !cleaner) return;
+    if (!docTypeModal || !worker) return;
     setUploadingDoc(type);
     try {
-      await uploadDocument({ variables: { cleanerId: cleaner.id, documentType: type, file: docTypeModal } });
+      await uploadDocument({ variables: { workerId: worker.id, documentType: type, file: docTypeModal } });
       refetch();
       setDocTypeModal(null);
     } finally {
@@ -412,10 +412,10 @@ export default function WorkerDetailPage() {
   };
 
   const handleAvatarUpload = async (file: File) => {
-    if (!cleaner) return;
+    if (!worker) return;
     setUploadingAvatar(true);
     try {
-      await uploadAvatar({ variables: { cleanerId: cleaner.id, file } });
+      await uploadAvatar({ variables: { workerId: worker.id, file } });
       refetch();
     } finally {
       setUploadingAvatar(false);
@@ -440,7 +440,7 @@ export default function WorkerDetailPage() {
 
   // ─── Not found state ──────────────────────────────────────────────────
 
-  if (!cleaner) {
+  if (!worker) {
     return (
       <div className="max-w-full overflow-hidden">
         <button
@@ -461,12 +461,12 @@ export default function WorkerDetailPage() {
     );
   }
 
-  // ─── Derived from cleaner ─────────────────────────────────────────────
+  // ─── Derived from worker ─────────────────────────────────────────────
 
-  const canChangeStatus = cleaner.status === 'ACTIVE' || cleaner.status === 'INACTIVE' || cleaner.status === 'SUSPENDED';
-  const slots = (cleaner.availability ?? []).filter((s) => s.isAvailable).sort((a, b) => a.dayOfWeek - b.dayOfWeek);
+  const canChangeStatus = worker.status === 'ACTIVE' || worker.status === 'INACTIVE' || worker.status === 'SUSPENDED';
+  const slots = (worker.availability ?? []).filter((s) => s.isAvailable).sort((a, b) => a.dayOfWeek - b.dayOfWeek);
   const requiredDocs = ['cazier_judiciar', 'contract_munca'];
-  const uploadedDocTypes = new Set(cleaner.documents?.map((d) => d.documentType) ?? []);
+  const uploadedDocTypes = new Set(worker.documents?.map((d) => d.documentType) ?? []);
   const missingDocs = requiredDocs.filter((t) => !uploadedDocTypes.has(t));
 
   const stats = perf
@@ -495,70 +495,70 @@ export default function WorkerDetailPage() {
         <div className="flex flex-col sm:flex-row gap-6">
           {/* Avatar */}
           <div className="shrink-0">
-            <Avatar src={cleaner.user?.avatarUrl} name={cleaner.fullName} size="lg" />
+            <Avatar src={worker.user?.avatarUrl} name={worker.fullName} size="lg" />
           </div>
 
           {/* Info */}
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 break-words min-w-0">{cleaner.fullName}</h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 break-words min-w-0">{worker.fullName}</h1>
               <StatusBadge
-                currentStatus={cleaner.status}
+                currentStatus={worker.status}
                 onChange={(newStatus) => setStatusModal({ newStatus })}
                 disabled={!canChangeStatus}
               />
-              {cleaner.isCompanyAdmin && <Badge variant="info">Admin</Badge>}
+              {worker.isCompanyAdmin && <Badge variant="info">Admin</Badge>}
             </div>
 
             {/* Rating */}
             <div className="flex items-center gap-1 mb-3">
               <Star className="h-4 w-4 text-accent" />
               <span className="text-sm font-medium text-gray-700">
-                {cleaner.ratingAvg ? Number(cleaner.ratingAvg).toFixed(1) : '--'}
+                {worker.ratingAvg ? Number(worker.ratingAvg).toFixed(1) : '--'}
               </span>
               <span className="text-sm text-gray-400 ml-1">
-                ({cleaner.totalJobsCompleted} joburi completate)
+                ({worker.totalJobsCompleted} joburi completate)
               </span>
             </div>
 
             {/* Contact info */}
             <div className="space-y-1.5 mb-3 min-w-0">
-              {cleaner.email && (
+              {worker.email && (
                 <a
-                  href={`mailto:${cleaner.email}`}
+                  href={`mailto:${worker.email}`}
                   className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 transition-colors min-w-0"
                 >
                   <Mail className="h-4 w-4 text-gray-400 shrink-0" />
-                  <span className="truncate">{cleaner.email}</span>
+                  <span className="truncate">{worker.email}</span>
                 </a>
               )}
-              {cleaner.phone && (
+              {worker.phone && (
                 <a
-                  href={`tel:${cleaner.phone}`}
+                  href={`tel:${worker.phone}`}
                   className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 transition-colors"
                 >
                   <Phone className="h-4 w-4 text-gray-400 shrink-0" />
-                  {cleaner.phone}
+                  {worker.phone}
                 </a>
               )}
             </div>
 
             {/* Bio */}
-            {cleaner.bio && (
-              <p className="text-sm text-gray-600 mb-3">{cleaner.bio}</p>
+            {worker.bio && (
+              <p className="text-sm text-gray-600 mb-3">{worker.bio}</p>
             )}
 
             {/* Invite token (for INVITED status) */}
-            {cleaner.status === 'INVITED' && cleaner.inviteToken && (
+            {worker.status === 'INVITED' && worker.inviteToken && (
               <div className="mb-3">
                 <p className="text-xs text-gray-400 mb-1">Cod invitatie</p>
                 <div className="flex items-center gap-1.5 min-w-0">
                   <div className="flex-1 min-w-0 bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5 font-mono text-xs text-gray-700 truncate select-all">
-                    {cleaner.inviteToken}
+                    {worker.inviteToken}
                   </div>
                   <button
                     type="button"
-                    onClick={() => handleCopyToken(cleaner.inviteToken!)}
+                    onClick={() => handleCopyToken(worker.inviteToken!)}
                     className="p-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer shrink-0"
                     title="Copiaza codul"
                   >
@@ -573,7 +573,7 @@ export default function WorkerDetailPage() {
 
             {/* Join date */}
             <p className="text-xs text-gray-400">
-              Membru din {formatDate(cleaner.createdAt)}
+              Membru din {formatDate(worker.createdAt)}
             </p>
           </div>
         </div>
@@ -634,7 +634,7 @@ export default function WorkerDetailPage() {
           <h2 className="font-semibold text-gray-900">Zone de lucru</h2>
         </div>
 
-        {loadingCompanyAreas || loadingCleanerAreas ? (
+        {loadingCompanyAreas || loadingWorkerAreas ? (
           <div className="space-y-3">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="animate-pulse">
@@ -759,9 +759,9 @@ export default function WorkerDetailPage() {
         </div>
 
         {/* Existing documents */}
-        {cleaner.documents && cleaner.documents.length > 0 ? (
+        {worker.documents && worker.documents.length > 0 ? (
           <div className="space-y-2 mb-4">
-            {cleaner.documents.map((doc) => (
+            {worker.documents.map((doc) => (
               <div
                 key={doc.id}
                 className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-xl"
@@ -820,11 +820,11 @@ export default function WorkerDetailPage() {
         {/* Avatar upload section */}
         <div className="pt-4 mt-4 border-t border-gray-100">
           <p className="text-xs font-medium text-gray-500 mb-2">Fotografie profil</p>
-          {cleaner.user?.avatarUrl ? (
+          {worker.user?.avatarUrl ? (
             <div className="flex items-center gap-3">
               <img
-                src={cleaner.user.avatarUrl}
-                alt={cleaner.fullName}
+                src={worker.user.avatarUrl}
+                alt={worker.fullName}
                 className="w-16 h-16 rounded-xl object-cover border-2 border-gray-200"
               />
               <div>
@@ -890,7 +890,7 @@ export default function WorkerDetailPage() {
           <Brain className="h-5 w-5 text-primary" />
           <h2 className="font-semibold text-gray-900">Test de personalitate</h2>
         </div>
-        {cleaner.personalityAssessment ? (
+        {worker.personalityAssessment ? (
           <div className="space-y-4">
             {/* Domain summary */}
             <div className="grid grid-cols-2 gap-3">
@@ -900,7 +900,7 @@ export default function WorkerDetailPage() {
                   <span className="text-xs font-medium text-gray-600">Integritate</span>
                 </div>
                 <p className="text-2xl font-bold text-blue-600">
-                  {cleaner.personalityAssessment.integrityAvg.toFixed(1)}
+                  {worker.personalityAssessment.integrityAvg.toFixed(1)}
                   <span className="text-xs text-gray-400 ml-0.5 font-normal">/ 20</span>
                 </p>
               </div>
@@ -910,18 +910,18 @@ export default function WorkerDetailPage() {
                   <span className="text-xs font-medium text-gray-600">Calitate munca</span>
                 </div>
                 <p className="text-2xl font-bold text-emerald-600">
-                  {cleaner.personalityAssessment.workQualityAvg.toFixed(1)}
+                  {worker.personalityAssessment.workQualityAvg.toFixed(1)}
                   <span className="text-xs text-gray-400 ml-0.5 font-normal">/ 20</span>
                 </p>
               </div>
             </div>
 
             {/* Facet scores — compact grid */}
-            {cleaner.personalityAssessment.facetScores.length > 0 && (
+            {worker.personalityAssessment.facetScores.length > 0 && (
               <div>
                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Scoruri detaliate</p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {cleaner.personalityAssessment.facetScores.map((facet) => (
+                  {worker.personalityAssessment.facetScores.map((facet) => (
                     <div
                       key={facet.facetCode}
                       className={cn(
@@ -944,28 +944,28 @@ export default function WorkerDetailPage() {
             )}
 
             {/* AI Insights */}
-            {cleaner.personalityAssessment.insights && (
+            {worker.personalityAssessment.insights && (
               <div className="p-4 rounded-xl bg-gradient-to-br from-purple-50 to-blue-50 border border-purple-200">
                 <div className="flex items-center gap-2 mb-2">
                   <Sparkles className="h-4 w-4 text-purple-600" />
                   <span className="text-sm font-semibold text-gray-900">Analiza AI</span>
                   <Badge
                     variant={
-                      cleaner.personalityAssessment.insights.recommendedAction === 'approve' ? 'success' :
-                      cleaner.personalityAssessment.insights.recommendedAction === 'reject' ? 'danger' : 'warning'
+                      worker.personalityAssessment.insights.recommendedAction === 'approve' ? 'success' :
+                      worker.personalityAssessment.insights.recommendedAction === 'reject' ? 'danger' : 'warning'
                     }
                   >
-                    {cleaner.personalityAssessment.insights.recommendedAction === 'approve' ? 'Recomandat' :
-                     cleaner.personalityAssessment.insights.recommendedAction === 'reject' ? 'Nu se recomanda' : 'Revizie atenta'}
+                    {worker.personalityAssessment.insights.recommendedAction === 'approve' ? 'Recomandat' :
+                     worker.personalityAssessment.insights.recommendedAction === 'reject' ? 'Nu se recomanda' : 'Revizie atenta'}
                   </Badge>
                 </div>
-                <p className="text-sm text-gray-700 mb-3">{cleaner.personalityAssessment.insights.summary}</p>
+                <p className="text-sm text-gray-700 mb-3">{worker.personalityAssessment.insights.summary}</p>
 
-                {cleaner.personalityAssessment.insights.strengths.length > 0 && (
+                {worker.personalityAssessment.insights.strengths.length > 0 && (
                   <div className="mb-2">
                     <p className="text-xs font-semibold text-emerald-800 mb-1">Puncte forte:</p>
                     <ul className="text-sm text-gray-700 space-y-0.5">
-                      {cleaner.personalityAssessment.insights.strengths.map((s, i) => (
+                      {worker.personalityAssessment.insights.strengths.map((s, i) => (
                         <li key={i} className="flex items-start gap-1.5">
                           <Check className="h-3.5 w-3.5 text-emerald-600 shrink-0 mt-0.5" />
                           <span>{s}</span>
@@ -975,11 +975,11 @@ export default function WorkerDetailPage() {
                   </div>
                 )}
 
-                {cleaner.personalityAssessment.insights.concerns.length > 0 && (
+                {worker.personalityAssessment.insights.concerns.length > 0 && (
                   <div className="mb-2">
                     <p className="text-xs font-semibold text-amber-800 mb-1">Zone de atentie:</p>
                     <ul className="text-sm text-gray-700 space-y-0.5">
-                      {cleaner.personalityAssessment.insights.concerns.map((c, i) => (
+                      {worker.personalityAssessment.insights.concerns.map((c, i) => (
                         <li key={i} className="flex items-start gap-1.5">
                           <AlertTriangle className="h-3.5 w-3.5 text-amber-600 shrink-0 mt-0.5" />
                           <span>{c}</span>
@@ -989,33 +989,33 @@ export default function WorkerDetailPage() {
                   </div>
                 )}
 
-                {cleaner.personalityAssessment.insights.teamFitAnalysis && (
+                {worker.personalityAssessment.insights.teamFitAnalysis && (
                   <div className="p-2.5 rounded-lg bg-white/60 border border-purple-100 mb-2">
                     <p className="text-xs font-semibold text-gray-700 mb-0.5">Potrivire echipa:</p>
-                    <p className="text-sm text-gray-600">{cleaner.personalityAssessment.insights.teamFitAnalysis}</p>
+                    <p className="text-sm text-gray-600">{worker.personalityAssessment.insights.teamFitAnalysis}</p>
                   </div>
                 )}
 
                 <p className="text-xs text-gray-400">
-                  {cleaner.personalityAssessment.insights.aiModel} &bull; {new Date(cleaner.personalityAssessment.insights.generatedAt).toLocaleDateString('ro-RO')}
+                  {worker.personalityAssessment.insights.aiModel} &bull; {new Date(worker.personalityAssessment.insights.generatedAt).toLocaleDateString('ro-RO')}
                 </p>
               </div>
             )}
 
             {/* Concerns warning (no insights) */}
-            {!cleaner.personalityAssessment.insights && cleaner.personalityAssessment.hasConcerns && (
+            {!worker.personalityAssessment.insights && worker.personalityAssessment.hasConcerns && (
               <div className="flex items-start gap-2.5 p-3 rounded-xl bg-amber-50 border border-amber-200">
                 <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-medium text-amber-900">Scoruri scazute detectate</p>
-                  <p className="text-xs text-amber-700">{cleaner.personalityAssessment.flaggedFacets.join(', ')}</p>
+                  <p className="text-xs text-amber-700">{worker.personalityAssessment.flaggedFacets.join(', ')}</p>
                 </div>
               </div>
             )}
 
             {/* Completion date */}
             <p className="text-xs text-gray-400">
-              Completat: {new Date(cleaner.personalityAssessment.completedAt).toLocaleDateString('ro-RO', { year: 'numeric', month: 'short', day: 'numeric' })}
+              Completat: {new Date(worker.personalityAssessment.completedAt).toLocaleDateString('ro-RO', { year: 'numeric', month: 'short', day: 'numeric' })}
             </p>
           </div>
         ) : (
@@ -1037,7 +1037,7 @@ export default function WorkerDetailPage() {
         <div className="space-y-4">
           <p className="text-sm text-gray-600">
             Esti sigur ca vrei sa schimbi statusul lui{' '}
-            <span className="font-semibold text-gray-900">{cleaner.fullName}</span> in{' '}
+            <span className="font-semibold text-gray-900">{worker.fullName}</span> in{' '}
             <span className="font-semibold text-gray-900">
               {statusModal ? statusLabel[statusModal.newStatus] : ''}
             </span>

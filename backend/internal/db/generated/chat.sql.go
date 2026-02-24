@@ -300,15 +300,15 @@ func (q *Queries) ListChatParticipants(ctx context.Context, roomID pgtype.UUID) 
 	return items, nil
 }
 
-const listChatRoomsByCompanyCleaners = `-- name: ListChatRoomsByCompanyCleaners :many
+const listChatRoomsByCompanyWorkers = `-- name: ListChatRoomsByCompanyWorkers :many
 SELECT DISTINCT cr.id, cr.booking_id, cr.room_type, cr.created_at FROM chat_rooms cr
   JOIN chat_participants cp ON cp.room_id = cr.id
-  JOIN cleaners c ON c.user_id = cp.user_id AND c.company_id = $1
+  JOIN workers c ON c.user_id = cp.user_id AND c.company_id = $1
 ORDER BY cr.created_at DESC
 `
 
-func (q *Queries) ListChatRoomsByCompanyCleaners(ctx context.Context, companyID pgtype.UUID) ([]ChatRoom, error) {
-	rows, err := q.db.Query(ctx, listChatRoomsByCompanyCleaners, companyID)
+func (q *Queries) ListChatRoomsByCompanyWorkers(ctx context.Context, companyID pgtype.UUID) ([]ChatRoom, error) {
+	rows, err := q.db.Query(ctx, listChatRoomsByCompanyWorkers, companyID)
 	if err != nil {
 		return nil, err
 	}

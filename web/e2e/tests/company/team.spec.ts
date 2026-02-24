@@ -17,34 +17,34 @@ test.describe('Team page', () => {
     ).toBeVisible();
   });
 
-  test('Shows "Invita cleaner" button', async ({ page }) => {
+  test('Shows "Invita lucrator" button', async ({ page }) => {
     await expect(
-      page.getByRole('button', { name: /Invita cleaner/ }),
+      page.getByRole('button', { name: /Invita lucrator/ }),
     ).toBeVisible();
   });
 
-  test('Shows empty state or cleaner cards', async ({ page }) => {
+  test('Shows empty state or worker cards', async ({ page }) => {
     // Wait for data to load
     await page.waitForTimeout(2000);
 
-    // Either shows empty state or cleaner cards
-    const emptyState = page.getByText('Niciun cleaner');
+    // Either shows empty state or worker cards
+    const emptyState = page.getByText('Niciun worker');
     const hasEmpty = await emptyState.isVisible().catch(() => false);
 
     if (hasEmpty) {
       await expect(
-        page.getByText('Nu ai adaugat inca niciun cleaner'),
+        page.getByText('Nu ai adaugat inca niciun worker'),
       ).toBeVisible();
     }
-    // If not empty, cleaners are being displayed which is also valid
+    // If not empty, workers are being displayed which is also valid
   });
 
   test('Invite modal opens when button clicked', async ({ page }) => {
-    await page.getByRole('button', { name: /Invita cleaner/ }).first().click();
+    await page.getByRole('button', { name: /Invita lucrator/ }).first().click();
 
     // Modal should be visible
     await expect(
-      page.getByText('Invita cleaner').last(),
+      page.getByText('Invita lucrator').last(),
     ).toBeVisible();
 
     // Should have name and email inputs
@@ -53,7 +53,7 @@ test.describe('Team page', () => {
   });
 
   test('Invite modal can be closed', async ({ page }) => {
-    await page.getByRole('button', { name: /Invita cleaner/ }).first().click();
+    await page.getByRole('button', { name: /Invita lucrator/ }).first().click();
 
     // Modal should be open
     await expect(page.getByPlaceholder('Ion Popescu')).toBeVisible();

@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { useQuery, useMutation } from '@apollo/client';
 import TeamPage from '@/pages/company/TeamPage';
-import { MY_CLEANERS_LIST } from '@/graphql/operations';
+import { MY_WORKERS_LIST } from '@/graphql/operations';
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
@@ -25,7 +25,7 @@ vi.mock('@apollo/client', async () => {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const defaultCleaner = {
+const defaultWorker = {
   id: 'cl1',
   fullName: 'Ana Popa',
   email: 'ana@test.com',
@@ -38,8 +38,8 @@ const defaultCleaner = {
   createdAt: '2025-01-01',
 };
 
-const invitedCleaner = {
-  ...defaultCleaner,
+const invitedWorker = {
+  ...defaultWorker,
   id: 'cl2',
   fullName: 'Ion Ionescu',
   email: 'ion@test.com',
@@ -48,20 +48,20 @@ const invitedCleaner = {
   totalJobsCompleted: 0,
 };
 
-const adminCleaner = {
-  ...defaultCleaner,
+const adminWorker = {
+  ...defaultWorker,
   id: 'cl3',
   fullName: 'Maria Admin',
   isCompanyAdmin: true,
 };
 
-function mockQueries(overrides?: { cleaners?: unknown[]; loading?: boolean }) {
+function mockQueries(overrides?: { workers?: unknown[]; loading?: boolean }) {
   vi.mocked(useQuery).mockImplementation((query: unknown) => {
-    if (query === MY_CLEANERS_LIST) {
+    if (query === MY_WORKERS_LIST) {
       return {
-        data: overrides?.cleaners !== undefined
-          ? { myCleaners: overrides.cleaners }
-          : { myCleaners: [] },
+        data: overrides?.workers !== undefined
+          ? { myWorkers: overrides.workers }
+          : { myWorkers: [] },
         loading: overrides?.loading ?? false,
         refetch: vi.fn(),
       } as unknown as ReturnType<typeof useQuery>;
@@ -93,13 +93,13 @@ describe('TeamPage', () => {
   });
 
   it('shows "Invita lucrator" button in header', () => {
-    mockQueries({ cleaners: [defaultCleaner] });
+    mockQueries({ workers: [defaultWorker] });
     renderPage();
-    // When cleaners exist, only the header button shows (no empty state)
+    // When workers exist, only the header button shows (no empty state)
     expect(screen.getByRole('button', { name: /invita lucrator/i })).toBeInTheDocument();
   });
 
-  it('shows empty state when no cleaners', () => {
+  it('shows empty state when no workers', () => {
     mockQueries();
     renderPage();
     expect(screen.getByText('Niciun lucrator')).toBeInTheDocument();
@@ -119,43 +119,43 @@ describe('TeamPage', () => {
     expect(screen.getByText('Se incarca echipa...')).toBeInTheDocument();
   });
 
-  it('renders cleaner name and status badge in table', () => {
-    mockQueries({ cleaners: [defaultCleaner] });
+  it('renders worker name and status badge in table', () => {
+    mockQueries({ workers: [defaultWorker] });
     renderPage();
     expect(screen.getByText('Ana Popa')).toBeInTheDocument();
     // "Activ" appears in both dropdown option and badge
     expect(screen.getAllByText('Activ').length).toBeGreaterThanOrEqual(1);
   });
 
-  it('renders cleaner email and phone in table', () => {
-    mockQueries({ cleaners: [defaultCleaner] });
+  it('renders worker email and phone in table', () => {
+    mockQueries({ workers: [defaultWorker] });
     renderPage();
     expect(screen.getByText('ana@test.com')).toBeInTheDocument();
     expect(screen.getByText('0711111111')).toBeInTheDocument();
   });
 
   it('renders rating and job count', () => {
-    mockQueries({ cleaners: [defaultCleaner] });
+    mockQueries({ workers: [defaultWorker] });
     renderPage();
     expect(screen.getByText('4.5')).toBeInTheDocument();
     expect(screen.getByText('10')).toBeInTheDocument();
   });
 
-  it('shows admin badge for company admin cleaners', () => {
-    mockQueries({ cleaners: [adminCleaner] });
+  it('shows admin badge for company admin workers', () => {
+    mockQueries({ workers: [adminWorker] });
     renderPage();
     expect(screen.getByText('Admin')).toBeInTheDocument();
   });
 
   it('shows monogram avatar when no image', () => {
-    mockQueries({ cleaners: [defaultCleaner] });
+    mockQueries({ workers: [defaultWorker] });
     renderPage();
     expect(screen.getByText('AP')).toBeInTheDocument();
   });
 
   it('shows avatar image when user has avatarUrl', () => {
-    const withAvatar = { ...defaultCleaner, user: { id: 'u1', avatarUrl: 'https://example.com/photo.jpg' } };
-    mockQueries({ cleaners: [withAvatar] });
+    const withAvatar = { ...defaultWorker, user: { id: 'u1', avatarUrl: 'https://example.com/photo.jpg' } };
+    mockQueries({ workers: [withAvatar] });
     renderPage();
     const img = screen.getByAltText('Ana Popa');
     expect(img).toHaveAttribute('src', 'https://example.com/photo.jpg');
@@ -163,7 +163,7 @@ describe('TeamPage', () => {
 
   it('navigates to detail page on row click', async () => {
     const user = userEvent.setup();
-    mockQueries({ cleaners: [defaultCleaner] });
+    mockQueries({ workers: [defaultWorker] });
     renderPage();
     const row = screen.getByText('Ana Popa').closest('tr');
     expect(row).toBeTruthy();
@@ -172,13 +172,13 @@ describe('TeamPage', () => {
   });
 
   it('renders status filter dropdown', () => {
-    mockQueries({ cleaners: [defaultCleaner] });
+    mockQueries({ workers: [defaultWorker] });
     renderPage();
     expect(screen.getByLabelText('Filtreaza dupa status')).toBeInTheDocument();
   });
 
   it('filters by dropdown selection', () => {
-    mockQueries({ cleaners: [defaultCleaner, invitedCleaner] });
+    mockQueries({ workers: [defaultWorker, invitedWorker] });
     renderPage();
     // Both visible initially
     expect(screen.getByText('Ana Popa')).toBeInTheDocument();
@@ -192,7 +192,7 @@ describe('TeamPage', () => {
   it('filters by search query', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
-    mockQueries({ cleaners: [defaultCleaner, invitedCleaner] });
+    mockQueries({ workers: [defaultWorker, invitedWorker] });
     renderPage();
     const searchInput = screen.getByPlaceholderText('Cauta dupa nume sau email...');
     await user.type(searchInput, 'ion');
@@ -209,7 +209,7 @@ describe('TeamPage', () => {
 
   it('opens invite modal on button click', async () => {
     const user = userEvent.setup();
-    mockQueries({ cleaners: [defaultCleaner] });
+    mockQueries({ workers: [defaultWorker] });
     renderPage();
     await user.click(screen.getByRole('button', { name: /invita lucrator/i }));
     expect(screen.getByText('Trimite invitatie')).toBeInTheDocument();
@@ -219,7 +219,7 @@ describe('TeamPage', () => {
 
   it('shows validation error when submitting empty invite form', async () => {
     const user = userEvent.setup();
-    mockQueries({ cleaners: [defaultCleaner] });
+    mockQueries({ workers: [defaultWorker] });
     renderPage();
     await user.click(screen.getByRole('button', { name: /invita lucrator/i }));
     await user.click(screen.getByText('Trimite invitatie'));
@@ -227,12 +227,12 @@ describe('TeamPage', () => {
   });
 
   it('shows different status badge variants', () => {
-    const cleaners = [
-      { ...defaultCleaner, id: '1', status: 'ACTIVE' },
-      { ...defaultCleaner, id: '2', status: 'INVITED', fullName: 'B Invitat' },
-      { ...defaultCleaner, id: '3', status: 'SUSPENDED', fullName: 'C Suspendat' },
+    const workers = [
+      { ...defaultWorker, id: '1', status: 'ACTIVE' },
+      { ...defaultWorker, id: '2', status: 'INVITED', fullName: 'B Invitat' },
+      { ...defaultWorker, id: '3', status: 'SUSPENDED', fullName: 'C Suspendat' },
     ];
-    mockQueries({ cleaners });
+    mockQueries({ workers });
     renderPage();
     // "Activ" and "Invitat" appear in both dropdown options and badges
     expect(screen.getAllByText('Activ').length).toBeGreaterThanOrEqual(2);
@@ -241,7 +241,7 @@ describe('TeamPage', () => {
   });
 
   it('shows -- for missing rating', () => {
-    mockQueries({ cleaners: [invitedCleaner] });
+    mockQueries({ workers: [invitedWorker] });
     renderPage();
     expect(screen.getByText('--')).toBeInTheDocument();
   });

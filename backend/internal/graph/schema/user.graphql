@@ -1,7 +1,7 @@
 enum UserRole {
   CLIENT
   COMPANY_ADMIN
-  CLEANER
+  WORKER
   GLOBAL_ADMIN
 }
 
@@ -23,8 +23,8 @@ type User {
   preferredLanguage: String!
   createdAt: DateTime!
 
-  # Cleaner profile data (null if user role is not CLEANER)
-  cleanerProfile: CleanerProfile
+  # Worker profile data (null if user role is not WORKER)
+  workerProfile: WorkerProfile
 }
 
 extend type Query {

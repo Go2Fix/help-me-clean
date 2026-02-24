@@ -1,0 +1,129 @@
+enum WorkerStatus {
+  INVITED
+  PENDING_REVIEW
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+type WorkerProfile {
+  id: ID!
+  userId: ID
+  user: User
+  company: Company
+  fullName: String!
+  phone: String
+  email: String
+  bio: String
+  status: WorkerStatus!
+  isCompanyAdmin: Boolean!
+  inviteToken: String
+  ratingAvg: Float!
+  totalJobsCompleted: Int!
+  documents: [WorkerDocument!]!
+  personalityAssessment: PersonalityAssessment
+  availability: [AvailabilitySlot!]!
+  createdAt: DateTime!
+}
+
+type WorkerDocument {
+  id: ID!
+  documentType: String!
+  fileUrl: String!
+  fileName: String!
+  status: DocumentStatus!
+  uploadedAt: DateTime!
+  reviewedAt: DateTime
+  rejectionReason: String
+}
+
+type AvailabilitySlot {
+  id: ID!
+  dayOfWeek: Int!
+  startTime: String!
+  endTime: String!
+  isAvailable: Boolean!
+}
+
+type WorkerStats {
+  totalJobsCompleted: Int!
+  averageRating: Float!
+  totalReviews: Int!
+  thisMonthJobs: Int!
+  thisMonthEarnings: Float!
+}
+
+type WorkerPerformance {
+  workerId: ID!
+  fullName: String!
+  ratingAvg: Float!
+  totalCompletedJobs: Int!
+  thisMonthCompleted: Int!
+  totalEarnings: Float!
+  thisMonthEarnings: Float!
+}
+
+type WorkerDailyEarnings {
+  date: String!
+  amount: Float!
+}
+
+type WorkerDateOverride {
+  id: ID!
+  date: String!
+  isAvailable: Boolean!
+  startTime: String!
+  endTime: String!
+}
+
+extend type Query {
+  myWorkers: [WorkerProfile!]!
+  myWorkerProfile: WorkerProfile!
+  myWorkerStats: WorkerStats!
+  workerPerformance(workerId: ID!): WorkerPerformance!
+  myWorkerAvailability: [AvailabilitySlot!]!
+  myWorkerBookingsByDateRange(from: String!, to: String!): [Booking!]!
+  workerEarningsByDateRange(from: String!, to: String!): [WorkerDailyEarnings!]!
+  searchWorkerBookings(query: String, status: String, dateFrom: String, dateTo: String, limit: Int, offset: Int): BookingConnection!
+  myWorkerReviews(limit: Int, offset: Int): ReviewConnection!
+  myWorkerCompanySchedule: [CompanyWorkSchedule!]!
+  myWorkerDateOverrides(from: String!, to: String!): [WorkerDateOverride!]!
+  workerDateOverrides(workerId: ID!, from: String!, to: String!): [WorkerDateOverride!]!
+  workerDocuments(workerId: ID!): [WorkerDocument!]!
+  pendingWorkerDocuments: [WorkerDocument!]!
+}
+
+extend type Mutation {
+  inviteWorker(input: InviteWorkerInput!): WorkerProfile!
+  inviteSelfAsWorker: WorkerProfile!
+  updateWorkerStatus(id: ID!, status: WorkerStatus!): WorkerProfile!
+  acceptInvitation(token: String!): WorkerProfile!
+  updateAvailability(slots: [AvailabilitySlotInput!]!): [AvailabilitySlot!]!
+  updateWorkerAvailability(workerId: ID!, slots: [AvailabilitySlotInput!]!): [AvailabilitySlot!]!
+  updateWorkerProfile(input: UpdateWorkerProfileInput!): WorkerProfile!
+  uploadWorkerAvatar(workerId: ID!, file: Upload!): WorkerProfile!
+  setWorkerDateOverride(date: String!, isAvailable: Boolean!, startTime: String!, endTime: String!): WorkerDateOverride!
+  setWorkerDateOverrideByAdmin(workerId: ID!, date: String!, isAvailable: Boolean!, startTime: String!, endTime: String!): WorkerDateOverride!
+  uploadWorkerDocument(workerId: ID!, documentType: String!, file: Upload!): WorkerDocument!
+  deleteWorkerDocument(id: ID!): Boolean!
+  reviewWorkerDocument(id: ID!, approved: Boolean!, rejectionReason: String): WorkerDocument!
+  activateWorker(id: ID!): WorkerProfile!
+}
+
+input InviteWorkerInput {
+  fullName: String!
+  email: String!
+  phone: String
+}
+
+input AvailabilitySlotInput {
+  dayOfWeek: Int!
+  startTime: String!
+  endTime: String!
+  isAvailable: Boolean!
+}
+
+input UpdateWorkerProfileInput {
+  bio: String
+  phone: String
+}

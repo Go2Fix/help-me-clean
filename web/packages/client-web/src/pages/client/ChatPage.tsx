@@ -93,7 +93,7 @@ function getRoleLabel(role: string): string {
     case 'CLIENT': return 'Client';
     case 'COMPANY_ADMIN': return 'Admin Firma';
     case 'GLOBAL_ADMIN': return 'Admin';
-    case 'CLEANER': return 'Curatator';
+    case 'WORKER': return 'Curatator';
     default: return role;
   }
 }
@@ -109,7 +109,7 @@ export default function ChatPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Determine base path based on user role
-  const basePath = user?.role === 'CLEANER' ? '/worker/mesaje' : '/cont/mesaje';
+  const basePath = user?.role === 'WORKER' ? '/worker/mesaje' : '/cont/mesaje';
 
   // ─── Queries ────────────────────────────────────────────────────────────────
 

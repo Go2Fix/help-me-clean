@@ -8,7 +8,7 @@ type RecurringBookingGroup {
   id: ID!
   client: User
   company: Company
-  preferredCleaner: CleanerProfile
+  preferredWorker: WorkerProfile
   address: Address
   recurrenceType: RecurrenceType!
   dayOfWeek: Int

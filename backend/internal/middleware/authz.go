@@ -26,7 +26,7 @@ func NewAuthzHelper(queries *db.Queries) *AuthzHelper {
 // - Global admins (can access all bookings)
 // - The client who created the booking
 // - Company admins whose company is assigned to the booking
-// - Cleaners who are assigned to the booking
+// - Workers who are assigned to the booking
 func (h *AuthzHelper) CanAccessBooking(ctx context.Context, bookingID pgtype.UUID) error {
 	claims := auth.GetUserFromContext(ctx)
 	if claims == nil {
@@ -60,10 +60,10 @@ func (h *AuthzHelper) CanAccessBooking(ctx context.Context, bookingID pgtype.UUI
 		}
 	}
 
-	// Cleaners can access bookings assigned to them
-	if claims.Role == "cleaner" {
-		cleaner, err := h.queries.GetCleanerByUserID(ctx, userUUID)
-		if err == nil && booking.CleanerID.Valid && booking.CleanerID.Bytes == cleaner.ID.Bytes {
+	// Workers can access bookings assigned to them
+	if claims.Role == "worker" {
+		worker, err := h.queries.GetWorkerByUserID(ctx, userUUID)
+		if err == nil && booking.WorkerID.Valid && booking.WorkerID.Bytes == worker.ID.Bytes {
 			return nil
 		}
 	}

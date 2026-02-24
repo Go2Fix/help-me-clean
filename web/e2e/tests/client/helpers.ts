@@ -10,7 +10,7 @@ import { type Page, expect } from '@playwright/test';
 export async function loginAsTestUser(
   page: Page,
   email = 'test-e2e@go2fix.ro',
-  role: 'CLIENT' | 'COMPANY_ADMIN' | 'CLEANER' | 'GLOBAL_ADMIN' = 'CLIENT',
+  role: 'CLIENT' | 'COMPANY_ADMIN' | 'WORKER' | 'GLOBAL_ADMIN' = 'CLIENT',
 ): Promise<void> {
   // Mock the signInWithGoogle mutation
   await page.route('**/graphql', async (route) => {

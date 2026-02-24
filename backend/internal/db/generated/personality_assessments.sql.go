@@ -41,18 +41,18 @@ func (q *Queries) CreatePersonalityAnswer(ctx context.Context, arg CreatePersona
 
 const createPersonalityAssessment = `-- name: CreatePersonalityAssessment :one
 INSERT INTO personality_assessments (
-    cleaner_id,
+    worker_id,
     trust_score, morality_score, altruism_score,
     orderliness_score, dutifulness_score, self_discipline_score, cautiousness_score,
     integrity_avg, work_quality_avg,
     has_concerns, flagged_facets
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
-) RETURNING id, cleaner_id, trust_score, morality_score, altruism_score, orderliness_score, dutifulness_score, self_discipline_score, cautiousness_score, integrity_avg, work_quality_avg, has_concerns, flagged_facets, completed_at, created_at
+) RETURNING id, worker_id, trust_score, morality_score, altruism_score, orderliness_score, dutifulness_score, self_discipline_score, cautiousness_score, integrity_avg, work_quality_avg, has_concerns, flagged_facets, completed_at, created_at
 `
 
 type CreatePersonalityAssessmentParams struct {
-	CleanerID           pgtype.UUID    `json:"cleaner_id"`
+	WorkerID            pgtype.UUID    `json:"worker_id"`
 	TrustScore          int32          `json:"trust_score"`
 	MoralityScore       int32          `json:"morality_score"`
 	AltruismScore       int32          `json:"altruism_score"`
@@ -68,7 +68,7 @@ type CreatePersonalityAssessmentParams struct {
 
 func (q *Queries) CreatePersonalityAssessment(ctx context.Context, arg CreatePersonalityAssessmentParams) (PersonalityAssessment, error) {
 	row := q.db.QueryRow(ctx, createPersonalityAssessment,
-		arg.CleanerID,
+		arg.WorkerID,
 		arg.TrustScore,
 		arg.MoralityScore,
 		arg.AltruismScore,
@@ -84,7 +84,7 @@ func (q *Queries) CreatePersonalityAssessment(ctx context.Context, arg CreatePer
 	var i PersonalityAssessment
 	err := row.Scan(
 		&i.ID,
-		&i.CleanerID,
+		&i.WorkerID,
 		&i.TrustScore,
 		&i.MoralityScore,
 		&i.AltruismScore,
@@ -136,16 +136,16 @@ func (q *Queries) GetPersonalityAnswersByAssessmentID(ctx context.Context, asses
 	return items, nil
 }
 
-const getPersonalityAssessmentByCleanerID = `-- name: GetPersonalityAssessmentByCleanerID :one
-SELECT id, cleaner_id, trust_score, morality_score, altruism_score, orderliness_score, dutifulness_score, self_discipline_score, cautiousness_score, integrity_avg, work_quality_avg, has_concerns, flagged_facets, completed_at, created_at FROM personality_assessments WHERE cleaner_id = $1
+const getPersonalityAssessmentByWorkerID = `-- name: GetPersonalityAssessmentByWorkerID :one
+SELECT id, worker_id, trust_score, morality_score, altruism_score, orderliness_score, dutifulness_score, self_discipline_score, cautiousness_score, integrity_avg, work_quality_avg, has_concerns, flagged_facets, completed_at, created_at FROM personality_assessments WHERE worker_id = $1
 `
 
-func (q *Queries) GetPersonalityAssessmentByCleanerID(ctx context.Context, cleanerID pgtype.UUID) (PersonalityAssessment, error) {
-	row := q.db.QueryRow(ctx, getPersonalityAssessmentByCleanerID, cleanerID)
+func (q *Queries) GetPersonalityAssessmentByWorkerID(ctx context.Context, workerID pgtype.UUID) (PersonalityAssessment, error) {
+	row := q.db.QueryRow(ctx, getPersonalityAssessmentByWorkerID, workerID)
 	var i PersonalityAssessment
 	err := row.Scan(
 		&i.ID,
-		&i.CleanerID,
+		&i.WorkerID,
 		&i.TrustScore,
 		&i.MoralityScore,
 		&i.AltruismScore,
@@ -165,12 +165,12 @@ func (q *Queries) GetPersonalityAssessmentByCleanerID(ctx context.Context, clean
 
 const hasPersonalityAssessment = `-- name: HasPersonalityAssessment :one
 SELECT EXISTS(
-    SELECT 1 FROM personality_assessments WHERE cleaner_id = $1
+    SELECT 1 FROM personality_assessments WHERE worker_id = $1
 ) AS has_assessment
 `
 
-func (q *Queries) HasPersonalityAssessment(ctx context.Context, cleanerID pgtype.UUID) (bool, error) {
-	row := q.db.QueryRow(ctx, hasPersonalityAssessment, cleanerID)
+func (q *Queries) HasPersonalityAssessment(ctx context.Context, workerID pgtype.UUID) (bool, error) {
+	row := q.db.QueryRow(ctx, hasPersonalityAssessment, workerID)
 	var has_assessment bool
 	err := row.Scan(&has_assessment)
 	return has_assessment, err

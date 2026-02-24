@@ -9,10 +9,10 @@ import Input from '@/components/ui/Input';
 import Modal from '@/components/ui/Modal';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import {
-  MY_CLEANERS,
+  MY_WORKERS,
   COMPANY_BOOKINGS_BY_DATE_RANGE,
-  CLEANER_DATE_OVERRIDES,
-  SET_CLEANER_DATE_OVERRIDE_BY_ADMIN,
+  WORKER_DATE_OVERRIDES,
+  SET_WORKER_DATE_OVERRIDE_BY_ADMIN,
   MY_COMPANY_WORK_SCHEDULE,
 } from '@/graphql/operations';
 
@@ -26,7 +26,7 @@ interface AvailabilitySlot {
   isAvailable: boolean;
 }
 
-interface Cleaner {
+interface Worker {
   id: string;
   fullName: string;
   status: string;
@@ -43,7 +43,7 @@ interface Booking {
   estimatedDurationHours: number;
   status: string;
   client: { id: string; fullName: string; phone: string } | null;
-  cleaner: { id: string; fullName: string } | null;
+  worker: { id: string; fullName: string } | null;
   address: { streetAddress: string; city: string } | null;
 }
 
@@ -72,8 +72,8 @@ interface EffectiveAvailability {
 
 interface ModalState {
   open: boolean;
-  cleanerId: string;
-  cleanerName: string;
+  workerId: string;
+  workerName: string;
   date: string;
   dayLabel: string;
   startTime: string;
@@ -140,7 +140,7 @@ export default function CalendarPage() {
     return today === 0 ? 6 : today - 1; // Convert Sun=0..Sat=6 to Mon=0..Sun=6
   });
   const [modal, setModal] = useState<ModalState>({
-    open: false, cleanerId: '', cleanerName: '',
+    open: false, workerId: '', workerName: '',
     date: '', dayLabel: '', startTime: '08:00', endTime: '16:00',
     isAvailable: true,
   });
@@ -151,61 +151,61 @@ export default function CalendarPage() {
   const toDate = fmtYMD(weekEnd);
 
   // ─── Queries ──────────────────────────────────────────────────────────
-  const { data: cData, loading: cLoading, refetch: refetchCleaners } = useQuery(MY_CLEANERS);
+  const { data: cData, loading: cLoading, refetch: refetchWorkers } = useQuery(MY_WORKERS);
   const { data: bData, loading: bLoading, refetch: refetchBookings } = useQuery(
     COMPANY_BOOKINGS_BY_DATE_RANGE, { variables: { from: fromDate, to: toDate } },
   );
   const { data: wsData, loading: wsLoading } = useQuery(MY_COMPANY_WORK_SCHEDULE);
-  const [setDateOverride, { loading: saving }] = useMutation(SET_CLEANER_DATE_OVERRIDE_BY_ADMIN);
+  const [setDateOverride, { loading: saving }] = useMutation(SET_WORKER_DATE_OVERRIDE_BY_ADMIN);
 
-  const cleaners: Cleaner[] = cData?.myCleaners ?? [];
+  const workers: Worker[] = cData?.myWorkers ?? [];
   const bookings: Booking[] = bData?.companyBookingsByDateRange ?? [];
   const workSchedule: WorkScheduleSlot[] = wsData?.myCompanyWorkSchedule ?? [];
   const loading = cLoading || bLoading || wsLoading;
 
-  // Fetch date overrides for all cleaners. We batch them into a single derived query
-  // using the first cleaner's data to trigger refetch for all.
-  const firstCleanerId = cleaners[0]?.id;
-  const { data: ovDataFirst, refetch: refetchOverridesFirst } = useQuery(CLEANER_DATE_OVERRIDES, {
-    variables: { cleanerId: firstCleanerId ?? '', from: fromDate, to: toDate },
-    skip: !firstCleanerId,
+  // Fetch date overrides for all workers. We batch them into a single derived query
+  // using the first worker's data to trigger refetch for all.
+  const firstWorkerId = workers[0]?.id;
+  const { data: ovDataFirst, refetch: refetchOverridesFirst } = useQuery(WORKER_DATE_OVERRIDES, {
+    variables: { workerId: firstWorkerId ?? '', from: fromDate, to: toDate },
+    skip: !firstWorkerId,
   });
-  const secondCleanerId = cleaners[1]?.id;
-  const { data: ovDataSecond, refetch: refetchOverridesSecond } = useQuery(CLEANER_DATE_OVERRIDES, {
-    variables: { cleanerId: secondCleanerId ?? '', from: fromDate, to: toDate },
-    skip: !secondCleanerId,
+  const secondWorkerId = workers[1]?.id;
+  const { data: ovDataSecond, refetch: refetchOverridesSecond } = useQuery(WORKER_DATE_OVERRIDES, {
+    variables: { workerId: secondWorkerId ?? '', from: fromDate, to: toDate },
+    skip: !secondWorkerId,
   });
-  const thirdCleanerId = cleaners[2]?.id;
-  const { data: ovDataThird, refetch: refetchOverridesThird } = useQuery(CLEANER_DATE_OVERRIDES, {
-    variables: { cleanerId: thirdCleanerId ?? '', from: fromDate, to: toDate },
-    skip: !thirdCleanerId,
+  const thirdWorkerId = workers[2]?.id;
+  const { data: ovDataThird, refetch: refetchOverridesThird } = useQuery(WORKER_DATE_OVERRIDES, {
+    variables: { workerId: thirdWorkerId ?? '', from: fromDate, to: toDate },
+    skip: !thirdWorkerId,
   });
 
-  // Build override index: cleanerId_date -> DateOverride
+  // Build override index: workerId_date -> DateOverride
   const overrideIndex = useMemo(() => {
     const map = new Map<string, DateOverride>();
     const addOverrides = (cid: string | undefined, data: DateOverride[]) => {
       if (!cid) return;
       for (const o of data) map.set(`${cid}_${o.date}`, o);
     };
-    addOverrides(firstCleanerId, ovDataFirst?.cleanerDateOverrides ?? []);
-    addOverrides(secondCleanerId, ovDataSecond?.cleanerDateOverrides ?? []);
-    addOverrides(thirdCleanerId, ovDataThird?.cleanerDateOverrides ?? []);
+    addOverrides(firstWorkerId, ovDataFirst?.workerDateOverrides ?? []);
+    addOverrides(secondWorkerId, ovDataSecond?.workerDateOverrides ?? []);
+    addOverrides(thirdWorkerId, ovDataThird?.workerDateOverrides ?? []);
     return map;
-  }, [firstCleanerId, secondCleanerId, thirdCleanerId, ovDataFirst, ovDataSecond, ovDataThird]);
+  }, [firstWorkerId, secondWorkerId, thirdWorkerId, ovDataFirst, ovDataSecond, ovDataThird]);
 
-  function refetchOverridesForCleaner(cid: string) {
-    if (cid === firstCleanerId) refetchOverridesFirst();
-    else if (cid === secondCleanerId) refetchOverridesSecond();
-    else if (cid === thirdCleanerId) refetchOverridesThird();
+  function refetchOverridesForWorker(cid: string) {
+    if (cid === firstWorkerId) refetchOverridesFirst();
+    else if (cid === secondWorkerId) refetchOverridesSecond();
+    else if (cid === thirdWorkerId) refetchOverridesThird();
   }
 
-  // ─── Booking index: cleanerId_date -> bookings[] ─────────────────────
+  // ─── Booking index: workerId_date -> bookings[] ─────────────────────
   const bIndex = useMemo(() => {
     const map = new Map<string, Booking[]>();
     for (const b of bookings) {
-      if (!b.cleaner) continue;
-      const key = `${b.cleaner.id}_${b.scheduledDate}`;
+      if (!b.worker) continue;
+      const key = `${b.worker.id}_${b.scheduledDate}`;
       const arr = map.get(key) ?? [];
       arr.push(b);
       map.set(key, arr);
@@ -228,7 +228,7 @@ export default function CalendarPage() {
   const goToToday = () => setWeekStart(getMonday(new Date()));
 
   // ─── Cell helpers ─────────────────────────────────────────────────────
-  function getEffectiveAvailability(c: Cleaner, gi: number, date: Date): EffectiveAvailability {
+  function getEffectiveAvailability(c: Worker, gi: number, date: Date): EffectiveAvailability {
     const dow = gridToDow(gi);
     const dateStr = fmtYMD(date);
 
@@ -243,7 +243,7 @@ export default function CalendarPage() {
       };
     }
 
-    // 2. Check explicit cleaner weekly availability
+    // 2. Check explicit worker weekly availability
     const explicit = c.availability?.find((s) => s.dayOfWeek === dow);
     if (explicit) {
       return {
@@ -275,10 +275,10 @@ export default function CalendarPage() {
   }
 
   // ─── Modal ────────────────────────────────────────────────────────────
-  function openModal(c: Cleaner, gi: number, date: Date) {
+  function openModal(c: Worker, gi: number, date: Date) {
     const eff = getEffectiveAvailability(c, gi, date);
     setModal({
-      open: true, cleanerId: c.id, cleanerName: c.fullName,
+      open: true, workerId: c.id, workerName: c.fullName,
       date: fmtYMD(date), dayLabel: DAY_FULL[gi],
       startTime: eff.startTime, endTime: eff.endTime,
       isAvailable: eff.isAvailable,
@@ -288,7 +288,7 @@ export default function CalendarPage() {
   async function handleSave() {
     await setDateOverride({
       variables: {
-        cleanerId: modal.cleanerId,
+        workerId: modal.workerId,
         date: modal.date,
         isAvailable: modal.isAvailable,
         startTime: modal.startTime,
@@ -296,15 +296,15 @@ export default function CalendarPage() {
       },
     });
     setModal((p) => ({ ...p, open: false }));
-    refetchOverridesForCleaner(modal.cleanerId);
-    refetchCleaners();
+    refetchOverridesForWorker(modal.workerId);
+    refetchWorkers();
     refetchBookings();
   }
 
   const weekLabel = `Saptamana ${fmtDM(weekStart)} - ${fmtDM(weekEnd)} ${weekEnd.getFullYear()}`;
 
   // ─── Render ───────────────────────────────────────────────────────────
-  if (loading && cleaners.length === 0) {
+  if (loading && workers.length === 0) {
     return <LoadingSpinner text="Se incarca calendarul..." />;
   }
 
@@ -336,12 +336,12 @@ export default function CalendarPage() {
         </div>
       </Card>
 
-      {cleaners.length === 0 ? (
+      {workers.length === 0 ? (
         <Card>
           <div className="text-center py-12">
             <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-1">Niciun cleaner</h3>
-            <p className="text-gray-500">Adauga cleaneri in echipa pentru a gestiona calendarul.</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-1">Niciun lucrator</h3>
+            <p className="text-gray-500">Adauga lucratori in echipa pentru a gestiona calendarul.</p>
           </div>
         </Card>
       ) : (
@@ -350,7 +350,7 @@ export default function CalendarPage() {
           <div className="hidden lg:block overflow-x-auto">
             <div className="min-w-[800px]">
               <div className="grid gap-px bg-gray-200 rounded-t-xl overflow-hidden" style={{ gridTemplateColumns: '160px repeat(7, 1fr)' }}>
-                <div className="bg-gray-50 p-3 text-xs font-medium text-gray-500 uppercase">Cleaner</div>
+                <div className="bg-gray-50 p-3 text-xs font-medium text-gray-500 uppercase">Lucrator</div>
                 {weekDates.map((date, idx) => {
                   const isToday = fmtYMD(date) === fmtYMD(new Date());
                   return (
@@ -362,29 +362,29 @@ export default function CalendarPage() {
                 })}
               </div>
 
-              {cleaners.map((cleaner) => (
-                <div key={cleaner.id} className="grid gap-px bg-gray-200" style={{ gridTemplateColumns: '160px repeat(7, 1fr)' }}>
+              {workers.map((worker) => (
+                <div key={worker.id} className="grid gap-px bg-gray-200" style={{ gridTemplateColumns: '160px repeat(7, 1fr)' }}>
                   <div className="bg-white p-3 flex items-center gap-2.5">
-                    {cleaner.user?.avatarUrl ? (
-                      <img src={cleaner.user?.avatarUrl} alt={cleaner.fullName} className="h-9 w-9 rounded-full object-cover shrink-0" />
+                    {worker.user?.avatarUrl ? (
+                      <img src={worker.user?.avatarUrl} alt={worker.fullName} className="h-9 w-9 rounded-full object-cover shrink-0" />
                     ) : (
                       <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                        <span className="text-sm font-semibold text-primary">{cleaner.fullName?.charAt(0)?.toUpperCase()}</span>
+                        <span className="text-sm font-semibold text-primary">{worker.fullName?.charAt(0)?.toUpperCase()}</span>
                       </div>
                     )}
-                    <p className="text-sm font-medium text-gray-900 min-w-0 line-clamp-2 leading-tight">{cleaner.fullName}</p>
+                    <p className="text-sm font-medium text-gray-900 min-w-0 line-clamp-2 leading-tight">{worker.fullName}</p>
                   </div>
                   {weekDates.map((date, idx) => {
-                    const editable = canEditSchedule(cleaner.status) && !isPastDate(date);
-                    const eff = getEffectiveAvailability(cleaner, idx, date);
-                    const cb = cellBookings(cleaner.id, date);
+                    const editable = canEditSchedule(worker.status) && !isPastDate(date);
+                    const eff = getEffectiveAvailability(worker, idx, date);
+                    const cb = cellBookings(worker.id, date);
                     const conflict = hasConflict(cb);
                     const isDefault = eff.source === 'company' || eff.source === 'default';
                     const isOverride = eff.source === 'override';
                     return (
                       <div
                         key={idx}
-                        onClick={editable ? () => openModal(cleaner, idx, date) : undefined}
+                        onClick={editable ? () => openModal(worker, idx, date) : undefined}
                         className={cn(
                           'relative p-2 min-h-[72px] transition-colors',
                           editable ? 'cursor-pointer hover:bg-opacity-80' : 'opacity-50 cursor-not-allowed',
@@ -457,27 +457,27 @@ export default function CalendarPage() {
               })}
             </div>
             <div className="space-y-3">
-              {cleaners.map((cleaner) => {
-                const editable = canEditSchedule(cleaner.status) && !isPastDate(weekDates[mobileDay]);
-                const eff = getEffectiveAvailability(cleaner, mobileDay, weekDates[mobileDay]);
-                const cb = cellBookings(cleaner.id, weekDates[mobileDay]);
+              {workers.map((worker) => {
+                const editable = canEditSchedule(worker.status) && !isPastDate(weekDates[mobileDay]);
+                const eff = getEffectiveAvailability(worker, mobileDay, weekDates[mobileDay]);
+                const cb = cellBookings(worker.id, weekDates[mobileDay]);
                 const conflict = hasConflict(cb);
                 const isDefault = eff.source === 'company' || eff.source === 'default';
                 return (
-                  <Card key={cleaner.id} className={cn(conflict && 'ring-2 ring-red-400', !editable && 'opacity-50')}>
+                  <Card key={worker.id} className={cn(conflict && 'ring-2 ring-red-400', !editable && 'opacity-50')}>
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2.5">
-                        {cleaner.user?.avatarUrl ? (
-                          <img src={cleaner.user?.avatarUrl} alt={cleaner.fullName} className="h-10 w-10 rounded-full object-cover" />
+                        {worker.user?.avatarUrl ? (
+                          <img src={worker.user?.avatarUrl} alt={worker.fullName} className="h-10 w-10 rounded-full object-cover" />
                         ) : (
                           <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                            <span className="text-base font-semibold text-primary">{cleaner.fullName?.charAt(0)?.toUpperCase()}</span>
+                            <span className="text-base font-semibold text-primary">{worker.fullName?.charAt(0)?.toUpperCase()}</span>
                           </div>
                         )}
-                        <p className="text-sm font-semibold text-gray-900">{cleaner.fullName}</p>
+                        <p className="text-sm font-semibold text-gray-900">{worker.fullName}</p>
                       </div>
-                      {canEditSchedule(cleaner.status) && (
-                        <Button variant="ghost" size="sm" onClick={() => openModal(cleaner, mobileDay, weekDates[mobileDay])}>Editeaza</Button>
+                      {canEditSchedule(worker.status) && (
+                        <Button variant="ghost" size="sm" onClick={() => openModal(worker, mobileDay, weekDates[mobileDay])}>Editeaza</Button>
                       )}
                     </div>
                     {eff.isAvailable ? (
@@ -540,7 +540,7 @@ export default function CalendarPage() {
       <Modal
         open={modal.open}
         onClose={() => setModal((p) => ({ ...p, open: false }))}
-        title={`${modal.cleanerName} - ${modal.dayLabel} (${modal.date ? modal.date.split('-').reverse().join('.') : ''})`}
+        title={`${modal.workerName} - ${modal.dayLabel} (${modal.date ? modal.date.split('-').reverse().join('.') : ''})`}
       >
         <div className="space-y-4">
           <div className="flex items-center gap-3">

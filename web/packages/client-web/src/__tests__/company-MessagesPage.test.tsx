@@ -51,7 +51,7 @@ const mockRooms = [
     createdAt: '2025-01-01T10:00:00Z',
     participants: [
       { user: { id: 'user-1', fullName: 'Client Unu', avatarUrl: null }, joinedAt: '2025-01-01T10:00:00Z' },
-      { user: { id: 'user-2', fullName: 'Cleaner Doi', avatarUrl: null }, joinedAt: '2025-01-01T10:00:00Z' },
+      { user: { id: 'user-2', fullName: 'Worker Doi', avatarUrl: null }, joinedAt: '2025-01-01T10:00:00Z' },
     ],
     lastMessage: {
       id: 'msg-1',
@@ -59,7 +59,7 @@ const mockRooms = [
       messageType: 'system',
       isRead: true,
       createdAt: '2025-01-01T10:00:00Z',
-      sender: { id: 'user-2', fullName: 'Cleaner Doi' },
+      sender: { id: 'user-2', fullName: 'Worker Doi' },
     },
   },
   {
@@ -129,7 +129,7 @@ describe('Company MessagesPage', () => {
       return { data: null, loading: false } as ReturnType<typeof useQuery>;
     });
     renderPage();
-    expect(screen.getByText('Client Unu, Cleaner Doi')).toBeInTheDocument();
+    expect(screen.getByText('Client Unu, Worker Doi')).toBeInTheDocument();
     expect(screen.getByText('Alt Client')).toBeInTheDocument();
   });
 

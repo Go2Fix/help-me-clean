@@ -9,11 +9,11 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Modal from '@/components/ui/Modal';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import { MY_CLEANERS_LIST, INVITE_CLEANER } from '@/graphql/operations';
+import { MY_WORKERS_LIST, INVITE_WORKER } from '@/graphql/operations';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
-interface Cleaner {
+interface Worker {
   id: string;
   fullName: string;
   phone: string;
@@ -82,13 +82,13 @@ export default function TeamPage() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  const { data, loading, refetch } = useQuery(MY_CLEANERS_LIST);
-  const [inviteCleaner, { loading: inviting }] = useMutation(INVITE_CLEANER);
+  const { data, loading, refetch } = useQuery(MY_WORKERS_LIST);
+  const [inviteWorker, { loading: inviting }] = useMutation(INVITE_WORKER);
 
-  const cleaners: Cleaner[] = data?.myCleaners ?? [];
+  const workers: Worker[] = data?.myWorkers ?? [];
 
   // Client-side filtering
-  const filtered = cleaners.filter((c) => {
+  const filtered = workers.filter((c) => {
     if (statusFilter && c.status !== statusFilter) return false;
     if (debouncedQuery) {
       const q = debouncedQuery.toLowerCase();
@@ -115,10 +115,10 @@ export default function TeamPage() {
       return;
     }
     try {
-      const { data: res } = await inviteCleaner({
+      const { data: res } = await inviteWorker({
         variables: { input: { email: inviteEmail.trim(), fullName: inviteName.trim() } },
       });
-      const token = res?.inviteCleaner?.inviteToken;
+      const token = res?.inviteWorker?.inviteToken;
       setShowInvite(false);
       setInviteEmail('');
       setInviteName('');
@@ -198,42 +198,42 @@ export default function TeamPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {filtered.map((cleaner) => (
+                {filtered.map((worker) => (
                   <tr
-                    key={cleaner.id}
+                    key={worker.id}
                     className="hover:bg-gray-50 transition-colors cursor-pointer"
-                    onClick={() => navigate(`/firma/echipa/${cleaner.id}`)}
+                    onClick={() => navigate(`/firma/echipa/${worker.id}`)}
                   >
                     <td className="px-3 md:px-6 py-3 md:py-4">
                       <div className="flex items-center gap-3">
-                        <Avatar src={cleaner.user?.avatarUrl} name={cleaner.fullName} />
+                        <Avatar src={worker.user?.avatarUrl} name={worker.fullName} />
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="font-semibold text-gray-900 truncate">{cleaner.fullName}</span>
-                            {cleaner.isCompanyAdmin && <Badge variant="info">Admin</Badge>}
+                            <span className="font-semibold text-gray-900 truncate">{worker.fullName}</span>
+                            {worker.isCompanyAdmin && <Badge variant="info">Admin</Badge>}
                           </div>
                         </div>
                       </div>
                     </td>
                     <td className="px-3 md:px-6 py-3 md:py-4 text-gray-600 hidden md:table-cell">
-                      {cleaner.email || '--'}
+                      {worker.email || '--'}
                     </td>
                     <td className="px-3 md:px-6 py-3 md:py-4 text-gray-600 hidden lg:table-cell">
-                      {cleaner.phone || '--'}
+                      {worker.phone || '--'}
                     </td>
                     <td className="px-3 md:px-6 py-3 md:py-4">
-                      <Badge variant={statusBadgeVariant[cleaner.status] || 'default'}>
-                        {statusLabel[cleaner.status] || cleaner.status}
+                      <Badge variant={statusBadgeVariant[worker.status] || 'default'}>
+                        {statusLabel[worker.status] || worker.status}
                       </Badge>
                     </td>
                     <td className="px-3 md:px-6 py-3 md:py-4 hidden sm:table-cell">
                       <div className="flex items-center gap-1 text-gray-600">
                         <Star className="h-4 w-4 text-accent" />
-                        {cleaner.ratingAvg ? Number(cleaner.ratingAvg).toFixed(1) : '--'}
+                        {worker.ratingAvg ? Number(worker.ratingAvg).toFixed(1) : '--'}
                       </div>
                     </td>
                     <td className="px-3 md:px-6 py-3 md:py-4 text-gray-600 hidden sm:table-cell">
-                      {cleaner.totalJobsCompleted ?? 0}
+                      {worker.totalJobsCompleted ?? 0}
                     </td>
                     <td className="px-2 md:px-6 py-3 md:py-4">
                       <ChevronRight className="h-4 w-4 text-gray-400" />

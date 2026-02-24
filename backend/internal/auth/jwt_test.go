@@ -124,7 +124,7 @@ func TestValidateToken(t *testing.T) {
 		}{
 			{"client", "u-1", "client@test.com", "client"},
 			{"company_admin", "u-2", "admin@test.com", "company_admin"},
-			{"cleaner", "u-3", "cleaner@test.com", "cleaner"},
+			{"worker", "u-3", "worker@test.com", "worker"},
 			{"global_admin", "u-4", "global@test.com", "global_admin"},
 		}
 

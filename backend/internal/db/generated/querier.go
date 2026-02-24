@@ -11,12 +11,12 @@ import (
 )
 
 type Querier interface {
-	ActivateCleanerStatus(ctx context.Context, id pgtype.UUID) (Cleaner, error)
+	ActivateWorkerStatus(ctx context.Context, id pgtype.UUID) (Worker, error)
 	AddChatParticipant(ctx context.Context, arg AddChatParticipantParams) (ChatParticipant, error)
 	AdminUpdateCompanyProfile(ctx context.Context, arg AdminUpdateCompanyProfileParams) (Company, error)
 	AdminUpdateUserProfile(ctx context.Context, arg AdminUpdateUserProfileParams) (User, error)
 	ApproveCompany(ctx context.Context, id pgtype.UUID) (Company, error)
-	AssignCleanerToBooking(ctx context.Context, arg AssignCleanerToBookingParams) (Booking, error)
+	AssignWorkerToBooking(ctx context.Context, arg AssignWorkerToBookingParams) (Booking, error)
 	CancelBookingWithReason(ctx context.Context, arg CancelBookingWithReasonParams) (Booking, error)
 	CancelFutureOccurrences(ctx context.Context, arg CancelFutureOccurrencesParams) error
 	CancelRecurringGroup(ctx context.Context, arg CancelRecurringGroupParams) (RecurringBookingGroup, error)
@@ -36,23 +36,23 @@ type Querier interface {
 	CountAllReviews(ctx context.Context) (int64, error)
 	CountAllReviewsFiltered(ctx context.Context, arg CountAllReviewsFilteredParams) (int64, error)
 	CountBookingsByStatus(ctx context.Context, status BookingStatus) (int64, error)
-	CountCleanerBookingsInDateRange(ctx context.Context, arg CountCleanerBookingsInDateRangeParams) (int64, error)
 	CountCompaniesByStatus(ctx context.Context, status CompanyStatus) (int64, error)
-	CountCompletedJobsByCleaner(ctx context.Context, cleanerID pgtype.UUID) (int64, error)
+	CountCompletedJobsByWorker(ctx context.Context, workerID pgtype.UUID) (int64, error)
 	CountInvoicesByClient(ctx context.Context, clientUserID pgtype.UUID) (int64, error)
 	CountInvoicesByCompany(ctx context.Context, companyID pgtype.UUID) (int64, error)
 	CountPaymentHistoryByUser(ctx context.Context, clientUserID pgtype.UUID) (int64, error)
 	CountReceivedInvoicesByCompany(ctx context.Context, companyID pgtype.UUID) (int64, error)
-	CountReviewsByCleanerID(ctx context.Context, reviewedCleanerID pgtype.UUID) (int64, error)
+	CountReviewsByWorkerID(ctx context.Context, reviewedWorkerID pgtype.UUID) (int64, error)
 	CountSearchBookings(ctx context.Context, arg CountSearchBookingsParams) (int64, error)
-	CountSearchCleanerBookings(ctx context.Context, arg CountSearchCleanerBookingsParams) (int64, error)
 	CountSearchCompanies(ctx context.Context, arg CountSearchCompaniesParams) (int64, error)
 	CountSearchCompanyBookings(ctx context.Context, arg CountSearchCompanyBookingsParams) (int64, error)
 	CountSearchUsers(ctx context.Context, arg CountSearchUsersParams) (int64, error)
-	CountThisMonthJobsByCleaner(ctx context.Context, cleanerID pgtype.UUID) (int64, error)
+	CountSearchWorkerBookings(ctx context.Context, arg CountSearchWorkerBookingsParams) (int64, error)
+	CountThisMonthJobsByWorker(ctx context.Context, workerID pgtype.UUID) (int64, error)
 	CountUnreadNotifications(ctx context.Context, userID pgtype.UUID) (int64, error)
 	CountUsersByRole(ctx context.Context, role UserRole) (int64, error)
 	CountWaitlistLeads(ctx context.Context) (CountWaitlistLeadsRow, error)
+	CountWorkerBookingsInDateRange(ctx context.Context, arg CountWorkerBookingsInDateRangeParams) (int64, error)
 	CreateAddress(ctx context.Context, arg CreateAddressParams) (ClientAddress, error)
 	CreateArea(ctx context.Context, arg CreateAreaParams) (CityArea, error)
 	CreateBillingProfile(ctx context.Context, arg CreateBillingProfileParams) (ClientBillingProfile, error)
@@ -61,9 +61,6 @@ type Querier interface {
 	CreateChatMessage(ctx context.Context, arg CreateChatMessageParams) (ChatMessage, error)
 	CreateChatRoom(ctx context.Context, arg CreateChatRoomParams) (ChatRoom, error)
 	CreateCity(ctx context.Context, arg CreateCityParams) (EnabledCity, error)
-	CreateCleanerDocument(ctx context.Context, arg CreateCleanerDocumentParams) (CleanerDocument, error)
-	CreateCleanerProfile(ctx context.Context, arg CreateCleanerProfileParams) (Cleaner, error)
-	CreateCleanerUser(ctx context.Context, arg CreateCleanerUserParams) (User, error)
 	CreateCompany(ctx context.Context, arg CreateCompanyParams) (Company, error)
 	CreateCompanyDocument(ctx context.Context, arg CreateCompanyDocumentParams) (CompanyDocument, error)
 	// ============================================
@@ -105,16 +102,16 @@ type Querier interface {
 	CreateServiceExtra(ctx context.Context, arg CreateServiceExtraParams) (ServiceExtra, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	CreateWaitlistLead(ctx context.Context, arg CreateWaitlistLeadParams) (WaitlistLead, error)
+	CreateWorkerDocument(ctx context.Context, arg CreateWorkerDocumentParams) (WorkerDocument, error)
+	CreateWorkerProfile(ctx context.Context, arg CreateWorkerProfileParams) (Worker, error)
+	CreateWorkerUser(ctx context.Context, arg CreateWorkerUserParams) (User, error)
 	DeactivateUser(ctx context.Context, id pgtype.UUID) error
 	DeleteAddress(ctx context.Context, id pgtype.UUID) error
-	DeleteAllCleanerServiceAreas(ctx context.Context, cleanerID pgtype.UUID) error
 	DeleteAllCompanyServiceAreas(ctx context.Context, companyID pgtype.UUID) error
+	DeleteAllWorkerServiceAreas(ctx context.Context, workerID pgtype.UUID) error
 	DeleteArea(ctx context.Context, id pgtype.UUID) error
 	DeleteBillingProfile(ctx context.Context, id pgtype.UUID) error
 	DeleteBookingTimeSlots(ctx context.Context, bookingID pgtype.UUID) error
-	DeleteCleanerAvailability(ctx context.Context, cleanerID pgtype.UUID) error
-	DeleteCleanerDateOverride(ctx context.Context, arg DeleteCleanerDateOverrideParams) error
-	DeleteCleanerDocument(ctx context.Context, id pgtype.UUID) error
 	DeleteCompanyDocument(ctx context.Context, id pgtype.UUID) error
 	DeleteCompanyWorkSchedule(ctx context.Context, companyID pgtype.UUID) error
 	DeleteExpiredEmailOTPs(ctx context.Context) error
@@ -123,13 +120,16 @@ type Querier interface {
 	DeletePersonalityInsight(ctx context.Context, assessmentID pgtype.UUID) error
 	DeleteReview(ctx context.Context, id pgtype.UUID) error
 	DeleteUser(ctx context.Context, id pgtype.UUID) error
+	DeleteWorkerAvailability(ctx context.Context, workerID pgtype.UUID) error
+	DeleteWorkerDateOverride(ctx context.Context, arg DeleteWorkerDateOverrideParams) error
+	DeleteWorkerDocument(ctx context.Context, id pgtype.UUID) error
 	DeselectAllBookingTimeSlots(ctx context.Context, bookingID pgtype.UUID) error
 	FindChatRoomByExactParticipants(ctx context.Context, arg FindChatRoomByExactParticipantsParams) (ChatRoom, error)
 	FindDirectChatRoom(ctx context.Context, arg FindDirectChatRoomParams) (ChatRoom, error)
-	FindMatchingCleaners(ctx context.Context, cityAreaID pgtype.UUID) ([]FindMatchingCleanersRow, error)
+	FindMatchingWorkers(ctx context.Context, cityAreaID pgtype.UUID) ([]FindMatchingWorkersRow, error)
 	GetAddressByID(ctx context.Context, id pgtype.UUID) (ClientAddress, error)
 	GetAreaByID(ctx context.Context, id pgtype.UUID) (GetAreaByIDRow, error)
-	GetAverageCleanerRating(ctx context.Context, reviewedCleanerID pgtype.UUID) (pgtype.Numeric, error)
+	GetAverageWorkerRating(ctx context.Context, reviewedWorkerID pgtype.UUID) (pgtype.Numeric, error)
 	// ============================================
 	// CLIENT BILLING PROFILES
 	// ============================================
@@ -142,12 +142,6 @@ type Querier interface {
 	GetChatRoomByID(ctx context.Context, id pgtype.UUID) (ChatRoom, error)
 	GetCityByID(ctx context.Context, id pgtype.UUID) (EnabledCity, error)
 	GetCityByName(ctx context.Context, lower string) (EnabledCity, error)
-	GetCleanerByID(ctx context.Context, id pgtype.UUID) (Cleaner, error)
-	GetCleanerByInviteToken(ctx context.Context, inviteToken pgtype.Text) (Cleaner, error)
-	GetCleanerByUserID(ctx context.Context, userID pgtype.UUID) (Cleaner, error)
-	GetCleanerDocument(ctx context.Context, id pgtype.UUID) (CleanerDocument, error)
-	GetCleanerEarningsByDateRange(ctx context.Context, arg GetCleanerEarningsByDateRangeParams) ([]GetCleanerEarningsByDateRangeRow, error)
-	GetCleanerPerformanceStats(ctx context.Context, id pgtype.UUID) (GetCleanerPerformanceStatsRow, error)
 	// Check for existing commission invoice to prevent duplicates
 	GetCommissionInvoiceByPeriod(ctx context.Context, arg GetCommissionInvoiceByPeriodParams) (Invoice, error)
 	GetCompanyByAdminUserID(ctx context.Context, adminUserID pgtype.UUID) (Company, error)
@@ -181,7 +175,7 @@ type Querier interface {
 	GetPaymentTransactionByStripePI(ctx context.Context, stripePaymentIntentID string) (PaymentTransaction, error)
 	GetPayoutByID(ctx context.Context, id pgtype.UUID) (CompanyPayout, error)
 	GetPersonalityAnswersByAssessmentID(ctx context.Context, assessmentID pgtype.UUID) ([]PersonalityAssessmentAnswer, error)
-	GetPersonalityAssessmentByCleanerID(ctx context.Context, cleanerID pgtype.UUID) (PersonalityAssessment, error)
+	GetPersonalityAssessmentByWorkerID(ctx context.Context, workerID pgtype.UUID) (PersonalityAssessment, error)
 	// Get personality insight by assessment ID
 	GetPersonalityInsightByAssessmentID(ctx context.Context, assessmentID pgtype.UUID) (PersonalityInsight, error)
 	// GetPlatformLegalEntity returns the single platform legal entity configuration.
@@ -216,18 +210,24 @@ type Querier interface {
 	// ============================================
 	GetUserStripeCustomerID(ctx context.Context, id pgtype.UUID) (pgtype.Text, error)
 	GetValidEmailOTP(ctx context.Context, arg GetValidEmailOTPParams) (EmailOtpCode, error)
-	HasPersonalityAssessment(ctx context.Context, cleanerID pgtype.UUID) (bool, error)
+	GetWorkerByID(ctx context.Context, id pgtype.UUID) (Worker, error)
+	GetWorkerByInviteToken(ctx context.Context, inviteToken pgtype.Text) (Worker, error)
+	GetWorkerByUserID(ctx context.Context, userID pgtype.UUID) (Worker, error)
+	GetWorkerDocument(ctx context.Context, id pgtype.UUID) (WorkerDocument, error)
+	GetWorkerEarningsByDateRange(ctx context.Context, arg GetWorkerEarningsByDateRangeParams) ([]GetWorkerEarningsByDateRangeRow, error)
+	GetWorkerPerformanceStats(ctx context.Context, id pgtype.UUID) (GetWorkerPerformanceStatsRow, error)
+	HasPersonalityAssessment(ctx context.Context, workerID pgtype.UUID) (bool, error)
 	InsertBookingExtra(ctx context.Context, arg InsertBookingExtraParams) error
-	InsertCleanerServiceArea(ctx context.Context, arg InsertCleanerServiceAreaParams) (CleanerServiceArea, error)
 	InsertCompanyServiceArea(ctx context.Context, arg InsertCompanyServiceAreaParams) (CompanyServiceArea, error)
 	InsertRecurringGroupExtra(ctx context.Context, arg InsertRecurringGroupExtraParams) error
-	LinkCleanerToUser(ctx context.Context, arg LinkCleanerToUserParams) (Cleaner, error)
+	InsertWorkerServiceArea(ctx context.Context, arg InsertWorkerServiceAreaParams) (WorkerServiceArea, error)
+	LinkWorkerToUser(ctx context.Context, arg LinkWorkerToUserParams) (Worker, error)
 	ListActiveCities(ctx context.Context) ([]EnabledCity, error)
 	ListActiveExtras(ctx context.Context) ([]ServiceExtra, error)
 	ListActiveRecurringGroupsByClient(ctx context.Context, clientUserID pgtype.UUID) ([]RecurringBookingGroup, error)
 	ListActiveServices(ctx context.Context) ([]ServiceDefinition, error)
 	ListAddressesByUser(ctx context.Context, userID pgtype.UUID) ([]ClientAddress, error)
-	ListAllActiveCleaners(ctx context.Context) ([]ListAllActiveCleanersRow, error)
+	ListAllActiveWorkers(ctx context.Context) ([]ListAllActiveWorkersRow, error)
 	ListAllBookings(ctx context.Context, arg ListAllBookingsParams) ([]Booking, error)
 	ListAllChatRooms(ctx context.Context) ([]ChatRoom, error)
 	ListAllCompanies(ctx context.Context, arg ListAllCompaniesParams) ([]Company, error)
@@ -246,24 +246,18 @@ type Querier interface {
 	ListAreasByCity(ctx context.Context, cityID pgtype.UUID) ([]ListAreasByCityRow, error)
 	ListBookingExtras(ctx context.Context, bookingID pgtype.UUID) ([]ListBookingExtrasRow, error)
 	ListBookingTimeSlots(ctx context.Context, bookingID pgtype.UUID) ([]BookingTimeSlot, error)
-	ListBookingsByCleaner(ctx context.Context, cleanerID pgtype.UUID) ([]Booking, error)
-	ListBookingsByCleanerAndDateRange(ctx context.Context, arg ListBookingsByCleanerAndDateRangeParams) ([]Booking, error)
 	ListBookingsByClient(ctx context.Context, arg ListBookingsByClientParams) ([]Booking, error)
 	ListBookingsByClientAndStatus(ctx context.Context, arg ListBookingsByClientAndStatusParams) ([]Booking, error)
 	ListBookingsByCompany(ctx context.Context, arg ListBookingsByCompanyParams) ([]Booking, error)
 	ListBookingsByCompanyAndDateRange(ctx context.Context, arg ListBookingsByCompanyAndDateRangeParams) ([]Booking, error)
 	ListBookingsByCompanyAndStatus(ctx context.Context, arg ListBookingsByCompanyAndStatusParams) ([]Booking, error)
 	ListBookingsByStatus(ctx context.Context, arg ListBookingsByStatusParams) ([]Booking, error)
+	ListBookingsByWorker(ctx context.Context, workerID pgtype.UUID) ([]Booking, error)
+	ListBookingsByWorkerAndDateRange(ctx context.Context, arg ListBookingsByWorkerAndDateRangeParams) ([]Booking, error)
 	ListChatMessages(ctx context.Context, arg ListChatMessagesParams) ([]ChatMessage, error)
 	ListChatParticipants(ctx context.Context, roomID pgtype.UUID) ([]ChatParticipant, error)
-	ListChatRoomsByCompanyCleaners(ctx context.Context, companyID pgtype.UUID) ([]ChatRoom, error)
+	ListChatRoomsByCompanyWorkers(ctx context.Context, companyID pgtype.UUID) ([]ChatRoom, error)
 	ListChatRoomsByUser(ctx context.Context, userID pgtype.UUID) ([]ChatRoom, error)
-	ListCleanerAvailability(ctx context.Context, cleanerID pgtype.UUID) ([]CleanerAvailability, error)
-	ListCleanerBookingsForDate(ctx context.Context, arg ListCleanerBookingsForDateParams) ([]ListCleanerBookingsForDateRow, error)
-	ListCleanerDateOverrides(ctx context.Context, arg ListCleanerDateOverridesParams) ([]CleanerDateOverride, error)
-	ListCleanerDocuments(ctx context.Context, cleanerID pgtype.UUID) ([]CleanerDocument, error)
-	ListCleanerServiceAreas(ctx context.Context, cleanerID pgtype.UUID) ([]ListCleanerServiceAreasRow, error)
-	ListCleanersByCompany(ctx context.Context, companyID pgtype.UUID) ([]Cleaner, error)
 	ListCompaniesByStatus(ctx context.Context, arg ListCompaniesByStatusParams) ([]Company, error)
 	ListCompanyDocuments(ctx context.Context, companyID pgtype.UUID) ([]CompanyDocument, error)
 	ListCompanyServiceAreas(ctx context.Context, companyID pgtype.UUID) ([]ListCompanyServiceAreasRow, error)
@@ -297,19 +291,25 @@ type Querier interface {
 	ListPayoutsByCompany(ctx context.Context, arg ListPayoutsByCompanyParams) ([]CompanyPayout, error)
 	ListPayoutsByCompanyAndStatus(ctx context.Context, arg ListPayoutsByCompanyAndStatusParams) ([]CompanyPayout, error)
 	ListPayoutsByStatus(ctx context.Context, arg ListPayoutsByStatusParams) ([]CompanyPayout, error)
-	ListPendingCleanerDocuments(ctx context.Context) ([]CleanerDocument, error)
 	ListPendingCompanyDocuments(ctx context.Context) ([]CompanyDocument, error)
+	ListPendingWorkerDocuments(ctx context.Context) ([]WorkerDocument, error)
 	ListPlatformSettings(ctx context.Context) ([]PlatformSetting, error)
 	// Lists platform commission invoices where the company is the buyer
 	ListReceivedInvoicesByCompany(ctx context.Context, arg ListReceivedInvoicesByCompanyParams) ([]Invoice, error)
 	ListRecurringGroupsByClient(ctx context.Context, clientUserID pgtype.UUID) ([]RecurringBookingGroup, error)
 	ListRefundRequestsByStatus(ctx context.Context, arg ListRefundRequestsByStatusParams) ([]RefundRequest, error)
 	ListRefundRequestsByUser(ctx context.Context, requestedByUserID pgtype.UUID) ([]RefundRequest, error)
-	ListReviewsByCleanerID(ctx context.Context, arg ListReviewsByCleanerIDParams) ([]Review, error)
-	ListTodaysJobsByCleaner(ctx context.Context, cleanerID pgtype.UUID) ([]Booking, error)
+	ListReviewsByWorkerID(ctx context.Context, arg ListReviewsByWorkerIDParams) ([]Review, error)
+	ListTodaysJobsByWorker(ctx context.Context, workerID pgtype.UUID) ([]Booking, error)
 	ListUnpaidCompanyTransactions(ctx context.Context, arg ListUnpaidCompanyTransactionsParams) ([]PaymentTransaction, error)
 	ListUsersByRole(ctx context.Context, role UserRole) ([]User, error)
 	ListWaitlistLeads(ctx context.Context, arg ListWaitlistLeadsParams) ([]WaitlistLead, error)
+	ListWorkerAvailability(ctx context.Context, workerID pgtype.UUID) ([]WorkerAvailability, error)
+	ListWorkerBookingsForDate(ctx context.Context, arg ListWorkerBookingsForDateParams) ([]ListWorkerBookingsForDateRow, error)
+	ListWorkerDateOverrides(ctx context.Context, arg ListWorkerDateOverridesParams) ([]WorkerDateOverride, error)
+	ListWorkerDocuments(ctx context.Context, workerID pgtype.UUID) ([]WorkerDocument, error)
+	ListWorkerServiceAreas(ctx context.Context, workerID pgtype.UUID) ([]ListWorkerServiceAreasRow, error)
+	ListWorkersByCompany(ctx context.Context, companyID pgtype.UUID) ([]Worker, error)
 	MarkAllNotificationsRead(ctx context.Context, userID pgtype.UUID) error
 	MarkBookingPaid(ctx context.Context, id pgtype.UUID) (Booking, error)
 	// Atomically marks a booking as paid AND auto-confirms it if still assigned.
@@ -322,27 +322,27 @@ type Querier interface {
 	RejectCompany(ctx context.Context, arg RejectCompanyParams) (Company, error)
 	ResumeRecurringGroup(ctx context.Context, id pgtype.UUID) (RecurringBookingGroup, error)
 	SearchBookings(ctx context.Context, arg SearchBookingsParams) ([]Booking, error)
-	SearchCleanerBookings(ctx context.Context, arg SearchCleanerBookingsParams) ([]Booking, error)
 	SearchCompanies(ctx context.Context, arg SearchCompaniesParams) ([]Company, error)
 	SearchCompanyBookings(ctx context.Context, arg SearchCompanyBookingsParams) ([]Booking, error)
 	SearchUsers(ctx context.Context, arg SearchUsersParams) ([]User, error)
 	SearchUsersByName(ctx context.Context, dollar_1 pgtype.Text) ([]User, error)
+	SearchWorkerBookings(ctx context.Context, arg SearchWorkerBookingsParams) ([]Booking, error)
 	SelectBookingTimeSlot(ctx context.Context, id pgtype.UUID) (BookingTimeSlot, error)
 	SetBookingFinalTotal(ctx context.Context, arg SetBookingFinalTotalParams) (Booking, error)
-	SetBookingPreferredCleaner(ctx context.Context, arg SetBookingPreferredCleanerParams) (Booking, error)
-	SetCleanerAvailability(ctx context.Context, arg SetCleanerAvailabilityParams) (CleanerAvailability, error)
+	SetBookingPreferredWorker(ctx context.Context, arg SetBookingPreferredWorkerParams) (Booking, error)
 	SetCompanyAdminUser(ctx context.Context, arg SetCompanyAdminUserParams) (Company, error)
 	SetCompanyStripeConnect(ctx context.Context, arg SetCompanyStripeConnectParams) error
 	SetDefaultAddress(ctx context.Context, arg SetDefaultAddressParams) error
 	SetDefaultPaymentMethod(ctx context.Context, arg SetDefaultPaymentMethodParams) error
 	SetUserStripeCustomerID(ctx context.Context, arg SetUserStripeCustomerIDParams) error
+	SetWorkerAvailability(ctx context.Context, arg SetWorkerAvailabilityParams) (WorkerAvailability, error)
 	StartBooking(ctx context.Context, id pgtype.UUID) (Booking, error)
 	// ============================================
 	// COMPANY EARNINGS (Reporting)
 	// ============================================
 	SumCompanyEarnings(ctx context.Context, arg SumCompanyEarningsParams) (SumCompanyEarningsRow, error)
 	SumRefundedAmountByBooking(ctx context.Context, bookingID pgtype.UUID) (int32, error)
-	SumThisMonthEarningsByCleaner(ctx context.Context, cleanerID pgtype.UUID) (pgtype.Numeric, error)
+	SumThisMonthEarningsByWorker(ctx context.Context, workerID pgtype.UUID) (pgtype.Numeric, error)
 	UpdateAddress(ctx context.Context, arg UpdateAddressParams) (ClientAddress, error)
 	UpdateBillingProfile(ctx context.Context, arg UpdateBillingProfileParams) (ClientBillingProfile, error)
 	// ============================================
@@ -352,10 +352,6 @@ type Querier interface {
 	UpdateBookingSchedule(ctx context.Context, arg UpdateBookingScheduleParams) (Booking, error)
 	UpdateBookingStatus(ctx context.Context, arg UpdateBookingStatusParams) (Booking, error)
 	UpdateCityActive(ctx context.Context, arg UpdateCityActiveParams) (EnabledCity, error)
-	UpdateCleanerBio(ctx context.Context, arg UpdateCleanerBioParams) (Cleaner, error)
-	UpdateCleanerDocumentStatus(ctx context.Context, arg UpdateCleanerDocumentStatusParams) (CleanerDocument, error)
-	UpdateCleanerStatus(ctx context.Context, arg UpdateCleanerStatusParams) (Cleaner, error)
-	UpdateCleanerUserPhone(ctx context.Context, arg UpdateCleanerUserPhoneParams) error
 	UpdateCompanyDocumentStatus(ctx context.Context, arg UpdateCompanyDocumentStatusParams) (CompanyDocument, error)
 	UpdateCompanyLogo(ctx context.Context, arg UpdateCompanyLogoParams) (Company, error)
 	UpdateCompanyOwnProfile(ctx context.Context, arg UpdateCompanyOwnProfileParams) (Company, error)
@@ -363,9 +359,11 @@ type Querier interface {
 	UpdateInvoiceEFactura(ctx context.Context, arg UpdateInvoiceEFacturaParams) error
 	UpdateInvoiceFactureaza(ctx context.Context, arg UpdateInvoiceFactureazaParams) error
 	UpdateInvoiceStatus(ctx context.Context, arg UpdateInvoiceStatusParams) (Invoice, error)
+	UpdatePaymentTransactionDisputed(ctx context.Context, arg UpdatePaymentTransactionDisputedParams) (PaymentTransaction, error)
 	UpdatePaymentTransactionFailed(ctx context.Context, arg UpdatePaymentTransactionFailedParams) (PaymentTransaction, error)
 	UpdatePaymentTransactionRefund(ctx context.Context, arg UpdatePaymentTransactionRefundParams) (PaymentTransaction, error)
 	UpdatePaymentTransactionStatus(ctx context.Context, arg UpdatePaymentTransactionStatusParams) (PaymentTransaction, error)
+	UpdatePayoutFailed(ctx context.Context, arg UpdatePayoutFailedParams) (CompanyPayout, error)
 	UpdatePayoutStatus(ctx context.Context, arg UpdatePayoutStatusParams) (CompanyPayout, error)
 	// UpdatePlatformLegalEntity updates the platform legal entity details.
 	UpdatePlatformLegalEntity(ctx context.Context, arg UpdatePlatformLegalEntityParams) (PlatformLegalEntity, error)
@@ -379,10 +377,14 @@ type Querier interface {
 	UpdateUserPhone(ctx context.Context, arg UpdateUserPhoneParams) (User, error)
 	UpdateUserRole(ctx context.Context, arg UpdateUserRoleParams) (User, error)
 	UpdateUserStatus(ctx context.Context, arg UpdateUserStatusParams) (User, error)
-	UpsertCleanerDateOverride(ctx context.Context, arg UpsertCleanerDateOverrideParams) (CleanerDateOverride, error)
+	UpdateWorkerBio(ctx context.Context, arg UpdateWorkerBioParams) (Worker, error)
+	UpdateWorkerDocumentStatus(ctx context.Context, arg UpdateWorkerDocumentStatusParams) (WorkerDocument, error)
+	UpdateWorkerStatus(ctx context.Context, arg UpdateWorkerStatusParams) (Worker, error)
+	UpdateWorkerUserPhone(ctx context.Context, arg UpdateWorkerUserPhoneParams) error
 	UpsertCompanyWorkScheduleDay(ctx context.Context, arg UpsertCompanyWorkScheduleDayParams) (CompanyWorkSchedule, error)
 	// UpsertPlatformLegalEntity creates or updates the platform legal entity.
 	UpsertPlatformLegalEntity(ctx context.Context, arg UpsertPlatformLegalEntityParams) (PlatformLegalEntity, error)
+	UpsertWorkerDateOverride(ctx context.Context, arg UpsertWorkerDateOverrideParams) (WorkerDateOverride, error)
 }
 
 var _ Querier = (*Queries)(nil)

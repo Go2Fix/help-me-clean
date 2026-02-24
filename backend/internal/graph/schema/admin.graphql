@@ -1,7 +1,7 @@
 type PlatformStats {
   totalClients: Int!
   totalCompanies: Int!
-  totalCleaners: Int!
+  totalWorkers: Int!
   totalBookings: Int!
   totalRevenue: Float!
   platformCommissionTotal: Float!
@@ -50,7 +50,7 @@ extend type Query {
   revenueByMonth(months: Int): [RevenueByMonth!]!
   companyPerformance(first: Int): [CompanyPerformance!]!
   pendingCompanyApplications: [Company!]!
-  allCleaners: [CleanerProfile!]!
+  allWorkers: [WorkerProfile!]!
   allChatRooms: [ChatRoom!]!
   allUsers: [User!]!
   searchCompanies(query: String, status: CompanyStatus, limit: Int, offset: Int): CompanyConnection!

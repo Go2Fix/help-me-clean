@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { useQuery, useMutation } from '@apollo/client';
 import BookingDetailPage from '@/pages/admin/BookingDetailPage';
-import { ADMIN_BOOKING_DETAIL, ALL_CLEANERS } from '@/graphql/operations';
+import { ADMIN_BOOKING_DETAIL, ALL_WORKERS } from '@/graphql/operations';
 
 vi.mock('@go2fix/shared', () => ({
   cn: (...args: unknown[]) =>
@@ -59,7 +59,7 @@ const baseBooking = {
   createdAt: '2024-06-10T08:00:00Z',
   client: { id: 'c1', fullName: 'Maria Ionescu', email: 'maria@test.com', phone: '0722000000' },
   company: { id: 'co1', companyName: 'Clean SRL', contactEmail: 'contact@clean.ro' },
-  cleaner: null,
+  worker: null,
   address: {
     streetAddress: 'Str. Florilor 10',
     city: 'Bucuresti',
@@ -88,10 +88,10 @@ function mockBooking(overrides: Record<string, unknown> = {}) {
         loading: false,
       };
     }
-    if (query === ALL_CLEANERS) {
+    if (query === ALL_WORKERS) {
       return {
         data: {
-          allCleaners: [
+          allWorkers: [
             {
               id: 'cl1',
               fullName: 'Ion Popescu',
@@ -135,26 +135,26 @@ describe('BookingDetailPage', () => {
     expect(screen.getByText('Asignat')).toBeInTheDocument();
   });
 
-  it('shows "Asigneaza cleaner" button for ASSIGNED booking without cleaner', () => {
-    mockBooking({ status: 'ASSIGNED', cleaner: null });
+  it('shows "Asigneaza lucrator" button for ASSIGNED booking without worker', () => {
+    mockBooking({ status: 'ASSIGNED', worker: null });
     renderPage();
-    expect(screen.getByText('Asigneaza cleaner')).toBeInTheDocument();
+    expect(screen.getByText('Asigneaza lucrator')).toBeInTheDocument();
   });
 
-  it('does not show "Asigneaza cleaner" button when cleaner is assigned', () => {
+  it('does not show "Asigneaza lucrator" button when worker is assigned', () => {
     mockBooking({
       status: 'ASSIGNED',
-      cleaner: { id: 'cl1', fullName: 'Ion Popescu', phone: '0733111222' },
+      worker: { id: 'cl1', fullName: 'Ion Popescu', phone: '0733111222' },
     });
     renderPage();
-    expect(screen.queryByText('Asigneaza cleaner')).not.toBeInTheDocument();
+    expect(screen.queryByText('Asigneaza lucrator')).not.toBeInTheDocument();
     expect(screen.getByText('Ion Popescu')).toBeInTheDocument();
   });
 
-  it('does not show "Asigneaza cleaner" button for COMPLETED bookings', () => {
-    mockBooking({ status: 'COMPLETED', cleaner: null });
+  it('does not show "Asigneaza lucrator" button for COMPLETED bookings', () => {
+    mockBooking({ status: 'COMPLETED', worker: null });
     renderPage();
-    expect(screen.queryByText('Asigneaza cleaner')).not.toBeInTheDocument();
+    expect(screen.queryByText('Asigneaza lucrator')).not.toBeInTheDocument();
   });
 
   it('shows "Inapoi la comenzi" on not-found page navigating to /admin/comenzi', () => {

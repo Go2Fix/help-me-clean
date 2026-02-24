@@ -32,13 +32,13 @@ func NewDocumentHandler(queries *db.Queries, store storage.Storage) http.Handler
 			filePath = companyDoc.FileUrl
 			fileName = companyDoc.FileName
 		} else {
-			cleanerDoc, err2 := queries.GetCleanerDocument(r.Context(), docID)
+			workerDoc, err2 := queries.GetWorkerDocument(r.Context(), docID)
 			if err2 != nil {
 				http.Error(w, "document not found", http.StatusNotFound)
 				return
 			}
-			filePath = cleanerDoc.FileUrl
-			fileName = cleanerDoc.FileName
+			filePath = workerDoc.FileUrl
+			fileName = workerDoc.FileName
 		}
 
 		rc, err := store.GetReader(r.Context(), filePath)

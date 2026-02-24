@@ -1,0 +1,1 @@
+ALTER TABLE recurring_booking_groups RENAME COLUMN preferred_worker_id TO preferred_cleaner_id;

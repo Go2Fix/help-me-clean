@@ -54,8 +54,8 @@ HAVING COUNT(DISTINCT cp.user_id) = @participant_count::bigint
   AND @participant_count::bigint = (SELECT COUNT(*) FROM chat_participants cp2 WHERE cp2.room_id = cr.id)
 LIMIT 1;
 
--- name: ListChatRoomsByCompanyCleaners :many
+-- name: ListChatRoomsByCompanyWorkers :many
 SELECT DISTINCT cr.* FROM chat_rooms cr
   JOIN chat_participants cp ON cp.room_id = cr.id
-  JOIN cleaners c ON c.user_id = cp.user_id AND c.company_id = $1
+  JOIN workers c ON c.user_id = cp.user_id AND c.company_id = $1
 ORDER BY cr.created_at DESC;

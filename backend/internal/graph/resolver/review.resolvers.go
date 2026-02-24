@@ -22,20 +22,20 @@ func (r *mutationResolver) SubmitReview(ctx context.Context, input model.SubmitR
 
 	bookingUUID := stringToUUID(input.BookingID)
 
-	// Get the booking to determine the cleaner.
+	// Get the booking to determine the worker.
 	booking, err := r.Queries.GetBookingByID(ctx, bookingUUID)
 	if err != nil {
 		return nil, fmt.Errorf("booking not found: %w", err)
 	}
 
 	review, err := r.Queries.CreateReview(ctx, db.CreateReviewParams{
-		BookingID:         bookingUUID,
-		ReviewerUserID:    stringToUUID(claims.UserID),
-		ReviewedUserID:    booking.ClientUserID,
-		ReviewedCleanerID: booking.CleanerID,
-		Rating:            int32(input.Rating),
-		Comment:           stringToText(input.Comment),
-		ReviewType:        "client_to_cleaner",
+		BookingID:        bookingUUID,
+		ReviewerUserID:   stringToUUID(claims.UserID),
+		ReviewedUserID:   booking.ClientUserID,
+		ReviewedWorkerID: booking.WorkerID,
+		Rating:           int32(input.Rating),
+		Comment:          stringToText(input.Comment),
+		ReviewType:       "client_to_worker",
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to submit review: %w", err)

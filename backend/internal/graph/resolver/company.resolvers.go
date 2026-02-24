@@ -537,16 +537,16 @@ func (r *queryResolver) Company(ctx context.Context, id string) (*model.Company,
 	result := dbCompanyToGQL(company)
 	r.populateCompanyDocuments(ctx, result, company.ID)
 
-	// Populate cleaners with User/Company/Documents/PersonalityAssessment relationships.
-	if cleaners, err := r.Queries.ListCleanersByCompany(ctx, company.ID); err == nil {
-		for _, c := range cleaners {
-			// Load full cleaner profile with all relationships
-			profile, err := r.cleanerWithCompany(ctx, c)
+	// Populate workers with User/Company/Documents/PersonalityAssessment relationships.
+	if workers, err := r.Queries.ListWorkersByCompany(ctx, company.ID); err == nil {
+		for _, c := range workers {
+			// Load full worker profile with all relationships
+			profile, err := r.workerWithCompany(ctx, c)
 			if err != nil {
-				log.Printf("Failed to load cleaner %s for company: %v", uuidToString(c.ID), err)
-				continue // Skip broken cleaners, don't fail entire query
+				log.Printf("Failed to load worker %s for company: %v", uuidToString(c.ID), err)
+				continue // Skip broken workers, don't fail entire query
 			}
-			result.Cleaners = append(result.Cleaners, profile)
+			result.Workers = append(result.Workers, profile)
 		}
 	}
 
@@ -565,7 +565,7 @@ func (r *queryResolver) CompanyChatRooms(ctx context.Context) ([]*model.ChatRoom
 		return nil, fmt.Errorf("company not found: %w", err)
 	}
 
-	rooms, err := r.Queries.ListChatRoomsByCompanyCleaners(ctx, company.ID)
+	rooms, err := r.Queries.ListChatRoomsByCompanyWorkers(ctx, company.ID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list company chat rooms: %w", err)
 	}
@@ -642,10 +642,10 @@ func (r *queryResolver) GetDocumentURL(ctx context.Context, documentID string) (
 		return r.Storage.GetSignedURL(ctx, doc.FileUrl)
 	}
 
-	// Fallback to cleaner document.
-	cleanerDoc, err := r.Queries.GetCleanerDocument(ctx, id)
+	// Fallback to worker document.
+	workerDoc, err := r.Queries.GetWorkerDocument(ctx, id)
 	if err != nil {
 		return "", fmt.Errorf("document not found")
 	}
-	return r.Storage.GetSignedURL(ctx, cleanerDoc.FileUrl)
+	return r.Storage.GetSignedURL(ctx, workerDoc.FileUrl)
 }

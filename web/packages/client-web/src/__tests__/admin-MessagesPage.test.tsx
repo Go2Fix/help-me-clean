@@ -68,7 +68,7 @@ const mockRooms = [
     createdAt: '2025-01-02T10:00:00Z',
     participants: [
       { user: { id: 'user-3', fullName: 'Ana Client', avatarUrl: null }, joinedAt: '2025-01-02T10:00:00Z' },
-      { user: { id: 'user-4', fullName: 'George Cleaner', avatarUrl: null }, joinedAt: '2025-01-02T10:00:00Z' },
+      { user: { id: 'user-4', fullName: 'George Worker', avatarUrl: null }, joinedAt: '2025-01-02T10:00:00Z' },
     ],
     lastMessage: {
       id: 'msg-2',
@@ -131,7 +131,7 @@ describe('Admin MessagesPage', () => {
     });
     renderPage();
     expect(screen.getByText('Ion Popescu, Maria Curatenie')).toBeInTheDocument();
-    expect(screen.getByText('Ana Client, George Cleaner')).toBeInTheDocument();
+    expect(screen.getByText('Ana Client, George Worker')).toBeInTheDocument();
   });
 
   it('shows last message preview for system messages as "Mesaj de sistem"', () => {
