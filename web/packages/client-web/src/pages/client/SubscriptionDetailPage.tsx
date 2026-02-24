@@ -113,6 +113,8 @@ interface Subscription {
   cancelledAt: string | null;
   cancellationReason: string | null;
   pausedAt: string | null;
+  workerChangeRequestedAt: string | null;
+  workerChangeReason: string | null;
   createdAt: string;
   totalBookings: number;
   completedBookings: number;
@@ -198,6 +200,7 @@ export default function SubscriptionDetailPage() {
   const [showWorkerChangeModal, setShowWorkerChangeModal] = useState(false);
   const [workerChangeSuccess, setWorkerChangeSuccess] = useState(false);
   const [workerChangeError, setWorkerChangeError] = useState<string | null>(null);
+  const [workerChangeReason, setWorkerChangeReason] = useState('');
 
   const { data, loading, error } = useQuery<{ serviceSubscription: Subscription }>(
     SUBSCRIPTION_DETAIL,
@@ -231,6 +234,7 @@ export default function SubscriptionDetailPage() {
       onCompleted: () => {
         setShowWorkerChangeModal(false);
         setWorkerChangeError(null);
+        setWorkerChangeReason('');
         setWorkerChangeSuccess(true);
         setTimeout(() => setWorkerChangeSuccess(false), 5000);
       },
@@ -345,7 +349,7 @@ export default function SubscriptionDetailPage() {
 
   const handleWorkerChange = async () => {
     setWorkerChangeError(null);
-    await requestWorkerChange({ variables: { id: sub.id } });
+    await requestWorkerChange({ variables: { id: sub.id, reason: workerChangeReason.trim() || undefined } });
   };
 
   return (
@@ -469,8 +473,28 @@ export default function SubscriptionDetailPage() {
           <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-100 mb-6">
             <RefreshCw className="h-4 w-4 text-emerald-600 shrink-0" />
             <p className="text-sm text-emerald-800">
-              Lucratorul a fost schimbat pentru sesiunile viitoare.
+              Cererea ta de schimbare a fost trimisa. Vei fi contactat in curand.
             </p>
+          </div>
+        )}
+
+        {/* Pending worker change banner */}
+        {sub.workerChangeRequestedAt && !workerChangeSuccess && (
+          <div className="flex items-start gap-3 px-4 py-3 rounded-xl bg-amber-50 border border-amber-100 mb-6">
+            <RefreshCw className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-amber-800">
+                Cerere de schimbare lucrator in asteptare
+              </p>
+              <p className="text-sm text-amber-700 mt-0.5">
+                Echipa noastra te va contacta in scurt timp pentru a rezolva cererea ta.
+              </p>
+              {sub.workerChangeReason && (
+                <p className="text-xs text-amber-600 mt-1">
+                  Motiv: {sub.workerChangeReason}
+                </p>
+              )}
+            </div>
           </div>
         )}
 
@@ -838,7 +862,7 @@ export default function SubscriptionDetailPage() {
                     </div>
                   )}
                 </div>
-                {sub.worker && (isActive || isPaused) && (
+                {sub.worker && (isActive || isPaused) && !sub.workerChangeRequestedAt && (
                   <div className="mt-4 pt-4 border-t border-gray-100">
                     <Button
                       variant="outline"
@@ -850,7 +874,7 @@ export default function SubscriptionDetailPage() {
                       className="w-full"
                     >
                       <RefreshCw className="h-4 w-4" />
-                      Schimba lucratorul
+                      Solicita schimbare lucrator
                     </Button>
                   </div>
                 )}
@@ -949,12 +973,23 @@ export default function SubscriptionDetailPage() {
         <Modal
           open={showWorkerChangeModal}
           onClose={() => setShowWorkerChangeModal(false)}
-          title="Schimba lucratorul"
+          title="Solicita schimbare lucrator"
         >
-          <p className="text-sm text-gray-600 mb-6">
-            Doresti un alt lucrator pentru sesiunile viitoare? Sistemul va aloca
-            automat cel mai potrivit lucrator disponibil.
+          <p className="text-sm text-gray-600 mb-4">
+            Descrie motivul pentru care doresti schimbarea lucratorului. Echipa noastra va analiza cererea si te va contacta.
           </p>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              Motiv (optional)
+            </label>
+            <textarea
+              className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary resize-none"
+              rows={3}
+              placeholder="De ce doresti schimbarea lucratorului?"
+              value={workerChangeReason}
+              onChange={(e) => setWorkerChangeReason(e.target.value)}
+            />
+          </div>
           {workerChangeError && (
             <div className="flex items-start gap-3 px-4 py-3 rounded-xl bg-red-50 border border-red-100 mb-4">
               <XCircle className="h-4 w-4 text-red-600 shrink-0 mt-0.5" />
@@ -966,13 +1001,13 @@ export default function SubscriptionDetailPage() {
               variant="ghost"
               onClick={() => setShowWorkerChangeModal(false)}
             >
-              Anuleaza
+              Renunta
             </Button>
             <Button
               loading={changingWorker}
               onClick={handleWorkerChange}
             >
-              Confirma schimbarea
+              Trimite cererea
             </Button>
           </div>
         </Modal>

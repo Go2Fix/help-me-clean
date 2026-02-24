@@ -64,6 +64,10 @@ type ServiceSubscription {
   pausedAt: DateTime
   createdAt: DateTime!
 
+  # Worker change request (pending when non-null)
+  workerChangeRequestedAt: DateTime
+  workerChangeReason: String
+
   # Related bookings
   bookings: [Booking!]!
   upcomingBookings: [Booking!]!
@@ -164,8 +168,11 @@ extend type Mutation {
   resumeSubscription(id: ID!): ServiceSubscription!
   cancelSubscription(id: ID!, reason: String): ServiceSubscription!
 
-  # Client — change assigned worker
-  requestSubscriptionWorkerChange(id: ID!): ServiceSubscription!
+  # Client — request worker change (pending for admin/company review)
+  requestSubscriptionWorkerChange(id: ID!, reason: String): ServiceSubscription!
+
+  # Admin/Company — resolve a pending worker change request by assigning a new worker
+  resolveSubscriptionWorkerChange(id: ID!, workerId: ID!): ServiceSubscription!
 
   # Admin
   adminCancelSubscription(id: ID!, reason: String): ServiceSubscription!

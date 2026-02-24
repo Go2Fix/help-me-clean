@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@apollo/client';
 import {
   Repeat,
@@ -39,6 +40,7 @@ interface SubscriptionEdge {
   currentPeriodStart: string;
   currentPeriodEnd: string;
   createdAt: string;
+  workerChangeRequestedAt: string | null;
   client: SubscriptionClient | null;
   worker: SubscriptionWorker | null;
   totalBookings: number;
@@ -127,6 +129,7 @@ function TableSkeleton() {
 // ─── Component ──────────────────────────────────────────────────────────────
 
 export default function CompanySubscriptionsPage() {
+  const navigate = useNavigate();
   const { data, loading } = useQuery(COMPANY_SUBSCRIPTIONS, {
     variables: { limit: 50, offset: 0 },
   });
@@ -230,7 +233,7 @@ export default function CompanySubscriptionsPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {subscriptions.map((sub) => (
-                    <tr key={sub.id} className="hover:bg-gray-50 transition-colors">
+                    <tr key={sub.id} className="hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => navigate(`/firma/abonamente/${sub.id}`)}>
                       <td className="px-6 py-4">
                         <div className="min-w-0">
                           <p className="font-semibold text-gray-900 truncate">
@@ -260,11 +263,16 @@ export default function CompanySubscriptionsPage() {
                         {formatRON(sub.monthlyAmount)}
                       </td>
                       <td className="px-6 py-4">
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           <span className={cn('h-2 w-2 rounded-full shrink-0', statusDotColor[sub.status])} />
                           <Badge variant={statusBadgeVariant[sub.status] ?? 'default'}>
                             {statusLabel[sub.status] ?? sub.status}
                           </Badge>
+                          {sub.workerChangeRequestedAt && (
+                            <span className="text-xs font-medium text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded-full whitespace-nowrap">
+                              Cerere lucrator
+                            </span>
+                          )}
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -301,7 +309,7 @@ export default function CompanySubscriptionsPage() {
             {/* Mobile Card List */}
             <div className="md:hidden divide-y divide-gray-100">
               {subscriptions.map((sub) => (
-                <div key={sub.id} className="p-4 space-y-3">
+                <div key={sub.id} className="p-4 space-y-3 cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => navigate(`/firma/abonamente/${sub.id}`)}>
                   {/* Client + Status */}
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
@@ -312,11 +320,16 @@ export default function CompanySubscriptionsPage() {
                         {sub.client?.email ?? ''}
                       </p>
                     </div>
-                    <div className="flex items-center gap-1.5 shrink-0">
+                    <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
                       <span className={cn('h-2 w-2 rounded-full', statusDotColor[sub.status])} />
                       <Badge variant={statusBadgeVariant[sub.status] ?? 'default'}>
                         {statusLabel[sub.status] ?? sub.status}
                       </Badge>
+                      {sub.workerChangeRequestedAt && (
+                        <span className="text-xs font-medium text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded-full">
+                          Cerere lucrator
+                        </span>
+                      )}
                     </div>
                   </div>
 

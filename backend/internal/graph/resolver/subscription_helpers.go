@@ -39,8 +39,10 @@ func dbSubscriptionToGQL(s db.Subscription) *model.ServiceSubscription {
 		CurrentPeriodEnd:       timestamptzToTimePtr(s.CurrentPeriodEnd),
 		CancelledAt:            timestamptzToTimePtr(s.CancelledAt),
 		CancellationReason:     textPtr(s.CancellationReason),
-		PausedAt:               timestamptzToTimePtr(s.PausedAt),
-		CreatedAt:              timestamptzToTime(s.CreatedAt),
+		PausedAt:                timestamptzToTimePtr(s.PausedAt),
+		CreatedAt:               timestamptzToTime(s.CreatedAt),
+		WorkerChangeRequestedAt: timestamptzToTimePtr(s.WorkerChangeRequestedAt),
+		WorkerChangeReason:      textPtr(s.WorkerChangeReason),
 		Bookings:               []*model.Booking{},
 		UpcomingBookings:       []*model.Booking{},
 		Extras:                 []*model.BookingExtra{},
@@ -232,4 +234,68 @@ func numericFromString(s string) float64 {
 	var f float64
 	fmt.Sscanf(s, "%f", &f)
 	return f
+}
+
+// sendWorkerChangeRequestNotifications notifies company admin and all global admins
+// that a client has requested a worker change on their subscription.
+func (r *Resolver) sendWorkerChangeRequestNotifications(ctx context.Context, sub db.Subscription, clientName, reason string) {
+	title := "Cerere schimbare lucrator"
+	body := fmt.Sprintf("Clientul %s a solicitat schimbarea lucratorului.", clientName)
+	if reason != "" {
+		body += fmt.Sprintf(" Motiv: %s", reason)
+	}
+	data := []byte(fmt.Sprintf(`{"subscriptionId":"%s"}`, uuidToString(sub.ID)))
+
+	// Notify company admin.
+	if sub.CompanyID.Valid {
+		if company, err := r.Queries.GetCompanyByID(ctx, sub.CompanyID); err == nil {
+			if company.AdminUserID.Valid {
+				if _, err := r.Queries.CreateNotification(ctx, db.CreateNotificationParams{
+					UserID: company.AdminUserID,
+					Type:   db.NotificationTypeSubscriptionWorkerChangeRequested,
+					Title:  title,
+					Body:   body,
+					Data:   data,
+				}); err != nil {
+					log.Printf("subscription: failed to notify company admin: %v", err)
+				}
+			}
+		}
+	}
+
+	// Notify all global admins.
+	admins, err := r.Queries.ListUsersByRole(ctx, db.UserRoleGlobalAdmin)
+	if err == nil {
+		for _, admin := range admins {
+			if _, err := r.Queries.CreateNotification(ctx, db.CreateNotificationParams{
+				UserID: admin.ID,
+				Type:   db.NotificationTypeSubscriptionWorkerChangeRequested,
+				Title:  title,
+				Body:   body,
+				Data:   data,
+			}); err != nil {
+				log.Printf("subscription: failed to notify admin %s: %v", uuidToString(admin.ID), err)
+			}
+		}
+	}
+}
+
+// sendWorkerChangedNotification notifies the client that their subscription worker has been changed.
+func (r *Resolver) sendWorkerChangedNotification(ctx context.Context, sub db.Subscription, newWorkerName string) {
+	if !sub.ClientUserID.Valid {
+		return
+	}
+	title := "Lucratorul tau a fost schimbat"
+	body := fmt.Sprintf("Lucratorul pentru abonamentul tau a fost schimbat in %s.", newWorkerName)
+	data := []byte(fmt.Sprintf(`{"subscriptionId":"%s"}`, uuidToString(sub.ID)))
+
+	if _, err := r.Queries.CreateNotification(ctx, db.CreateNotificationParams{
+		UserID: sub.ClientUserID,
+		Type:   db.NotificationTypeSubscriptionWorkerChanged,
+		Title:  title,
+		Body:   body,
+		Data:   data,
+	}); err != nil {
+		log.Printf("subscription: failed to notify client: %v", err)
+	}
 }

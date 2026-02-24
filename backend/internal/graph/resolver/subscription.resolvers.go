@@ -232,7 +232,8 @@ func (r *mutationResolver) CancelSubscription(ctx context.Context, id string, re
 }
 
 // RequestSubscriptionWorkerChange is the resolver for the requestSubscriptionWorkerChange field.
-func (r *mutationResolver) RequestSubscriptionWorkerChange(ctx context.Context, id string) (*model.ServiceSubscription, error) {
+// Creates a pending worker change request for admin/company review (does NOT auto-reassign).
+func (r *mutationResolver) RequestSubscriptionWorkerChange(ctx context.Context, id string, reason *string) (*model.ServiceSubscription, error) {
 	claims := auth.GetUserFromContext(ctx)
 	if claims == nil {
 		return nil, fmt.Errorf("not authenticated")
@@ -244,60 +245,116 @@ func (r *mutationResolver) RequestSubscriptionWorkerChange(ctx context.Context, 
 		return nil, fmt.Errorf("subscription not found")
 	}
 
-	// Verify ownership.
+	// Verify ownership — only the subscription's client can request.
 	if uuidToString(sub.ClientUserID) != claims.UserID {
 		return nil, fmt.Errorf("not authorized")
 	}
 
 	// Must be active or paused.
 	if sub.Status != db.SubscriptionStatusActive && sub.Status != db.SubscriptionStatusPaused {
-		return nil, fmt.Errorf("subscription must be active or paused to change worker")
+		return nil, fmt.Errorf("subscription must be active or paused to request a worker change")
 	}
 
-	if !sub.WorkerID.Valid {
-		return nil, fmt.Errorf("no worker assigned to subscription")
+	// Prevent duplicate pending requests.
+	if sub.WorkerChangeRequestedAt.Valid {
+		return nil, fmt.Errorf("a worker change request is already pending")
 	}
 
-	// Find a worker area from the current worker's service areas.
-	workerAreas, err := r.Queries.ListWorkerServiceAreas(ctx, sub.WorkerID)
-	if err != nil || len(workerAreas) == 0 {
-		return nil, fmt.Errorf("unable to determine service area")
-	}
-	areaID := workerAreas[0].CityAreaID
-
-	// Find best alternative worker using the matchmaking system.
-	workers, err := r.Queries.FindMatchingWorkers(ctx, areaID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to find workers: %w", err)
+	reasonText := pgtype.Text{}
+	if reason != nil && *reason != "" {
+		reasonText = pgtype.Text{String: *reason, Valid: true}
 	}
 
-	var newWorkerID *db.FindMatchingWorkersRow
-	for _, w := range workers {
-		if w.ID == sub.WorkerID {
-			continue // skip current worker
-		}
-		newWorkerID = &w
-		break
-	}
-
-	if newWorkerID == nil {
-		return nil, fmt.Errorf("no alternative workers available in your area")
-	}
-
-	// Update subscription's preferred worker.
-	updated, err := r.Queries.UpdateSubscriptionWorker(ctx, db.UpdateSubscriptionWorkerParams{
-		ID:       subUUID,
-		WorkerID: newWorkerID.ID,
+	updated, err := r.Queries.RequestSubscriptionWorkerChange(ctx, db.RequestSubscriptionWorkerChangeParams{
+		ID:                 subUUID,
+		WorkerChangeReason: reasonText,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to update worker: %w", err)
+		return nil, fmt.Errorf("failed to create worker change request: %w", err)
 	}
 
-	// Reassign all future bookings.
+	// Get client name for notification body.
+	clientName := "Clientul"
+	if user, uErr := r.Queries.GetUserByID(ctx, sub.ClientUserID); uErr == nil {
+		clientName = user.FullName
+	}
+
+	reasonStr := ""
+	if reason != nil {
+		reasonStr = *reason
+	}
+
+	// Send notifications asynchronously to company admin + global admins.
+	go r.sendWorkerChangeRequestNotifications(context.Background(), sub, clientName, reasonStr)
+
+	return r.fullSubscription(ctx, updated)
+}
+
+// ResolveSubscriptionWorkerChange is the resolver for the resolveSubscriptionWorkerChange field.
+// Available to global_admin (any worker) and company_admin (own company workers only).
+func (r *mutationResolver) ResolveSubscriptionWorkerChange(ctx context.Context, id string, workerID string) (*model.ServiceSubscription, error) {
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil {
+		return nil, fmt.Errorf("not authenticated")
+	}
+	if claims.Role != "company_admin" && claims.Role != "global_admin" {
+		return nil, fmt.Errorf("not authorized")
+	}
+
+	subUUID := stringToUUID(id)
+	sub, err := r.Queries.GetSubscriptionByID(ctx, subUUID)
+	if err != nil {
+		return nil, fmt.Errorf("subscription not found")
+	}
+
+	// Company admin can only resolve for their own company's subscriptions.
+	if claims.Role == "company_admin" {
+		company, cErr := r.Queries.GetCompanyByAdminUserID(ctx, stringToUUID(claims.UserID))
+		if cErr != nil {
+			return nil, fmt.Errorf("company not found")
+		}
+		if uuidToString(company.ID) != uuidToString(sub.CompanyID) {
+			return nil, fmt.Errorf("not authorized — subscription belongs to another company")
+		}
+	}
+
+	// Validate the new worker.
+	newWorkerUUID := stringToUUID(workerID)
+	worker, err := r.Queries.GetWorkerByID(ctx, newWorkerUUID)
+	if err != nil {
+		return nil, fmt.Errorf("worker not found")
+	}
+
+	// Company admin can only assign workers from their own company.
+	if claims.Role == "company_admin" {
+		company, _ := r.Queries.GetCompanyByAdminUserID(ctx, stringToUUID(claims.UserID))
+		if uuidToString(worker.CompanyID) != uuidToString(company.ID) {
+			return nil, fmt.Errorf("worker does not belong to your company")
+		}
+	}
+
+	// Resolve: update worker_id + company_id, clear pending request.
+	updated, err := r.Queries.ResolveSubscriptionWorkerChange(ctx, db.ResolveSubscriptionWorkerChangeParams{
+		ID:        subUUID,
+		WorkerID:  newWorkerUUID,
+		CompanyID: worker.CompanyID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve worker change: %w", err)
+	}
+
+	// Reassign all future bookings to the new worker.
 	_ = r.Queries.ReassignFutureSubscriptionBookings(ctx, db.ReassignFutureSubscriptionBookingsParams{
-		NewWorkerID:    newWorkerID.ID,
+		NewWorkerID:    newWorkerUUID,
 		SubscriptionID: subUUID,
 	})
+
+	// Notify the client.
+	workerName := "lucratorul nou"
+	if workerUser, uErr := r.Queries.GetUserByID(ctx, worker.UserID); uErr == nil {
+		workerName = workerUser.FullName
+	}
+	go r.sendWorkerChangedNotification(context.Background(), updated, workerName)
 
 	return r.fullSubscription(ctx, updated)
 }

@@ -582,9 +582,12 @@ export const SUGGEST_WORKER_FOR_SUBSCRIPTION = gql`
 `;
 
 export const REQUEST_SUBSCRIPTION_WORKER_CHANGE = gql`
-  mutation RequestSubscriptionWorkerChange($id: ID!) {
-    requestSubscriptionWorkerChange(id: $id) {
+  mutation RequestSubscriptionWorkerChange($id: ID!, $reason: String) {
+    requestSubscriptionWorkerChange(id: $id, reason: $reason) {
       id
+      status
+      workerChangeRequestedAt
+      workerChangeReason
       worker {
         id
         fullName
@@ -593,6 +596,30 @@ export const REQUEST_SUBSCRIPTION_WORKER_CHANGE = gql`
           id
           avatarUrl
         }
+      }
+    }
+  }
+`;
+
+export const RESOLVE_SUBSCRIPTION_WORKER_CHANGE = gql`
+  mutation ResolveSubscriptionWorkerChange($id: ID!, $workerId: ID!) {
+    resolveSubscriptionWorkerChange(id: $id, workerId: $workerId) {
+      id
+      status
+      workerChangeRequestedAt
+      workerChangeReason
+      worker {
+        id
+        fullName
+        ratingAvg
+        user {
+          id
+          avatarUrl
+        }
+      }
+      company {
+        id
+        companyName
       }
     }
   }
@@ -665,6 +692,8 @@ export const SUBSCRIPTION_DETAIL = gql`
       cancelledAt
       cancellationReason
       pausedAt
+      workerChangeRequestedAt
+      workerChangeReason
       createdAt
       totalBookings
       completedBookings
@@ -773,6 +802,7 @@ export const COMPANY_SUBSCRIPTIONS = gql`
         currentPeriodStart
         currentPeriodEnd
         createdAt
+        workerChangeRequestedAt
         client {
           id
           fullName
@@ -806,6 +836,8 @@ export const ALL_SUBSCRIPTIONS = gql`
         currentPeriodEnd
         createdAt
         cancelledAt
+        workerChangeRequestedAt
+        workerChangeReason
         client {
           id
           fullName

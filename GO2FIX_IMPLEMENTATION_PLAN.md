@@ -1,6 +1,6 @@
 # Go2Fix.ro — Implementation Plan
 
-**Date:** 2026-02-23
+**Date:** 2026-02-23 (last updated: 2026-02-24)
 **Platform:** Go2Fix.ro — Romania's Home Services Marketplace
 **Goal:** Shape the MVP into a professional, scalable two-sided marketplace
 
@@ -18,7 +18,8 @@
 8. [Phase 6 — Client Experience Polish](#8-phase-6--client-experience-polish)
 9. [Phase 7 — Admin Dashboard Enhancements](#9-phase-7--admin-dashboard-enhancements)
 10. [Phase 8 — Future (Deferred)](#10-phase-8--future-deferred)
-11. [Task Summary](#11-task-summary)
+11. [Additional Work Completed](#11-additional-work-completed)
+12. [Task Summary](#12-task-summary)
 
 ---
 
@@ -39,11 +40,11 @@ These decisions override previous assumptions and guide all implementation:
 
 ---
 
-## 2. Phase 0 — Critical Bugs & Technical Debt (COMPLETED)
+## 2. Phase 0 — Critical Bugs & Technical Debt ✅ ALL COMPLETED
 
 > ~~Fix immediately. These are production-impacting bugs.~~ ALL DONE
 
-### P0-2: HMC- Prefix → G2F- Prefix (COMPLETED)
+### P0-2: HMC- Prefix → G2F- Prefix ✅ COMPLETED
 
 ~~**Problem:** Booking reference codes still use old "HelpMeClean" brand prefix.~~
 
@@ -78,8 +79,6 @@ These decisions override previous assumptions and guide all implementation:
 - [x] All Go backend tests pass (66 tests)
 - [x] All frontend tests pass (413 tests across 44 files)
 
-**Effort:** 4-6 hours (large but straightforward rename)
-
 ---
 
 ### P0-4: Missing Stripe Webhook Event Handlers ✅ COMPLETED
@@ -93,8 +92,6 @@ These decisions override previous assumptions and guide all implementation:
 - [x] Add handler for `payout.failed` — mark payout as failed with failure reason
 - [x] Migration 000033: added `disputed` enum value + `stripe_dispute_id` column
 - [x] All 6 webhook events now handled: payment_intent.succeeded, payment_intent.payment_failed, charge.refunded, charge.dispute.created, account.updated, payout.failed
-
-**Effort:** 3-4 hours
 
 ---
 
@@ -111,14 +108,11 @@ These decisions override previous assumptions and guide all implementation:
 
 All indexes already existed from prior migrations. No new migration needed.
 
-**Effort:** 1 hour
-
 ---
 
-## 3. Phase 1 — Core Platform Corrections
+## 3. Phase 1 — Core Platform Corrections ✅ ALL N/A
 
 > Remove/modify features that don't align with business model.
----
 
 ### P1-2: Remove Company Public Profiles ✅ N/A (never built)
 
@@ -144,7 +138,7 @@ All indexes already existed from prior migrations. No new migration needed.
 
 ---
 
-## 4. Phase 2 — Smart Booking Features
+## 4. Phase 2 — Smart Booking Features ✅ MOSTLY COMPLETED
 
 > Key differentiators for the platform.
 
@@ -157,16 +151,16 @@ All indexes already existed from prior migrations. No new migration needed.
   - Extended `FindMatchingWorkers` query with `user_id` + `avatar_url` (no N+1 queries)
   - Created `suggestWorkersForSlots` + `evaluateWorkerForSlots` helpers in `location_helpers.go`
   - Uses matching engine: `ComputeFreeIntervals` → `FindOptimalPlacement` → `ComputeMatchScore`
-  - Determines availability status: "available" (within requested window), "partial" (different time same day), "unavailable"
+  - Determines availability status: "available" (within requested window), "partial" (different time same day)
   - Falls back to full-day placement when client's preferred slot has no room
   - Returns top 5 workers sorted by match score (rating, gap optimization, load balancing)
 - [x] Frontend: Enhanced `StepWorker` component in `BookingPage.tsx`
   - Improved empty state: Calendar icon, friendly message, "Alege alt interval" button navigates back to schedule step
   - Smart amber info banner when a "partial" worker is selected, showing their actual available time window
   - All existing worker cards, availability badges, and suggested times continue to work
+- [x] **Bug fix:** Workers with no available slots are now excluded (return `nil`) instead of being shown as "Indisponibil"
+- [x] **Bug fix:** Default availability fallback (Mon-Fri 08:00-20:00) for workers without availability records configured — applied to both one-time and subscription flows
 - [ ] Admin: Dashboard demand heatmap — deferred to post-MVP
-
-**Completed:** Feb 2026
 
 ---
 
@@ -195,8 +189,6 @@ All indexes already existed from prior migrations. No new migration needed.
 - [x] "Anulare / Reprogramare" settings group in admin SettingsPage with all 4 policy keys
 - [ ] Advanced: Stripe auto-refund on cancel based on policy — deferred to post-MVP
 
-**Completed:** Feb 2026
-
 ---
 
 ### P2-3: Recurring Booking Subscriptions (Stripe Billing) ✅ COMPLETED
@@ -211,7 +203,8 @@ All indexes already existed from prior migrations. No new migration needed.
 - [x] Subscription service (`backend/internal/service/subscription/service.go`): Create/Pause/Resume/Cancel with Stripe Subscriptions API
 - [x] Stripe Connect split payments: `application_fee_percent` + `transfer_data.destination`
 - [x] Webhook handlers: `invoice.paid`, `invoice.payment_failed`, `customer.subscription.updated`, `customer.subscription.deleted`
-- [x] Monthly invoice generation (`GenerateSubscriptionMonthlyInvoice`)
+- [x] Monthly invoice generation (`GenerateSubscriptionMonthlyInvoice`) — company → client
+- [x] **Commission invoice generation** (`GenerateCommissionInvoice`) — platform → company, wired into `HandleInvoicePaid`
 - [x] Automatic booking generation for each billing period
 - [x] GraphQL schema: `ServiceSubscription` type, 7 queries, 6 mutations
 - [x] Full resolver implementation with auth guards
@@ -225,33 +218,36 @@ All indexes already existed from prior migrations. No new migration needed.
 **Frontend — Client dashboard:**
 - [x] `/cont/abonamente` — subscription list with status badges, pricing, next billing
 - [x] `/cont/abonamente/:id` — full detail with pause/resume/cancel actions, booking history
-- [x] Client dashboard widget replaced with subscription data
+- [x] Client dashboard widget with subscription data
 
 **Frontend — Company dashboard:**
-- [x] `/firma/abonamente` — read-only subscription list with KPIs
-- [x] Company dashboard updated with subscription metrics (active count, MRR)
+- [x] `/firma/abonamente` — read-only subscription list with KPIs (active count, MRR, total)
+- [x] Company dashboard updated with subscription metrics
 
 **Frontend — Admin:**
 - [x] `/admin/abonamente` — full table with status filter, KPI cards, force-cancel action
+- [x] `/admin/abonamente/:id` — full subscription detail page with booking history, actions, financial summary
 - [x] "Reduceri abonamente" tab in admin settings — edit discount percentages per frequency
 - [x] Admin dashboard updated with subscription stats + MRR
 
-**Completed:** Feb 2026
-
 ---
 
-### P2-4: Request Same Worker for Recurring
+### P2-4: Request Same Worker for Recurring — PARTIALLY DONE
 
 **Problem:** No way to request the same worker for recurring bookings.
 
-**Implementation:**
-- [ ] Add `preferred_worker_id` field to recurring bookings
-- [ ] During recurring booking setup: "Doresti acelasi lucrator de fiecare data?" toggle
-- [ ] Scheduling engine: Try to assign preferred worker first, fall back to any available
-- [ ] If preferred worker unavailable: Notify admin (not client — per no-notifications rule, admin sees in dashboard)
-- [ ] Client can request worker change from booking detail page ("Solicita alt lucrator")
+**What exists:**
+- [x] `preferred_worker_id` field exists in DB (`recurring_booking_groups` table, migration 000032)
+- [x] `preferredWorkerId` field in GraphQL schema (`booking.graphql` + `subscription.graphql`)
+- [x] Subscription matching engine (`subscription_matching.go`) scores worker consistency
 
-**Effort:** 3-4 hours
+**What's missing:**
+- [ ] Booking flow UI: "Doresti acelasi lucrator de fiecare data?" toggle during recurring booking setup
+- [ ] Scheduling engine: Priority assignment for preferred worker with fallback
+- [ ] Client UI: "Solicita alt lucrator" button on booking detail page
+- [ ] Admin visibility: Show preferred worker mismatches in dashboard
+
+**Effort:** 2-3 hours (backend schema ready, mostly frontend + scheduling logic)
 
 ---
 
@@ -259,64 +255,71 @@ All indexes already existed from prior migrations. No new migration needed.
 
 > Centralize all platform configuration in admin dashboard.
 
-### P3-1: Unified Pricing Management
+### P3-1: Unified Pricing Management — REDESIGNED
 
-**Implementation:**
-- [ ] Create `service_pricing` table:
-  ```
-  id, service_type_id, city/region, base_price_cents, price_per_hour_cents,
-  price_per_sqm_cents, min_price_cents, is_active, created_at, updated_at
-  ```
-- [ ] Admin page: "Preturi servicii" — set prices per service type per region
-- [ ] Support different pricing models per service type:
-  - Per hour (cleaning)
-  - Per unit/job (plumbing fix)
-  - Per sqm (painting)
-- [ ] Price history log for audit trail
+**Original plan:** Create a separate `service_pricing` table with per-region pricing.
 
-**Effort:** 4-5 hours
+**What was built instead:** Pricing is managed through `service_definitions` table with a full CRUD admin UI in the **"Servicii"** tab of admin SettingsPage. Each service definition has:
+- `base_price_per_hour`, `min_hours`, `max_hours`
+- Size-based multipliers, room pricing
+- Included items configuration
+- Active/inactive toggle
 
----
+**Remaining:**
+- [ ] Per-region/city pricing tiers (currently uniform pricing nationwide)
+- [ ] Per-sqm pricing model for non-cleaning services
+- [ ] Price history audit log
 
-### P3-2: Cancellation Policy Management
-
-(Covered in P2-2 above — admin UI for cancellation/refund rules)
+**Effort:** 3-4 hours (for regional pricing tiers)
 
 ---
 
-### P3-3: Recurring Discount Management
+### P3-2: Cancellation Policy Management ✅ COMPLETED
 
-(Covered in P2-3 above — admin UI for discount configuration)
+Fully covered in P2-2 above. Admin UI for all 4 policy keys exists in SettingsPage → "Anulare / Reprogramare" group.
 
 ---
 
-### P3-4: Commission Rate Configuration
+### P3-3: Recurring Discount Management ✅ COMPLETED
 
-**Implementation:**
-- [ ] Move commission rate from hardcoded to admin-configurable
-- [ ] Support per-service-type commission rates
-- [ ] Support per-company override rates (for special partnerships)
-- [ ] Admin UI: "Comisioane" settings page
+Fully covered in P2-3 above. Admin UI for discount percentages per frequency exists in SettingsPage → "Reduceri abonamente" tab.
+
+---
+
+### P3-4: Commission Rate Configuration — PARTIALLY DONE
+
+**What exists:**
+- [x] Global `platform_commission_pct` in `platform_settings` KV table (default 25%)
+- [x] Admin UI: Editable in SettingsPage → "Business" group
+- [x] Commission applied to Stripe Connect payments via `application_fee_percent`
+- [x] Commission invoices auto-generated for subscriptions
+
+**What's missing:**
+- [ ] Per-service-type commission rates
+- [ ] Per-company override rates (for special partnerships)
 
 **Effort:** 2-3 hours
 
 ---
 
-### P3-5: Platform Settings Consolidation
+### P3-5: Platform Settings Consolidation — MOSTLY DONE
 
-**Implementation:**
-- [ ] Consolidate all platform settings into a single admin "Setari platforma" page:
-  - Platform mode (pre-release / live)
-  - VAT rate (default 19%, configurable)
-  - Default commission rate
-  - Cancellation policies
-  - Recurring discounts
-  - Supported cities/regions
-  - Service categories (enable/disable)
-- [ ] Settings stored in `platform_settings` KV table (already exists)
-- [ ] Cache settings in memory with TTL refresh
+**What exists:** Admin SettingsPage has 6 tabs covering most settings:
 
-**Effort:** 3-4 hours
+| Tab | Contents | Status |
+|-----|----------|--------|
+| **Setari Generale** | Commission %, booking hours, hourly rate, auto-cancel, approval, cancel/reschedule policies, contact info, legal URLs | ✅ Done |
+| **Servicii** | Full CRUD for service definitions (pricing, duration, included items) | ✅ Done |
+| **Extra-uri** | Full CRUD for service extras (price, duration, allow-multiple) | ✅ Done |
+| **Orase** | City + city area management with activate/deactivate | ✅ Done |
+| **Reduceri abonamente** | Discount % per recurrence type (weekly/biweekly/monthly) | ✅ Done |
+| **Platforma** | Pre-release/live mode toggle + waitlist lead stats | ✅ Done |
+
+**What's missing:**
+- [ ] VAT rate configuration (hardcoded at 19%)
+- [ ] Settings cache with TTL refresh (currently reads from DB each time)
+
+**Effort:** 1-2 hours
 
 ---
 
@@ -413,6 +416,8 @@ All indexes already existed from prior migrations. No new migration needed.
 - [ ] Company admin view: See all workers' schedules at once
 - [ ] Admin view: See all workers across all companies
 
+**Note:** Basic schedule page exists at `/worker/program` and `/firma/program`. Improvements are about UX polish and advanced features.
+
 **Effort:** 4-5 hours
 
 ---
@@ -420,10 +425,12 @@ All indexes already existed from prior migrations. No new migration needed.
 ### P5-3: Company Dashboard — Reviews (Read-Only)
 
 **Implementation:**
-- [ ] Companies see all reviews for their workers
+- [ ] Companies see all reviews for their workers (no `/firma/recenzii` page exists yet)
 - [ ] Aggregate rating per worker, per service type
 - [ ] NO reply/interact functionality (all goes through admin)
 - [ ] Flag review option → sends to admin for review
+
+**Note:** Admin reviews page exists at `/admin/recenzii`. Company-facing reviews page needs to be built.
 
 **Effort:** 2-3 hours
 
@@ -431,27 +438,27 @@ All indexes already existed from prior migrations. No new migration needed.
 
 ## 8. Phase 6 — Client Experience Polish
 
-### P6-1: Booking Flow UX Improvements
+### P6-1: Booking Flow UX Improvements — PARTIALLY DONE
 
-- [ ] Progress indicator (step 1/4, 2/4, etc.)
-- [ ] Service category selection as first step
+- [x] Progress indicator (step 1/N with icons and labels) — `StepIndicator` component in BookingPage
+- [x] Clear price breakdown before confirmation (summary step + subscription pricing preview)
+- [x] Guest booking flow preserved (no auth required to book)
+- [ ] Service category selection as first step (depends on P4-1)
 - [ ] Address autocomplete for Romanian addresses
-- [ ] Clear price breakdown before confirmation
-- [ ] Guest booking flow preserved (no auth required to book)
 
-**Effort:** 3-4 hours
+**Effort:** 2-3 hours (remaining items)
 
 ---
 
-### P6-2: Client Dashboard Enhancements
+### P6-2: Client Dashboard Enhancements — PARTIALLY DONE
 
+- [x] Recurring booking management (pause, resume, cancel, change frequency) — subscription detail page
+- [x] Easy access to reschedule/cancel with policy info — booking detail page with `RescheduleModal`
 - [ ] Better booking status tracking (timeline view)
-- [ ] Easy access to reschedule/cancel with policy info
-- [ ] Recurring booking management (pause, resume, change frequency)
 - [ ] "Contact support" prominent button
 - [ ] Payment history with download invoice option
 
-**Effort:** 3-4 hours
+**Effort:** 2-3 hours (remaining items)
 
 ---
 
@@ -532,40 +539,95 @@ These items are explicitly deferred and should NOT be worked on now:
 
 ---
 
-## 11. Task Summary
+## 11. Additional Work Completed
+
+Work completed that was not part of the original plan:
+
+### Dashboard KPI Standardization ✅
+
+Unified the KPI card design across all portals (admin, company, worker). All dashboards and listing pages now use a consistent pattern:
+- Single `<Card>` container with `Metric` components inside
+- Gray `bg-gray-100` icon backgrounds, `divide-x` dividers between columns
+- Consistent typography and spacing
+
+**Pages updated:** `/admin`, `/admin/abonamente`, `/firma`, `/firma/plati`, `/firma/abonamente`, `/worker`
+
+### Worker Dashboard Redesign ✅
+
+Replaced the sparse 2-column layout with a richer single-column flow:
+- **Onboarding checklist** ("Primii pasi") — progress bar + actionable checklist for new workers (profile, personality test, documents, availability)
+- **Quick action cards** — 4 colorful icon cards in a horizontal grid (Comenzi, Program, Mesaje, Profil)
+- **Compact empty states** — horizontal layout with helpful links instead of centered voids
+- Removed the 2/3 + 1/3 grid that felt empty when no jobs/reviews exist
+
+### Worker Suggestion Bug Fixes ✅
+
+Two bugs fixed in the booking flow's worker suggestion system:
+1. **One-time flow:** Workers without any available slots now return `nil` (excluded) instead of being shown as "Indisponibil"
+2. **Subscription flow:** Default availability fallback (Mon-Fri 08:00-20:00) for workers with no availability records configured
+3. Same default fallback applied to one-time flow in `location_helpers.go`
+
+### Commission Invoice Wiring ✅
+
+Platform commission invoices (`GenerateCommissionInvoice`) are now automatically generated during subscription billing:
+- Wired into `HandleInvoicePaid` in subscription service
+- Calculates commission from `MonthlyAmountBani * PlatformCommissionPct / 100`
+- Generates platform → company invoice with VAT, syncs to Factureaza.ro
+
+### i18n / Multilingual Support ✅
+
+Full internationalization support added:
+- **react-i18next** + i18next-http-backend + i18next-browser-languagedetector
+- URL routing: RO = no prefix, EN = `/en/` prefix
+- 9 namespaces × 2 languages = 18 JSON files in `public/locales/`
+- SEOHead: hreflang tags, og:locale, canonical URLs per language
+
+### Admin Subscription Detail Page ✅
+
+Full admin subscription detail page at `/admin/abonamente/:id`:
+- Subscription info, client/company/worker details
+- Financial summary (per-session, monthly, commission)
+- Booking history table
+- Admin actions: pause, resume, force-cancel
+
+---
+
+## 12. Task Summary
 
 ### Priority Matrix
 
-| Phase | Tasks | Est. Hours | Priority |
-|-------|-------|-----------|----------|
-| **Phase 0** — Critical Bugs | 5 tasks | 10-12h | DO FIRST |
-| **Phase 1** — Platform Corrections | 5 tasks | 9-13h | DO FIRST |
-| **Phase 2** — Smart Booking | 4 tasks | 22-28h | HIGH |
-| **Phase 3** — Admin Controls | 5 tasks | 13-17h | HIGH |
-| **Phase 4** — Multi-Service | 3 tasks | 17-22h | MEDIUM |
-| **Phase 5** — Company Mgmt | 3 tasks | 9-12h | MEDIUM |
-| **Phase 6** — Client Polish | 3 tasks | 9-12h | MEDIUM |
-| **Phase 7** — Admin Analytics | 4 tasks | 12-16h | LOW |
+| Phase | Tasks | Status | Remaining |
+|-------|-------|--------|-----------|
+| **Phase 0** — Critical Bugs | 4 tasks | ✅ ALL DONE | — |
+| **Phase 1** — Platform Corrections | 4 tasks | ✅ ALL N/A | — |
+| **Phase 2** — Smart Booking | 4 tasks | 3/4 done | P2-4 UI (2-3h) |
+| **Phase 3** — Admin Controls | 5 tasks | 3/5 done | P3-1 partial (3-4h), P3-4 partial (2-3h), P3-5 near-done (1-2h) |
+| **Phase 4** — Multi-Service | 3 tasks | NOT STARTED | 17-22h |
+| **Phase 5** — Company Mgmt | 3 tasks | NOT STARTED | 9-12h |
+| **Phase 6** — Client Polish | 3 tasks | 2/3 partially done | ~7-10h remaining |
+| **Phase 7** — Admin Analytics | 4 tasks | NOT STARTED | 12-16h |
 
-**Total estimated effort: ~105-137 hours**
+**Completed:** ~60-70% of Phase 0-3 (core platform). ~20% of Phase 4-7.
 
-### Recommended Execution Order
+**Remaining estimated effort: ~55-75 hours**
+
+### Recommended Next Steps
 
 ```
-Week 1:  Phase 0 (bugs) + Phase 1 (corrections)     → Foundation clean
-Week 2:  Phase 2 (smart booking)                      → Key differentiators
-Week 3:  Phase 3 (admin controls) + Phase 4 start     → Admin power
-Week 4:  Phase 4 (multi-service) + Phase 5             → Scalability
-Week 5:  Phase 6 (client polish) + Phase 7             → Polish & analytics
+1. P2-4: Preferred worker UI toggle in booking flow        (2-3h)
+2. P3-5: VAT config + settings cache                       (1-2h)
+3. P3-4: Per-company commission overrides                   (2-3h)
+4. P6-2: Remaining client dashboard items                   (2-3h)
+5. Phase 4: Multi-service architecture (biggest remaining)  (17-22h)
 ```
 
 ### Key Dependencies
 
 ```
-Phase 0 (P0-3 worker rename) → Phase 4 (multi-service)
-Phase 1 (P1-3 remove company pricing) → Phase 3 (P3-1 admin pricing)
+Phase 0 (P0-3 worker rename) → Phase 4 (multi-service)  ✅ DONE
+Phase 1 (P1-3 remove company pricing) → Phase 3 (P3-1 admin pricing)  ✅ N/A
 Phase 4 (P4-1 service categories) → Phase 5 (P5-1 company service selection)
-Phase 4 (P4-1 service categories) → Phase 2 (P2-1 smart time suggestion)
+Phase 4 (P4-1 service categories) → Phase 6 (P6-1 service category selection in booking)
 ```
 
 ---
@@ -573,7 +635,7 @@ Phase 4 (P4-1 service categories) → Phase 2 (P2-1 smart time suggestion)
 ## Technical Notes
 
 ### Database Migration Strategy
-All schema changes should be backward-compatible migrations with both up and down scripts. The worker rename (P0-3) is the largest migration and should be done first to unblock multi-service work.
+All schema changes should be backward-compatible migrations with both up and down scripts. The worker rename (P0-3) is the largest migration and was done first to unblock multi-service work. Current latest migration: **000035**.
 
 ### Testing Requirements
 - Every new feature needs unit tests (backend Go + frontend Vitest)
@@ -586,7 +648,7 @@ All schema changes should be backward-compatible migrations with both up and dow
 - Database: Neon PostgreSQL (apply migrations before deploying code)
 
 ### Code Standards
-- Romanian UI text throughout (primary language)
+- Romanian UI text throughout (primary language), English as secondary
 - English code and comments
 - Follow existing patterns (gqlgen resolvers, sqlc queries, React + Apollo hooks)
 - No over-engineering — MVP mindset with clean architecture

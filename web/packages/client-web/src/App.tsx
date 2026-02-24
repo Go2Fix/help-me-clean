@@ -59,6 +59,7 @@ import CompanyCalendarPage from '@/pages/company/CalendarPage';
 import CompanyPayoutsPage from '@/pages/company/PayoutsPage';
 import CompanyInvoicesPage from '@/pages/company/CompanyInvoicesPage';
 import CompanySubscriptionsPage from '@/pages/company/SubscriptionsPage';
+import CompanySubscriptionDetailPage from '@/pages/company/SubscriptionDetailPage';
 
 // Worker pages
 import AcceptInvitePage from '@/pages/worker/AcceptInvitePage';
@@ -246,6 +247,7 @@ function AppRoutes() {
         <Route path="echipa/:id" element={<WorkerDetailPage />} />
         <Route path="plati" element={<CompanyPayoutsPage />} />
         <Route path="abonamente" element={<CompanySubscriptionsPage />} />
+        <Route path="abonamente/:id" element={<CompanySubscriptionDetailPage />} />
         <Route path="facturi" element={<CompanyInvoicesPage />} />
         <Route path="setari" element={<CompanySettingsPage />} />
       </Route>

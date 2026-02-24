@@ -99,6 +99,18 @@ WHERE id = $1 RETURNING *;
 -- name: UpdateSubscriptionWorker :one
 UPDATE subscriptions SET worker_id = $2, updated_at = NOW() WHERE id = $1 RETURNING *;
 
+-- name: RequestSubscriptionWorkerChange :one
+UPDATE subscriptions
+SET worker_change_requested_at = NOW(), worker_change_reason = $2, updated_at = NOW()
+WHERE id = $1 RETURNING *;
+
+-- name: ResolveSubscriptionWorkerChange :one
+UPDATE subscriptions
+SET worker_id = $2, company_id = $3,
+    worker_change_requested_at = NULL, worker_change_reason = NULL,
+    updated_at = NOW()
+WHERE id = $1 RETURNING *;
+
 -- name: ReassignFutureSubscriptionBookings :exec
 UPDATE bookings
 SET worker_id = @new_worker_id, updated_at = NOW()

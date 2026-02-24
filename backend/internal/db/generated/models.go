@@ -238,19 +238,21 @@ func (ns NullInvoiceType) Value() (driver.Value, error) {
 type NotificationType string
 
 const (
-	NotificationTypeBookingCreated     NotificationType = "booking_created"
-	NotificationTypeBookingAssigned    NotificationType = "booking_assigned"
-	NotificationTypeBookingConfirmed   NotificationType = "booking_confirmed"
-	NotificationTypeBookingStarted     NotificationType = "booking_started"
-	NotificationTypeBookingCompleted   NotificationType = "booking_completed"
-	NotificationTypeBookingCancelled   NotificationType = "booking_cancelled"
-	NotificationTypeCleanerInvited     NotificationType = "cleaner_invited"
-	NotificationTypeCompanyApproved    NotificationType = "company_approved"
-	NotificationTypeCompanyRejected    NotificationType = "company_rejected"
-	NotificationTypeNewMessage         NotificationType = "new_message"
-	NotificationTypeReviewReceived     NotificationType = "review_received"
-	NotificationTypePaymentProcessed   NotificationType = "payment_processed"
-	NotificationTypeBookingRescheduled NotificationType = "booking_rescheduled"
+	NotificationTypeBookingCreated                    NotificationType = "booking_created"
+	NotificationTypeBookingAssigned                   NotificationType = "booking_assigned"
+	NotificationTypeBookingConfirmed                  NotificationType = "booking_confirmed"
+	NotificationTypeBookingStarted                    NotificationType = "booking_started"
+	NotificationTypeBookingCompleted                  NotificationType = "booking_completed"
+	NotificationTypeBookingCancelled                  NotificationType = "booking_cancelled"
+	NotificationTypeCleanerInvited                    NotificationType = "cleaner_invited"
+	NotificationTypeCompanyApproved                   NotificationType = "company_approved"
+	NotificationTypeCompanyRejected                   NotificationType = "company_rejected"
+	NotificationTypeNewMessage                        NotificationType = "new_message"
+	NotificationTypeReviewReceived                    NotificationType = "review_received"
+	NotificationTypePaymentProcessed                  NotificationType = "payment_processed"
+	NotificationTypeBookingRescheduled                NotificationType = "booking_rescheduled"
+	NotificationTypeSubscriptionWorkerChangeRequested NotificationType = "subscription_worker_change_requested"
+	NotificationTypeSubscriptionWorkerChanged         NotificationType = "subscription_worker_changed"
 )
 
 func (e *NotificationType) Scan(src interface{}) error {
@@ -1246,41 +1248,43 @@ type ServiceExtra struct {
 }
 
 type Subscription struct {
-	ID                     pgtype.UUID        `json:"id"`
-	ClientUserID           pgtype.UUID        `json:"client_user_id"`
-	CompanyID              pgtype.UUID        `json:"company_id"`
-	WorkerID               pgtype.UUID        `json:"worker_id"`
-	AddressID              pgtype.UUID        `json:"address_id"`
-	RecurrenceType         RecurrenceType     `json:"recurrence_type"`
-	DayOfWeek              pgtype.Int4        `json:"day_of_week"`
-	PreferredTime          pgtype.Time        `json:"preferred_time"`
-	ServiceType            ServiceType        `json:"service_type"`
-	PropertyType           pgtype.Text        `json:"property_type"`
-	NumRooms               pgtype.Int4        `json:"num_rooms"`
-	NumBathrooms           pgtype.Int4        `json:"num_bathrooms"`
-	AreaSqm                pgtype.Int4        `json:"area_sqm"`
-	HasPets                pgtype.Bool        `json:"has_pets"`
-	SpecialInstructions    pgtype.Text        `json:"special_instructions"`
-	HourlyRate             pgtype.Numeric     `json:"hourly_rate"`
-	EstimatedDurationHours pgtype.Numeric     `json:"estimated_duration_hours"`
-	PerSessionOriginal     pgtype.Numeric     `json:"per_session_original"`
-	DiscountPct            pgtype.Numeric     `json:"discount_pct"`
-	PerSessionDiscounted   pgtype.Numeric     `json:"per_session_discounted"`
-	SessionsPerMonth       int32              `json:"sessions_per_month"`
-	MonthlyAmount          pgtype.Numeric     `json:"monthly_amount"`
-	MonthlyAmountBani      int32              `json:"monthly_amount_bani"`
-	PlatformCommissionPct  pgtype.Numeric     `json:"platform_commission_pct"`
-	StripeSubscriptionID   pgtype.Text        `json:"stripe_subscription_id"`
-	StripePriceID          pgtype.Text        `json:"stripe_price_id"`
-	StripeProductID        pgtype.Text        `json:"stripe_product_id"`
-	Status                 SubscriptionStatus `json:"status"`
-	CurrentPeriodStart     pgtype.Timestamptz `json:"current_period_start"`
-	CurrentPeriodEnd       pgtype.Timestamptz `json:"current_period_end"`
-	CancelledAt            pgtype.Timestamptz `json:"cancelled_at"`
-	CancellationReason     pgtype.Text        `json:"cancellation_reason"`
-	PausedAt               pgtype.Timestamptz `json:"paused_at"`
-	CreatedAt              pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt              pgtype.Timestamptz `json:"updated_at"`
+	ID                      pgtype.UUID        `json:"id"`
+	ClientUserID            pgtype.UUID        `json:"client_user_id"`
+	CompanyID               pgtype.UUID        `json:"company_id"`
+	WorkerID                pgtype.UUID        `json:"worker_id"`
+	AddressID               pgtype.UUID        `json:"address_id"`
+	RecurrenceType          RecurrenceType     `json:"recurrence_type"`
+	DayOfWeek               pgtype.Int4        `json:"day_of_week"`
+	PreferredTime           pgtype.Time        `json:"preferred_time"`
+	ServiceType             ServiceType        `json:"service_type"`
+	PropertyType            pgtype.Text        `json:"property_type"`
+	NumRooms                pgtype.Int4        `json:"num_rooms"`
+	NumBathrooms            pgtype.Int4        `json:"num_bathrooms"`
+	AreaSqm                 pgtype.Int4        `json:"area_sqm"`
+	HasPets                 pgtype.Bool        `json:"has_pets"`
+	SpecialInstructions     pgtype.Text        `json:"special_instructions"`
+	HourlyRate              pgtype.Numeric     `json:"hourly_rate"`
+	EstimatedDurationHours  pgtype.Numeric     `json:"estimated_duration_hours"`
+	PerSessionOriginal      pgtype.Numeric     `json:"per_session_original"`
+	DiscountPct             pgtype.Numeric     `json:"discount_pct"`
+	PerSessionDiscounted    pgtype.Numeric     `json:"per_session_discounted"`
+	SessionsPerMonth        int32              `json:"sessions_per_month"`
+	MonthlyAmount           pgtype.Numeric     `json:"monthly_amount"`
+	MonthlyAmountBani       int32              `json:"monthly_amount_bani"`
+	PlatformCommissionPct   pgtype.Numeric     `json:"platform_commission_pct"`
+	StripeSubscriptionID    pgtype.Text        `json:"stripe_subscription_id"`
+	StripePriceID           pgtype.Text        `json:"stripe_price_id"`
+	StripeProductID         pgtype.Text        `json:"stripe_product_id"`
+	Status                  SubscriptionStatus `json:"status"`
+	CurrentPeriodStart      pgtype.Timestamptz `json:"current_period_start"`
+	CurrentPeriodEnd        pgtype.Timestamptz `json:"current_period_end"`
+	CancelledAt             pgtype.Timestamptz `json:"cancelled_at"`
+	CancellationReason      pgtype.Text        `json:"cancellation_reason"`
+	PausedAt                pgtype.Timestamptz `json:"paused_at"`
+	CreatedAt               pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt               pgtype.Timestamptz `json:"updated_at"`
+	WorkerChangeRequestedAt pgtype.Timestamptz `json:"worker_change_requested_at"`
+	WorkerChangeReason      pgtype.Text        `json:"worker_change_reason"`
 }
 
 type SubscriptionExtra struct {

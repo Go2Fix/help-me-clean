@@ -32,7 +32,7 @@ func (q *Queries) CancelFutureSubscriptionBookings(ctx context.Context, arg Canc
 const cancelSubscription = `-- name: CancelSubscription :one
 UPDATE subscriptions
 SET status = 'cancelled', cancelled_at = NOW(), cancellation_reason = $2, updated_at = NOW()
-WHERE id = $1 RETURNING id, client_user_id, company_id, worker_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_duration_hours, per_session_original, discount_pct, per_session_discounted, sessions_per_month, monthly_amount, monthly_amount_bani, platform_commission_pct, stripe_subscription_id, stripe_price_id, stripe_product_id, status, current_period_start, current_period_end, cancelled_at, cancellation_reason, paused_at, created_at, updated_at
+WHERE id = $1 RETURNING id, client_user_id, company_id, worker_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_duration_hours, per_session_original, discount_pct, per_session_discounted, sessions_per_month, monthly_amount, monthly_amount_bani, platform_commission_pct, stripe_subscription_id, stripe_price_id, stripe_product_id, status, current_period_start, current_period_end, cancelled_at, cancellation_reason, paused_at, created_at, updated_at, worker_change_requested_at, worker_change_reason
 `
 
 type CancelSubscriptionParams struct {
@@ -79,6 +79,8 @@ func (q *Queries) CancelSubscription(ctx context.Context, arg CancelSubscription
 		&i.PausedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.WorkerChangeRequestedAt,
+		&i.WorkerChangeReason,
 	)
 	return i, err
 }
@@ -153,7 +155,7 @@ INSERT INTO subscriptions (
     $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
     $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27,
     $28, $29
-) RETURNING id, client_user_id, company_id, worker_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_duration_hours, per_session_original, discount_pct, per_session_discounted, sessions_per_month, monthly_amount, monthly_amount_bani, platform_commission_pct, stripe_subscription_id, stripe_price_id, stripe_product_id, status, current_period_start, current_period_end, cancelled_at, cancellation_reason, paused_at, created_at, updated_at
+) RETURNING id, client_user_id, company_id, worker_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_duration_hours, per_session_original, discount_pct, per_session_discounted, sessions_per_month, monthly_amount, monthly_amount_bani, platform_commission_pct, stripe_subscription_id, stripe_price_id, stripe_product_id, status, current_period_start, current_period_end, cancelled_at, cancellation_reason, paused_at, created_at, updated_at, worker_change_requested_at, worker_change_reason
 `
 
 type CreateSubscriptionParams struct {
@@ -258,6 +260,8 @@ func (q *Queries) CreateSubscription(ctx context.Context, arg CreateSubscription
 		&i.PausedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.WorkerChangeRequestedAt,
+		&i.WorkerChangeReason,
 	)
 	return i, err
 }
@@ -344,7 +348,7 @@ func (q *Queries) GetRecurringDiscountByType(ctx context.Context, recurrenceType
 }
 
 const getSubscriptionByID = `-- name: GetSubscriptionByID :one
-SELECT id, client_user_id, company_id, worker_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_duration_hours, per_session_original, discount_pct, per_session_discounted, sessions_per_month, monthly_amount, monthly_amount_bani, platform_commission_pct, stripe_subscription_id, stripe_price_id, stripe_product_id, status, current_period_start, current_period_end, cancelled_at, cancellation_reason, paused_at, created_at, updated_at FROM subscriptions WHERE id = $1
+SELECT id, client_user_id, company_id, worker_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_duration_hours, per_session_original, discount_pct, per_session_discounted, sessions_per_month, monthly_amount, monthly_amount_bani, platform_commission_pct, stripe_subscription_id, stripe_price_id, stripe_product_id, status, current_period_start, current_period_end, cancelled_at, cancellation_reason, paused_at, created_at, updated_at, worker_change_requested_at, worker_change_reason FROM subscriptions WHERE id = $1
 `
 
 func (q *Queries) GetSubscriptionByID(ctx context.Context, id pgtype.UUID) (Subscription, error) {
@@ -386,12 +390,14 @@ func (q *Queries) GetSubscriptionByID(ctx context.Context, id pgtype.UUID) (Subs
 		&i.PausedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.WorkerChangeRequestedAt,
+		&i.WorkerChangeReason,
 	)
 	return i, err
 }
 
 const getSubscriptionByStripeID = `-- name: GetSubscriptionByStripeID :one
-SELECT id, client_user_id, company_id, worker_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_duration_hours, per_session_original, discount_pct, per_session_discounted, sessions_per_month, monthly_amount, monthly_amount_bani, platform_commission_pct, stripe_subscription_id, stripe_price_id, stripe_product_id, status, current_period_start, current_period_end, cancelled_at, cancellation_reason, paused_at, created_at, updated_at FROM subscriptions WHERE stripe_subscription_id = $1
+SELECT id, client_user_id, company_id, worker_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_duration_hours, per_session_original, discount_pct, per_session_discounted, sessions_per_month, monthly_amount, monthly_amount_bani, platform_commission_pct, stripe_subscription_id, stripe_price_id, stripe_product_id, status, current_period_start, current_period_end, cancelled_at, cancellation_reason, paused_at, created_at, updated_at, worker_change_requested_at, worker_change_reason FROM subscriptions WHERE stripe_subscription_id = $1
 `
 
 func (q *Queries) GetSubscriptionByStripeID(ctx context.Context, stripeSubscriptionID pgtype.Text) (Subscription, error) {
@@ -433,6 +439,8 @@ func (q *Queries) GetSubscriptionByStripeID(ctx context.Context, stripeSubscript
 		&i.PausedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.WorkerChangeRequestedAt,
+		&i.WorkerChangeReason,
 	)
 	return i, err
 }
@@ -632,7 +640,7 @@ func (q *Queries) ListActiveRecurringDiscounts(ctx context.Context) ([]Recurring
 }
 
 const listActiveSubscriptionsByClient = `-- name: ListActiveSubscriptionsByClient :many
-SELECT id, client_user_id, company_id, worker_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_duration_hours, per_session_original, discount_pct, per_session_discounted, sessions_per_month, monthly_amount, monthly_amount_bani, platform_commission_pct, stripe_subscription_id, stripe_price_id, stripe_product_id, status, current_period_start, current_period_end, cancelled_at, cancellation_reason, paused_at, created_at, updated_at FROM subscriptions
+SELECT id, client_user_id, company_id, worker_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_duration_hours, per_session_original, discount_pct, per_session_discounted, sessions_per_month, monthly_amount, monthly_amount_bani, platform_commission_pct, stripe_subscription_id, stripe_price_id, stripe_product_id, status, current_period_start, current_period_end, cancelled_at, cancellation_reason, paused_at, created_at, updated_at, worker_change_requested_at, worker_change_reason FROM subscriptions
 WHERE client_user_id = $1 AND status IN ('active', 'paused', 'past_due')
 ORDER BY created_at DESC
 `
@@ -682,6 +690,8 @@ func (q *Queries) ListActiveSubscriptionsByClient(ctx context.Context, clientUse
 			&i.PausedAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.WorkerChangeRequestedAt,
+			&i.WorkerChangeReason,
 		); err != nil {
 			return nil, err
 		}
@@ -694,7 +704,7 @@ func (q *Queries) ListActiveSubscriptionsByClient(ctx context.Context, clientUse
 }
 
 const listAllSubscriptions = `-- name: ListAllSubscriptions :many
-SELECT id, client_user_id, company_id, worker_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_duration_hours, per_session_original, discount_pct, per_session_discounted, sessions_per_month, monthly_amount, monthly_amount_bani, platform_commission_pct, stripe_subscription_id, stripe_price_id, stripe_product_id, status, current_period_start, current_period_end, cancelled_at, cancellation_reason, paused_at, created_at, updated_at FROM subscriptions ORDER BY created_at DESC LIMIT $1 OFFSET $2
+SELECT id, client_user_id, company_id, worker_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_duration_hours, per_session_original, discount_pct, per_session_discounted, sessions_per_month, monthly_amount, monthly_amount_bani, platform_commission_pct, stripe_subscription_id, stripe_price_id, stripe_product_id, status, current_period_start, current_period_end, cancelled_at, cancellation_reason, paused_at, created_at, updated_at, worker_change_requested_at, worker_change_reason FROM subscriptions ORDER BY created_at DESC LIMIT $1 OFFSET $2
 `
 
 type ListAllSubscriptionsParams struct {
@@ -747,6 +757,8 @@ func (q *Queries) ListAllSubscriptions(ctx context.Context, arg ListAllSubscript
 			&i.PausedAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.WorkerChangeRequestedAt,
+			&i.WorkerChangeReason,
 		); err != nil {
 			return nil, err
 		}
@@ -792,7 +804,7 @@ func (q *Queries) ListRecurringDiscounts(ctx context.Context) ([]RecurringDiscou
 }
 
 const listSubscriptionsByClient = `-- name: ListSubscriptionsByClient :many
-SELECT id, client_user_id, company_id, worker_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_duration_hours, per_session_original, discount_pct, per_session_discounted, sessions_per_month, monthly_amount, monthly_amount_bani, platform_commission_pct, stripe_subscription_id, stripe_price_id, stripe_product_id, status, current_period_start, current_period_end, cancelled_at, cancellation_reason, paused_at, created_at, updated_at FROM subscriptions WHERE client_user_id = $1 ORDER BY created_at DESC
+SELECT id, client_user_id, company_id, worker_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_duration_hours, per_session_original, discount_pct, per_session_discounted, sessions_per_month, monthly_amount, monthly_amount_bani, platform_commission_pct, stripe_subscription_id, stripe_price_id, stripe_product_id, status, current_period_start, current_period_end, cancelled_at, cancellation_reason, paused_at, created_at, updated_at, worker_change_requested_at, worker_change_reason FROM subscriptions WHERE client_user_id = $1 ORDER BY created_at DESC
 `
 
 func (q *Queries) ListSubscriptionsByClient(ctx context.Context, clientUserID pgtype.UUID) ([]Subscription, error) {
@@ -840,6 +852,8 @@ func (q *Queries) ListSubscriptionsByClient(ctx context.Context, clientUserID pg
 			&i.PausedAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.WorkerChangeRequestedAt,
+			&i.WorkerChangeReason,
 		); err != nil {
 			return nil, err
 		}
@@ -852,7 +866,7 @@ func (q *Queries) ListSubscriptionsByClient(ctx context.Context, clientUserID pg
 }
 
 const listSubscriptionsByCompany = `-- name: ListSubscriptionsByCompany :many
-SELECT id, client_user_id, company_id, worker_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_duration_hours, per_session_original, discount_pct, per_session_discounted, sessions_per_month, monthly_amount, monthly_amount_bani, platform_commission_pct, stripe_subscription_id, stripe_price_id, stripe_product_id, status, current_period_start, current_period_end, cancelled_at, cancellation_reason, paused_at, created_at, updated_at FROM subscriptions WHERE company_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3
+SELECT id, client_user_id, company_id, worker_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_duration_hours, per_session_original, discount_pct, per_session_discounted, sessions_per_month, monthly_amount, monthly_amount_bani, platform_commission_pct, stripe_subscription_id, stripe_price_id, stripe_product_id, status, current_period_start, current_period_end, cancelled_at, cancellation_reason, paused_at, created_at, updated_at, worker_change_requested_at, worker_change_reason FROM subscriptions WHERE company_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3
 `
 
 type ListSubscriptionsByCompanyParams struct {
@@ -906,6 +920,8 @@ func (q *Queries) ListSubscriptionsByCompany(ctx context.Context, arg ListSubscr
 			&i.PausedAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.WorkerChangeRequestedAt,
+			&i.WorkerChangeReason,
 		); err != nil {
 			return nil, err
 		}
@@ -918,7 +934,7 @@ func (q *Queries) ListSubscriptionsByCompany(ctx context.Context, arg ListSubscr
 }
 
 const listSubscriptionsByStatus = `-- name: ListSubscriptionsByStatus :many
-SELECT id, client_user_id, company_id, worker_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_duration_hours, per_session_original, discount_pct, per_session_discounted, sessions_per_month, monthly_amount, monthly_amount_bani, platform_commission_pct, stripe_subscription_id, stripe_price_id, stripe_product_id, status, current_period_start, current_period_end, cancelled_at, cancellation_reason, paused_at, created_at, updated_at FROM subscriptions WHERE status = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3
+SELECT id, client_user_id, company_id, worker_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_duration_hours, per_session_original, discount_pct, per_session_discounted, sessions_per_month, monthly_amount, monthly_amount_bani, platform_commission_pct, stripe_subscription_id, stripe_price_id, stripe_product_id, status, current_period_start, current_period_end, cancelled_at, cancellation_reason, paused_at, created_at, updated_at, worker_change_requested_at, worker_change_reason FROM subscriptions WHERE status = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3
 `
 
 type ListSubscriptionsByStatusParams struct {
@@ -972,6 +988,8 @@ func (q *Queries) ListSubscriptionsByStatus(ctx context.Context, arg ListSubscri
 			&i.PausedAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.WorkerChangeRequestedAt,
+			&i.WorkerChangeReason,
 		); err != nil {
 			return nil, err
 		}
@@ -984,7 +1002,7 @@ func (q *Queries) ListSubscriptionsByStatus(ctx context.Context, arg ListSubscri
 }
 
 const listSubscriptionsByWorker = `-- name: ListSubscriptionsByWorker :many
-SELECT id, client_user_id, company_id, worker_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_duration_hours, per_session_original, discount_pct, per_session_discounted, sessions_per_month, monthly_amount, monthly_amount_bani, platform_commission_pct, stripe_subscription_id, stripe_price_id, stripe_product_id, status, current_period_start, current_period_end, cancelled_at, cancellation_reason, paused_at, created_at, updated_at FROM subscriptions
+SELECT id, client_user_id, company_id, worker_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_duration_hours, per_session_original, discount_pct, per_session_discounted, sessions_per_month, monthly_amount, monthly_amount_bani, platform_commission_pct, stripe_subscription_id, stripe_price_id, stripe_product_id, status, current_period_start, current_period_end, cancelled_at, cancellation_reason, paused_at, created_at, updated_at, worker_change_requested_at, worker_change_reason FROM subscriptions
 WHERE worker_id = $1 AND status IN ('active', 'paused')
 ORDER BY created_at DESC
 `
@@ -1034,6 +1052,8 @@ func (q *Queries) ListSubscriptionsByWorker(ctx context.Context, workerID pgtype
 			&i.PausedAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.WorkerChangeRequestedAt,
+			&i.WorkerChangeReason,
 		); err != nil {
 			return nil, err
 		}
@@ -1047,7 +1067,7 @@ func (q *Queries) ListSubscriptionsByWorker(ctx context.Context, workerID pgtype
 
 const pauseSubscription = `-- name: PauseSubscription :one
 UPDATE subscriptions SET status = 'paused', paused_at = NOW(), updated_at = NOW()
-WHERE id = $1 RETURNING id, client_user_id, company_id, worker_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_duration_hours, per_session_original, discount_pct, per_session_discounted, sessions_per_month, monthly_amount, monthly_amount_bani, platform_commission_pct, stripe_subscription_id, stripe_price_id, stripe_product_id, status, current_period_start, current_period_end, cancelled_at, cancellation_reason, paused_at, created_at, updated_at
+WHERE id = $1 RETURNING id, client_user_id, company_id, worker_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_duration_hours, per_session_original, discount_pct, per_session_discounted, sessions_per_month, monthly_amount, monthly_amount_bani, platform_commission_pct, stripe_subscription_id, stripe_price_id, stripe_product_id, status, current_period_start, current_period_end, cancelled_at, cancellation_reason, paused_at, created_at, updated_at, worker_change_requested_at, worker_change_reason
 `
 
 func (q *Queries) PauseSubscription(ctx context.Context, id pgtype.UUID) (Subscription, error) {
@@ -1089,6 +1109,8 @@ func (q *Queries) PauseSubscription(ctx context.Context, id pgtype.UUID) (Subscr
 		&i.PausedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.WorkerChangeRequestedAt,
+		&i.WorkerChangeReason,
 	)
 	return i, err
 }
@@ -1111,9 +1133,124 @@ func (q *Queries) ReassignFutureSubscriptionBookings(ctx context.Context, arg Re
 	return err
 }
 
+const requestSubscriptionWorkerChange = `-- name: RequestSubscriptionWorkerChange :one
+UPDATE subscriptions
+SET worker_change_requested_at = NOW(), worker_change_reason = $2, updated_at = NOW()
+WHERE id = $1 RETURNING id, client_user_id, company_id, worker_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_duration_hours, per_session_original, discount_pct, per_session_discounted, sessions_per_month, monthly_amount, monthly_amount_bani, platform_commission_pct, stripe_subscription_id, stripe_price_id, stripe_product_id, status, current_period_start, current_period_end, cancelled_at, cancellation_reason, paused_at, created_at, updated_at, worker_change_requested_at, worker_change_reason
+`
+
+type RequestSubscriptionWorkerChangeParams struct {
+	ID                 pgtype.UUID `json:"id"`
+	WorkerChangeReason pgtype.Text `json:"worker_change_reason"`
+}
+
+func (q *Queries) RequestSubscriptionWorkerChange(ctx context.Context, arg RequestSubscriptionWorkerChangeParams) (Subscription, error) {
+	row := q.db.QueryRow(ctx, requestSubscriptionWorkerChange, arg.ID, arg.WorkerChangeReason)
+	var i Subscription
+	err := row.Scan(
+		&i.ID,
+		&i.ClientUserID,
+		&i.CompanyID,
+		&i.WorkerID,
+		&i.AddressID,
+		&i.RecurrenceType,
+		&i.DayOfWeek,
+		&i.PreferredTime,
+		&i.ServiceType,
+		&i.PropertyType,
+		&i.NumRooms,
+		&i.NumBathrooms,
+		&i.AreaSqm,
+		&i.HasPets,
+		&i.SpecialInstructions,
+		&i.HourlyRate,
+		&i.EstimatedDurationHours,
+		&i.PerSessionOriginal,
+		&i.DiscountPct,
+		&i.PerSessionDiscounted,
+		&i.SessionsPerMonth,
+		&i.MonthlyAmount,
+		&i.MonthlyAmountBani,
+		&i.PlatformCommissionPct,
+		&i.StripeSubscriptionID,
+		&i.StripePriceID,
+		&i.StripeProductID,
+		&i.Status,
+		&i.CurrentPeriodStart,
+		&i.CurrentPeriodEnd,
+		&i.CancelledAt,
+		&i.CancellationReason,
+		&i.PausedAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.WorkerChangeRequestedAt,
+		&i.WorkerChangeReason,
+	)
+	return i, err
+}
+
+const resolveSubscriptionWorkerChange = `-- name: ResolveSubscriptionWorkerChange :one
+UPDATE subscriptions
+SET worker_id = $2, company_id = $3,
+    worker_change_requested_at = NULL, worker_change_reason = NULL,
+    updated_at = NOW()
+WHERE id = $1 RETURNING id, client_user_id, company_id, worker_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_duration_hours, per_session_original, discount_pct, per_session_discounted, sessions_per_month, monthly_amount, monthly_amount_bani, platform_commission_pct, stripe_subscription_id, stripe_price_id, stripe_product_id, status, current_period_start, current_period_end, cancelled_at, cancellation_reason, paused_at, created_at, updated_at, worker_change_requested_at, worker_change_reason
+`
+
+type ResolveSubscriptionWorkerChangeParams struct {
+	ID        pgtype.UUID `json:"id"`
+	WorkerID  pgtype.UUID `json:"worker_id"`
+	CompanyID pgtype.UUID `json:"company_id"`
+}
+
+func (q *Queries) ResolveSubscriptionWorkerChange(ctx context.Context, arg ResolveSubscriptionWorkerChangeParams) (Subscription, error) {
+	row := q.db.QueryRow(ctx, resolveSubscriptionWorkerChange, arg.ID, arg.WorkerID, arg.CompanyID)
+	var i Subscription
+	err := row.Scan(
+		&i.ID,
+		&i.ClientUserID,
+		&i.CompanyID,
+		&i.WorkerID,
+		&i.AddressID,
+		&i.RecurrenceType,
+		&i.DayOfWeek,
+		&i.PreferredTime,
+		&i.ServiceType,
+		&i.PropertyType,
+		&i.NumRooms,
+		&i.NumBathrooms,
+		&i.AreaSqm,
+		&i.HasPets,
+		&i.SpecialInstructions,
+		&i.HourlyRate,
+		&i.EstimatedDurationHours,
+		&i.PerSessionOriginal,
+		&i.DiscountPct,
+		&i.PerSessionDiscounted,
+		&i.SessionsPerMonth,
+		&i.MonthlyAmount,
+		&i.MonthlyAmountBani,
+		&i.PlatformCommissionPct,
+		&i.StripeSubscriptionID,
+		&i.StripePriceID,
+		&i.StripeProductID,
+		&i.Status,
+		&i.CurrentPeriodStart,
+		&i.CurrentPeriodEnd,
+		&i.CancelledAt,
+		&i.CancellationReason,
+		&i.PausedAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.WorkerChangeRequestedAt,
+		&i.WorkerChangeReason,
+	)
+	return i, err
+}
+
 const resumeSubscription = `-- name: ResumeSubscription :one
 UPDATE subscriptions SET status = 'active', paused_at = NULL, updated_at = NOW()
-WHERE id = $1 RETURNING id, client_user_id, company_id, worker_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_duration_hours, per_session_original, discount_pct, per_session_discounted, sessions_per_month, monthly_amount, monthly_amount_bani, platform_commission_pct, stripe_subscription_id, stripe_price_id, stripe_product_id, status, current_period_start, current_period_end, cancelled_at, cancellation_reason, paused_at, created_at, updated_at
+WHERE id = $1 RETURNING id, client_user_id, company_id, worker_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_duration_hours, per_session_original, discount_pct, per_session_discounted, sessions_per_month, monthly_amount, monthly_amount_bani, platform_commission_pct, stripe_subscription_id, stripe_price_id, stripe_product_id, status, current_period_start, current_period_end, cancelled_at, cancellation_reason, paused_at, created_at, updated_at, worker_change_requested_at, worker_change_reason
 `
 
 func (q *Queries) ResumeSubscription(ctx context.Context, id pgtype.UUID) (Subscription, error) {
@@ -1155,6 +1292,8 @@ func (q *Queries) ResumeSubscription(ctx context.Context, id pgtype.UUID) (Subsc
 		&i.PausedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.WorkerChangeRequestedAt,
+		&i.WorkerChangeReason,
 	)
 	return i, err
 }
@@ -1188,7 +1327,7 @@ func (q *Queries) UpdateRecurringDiscount(ctx context.Context, arg UpdateRecurri
 const updateSubscriptionPeriod = `-- name: UpdateSubscriptionPeriod :one
 UPDATE subscriptions
 SET current_period_start = $2, current_period_end = $3, status = $4, updated_at = NOW()
-WHERE id = $1 RETURNING id, client_user_id, company_id, worker_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_duration_hours, per_session_original, discount_pct, per_session_discounted, sessions_per_month, monthly_amount, monthly_amount_bani, platform_commission_pct, stripe_subscription_id, stripe_price_id, stripe_product_id, status, current_period_start, current_period_end, cancelled_at, cancellation_reason, paused_at, created_at, updated_at
+WHERE id = $1 RETURNING id, client_user_id, company_id, worker_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_duration_hours, per_session_original, discount_pct, per_session_discounted, sessions_per_month, monthly_amount, monthly_amount_bani, platform_commission_pct, stripe_subscription_id, stripe_price_id, stripe_product_id, status, current_period_start, current_period_end, cancelled_at, cancellation_reason, paused_at, created_at, updated_at, worker_change_requested_at, worker_change_reason
 `
 
 type UpdateSubscriptionPeriodParams struct {
@@ -1242,12 +1381,14 @@ func (q *Queries) UpdateSubscriptionPeriod(ctx context.Context, arg UpdateSubscr
 		&i.PausedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.WorkerChangeRequestedAt,
+		&i.WorkerChangeReason,
 	)
 	return i, err
 }
 
 const updateSubscriptionStatus = `-- name: UpdateSubscriptionStatus :one
-UPDATE subscriptions SET status = $2, updated_at = NOW() WHERE id = $1 RETURNING id, client_user_id, company_id, worker_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_duration_hours, per_session_original, discount_pct, per_session_discounted, sessions_per_month, monthly_amount, monthly_amount_bani, platform_commission_pct, stripe_subscription_id, stripe_price_id, stripe_product_id, status, current_period_start, current_period_end, cancelled_at, cancellation_reason, paused_at, created_at, updated_at
+UPDATE subscriptions SET status = $2, updated_at = NOW() WHERE id = $1 RETURNING id, client_user_id, company_id, worker_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_duration_hours, per_session_original, discount_pct, per_session_discounted, sessions_per_month, monthly_amount, monthly_amount_bani, platform_commission_pct, stripe_subscription_id, stripe_price_id, stripe_product_id, status, current_period_start, current_period_end, cancelled_at, cancellation_reason, paused_at, created_at, updated_at, worker_change_requested_at, worker_change_reason
 `
 
 type UpdateSubscriptionStatusParams struct {
@@ -1294,6 +1435,8 @@ func (q *Queries) UpdateSubscriptionStatus(ctx context.Context, arg UpdateSubscr
 		&i.PausedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.WorkerChangeRequestedAt,
+		&i.WorkerChangeReason,
 	)
 	return i, err
 }
@@ -1301,7 +1444,7 @@ func (q *Queries) UpdateSubscriptionStatus(ctx context.Context, arg UpdateSubscr
 const updateSubscriptionStripeIDs = `-- name: UpdateSubscriptionStripeIDs :one
 UPDATE subscriptions
 SET stripe_subscription_id = $2, stripe_price_id = $3, stripe_product_id = $4, status = $5, updated_at = NOW()
-WHERE id = $1 RETURNING id, client_user_id, company_id, worker_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_duration_hours, per_session_original, discount_pct, per_session_discounted, sessions_per_month, monthly_amount, monthly_amount_bani, platform_commission_pct, stripe_subscription_id, stripe_price_id, stripe_product_id, status, current_period_start, current_period_end, cancelled_at, cancellation_reason, paused_at, created_at, updated_at
+WHERE id = $1 RETURNING id, client_user_id, company_id, worker_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_duration_hours, per_session_original, discount_pct, per_session_discounted, sessions_per_month, monthly_amount, monthly_amount_bani, platform_commission_pct, stripe_subscription_id, stripe_price_id, stripe_product_id, status, current_period_start, current_period_end, cancelled_at, cancellation_reason, paused_at, created_at, updated_at, worker_change_requested_at, worker_change_reason
 `
 
 type UpdateSubscriptionStripeIDsParams struct {
@@ -1357,12 +1500,14 @@ func (q *Queries) UpdateSubscriptionStripeIDs(ctx context.Context, arg UpdateSub
 		&i.PausedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.WorkerChangeRequestedAt,
+		&i.WorkerChangeReason,
 	)
 	return i, err
 }
 
 const updateSubscriptionWorker = `-- name: UpdateSubscriptionWorker :one
-UPDATE subscriptions SET worker_id = $2, updated_at = NOW() WHERE id = $1 RETURNING id, client_user_id, company_id, worker_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_duration_hours, per_session_original, discount_pct, per_session_discounted, sessions_per_month, monthly_amount, monthly_amount_bani, platform_commission_pct, stripe_subscription_id, stripe_price_id, stripe_product_id, status, current_period_start, current_period_end, cancelled_at, cancellation_reason, paused_at, created_at, updated_at
+UPDATE subscriptions SET worker_id = $2, updated_at = NOW() WHERE id = $1 RETURNING id, client_user_id, company_id, worker_id, address_id, recurrence_type, day_of_week, preferred_time, service_type, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_duration_hours, per_session_original, discount_pct, per_session_discounted, sessions_per_month, monthly_amount, monthly_amount_bani, platform_commission_pct, stripe_subscription_id, stripe_price_id, stripe_product_id, status, current_period_start, current_period_end, cancelled_at, cancellation_reason, paused_at, created_at, updated_at, worker_change_requested_at, worker_change_reason
 `
 
 type UpdateSubscriptionWorkerParams struct {
@@ -1409,6 +1554,8 @@ func (q *Queries) UpdateSubscriptionWorker(ctx context.Context, arg UpdateSubscr
 		&i.PausedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.WorkerChangeRequestedAt,
+		&i.WorkerChangeReason,
 	)
 	return i, err
 }

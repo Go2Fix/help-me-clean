@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@apollo/client';
 import {
   ArrowLeft,
@@ -12,11 +12,8 @@ import {
   Ruler,
   PawPrint,
   FileText,
-  Pause,
-  Play,
   XCircle,
   Repeat,
-  CreditCard,
   TrendingDown,
   RefreshCw,
   Star,
@@ -25,19 +22,15 @@ import {
   Search,
   CheckCircle,
 } from 'lucide-react';
+import { cn } from '@go2fix/shared';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
-import { formatCurrency } from '@/utils/format';
-import { cn } from '@go2fix/shared';
 import {
   SUBSCRIPTION_DETAIL,
-  ADMIN_CANCEL_SUBSCRIPTION,
-  PAUSE_SUBSCRIPTION,
-  RESUME_SUBSCRIPTION,
+  MY_WORKERS,
   RESOLVE_SUBSCRIPTION_WORKER_CHANGE,
-  ALL_WORKERS,
 } from '@/graphql/operations';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -107,8 +100,6 @@ interface Subscription {
   perSessionDiscounted: number;
   sessionsPerMonth: number;
   monthlyAmount: number;
-  platformCommissionPct: number;
-  stripeSubscriptionId: string | null;
   status: string;
   currentPeriodStart: string | null;
   currentPeriodEnd: string | null;
@@ -132,6 +123,7 @@ interface Subscription {
 interface WorkerOption {
   id: string;
   fullName: string;
+  phone: string;
   email: string;
   status: string;
   ratingAvg: number | null;
@@ -200,12 +192,10 @@ function fmtAddress(address: SubscriptionAddress): string {
 
 // ─── Component ──────────────────────────────────────────────────────────────
 
-export default function AdminSubscriptionDetailPage() {
+export default function CompanySubscriptionDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const [cancelModalOpen, setCancelModalOpen] = useState(false);
-  const [cancelReason, setCancelReason] = useState('');
   const [workerChangeModal, setWorkerChangeModal] = useState(false);
   const [workerChangeSuccess, setWorkerChangeSuccess] = useState(false);
   const [workerChangeError, setWorkerChangeError] = useState<string | null>(null);
@@ -217,17 +207,8 @@ export default function AdminSubscriptionDetailPage() {
     { variables: { id }, skip: !id, fetchPolicy: 'cache-and-network' },
   );
 
-  const [adminCancel, { loading: cancelling }] = useMutation(ADMIN_CANCEL_SUBSCRIPTION, {
-    refetchQueries: [{ query: SUBSCRIPTION_DETAIL, variables: { id } }],
-    onCompleted: () => { setCancelModalOpen(false); setCancelReason(''); },
-  });
-
-  const [pauseSub, { loading: pausing }] = useMutation(PAUSE_SUBSCRIPTION, {
-    refetchQueries: [{ query: SUBSCRIPTION_DETAIL, variables: { id } }],
-  });
-
-  const [resumeSub, { loading: resuming }] = useMutation(RESUME_SUBSCRIPTION, {
-    refetchQueries: [{ query: SUBSCRIPTION_DETAIL, variables: { id } }],
+  const { data: workersData, loading: loadingWorkers } = useQuery<{ myWorkers: WorkerOption[] }>(MY_WORKERS, {
+    skip: !workerChangeModal,
   });
 
   const [resolveWorkerChange, { loading: resolvingWorker }] = useMutation(RESOLVE_SUBSCRIPTION_WORKER_CHANGE, {
@@ -241,10 +222,6 @@ export default function AdminSubscriptionDetailPage() {
       setTimeout(() => setWorkerChangeSuccess(false), 5000);
     },
     onError: (err) => setWorkerChangeError(err.message),
-  });
-
-  const { data: workersData, loading: loadingWorkers } = useQuery<{ allWorkers: WorkerOption[] }>(ALL_WORKERS, {
-    skip: !workerChangeModal,
   });
 
   // Loading
@@ -263,7 +240,7 @@ export default function AdminSubscriptionDetailPage() {
         <p className="text-gray-400 mb-4">
           {error ? 'Eroare la incarcarea abonamentului.' : 'Abonamentul nu a fost gasit.'}
         </p>
-        <Button variant="ghost" onClick={() => navigate('/admin/abonamente')}>
+        <Button variant="ghost" onClick={() => navigate('/firma/abonamente')}>
           <ArrowLeft className="h-4 w-4" />
           Inapoi la abonamente
         </Button>
@@ -272,20 +249,14 @@ export default function AdminSubscriptionDetailPage() {
   }
 
   const sub = data.serviceSubscription;
-  const isActive = sub.status === 'ACTIVE';
-  const isPaused = sub.status === 'PAUSED';
   const isCancelled = sub.status === 'CANCELLED';
-
-  const handleCancel = async () => {
-    await adminCancel({ variables: { id: sub.id, reason: cancelReason.trim() || undefined } });
-  };
 
   return (
     <div>
       {/* Header */}
       <div className="flex items-center gap-4 mb-8">
         <button
-          onClick={() => navigate('/admin/abonamente')}
+          onClick={() => navigate('/firma/abonamente')}
           className="p-2 rounded-xl hover:bg-gray-100 transition cursor-pointer"
         >
           <ArrowLeft className="h-5 w-5 text-gray-600" />
@@ -305,34 +276,6 @@ export default function AdminSubscriptionDetailPage() {
             {DAY_NAMES[sub.dayOfWeek] ?? ''}, ora {fmtTime(sub.preferredTime)} &middot; {sub.sessionsPerMonth} sedinte/luna
           </p>
         </div>
-
-        {/* Admin Actions */}
-        <div className="flex items-center gap-2 shrink-0">
-          {isActive && (
-            <>
-              <Button variant="outline" size="sm" loading={pausing} onClick={() => pauseSub({ variables: { id: sub.id } })}>
-                <Pause className="h-4 w-4" />
-                Pauza
-              </Button>
-              <Button variant="danger" size="sm" onClick={() => setCancelModalOpen(true)}>
-                <XCircle className="h-4 w-4" />
-                Anuleaza
-              </Button>
-            </>
-          )}
-          {isPaused && (
-            <>
-              <Button size="sm" loading={resuming} onClick={() => resumeSub({ variables: { id: sub.id } })}>
-                <Play className="h-4 w-4" />
-                Reia
-              </Button>
-              <Button variant="danger" size="sm" onClick={() => setCancelModalOpen(true)}>
-                <XCircle className="h-4 w-4" />
-                Anuleaza
-              </Button>
-            </>
-          )}
-        </div>
       </div>
 
       {/* Banners */}
@@ -351,17 +294,6 @@ export default function AdminSubscriptionDetailPage() {
         </Card>
       )}
 
-      {isPaused && sub.pausedAt && (
-        <Card className="mb-6">
-          <div className="flex items-center gap-3">
-            <Pause className="h-5 w-5 text-amber-500 shrink-0" />
-            <p className="text-sm text-amber-800">
-              Abonamentul este in pauza din {fmtDate(sub.pausedAt)}
-            </p>
-          </div>
-        </Card>
-      )}
-
       {workerChangeSuccess && (
         <Card className="mb-6">
           <div className="flex items-center gap-3">
@@ -373,7 +305,7 @@ export default function AdminSubscriptionDetailPage() {
         </Card>
       )}
 
-      {sub.workerChangeRequestedAt && (
+      {sub.workerChangeRequestedAt && !workerChangeSuccess && (
         <Card className="mb-6">
           <div className="flex items-start gap-3">
             <RefreshCw className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
@@ -448,21 +380,6 @@ export default function AdminSubscriptionDetailPage() {
                   <span className="text-gray-900">Total lunar</span>
                   <span className="text-primary">{fmtCurrency(sub.monthlyAmount)}</span>
                 </div>
-              </div>
-              <div className="border-t border-gray-100 pt-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Comision platforma</span>
-                  <span className="text-gray-900">{sub.platformCommissionPct}%</span>
-                </div>
-                {sub.stripeSubscriptionId && (
-                  <div className="flex justify-between text-sm mt-2">
-                    <span className="text-gray-500 flex items-center gap-1">
-                      <CreditCard className="h-3.5 w-3.5" />
-                      Stripe ID
-                    </span>
-                    <span className="text-xs font-mono text-gray-400">{sub.stripeSubscriptionId}</span>
-                  </div>
-                )}
               </div>
             </div>
           </Card>
@@ -547,7 +464,7 @@ export default function AdminSubscriptionDetailPage() {
                 {sub.upcomingBookings.map((b) => (
                   <div
                     key={b.id}
-                    onClick={() => navigate(`/admin/comenzi/${b.id}`)}
+                    onClick={() => navigate(`/firma/comenzi/${b.id}`)}
                     className="flex items-center justify-between p-3 rounded-xl bg-blue-50/50 border border-blue-100 cursor-pointer hover:bg-blue-50 transition-colors"
                   >
                     <div className="flex items-center gap-3 min-w-0">
@@ -578,7 +495,7 @@ export default function AdminSubscriptionDetailPage() {
                 {sub.bookings.map((b) => (
                   <div
                     key={b.id}
-                    onClick={() => navigate(`/admin/comenzi/${b.id}`)}
+                    onClick={() => navigate(`/firma/comenzi/${b.id}`)}
                     className="flex items-center justify-between p-3 rounded-xl bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
                   >
                     <div className="flex items-center gap-3 min-w-0">
@@ -594,7 +511,7 @@ export default function AdminSubscriptionDetailPage() {
                       </div>
                     </div>
                     <span className="text-sm font-medium text-gray-900 shrink-0">
-                      {formatCurrency(b.estimatedTotal)}
+                      {fmtCurrency(b.estimatedTotal)}
                     </span>
                   </div>
                 ))}
@@ -614,12 +531,9 @@ export default function AdminSubscriptionDetailPage() {
                   <User className="h-5 w-5 text-primary" />
                 </div>
                 <div className="min-w-0">
-                  <Link
-                    to={`/admin/utilizatori/${sub.client.id}`}
-                    className="font-medium text-gray-900 hover:text-primary transition-colors truncate block"
-                  >
+                  <p className="font-medium text-gray-900 truncate">
                     {sub.client.fullName}
-                  </Link>
+                  </p>
                   <p className="text-sm text-gray-500 truncate">{sub.client.email}</p>
                   {sub.client.phone && (
                     <p className="text-sm text-gray-500">{sub.client.phone}</p>
@@ -637,12 +551,9 @@ export default function AdminSubscriptionDetailPage() {
                 <div className="p-2 rounded-xl bg-secondary/10">
                   <Building2 className="h-5 w-5 text-secondary" />
                 </div>
-                <Link
-                  to={`/admin/companii/${sub.company.id}`}
-                  className="font-medium text-gray-900 hover:text-secondary transition-colors truncate"
-                >
+                <p className="font-medium text-gray-900 truncate">
                   {sub.company.companyName}
-                </Link>
+                </p>
               </div>
             </Card>
           )}
@@ -676,7 +587,7 @@ export default function AdminSubscriptionDetailPage() {
                     )}
                   </div>
                 </div>
-                {(isActive || isPaused) && !sub.workerChangeRequestedAt && (
+                {(sub.status === 'ACTIVE' || sub.status === 'PAUSED') && !sub.workerChangeRequestedAt && (
                   <Button
                     variant="outline"
                     size="sm"
@@ -769,52 +680,10 @@ export default function AdminSubscriptionDetailPage() {
                 <span className="text-gray-500">Ziua preferata</span>
                 <span className="text-gray-900">{DAY_NAMES[sub.dayOfWeek] ?? sub.dayOfWeek}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">ID</span>
-                <span className="text-xs font-mono text-gray-400 truncate max-w-[180px]">{sub.id}</span>
-              </div>
             </div>
           </Card>
         </div>
       </div>
-
-      {/* Cancel Modal */}
-      <Modal
-        open={cancelModalOpen}
-        onClose={() => { setCancelModalOpen(false); setCancelReason(''); }}
-        title="Anuleaza abonamentul"
-      >
-        <div className="space-y-4">
-          <div className="flex items-start gap-3 p-4 rounded-xl bg-red-50 border border-red-200">
-            <AlertTriangle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
-            <p className="text-sm text-red-700">
-              Esti sigur ca doresti sa anulezi acest abonament? Aceasta actiune nu poate fi anulata.
-              Toate programarile viitoare vor fi anulate.
-            </p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Motiv anulare (optional)
-            </label>
-            <textarea
-              value={cancelReason}
-              onChange={(e) => setCancelReason(e.target.value)}
-              rows={3}
-              placeholder="Descrie motivul anularii..."
-              className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary resize-none"
-            />
-          </div>
-          <div className="flex justify-end gap-3 pt-2">
-            <Button variant="ghost" onClick={() => { setCancelModalOpen(false); setCancelReason(''); }}>
-              Renunta
-            </Button>
-            <Button variant="danger" onClick={handleCancel} loading={cancelling}>
-              <XCircle className="h-4 w-4" />
-              Anuleaza abonamentul
-            </Button>
-          </div>
-        </div>
-      </Modal>
 
       {/* Worker Change Modal */}
       <Modal
@@ -852,12 +721,11 @@ export default function AdminSubscriptionDetailPage() {
                 <Loader2 className="h-6 w-6 animate-spin text-primary" />
               </div>
             ) : (
-              (workersData?.allWorkers ?? [])
+              (workersData?.myWorkers ?? [])
                 .filter((w) => w.status === 'ACTIVE' || w.status === 'active')
                 .filter((w) =>
                   !workerSearch ||
-                  w.fullName.toLowerCase().includes(workerSearch.toLowerCase()) ||
-                  (w.company?.companyName ?? '').toLowerCase().includes(workerSearch.toLowerCase())
+                  w.fullName.toLowerCase().includes(workerSearch.toLowerCase())
                 )
                 .map((w) => (
                   <button
@@ -879,8 +747,7 @@ export default function AdminSubscriptionDetailPage() {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900 truncate">{w.fullName}</p>
                       <p className="text-xs text-gray-500 truncate">
-                        {w.company?.companyName ?? 'Fara companie'}
-                        {w.ratingAvg != null ? ` · ★ ${w.ratingAvg.toFixed(1)}` : ''}
+                        {w.ratingAvg != null ? `★ ${w.ratingAvg.toFixed(1)}` : ''}
                         {w.totalJobsCompleted > 0 ? ` · ${w.totalJobsCompleted} comenzi` : ''}
                       </p>
                     </div>
