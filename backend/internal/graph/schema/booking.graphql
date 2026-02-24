@@ -49,6 +49,7 @@ type Booking {
   paymentStatus: String!
   paidAt: DateTime
   recurringGroupId: ID
+  subscriptionId: ID
   occurrenceNumber: Int
   rescheduleCount: Int!
   rescheduledAt: DateTime

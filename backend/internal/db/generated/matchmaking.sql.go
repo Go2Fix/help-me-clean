@@ -32,6 +32,69 @@ func (q *Queries) CountWorkerBookingsInDateRange(ctx context.Context, arg CountW
 	return count, err
 }
 
+const findAvailableWorkersForDateAndArea = `-- name: FindAvailableWorkersForDateAndArea :many
+SELECT w.id, w.user_id, w.company_id, w.rating_avg
+FROM workers w
+JOIN worker_service_areas wsa ON wsa.worker_id = w.id AND wsa.city_area_id = $1
+JOIN companies co ON w.company_id = co.id AND co.status = 'approved'
+WHERE w.status = 'active'
+  AND w.id != $2
+  AND w.id NOT IN (
+    SELECT DISTINCT b.worker_id FROM bookings b
+    WHERE b.scheduled_date = $3
+      AND b.worker_id IS NOT NULL
+      AND b.status NOT IN ('cancelled_by_client', 'cancelled_by_company', 'cancelled_by_admin')
+  )
+ORDER BY (CASE WHEN w.company_id = $4 THEN 0 ELSE 1 END), w.rating_avg DESC
+LIMIT 5
+`
+
+type FindAvailableWorkersForDateAndAreaParams struct {
+	AreaID             pgtype.UUID `json:"area_id"`
+	ExcludeWorkerID    pgtype.UUID `json:"exclude_worker_id"`
+	TargetDate         pgtype.Date `json:"target_date"`
+	PreferredCompanyID pgtype.UUID `json:"preferred_company_id"`
+}
+
+type FindAvailableWorkersForDateAndAreaRow struct {
+	ID        pgtype.UUID    `json:"id"`
+	UserID    pgtype.UUID    `json:"user_id"`
+	CompanyID pgtype.UUID    `json:"company_id"`
+	RatingAvg pgtype.Numeric `json:"rating_avg"`
+}
+
+// Finds workers in an area who have no conflicting bookings on a specific date.
+// Orders by same-company first (matching $4), then by rating.
+func (q *Queries) FindAvailableWorkersForDateAndArea(ctx context.Context, arg FindAvailableWorkersForDateAndAreaParams) ([]FindAvailableWorkersForDateAndAreaRow, error) {
+	rows, err := q.db.Query(ctx, findAvailableWorkersForDateAndArea,
+		arg.AreaID,
+		arg.ExcludeWorkerID,
+		arg.TargetDate,
+		arg.PreferredCompanyID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FindAvailableWorkersForDateAndAreaRow
+	for rows.Next() {
+		var i FindAvailableWorkersForDateAndAreaRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.CompanyID,
+			&i.RatingAvg,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const findMatchingWorkers = `-- name: FindMatchingWorkers :many
 SELECT DISTINCT c.id, c.user_id, u.full_name, u.avatar_url, c.rating_avg, c.total_jobs_completed,
        co.company_name, co.id AS company_id

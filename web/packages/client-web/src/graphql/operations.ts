@@ -170,6 +170,7 @@ export const CREATE_BOOKING_REQUEST = gql`
       status
       estimatedTotal
       recurringGroupId
+      subscriptionId
     }
   }
 `;
@@ -187,6 +188,7 @@ export const MY_BOOKINGS = gql`
         estimatedTotal
         status
         recurringGroupId
+      subscriptionId
         occurrenceNumber
         createdAt
       }
@@ -222,6 +224,7 @@ export const CLIENT_BOOKING_DETAIL = gql`
       paymentStatus
       paidAt
       recurringGroupId
+      subscriptionId
       occurrenceNumber
       rescheduleCount
       rescheduledAt
@@ -469,6 +472,389 @@ export const RESUME_RECURRING_GROUP = gql`
   mutation ResumeRecurringGroup($id: ID!) {
     resumeRecurringGroup(id: $id) {
       id
+      isActive
+    }
+  }
+`;
+
+// ─── Subscriptions ──────────────────────────────────────────────────────────
+
+export const RECURRING_DISCOUNTS = gql`
+  query RecurringDiscounts {
+    recurringDiscounts {
+      recurrenceType
+      discountPct
+      isActive
+    }
+  }
+`;
+
+export const SUBSCRIPTION_PRICING_PREVIEW = gql`
+  query SubscriptionPricingPreview(
+    $serviceType: ServiceType!
+    $recurrenceType: RecurrenceType!
+    $numRooms: Int!
+    $numBathrooms: Int!
+    $areaSqm: Int
+    $propertyType: String
+    $hasPets: Boolean
+    $extras: [ExtraInput!]
+  ) {
+    subscriptionPricingPreview(
+      serviceType: $serviceType
+      recurrenceType: $recurrenceType
+      numRooms: $numRooms
+      numBathrooms: $numBathrooms
+      areaSqm: $areaSqm
+      propertyType: $propertyType
+      hasPets: $hasPets
+      extras: $extras
+    ) {
+      perSessionOriginal
+      discountPct
+      perSessionDiscounted
+      sessionsPerMonth
+      monthlyAmount
+    }
+  }
+`;
+
+export const CREATE_SUBSCRIPTION = gql`
+  mutation CreateSubscription($input: CreateSubscriptionInput!) {
+    createSubscription(input: $input) {
+      id
+      status
+      recurrenceType
+      serviceType
+      serviceName
+      monthlyAmount
+      perSessionDiscounted
+      sessionsPerMonth
+      discountPct
+      currentPeriodStart
+      currentPeriodEnd
+      createdAt
+    }
+  }
+`;
+
+export const SUGGEST_WORKER_FOR_SUBSCRIPTION = gql`
+  query SuggestWorkerForSubscription(
+    $cityId: ID!
+    $areaId: ID!
+    $recurrenceType: RecurrenceType!
+    $dayOfWeek: Int!
+    $preferredTimeStart: String!
+    $preferredTimeEnd: String!
+    $estimatedDurationHours: Float!
+  ) {
+    suggestWorkerForSubscription(
+      cityId: $cityId
+      areaId: $areaId
+      recurrenceType: $recurrenceType
+      dayOfWeek: $dayOfWeek
+      preferredTimeStart: $preferredTimeStart
+      preferredTimeEnd: $preferredTimeEnd
+      estimatedDurationHours: $estimatedDurationHours
+    ) {
+      worker {
+        id
+        fullName
+        ratingAvg
+        totalJobsCompleted
+        user {
+          id
+          avatarUrl
+        }
+      }
+      company {
+        id
+        companyName
+      }
+      matchScore
+      availableWeeks
+      totalWeeks
+      consistencyPct
+      suggestedTimeStart
+      suggestedTimeEnd
+    }
+  }
+`;
+
+export const REQUEST_SUBSCRIPTION_WORKER_CHANGE = gql`
+  mutation RequestSubscriptionWorkerChange($id: ID!) {
+    requestSubscriptionWorkerChange(id: $id) {
+      id
+      worker {
+        id
+        fullName
+        ratingAvg
+        user {
+          id
+          avatarUrl
+        }
+      }
+    }
+  }
+`;
+
+export const MY_SUBSCRIPTIONS = gql`
+  query MySubscriptions {
+    mySubscriptions {
+      id
+      recurrenceType
+      serviceType
+      serviceName
+      status
+      monthlyAmount
+      perSessionDiscounted
+      sessionsPerMonth
+      discountPct
+      currentPeriodStart
+      currentPeriodEnd
+      createdAt
+      cancelledAt
+      pausedAt
+      totalBookings
+      completedBookings
+      worker {
+        id
+        fullName
+      }
+      company {
+        id
+        companyName
+      }
+      upcomingBookings {
+        id
+        scheduledDate
+        scheduledStartTime
+        status
+      }
+    }
+  }
+`;
+
+export const SUBSCRIPTION_DETAIL = gql`
+  query SubscriptionDetail($id: ID!) {
+    serviceSubscription(id: $id) {
+      id
+      recurrenceType
+      dayOfWeek
+      preferredTime
+      serviceType
+      serviceName
+      propertyType
+      numRooms
+      numBathrooms
+      areaSqm
+      hasPets
+      specialInstructions
+      hourlyRate
+      estimatedDurationHours
+      perSessionOriginal
+      discountPct
+      perSessionDiscounted
+      sessionsPerMonth
+      monthlyAmount
+      platformCommissionPct
+      stripeSubscriptionId
+      status
+      currentPeriodStart
+      currentPeriodEnd
+      cancelledAt
+      cancellationReason
+      pausedAt
+      createdAt
+      totalBookings
+      completedBookings
+      client {
+        id
+        fullName
+        email
+        phone
+      }
+      worker {
+        id
+        fullName
+        ratingAvg
+        user {
+          avatarUrl
+        }
+      }
+      company {
+        id
+        companyName
+      }
+      address {
+        streetAddress
+        city
+        county
+        floor
+        apartment
+      }
+      bookings {
+        id
+        referenceCode
+        scheduledDate
+        scheduledStartTime
+        estimatedTotal
+        status
+        paymentStatus
+        worker {
+          id
+          fullName
+        }
+      }
+      upcomingBookings {
+        id
+        referenceCode
+        scheduledDate
+        scheduledStartTime
+        status
+      }
+      extras {
+        extra {
+          id
+          nameRo
+          nameEn
+          price
+        }
+        quantity
+        price
+      }
+    }
+  }
+`;
+
+export const PAUSE_SUBSCRIPTION = gql`
+  mutation PauseSubscription($id: ID!) {
+    pauseSubscription(id: $id) {
+      id
+      status
+      pausedAt
+    }
+  }
+`;
+
+export const RESUME_SUBSCRIPTION = gql`
+  mutation ResumeSubscription($id: ID!) {
+    resumeSubscription(id: $id) {
+      id
+      status
+      pausedAt
+    }
+  }
+`;
+
+export const CANCEL_SUBSCRIPTION = gql`
+  mutation CancelSubscription($id: ID!, $reason: String) {
+    cancelSubscription(id: $id, reason: $reason) {
+      id
+      status
+      cancelledAt
+      cancellationReason
+    }
+  }
+`;
+
+export const COMPANY_SUBSCRIPTIONS = gql`
+  query CompanySubscriptions($limit: Int, $offset: Int) {
+    companySubscriptions(limit: $limit, offset: $offset) {
+      edges {
+        id
+        recurrenceType
+        serviceType
+        serviceName
+        status
+        monthlyAmount
+        perSessionDiscounted
+        sessionsPerMonth
+        currentPeriodStart
+        currentPeriodEnd
+        createdAt
+        client {
+          id
+          fullName
+          email
+        }
+        worker {
+          id
+          fullName
+        }
+        totalBookings
+        completedBookings
+      }
+      totalCount
+    }
+  }
+`;
+
+export const ALL_SUBSCRIPTIONS = gql`
+  query AllSubscriptions($status: SubscriptionStatus, $limit: Int, $offset: Int) {
+    allSubscriptions(status: $status, limit: $limit, offset: $offset) {
+      edges {
+        id
+        recurrenceType
+        serviceType
+        serviceName
+        status
+        monthlyAmount
+        perSessionDiscounted
+        sessionsPerMonth
+        currentPeriodStart
+        currentPeriodEnd
+        createdAt
+        cancelledAt
+        client {
+          id
+          fullName
+          email
+        }
+        company {
+          id
+          companyName
+        }
+        worker {
+          id
+          fullName
+        }
+        totalBookings
+        completedBookings
+      }
+      totalCount
+    }
+  }
+`;
+
+export const SUBSCRIPTION_STATS = gql`
+  query SubscriptionStats {
+    subscriptionStats {
+      activeCount
+      pausedCount
+      pastDueCount
+      cancelledCount
+      monthlyRecurringRevenue
+    }
+  }
+`;
+
+export const ADMIN_CANCEL_SUBSCRIPTION = gql`
+  mutation AdminCancelSubscription($id: ID!, $reason: String) {
+    adminCancelSubscription(id: $id, reason: $reason) {
+      id
+      status
+      cancelledAt
+      cancellationReason
+    }
+  }
+`;
+
+export const UPDATE_RECURRING_DISCOUNT = gql`
+  mutation UpdateRecurringDiscount($recurrenceType: RecurrenceType!, $discountPct: Float!) {
+    updateRecurringDiscount(recurrenceType: $recurrenceType, discountPct: $discountPct) {
+      recurrenceType
+      discountPct
       isActive
     }
   }
@@ -982,6 +1368,7 @@ export const COMPANY_BOOKING_DETAIL = gql`
       cancelledAt
       cancellationReason
       recurringGroupId
+      subscriptionId
       occurrenceNumber
       rescheduleCount
       rescheduledAt
@@ -1335,6 +1722,7 @@ export const ADMIN_BOOKING_DETAIL = gql`
       paymentStatus
       paidAt
       recurringGroupId
+      subscriptionId
       occurrenceNumber
       rescheduleCount
       rescheduledAt
@@ -1874,6 +2262,7 @@ export const SEARCH_BOOKINGS = gql`
         status
         paymentStatus
         recurringGroupId
+      subscriptionId
         occurrenceNumber
         createdAt
         client {
@@ -1985,6 +2374,7 @@ export const SEARCH_COMPANY_BOOKINGS = gql`
         estimatedTotal
         status
         recurringGroupId
+      subscriptionId
       }
       totalCount
     }
@@ -2233,6 +2623,7 @@ export const SEARCH_WORKER_BOOKINGS = gql`
         estimatedTotal
         status
         recurringGroupId
+      subscriptionId
         occurrenceNumber
         createdAt
         client {

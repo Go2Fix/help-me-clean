@@ -199,38 +199,44 @@ All indexes already existed from prior migrations. No new migration needed.
 
 ---
 
-### P2-3: Recurring Booking Discounts
+### P2-3: Recurring Booking Subscriptions (Stripe Billing) ✅ COMPLETED
 
-**Problem:** Recurring bookings are the most valuable clients but get no incentive.
+**Problem:** Recurring bookings are the most valuable clients but get no incentive. Old system created 8 bookings upfront with no billing integration.
 
-**Implementation:**
+**Implementation — Full Stripe Subscription system:**
 
 **Backend:**
-- [ ] Create `recurring_discounts` table:
-  ```
-  id, frequency (WEEKLY | BIWEEKLY | MONTHLY), discount_percentage,
-  min_bookings_for_discount, is_active, created_at, updated_at
-  ```
-- [ ] Default discounts (admin-configurable):
-  - Weekly: 15% discount
-  - Bi-weekly: 10% discount
-  - Monthly: 5% discount
-- [ ] Apply discount during booking price calculation
-- [ ] Show discount on invoice line items
-- [ ] Track recurring booking loyalty (number of completed recurring bookings)
+- [x] Migration 000035: `recurring_discounts` table, `subscription_status` enum, `subscriptions` table, `subscription_extras` table, `subscription_id` on bookings
+- [x] Default discounts (admin-configurable): Weekly 15%, Bi-weekly 10%, Monthly 5%
+- [x] Subscription service (`backend/internal/service/subscription/service.go`): Create/Pause/Resume/Cancel with Stripe Subscriptions API
+- [x] Stripe Connect split payments: `application_fee_percent` + `transfer_data.destination`
+- [x] Webhook handlers: `invoice.paid`, `invoice.payment_failed`, `customer.subscription.updated`, `customer.subscription.deleted`
+- [x] Monthly invoice generation (`GenerateSubscriptionMonthlyInvoice`)
+- [x] Automatic booking generation for each billing period
+- [x] GraphQL schema: `ServiceSubscription` type, 7 queries, 6 mutations
+- [x] Full resolver implementation with auth guards
 
 **Frontend — Booking flow:**
-- [ ] When selecting recurring: Show discount badge ("Economisesti 15% cu curatenia saptamanala!")
-- [ ] Price breakdown shows original price, discount, final price
-- [ ] Highlight recurring option as "Recomandat" in booking flow
+- [x] Discount badges on frequency buttons ("Economisesti 15%!")
+- [x] Subscription pricing preview (per-session, discount, sessions/month, monthly total)
+- [x] `createSubscription` mutation for recurring bookings (replaces old `createBookingRequest`)
+- [x] Success screen redirects to subscription detail page
+
+**Frontend — Client dashboard:**
+- [x] `/cont/abonamente` — subscription list with status badges, pricing, next billing
+- [x] `/cont/abonamente/:id` — full detail with pause/resume/cancel actions, booking history
+- [x] Client dashboard widget replaced with subscription data
+
+**Frontend — Company dashboard:**
+- [x] `/firma/abonamente` — read-only subscription list with KPIs
+- [x] Company dashboard updated with subscription metrics (active count, MRR)
 
 **Frontend — Admin:**
-- [ ] "Discount-uri recurente" section in admin settings
-- [ ] Edit discount percentages per frequency
-- [ ] Toggle discounts on/off
-- [ ] Report: Revenue impact of discounts
+- [x] `/admin/abonamente` — full table with status filter, KPI cards, force-cancel action
+- [x] "Reduceri abonamente" tab in admin settings — edit discount percentages per frequency
+- [x] Admin dashboard updated with subscription stats + MRR
 
-**Effort:** 5-6 hours
+**Completed:** Feb 2026
 
 ---
 

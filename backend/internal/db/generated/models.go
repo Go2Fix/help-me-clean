@@ -195,8 +195,9 @@ func (ns NullInvoiceStatus) Value() (driver.Value, error) {
 type InvoiceType string
 
 const (
-	InvoiceTypeClientService      InvoiceType = "client_service"
-	InvoiceTypePlatformCommission InvoiceType = "platform_commission"
+	InvoiceTypeClientService       InvoiceType = "client_service"
+	InvoiceTypePlatformCommission  InvoiceType = "platform_commission"
+	InvoiceTypeSubscriptionMonthly InvoiceType = "subscription_monthly"
 )
 
 func (e *InvoiceType) Scan(src interface{}) error {
@@ -514,6 +515,51 @@ func (ns NullServiceType) Value() (driver.Value, error) {
 	return string(ns.ServiceType), nil
 }
 
+type SubscriptionStatus string
+
+const (
+	SubscriptionStatusActive     SubscriptionStatus = "active"
+	SubscriptionStatusPaused     SubscriptionStatus = "paused"
+	SubscriptionStatusPastDue    SubscriptionStatus = "past_due"
+	SubscriptionStatusCancelled  SubscriptionStatus = "cancelled"
+	SubscriptionStatusIncomplete SubscriptionStatus = "incomplete"
+)
+
+func (e *SubscriptionStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = SubscriptionStatus(s)
+	case string:
+		*e = SubscriptionStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for SubscriptionStatus: %T", src)
+	}
+	return nil
+}
+
+type NullSubscriptionStatus struct {
+	SubscriptionStatus SubscriptionStatus `json:"subscription_status"`
+	Valid              bool               `json:"valid"` // Valid is true if SubscriptionStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullSubscriptionStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.SubscriptionStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.SubscriptionStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullSubscriptionStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.SubscriptionStatus), nil
+}
+
 type UserRole string
 
 const (
@@ -725,6 +771,7 @@ type Booking struct {
 	OccurrenceNumber         pgtype.Int4        `json:"occurrence_number"`
 	RescheduleCount          int32              `json:"reschedule_count"`
 	RescheduledAt            pgtype.Timestamptz `json:"rescheduled_at"`
+	SubscriptionID           pgtype.UUID        `json:"subscription_id"`
 }
 
 type BookingExtra struct {
@@ -1123,6 +1170,15 @@ type RecurringBookingGroup struct {
 	UpdatedAt                   pgtype.Timestamptz `json:"updated_at"`
 }
 
+type RecurringDiscount struct {
+	ID             pgtype.UUID        `json:"id"`
+	RecurrenceType RecurrenceType     `json:"recurrence_type"`
+	DiscountPct    pgtype.Numeric     `json:"discount_pct"`
+	IsActive       bool               `json:"is_active"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
+}
+
 type RecurringGroupExtra struct {
 	ID       pgtype.UUID `json:"id"`
 	GroupID  pgtype.UUID `json:"group_id"`
@@ -1187,6 +1243,51 @@ type ServiceExtra struct {
 	DurationMinutes int32          `json:"duration_minutes"`
 	AllowMultiple   bool           `json:"allow_multiple"`
 	UnitLabel       pgtype.Text    `json:"unit_label"`
+}
+
+type Subscription struct {
+	ID                     pgtype.UUID        `json:"id"`
+	ClientUserID           pgtype.UUID        `json:"client_user_id"`
+	CompanyID              pgtype.UUID        `json:"company_id"`
+	WorkerID               pgtype.UUID        `json:"worker_id"`
+	AddressID              pgtype.UUID        `json:"address_id"`
+	RecurrenceType         RecurrenceType     `json:"recurrence_type"`
+	DayOfWeek              pgtype.Int4        `json:"day_of_week"`
+	PreferredTime          pgtype.Time        `json:"preferred_time"`
+	ServiceType            ServiceType        `json:"service_type"`
+	PropertyType           pgtype.Text        `json:"property_type"`
+	NumRooms               pgtype.Int4        `json:"num_rooms"`
+	NumBathrooms           pgtype.Int4        `json:"num_bathrooms"`
+	AreaSqm                pgtype.Int4        `json:"area_sqm"`
+	HasPets                pgtype.Bool        `json:"has_pets"`
+	SpecialInstructions    pgtype.Text        `json:"special_instructions"`
+	HourlyRate             pgtype.Numeric     `json:"hourly_rate"`
+	EstimatedDurationHours pgtype.Numeric     `json:"estimated_duration_hours"`
+	PerSessionOriginal     pgtype.Numeric     `json:"per_session_original"`
+	DiscountPct            pgtype.Numeric     `json:"discount_pct"`
+	PerSessionDiscounted   pgtype.Numeric     `json:"per_session_discounted"`
+	SessionsPerMonth       int32              `json:"sessions_per_month"`
+	MonthlyAmount          pgtype.Numeric     `json:"monthly_amount"`
+	MonthlyAmountBani      int32              `json:"monthly_amount_bani"`
+	PlatformCommissionPct  pgtype.Numeric     `json:"platform_commission_pct"`
+	StripeSubscriptionID   pgtype.Text        `json:"stripe_subscription_id"`
+	StripePriceID          pgtype.Text        `json:"stripe_price_id"`
+	StripeProductID        pgtype.Text        `json:"stripe_product_id"`
+	Status                 SubscriptionStatus `json:"status"`
+	CurrentPeriodStart     pgtype.Timestamptz `json:"current_period_start"`
+	CurrentPeriodEnd       pgtype.Timestamptz `json:"current_period_end"`
+	CancelledAt            pgtype.Timestamptz `json:"cancelled_at"`
+	CancellationReason     pgtype.Text        `json:"cancellation_reason"`
+	PausedAt               pgtype.Timestamptz `json:"paused_at"`
+	CreatedAt              pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt              pgtype.Timestamptz `json:"updated_at"`
+}
+
+type SubscriptionExtra struct {
+	ID             pgtype.UUID `json:"id"`
+	SubscriptionID pgtype.UUID `json:"subscription_id"`
+	ExtraID        pgtype.UUID `json:"extra_id"`
+	Quantity       pgtype.Int4 `json:"quantity"`
 }
 
 type User struct {

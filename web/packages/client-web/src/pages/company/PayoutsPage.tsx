@@ -13,7 +13,6 @@ import {
   ChevronRight,
   Hash,
 } from 'lucide-react';
-import { cn } from '@go2fix/shared';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
@@ -84,30 +83,19 @@ const statusFilterOptions = [
   { value: 'FAILED', label: 'Esuat' },
 ];
 
-// ─── KPI Card ─────────────────────────────────────────────────────────────────
+// ─── Metric ──────────────────────────────────────────────────────────────────
 
-interface KpiCardProps {
-  icon: React.ElementType;
-  label: string;
-  value: string;
-  colorBg: string;
-  colorText: string;
-  valueColor?: string;
-}
-
-function KpiCard({ icon: Icon, label, value, colorBg, colorText, valueColor }: KpiCardProps) {
+function Metric({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string | number }) {
   return (
-    <Card>
-      <div className="flex items-center gap-2 mb-2">
-        <div className={cn('p-1.5 md:p-2 rounded-lg', colorBg)}>
-          <Icon className={cn('h-4 w-4 md:h-5 md:w-5', colorText)} />
-        </div>
-        <p className="text-xs md:text-sm text-gray-500">{label}</p>
+    <div className="flex items-center gap-3 py-3">
+      <div className="h-9 w-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+        <Icon className="h-4.5 w-4.5 text-gray-500" />
       </div>
-      <p className={cn('text-lg md:text-2xl font-bold', valueColor ?? 'text-gray-900')}>
-        {value}
-      </p>
-    </Card>
+      <div className="min-w-0">
+        <p className="text-xs text-gray-500 leading-tight">{label}</p>
+        <p className="text-lg font-semibold text-gray-900 leading-tight">{value}</p>
+      </div>
+    </div>
   );
 }
 
@@ -366,55 +354,36 @@ export default function PayoutsPage() {
         </div>
       </div>
 
-      {/* Earnings Summary KPI Cards */}
+      {/* Earnings Summary */}
       {earningsLoading ? (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 mb-8">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Card key={i}>
-              <div className="animate-pulse flex items-center gap-3">
-                <div className="h-10 w-10 md:h-12 md:w-12 bg-gray-200 rounded-xl shrink-0" />
+        <Card className="mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="animate-pulse flex items-center gap-3 py-3">
+                <div className="h-9 w-9 bg-gray-200 rounded-lg shrink-0" />
                 <div>
-                  <div className="h-3 bg-gray-200 rounded w-16 md:w-24 mb-2" />
-                  <div className="h-5 bg-gray-200 rounded w-12 md:w-16" />
+                  <div className="h-3 bg-gray-200 rounded w-16 mb-2" />
+                  <div className="h-5 bg-gray-200 rounded w-10" />
                 </div>
               </div>
-            </Card>
-          ))}
-        </div>
+            ))}
+          </div>
+        </Card>
       ) : earnings ? (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 mb-8">
-          <KpiCard
-            icon={TrendingUp}
-            label="Venit brut"
-            value={formatRON(earnings.totalGross ?? 0)}
-            colorBg="bg-blue-600/10"
-            colorText="text-blue-600"
-            valueColor="text-blue-600"
-          />
-          <KpiCard
-            icon={Receipt}
-            label="Comision platforma"
-            value={formatRON(earnings.totalCommission ?? 0)}
-            colorBg="bg-amber-500/10"
-            colorText="text-amber-500"
-            valueColor="text-amber-600"
-          />
-          <KpiCard
-            icon={Wallet}
-            label="Venit net"
-            value={formatRON(earnings.totalNet ?? 0)}
-            colorBg="bg-emerald-500/10"
-            colorText="text-emerald-500"
-            valueColor="text-emerald-600"
-          />
-          <KpiCard
-            icon={Hash}
-            label="Rezervari"
-            value={String(earnings.bookingCount ?? 0)}
-            colorBg="bg-gray-100"
-            colorText="text-gray-600"
-          />
-        </div>
+        <Card className="mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-1 divide-y md:divide-y-0 md:divide-x divide-gray-100">
+            <Metric icon={TrendingUp} label="Venit brut" value={formatRON(earnings.totalGross ?? 0)} />
+            <div className="pt-3 md:pt-0 md:pl-6">
+              <Metric icon={Receipt} label="Comision platforma" value={formatRON(earnings.totalCommission ?? 0)} />
+            </div>
+            <div className="pt-3 md:pt-0 md:pl-6">
+              <Metric icon={Wallet} label="Venit net" value={formatRON(earnings.totalNet ?? 0)} />
+            </div>
+            <div className="pt-3 md:pt-0 md:pl-6">
+              <Metric icon={Hash} label="Rezervari" value={earnings.bookingCount ?? 0} />
+            </div>
+          </div>
+        </Card>
       ) : null}
 
       {/* Status filter */}

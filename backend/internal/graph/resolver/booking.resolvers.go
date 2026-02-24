@@ -247,42 +247,6 @@ func (r *mutationResolver) CreateBookingRequest(ctx context.Context, input model
 		}
 	}
 
-	// Handle recurring bookings: generate future occurrences.
-	if input.Recurrence != nil && input.PreferredWorkerID != nil && *input.PreferredWorkerID != "" {
-		workerUUID := stringToUUID(*input.PreferredWorkerID)
-		worker, workerErr := r.Queries.GetWorkerByID(ctx, workerUUID)
-		if workerErr == nil {
-			group, groupErr := r.createRecurringGroup(ctx, createRecurringGroupInput{
-				clientUserID:        userID,
-				companyID:           worker.CompanyID,
-				workerID:            workerUUID,
-				addressID:           addressID,
-				recurrenceType:      gqlRecurrenceTypeToDb(input.Recurrence.Type),
-				dayOfWeek:           input.Recurrence.DayOfWeek,
-				preferredTime:       scheduledTime,
-				serviceType:         dbServiceType,
-				propertyType:        input.PropertyType,
-				numRooms:            input.NumRooms,
-				numBathrooms:        input.NumBathrooms,
-				areaSqm:             input.AreaSqm,
-				hasPets:             input.HasPets,
-				specialInstructions: input.SpecialInstructions,
-				hourlyRate:          hourlyRate,
-				estimatedTotal:      estimatedTotal,
-				estimatedHours:      estimatedHours,
-				extras:              input.Extras,
-				firstBooking:        booking,
-			})
-			if groupErr != nil {
-				log.Printf("failed to create recurring group: %v", groupErr)
-			} else {
-				// Update first booking with group link (for return value).
-				booking.RecurringGroupID = group.ID
-				booking.OccurrenceNumber = pgtype.Int4{Int32: 1, Valid: true}
-			}
-		}
-	}
-
 	gqlBooking := dbBookingToGQL(booking)
 	r.enrichBooking(ctx, booking, gqlBooking)
 	return gqlBooking, nil

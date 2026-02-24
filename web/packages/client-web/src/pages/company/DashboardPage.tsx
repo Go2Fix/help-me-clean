@@ -9,6 +9,7 @@ import {
   Star,
   MapPin,
   ChevronRight,
+  Repeat,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -20,12 +21,12 @@ import {
 } from 'recharts';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
-import { cn } from '@go2fix/shared';
 import {
   MY_COMPANY,
   MY_COMPANY_FINANCIAL_SUMMARY,
   COMPANY_REVENUE_BY_DATE_RANGE,
   COMPANY_BOOKINGS,
+  COMPANY_SUBSCRIPTIONS,
 } from '@/graphql/operations';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -56,51 +57,18 @@ function toYYYYMMDD(date: Date): string {
   return `${y}-${m}-${d}`;
 }
 
-// ─── KPI Card ─────────────────────────────────────────────────────────────────
+// ─── Metric ──────────────────────────────────────────────────────────────────
 
-interface KpiCardProps {
-  icon: React.ElementType;
-  label: string;
-  value: string | number;
-  colorBg: string;
-  colorText: string;
-  valueColor?: string;
-}
-
-function KpiCard({ icon: Icon, label, value, colorBg, colorText, valueColor }: KpiCardProps) {
+function Metric({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string | number }) {
   return (
-    <Card>
-      <div className="flex items-center gap-4">
-        <div className={cn('p-3 rounded-xl', colorBg)}>
-          <Icon className={cn('h-6 w-6', colorText)} />
-        </div>
-        <div>
-          <p className="text-sm text-gray-500">{label}</p>
-          <p className={cn('text-2xl font-bold', valueColor ?? 'text-gray-900')}>
-            {value}
-          </p>
-        </div>
+    <div className="flex items-center gap-3 py-3">
+      <div className="h-9 w-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+        <Icon className="h-4.5 w-4.5 text-gray-500" />
       </div>
-    </Card>
-  );
-}
-
-// ─── Skeleton ─────────────────────────────────────────────────────────────────
-
-function KpiSkeleton({ count }: { count: number }) {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {Array.from({ length: count }).map((_, i) => (
-        <Card key={i}>
-          <div className="animate-pulse flex items-center gap-4">
-            <div className="h-12 w-12 bg-gray-200 rounded-xl" />
-            <div>
-              <div className="h-4 bg-gray-200 rounded w-24 mb-2" />
-              <div className="h-7 bg-gray-200 rounded w-16" />
-            </div>
-          </div>
-        </Card>
-      ))}
+      <div className="min-w-0">
+        <p className="text-xs text-gray-500 leading-tight">{label}</p>
+        <p className="text-lg font-semibold text-gray-900 leading-tight">{value}</p>
+      </div>
     </div>
   );
 }
@@ -161,11 +129,21 @@ export default function DashboardPage() {
   const { data: bookingsData, loading: bookingsLoading } = useQuery(COMPANY_BOOKINGS, {
     variables: { first: 5 },
   });
+  const { data: subsData, loading: subsLoading } = useQuery(COMPANY_SUBSCRIPTIONS, {
+    variables: { limit: 5 },
+  });
 
   const company = companyData?.myCompany;
   const financial = financialData?.myCompanyFinancialSummary;
   const revenuePoints = revenueData?.companyRevenueByDateRange ?? [];
   const recentBookings = bookingsData?.companyBookings?.edges ?? [];
+
+  const subsEdges: { id: string; serviceName: string; status: string; monthlyAmount: number; recurrenceType: string; client?: { fullName: string } | null }[] =
+    subsData?.companySubscriptions?.edges ?? [];
+  const activeSubsCount = subsEdges.filter((s) => s.status === 'ACTIVE').length;
+  const monthlyRecurring = subsEdges
+    .filter((s) => s.status === 'ACTIVE')
+    .reduce((sum, s) => sum + (s.monthlyAmount ?? 0), 0);
 
   const isKpiLoading = companyLoading || financialLoading;
 
@@ -192,58 +170,42 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      {/* KPI Cards */}
+      {/* Key Metrics */}
       {isKpiLoading ? (
-        <KpiSkeleton count={6} />
+        <Card className="mb-0">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="animate-pulse flex items-center gap-3 py-3">
+                <div className="h-9 w-9 bg-gray-200 rounded-lg shrink-0" />
+                <div>
+                  <div className="h-3 bg-gray-200 rounded w-16 mb-2" />
+                  <div className="h-5 bg-gray-200 rounded w-10" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <KpiCard
-            icon={ClipboardList}
-            label="Comenzi finalizate"
-            value={financial?.completedBookings ?? company?.totalJobsCompleted ?? 0}
-            colorBg="bg-blue-600/10"
-            colorText="text-blue-600"
-          />
-          <KpiCard
-            icon={TrendingUp}
-            label="Venit total"
-            value={`${Number(financial?.totalRevenue ?? 0).toFixed(2)} RON`}
-            colorBg="bg-emerald-500/10"
-            colorText="text-emerald-500"
-            valueColor="text-emerald-600"
-          />
-          <KpiCard
-            icon={Wallet}
-            label="Venit net"
-            value={`${Number(financial?.netPayout ?? 0).toFixed(2)} RON`}
-            colorBg="bg-emerald-600/10"
-            colorText="text-emerald-600"
-            valueColor="text-emerald-700"
-          />
-          <KpiCard
-            icon={Receipt}
-            label="Comision platforma"
-            value={`${Number(financial?.totalCommission ?? 0).toFixed(2)} RON`}
-            colorBg="bg-amber-500/10"
-            colorText="text-amber-500"
-            valueColor="text-amber-600"
-          />
-          <KpiCard
-            icon={Star}
-            label="Rating mediu"
-            value={company?.ratingAvg ? Number(company.ratingAvg).toFixed(1) : '--'}
-            colorBg="bg-amber-500/10"
-            colorText="text-amber-500"
-            valueColor="text-amber-600"
-          />
-          <KpiCard
-            icon={MapPin}
-            label="Raza serviciu"
-            value={`${company?.maxServiceRadiusKm ?? '--'} km`}
-            colorBg="bg-blue-600/10"
-            colorText="text-blue-600"
-          />
-        </div>
+        <Card className="mb-0">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-1 divide-y md:divide-y-0 md:divide-x divide-gray-100">
+            <div className="space-y-1">
+              <Metric icon={ClipboardList} label="Comenzi finalizate" value={financial?.completedBookings ?? company?.totalJobsCompleted ?? 0} />
+              <Metric icon={Star} label="Rating mediu" value={company?.ratingAvg ? Number(company.ratingAvg).toFixed(1) : '--'} />
+            </div>
+            <div className="space-y-1 pt-3 md:pt-0 md:pl-6">
+              <Metric icon={TrendingUp} label="Venit total" value={`${Number(financial?.totalRevenue ?? 0).toFixed(2)} RON`} />
+              <Metric icon={Wallet} label="Venit net" value={`${Number(financial?.netPayout ?? 0).toFixed(2)} RON`} />
+            </div>
+            <div className="space-y-1 pt-3 md:pt-0 md:pl-6">
+              <Metric icon={Receipt} label="Comision platforma" value={`${Number(financial?.totalCommission ?? 0).toFixed(2)} RON`} />
+              <Metric icon={MapPin} label="Raza serviciu" value={`${company?.maxServiceRadiusKm ?? '--'} km`} />
+            </div>
+            <div className="space-y-1 pt-3 md:pt-0 md:pl-6">
+              <Metric icon={Repeat} label="Abonamente active" value={activeSubsCount} />
+              <Metric icon={Repeat} label="Venit lunar recurent" value={`${(monthlyRecurring / 100).toFixed(2)} RON`} />
+            </div>
+          </div>
+        </Card>
       )}
 
       {/* Revenue Chart */}
@@ -359,6 +321,76 @@ export default function DashboardPage() {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+        </Card>
+      </div>
+
+      {/* Subscription List */}
+      <div className="mt-8">
+        <Card>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Repeat className="h-5 w-5 text-blue-500" />
+              <h2 className="text-lg font-bold text-gray-900">Abonamente recente</h2>
+            </div>
+            <button
+              onClick={() => navigate('/firma/abonamente')}
+              className="text-sm font-medium text-primary hover:text-primary/80 transition-colors cursor-pointer"
+            >
+              Vezi toate &rarr;
+            </button>
+          </div>
+
+          {subsLoading ? (
+            <div className="space-y-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="animate-pulse flex justify-between items-center">
+                  <div className="space-y-2">
+                    <div className="h-4 bg-gray-200 rounded w-32" />
+                    <div className="h-3 bg-gray-200 rounded w-48" />
+                  </div>
+                  <div className="h-6 bg-gray-200 rounded w-20" />
+                </div>
+              ))}
+            </div>
+          ) : subsEdges.length === 0 ? (
+            <div className="text-center py-8">
+              <Repeat className="h-10 w-10 text-gray-300 mx-auto mb-3" />
+              <p className="text-gray-500 text-sm">Niciun abonament</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {subsEdges.map((sub) => {
+                const isActive = sub.status === 'ACTIVE';
+                return (
+                  <div
+                    key={sub.id}
+                    onClick={() => navigate(`/firma/abonamente/${sub.id}`)}
+                    className="flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:border-blue-600/30 hover:bg-gray-50 transition-colors cursor-pointer"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 mb-1">
+                        <p className="font-semibold text-gray-900 truncate">
+                          {sub.serviceName}
+                        </p>
+                        <Badge variant={isActive ? 'success' : sub.status === 'PAUSED' ? 'warning' : sub.status === 'CANCELLED' ? 'danger' : 'default'}>
+                          {sub.status === 'ACTIVE' ? 'Activ' : sub.status === 'PAUSED' ? 'In pauza' : sub.status === 'CANCELLED' ? 'Anulat' : sub.status}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-gray-600">
+                        {sub.client?.fullName ?? '--'} &middot; {sub.recurrenceType === 'WEEKLY' ? 'Saptamanal' : sub.recurrenceType === 'BIWEEKLY' ? 'La 2 sapt.' : 'Lunar'}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3 ml-4">
+                      <p className="text-lg font-bold text-gray-900 whitespace-nowrap">
+                        {(sub.monthlyAmount / 100).toFixed(0)} RON/luna
+                      </p>
+                      <ChevronRight className="h-5 w-5 text-gray-400" />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </Card>

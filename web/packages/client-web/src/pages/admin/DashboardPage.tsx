@@ -11,6 +11,7 @@ import {
   UserPlus,
   ArrowRight,
   ChevronRight,
+  Repeat,
 } from 'lucide-react';
 import {
   BarChart,
@@ -32,6 +33,7 @@ import {
   PENDING_COMPANY_APPLICATIONS,
   PENDING_COMPANY_DOCUMENTS,
   PENDING_WORKER_DOCUMENTS,
+  SUBSCRIPTION_STATS,
 } from '@/graphql/operations';
 
 // ─── Status Maps ────────────────────────────────────────────────────────────
@@ -97,8 +99,10 @@ export default function DashboardPage() {
   const { data: pendingData } = useQuery(PENDING_COMPANY_APPLICATIONS);
   const { data: pendingCompanyDocsData } = useQuery(PENDING_COMPANY_DOCUMENTS);
   const { data: pendingWorkerDocsData } = useQuery(PENDING_WORKER_DOCUMENTS);
+  const { data: subStatsData } = useQuery(SUBSCRIPTION_STATS);
 
   const stats = statsData?.platformStats;
+  const subStats = subStatsData?.subscriptionStats;
   const bookingStatuses = statusData?.bookingsByStatus ?? [];
   const revenueMonths = revenueData?.revenueByMonth ?? [];
   const pendingApps = pendingData?.pendingCompanyApplications ?? [];
@@ -118,8 +122,8 @@ export default function DashboardPage() {
       {/* Key Metrics */}
       {statsLoading ? (
         <Card>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {Array.from({ length: 8 }).map((_, i) => (
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            {Array.from({ length: 10 }).map((_, i) => (
               <div key={i} className="animate-pulse flex items-center gap-3 py-3">
                 <div className="h-9 w-9 bg-gray-200 rounded-lg shrink-0" />
                 <div>
@@ -132,7 +136,7 @@ export default function DashboardPage() {
         </Card>
       ) : stats ? (
         <Card>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-1 divide-y md:divide-y-0 md:divide-x divide-gray-100">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-x-6 gap-y-1 divide-y md:divide-y-0 md:divide-x divide-gray-100">
             <div className="space-y-1">
               <Metric icon={Users} label="Clienti" value={stats.totalClients} />
               <Metric icon={UserPlus} label="Noi luna aceasta" value={stats.newClientsThisMonth} />
@@ -148,6 +152,10 @@ export default function DashboardPage() {
             <div className="space-y-1 pt-3 md:pt-0 md:pl-6">
               <Metric icon={Banknote} label="Venit total" value={formatCurrency(stats.totalRevenue)} />
               <Metric icon={TrendingUp} label="Comision platforma" value={formatCurrency(stats.platformCommissionTotal)} />
+            </div>
+            <div className="space-y-1 pt-3 md:pt-0 md:pl-6">
+              <Metric icon={Repeat} label="Abonamente active" value={subStats?.activeCount ?? 0} />
+              <Metric icon={Repeat} label="MRR" value={`${((subStats?.monthlyRecurringRevenue ?? 0) / 100).toFixed(2)} RON`} />
             </div>
           </div>
         </Card>

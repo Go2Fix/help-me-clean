@@ -19,7 +19,9 @@ type Querier interface {
 	AssignWorkerToBooking(ctx context.Context, arg AssignWorkerToBookingParams) (Booking, error)
 	CancelBookingWithReason(ctx context.Context, arg CancelBookingWithReasonParams) (Booking, error)
 	CancelFutureOccurrences(ctx context.Context, arg CancelFutureOccurrencesParams) error
+	CancelFutureSubscriptionBookings(ctx context.Context, arg CancelFutureSubscriptionBookingsParams) error
 	CancelRecurringGroup(ctx context.Context, arg CancelRecurringGroupParams) (RecurringBookingGroup, error)
+	CancelSubscription(ctx context.Context, arg CancelSubscriptionParams) (Subscription, error)
 	CheckChatParticipant(ctx context.Context, arg CheckChatParticipantParams) (int64, error)
 	// Returns true if all 3 required documents exist and are approved
 	CheckCompanyDocumentsReady(ctx context.Context, companyID pgtype.UUID) (pgtype.Bool, error)
@@ -35,12 +37,15 @@ type Querier interface {
 	CountAllBookings(ctx context.Context) (int64, error)
 	CountAllReviews(ctx context.Context) (int64, error)
 	CountAllReviewsFiltered(ctx context.Context, arg CountAllReviewsFilteredParams) (int64, error)
+	CountAllSubscriptions(ctx context.Context) (int64, error)
 	CountBookingsByClient(ctx context.Context, clientUserID pgtype.UUID) (int64, error)
 	CountBookingsByClientAndStatus(ctx context.Context, arg CountBookingsByClientAndStatusParams) (int64, error)
 	CountBookingsByCompany(ctx context.Context, companyID pgtype.UUID) (int64, error)
 	CountBookingsByCompanyAndStatus(ctx context.Context, arg CountBookingsByCompanyAndStatusParams) (int64, error)
 	CountBookingsByStatus(ctx context.Context, status BookingStatus) (int64, error)
+	CountBookingsBySubscription(ctx context.Context, subscriptionID pgtype.UUID) (int64, error)
 	CountCompaniesByStatus(ctx context.Context, status CompanyStatus) (int64, error)
+	CountCompletedBookingsBySubscription(ctx context.Context, subscriptionID pgtype.UUID) (int64, error)
 	CountCompletedJobsByCompany(ctx context.Context, companyID pgtype.UUID) (int64, error)
 	CountCompletedJobsByWorker(ctx context.Context, workerID pgtype.UUID) (int64, error)
 	CountInvoicesByClient(ctx context.Context, clientUserID pgtype.UUID) (int64, error)
@@ -54,6 +59,8 @@ type Querier interface {
 	CountSearchCompanyBookings(ctx context.Context, arg CountSearchCompanyBookingsParams) (int64, error)
 	CountSearchUsers(ctx context.Context, arg CountSearchUsersParams) (int64, error)
 	CountSearchWorkerBookings(ctx context.Context, arg CountSearchWorkerBookingsParams) (int64, error)
+	CountSubscriptionsByCompany(ctx context.Context, companyID pgtype.UUID) (int64, error)
+	CountSubscriptionsByStatusFilter(ctx context.Context, status SubscriptionStatus) (int64, error)
 	CountThisMonthJobsByWorker(ctx context.Context, workerID pgtype.UUID) (int64, error)
 	CountUnreadNotifications(ctx context.Context, userID pgtype.UUID) (int64, error)
 	CountUsersByRole(ctx context.Context, role UserRole) (int64, error)
@@ -106,6 +113,8 @@ type Querier interface {
 	CreateReview(ctx context.Context, arg CreateReviewParams) (Review, error)
 	CreateServiceDefinition(ctx context.Context, arg CreateServiceDefinitionParams) (ServiceDefinition, error)
 	CreateServiceExtra(ctx context.Context, arg CreateServiceExtraParams) (ServiceExtra, error)
+	// ─── SUBSCRIPTIONS ────────────────────────────────────────────────────────
+	CreateSubscription(ctx context.Context, arg CreateSubscriptionParams) (Subscription, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	CreateWaitlistLead(ctx context.Context, arg CreateWaitlistLeadParams) (WaitlistLead, error)
 	CreateWorkerDocument(ctx context.Context, arg CreateWorkerDocumentParams) (WorkerDocument, error)
@@ -130,6 +139,9 @@ type Querier interface {
 	DeleteWorkerDateOverride(ctx context.Context, arg DeleteWorkerDateOverrideParams) error
 	DeleteWorkerDocument(ctx context.Context, id pgtype.UUID) error
 	DeselectAllBookingTimeSlots(ctx context.Context, bookingID pgtype.UUID) error
+	// Finds workers in an area who have no conflicting bookings on a specific date.
+	// Orders by same-company first (matching $4), then by rating.
+	FindAvailableWorkersForDateAndArea(ctx context.Context, arg FindAvailableWorkersForDateAndAreaParams) ([]FindAvailableWorkersForDateAndAreaRow, error)
 	FindChatRoomByExactParticipants(ctx context.Context, arg FindChatRoomByExactParticipantsParams) (ChatRoom, error)
 	FindDirectChatRoom(ctx context.Context, arg FindDirectChatRoomParams) (ChatRoom, error)
 	FindMatchingWorkers(ctx context.Context, cityAreaID pgtype.UUID) ([]FindMatchingWorkersRow, error)
@@ -144,6 +156,8 @@ type Querier interface {
 	GetBookingByReferenceCode(ctx context.Context, referenceCode string) (Booking, error)
 	GetBookingCountByStatus(ctx context.Context) ([]GetBookingCountByStatusRow, error)
 	GetBookingsByRecurringGroup(ctx context.Context, recurringGroupID pgtype.UUID) ([]Booking, error)
+	// ─── SUBSCRIPTION BOOKINGS ───────────────────────────────────────────────
+	GetBookingsBySubscription(ctx context.Context, subscriptionID pgtype.UUID) ([]Booking, error)
 	GetChatRoomByBookingID(ctx context.Context, bookingID pgtype.UUID) (ChatRoom, error)
 	GetChatRoomByID(ctx context.Context, id pgtype.UUID) (ChatRoom, error)
 	GetCityByID(ctx context.Context, id pgtype.UUID) (EnabledCity, error)
@@ -177,6 +191,7 @@ type Querier interface {
 	// INVOICE SEQUENCES
 	// ============================================
 	GetNextInvoiceNumber(ctx context.Context, arg GetNextInvoiceNumberParams) (int32, error)
+	GetPaymentMethodByID(ctx context.Context, id pgtype.UUID) (ClientPaymentMethod, error)
 	GetPaymentMethodByStripeID(ctx context.Context, stripePaymentMethodID pgtype.Text) (ClientPaymentMethod, error)
 	GetPaymentTransactionByBookingID(ctx context.Context, bookingID pgtype.UUID) (PaymentTransaction, error)
 	GetPaymentTransactionByStripePI(ctx context.Context, stripePaymentIntentID string) (PaymentTransaction, error)
@@ -194,6 +209,7 @@ type Querier interface {
 	GetPlatformSetting(ctx context.Context, key string) (PlatformSetting, error)
 	GetPlatformStats(ctx context.Context) (GetPlatformStatsRow, error)
 	GetPlatformTotals(ctx context.Context) (GetPlatformTotalsRow, error)
+	GetRecurringDiscountByType(ctx context.Context, recurrenceType RecurrenceType) (RecurringDiscount, error)
 	GetRecurringGroupByID(ctx context.Context, id pgtype.UUID) (RecurringBookingGroup, error)
 	GetRecurringGroupExtras(ctx context.Context, groupID pgtype.UUID) ([]GetRecurringGroupExtrasRow, error)
 	GetRefundRequestByBookingID(ctx context.Context, bookingID pgtype.UUID) (RefundRequest, error)
@@ -204,11 +220,17 @@ type Querier interface {
 	GetReviewByBookingID(ctx context.Context, bookingID pgtype.UUID) (Review, error)
 	GetSelectedTimeSlot(ctx context.Context, bookingID pgtype.UUID) (BookingTimeSlot, error)
 	GetServiceByType(ctx context.Context, serviceType ServiceType) (ServiceDefinition, error)
+	GetSubscriptionByID(ctx context.Context, id pgtype.UUID) (Subscription, error)
+	GetSubscriptionByStripeID(ctx context.Context, stripeSubscriptionID pgtype.Text) (Subscription, error)
+	GetSubscriptionExtras(ctx context.Context, subscriptionID pgtype.UUID) ([]GetSubscriptionExtrasRow, error)
+	// ─── STATS ────────────────────────────────────────────────────────────────
+	GetSubscriptionStats(ctx context.Context) (GetSubscriptionStatsRow, error)
 	GetTopCompaniesByRevenue(ctx context.Context, arg GetTopCompaniesByRevenueParams) ([]GetTopCompaniesByRevenueRow, error)
 	GetTotalPayoutsInPeriod(ctx context.Context, arg GetTotalPayoutsInPeriodParams) (GetTotalPayoutsInPeriodRow, error)
 	GetTotalRefundsInPeriod(ctx context.Context, arg GetTotalRefundsInPeriodParams) (int64, error)
 	GetUnclaimedCompanyByContactEmail(ctx context.Context, contactEmail string) (Company, error)
 	GetUpcomingBookingsByRecurringGroup(ctx context.Context, recurringGroupID pgtype.UUID) ([]Booking, error)
+	GetUpcomingBookingsBySubscription(ctx context.Context, subscriptionID pgtype.UUID) ([]Booking, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserByGoogleID(ctx context.Context, googleID pgtype.Text) (User, error)
 	GetUserByID(ctx context.Context, id pgtype.UUID) (User, error)
@@ -228,12 +250,16 @@ type Querier interface {
 	InsertBookingExtra(ctx context.Context, arg InsertBookingExtraParams) error
 	InsertCompanyServiceArea(ctx context.Context, arg InsertCompanyServiceAreaParams) (CompanyServiceArea, error)
 	InsertRecurringGroupExtra(ctx context.Context, arg InsertRecurringGroupExtraParams) error
+	// ─── SUBSCRIPTION EXTRAS ──────────────────────────────────────────────────
+	InsertSubscriptionExtra(ctx context.Context, arg InsertSubscriptionExtraParams) error
 	InsertWorkerServiceArea(ctx context.Context, arg InsertWorkerServiceAreaParams) (WorkerServiceArea, error)
 	LinkWorkerToUser(ctx context.Context, arg LinkWorkerToUserParams) (Worker, error)
 	ListActiveCities(ctx context.Context) ([]EnabledCity, error)
 	ListActiveExtras(ctx context.Context) ([]ServiceExtra, error)
+	ListActiveRecurringDiscounts(ctx context.Context) ([]RecurringDiscount, error)
 	ListActiveRecurringGroupsByClient(ctx context.Context, clientUserID pgtype.UUID) ([]RecurringBookingGroup, error)
 	ListActiveServices(ctx context.Context) ([]ServiceDefinition, error)
+	ListActiveSubscriptionsByClient(ctx context.Context, clientUserID pgtype.UUID) ([]Subscription, error)
 	ListAddressesByUser(ctx context.Context, userID pgtype.UUID) ([]ClientAddress, error)
 	ListAllActiveWorkers(ctx context.Context) ([]ListAllActiveWorkersRow, error)
 	ListAllBookings(ctx context.Context, arg ListAllBookingsParams) ([]Booking, error)
@@ -250,6 +276,7 @@ type Querier interface {
 	ListAllReviews(ctx context.Context, arg ListAllReviewsParams) ([]Review, error)
 	ListAllReviewsFiltered(ctx context.Context, arg ListAllReviewsFilteredParams) ([]Review, error)
 	ListAllServices(ctx context.Context) ([]ServiceDefinition, error)
+	ListAllSubscriptions(ctx context.Context, arg ListAllSubscriptionsParams) ([]Subscription, error)
 	ListAllUsers(ctx context.Context) ([]User, error)
 	ListAreasByCity(ctx context.Context, cityID pgtype.UUID) ([]ListAreasByCityRow, error)
 	ListBookingExtras(ctx context.Context, bookingID pgtype.UUID) ([]ListBookingExtrasRow, error)
@@ -304,10 +331,16 @@ type Querier interface {
 	ListPlatformSettings(ctx context.Context) ([]PlatformSetting, error)
 	// Lists platform commission invoices where the company is the buyer
 	ListReceivedInvoicesByCompany(ctx context.Context, arg ListReceivedInvoicesByCompanyParams) ([]Invoice, error)
+	// ─── RECURRING DISCOUNTS ──────────────────────────────────────────────────
+	ListRecurringDiscounts(ctx context.Context) ([]RecurringDiscount, error)
 	ListRecurringGroupsByClient(ctx context.Context, clientUserID pgtype.UUID) ([]RecurringBookingGroup, error)
 	ListRefundRequestsByStatus(ctx context.Context, arg ListRefundRequestsByStatusParams) ([]RefundRequest, error)
 	ListRefundRequestsByUser(ctx context.Context, requestedByUserID pgtype.UUID) ([]RefundRequest, error)
 	ListReviewsByWorkerID(ctx context.Context, arg ListReviewsByWorkerIDParams) ([]Review, error)
+	ListSubscriptionsByClient(ctx context.Context, clientUserID pgtype.UUID) ([]Subscription, error)
+	ListSubscriptionsByCompany(ctx context.Context, arg ListSubscriptionsByCompanyParams) ([]Subscription, error)
+	ListSubscriptionsByStatus(ctx context.Context, arg ListSubscriptionsByStatusParams) ([]Subscription, error)
+	ListSubscriptionsByWorker(ctx context.Context, workerID pgtype.UUID) ([]Subscription, error)
 	ListTodaysJobsByWorker(ctx context.Context, workerID pgtype.UUID) ([]Booking, error)
 	ListUnpaidCompanyTransactions(ctx context.Context, arg ListUnpaidCompanyTransactionsParams) ([]PaymentTransaction, error)
 	ListUsersByRole(ctx context.Context, role UserRole) ([]User, error)
@@ -327,9 +360,12 @@ type Querier interface {
 	MarkMessagesRead(ctx context.Context, arg MarkMessagesReadParams) error
 	MarkNotificationRead(ctx context.Context, id pgtype.UUID) error
 	PauseRecurringGroup(ctx context.Context, id pgtype.UUID) (RecurringBookingGroup, error)
+	PauseSubscription(ctx context.Context, id pgtype.UUID) (Subscription, error)
+	ReassignFutureSubscriptionBookings(ctx context.Context, arg ReassignFutureSubscriptionBookingsParams) error
 	RejectCompany(ctx context.Context, arg RejectCompanyParams) (Company, error)
 	RescheduleBooking(ctx context.Context, arg RescheduleBookingParams) (Booking, error)
 	ResumeRecurringGroup(ctx context.Context, id pgtype.UUID) (RecurringBookingGroup, error)
+	ResumeSubscription(ctx context.Context, id pgtype.UUID) (Subscription, error)
 	SearchBookings(ctx context.Context, arg SearchBookingsParams) ([]Booking, error)
 	SearchBookingsWithDetails(ctx context.Context, arg SearchBookingsWithDetailsParams) ([]SearchBookingsWithDetailsRow, error)
 	SearchCompanies(ctx context.Context, arg SearchCompaniesParams) ([]Company, error)
@@ -378,9 +414,14 @@ type Querier interface {
 	// UpdatePlatformLegalEntity updates the platform legal entity details.
 	UpdatePlatformLegalEntity(ctx context.Context, arg UpdatePlatformLegalEntityParams) (PlatformLegalEntity, error)
 	UpdatePlatformSetting(ctx context.Context, arg UpdatePlatformSettingParams) (PlatformSetting, error)
+	UpdateRecurringDiscount(ctx context.Context, arg UpdateRecurringDiscountParams) (RecurringDiscount, error)
 	UpdateRefundRequestStatus(ctx context.Context, arg UpdateRefundRequestStatusParams) (RefundRequest, error)
 	UpdateServiceDefinition(ctx context.Context, arg UpdateServiceDefinitionParams) (ServiceDefinition, error)
 	UpdateServiceExtra(ctx context.Context, arg UpdateServiceExtraParams) (ServiceExtra, error)
+	UpdateSubscriptionPeriod(ctx context.Context, arg UpdateSubscriptionPeriodParams) (Subscription, error)
+	UpdateSubscriptionStatus(ctx context.Context, arg UpdateSubscriptionStatusParams) (Subscription, error)
+	UpdateSubscriptionStripeIDs(ctx context.Context, arg UpdateSubscriptionStripeIDsParams) (Subscription, error)
+	UpdateSubscriptionWorker(ctx context.Context, arg UpdateSubscriptionWorkerParams) (Subscription, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 	UpdateUserAvatar(ctx context.Context, arg UpdateUserAvatarParams) (User, error)
 	UpdateUserFCMToken(ctx context.Context, arg UpdateUserFCMTokenParams) error

@@ -320,6 +320,11 @@ func dbBookingToGQL(b db.Booking) *model.Booking {
 		s := uuidToString(b.RecurringGroupID)
 		recurringGroupID = &s
 	}
+	var subscriptionID *string
+	if b.SubscriptionID.Valid {
+		s := uuidToString(b.SubscriptionID)
+		subscriptionID = &s
+	}
 
 	return &model.Booking{
 		ID:                     uuidToString(b.ID),
@@ -346,6 +351,7 @@ func dbBookingToGQL(b db.Booking) *model.Booking {
 		PlatformCommissionPct: numericToFloat(b.PlatformCommissionPct),
 		Status:                dbBookingStatusToGQL(b.Status),
 		RecurringGroupID:      recurringGroupID,
+		SubscriptionID:        subscriptionID,
 		OccurrenceNumber:      int4Ptr(b.OccurrenceNumber),
 		RescheduleCount:       int(b.RescheduleCount),
 		RescheduledAt:         timestamptzToTimePtr(b.RescheduledAt),
@@ -373,6 +379,11 @@ func dbSearchBookingRowToGQL(row db.SearchBookingsWithDetailsRow) *model.Booking
 	if row.RecurringGroupID.Valid {
 		s := uuidToString(row.RecurringGroupID)
 		recurringGroupID = &s
+	}
+	var subscriptionID2 *string
+	if row.SubscriptionID.Valid {
+		s := uuidToString(row.SubscriptionID)
+		subscriptionID2 = &s
 	}
 
 	serviceName := textVal(row.ServiceNameRo)
@@ -406,6 +417,7 @@ func dbSearchBookingRowToGQL(row db.SearchBookingsWithDetailsRow) *model.Booking
 		PlatformCommissionPct: numericToFloat(row.PlatformCommissionPct),
 		Status:                dbBookingStatusToGQL(row.Status),
 		RecurringGroupID:      recurringGroupID,
+		SubscriptionID:        subscriptionID2,
 		OccurrenceNumber:      int4Ptr(row.OccurrenceNumber),
 		RescheduleCount:       int(row.RescheduleCount),
 		RescheduledAt:         timestamptzToTimePtr(row.RescheduledAt),
@@ -774,30 +786,6 @@ func dbRecurrenceTypeToGQL(r db.RecurrenceType) model.RecurrenceType {
 
 func gqlRecurrenceTypeToDb(r model.RecurrenceType) db.RecurrenceType {
 	return db.RecurrenceType(strings.ToLower(string(r)))
-}
-
-func dbRecurringGroupToGQL(g db.RecurringBookingGroup) *model.RecurringBookingGroup {
-	return &model.RecurringBookingGroup{
-		ID:                          uuidToString(g.ID),
-		RecurrenceType:              dbRecurrenceTypeToGQL(g.RecurrenceType),
-		DayOfWeek:                   int4Ptr(g.DayOfWeek),
-		PreferredTime:               timeToString(g.PreferredTime),
-		ServiceType:                 dbServiceTypeToGQL(g.ServiceType),
-		PropertyType:                textPtr(g.PropertyType),
-		NumRooms:                    int4Ptr(g.NumRooms),
-		NumBathrooms:                int4Ptr(g.NumBathrooms),
-		AreaSqm:                     int4Ptr(g.AreaSqm),
-		HasPets:                     boolPtr(g.HasPets),
-		SpecialInstructions:         textPtr(g.SpecialInstructions),
-		HourlyRate:                  numericToFloat(g.HourlyRate),
-		EstimatedTotalPerOccurrence: numericToFloat(g.EstimatedTotalPerOccurrence),
-		IsActive:                    boolVal(g.IsActive),
-		CancelledAt:                 timestamptzToTimePtr(g.CancelledAt),
-		CancellationReason:          textPtr(g.CancellationReason),
-		Occurrences:                 []*model.Booking{},
-		UpcomingOccurrences:         []*model.Booking{},
-		CreatedAt:                   timestamptzToTime(g.CreatedAt),
-	}
 }
 
 // validateStatusTransition checks whether a booking status transition is allowed.

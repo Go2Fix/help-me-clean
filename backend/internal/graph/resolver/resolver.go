@@ -14,18 +14,20 @@ import (
 	"go2fix-backend/internal/service/email"
 	"go2fix-backend/internal/service/invoice"
 	"go2fix-backend/internal/service/payment"
+	"go2fix-backend/internal/service/subscription"
 	"go2fix-backend/internal/storage"
 )
 
 // Resolver is the root resolver struct.
 type Resolver struct {
-	Pool           *pgxpool.Pool
-	Queries        *db.Queries
-	PaymentService *payment.Service
-	InvoiceService *invoice.Service
-	EmailService   *email.Service
-	Storage        storage.Storage
-	AuthzHelper    *middleware.AuthzHelper
+	Pool                *pgxpool.Pool
+	Queries             *db.Queries
+	PaymentService      *payment.Service
+	InvoiceService      *invoice.Service
+	EmailService        *email.Service
+	SubscriptionService *subscription.Service
+	Storage             storage.Storage
+	AuthzHelper         *middleware.AuthzHelper
 }
 
 // workerWithCompany loads a worker's company, user, documents, and assessment, returns the full WorkerProfile.
@@ -195,6 +197,21 @@ func (r *Resolver) populateCompanyDocuments(ctx context.Context, company *model.
 	if docs, err := r.Queries.ListCompanyDocuments(ctx, companyID); err == nil {
 		for _, d := range docs {
 			company.Documents = append(company.Documents, dbCompanyDocToGQL(d))
+		}
+	}
+}
+
+// enrichBookingWorkerOnly populates only the worker field on a GQL booking.
+// Used by subscription detail to avoid N+1 queries for fields the page doesn't need.
+func (r *Resolver) enrichBookingWorkerOnly(ctx context.Context, dbB db.Booking, gqlB *model.Booking) {
+	if dbB.WorkerID.Valid {
+		if worker, err := r.Queries.GetWorkerByID(ctx, dbB.WorkerID); err == nil {
+			if user, err := r.Queries.GetUserByID(ctx, worker.UserID); err == nil {
+				gqlB.Worker = &model.WorkerProfile{
+					ID:       uuidToString(worker.ID),
+					FullName: user.FullName,
+				}
+			}
 		}
 	}
 }

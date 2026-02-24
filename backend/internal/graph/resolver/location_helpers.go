@@ -218,6 +218,20 @@ func (r *Resolver) evaluateWorkerForSlots(
 		}
 	}
 
+	// Fallback: if no availability records configured, assume default working hours (08:00-20:00) on weekdays.
+	if len(availByDay) == 0 {
+		defaultStart := matching.HHMMToMicros("08:00")
+		defaultEnd := matching.HHMMToMicros("20:00")
+		for dow := 1; dow <= 5; dow++ { // Monday=1 through Friday=5
+			availByDay[dow] = db.WorkerAvailability{
+				DayOfWeek:   int32(dow),
+				IsAvailable: pgtype.Bool{Bool: true, Valid: true},
+				StartTime:   pgtype.Time{Microseconds: defaultStart, Valid: true},
+				EndTime:     pgtype.Time{Microseconds: defaultEnd, Valid: true},
+			}
+		}
+	}
+
 	// Load date overrides for the date range.
 	minDate := slots[0].DateObj
 	maxDate := slots[0].DateObj
@@ -320,37 +334,33 @@ func (r *Resolver) evaluateWorkerForSlots(
 		}
 	}
 
+	// Don't suggest workers who have no availability at all.
+	if bestPlacement == nil || !bestPlacement.Found {
+		return nil
+	}
+
 	// Determine availability status.
+	startHHMM := matching.MicrosToHHMM(bestPlacement.StartMicros)
+	endHHMM := matching.MicrosToHHMM(bestPlacement.EndMicros)
+	suggestedStart := &startHHMM
+	suggestedEnd := &endHHMM
+	suggestedDate := &bestDate
+	suggestedSlotIndex := &bestSlotIdx
+	gapScore := bestPlacement.GapScoreH
+
+	afrom := matching.MicrosToHHMM(bestAvailStart)
+	ato := matching.MicrosToHHMM(bestAvailEnd)
+	availFrom := &afrom
+	availTo := &ato
+
+	// "available" = suggested time falls within the client's requested window.
 	var status string
-	var suggestedStart, suggestedEnd, suggestedDate *string
-	var suggestedSlotIndex *int
-	var availFrom, availTo *string
-	var gapScore float64
-
-	if bestPlacement != nil && bestPlacement.Found {
-		startHHMM := matching.MicrosToHHMM(bestPlacement.StartMicros)
-		endHHMM := matching.MicrosToHHMM(bestPlacement.EndMicros)
-		suggestedStart = &startHHMM
-		suggestedEnd = &endHHMM
-		suggestedDate = &bestDate
-		suggestedSlotIndex = &bestSlotIdx
-		gapScore = bestPlacement.GapScoreH
-
-		afrom := matching.MicrosToHHMM(bestAvailStart)
-		ato := matching.MicrosToHHMM(bestAvailEnd)
-		availFrom = &afrom
-		availTo = &ato
-
-		// "available" = suggested time falls within the client's requested window.
-		requestedStart := clientSlots[bestSlotIdx].StartMicros
-		requestedEnd := clientSlots[bestSlotIdx].EndMicros
-		if bestPlacement.StartMicros >= requestedStart && bestPlacement.EndMicros <= requestedEnd {
-			status = "available"
-		} else {
-			status = "partial"
-		}
+	requestedStart := clientSlots[bestSlotIdx].StartMicros
+	requestedEnd := clientSlots[bestSlotIdx].EndMicros
+	if bestPlacement.StartMicros >= requestedStart && bestPlacement.EndMicros <= requestedEnd {
+		status = "available"
 	} else {
-		status = "unavailable"
+		status = "partial"
 	}
 
 	// Compute dynamic rating and completed jobs from reviews/bookings tables.
@@ -367,7 +377,7 @@ func (r *Resolver) evaluateWorkerForSlots(
 		RatingAvg:        dynamicRating,
 		TotalJobsDone:    dynamicCompleted,
 		IsAreaMatch:      true,
-		PlacementFound:   bestPlacement != nil && bestPlacement.Found,
+		PlacementFound:   true,
 		GapScoreH:        gapScore,
 		DayBookingCount:  bestDayCount,
 		WeekBookingCount: int(weekCount),

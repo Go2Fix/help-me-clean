@@ -21,6 +21,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	chimiddleware "github.com/go-chi/cors"
 	"github.com/joho/godotenv"
+	"github.com/stripe/stripe-go/v81"
 
 	"go2fix-backend/internal/auth"
 	internaldb "go2fix-backend/internal/db"
@@ -32,6 +33,7 @@ import (
 	"go2fix-backend/internal/service/email"
 	"go2fix-backend/internal/service/invoice"
 	"go2fix-backend/internal/service/payment"
+	"go2fix-backend/internal/service/subscription"
 	"go2fix-backend/internal/storage"
 	"go2fix-backend/internal/webhook"
 )
@@ -84,6 +86,7 @@ func NewHandler(ctx context.Context) (http.Handler, func(), error) {
 	paymentSvc := payment.NewService(queries)
 	invoiceSvc := invoice.NewService(queries)
 	emailSvc := email.NewService()
+	subscriptionSvc := subscription.NewService(queries, pool, paymentSvc, invoiceSvc)
 
 	// File storage — always GCS.
 	env := os.Getenv("ENVIRONMENT")
@@ -117,13 +120,14 @@ func NewHandler(ctx context.Context) (http.Handler, func(), error) {
 	authzHelper := custommiddleware.NewAuthzHelper(queries)
 
 	res := &resolver.Resolver{
-		Pool:           pool,
-		Queries:        queries,
-		PaymentService: paymentSvc,
-		InvoiceService: invoiceSvc,
-		EmailService:   emailSvc,
-		Storage:        store,
-		AuthzHelper:    authzHelper,
+		Pool:                pool,
+		Queries:             queries,
+		PaymentService:      paymentSvc,
+		InvoiceService:      invoiceSvc,
+		EmailService:        emailSvc,
+		SubscriptionService: subscriptionSvc,
+		Storage:             store,
+		AuthzHelper:         authzHelper,
 	}
 
 	// Wire auto-confirm callback: when payment webhook succeeds, create chat room.
@@ -145,6 +149,28 @@ func NewHandler(ctx context.Context) (http.Handler, func(), error) {
 		_, err = invoiceSvc.GenerateClientServiceInvoice(ctx, booking, company, booking.ClientUserID)
 		if err != nil {
 			log.Printf("invoice: auto-generation failed for booking %s: %v", booking.ReferenceCode, err)
+		}
+	}
+
+	// Wire subscription webhook callbacks.
+	paymentSvc.OnSubscriptionInvoicePaid = func(ctx context.Context, stripeSubID string, periodStart, periodEnd int64) {
+		if err := subscriptionSvc.HandleInvoicePaid(ctx, stripeSubID, periodStart, periodEnd); err != nil {
+			log.Printf("subscription: invoice paid handler failed for %s: %v", stripeSubID, err)
+		}
+	}
+	paymentSvc.OnSubscriptionInvoiceFailed = func(ctx context.Context, stripeSubID string) {
+		if err := subscriptionSvc.HandleInvoicePaymentFailed(ctx, stripeSubID); err != nil {
+			log.Printf("subscription: invoice failed handler failed for %s: %v", stripeSubID, err)
+		}
+	}
+	paymentSvc.OnSubscriptionUpdated = func(ctx context.Context, stripeSubID string, status stripe.SubscriptionStatus, periodStart, periodEnd int64) {
+		if err := subscriptionSvc.HandleSubscriptionUpdated(ctx, stripeSubID, status, periodStart, periodEnd); err != nil {
+			log.Printf("subscription: update handler failed for %s: %v", stripeSubID, err)
+		}
+	}
+	paymentSvc.OnSubscriptionDeleted = func(ctx context.Context, stripeSubID string) {
+		if err := subscriptionSvc.HandleSubscriptionDeleted(ctx, stripeSubID); err != nil {
+			log.Printf("subscription: delete handler failed for %s: %v", stripeSubID, err)
 		}
 	}
 

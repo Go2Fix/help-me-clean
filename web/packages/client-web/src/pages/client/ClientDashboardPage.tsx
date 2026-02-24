@@ -18,7 +18,7 @@ import { useAuth } from '@/context/AuthContext';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/ClientBadge';
-import { MY_BOOKINGS, MY_CHAT_ROOMS, MY_RECURRING_GROUPS, MY_INVOICES } from '@/graphql/operations';
+import { MY_BOOKINGS, MY_CHAT_ROOMS, MY_SUBSCRIPTIONS, MY_INVOICES } from '@/graphql/operations';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -37,14 +37,18 @@ const recurrenceLabel: Record<string, string> = {
   MONTHLY: 'Lunar',
 };
 
-const dayLabel: Record<number, string> = {
-  0: 'Duminica',
-  1: 'Luni',
-  2: 'Marti',
-  3: 'Miercuri',
-  4: 'Joi',
-  5: 'Vineri',
-  6: 'Sambata',
+const subscriptionStatusColor: Record<string, { bg: string; text: string }> = {
+  ACTIVE: { bg: 'bg-emerald-100', text: 'text-emerald-700' },
+  PAUSED: { bg: 'bg-amber-100', text: 'text-amber-700' },
+  PAST_DUE: { bg: 'bg-red-100', text: 'text-red-700' },
+  CANCELLED: { bg: 'bg-gray-100', text: 'text-gray-600' },
+};
+
+const subscriptionStatusLabel: Record<string, string> = {
+  ACTIVE: 'Activ',
+  PAUSED: 'In pauza',
+  PAST_DUE: 'Restant',
+  CANCELLED: 'Anulat',
 };
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -62,19 +66,16 @@ interface BookingEdge {
   occurrenceNumber?: number;
 }
 
-interface RecurringGroup {
+interface Subscription {
   id: string;
   recurrenceType: string;
-  dayOfWeek: number;
+  serviceType: string;
   serviceName: string;
-  estimatedTotalPerOccurrence: number;
-  isActive: boolean;
-  upcomingOccurrences: {
-    id: string;
-    scheduledDate: string;
-    scheduledStartTime: string;
-    status: string;
-  }[];
+  status: string;
+  monthlyAmount: number;
+  currentPeriodEnd: string;
+  worker?: { id: string; fullName: string } | null;
+  company?: { id: string; companyName: string } | null;
 }
 
 interface InvoiceEdge {
@@ -121,7 +122,7 @@ export default function ClientDashboardPage() {
     variables: { status: 'ASSIGNED', first: 5 },
   });
 
-  const { data: recurringData, loading: l4 } = useQuery(MY_RECURRING_GROUPS);
+  const { data: subscriptionsData, loading: l4 } = useQuery(MY_SUBSCRIPTIONS);
 
   const { data: invoicesData, loading: l5 } = useQuery(MY_INVOICES, {
     variables: { first: 20 },
@@ -147,10 +148,12 @@ export default function ClientDashboardPage() {
       .slice(0, 5);
   }, [confirmedData, assignedData]);
 
-  const activeRecurring = useMemo(() => {
-    const groups: RecurringGroup[] = recurringData?.myRecurringGroups ?? [];
-    return groups.filter((g) => g.isActive).slice(0, 3);
-  }, [recurringData]);
+  const activeSubscriptions = useMemo(() => {
+    const subs: Subscription[] = subscriptionsData?.mySubscriptions ?? [];
+    return subs.filter((s) => s.status === 'ACTIVE').slice(0, 3);
+  }, [subscriptionsData]);
+
+  const allSubscriptions: Subscription[] = subscriptionsData?.mySubscriptions ?? [];
 
   const unpaidInvoiceCount = useMemo(() => {
     const invoices: InvoiceEdge[] = invoicesData?.myInvoices?.edges ?? [];
@@ -183,11 +186,11 @@ export default function ClientDashboardPage() {
     },
     {
       label: 'Abonamente',
-      value: activeRecurring.length,
+      value: activeSubscriptions.length,
       icon: Repeat,
       colorBg: 'bg-blue-50',
       colorText: 'text-blue-600',
-      onClick: () => navigate('/cont/comenzi'),
+      onClick: () => navigate('/cont/abonamente'),
     },
     {
       label: 'Facturi neplatite',
@@ -352,13 +355,13 @@ export default function ClientDashboardPage() {
 
         {/* Right Column */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Recurring Subscriptions */}
+          {/* Subscriptions */}
           <Card padding={false}>
             <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-gray-100">
               <div className="flex items-center gap-2">
                 <Repeat className="h-4 w-4 text-blue-600" />
                 <h2 className="text-lg font-semibold text-gray-900">
-                  Abonamentele tale
+                  Abonamente
                 </h2>
               </div>
             </div>
@@ -372,34 +375,46 @@ export default function ClientDashboardPage() {
                   </div>
                 ))}
               </div>
-            ) : activeRecurring.length === 0 ? (
+            ) : allSubscriptions.length === 0 ? (
               <div className="p-4 sm:p-6 text-center">
                 <Repeat className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-                <p className="text-sm text-gray-500">Nu ai abonamente active</p>
+                <p className="text-sm text-gray-500 mb-3">Niciun abonament activ</p>
+                <button
+                  type="button"
+                  onClick={() => navigate('/rezervare')}
+                  className="text-sm font-medium text-primary hover:text-primary/80 transition-colors cursor-pointer"
+                >
+                  Creeaza un abonament &rarr;
+                </button>
               </div>
             ) : (
               <div className="divide-y divide-gray-100">
-                {activeRecurring.map((group) => {
-                  const nextOccurrence = group.upcomingOccurrences?.[0];
+                {activeSubscriptions.map((sub) => {
+                  const statusStyle = subscriptionStatusColor[sub.status] ?? subscriptionStatusColor.ACTIVE;
                   return (
                     <button
-                      key={group.id}
+                      key={sub.id}
                       type="button"
-                      onClick={() => navigate(`/cont/recurente/${group.id}`)}
+                      onClick={() => navigate(`/cont/abonamente/${sub.id}`)}
                       className="w-full flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 hover:bg-gray-50 transition-colors text-left cursor-pointer"
                     >
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-gray-900 truncate">
-                          {group.serviceName}
-                        </p>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2 mb-0.5">
+                          <p className="text-sm font-semibold text-gray-900 truncate">
+                            {sub.serviceName}
+                          </p>
+                          <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold ${statusStyle.bg} ${statusStyle.text}`}>
+                            {subscriptionStatusLabel[sub.status] ?? sub.status}
+                          </span>
+                        </div>
                         <p className="text-xs text-gray-500 mt-0.5">
-                          {recurrenceLabel[group.recurrenceType] ?? group.recurrenceType}
+                          {recurrenceLabel[sub.recurrenceType] ?? sub.recurrenceType}
                           {' · '}
-                          {dayLabel[group.dayOfWeek] ?? ''}
+                          {(sub.monthlyAmount / 100).toFixed(0)} lei/luna
                         </p>
-                        {nextOccurrence && (
+                        {sub.currentPeriodEnd && (
                           <p className="text-xs text-blue-600 mt-1">
-                            Urmatoarea: {formatDate(nextOccurrence.scheduledDate)}
+                            Urmatoarea facturare: {formatDate(sub.currentPeriodEnd)}
                           </p>
                         )}
                       </div>
@@ -407,6 +422,18 @@ export default function ClientDashboardPage() {
                     </button>
                   );
                 })}
+              </div>
+            )}
+
+            {allSubscriptions.length > 0 && (
+              <div className="px-4 sm:px-6 py-3 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => navigate('/cont/abonamente')}
+                  className="text-sm font-medium text-primary hover:text-primary/80 transition-colors cursor-pointer"
+                >
+                  Vezi toate &rarr;
+                </button>
               </div>
             )}
           </Card>

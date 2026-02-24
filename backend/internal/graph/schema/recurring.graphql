@@ -4,47 +4,7 @@ enum RecurrenceType {
   MONTHLY
 }
 
-type RecurringBookingGroup {
-  id: ID!
-  client: User
-  company: Company
-  preferredWorker: WorkerProfile
-  address: Address
-  recurrenceType: RecurrenceType!
-  dayOfWeek: Int
-  preferredTime: String!
-  serviceType: ServiceType!
-  serviceName: String!
-  propertyType: String
-  numRooms: Int
-  numBathrooms: Int
-  areaSqm: Int
-  hasPets: Boolean
-  specialInstructions: String
-  hourlyRate: Float!
-  estimatedTotalPerOccurrence: Float!
-  isActive: Boolean!
-  cancelledAt: DateTime
-  cancellationReason: String
-  occurrences: [Booking!]!
-  upcomingOccurrences: [Booking!]!
-  totalOccurrences: Int!
-  completedOccurrences: Int!
-  createdAt: DateTime!
-}
-
 input RecurrenceInput {
   type: RecurrenceType!
   dayOfWeek: Int!
-}
-
-extend type Query {
-  myRecurringGroups: [RecurringBookingGroup!]!
-  recurringGroup(id: ID!): RecurringBookingGroup!
-}
-
-extend type Mutation {
-  cancelRecurringGroup(id: ID!, reason: String): RecurringBookingGroup!
-  pauseRecurringGroup(id: ID!): RecurringBookingGroup!
-  resumeRecurringGroup(id: ID!): RecurringBookingGroup!
 }

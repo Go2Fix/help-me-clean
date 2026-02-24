@@ -1,6 +1,7 @@
 import {
   LayoutDashboard,
   ClipboardList,
+  Repeat,
   Users,
   Wallet,
   FileText,
@@ -15,6 +16,7 @@ import CompanyStatusGate from '@/components/company/CompanyStatusGate';
 const navItems = [
   { to: '/firma', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/firma/comenzi', icon: ClipboardList, label: 'Comenzi' },
+  { to: '/firma/abonamente', icon: Repeat, label: 'Abonamente' },
   { to: '/firma/program', icon: CalendarDays, label: 'Program' },
   { to: '/firma/mesaje', icon: MessageSquare, label: 'Mesaje' },
   { to: '/firma/echipa', icon: Users, label: 'Echipa mea' },

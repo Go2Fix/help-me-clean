@@ -35,6 +35,14 @@ type Service struct {
 	// OnPaymentSucceeded is called when a payment succeeds.
 	// Set by the application layer to auto-generate invoices, etc.
 	OnPaymentSucceeded func(ctx context.Context, booking db.Booking, txn db.PaymentTransaction)
+	// OnSubscriptionInvoicePaid is called when a subscription invoice is paid.
+	OnSubscriptionInvoicePaid func(ctx context.Context, stripeSubID string, periodStart, periodEnd int64)
+	// OnSubscriptionInvoiceFailed is called when a subscription invoice payment fails.
+	OnSubscriptionInvoiceFailed func(ctx context.Context, stripeSubID string)
+	// OnSubscriptionUpdated is called when a Stripe subscription is updated.
+	OnSubscriptionUpdated func(ctx context.Context, stripeSubID string, status stripe.SubscriptionStatus, periodStart, periodEnd int64)
+	// OnSubscriptionDeleted is called when a Stripe subscription is deleted/cancelled.
+	OnSubscriptionDeleted func(ctx context.Context, stripeSubID string)
 }
 
 // NewService creates a new payment service and configures the global Stripe API key.
@@ -335,10 +343,89 @@ func (s *Service) HandleWebhookEvent(ctx context.Context, payload []byte, sigHea
 		return s.handleChargeDisputeCreated(ctx, event)
 	case "payout.failed":
 		return s.handlePayoutFailed(ctx, event)
+	case "invoice.paid":
+		return s.handleSubscriptionInvoicePaid(ctx, event)
+	case "invoice.payment_failed":
+		return s.handleSubscriptionInvoiceFailed(ctx, event)
+	case "customer.subscription.updated":
+		return s.handleSubscriptionUpdated(ctx, event)
+	case "customer.subscription.deleted":
+		return s.handleSubscriptionDeleted(ctx, event)
 	default:
 		log.Printf("payment: unhandled webhook event type: %s", event.Type)
 		return nil
 	}
+}
+
+// handleSubscriptionInvoicePaid processes a paid subscription invoice.
+func (s *Service) handleSubscriptionInvoicePaid(ctx context.Context, event stripe.Event) error {
+	var inv stripe.Invoice
+	if err := json.Unmarshal(event.Data.Raw, &inv); err != nil {
+		return fmt.Errorf("payment: failed to unmarshal invoice.paid: %w", err)
+	}
+
+	// Only handle subscription invoices.
+	if inv.Subscription == nil {
+		log.Printf("payment: invoice.paid for non-subscription invoice %s, skipping", inv.ID)
+		return nil
+	}
+
+	if s.OnSubscriptionInvoicePaid != nil {
+		go s.OnSubscriptionInvoicePaid(context.Background(), inv.Subscription.ID, inv.PeriodStart, inv.PeriodEnd)
+	}
+
+	log.Printf("payment: invoice.paid processed for subscription %s", inv.Subscription.ID)
+	return nil
+}
+
+// handleSubscriptionInvoiceFailed processes a failed subscription invoice.
+func (s *Service) handleSubscriptionInvoiceFailed(ctx context.Context, event stripe.Event) error {
+	var inv stripe.Invoice
+	if err := json.Unmarshal(event.Data.Raw, &inv); err != nil {
+		return fmt.Errorf("payment: failed to unmarshal invoice.payment_failed: %w", err)
+	}
+
+	if inv.Subscription == nil {
+		log.Printf("payment: invoice.payment_failed for non-subscription invoice %s, skipping", inv.ID)
+		return nil
+	}
+
+	if s.OnSubscriptionInvoiceFailed != nil {
+		go s.OnSubscriptionInvoiceFailed(context.Background(), inv.Subscription.ID)
+	}
+
+	log.Printf("payment: invoice.payment_failed processed for subscription %s", inv.Subscription.ID)
+	return nil
+}
+
+// handleSubscriptionUpdated processes a subscription update from Stripe.
+func (s *Service) handleSubscriptionUpdated(ctx context.Context, event stripe.Event) error {
+	var sub stripe.Subscription
+	if err := json.Unmarshal(event.Data.Raw, &sub); err != nil {
+		return fmt.Errorf("payment: failed to unmarshal customer.subscription.updated: %w", err)
+	}
+
+	if s.OnSubscriptionUpdated != nil {
+		go s.OnSubscriptionUpdated(context.Background(), sub.ID, sub.Status, sub.CurrentPeriodStart, sub.CurrentPeriodEnd)
+	}
+
+	log.Printf("payment: customer.subscription.updated processed for %s (status: %s)", sub.ID, sub.Status)
+	return nil
+}
+
+// handleSubscriptionDeleted processes a deleted subscription from Stripe.
+func (s *Service) handleSubscriptionDeleted(ctx context.Context, event stripe.Event) error {
+	var sub stripe.Subscription
+	if err := json.Unmarshal(event.Data.Raw, &sub); err != nil {
+		return fmt.Errorf("payment: failed to unmarshal customer.subscription.deleted: %w", err)
+	}
+
+	if s.OnSubscriptionDeleted != nil {
+		go s.OnSubscriptionDeleted(context.Background(), sub.ID)
+	}
+
+	log.Printf("payment: customer.subscription.deleted processed for %s", sub.ID)
+	return nil
 }
 
 // handlePaymentIntentSucceeded processes a successful payment.

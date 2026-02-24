@@ -1,6 +1,7 @@
 import {
   LayoutDashboard,
   ClipboardList,
+  Repeat,
   Users,
   Wallet,
   FileText,
@@ -17,6 +18,7 @@ const navItems = [
   { to: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/admin/companii', icon: Building2, label: 'Companii' },
   { to: '/admin/comenzi', icon: ClipboardList, label: 'Comenzi' },
+  { to: '/admin/abonamente', icon: Repeat, label: 'Abonamente' },
   { to: '/admin/plati', icon: Wallet, label: 'Plati' },
   { to: '/admin/facturi', icon: FileText, label: 'Facturi' },
   { to: '/admin/mesaje', icon: MessageSquare, label: 'Mesaje' },

@@ -1,0 +1,173 @@
+# ─── Subscription Status ───────────────────────────────────────────────────
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAUSED
+  PAST_DUE
+  CANCELLED
+  INCOMPLETE
+}
+
+# ─── Types ─────────────────────────────────────────────────────────────────
+
+type RecurringDiscount {
+  recurrenceType: RecurrenceType!
+  discountPct: Float!
+  isActive: Boolean!
+}
+
+type SubscriptionPricing {
+  perSessionOriginal: Float!
+  discountPct: Float!
+  perSessionDiscounted: Float!
+  sessionsPerMonth: Int!
+  monthlyAmount: Float!
+}
+
+type ServiceSubscription {
+  id: ID!
+  client: User
+  company: Company
+  worker: WorkerProfile
+  address: Address
+  recurrenceType: RecurrenceType!
+  dayOfWeek: Int
+  preferredTime: String!
+  serviceType: ServiceType!
+  serviceName: String!
+  propertyType: String
+  numRooms: Int
+  numBathrooms: Int
+  areaSqm: Int
+  hasPets: Boolean
+  specialInstructions: String
+
+  # Pricing
+  hourlyRate: Float!
+  estimatedDurationHours: Float!
+  perSessionOriginal: Float!
+  discountPct: Float!
+  perSessionDiscounted: Float!
+  sessionsPerMonth: Int!
+  monthlyAmount: Float!
+  platformCommissionPct: Float!
+
+  # Stripe
+  stripeSubscriptionId: String
+
+  # Status & lifecycle
+  status: SubscriptionStatus!
+  currentPeriodStart: DateTime
+  currentPeriodEnd: DateTime
+  cancelledAt: DateTime
+  cancellationReason: String
+  pausedAt: DateTime
+  createdAt: DateTime!
+
+  # Related bookings
+  bookings: [Booking!]!
+  upcomingBookings: [Booking!]!
+  totalBookings: Int!
+  completedBookings: Int!
+  extras: [BookingExtra!]!
+}
+
+type SubscriptionConnection {
+  edges: [ServiceSubscription!]!
+  totalCount: Int!
+}
+
+type SubscriptionStats {
+  activeCount: Int!
+  pausedCount: Int!
+  pastDueCount: Int!
+  cancelledCount: Int!
+  monthlyRecurringRevenue: Int!
+}
+
+type SubscriptionWorkerSuggestion {
+  worker: WorkerProfile!
+  company: Company!
+  matchScore: Float!
+  availableWeeks: Int!
+  totalWeeks: Int!
+  consistencyPct: Float!
+  suggestedTimeStart: String
+  suggestedTimeEnd: String
+}
+
+# ─── Inputs ────────────────────────────────────────────────────────────────
+
+input CreateSubscriptionInput {
+  addressId: ID
+  address: AddAddressInput
+  serviceType: ServiceType!
+  recurrenceType: RecurrenceType!
+  dayOfWeek: Int!
+  preferredTime: String!
+  propertyType: String
+  numRooms: Int!
+  numBathrooms: Int!
+  areaSqm: Int
+  hasPets: Boolean
+  specialInstructions: String
+  extras: [ExtraInput!]
+  preferredWorkerId: ID!
+  paymentMethodId: ID!
+}
+
+# ─── Queries ───────────────────────────────────────────────────────────────
+
+extend type Query {
+  # Public (for booking flow)
+  recurringDiscounts: [RecurringDiscount!]!
+  subscriptionPricingPreview(
+    serviceType: ServiceType!
+    recurrenceType: RecurrenceType!
+    numRooms: Int!
+    numBathrooms: Int!
+    areaSqm: Int
+    propertyType: String
+    hasPets: Boolean
+    extras: [ExtraInput!]
+  ): SubscriptionPricing!
+
+  # Subscription worker matching (booking flow)
+  suggestWorkerForSubscription(
+    cityId: ID!
+    areaId: ID!
+    recurrenceType: RecurrenceType!
+    dayOfWeek: Int!
+    preferredTimeStart: String!
+    preferredTimeEnd: String!
+    estimatedDurationHours: Float!
+  ): [SubscriptionWorkerSuggestion!]!
+
+  # Client
+  mySubscriptions: [ServiceSubscription!]!
+  serviceSubscription(id: ID!): ServiceSubscription!
+
+  # Company
+  companySubscriptions(limit: Int, offset: Int): SubscriptionConnection!
+
+  # Admin
+  allSubscriptions(status: SubscriptionStatus, limit: Int, offset: Int): SubscriptionConnection!
+  subscriptionStats: SubscriptionStats!
+}
+
+# ─── Mutations ─────────────────────────────────────────────────────────────
+
+extend type Mutation {
+  # Client
+  createSubscription(input: CreateSubscriptionInput!): ServiceSubscription!
+  pauseSubscription(id: ID!): ServiceSubscription!
+  resumeSubscription(id: ID!): ServiceSubscription!
+  cancelSubscription(id: ID!, reason: String): ServiceSubscription!
+
+  # Client — change assigned worker
+  requestSubscriptionWorkerChange(id: ID!): ServiceSubscription!
+
+  # Admin
+  adminCancelSubscription(id: ID!, reason: String): ServiceSubscription!
+  updateRecurringDiscount(recurrenceType: RecurrenceType!, discountPct: Float!): RecurringDiscount!
+}

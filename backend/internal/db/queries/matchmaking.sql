@@ -24,3 +24,21 @@ WHERE worker_id = $1
   AND scheduled_date >= $2
   AND scheduled_date <= $3
   AND status NOT IN ('cancelled_by_client', 'cancelled_by_company', 'cancelled_by_admin');
+
+-- name: FindAvailableWorkersForDateAndArea :many
+-- Finds workers in an area who have no conflicting bookings on a specific date.
+-- Orders by same-company first (matching $4), then by rating.
+SELECT w.id, w.user_id, w.company_id, w.rating_avg
+FROM workers w
+JOIN worker_service_areas wsa ON wsa.worker_id = w.id AND wsa.city_area_id = @area_id
+JOIN companies co ON w.company_id = co.id AND co.status = 'approved'
+WHERE w.status = 'active'
+  AND w.id != @exclude_worker_id
+  AND w.id NOT IN (
+    SELECT DISTINCT b.worker_id FROM bookings b
+    WHERE b.scheduled_date = @target_date
+      AND b.worker_id IS NOT NULL
+      AND b.status NOT IN ('cancelled_by_client', 'cancelled_by_company', 'cancelled_by_admin')
+  )
+ORDER BY (CASE WHEN w.company_id = @preferred_company_id THEN 0 ELSE 1 END), w.rating_avg DESC
+LIMIT 5;

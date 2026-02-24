@@ -114,6 +114,7 @@ type Booking struct {
 	PaymentStatus          string             `json:"paymentStatus"`
 	PaidAt                 *time.Time         `json:"paidAt,omitempty"`
 	RecurringGroupID       *string            `json:"recurringGroupId,omitempty"`
+	SubscriptionID         *string            `json:"subscriptionId,omitempty"`
 	OccurrenceNumber       *int               `json:"occurrenceNumber,omitempty"`
 	RescheduleCount        int                `json:"rescheduleCount"`
 	RescheduledAt          *time.Time         `json:"rescheduledAt,omitempty"`
@@ -364,6 +365,24 @@ type CreateServiceExtraInput struct {
 	IsActive        bool    `json:"isActive"`
 	AllowMultiple   bool    `json:"allowMultiple"`
 	UnitLabel       *string `json:"unitLabel,omitempty"`
+}
+
+type CreateSubscriptionInput struct {
+	AddressID           *string          `json:"addressId,omitempty"`
+	Address             *AddAddressInput `json:"address,omitempty"`
+	ServiceType         ServiceType      `json:"serviceType"`
+	RecurrenceType      RecurrenceType   `json:"recurrenceType"`
+	DayOfWeek           int              `json:"dayOfWeek"`
+	PreferredTime       string           `json:"preferredTime"`
+	PropertyType        *string          `json:"propertyType,omitempty"`
+	NumRooms            int              `json:"numRooms"`
+	NumBathrooms        int              `json:"numBathrooms"`
+	AreaSqm             *int             `json:"areaSqm,omitempty"`
+	HasPets             *bool            `json:"hasPets,omitempty"`
+	SpecialInstructions *string          `json:"specialInstructions,omitempty"`
+	Extras              []*ExtraInput    `json:"extras,omitempty"`
+	PreferredWorkerID   string           `json:"preferredWorkerId"`
+	PaymentMethodID     string           `json:"paymentMethodId"`
 }
 
 type DailyRevenue struct {
@@ -662,33 +681,10 @@ type RecurrenceInput struct {
 	DayOfWeek int            `json:"dayOfWeek"`
 }
 
-type RecurringBookingGroup struct {
-	ID                          string         `json:"id"`
-	Client                      *User          `json:"client,omitempty"`
-	Company                     *Company       `json:"company,omitempty"`
-	PreferredWorker             *WorkerProfile `json:"preferredWorker,omitempty"`
-	Address                     *Address       `json:"address,omitempty"`
-	RecurrenceType              RecurrenceType `json:"recurrenceType"`
-	DayOfWeek                   *int           `json:"dayOfWeek,omitempty"`
-	PreferredTime               string         `json:"preferredTime"`
-	ServiceType                 ServiceType    `json:"serviceType"`
-	ServiceName                 string         `json:"serviceName"`
-	PropertyType                *string        `json:"propertyType,omitempty"`
-	NumRooms                    *int           `json:"numRooms,omitempty"`
-	NumBathrooms                *int           `json:"numBathrooms,omitempty"`
-	AreaSqm                     *int           `json:"areaSqm,omitempty"`
-	HasPets                     *bool          `json:"hasPets,omitempty"`
-	SpecialInstructions         *string        `json:"specialInstructions,omitempty"`
-	HourlyRate                  float64        `json:"hourlyRate"`
-	EstimatedTotalPerOccurrence float64        `json:"estimatedTotalPerOccurrence"`
-	IsActive                    bool           `json:"isActive"`
-	CancelledAt                 *time.Time     `json:"cancelledAt,omitempty"`
-	CancellationReason          *string        `json:"cancellationReason,omitempty"`
-	Occurrences                 []*Booking     `json:"occurrences"`
-	UpcomingOccurrences         []*Booking     `json:"upcomingOccurrences"`
-	TotalOccurrences            int            `json:"totalOccurrences"`
-	CompletedOccurrences        int            `json:"completedOccurrences"`
-	CreatedAt                   time.Time      `json:"createdAt"`
+type RecurringDiscount struct {
+	RecurrenceType RecurrenceType `json:"recurrenceType"`
+	DiscountPct    float64        `json:"discountPct"`
+	IsActive       bool           `json:"isActive"`
 }
 
 type RefundRequest struct {
@@ -767,6 +763,46 @@ type ServiceRevenue struct {
 	Revenue      float64     `json:"revenue"`
 }
 
+type ServiceSubscription struct {
+	ID                     string             `json:"id"`
+	Client                 *User              `json:"client,omitempty"`
+	Company                *Company           `json:"company,omitempty"`
+	Worker                 *WorkerProfile     `json:"worker,omitempty"`
+	Address                *Address           `json:"address,omitempty"`
+	RecurrenceType         RecurrenceType     `json:"recurrenceType"`
+	DayOfWeek              *int               `json:"dayOfWeek,omitempty"`
+	PreferredTime          string             `json:"preferredTime"`
+	ServiceType            ServiceType        `json:"serviceType"`
+	ServiceName            string             `json:"serviceName"`
+	PropertyType           *string            `json:"propertyType,omitempty"`
+	NumRooms               *int               `json:"numRooms,omitempty"`
+	NumBathrooms           *int               `json:"numBathrooms,omitempty"`
+	AreaSqm                *int               `json:"areaSqm,omitempty"`
+	HasPets                *bool              `json:"hasPets,omitempty"`
+	SpecialInstructions    *string            `json:"specialInstructions,omitempty"`
+	HourlyRate             float64            `json:"hourlyRate"`
+	EstimatedDurationHours float64            `json:"estimatedDurationHours"`
+	PerSessionOriginal     float64            `json:"perSessionOriginal"`
+	DiscountPct            float64            `json:"discountPct"`
+	PerSessionDiscounted   float64            `json:"perSessionDiscounted"`
+	SessionsPerMonth       int                `json:"sessionsPerMonth"`
+	MonthlyAmount          float64            `json:"monthlyAmount"`
+	PlatformCommissionPct  float64            `json:"platformCommissionPct"`
+	StripeSubscriptionID   *string            `json:"stripeSubscriptionId,omitempty"`
+	Status                 SubscriptionStatus `json:"status"`
+	CurrentPeriodStart     *time.Time         `json:"currentPeriodStart,omitempty"`
+	CurrentPeriodEnd       *time.Time         `json:"currentPeriodEnd,omitempty"`
+	CancelledAt            *time.Time         `json:"cancelledAt,omitempty"`
+	CancellationReason     *string            `json:"cancellationReason,omitempty"`
+	PausedAt               *time.Time         `json:"pausedAt,omitempty"`
+	CreatedAt              time.Time          `json:"createdAt"`
+	Bookings               []*Booking         `json:"bookings"`
+	UpcomingBookings       []*Booking         `json:"upcomingBookings"`
+	TotalBookings          int                `json:"totalBookings"`
+	CompletedBookings      int                `json:"completedBookings"`
+	Extras                 []*BookingExtra    `json:"extras"`
+}
+
 type SetupIntentResult struct {
 	ClientSecret string `json:"clientSecret"`
 }
@@ -782,6 +818,38 @@ type SubmitReviewInput struct {
 	BookingID string  `json:"bookingId"`
 	Rating    int     `json:"rating"`
 	Comment   *string `json:"comment,omitempty"`
+}
+
+type SubscriptionConnection struct {
+	Edges      []*ServiceSubscription `json:"edges"`
+	TotalCount int                    `json:"totalCount"`
+}
+
+type SubscriptionPricing struct {
+	PerSessionOriginal   float64 `json:"perSessionOriginal"`
+	DiscountPct          float64 `json:"discountPct"`
+	PerSessionDiscounted float64 `json:"perSessionDiscounted"`
+	SessionsPerMonth     int     `json:"sessionsPerMonth"`
+	MonthlyAmount        float64 `json:"monthlyAmount"`
+}
+
+type SubscriptionStats struct {
+	ActiveCount             int `json:"activeCount"`
+	PausedCount             int `json:"pausedCount"`
+	PastDueCount            int `json:"pastDueCount"`
+	CancelledCount          int `json:"cancelledCount"`
+	MonthlyRecurringRevenue int `json:"monthlyRecurringRevenue"`
+}
+
+type SubscriptionWorkerSuggestion struct {
+	Worker             *WorkerProfile `json:"worker"`
+	Company            *Company       `json:"company"`
+	MatchScore         float64        `json:"matchScore"`
+	AvailableWeeks     int            `json:"availableWeeks"`
+	TotalWeeks         int            `json:"totalWeeks"`
+	ConsistencyPct     float64        `json:"consistencyPct"`
+	SuggestedTimeStart *string        `json:"suggestedTimeStart,omitempty"`
+	SuggestedTimeEnd   *string        `json:"suggestedTimeEnd,omitempty"`
 }
 
 type TimeSlotInput struct {
@@ -1706,6 +1774,67 @@ func (e *ServiceType) UnmarshalJSON(b []byte) error {
 }
 
 func (e ServiceType) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+type SubscriptionStatus string
+
+const (
+	SubscriptionStatusActive     SubscriptionStatus = "ACTIVE"
+	SubscriptionStatusPaused     SubscriptionStatus = "PAUSED"
+	SubscriptionStatusPastDue    SubscriptionStatus = "PAST_DUE"
+	SubscriptionStatusCancelled  SubscriptionStatus = "CANCELLED"
+	SubscriptionStatusIncomplete SubscriptionStatus = "INCOMPLETE"
+)
+
+var AllSubscriptionStatus = []SubscriptionStatus{
+	SubscriptionStatusActive,
+	SubscriptionStatusPaused,
+	SubscriptionStatusPastDue,
+	SubscriptionStatusCancelled,
+	SubscriptionStatusIncomplete,
+}
+
+func (e SubscriptionStatus) IsValid() bool {
+	switch e {
+	case SubscriptionStatusActive, SubscriptionStatusPaused, SubscriptionStatusPastDue, SubscriptionStatusCancelled, SubscriptionStatusIncomplete:
+		return true
+	}
+	return false
+}
+
+func (e SubscriptionStatus) String() string {
+	return string(e)
+}
+
+func (e *SubscriptionStatus) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SubscriptionStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SubscriptionStatus", str)
+	}
+	return nil
+}
+
+func (e SubscriptionStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *SubscriptionStatus) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e SubscriptionStatus) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil

@@ -43,6 +43,8 @@ import PaymentMethodsPage from '@/pages/client/PaymentMethodsPage';
 import PaymentHistoryPage from '@/pages/client/PaymentHistoryPage';
 import ClientInvoicesPage from '@/pages/client/InvoicesPage';
 import RecurringGroupDetailPage from '@/pages/client/RecurringGroupDetailPage';
+import ClientSubscriptionsPage from '@/pages/client/SubscriptionsPage';
+import SubscriptionDetailPage from '@/pages/client/SubscriptionDetailPage';
 
 // Company pages
 import CompanyDashboardPage from '@/pages/company/DashboardPage';
@@ -56,6 +58,7 @@ import CompanyMessagesPage from '@/pages/company/MessagesPage';
 import CompanyCalendarPage from '@/pages/company/CalendarPage';
 import CompanyPayoutsPage from '@/pages/company/PayoutsPage';
 import CompanyInvoicesPage from '@/pages/company/CompanyInvoicesPage';
+import CompanySubscriptionsPage from '@/pages/company/SubscriptionsPage';
 
 // Worker pages
 import AcceptInvitePage from '@/pages/worker/AcceptInvitePage';
@@ -81,6 +84,8 @@ import ReportsPage from '@/pages/admin/ReportsPage';
 import ReviewsPage from '@/pages/admin/ReviewsPage';
 import AdminPaymentsPage from '@/pages/admin/PaymentsPage';
 import AdminInvoicesPage from '@/pages/admin/AdminInvoicesPage';
+import AdminSubscriptionsPage from '@/pages/admin/SubscriptionsPage';
+import AdminSubscriptionDetailPage from '@/pages/admin/AdminSubscriptionDetailPage';
 
 // ─── Apollo Client ───────────────────────────────────────────────────────────
 
@@ -206,6 +211,8 @@ function AppRoutes() {
         <Route path="comenzi" element={<MyBookingsPage />} />
         <Route path="comenzi/:id" element={<ClientBookingDetailPage />} />
         <Route path="recurente/:id" element={<RecurringGroupDetailPage />} />
+        <Route path="abonamente" element={<ClientSubscriptionsPage />} />
+        <Route path="abonamente/:id" element={<SubscriptionDetailPage />} />
         <Route path="mesaje" element={<ChatPage />} />
         <Route path="mesaje/:roomId" element={<ChatPage />} />
         <Route path="adrese" element={<AddressesPage />} />
@@ -238,6 +245,7 @@ function AppRoutes() {
         <Route path="echipa" element={<TeamPage />} />
         <Route path="echipa/:id" element={<WorkerDetailPage />} />
         <Route path="plati" element={<CompanyPayoutsPage />} />
+        <Route path="abonamente" element={<CompanySubscriptionsPage />} />
         <Route path="facturi" element={<CompanyInvoicesPage />} />
         <Route path="setari" element={<CompanySettingsPage />} />
       </Route>
@@ -280,6 +288,8 @@ function AppRoutes() {
         <Route path="companii/:id" element={<CompanyDetailPage />} />
         <Route path="comenzi" element={<AdminBookingsPage />} />
         <Route path="comenzi/:id" element={<AdminBookingDetailPage />} />
+        <Route path="abonamente" element={<AdminSubscriptionsPage />} />
+        <Route path="abonamente/:id" element={<AdminSubscriptionDetailPage />} />
         <Route path="mesaje" element={<AdminMessagesPage />} />
         <Route path="mesaje/:roomId" element={<AdminMessagesPage />} />
         <Route path="utilizatori" element={<UsersPage />} />

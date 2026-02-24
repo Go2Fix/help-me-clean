@@ -408,6 +408,158 @@ func (s *Service) GenerateCommissionInvoice(
 	return inv, nil
 }
 
+// GenerateSubscriptionMonthlyInvoice creates a monthly invoice for a recurring
+// subscription. The seller is the cleaning company and the buyer is the client.
+// This should be called from the subscription service's HandleInvoicePaid method
+// after the Stripe invoice.paid webhook confirms payment for a new billing period.
+func (s *Service) GenerateSubscriptionMonthlyInvoice(
+	ctx context.Context,
+	sub db.Subscription,
+	company db.Company,
+	periodStart, periodEnd time.Time,
+) error {
+	// Guard: subscription must have a positive monthly amount.
+	if sub.MonthlyAmountBani <= 0 {
+		return errors.New("invoice: subscription has no monthly amount")
+	}
+
+	// Treat the monthly amount as VAT-inclusive (21%): net = total * 100 / 121, vat = total - net.
+	totalBani := sub.MonthlyAmountBani
+	subtotalNet := totalBani * 100 / 121
+	vatAmount := totalBani - subtotalNet
+
+	// Build invoice number with company-derived prefix.
+	prefix := companyPrefix(company.CompanyName)
+	invoiceNumber, err := s.NewInvoiceNumber(ctx, company.ID, prefix)
+	if err != nil {
+		return fmt.Errorf("invoice: generate number for subscription: %w", err)
+	}
+
+	// Resolve buyer info from the subscription's client user.
+	billingProfile, profileErr := s.queries.GetBillingProfileByUser(ctx, sub.ClientUserID)
+	buyerName, buyerCUI, buyerRegNumber, buyerAddress, buyerCity, buyerCounty, buyerIsVATPayer, buyerEmail :=
+		s.resolveBuyerInfo(ctx, sub.ClientUserID, billingProfile, profileErr)
+
+	dueDate := pgtype.Date{Time: time.Now().AddDate(0, 0, 30), Valid: true}
+
+	// Map recurrence type to a Romanian label for the line item description.
+	frequencyLabel := "lunar"
+	switch sub.RecurrenceType {
+	case db.RecurrenceTypeWeekly:
+		frequencyLabel = "saptamanal"
+	case db.RecurrenceTypeBiweekly:
+		frequencyLabel = "bi-saptamanal"
+	case db.RecurrenceTypeMonthly:
+		frequencyLabel = "lunar"
+	}
+
+	notes := fmt.Sprintf("Abonament curatenie %s - %s pana %s",
+		frequencyLabel,
+		periodStart.Format("02.01.2006"),
+		periodEnd.Format("02.01.2006"),
+	)
+
+	inv, err := s.queries.CreateInvoice(ctx, db.CreateInvoiceParams{
+		InvoiceType:          db.InvoiceTypeSubscriptionMonthly,
+		InvoiceNumber:        pgText(invoiceNumber),
+		SellerCompanyName:    company.CompanyName,
+		SellerCui:            company.Cui,
+		SellerRegNumber:      pgtype.Text{},
+		SellerAddress:        company.Address,
+		SellerCity:           company.City,
+		SellerCounty:         company.County,
+		SellerIsVatPayer:     true,
+		SellerBankName:       pgtype.Text{},
+		SellerIban:           pgtype.Text{},
+		BuyerName:            buyerName,
+		BuyerCui:             buyerCUI,
+		BuyerRegNumber:       buyerRegNumber,
+		BuyerAddress:         buyerAddress,
+		BuyerCity:            buyerCity,
+		BuyerCounty:          buyerCounty,
+		BuyerIsVatPayer:      buyerIsVATPayer,
+		BuyerEmail:           buyerEmail,
+		SubtotalAmount:       subtotalNet,
+		VatRate:              numericFromInt(vatRatePct),
+		VatAmount:            vatAmount,
+		TotalAmount:          totalBani,
+		Currency:             "RON",
+		BookingID:            pgtype.UUID{}, // No booking link for subscription invoices.
+		PaymentTransactionID: pgtype.UUID{},
+		CompanyID:            company.ID,
+		ClientUserID:         sub.ClientUserID,
+		Status:               db.InvoiceStatusIssued,
+		DueDate:              dueDate,
+		Notes:                pgText(notes),
+	})
+	if err != nil {
+		return fmt.Errorf("invoice: create subscription monthly invoice: %w", err)
+	}
+
+	// Create a single line item describing the subscription period.
+	descRo := fmt.Sprintf("Abonament curatenie %s - %s pana %s",
+		frequencyLabel,
+		periodStart.Format("02.01.2006"),
+		periodEnd.Format("02.01.2006"),
+	)
+	descEn := fmt.Sprintf("Cleaning subscription %s - %s to %s",
+		string(sub.RecurrenceType),
+		periodStart.Format("02.01.2006"),
+		periodEnd.Format("02.01.2006"),
+	)
+
+	_, err = s.queries.CreateInvoiceLineItem(ctx, db.CreateInvoiceLineItemParams{
+		InvoiceID:        inv.ID,
+		DescriptionRo:    descRo,
+		DescriptionEn:    pgText(descEn),
+		Quantity:         numericFromInt(1),
+		UnitPrice:        subtotalNet,
+		VatRate:          numericFromInt(vatRatePct),
+		VatAmount:        vatAmount,
+		LineTotal:        subtotalNet,
+		LineTotalWithVat: totalBani,
+		SortOrder:        pgtype.Int4{Int32: 1, Valid: true},
+	})
+	if err != nil {
+		return fmt.Errorf("invoice: create subscription line item: %w", err)
+	}
+
+	// Sync to Factureaza.ro (best-effort for MVP; do not fail the whole operation).
+	lineItems, _ := s.queries.ListInvoiceLineItems(ctx, inv.ID)
+	factureazaID, downloadURL, apiErr := s.createInvoiceOnFactureaza(ctx, inv, lineItems)
+	if apiErr != nil {
+		log.Printf("invoice: factureaza.ro API error for subscription invoice (non-fatal): %v", apiErr)
+	} else if factureazaID != "" {
+		updateErr := s.queries.UpdateInvoiceFactureaza(ctx, db.UpdateInvoiceFactureazaParams{
+			ID:                    inv.ID,
+			FactureazaID:          pgText(factureazaID),
+			FactureazaDownloadUrl: pgText(downloadURL),
+		})
+		if updateErr != nil {
+			log.Printf("invoice: failed to persist factureaza metadata for subscription invoice: %v", updateErr)
+		} else {
+			inv.FactureazaID = pgText(factureazaID)
+			inv.FactureazaDownloadUrl = pgText(downloadURL)
+		}
+	}
+
+	// Auto-transmit to e-factura (best-effort, non-blocking).
+	if inv.FactureazaID.Valid && inv.FactureazaID.String != "" {
+		go func() {
+			bgCtx := context.Background()
+			if transmitErr := s.TransmitToEFactura(bgCtx, inv.ID); transmitErr != nil {
+				log.Printf("invoice: auto e-factura transmission failed for subscription invoice (non-fatal): %v", transmitErr)
+			} else {
+				log.Printf("invoice: auto-transmitted subscription invoice %s to e-factura", invoiceNumber)
+			}
+		}()
+	}
+
+	log.Printf("invoice: created subscription monthly invoice %s for subscription %s, amount=%d bani",
+		invoiceNumber, uuidToString(sub.ID), totalBani)
+	return nil
+}
+
 // CancelInvoice marks an invoice as cancelled, both locally and on Factureaza.ro.
 func (s *Service) CancelInvoice(ctx context.Context, invoiceID pgtype.UUID) (db.Invoice, error) {
 	inv, err := s.queries.GetInvoiceByID(ctx, invoiceID)

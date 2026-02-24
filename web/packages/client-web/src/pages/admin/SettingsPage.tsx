@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
-import { Settings, Package, Sparkles, MapPin, Pencil, Check, X, Plus, ChevronDown, ChevronRight, ToggleLeft } from 'lucide-react';
+import { Settings, Package, Sparkles, MapPin, Pencil, Check, X, Plus, ChevronDown, ChevronRight, ToggleLeft, Percent } from 'lucide-react';
 import { cn } from '@go2fix/shared';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
@@ -25,11 +25,13 @@ import {
   PLATFORM_MODE,
   WAITLIST_STATS,
   WAITLIST_LEADS,
+  RECURRING_DISCOUNTS,
+  UPDATE_RECURRING_DISCOUNT,
 } from '@/graphql/operations';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type TabKey = 'general' | 'services' | 'extras' | 'cities' | 'platform';
+type TabKey = 'general' | 'services' | 'extras' | 'cities' | 'discounts' | 'platform';
 
 interface PlatformSetting {
   key: string;
@@ -68,6 +70,12 @@ interface ExtraDef {
   unitLabel?: string | null;
 }
 
+interface RecurringDiscount {
+  recurrenceType: 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY';
+  discountPct: number;
+  isActive: boolean;
+}
+
 interface CityArea {
   id: string;
   name: string;
@@ -90,6 +98,7 @@ const tabs: { key: TabKey; label: string; icon: typeof Settings }[] = [
   { key: 'services', label: 'Servicii', icon: Package },
   { key: 'extras', label: 'Extra-uri', icon: Sparkles },
   { key: 'cities', label: 'Orase', icon: MapPin },
+  { key: 'discounts', label: 'Reduceri abonamente', icon: Percent },
   { key: 'platform', label: 'Platforma', icon: ToggleLeft },
 ];
 
@@ -1196,6 +1205,112 @@ function CitiesTab() {
   );
 }
 
+// ─── Tab: Reduceri abonamente ────────────────────────────────────────────────
+
+const RECURRENCE_LABELS: Record<string, string> = {
+  WEEKLY: 'Saptamanal',
+  BIWEEKLY: 'Bi-saptamanal',
+  MONTHLY: 'Lunar',
+};
+
+const RECURRENCE_ORDER: RecurringDiscount['recurrenceType'][] = ['WEEKLY', 'BIWEEKLY', 'MONTHLY'];
+
+function RecurringDiscountsTab() {
+  const { data, loading } = useQuery<{ recurringDiscounts: RecurringDiscount[] }>(RECURRING_DISCOUNTS);
+  const [updateDiscount] = useMutation(UPDATE_RECURRING_DISCOUNT, {
+    refetchQueries: [{ query: RECURRING_DISCOUNTS }],
+  });
+
+  const [editValues, setEditValues] = useState<Record<string, string>>({});
+  const [savingType, setSavingType] = useState<string | null>(null);
+  const [savedType, setSavedType] = useState<string | null>(null);
+
+  const discountsMap = new Map<string, RecurringDiscount>();
+  (data?.recurringDiscounts ?? []).forEach((d) => discountsMap.set(d.recurrenceType, d));
+
+  const handleSave = async (recurrenceType: string) => {
+    const rawValue = editValues[recurrenceType];
+    if (rawValue === undefined || rawValue === '') return;
+    const pct = parseFloat(rawValue);
+    if (isNaN(pct) || pct < 0 || pct > 100) return;
+
+    setSavingType(recurrenceType);
+    try {
+      await updateDiscount({ variables: { recurrenceType, discountPct: pct } });
+      setSavedType(recurrenceType);
+      setEditValues((prev) => {
+        const next = { ...prev };
+        delete next[recurrenceType];
+        return next;
+      });
+      setTimeout(() => setSavedType(null), 2000);
+    } finally {
+      setSavingType(null);
+    }
+  };
+
+  if (loading) return <SettingsSkeleton />;
+
+  return (
+    <Card>
+      <h3 className="text-lg font-semibold text-gray-900 mb-1">Reduceri abonamente</h3>
+      <p className="text-sm text-gray-500 mb-5">Configureaza reducerile pentru abonamentele recurente</p>
+
+      <div className="divide-y divide-gray-100">
+        {RECURRENCE_ORDER.map((type) => {
+          const discount = discountsMap.get(type);
+          const currentPct = discount?.discountPct ?? 0;
+          const editValue = editValues[type];
+          const hasEdit = editValue !== undefined && editValue !== '' && parseFloat(editValue) !== currentPct;
+          const isSaving = savingType === type;
+          const isSaved = savedType === type;
+
+          return (
+            <div key={type} className="flex items-center justify-between py-4 gap-4">
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-700">{RECURRENCE_LABELS[type]}</p>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  Reducere curenta: <span className="font-medium text-gray-600">{currentPct}%</span>
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3 shrink-0">
+                {isSaved && (
+                  <Badge variant="success">Salvat</Badge>
+                )}
+                <div className="relative">
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    step={1}
+                    value={editValue ?? currentPct}
+                    onChange={(e) => setEditValues((prev) => ({ ...prev, [type]: e.target.value }))}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleSave(type);
+                    }}
+                    className="w-24 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 text-right pr-8 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-400 pointer-events-none">%</span>
+                </div>
+                <Button
+                  size="sm"
+                  onClick={() => handleSave(type)}
+                  loading={isSaving}
+                  disabled={!hasEdit || isSaving}
+                >
+                  <Check className="h-4 w-4" />
+                  Salveaza
+                </Button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </Card>
+  );
+}
+
 // ─── Tab: Platforma ──────────────────────────────────────────────────────────
 
 function PlatformTab() {
@@ -1398,6 +1513,7 @@ export default function SettingsPage() {
       {activeTab === 'services' && <ServicesTab />}
       {activeTab === 'extras' && <ExtrasTab />}
       {activeTab === 'cities' && <CitiesTab />}
+      {activeTab === 'discounts' && <RecurringDiscountsTab />}
       {activeTab === 'platform' && <PlatformTab />}
     </div>
   );

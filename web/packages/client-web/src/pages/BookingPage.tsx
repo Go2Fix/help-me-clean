@@ -58,8 +58,12 @@ import {
   MY_ADDRESSES,
   ACTIVE_CITIES,
   SUGGEST_WORKERS,
+  SUGGEST_WORKER_FOR_SUBSCRIPTION,
   MY_PAYMENT_METHODS,
   CREATE_BOOKING_PAYMENT_INTENT,
+  RECURRING_DISCOUNTS,
+  SUBSCRIPTION_PRICING_PREVIEW,
+  CREATE_SUBSCRIPTION,
 } from '@/graphql/operations';
 
 const stripePromise = loadStripe(
@@ -170,6 +174,29 @@ interface WorkerSuggestion {
   matchScore: number;
 }
 
+interface SubscriptionWorkerSuggestion {
+  worker: {
+    id: string;
+    fullName: string;
+    ratingAvg: number;
+    totalJobsCompleted: number;
+    user: {
+      id: string;
+      avatarUrl: string | null;
+    };
+  };
+  company: {
+    id: string;
+    companyName: string;
+  };
+  matchScore: number;
+  availableWeeks: number;
+  totalWeeks: number;
+  consistencyPct: number;
+  suggestedTimeStart: string | null;
+  suggestedTimeEnd: string | null;
+}
+
 interface SavedPaymentMethod {
   id: string;
   stripePaymentMethodId: string;
@@ -205,6 +232,8 @@ interface BookingFormState {
   isRecurring: boolean;
   recurrenceType: 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY' | '';
   recurrenceDayOfWeek: number;
+  preferredTimeStart: string;
+  preferredTimeEnd: string;
 }
 
 // ---- Constants --------------------------------------------------------------
@@ -320,6 +349,7 @@ export default function BookingPage() {
     referenceCode: string;
     id: string;
     recurringGroupId?: string;
+    subscriptionId?: string;
   } | null>(null);
 
   const [authError, setAuthError] = useState('');
@@ -363,6 +393,8 @@ export default function BookingPage() {
     isRecurring: false,
     recurrenceType: '',
     recurrenceDayOfWeek: 1,
+    preferredTimeStart: '09:00',
+    preferredTimeEnd: '13:00',
   });
 
   // ---- Data fetching --------------------------------------------------------
@@ -394,6 +426,16 @@ export default function BookingPage() {
   const [createBooking, { loading: creating }] = useMutation(
     CREATE_BOOKING_REQUEST,
   );
+  const [createSubscription] = useMutation(CREATE_SUBSCRIPTION);
+
+  // Subscription pricing
+  const { data: discountsData } = useQuery(RECURRING_DISCOUNTS);
+  const recurringDiscounts: { recurrenceType: string; discountPct: number }[] =
+    discountsData?.recurringDiscounts ?? [];
+
+  const [fetchSubPricing, { data: subPricingData, loading: subPricingLoading }] =
+    useLazyQuery(SUBSCRIPTION_PRICING_PREVIEW, { fetchPolicy: 'network-only' });
+  const subPricing = subPricingData?.subscriptionPricingPreview as SubscriptionPricingPreview | undefined;
 
   const services: ServiceDefinition[] = servicesData?.availableServices ?? [];
   const extras: ExtraDefinition[] = extrasData?.availableExtras ?? [];
@@ -438,6 +480,24 @@ export default function BookingPage() {
     };
   }, [triggerEstimate]);
 
+  // Fetch subscription pricing when recurring is enabled
+  useEffect(() => {
+    if (form.isRecurring && form.recurrenceType && form.serviceType) {
+      fetchSubPricing({
+        variables: {
+          serviceType: form.serviceType,
+          recurrenceType: form.recurrenceType,
+          numRooms: form.numRooms,
+          numBathrooms: form.numBathrooms,
+          areaSqm: parseInt(form.areaSqm, 10) || undefined,
+          propertyType: form.propertyType || undefined,
+          hasPets: form.hasPets,
+          extras: form.extras.filter((e) => e.quantity > 0),
+        },
+      });
+    }
+  }, [form.isRecurring, form.recurrenceType, form.serviceType, form.numRooms, form.numBathrooms, form.areaSqm, form.propertyType, form.hasPets, form.extras, fetchSubPricing]);
+
   // Auto-select default payment method
   useEffect(() => {
     if (paymentMethods.length > 0 && !selectedPaymentMethodId) {
@@ -468,6 +528,9 @@ export default function BookingPage() {
       case 'details':
         return form.numRooms >= 1 && form.numBathrooms >= 1 && !!form.areaSqm && parseInt(form.areaSqm, 10) > 0;
       case 'schedule':
+        if (form.isRecurring) {
+          return !!form.recurrenceType && form.recurrenceDayOfWeek >= 1 && !!form.preferredTimeStart && !!form.preferredTimeEnd;
+        }
         return form.timeSlots.length >= 1;
       case 'address':
         return !!form.useSavedAddress || (
@@ -646,6 +709,54 @@ export default function BookingPage() {
     setPaymentProcessing(true);
     setPaymentError(null);
 
+    // ── Subscription flow ──────────────────────────────────────────────
+    if (form.isRecurring && form.recurrenceType) {
+      try {
+        const subInput: Record<string, unknown> = {
+          serviceType: form.serviceType,
+          recurrenceType: form.recurrenceType,
+          dayOfWeek: form.recurrenceDayOfWeek,
+          preferredTime: form.preferredTimeStart || '09:00',
+          propertyType: form.propertyType || undefined,
+          numRooms: form.numRooms,
+          numBathrooms: form.numBathrooms,
+          areaSqm: parseInt(form.areaSqm, 10) || undefined,
+          hasPets: form.hasPets,
+          specialInstructions: form.specialInstructions || undefined,
+          extras: form.extras.filter((e) => e.quantity > 0),
+          preferredWorkerId: form.preferredWorkerId,
+          paymentMethodId: selectedPaymentMethodId,
+        };
+        if (form.useSavedAddress) {
+          subInput.addressId = form.useSavedAddress;
+        } else {
+          subInput.address = {
+            streetAddress: form.streetAddress,
+            city: form.city,
+            county: form.county,
+            floor: form.floor || undefined,
+            apartment: form.apartment || undefined,
+            latitude: form.latitude,
+            longitude: form.longitude,
+          };
+        }
+        const { data } = await createSubscription({ variables: { input: subInput } });
+        const sub = data.createSubscription;
+        setBookingResult({
+          referenceCode: '',
+          id: sub.id,
+          subscriptionId: sub.id,
+        });
+      } catch (err) {
+        console.error('Subscription creation failed:', err);
+        setPaymentError('Crearea abonamentului a eșuat. Te rugăm să încerci din nou.');
+      } finally {
+        setPaymentProcessing(false);
+      }
+      return;
+    }
+
+    // ── One-time booking flow ──────────────────────────────────────────
     try {
       // 1. Create booking
       const input = buildBookingInput();
@@ -694,7 +805,7 @@ export default function BookingPage() {
     } finally {
       setPaymentProcessing(false);
     }
-  }, [selectedPaymentMethodId, paymentMethods, buildBookingInput, createBooking, createPaymentIntent]);
+  }, [selectedPaymentMethodId, paymentMethods, buildBookingInput, createBooking, createPaymentIntent, createSubscription, form]);
 
   // ---- Auth handlers --------------------------------------------------------
 
@@ -743,42 +854,65 @@ export default function BookingPage() {
             )}
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-3">
-            {hasPaymentError ? 'Rezervare creată, plată în așteptare' : 'Rezervare confirmată!'}
+            {bookingResult.subscriptionId
+              ? 'Abonament creat cu succes!'
+              : hasPaymentError
+                ? 'Rezervare creată, plată în așteptare'
+                : 'Rezervare confirmată!'}
           </h1>
           <p className="text-gray-500 mb-4">
-            {hasPaymentError
-              ? paymentError
-              : 'Rezervarea ta a fost confirmată. Curățătorul a fost notificat!'}
+            {bookingResult.subscriptionId
+              ? 'Abonamentul tău a fost activat. Programările vor fi generate automat în fiecare lună.'
+              : hasPaymentError
+                ? paymentError
+                : 'Rezervarea ta a fost confirmată. Curățătorul a fost notificat!'}
           </p>
-          <div className={cn(
-            'inline-flex items-center gap-2 px-6 py-3 rounded-xl text-xl font-mono font-bold text-gray-900 mb-4 tracking-wider',
-            hasPaymentError
-              ? 'bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200'
-              : 'bg-gradient-to-r from-blue-50 to-emerald-50 border border-blue-100',
-          )}>
-            {bookingResult.referenceCode}
-          </div>
-          {bookingResult.recurringGroupId && (
+          {bookingResult.referenceCode && (
+            <div className={cn(
+              'inline-flex items-center gap-2 px-6 py-3 rounded-xl text-xl font-mono font-bold text-gray-900 mb-4 tracking-wider',
+              hasPaymentError
+                ? 'bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200'
+                : 'bg-gradient-to-r from-blue-50 to-emerald-50 border border-blue-100',
+            )}>
+              {bookingResult.referenceCode}
+            </div>
+          )}
+          {bookingResult.subscriptionId && (
+            <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-100 mb-4 text-sm text-emerald-800">
+              <Repeat className="h-4 w-4 text-emerald-600 shrink-0" />
+              <span>Abonament lunar activ — programările se generează automat. Plata se procesează lunar prin Stripe.</span>
+            </div>
+          )}
+          {bookingResult.recurringGroupId && !bookingResult.subscriptionId && (
             <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-blue-50 border border-blue-100 mb-4 text-sm text-blue-800">
               <Repeat className="h-4 w-4 text-blue-600 shrink-0" />
               <span>Serie recurentă creată — 8 programări au fost generate automat.</span>
             </div>
           )}
           <p className="text-sm text-gray-400 mb-8">
-            {hasPaymentError
-              ? 'Poți plăti din pagina comenzii tale.'
-              : bookingResult.recurringGroupId
-                ? 'Gestionează seria recurentă din pagina Comenzile mele.'
-                : 'Poți comunica cu curățătorul prin chat din pagina comenzii.'}
+            {bookingResult.subscriptionId
+              ? 'Gestionează abonamentul din pagina Abonamente.'
+              : hasPaymentError
+                ? 'Poți plăti din pagina comenzii tale.'
+                : bookingResult.recurringGroupId
+                  ? 'Gestionează seria recurentă din pagina Comenzile mele.'
+                  : 'Poți comunica cu curățătorul prin chat din pagina comenzii.'}
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             {isAuthenticated && (
               <>
-                <Button onClick={() => navigate(`/cont/comenzi/${bookingResult.id}`)}>
-                  {hasPaymentError ? 'Plătește acum' : 'Vezi comenzile mele'}
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-                {bookingResult.recurringGroupId && (
+                {bookingResult.subscriptionId ? (
+                  <Button onClick={() => navigate(`/cont/abonamente/${bookingResult.subscriptionId}`)}>
+                    Vezi abonamentul
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                ) : (
+                  <Button onClick={() => navigate(`/cont/comenzi/${bookingResult.id}`)}>
+                    {hasPaymentError ? 'Plătește acum' : 'Vezi comenzile mele'}
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                )}
+                {bookingResult.recurringGroupId && !bookingResult.subscriptionId && (
                   <Button
                     variant="outline"
                     onClick={() => navigate(`/cont/recurente/${bookingResult.recurringGroupId}`)}
@@ -859,6 +993,9 @@ export default function BookingPage() {
                 updateForm={updateForm}
                 estimatedHours={estimate?.estimatedHours}
                 minHours={selectedService?.minHours}
+                recurringDiscounts={recurringDiscounts}
+                subPricing={subPricing}
+                subPricingLoading={subPricingLoading}
               />
             )}
 
@@ -965,6 +1102,7 @@ export default function BookingPage() {
                   savedAddresses={savedAddresses}
                   isAuthenticated={isAuthenticated}
                   userName={user?.fullName}
+                  subPricing={subPricing}
                 />
               </>
             )}
@@ -1121,6 +1259,11 @@ export default function BookingPage() {
                       <Loader2 className="h-5 w-5 animate-spin" />
                       Se procesează...
                     </>
+                  ) : form.isRecurring && form.recurrenceType ? (
+                    <>
+                      Activează abonamentul
+                      <Repeat className="h-5 w-5" />
+                    </>
                   ) : (
                     <>
                       Confirmă și plătește
@@ -1151,6 +1294,8 @@ export default function BookingPage() {
               extras={extras}
               estimate={estimate}
               estimateLoading={estimateLoading}
+              subPricing={subPricing}
+              subPricingLoading={subPricingLoading}
             />
           </div>
         </div>
@@ -1162,6 +1307,7 @@ export default function BookingPage() {
           estimate={estimate}
           estimateLoading={estimateLoading}
           extras={extras}
+          subPricing={subPricing}
         />
       </div>
     </div>
@@ -1705,16 +1851,32 @@ function StepperField({
 
 // ---- Step 2: Schedule -------------------------------------------------------
 
+type SubscriptionPricingPreview = {
+  perSessionOriginal: number;
+  discountPct: number;
+  perSessionDiscounted: number;
+  sessionsPerMonth: number;
+  monthlyAmount: number;
+};
+
+type RecurringDiscountItem = { recurrenceType: string; discountPct: number };
+
 function StepSchedule({
   form,
   updateForm,
   estimatedHours,
   minHours,
+  recurringDiscounts,
+  subPricing,
+  subPricingLoading,
 }: {
   form: BookingFormState;
   updateForm: (updates: Partial<BookingFormState>) => void;
   estimatedHours?: number;
   minHours?: number;
+  recurringDiscounts: RecurringDiscountItem[];
+  subPricing?: SubscriptionPricingPreview;
+  subPricingLoading: boolean;
 }) {
   const duration = estimatedHours ?? minHours ?? 2;
 
@@ -1821,37 +1983,272 @@ function StepSchedule({
 
   const canPrevMonth = !(viewYear === today.getFullYear() && viewMonth === today.getMonth());
 
+  const maxDiscount = recurringDiscounts.length > 0 ? Math.max(...recurringDiscounts.map(d => d.discountPct)) : 15;
+
+  // Time options for subscription time window dropdowns (08:00 - 20:00, 30-min steps)
+  const allTimeOptions = useMemo(() => {
+    const opts: string[] = [];
+    for (let h = 8; h <= 20; h++) {
+      opts.push(`${String(h).padStart(2, '0')}:00`);
+      if (h < 20) opts.push(`${String(h).padStart(2, '0')}:30`);
+    }
+    return opts;
+  }, []);
+
+  // Duration in 30-min slots (rounded up)
+  const durationSlots = Math.ceil(duration * 2);
+
+  // Start time: must leave room for at least the full duration before 20:00
+  const startTimeOptions = useMemo(() => {
+    const maxStartIdx = allTimeOptions.length - 1 - durationSlots;
+    return allTimeOptions.filter((_, i) => i <= Math.max(0, maxStartIdx));
+  }, [allTimeOptions, durationSlots]);
+
+  // End time: must be at least start + duration away, and no later than 20:00
+  const endTimeOptions = useMemo(() => {
+    const startIdx = allTimeOptions.indexOf(form.preferredTimeStart);
+    const minEndIdx = startIdx + durationSlots;
+    return allTimeOptions.filter((_, i) => i >= minEndIdx);
+  }, [allTimeOptions, form.preferredTimeStart, durationSlots]);
+
+  // Auto-correct end time when duration changes (e.g. user changes rooms/extras)
+  useEffect(() => {
+    if (!form.isRecurring) return;
+    const startIdx = allTimeOptions.indexOf(form.preferredTimeStart);
+    const minEndIdx = startIdx + durationSlots;
+    const currentEndIdx = allTimeOptions.indexOf(form.preferredTimeEnd);
+    if (currentEndIdx < minEndIdx && minEndIdx < allTimeOptions.length) {
+      updateForm({ preferredTimeEnd: allTimeOptions[minEndIdx] });
+    }
+    // Also ensure start is valid (leaves room for duration)
+    const maxStartIdx = allTimeOptions.length - 1 - durationSlots;
+    if (startIdx > maxStartIdx && maxStartIdx >= 0) {
+      const newStart = allTimeOptions[maxStartIdx];
+      const newMinEnd = allTimeOptions[maxStartIdx + durationSlots];
+      updateForm({ preferredTimeStart: newStart, preferredTimeEnd: newMinEnd });
+    }
+  }, [durationSlots, form.isRecurring]); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <div>
       <h2 className="text-xl font-semibold text-gray-900 mb-2">
-        Alege data și ora
+        {form.isRecurring ? 'Configurează abonamentul' : 'Alege data și ora'}
       </h2>
       <p className="text-sm text-gray-500 mb-6">
-        Selectează unul sau mai multe intervale orare disponibile.
+        {form.isRecurring
+          ? 'Setează frecvența, ziua și intervalul orar preferat.'
+          : 'Selectează unul sau mai multe intervale orare disponibile.'}
       </p>
 
-      {/* Duration + recurring hint */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-6">
-        <div className="flex items-center gap-3 p-4 rounded-xl bg-blue-50 border border-blue-100 flex-1">
-          <Clock className="h-5 w-5 text-blue-600 shrink-0" />
-          <div>
-            <span className="text-sm font-semibold text-blue-900">
-              Durată estimată: ~{duration} ore
+      {/* Booking type selector — O singură dată vs Abonament */}
+      <div className="grid grid-cols-2 gap-3 mb-6">
+        <button
+          type="button"
+          onClick={() => updateForm({ isRecurring: false, recurrenceType: '' })}
+          className={cn(
+            'relative flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all cursor-pointer text-center',
+            !form.isRecurring
+              ? 'border-blue-600 bg-blue-50 ring-1 ring-blue-600/20'
+              : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50',
+          )}
+        >
+          <Calendar className={cn('h-6 w-6', !form.isRecurring ? 'text-blue-600' : 'text-gray-400')} />
+          <span className={cn('text-sm font-semibold', !form.isRecurring ? 'text-blue-900' : 'text-gray-700')}>
+            O singură dată
+          </span>
+          <span className="text-xs text-gray-500">Alegi data și ora exactă</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => updateForm({ isRecurring: true, recurrenceType: form.recurrenceType || 'WEEKLY' })}
+          className={cn(
+            'relative flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all cursor-pointer text-center',
+            form.isRecurring
+              ? 'border-emerald-600 bg-emerald-50 ring-1 ring-emerald-600/20'
+              : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50',
+          )}
+        >
+          {!form.isRecurring && (
+            <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+              RECOMANDAT
             </span>
-            <span className="text-sm text-blue-600 ml-2">
-              Selectează intervale de minim {duration} ore
-            </span>
-          </div>
-        </div>
-        {!form.isRecurring && (
-          <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-50 border border-emerald-100 text-sm text-emerald-800 cursor-default">
-            <Repeat className="h-4 w-4 text-emerald-600 shrink-0" />
-            <span>Economisești <strong>10%</strong> la curățenie recurentă</span>
-          </div>
-        )}
+          )}
+          <Repeat className={cn('h-6 w-6', form.isRecurring ? 'text-emerald-600' : 'text-gray-400')} />
+          <span className={cn('text-sm font-semibold', form.isRecurring ? 'text-emerald-900' : 'text-gray-700')}>
+            Abonament recurent
+          </span>
+          <span className="text-xs text-gray-500">Economisești până la {maxDiscount}%</span>
+        </button>
       </div>
 
-      {/* Calendar */}
+      {/* Duration info */}
+      <div className="flex items-center gap-3 p-3 rounded-xl bg-blue-50 border border-blue-100 mb-6">
+        <Clock className="h-5 w-5 text-blue-600 shrink-0" />
+        <span className="text-sm text-blue-900">
+          <strong>Durată estimată: ~{duration} ore</strong>
+          {!form.isRecurring && <span className="text-blue-600 ml-2">Selectează intervale de minim {duration} ore</span>}
+        </span>
+      </div>
+
+      {/* ── SUBSCRIPTION CONFIG (when recurring) ── */}
+      {form.isRecurring && (
+        <div className="space-y-5">
+          {/* Frequency */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Frecvență</label>
+            <div className="flex gap-2">
+              {([
+                { value: 'WEEKLY', label: 'Săptămânal' },
+                { value: 'BIWEEKLY', label: 'Bisăptămânal' },
+                { value: 'MONTHLY', label: 'Lunar' },
+              ] as const).map((opt) => {
+                const discount = recurringDiscounts.find((d) => d.recurrenceType === opt.value);
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => updateForm({ recurrenceType: opt.value })}
+                    className={cn(
+                      'flex-1 px-3 py-3 rounded-xl text-sm font-medium transition-all cursor-pointer border text-center',
+                      form.recurrenceType === opt.value
+                        ? 'bg-emerald-600 text-white border-emerald-600'
+                        : 'bg-white text-gray-700 border-gray-200 hover:border-emerald-300 hover:bg-emerald-50',
+                    )}
+                  >
+                    {opt.label}
+                    {discount && discount.discountPct > 0 && (
+                      <span className={cn(
+                        'block text-xs font-bold mt-0.5',
+                        form.recurrenceType === opt.value ? 'text-emerald-200' : 'text-emerald-600',
+                      )}>
+                        -{discount.discountPct}%
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Day of week */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Zi preferată</label>
+            <div className="grid grid-cols-7 gap-1.5">
+              {['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'].map(
+                (day, idx) => (
+                  <button
+                    key={day}
+                    type="button"
+                    onClick={() => updateForm({ recurrenceDayOfWeek: idx + 1 })}
+                    className={cn(
+                      'px-2 py-2.5 rounded-lg text-xs font-medium transition-all cursor-pointer border text-center',
+                      form.recurrenceDayOfWeek === idx + 1
+                        ? 'bg-emerald-600 text-white border-emerald-600'
+                        : 'bg-white text-gray-700 border-gray-200 hover:border-emerald-300',
+                    )}
+                  >
+                    {day.slice(0, 3)}
+                  </button>
+                ),
+              )}
+            </div>
+          </div>
+
+          {/* Time window — smart: enforces minimum gap based on estimated duration */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Interval orar preferat</label>
+            <div className="flex items-center gap-3">
+              <select
+                value={form.preferredTimeStart}
+                onChange={(e) => {
+                  const newStart = e.target.value;
+                  const newStartIdx = allTimeOptions.indexOf(newStart);
+                  const minEndIdx = newStartIdx + durationSlots;
+                  const currentEndIdx = allTimeOptions.indexOf(form.preferredTimeEnd);
+                  updateForm({
+                    preferredTimeStart: newStart,
+                    preferredTimeEnd: currentEndIdx < minEndIdx
+                      ? allTimeOptions[Math.min(minEndIdx, allTimeOptions.length - 1)]
+                      : form.preferredTimeEnd,
+                  });
+                }}
+                className="flex-1 px-3 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              >
+                {startTimeOptions.map((t) => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+              <span className="text-sm text-gray-400 font-medium">—</span>
+              <select
+                value={form.preferredTimeEnd}
+                onChange={(e) => updateForm({ preferredTimeEnd: e.target.value })}
+                className="flex-1 px-3 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              >
+                {endTimeOptions.map((t) => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+            </div>
+            <p className="text-xs text-gray-500 mt-1.5">
+              Durata estimată: ~{duration} ore. Intervalul minim: {form.preferredTimeStart} - {allTimeOptions[Math.min(allTimeOptions.indexOf(form.preferredTimeStart) + durationSlots, allTimeOptions.length - 1)]}.
+            </p>
+          </div>
+
+          {/* Subscription pricing preview */}
+          {subPricingLoading ? (
+            <div className="flex items-center gap-3 p-4 rounded-xl bg-emerald-50 border border-emerald-100">
+              <Loader2 className="h-5 w-5 text-emerald-600 animate-spin" />
+              <span className="text-sm text-emerald-700">Se calculează prețul abonamentului...</span>
+            </div>
+          ) : subPricing ? (
+            <div className="p-4 rounded-xl bg-gradient-to-r from-emerald-50 to-blue-50 border border-emerald-200 space-y-3">
+              <div className="flex items-center gap-2">
+                <Repeat className="h-5 w-5 text-emerald-600 shrink-0" />
+                <span className="text-sm font-semibold text-gray-900">Abonament lunar</span>
+              </div>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <p className="text-gray-500">Per sesiune (original)</p>
+                  <p className="font-medium text-gray-900">{subPricing.perSessionOriginal.toFixed(2)} RON</p>
+                </div>
+                <div>
+                  <p className="text-gray-500">Reducere</p>
+                  <p className="font-medium text-emerald-600">-{subPricing.discountPct}%</p>
+                </div>
+                <div>
+                  <p className="text-gray-500">Per sesiune (redus)</p>
+                  <p className="font-medium text-gray-900">{subPricing.perSessionDiscounted.toFixed(2)} RON</p>
+                </div>
+                <div>
+                  <p className="text-gray-500">Sesiuni/lună</p>
+                  <p className="font-medium text-gray-900">{subPricing.sessionsPerMonth}</p>
+                </div>
+              </div>
+              <div className="pt-2 border-t border-emerald-200 flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-700">Total lunar</span>
+                <span className="text-lg font-bold text-emerald-600">{subPricing.monthlyAmount.toFixed(2)} RON/lună</span>
+              </div>
+              <p className="text-xs text-emerald-600">
+                Plata se procesează automat prin Stripe. Poți pune pe pauză sau anula oricând.
+              </p>
+            </div>
+          ) : (
+            <div className="flex items-start gap-3 p-4 rounded-xl bg-emerald-50 border border-emerald-100">
+              <Repeat className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+              <div className="text-sm text-emerald-800">
+                <p className="font-medium mb-1">Abonament lunar cu plată automată</p>
+                <p className="text-emerald-600">
+                  Cel mai potrivit lucrător va fi alocat automat — consistență garantată.
+                  Poți pune pe pauză sau anula oricând.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── ONE-TIME DATE/TIME PICKER (when not recurring) ── */}
+      {!form.isRecurring && (<>
       <Card>
         {/* Month navigation */}
         <div className="flex items-center justify-between mb-4">
@@ -2079,109 +2476,7 @@ function StepSchedule({
           )}
         </div>
       )}
-
-      {/* Recurring booking section */}
-      <div className="mt-8 pt-6 border-t border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
-          <Repeat className="h-5 w-5 text-blue-600" />
-          Programare recurentă
-        </h3>
-        <p className="text-sm text-gray-500 mb-4">
-          Programează curățenia să se repete automat.
-        </p>
-
-        {/* Toggle */}
-        <label className="flex items-center gap-3 cursor-pointer mb-4">
-          <div className="relative">
-            <input
-              type="checkbox"
-              checked={form.isRecurring}
-              onChange={(e) =>
-                updateForm({
-                  isRecurring: e.target.checked,
-                  recurrenceType: e.target.checked ? 'WEEKLY' : '',
-                })
-              }
-              className="sr-only peer"
-            />
-            <div className="w-11 h-6 bg-gray-200 rounded-full peer-checked:bg-blue-600 transition-colors" />
-            <div className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5" />
-          </div>
-          <span className="text-sm font-medium text-gray-700">
-            Vreau curățenie recurentă
-          </span>
-        </label>
-
-        {form.isRecurring && (
-          <div className="space-y-4 pl-1">
-            {/* Frequency */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Frecventa
-              </label>
-              <div className="flex gap-2">
-                {([
-                  { value: 'WEEKLY', label: 'Săptămânal' },
-                  { value: 'BIWEEKLY', label: 'Bisăptămânal' },
-                  { value: 'MONTHLY', label: 'Lunar' },
-                ] as const).map((opt) => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => updateForm({ recurrenceType: opt.value })}
-                    className={cn(
-                      'px-4 py-2 rounded-xl text-sm font-medium transition-all cursor-pointer border',
-                      form.recurrenceType === opt.value
-                        ? 'bg-blue-600 text-white border-blue-600'
-                        : 'bg-white text-gray-700 border-gray-200 hover:border-blue-300 hover:bg-blue-50',
-                    )}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Day of week */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Zi preferata
-              </label>
-              <div className="flex gap-1.5">
-                {['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'].map(
-                  (day, idx) => (
-                    <button
-                      key={day}
-                      type="button"
-                      onClick={() => updateForm({ recurrenceDayOfWeek: idx + 1 })}
-                      className={cn(
-                        'px-3 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer border',
-                        form.recurrenceDayOfWeek === idx + 1
-                          ? 'bg-blue-600 text-white border-blue-600'
-                          : 'bg-white text-gray-700 border-gray-200 hover:border-blue-300',
-                      )}
-                    >
-                      {day.slice(0, 3)}
-                    </button>
-                  ),
-                )}
-              </div>
-            </div>
-
-            {/* Info banner */}
-            <div className="flex items-start gap-3 p-4 rounded-xl bg-blue-50 border border-blue-100">
-              <Repeat className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
-              <div className="text-sm text-blue-800">
-                <p className="font-medium mb-1">8 programări vor fi create automat</p>
-                <p className="text-blue-600">
-                  Același curățător va fi alocat pentru fiecare sesiune — consistență garantată.
-                  Poți anula oricând seria. Plătești per sesiune.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+      </>)}
     </div>
   );
 }
@@ -2693,6 +2988,45 @@ function StepWorker({
   minHours?: number;
   onChangeSchedule?: () => void;
 }) {
+  // Branch: subscription (recurring) vs one-time
+  if (form.isRecurring) {
+    return (
+      <StepWorkerSubscription
+        form={form}
+        updateForm={updateForm}
+        estimatedHours={estimatedHours}
+        minHours={minHours}
+        onChangeSchedule={onChangeSchedule}
+      />
+    );
+  }
+
+  return (
+    <StepWorkerOneTime
+      form={form}
+      updateForm={updateForm}
+      estimatedHours={estimatedHours}
+      minHours={minHours}
+      onChangeSchedule={onChangeSchedule}
+    />
+  );
+}
+
+// ---- Step 4a: One-Time Worker Selection (original flow) ---------------------
+
+function StepWorkerOneTime({
+  form,
+  updateForm,
+  estimatedHours,
+  minHours,
+  onChangeSchedule,
+}: {
+  form: BookingFormState;
+  updateForm: (updates: Partial<BookingFormState>) => void;
+  estimatedHours?: number;
+  minHours?: number;
+  onChangeSchedule?: () => void;
+}) {
   const duration = estimatedHours ?? minHours ?? 2;
   const firstSlot = form.timeSlots[0];
 
@@ -2998,6 +3332,383 @@ function StepWorker({
   );
 }
 
+// ---- Step 4b: Subscription Worker Auto-Match --------------------------------
+
+const RECURRENCE_LABELS: Record<string, string> = {
+  WEEKLY: 'Săptămânal',
+  BIWEEKLY: 'La 2 săptămâni',
+  MONTHLY: 'Lunar',
+};
+
+const DAY_NAMES_RO_SHORT: Record<number, string> = {
+  1: 'Luni',
+  2: 'Marți',
+  3: 'Miercuri',
+  4: 'Joi',
+  5: 'Vineri',
+  6: 'Sâmbătă',
+  0: 'Duminică',
+};
+
+function StepWorkerSubscription({
+  form,
+  updateForm,
+  estimatedHours,
+  minHours,
+  onChangeSchedule,
+}: {
+  form: BookingFormState;
+  updateForm: (updates: Partial<BookingFormState>) => void;
+  estimatedHours?: number;
+  minHours?: number;
+  onChangeSchedule?: () => void;
+}) {
+  const duration = estimatedHours ?? minHours ?? 2;
+
+  // State for minimum loading delay
+  const [showLoader, setShowLoader] = useState(false);
+  const loadingStartTimeRef = useRef<number | null>(null);
+
+  // Track which worker was auto-selected so we only do it once per data load
+  const autoSelectedRef = useRef<string | null>(null);
+
+  const canQuery =
+    !!form.selectedCityId &&
+    !!form.selectedAreaId &&
+    !!form.recurrenceType &&
+    form.recurrenceDayOfWeek >= 0 &&
+    !!form.preferredTimeStart &&
+    !!form.preferredTimeEnd;
+
+  const { data: subSuggestionsData, loading: subSuggestionsLoading } = useQuery<{
+    suggestWorkerForSubscription: SubscriptionWorkerSuggestion[];
+  }>(SUGGEST_WORKER_FOR_SUBSCRIPTION, {
+    variables: {
+      cityId: form.selectedCityId,
+      areaId: form.selectedAreaId,
+      recurrenceType: form.recurrenceType,
+      dayOfWeek: form.recurrenceDayOfWeek,
+      preferredTimeStart: form.preferredTimeStart,
+      preferredTimeEnd: form.preferredTimeEnd,
+      estimatedDurationHours: duration,
+    },
+    skip: !canQuery,
+    fetchPolicy: 'network-only',
+  });
+
+  const subSuggestions: SubscriptionWorkerSuggestion[] =
+    subSuggestionsData?.suggestWorkerForSubscription ?? [];
+
+  const topWorker = subSuggestions[0] ?? null;
+  const alternatives = subSuggestions.slice(1, 3);
+
+  // Auto-select top worker when data loads
+  useEffect(() => {
+    if (topWorker && autoSelectedRef.current !== topWorker.worker.id) {
+      autoSelectedRef.current = topWorker.worker.id;
+      updateForm({ preferredWorkerId: topWorker.worker.id });
+    }
+  }, [topWorker, updateForm]);
+
+  // Enforce minimum loading time of 2500ms for smooth animation
+  useEffect(() => {
+    if (subSuggestionsLoading) {
+      setShowLoader(true);
+      loadingStartTimeRef.current = Date.now();
+    } else {
+      if (loadingStartTimeRef.current !== null) {
+        const elapsed = Date.now() - loadingStartTimeRef.current;
+        const remaining = Math.max(0, 2500 - elapsed);
+
+        if (remaining > 0) {
+          const hideTimer = setTimeout(() => {
+            setShowLoader(false);
+          }, remaining);
+          return () => clearTimeout(hideTimer);
+        } else {
+          setShowLoader(false);
+        }
+      } else {
+        setShowLoader(false);
+      }
+    }
+  }, [subSuggestionsLoading]);
+
+  const renderStars = (rating: number) => {
+    const display = rating > 0 ? rating : 5.0;
+    const full = Math.floor(display);
+    const hasHalf = display - full >= 0.25;
+    return (
+      <div className="flex items-center gap-0.5">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Star
+            key={i}
+            className={cn(
+              'h-3.5 w-3.5',
+              i < full
+                ? 'text-amber-500 fill-amber-500'
+                : i === full && hasHalf
+                  ? 'text-amber-500 fill-amber-200'
+                  : 'text-gray-300',
+            )}
+          />
+        ))}
+        <span className="ml-1 text-sm font-medium text-gray-900">
+          {display.toFixed(1)}
+        </span>
+      </div>
+    );
+  };
+
+  const renderConsistencyBadge = (_available: number, _total: number, pct: number) => {
+    const color =
+      pct >= 80
+        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+        : pct >= 50
+          ? 'bg-amber-50 text-amber-700 border-amber-200'
+          : 'bg-red-50 text-red-700 border-red-200';
+    const label =
+      pct >= 100
+        ? 'Mereu disponibil'
+        : pct >= 80
+          ? 'Disponibilitate ridicată'
+          : pct >= 50
+            ? 'Disponibilitate medie'
+            : 'Disponibilitate scăzută';
+    return (
+      <span
+        className={cn(
+          'inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full border',
+          color,
+        )}
+      >
+        <Repeat className="h-3 w-3" />
+        {label}
+      </span>
+    );
+  };
+
+  const renderWorkerAvatar = (worker: SubscriptionWorkerSuggestion['worker'], size: 'lg' | 'sm') => {
+    const dimension = size === 'lg' ? 'w-20 h-20' : 'w-12 h-12';
+    const textSize = size === 'lg' ? 'text-2xl' : 'text-base';
+    const initial = worker.fullName.charAt(0).toUpperCase();
+
+    if (worker.user?.avatarUrl) {
+      return (
+        <img
+          src={worker.user.avatarUrl}
+          alt={worker.fullName}
+          className={cn(dimension, 'rounded-xl object-cover shrink-0')}
+        />
+      );
+    }
+    return (
+      <div
+        className={cn(
+          dimension,
+          'rounded-xl flex items-center justify-center text-white font-bold shrink-0',
+          textSize,
+          getInitialColor(worker.fullName),
+        )}
+      >
+        {initial}
+      </div>
+    );
+  };
+
+  return (
+    <div>
+      <h2 className="text-xl font-semibold text-gray-900 mb-2">
+        Lucratorul tau recurent
+      </h2>
+      <p className="text-sm text-gray-500 mb-4">
+        Selectat automat pe baza disponibilitatii pentru abonamentul tau.
+      </p>
+
+      {/* Subscription schedule header */}
+      <div className="mb-6">
+        <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-200">
+          <Repeat className="h-4 w-4 text-emerald-600 shrink-0" />
+          <span className="text-sm text-emerald-800 font-medium">
+            {RECURRENCE_LABELS[form.recurrenceType] || form.recurrenceType},{' '}
+            {DAY_NAMES_RO_SHORT[form.recurrenceDayOfWeek] || `Ziua ${form.recurrenceDayOfWeek}`},{' '}
+            {form.preferredTimeStart} - {form.preferredTimeEnd}
+            {duration ? ` (${duration} ${duration === 1 ? 'ora' : 'ore'})` : ''}
+          </span>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-2 mb-5">
+        {([
+          { icon: CheckCircle2, text: 'Verificare cazier' },
+          { icon: Repeat, text: 'Consistenta garantata' },
+          { icon: Sparkles, text: 'Potrivire automata AI' },
+        ] as { icon: typeof CheckCircle2; text: string }[]).map(({ icon: Icon, text }) => (
+          <div key={text} className="flex items-center gap-1.5 text-xs text-gray-600 bg-gray-50 border border-gray-200 rounded-full px-3 py-1.5">
+            <Icon className="h-3 w-3 text-emerald-500" />
+            {text}
+          </div>
+        ))}
+      </div>
+
+      {showLoader ? (
+        <AIMatchingLoader />
+      ) : topWorker ? (
+        <div className="space-y-4">
+          {/* Recommended top worker card */}
+          <Card
+            className={cn(
+              'transition-all cursor-pointer relative',
+              form.preferredWorkerId === topWorker.worker.id
+                ? 'ring-2 ring-emerald-600 border-emerald-600 shadow-md shadow-emerald-600/10'
+                : 'hover:shadow-md hover:border-gray-300',
+            )}
+            onClick={() => updateForm({ preferredWorkerId: topWorker.worker.id })}
+          >
+            {/* Recommended badge */}
+            <div className="absolute -top-3 left-4">
+              <span className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1 rounded-full bg-emerald-600 text-white shadow-sm">
+                <Sparkles className="h-3 w-3" />
+                Recomandat
+              </span>
+            </div>
+
+            {/* Selected indicator */}
+            {form.preferredWorkerId === topWorker.worker.id && (
+              <div className="absolute top-3 right-3">
+                <CheckCircle2 className="h-6 w-6 text-emerald-600" />
+              </div>
+            )}
+
+            <div className="flex items-start gap-4 mt-2">
+              {renderWorkerAvatar(topWorker.worker, 'lg')}
+
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-gray-900 text-lg">
+                  {topWorker.worker.fullName}
+                </h3>
+                <p className="text-sm text-gray-500 mb-2">
+                  {topWorker.company.companyName}
+                </p>
+
+                {renderStars(topWorker.worker.ratingAvg)}
+
+                <div className="flex flex-wrap items-center gap-2 mt-3">
+                  {renderConsistencyBadge(
+                    topWorker.availableWeeks,
+                    topWorker.totalWeeks,
+                    topWorker.consistencyPct,
+                  )}
+
+                  {topWorker.worker.totalJobsCompleted > 0 && (
+                    <span className="text-xs text-gray-500">
+                      {topWorker.worker.totalJobsCompleted} lucrari finalizate
+                    </span>
+                  )}
+                </div>
+
+                {topWorker.suggestedTimeStart && topWorker.suggestedTimeEnd && (
+                  <p className="text-xs mt-3 flex items-center gap-1 text-emerald-600 font-medium">
+                    <Clock className="h-3 w-3 shrink-0" />
+                    Interval sugerat: {topWorker.suggestedTimeStart} - {topWorker.suggestedTimeEnd}
+                  </p>
+                )}
+              </div>
+            </div>
+          </Card>
+
+          {/* Alternative workers */}
+          {alternatives.length > 0 && (
+            <div>
+              <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">
+                Alternative disponibile
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3">
+                {alternatives.map((alt) => {
+                  const isSelected = form.preferredWorkerId === alt.worker.id;
+                  return (
+                    <Card
+                      key={alt.worker.id}
+                      className={cn(
+                        'transition-all cursor-pointer shrink-0 w-full sm:flex-1 relative',
+                        isSelected
+                          ? 'ring-2 ring-blue-600 border-blue-600 shadow-md shadow-blue-600/10'
+                          : 'hover:shadow-md hover:border-gray-300',
+                      )}
+                      onClick={() => updateForm({ preferredWorkerId: alt.worker.id })}
+                    >
+                      {isSelected && (
+                        <div className="absolute top-3 right-3">
+                          <CheckCircle2 className="h-5 w-5 text-blue-600" />
+                        </div>
+                      )}
+
+                      <div className="flex items-center gap-3">
+                        {renderWorkerAvatar(alt.worker, 'sm')}
+
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-gray-900 text-sm">
+                            {alt.worker.fullName}
+                          </h4>
+                          <p className="text-xs text-gray-500 mb-1">
+                            {alt.company.companyName}
+                          </p>
+
+                          <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-0.5">
+                              <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
+                              <span className="text-xs font-medium text-gray-900">
+                                {alt.worker.ratingAvg > 0
+                                  ? alt.worker.ratingAvg.toFixed(1)
+                                  : '5.0'}
+                              </span>
+                            </div>
+
+                            <span
+                              className={cn(
+                                'text-xs px-1.5 py-0.5 rounded-full border',
+                                alt.consistencyPct >= 80
+                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                  : alt.consistencyPct >= 50
+                                    ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                    : 'bg-red-50 text-red-700 border-red-200',
+                              )}
+                            >
+                              {alt.consistencyPct >= 100 ? 'Mereu disponibil' : `${Math.round(alt.consistencyPct)}% disponibil`}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      ) : (
+        <Card>
+          <div className="text-center py-6">
+            <Calendar className="h-10 w-10 text-gray-300 mx-auto mb-3" />
+            <p className="text-sm font-medium text-gray-700 mb-1">
+              Nu sunt lucratori disponibili
+            </p>
+            <p className="text-sm text-gray-500 mb-4">
+              Nu am gasit lucratori pentru programul tau recurent. Incearca o alta zi sau un alt interval orar.
+            </p>
+            {onChangeSchedule && (
+              <Button variant="outline" size="sm" onClick={onChangeSchedule}>
+                <Calendar className="h-4 w-4 mr-1.5" />
+                Modifica programul
+              </Button>
+            )}
+          </div>
+        </Card>
+      )}
+    </div>
+  );
+}
+
 // ---- Step 5: Summary --------------------------------------------------------
 
 function StepSummary({
@@ -3010,6 +3721,7 @@ function StepSummary({
   savedAddresses,
   isAuthenticated,
   userName,
+  subPricing,
 }: {
   form: BookingFormState;
   updateForm: (updates: Partial<BookingFormState>) => void;
@@ -3020,6 +3732,7 @@ function StepSummary({
   savedAddresses: SavedAddress[];
   isAuthenticated: boolean;
   userName?: string;
+  subPricing?: SubscriptionPricingPreview;
 }) {
   const selectedExtraNames = useMemo(
     () =>
@@ -3155,47 +3868,66 @@ function StepSummary({
           )}
         </Card>
 
-        {/* Date & Time summary */}
-        <Card>
-          <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
-            Data și ora
-          </h3>
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
-              <Calendar className="h-6 w-6 text-blue-600" />
-            </div>
-            <div>
-              <div className="text-lg font-semibold text-gray-900">
-                {formatDateRo(selectedWorker?.suggestedDate || firstSlot?.date || '')}
+        {/* Date & Time / Subscription schedule summary */}
+        {form.isRecurring && form.recurrenceType ? (
+          <Card className="border-emerald-200 bg-gradient-to-r from-emerald-50/50 to-blue-50/50">
+            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
+              Programare abonament
+            </h3>
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center shrink-0">
+                <Repeat className="h-6 w-6 text-emerald-600" />
               </div>
-              <div className="flex items-center gap-1.5 text-blue-600 font-semibold text-base mt-0.5">
-                <Clock className="h-4 w-4" />
-                {selectedWorker?.suggestedStartTime || firstSlot?.startTime} - {selectedWorker?.suggestedEndTime || firstSlot?.endTime}
+              <div>
+                <div className="text-lg font-semibold text-gray-900">
+                  {form.recurrenceType === 'WEEKLY' ? 'Săptămânal' : form.recurrenceType === 'BIWEEKLY' ? 'Bisăptămânal' : 'Lunar'} — {['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'][form.recurrenceDayOfWeek - 1]}
+                </div>
+                <div className="flex items-center gap-1.5 text-emerald-600 font-semibold text-base mt-0.5">
+                  <Clock className="h-4 w-4" />
+                  {form.preferredTimeStart} - {form.preferredTimeEnd}
+                </div>
               </div>
             </div>
-          </div>
-        </Card>
-
-        {/* Recurrence summary */}
-        {form.isRecurring && form.recurrenceType && (
+            {subPricing && (
+              <div className="mt-3 pt-3 border-t border-emerald-200 space-y-1.5">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600">Per sesiune</span>
+                  <div>
+                    {subPricing.discountPct > 0 && (
+                      <span className="text-gray-400 line-through text-xs mr-1.5">{subPricing.perSessionOriginal.toFixed(0)} lei</span>
+                    )}
+                    <span className="font-semibold text-gray-900">{subPricing.perSessionDiscounted.toFixed(0)} lei</span>
+                    {subPricing.discountPct > 0 && (
+                      <span className="text-emerald-600 text-xs font-semibold ml-1">-{subPricing.discountPct}%</span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600">{subPricing.sessionsPerMonth} sesiuni/lună</span>
+                  <span className="text-lg font-bold text-emerald-600">{subPricing.monthlyAmount.toFixed(0)} lei/lună</span>
+                </div>
+              </div>
+            )}
+          </Card>
+        ) : (
           <Card>
             <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
-              Programare recurentă
+              Data și ora
             </h3>
-            <div className="flex items-center gap-3 text-sm">
-              <Repeat className="h-4 w-4 text-blue-600 shrink-0" />
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
+                <Calendar className="h-6 w-6 text-blue-600" />
+              </div>
               <div>
-                <span className="font-medium text-gray-900">
-                  {form.recurrenceType === 'WEEKLY' ? 'Săptămânal' : form.recurrenceType === 'BIWEEKLY' ? 'Bisăptămânal' : 'Lunar'}
-                </span>
-                <span className="text-gray-500 ml-2">
-                  — {['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'][form.recurrenceDayOfWeek - 1]}
-                </span>
+                <div className="text-lg font-semibold text-gray-900">
+                  {formatDateRo(selectedWorker?.suggestedDate || firstSlot?.date || '')}
+                </div>
+                <div className="flex items-center gap-1.5 text-blue-600 font-semibold text-base mt-0.5">
+                  <Clock className="h-4 w-4" />
+                  {selectedWorker?.suggestedStartTime || firstSlot?.startTime} - {selectedWorker?.suggestedEndTime || firstSlot?.endTime}
+                </div>
               </div>
             </div>
-            <p className="text-xs text-blue-600 mt-2">
-              8 programări vor fi create automat. Plătești per sesiune.
-            </p>
           </Card>
         )}
 
@@ -3281,9 +4013,68 @@ function StepSummary({
         {/* Price breakdown */}
         <Card>
           <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
-            Estimare preț
+            {form.isRecurring ? 'Preț abonament' : 'Estimare preț'}
           </h3>
-          {estimateLoading ? (
+          {form.isRecurring && subPricing ? (
+            <div className="space-y-2 text-sm">
+              {estimate && (
+                <div className="flex justify-between text-gray-600">
+                  <span>
+                    {estimate.hourlyRate} lei/ora x {estimate.estimatedHours} ore
+                  </span>
+                  <span>{estimate.subtotal} lei</span>
+                </div>
+              )}
+              {estimate && estimate.propertyMultiplier > 1 && (
+                <div className="flex justify-between text-gray-600">
+                  <span>Multiplicator proprietate (x{estimate.propertyMultiplier})</span>
+                  <span className="text-amber-600">inclus</span>
+                </div>
+              )}
+              {estimate && estimate.petsSurcharge > 0 && (
+                <div className="flex justify-between text-gray-600">
+                  <span className="flex items-center gap-1">
+                    <PawPrint className="h-3 w-3" />
+                    Supliment animale
+                  </span>
+                  <span>+{estimate.petsSurcharge} lei</span>
+                </div>
+              )}
+              {estimate?.extras.map((ext, i) => (
+                <div key={i} className="flex justify-between text-gray-600">
+                  <span>{ext.extra.nameRo} x{ext.quantity}</span>
+                  <span>{ext.lineTotal} lei</span>
+                </div>
+              ))}
+              <div className="pt-3 border-t border-gray-100 mt-1 space-y-2">
+                <div className="flex justify-between text-gray-600">
+                  <span>Per sesiune (original)</span>
+                  <span>{subPricing.perSessionOriginal.toFixed(0)} lei</span>
+                </div>
+                {subPricing.discountPct > 0 && (
+                  <div className="flex justify-between text-emerald-600">
+                    <span>Reducere abonament</span>
+                    <span>-{subPricing.discountPct}%</span>
+                  </div>
+                )}
+                <div className="flex justify-between text-gray-900">
+                  <span>Per sesiune (redus)</span>
+                  <span className="font-semibold">{subPricing.perSessionDiscounted.toFixed(0)} lei</span>
+                </div>
+                <div className="flex justify-between text-gray-500">
+                  <span>Sesiuni/lună</span>
+                  <span>{subPricing.sessionsPerMonth}</span>
+                </div>
+                <div className="flex justify-between font-bold text-gray-900 text-lg pt-2 border-t border-emerald-200">
+                  <span>Total lunar</span>
+                  <span className="text-emerald-600">{subPricing.monthlyAmount.toFixed(0)} lei/lună</span>
+                </div>
+              </div>
+              <p className="text-xs text-emerald-600 mt-1">
+                Economisești {((subPricing.perSessionOriginal - subPricing.perSessionDiscounted) * subPricing.sessionsPerMonth).toFixed(0)} lei/lună cu abonamentul
+              </p>
+            </div>
+          ) : estimateLoading ? (
             <LoadingSpinner size="sm" text="Se calculeaza pretul..." />
           ) : estimate ? (
             <div className="space-y-2 text-sm">
@@ -3364,12 +4155,16 @@ function PriceSidebar({
   extras,
   estimate,
   estimateLoading,
+  subPricing,
+  subPricingLoading,
 }: {
   form: BookingFormState;
   selectedService?: ServiceDefinition;
   extras: ExtraDefinition[];
   estimate?: PriceEstimate;
   estimateLoading: boolean;
+  subPricing?: SubscriptionPricingPreview;
+  subPricingLoading?: boolean;
 }) {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
   const [showServiceInfo, setShowServiceInfo] = useState(false);
@@ -3383,9 +4178,19 @@ function PriceSidebar({
         {selectedService ? (
           <div className="space-y-3 text-sm relative">
             {/* Loading overlay */}
-            {estimateLoading && (
+            {(estimateLoading || subPricingLoading) && (
               <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-10 rounded-xl">
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600" />
+              </div>
+            )}
+
+            {/* Subscription badge */}
+            {form.isRecurring && form.recurrenceType && (
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 mb-1">
+                <Repeat className="h-3.5 w-3.5 text-emerald-600" />
+                <span className="text-xs font-semibold text-emerald-700">
+                  Abonament {form.recurrenceType === 'WEEKLY' ? 'săptămânal' : form.recurrenceType === 'BIWEEKLY' ? 'bisăptămânal' : 'lunar'}
+                </span>
               </div>
             )}
 
@@ -3493,7 +4298,35 @@ function PriceSidebar({
             )}
 
             {/* Total */}
-            {estimate && (
+            {form.isRecurring && subPricing ? (
+              <div className="pt-3 border-t border-gray-200 mt-1 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Per sesiune</span>
+                  <div className="text-right">
+                    {subPricing.discountPct > 0 ? (
+                      <>
+                        <span className="text-gray-400 line-through text-xs mr-1.5">{subPricing.perSessionOriginal.toFixed(0)} lei</span>
+                        <span className="font-semibold text-gray-900">{subPricing.perSessionDiscounted.toFixed(0)} lei</span>
+                        <span className="text-emerald-600 text-xs font-semibold ml-1">-{subPricing.discountPct}%</span>
+                      </>
+                    ) : (
+                      <span className="font-semibold text-gray-900">{subPricing.perSessionOriginal.toFixed(0)} lei</span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex justify-between text-sm text-gray-500">
+                  <span>Sesiuni/lună</span>
+                  <span className="font-medium text-gray-900">{subPricing.sessionsPerMonth}</span>
+                </div>
+                <div className="flex justify-between text-lg font-bold pt-1 border-t border-emerald-200">
+                  <span className="text-gray-900">Total lunar</span>
+                  <span className="text-emerald-600">{subPricing.monthlyAmount.toFixed(0)} lei/lună</span>
+                </div>
+                <p className="text-xs text-emerald-600">
+                  Economisești {((subPricing.perSessionOriginal - subPricing.perSessionDiscounted) * subPricing.sessionsPerMonth).toFixed(0)} lei/lună cu abonamentul
+                </p>
+              </div>
+            ) : estimate ? (
               <div className="pt-3 border-t border-gray-200 mt-1">
                 <div className="flex justify-between text-lg font-bold">
                   <span className="text-gray-900">Total</span>
@@ -3503,7 +4336,7 @@ function PriceSidebar({
                   *Estimare - pretul final poate varia
                 </p>
               </div>
-            )}
+            ) : null}
           </div>
         ) : (
           <p className="text-sm text-gray-400 text-center py-4">
@@ -3610,12 +4443,14 @@ function MobilePriceFooter({
   estimate,
   estimateLoading,
   extras,
+  subPricing,
 }: {
   form: BookingFormState;
   selectedService?: ServiceDefinition;
   estimate?: PriceEstimate;
   estimateLoading: boolean;
   extras: ExtraDefinition[];
+  subPricing?: SubscriptionPricingPreview;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [showServiceInfo, setShowServiceInfo] = useState(false);
@@ -3712,6 +4547,35 @@ function MobilePriceFooter({
                 <span>+{estimate.petsSurcharge} lei</span>
               </div>
             )}
+
+            {/* Subscription or one-time total */}
+            {form.isRecurring && subPricing ? (
+              <div className="pt-2 border-t border-emerald-200 mt-1 space-y-1.5">
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Per sesiune</span>
+                  <div>
+                    {subPricing.discountPct > 0 && (
+                      <span className="text-gray-400 line-through text-xs mr-1">{subPricing.perSessionOriginal.toFixed(0)} lei</span>
+                    )}
+                    <span className="font-semibold">{subPricing.perSessionDiscounted.toFixed(0)} lei</span>
+                    {subPricing.discountPct > 0 && (
+                      <span className="text-emerald-600 text-xs font-semibold ml-1">-{subPricing.discountPct}%</span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex justify-between font-bold text-base">
+                  <span>Total lunar</span>
+                  <span className="text-emerald-600">{subPricing.monthlyAmount.toFixed(0)} lei/lună</span>
+                </div>
+              </div>
+            ) : estimate ? (
+              <div className="pt-2 border-t border-gray-200 mt-1">
+                <div className="flex justify-between font-bold text-base">
+                  <span>Total</span>
+                  <span className="text-blue-600">{estimate.total} lei</span>
+                </div>
+              </div>
+            ) : null}
           </div>
         </div>
       )}
@@ -3725,12 +4589,20 @@ function MobilePriceFooter({
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div>
-              <div className="text-xs text-gray-500 text-left">
+              <div className="text-xs text-gray-500 text-left flex items-center gap-1.5">
                 {selectedService.nameRo}
+                {form.isRecurring && form.recurrenceType && (
+                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[10px] font-bold">
+                    <Repeat className="h-2.5 w-2.5" />
+                    Abonament
+                  </span>
+                )}
               </div>
               <div className="text-lg font-bold text-gray-900">
                 {estimateLoading ? (
                   <span className="text-sm text-gray-400">Se calculeaza...</span>
+                ) : form.isRecurring && subPricing ? (
+                  <span className="text-emerald-600">{subPricing.monthlyAmount.toFixed(0)} lei/lună</span>
                 ) : estimate ? (
                   `${estimate.total} lei`
                 ) : (
@@ -3741,7 +4613,9 @@ function MobilePriceFooter({
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-gray-400">
-              {form.numRooms} camere, {form.numBathrooms} bai
+              {form.isRecurring && subPricing
+                ? `${subPricing.sessionsPerMonth} sesiuni/lună`
+                : `${form.numRooms} camere, ${form.numBathrooms} bai`}
             </span>
             {expanded ? (
               <ChevronDown className="h-4 w-4 text-gray-400" />

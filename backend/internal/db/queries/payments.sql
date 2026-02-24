@@ -10,6 +10,9 @@ INSERT INTO client_payment_methods (user_id, stripe_payment_method_id, card_last
 VALUES ($1, $2, $3, $4, $5, $6, $7)
 RETURNING *;
 
+-- name: GetPaymentMethodByID :one
+SELECT * FROM client_payment_methods WHERE id = $1;
+
 -- name: DeletePaymentMethod :exec
 DELETE FROM client_payment_methods WHERE id = $1;
 
