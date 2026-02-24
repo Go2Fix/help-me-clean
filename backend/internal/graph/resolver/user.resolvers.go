@@ -248,5 +248,16 @@ func (r *queryResolver) User(ctx context.Context, id string) (*model.User, error
 		return nil, fmt.Errorf("user not found: %w", err)
 	}
 
-	return dbUserToGQL(dbUser), nil
+	result := dbUserToGQL(dbUser)
+
+	// Populate workerProfile if this user is a worker.
+	if dbUser.Role == "worker" {
+		if worker, err := r.Queries.GetWorkerByUserID(ctx, dbUser.ID); err == nil {
+			if profile, err := r.workerWithCompany(ctx, worker); err == nil {
+				result.WorkerProfile = profile
+			}
+		}
+	}
+
+	return result, nil
 }

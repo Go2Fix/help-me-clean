@@ -42,12 +42,17 @@ func (r *Resolver) workerWithCompany(ctx context.Context, c db.Worker) (*model.W
 	// Attach user to profile
 	profile.User = dbUserToGQL(user)
 
+	// Compute worker stats dynamically from reviews/bookings
+	r.enrichWorkerStats(ctx, c.ID, profile)
+
 	// Load company
 	company, err := r.Queries.GetCompanyByID(ctx, c.CompanyID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load company: %w", err)
 	}
-	profile.Company = dbCompanyToGQL(company)
+	gqlCompany := dbCompanyToGQL(company)
+	r.enrichCompanyStats(ctx, c.CompanyID, gqlCompany)
+	profile.Company = gqlCompany
 
 	// Load worker documents
 	if docs, err := r.Queries.ListWorkerDocuments(ctx, c.ID); err == nil {
@@ -165,6 +170,26 @@ func (r *Resolver) copyCompanyAreasToWorkerHelper(ctx context.Context, companyID
 	}
 }
 
+// enrichWorkerStats populates ratingAvg and totalJobsCompleted dynamically from reviews/bookings.
+func (r *Resolver) enrichWorkerStats(ctx context.Context, workerID pgtype.UUID, profile *model.WorkerProfile) {
+	if avg, err := r.Queries.GetAverageWorkerRating(ctx, workerID); err == nil {
+		profile.RatingAvg = numericToFloat(avg)
+	}
+	if count, err := r.Queries.CountCompletedJobsByWorker(ctx, workerID); err == nil {
+		profile.TotalJobsCompleted = int(count)
+	}
+}
+
+// enrichCompanyStats populates ratingAvg and totalJobsCompleted dynamically from reviews/bookings.
+func (r *Resolver) enrichCompanyStats(ctx context.Context, companyID pgtype.UUID, company *model.Company) {
+	if avg, err := r.Queries.GetCompanyAverageRating(ctx, companyID); err == nil {
+		company.RatingAvg = numericToFloat(avg)
+	}
+	if count, err := r.Queries.CountCompletedJobsByCompany(ctx, companyID); err == nil {
+		company.TotalJobsCompleted = int(count)
+	}
+}
+
 // populateCompanyDocuments fetches and attaches documents to a Company GQL model.
 func (r *Resolver) populateCompanyDocuments(ctx context.Context, company *model.Company, companyID pgtype.UUID) {
 	if docs, err := r.Queries.ListCompanyDocuments(ctx, companyID); err == nil {
@@ -196,7 +221,9 @@ func (r *Resolver) enrichBooking(ctx context.Context, dbB db.Booking, gqlB *mode
 	}
 	if dbB.CompanyID.Valid {
 		if company, err := r.Queries.GetCompanyByID(ctx, dbB.CompanyID); err == nil {
-			gqlB.Company = dbCompanyToGQL(company)
+			gqlCompany := dbCompanyToGQL(company)
+			r.enrichCompanyStats(ctx, dbB.CompanyID, gqlCompany)
+			gqlB.Company = gqlCompany
 		}
 	}
 	if dbB.WorkerID.Valid {

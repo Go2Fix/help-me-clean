@@ -1232,6 +1232,8 @@ export const COMPANY = gql`
         fullName
         email
         phone
+        ratingAvg
+        totalJobsCompleted
         user {
           id
           avatarUrl

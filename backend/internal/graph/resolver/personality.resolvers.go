@@ -271,7 +271,20 @@ func (r *queryResolver) MyPersonalityAssessment(ctx context.Context) (*model.Per
 
 // WorkerPersonalityAssessment is the resolver for the workerPersonalityAssessment field.
 func (r *queryResolver) WorkerPersonalityAssessment(ctx context.Context, workerID string) (*model.PersonalityAssessment, error) {
-	panic(fmt.Errorf("not implemented: WorkerPersonalityAssessment - workerPersonalityAssessment"))
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil {
+		return nil, fmt.Errorf("not authenticated")
+	}
+	if claims.Role != "company_admin" && claims.Role != "global_admin" {
+		return nil, fmt.Errorf("not authorized")
+	}
+
+	assessment, err := r.Queries.GetPersonalityAssessmentByWorkerID(ctx, stringToUUID(workerID))
+	if err != nil {
+		return nil, nil // No assessment yet.
+	}
+
+	return dbPersonalityAssessmentToGQL(assessment), nil
 }
 
 // PersonalityAssessment returns graph.PersonalityAssessmentResolver implementation.

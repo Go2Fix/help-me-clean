@@ -362,6 +362,85 @@ func dbBookingToGQL(b db.Booking) *model.Booking {
 	}
 }
 
+// dbSearchBookingRowToGQL converts a SearchBookingsWithDetailsRow (JOIN result) to a GQL Booking.
+// Used by SearchBookings to avoid N+1 enrichBooking calls.
+func dbSearchBookingRowToGQL(row db.SearchBookingsWithDetailsRow) *model.Booking {
+	paymentStatus := textVal(row.PaymentStatus)
+	if paymentStatus == "" {
+		paymentStatus = "pending"
+	}
+	var recurringGroupID *string
+	if row.RecurringGroupID.Valid {
+		s := uuidToString(row.RecurringGroupID)
+		recurringGroupID = &s
+	}
+
+	serviceName := textVal(row.ServiceNameRo)
+	if serviceName == "" {
+		serviceName = string(row.ServiceType)
+	}
+
+	booking := &model.Booking{
+		ID:                     uuidToString(row.ID),
+		ReferenceCode:          row.ReferenceCode,
+		ServiceType:            dbServiceTypeToGQL(row.ServiceType),
+		ServiceName:            serviceName,
+		ScheduledDate:          dateToString(row.ScheduledDate),
+		ScheduledStartTime:     timeToString(row.ScheduledStartTime),
+		EstimatedDurationHours: numericToFloat(row.EstimatedDurationHours),
+		PropertyType:           textPtr(row.PropertyType),
+		NumRooms:               int4Ptr(row.NumRooms),
+		NumBathrooms:           int4Ptr(row.NumBathrooms),
+		AreaSqm:                int4Ptr(row.AreaSqm),
+		HasPets:                boolPtr(row.HasPets),
+		SpecialInstructions:    textPtr(row.SpecialInstructions),
+		HourlyRate:             numericToFloat(row.HourlyRate),
+		EstimatedTotal:         numericToFloat(row.EstimatedTotal),
+		FinalTotal: func() *float64 {
+			if !row.FinalTotal.Valid {
+				return nil
+			}
+			v := numericToFloat(row.FinalTotal)
+			return &v
+		}(),
+		PlatformCommissionPct: numericToFloat(row.PlatformCommissionPct),
+		Status:                dbBookingStatusToGQL(row.Status),
+		RecurringGroupID:      recurringGroupID,
+		OccurrenceNumber:      int4Ptr(row.OccurrenceNumber),
+		RescheduleCount:       int(row.RescheduleCount),
+		RescheduledAt:         timestamptzToTimePtr(row.RescheduledAt),
+		StartedAt:             timestamptzToTimePtr(row.StartedAt),
+		CompletedAt:           timestamptzToTimePtr(row.CompletedAt),
+		CancelledAt:           timestamptzToTimePtr(row.CancelledAt),
+		CancellationReason:    textPtr(row.CancellationReason),
+		TimeSlots:             []*model.BookingTimeSlot{},
+		Extras:                []*model.BookingExtra{},
+		IncludedItems:         []string{},
+		PaymentStatus:         paymentStatus,
+		PaidAt:                timestamptzToTimePtr(row.PaidAt),
+		CreatedAt:             timestamptzToTime(row.CreatedAt),
+	}
+
+	// Attach client from JOIN data
+	if row.ClientUserID.Valid {
+		booking.Client = &model.User{
+			ID:       uuidToString(row.ClientUserID),
+			FullName: textVal(row.ClientFullName),
+			Email:    textVal(row.ClientEmail),
+		}
+	}
+
+	// Attach company from JOIN data
+	if row.CompanyID.Valid {
+		booking.Company = &model.Company{
+			ID:          uuidToString(row.CompanyID),
+			CompanyName: textVal(row.CompanyCompanyName),
+		}
+	}
+
+	return booking
+}
+
 func dbCompanyToGQL(c db.Company) *model.Company {
 	return &model.Company{
 		ID:                  uuidToString(c.ID),

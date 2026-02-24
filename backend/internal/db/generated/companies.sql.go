@@ -179,6 +179,17 @@ func (q *Queries) CountCompaniesByStatus(ctx context.Context, status CompanyStat
 	return count, err
 }
 
+const countCompletedJobsByCompany = `-- name: CountCompletedJobsByCompany :one
+SELECT COUNT(*) FROM bookings WHERE company_id = $1 AND status = 'completed'
+`
+
+func (q *Queries) CountCompletedJobsByCompany(ctx context.Context, companyID pgtype.UUID) (int64, error) {
+	row := q.db.QueryRow(ctx, countCompletedJobsByCompany, companyID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const countSearchCompanies = `-- name: CountSearchCompanies :one
 SELECT COUNT(*) FROM companies WHERE
     (company_name ILIKE '%' || $1::text || '%' OR cui ILIKE '%' || $1::text || '%')
@@ -265,6 +276,20 @@ func (q *Queries) CreateCompany(ctx context.Context, arg CreateCompanyParams) (C
 		&i.StripeConnectPayoutsEnabled,
 	)
 	return i, err
+}
+
+const getCompanyAverageRating = `-- name: GetCompanyAverageRating :one
+SELECT COALESCE(AVG(r.rating), 0)::DECIMAL(3,2) AS avg_rating
+FROM reviews r
+JOIN workers w ON r.reviewed_worker_id = w.id
+WHERE w.company_id = $1
+`
+
+func (q *Queries) GetCompanyAverageRating(ctx context.Context, companyID pgtype.UUID) (pgtype.Numeric, error) {
+	row := q.db.QueryRow(ctx, getCompanyAverageRating, companyID)
+	var avg_rating pgtype.Numeric
+	err := row.Scan(&avg_rating)
+	return avg_rating, err
 }
 
 const getCompanyByAdminUserID = `-- name: GetCompanyByAdminUserID :one

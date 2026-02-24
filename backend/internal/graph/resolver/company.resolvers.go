@@ -373,6 +373,7 @@ func (r *queryResolver) MyCompany(ctx context.Context) (*model.Company, error) {
 	company, err := r.Queries.GetCompanyByAdminUserID(ctx, stringToUUID(claims.UserID))
 	if err == nil {
 		result := dbCompanyToGQL(company)
+		r.enrichCompanyStats(ctx, company.ID, result)
 		r.populateCompanyDocuments(ctx, result, company.ID)
 		return result, nil
 	}
@@ -402,6 +403,7 @@ func (r *queryResolver) MyCompany(ctx context.Context) (*model.Company, error) {
 	}
 
 	result := dbCompanyToGQL(company)
+	r.enrichCompanyStats(ctx, company.ID, result)
 	r.populateCompanyDocuments(ctx, result, company.ID)
 	return result, nil
 }
@@ -503,7 +505,9 @@ func (r *queryResolver) Companies(ctx context.Context, status *model.CompanyStat
 
 	edges := make([]*model.Company, len(companies))
 	for i, c := range companies {
-		edges[i] = dbCompanyToGQL(c)
+		gqlCompany := dbCompanyToGQL(c)
+		r.enrichCompanyStats(ctx, c.ID, gqlCompany)
+		edges[i] = gqlCompany
 	}
 
 	var endCursor *string
@@ -535,6 +539,7 @@ func (r *queryResolver) Company(ctx context.Context, id string) (*model.Company,
 	}
 
 	result := dbCompanyToGQL(company)
+	r.enrichCompanyStats(ctx, company.ID, result)
 	r.populateCompanyDocuments(ctx, result, company.ID)
 
 	// Populate workers with User/Company/Documents/PersonalityAssessment relationships.

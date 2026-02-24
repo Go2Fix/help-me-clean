@@ -663,6 +663,8 @@ func (r *queryResolver) MyWorkers(ctx context.Context) ([]*model.WorkerProfile, 
 		if uPtr != nil {
 			profile.User = dbUserToGQL(*uPtr)
 		}
+		// Compute worker stats dynamically from reviews/bookings
+		r.enrichWorkerStats(ctx, c.ID, profile)
 		result[i] = profile
 	}
 
@@ -928,10 +930,50 @@ func (r *queryResolver) SearchWorkerBookings(ctx context.Context, query *string,
 		bookings = bookings[:qLimit]
 	}
 
+	// Batch-load clients and addresses (list only needs these two).
+	clientIDs := map[string]bool{}
+	addressIDs := map[string]bool{}
+	for _, b := range bookings {
+		clientIDs[uuidToString(b.ClientUserID)] = true
+		if b.AddressID.Valid {
+			addressIDs[uuidToString(b.AddressID)] = true
+		}
+	}
+	clientMap := map[string]*model.User{}
+	for cid := range clientIDs {
+		if u, uErr := r.Queries.GetUserByID(ctx, stringToUUID(cid)); uErr == nil {
+			clientMap[cid] = dbUserToGQL(u)
+		}
+	}
+	addressMap := map[string]*model.Address{}
+	for aid := range addressIDs {
+		if a, aErr := r.Queries.GetAddressByID(ctx, stringToUUID(aid)); aErr == nil {
+			addressMap[aid] = dbAddressToGQL(a)
+		}
+	}
+
+	// Build service name map (single query).
+	serviceNameMap := map[string]string{}
+	if services, sErr := r.Queries.ListActiveServices(ctx); sErr == nil {
+		for _, s := range services {
+			serviceNameMap[string(s.ServiceType)] = s.NameRo
+		}
+	}
+
 	edges := make([]*model.Booking, len(bookings))
 	for i, b := range bookings {
 		gqlBooking := dbBookingToGQL(b)
-		r.enrichBooking(ctx, b, gqlBooking)
+		if name, ok := serviceNameMap[string(b.ServiceType)]; ok {
+			gqlBooking.ServiceName = name
+		}
+		if u, ok := clientMap[uuidToString(b.ClientUserID)]; ok {
+			gqlBooking.Client = u
+		}
+		if b.AddressID.Valid {
+			if a, ok := addressMap[uuidToString(b.AddressID)]; ok {
+				gqlBooking.Address = a
+			}
+		}
 		edges[i] = gqlBooking
 	}
 

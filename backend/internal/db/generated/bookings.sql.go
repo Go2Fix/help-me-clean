@@ -272,6 +272,29 @@ func (q *Queries) CountSearchBookings(ctx context.Context, arg CountSearchBookin
 	return count, err
 }
 
+const countSearchBookingsWithDetails = `-- name: CountSearchBookingsWithDetails :one
+SELECT COUNT(*) FROM bookings b
+LEFT JOIN users u ON b.client_user_id = u.id
+LEFT JOIN companies c ON b.company_id = c.id
+WHERE
+    ($1::text = '' OR b.reference_code ILIKE '%' || $1::text || '%'
+     OR u.full_name ILIKE '%' || $1::text || '%'
+     OR c.company_name ILIKE '%' || $1::text || '%')
+    AND ($2::text = '' OR b.status::text = $2::text)
+`
+
+type CountSearchBookingsWithDetailsParams struct {
+	Query        string `json:"query"`
+	StatusFilter string `json:"status_filter"`
+}
+
+func (q *Queries) CountSearchBookingsWithDetails(ctx context.Context, arg CountSearchBookingsWithDetailsParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countSearchBookingsWithDetails, arg.Query, arg.StatusFilter)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const countSearchCompanyBookings = `-- name: CountSearchCompanyBookings :one
 SELECT COUNT(*) FROM bookings WHERE
     company_id = $1
@@ -1333,6 +1356,138 @@ func (q *Queries) SearchBookings(ctx context.Context, arg SearchBookingsParams) 
 			&i.OccurrenceNumber,
 			&i.RescheduleCount,
 			&i.RescheduledAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const searchBookingsWithDetails = `-- name: SearchBookingsWithDetails :many
+SELECT b.id, b.reference_code, b.client_user_id, b.company_id, b.worker_id, b.address_id, b.service_type, b.scheduled_date, b.scheduled_start_time, b.estimated_duration_hours, b.property_type, b.num_rooms, b.num_bathrooms, b.area_sqm, b.has_pets, b.special_instructions, b.hourly_rate, b.estimated_total, b.final_total, b.platform_commission_pct, b.platform_commission_amount, b.status, b.started_at, b.completed_at, b.cancelled_at, b.cancellation_reason, b.stripe_payment_intent_id, b.payment_status, b.paid_at, b.created_at, b.updated_at, b.recurring_group_id, b.occurrence_number, b.reschedule_count, b.rescheduled_at,
+       u.full_name AS client_full_name,
+       u.email AS client_email,
+       c.company_name AS company_company_name,
+       sd.name_ro AS service_name_ro
+FROM bookings b
+LEFT JOIN users u ON b.client_user_id = u.id
+LEFT JOIN companies c ON b.company_id = c.id
+LEFT JOIN service_definitions sd ON b.service_type = sd.service_type
+WHERE
+    ($3::text = '' OR b.reference_code ILIKE '%' || $3::text || '%'
+     OR u.full_name ILIKE '%' || $3::text || '%'
+     OR c.company_name ILIKE '%' || $3::text || '%')
+    AND ($4::text = '' OR b.status::text = $4::text)
+ORDER BY b.created_at DESC LIMIT $1 OFFSET $2
+`
+
+type SearchBookingsWithDetailsParams struct {
+	Limit        int32  `json:"limit"`
+	Offset       int32  `json:"offset"`
+	Query        string `json:"query"`
+	StatusFilter string `json:"status_filter"`
+}
+
+type SearchBookingsWithDetailsRow struct {
+	ID                       pgtype.UUID        `json:"id"`
+	ReferenceCode            string             `json:"reference_code"`
+	ClientUserID             pgtype.UUID        `json:"client_user_id"`
+	CompanyID                pgtype.UUID        `json:"company_id"`
+	WorkerID                 pgtype.UUID        `json:"worker_id"`
+	AddressID                pgtype.UUID        `json:"address_id"`
+	ServiceType              ServiceType        `json:"service_type"`
+	ScheduledDate            pgtype.Date        `json:"scheduled_date"`
+	ScheduledStartTime       pgtype.Time        `json:"scheduled_start_time"`
+	EstimatedDurationHours   pgtype.Numeric     `json:"estimated_duration_hours"`
+	PropertyType             pgtype.Text        `json:"property_type"`
+	NumRooms                 pgtype.Int4        `json:"num_rooms"`
+	NumBathrooms             pgtype.Int4        `json:"num_bathrooms"`
+	AreaSqm                  pgtype.Int4        `json:"area_sqm"`
+	HasPets                  pgtype.Bool        `json:"has_pets"`
+	SpecialInstructions      pgtype.Text        `json:"special_instructions"`
+	HourlyRate               pgtype.Numeric     `json:"hourly_rate"`
+	EstimatedTotal           pgtype.Numeric     `json:"estimated_total"`
+	FinalTotal               pgtype.Numeric     `json:"final_total"`
+	PlatformCommissionPct    pgtype.Numeric     `json:"platform_commission_pct"`
+	PlatformCommissionAmount pgtype.Numeric     `json:"platform_commission_amount"`
+	Status                   BookingStatus      `json:"status"`
+	StartedAt                pgtype.Timestamptz `json:"started_at"`
+	CompletedAt              pgtype.Timestamptz `json:"completed_at"`
+	CancelledAt              pgtype.Timestamptz `json:"cancelled_at"`
+	CancellationReason       pgtype.Text        `json:"cancellation_reason"`
+	StripePaymentIntentID    pgtype.Text        `json:"stripe_payment_intent_id"`
+	PaymentStatus            pgtype.Text        `json:"payment_status"`
+	PaidAt                   pgtype.Timestamptz `json:"paid_at"`
+	CreatedAt                pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt                pgtype.Timestamptz `json:"updated_at"`
+	RecurringGroupID         pgtype.UUID        `json:"recurring_group_id"`
+	OccurrenceNumber         pgtype.Int4        `json:"occurrence_number"`
+	RescheduleCount          int32              `json:"reschedule_count"`
+	RescheduledAt            pgtype.Timestamptz `json:"rescheduled_at"`
+	ClientFullName           pgtype.Text        `json:"client_full_name"`
+	ClientEmail              pgtype.Text        `json:"client_email"`
+	CompanyCompanyName       pgtype.Text        `json:"company_company_name"`
+	ServiceNameRo            pgtype.Text        `json:"service_name_ro"`
+}
+
+func (q *Queries) SearchBookingsWithDetails(ctx context.Context, arg SearchBookingsWithDetailsParams) ([]SearchBookingsWithDetailsRow, error) {
+	rows, err := q.db.Query(ctx, searchBookingsWithDetails,
+		arg.Limit,
+		arg.Offset,
+		arg.Query,
+		arg.StatusFilter,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SearchBookingsWithDetailsRow
+	for rows.Next() {
+		var i SearchBookingsWithDetailsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.ReferenceCode,
+			&i.ClientUserID,
+			&i.CompanyID,
+			&i.WorkerID,
+			&i.AddressID,
+			&i.ServiceType,
+			&i.ScheduledDate,
+			&i.ScheduledStartTime,
+			&i.EstimatedDurationHours,
+			&i.PropertyType,
+			&i.NumRooms,
+			&i.NumBathrooms,
+			&i.AreaSqm,
+			&i.HasPets,
+			&i.SpecialInstructions,
+			&i.HourlyRate,
+			&i.EstimatedTotal,
+			&i.FinalTotal,
+			&i.PlatformCommissionPct,
+			&i.PlatformCommissionAmount,
+			&i.Status,
+			&i.StartedAt,
+			&i.CompletedAt,
+			&i.CancelledAt,
+			&i.CancellationReason,
+			&i.StripePaymentIntentID,
+			&i.PaymentStatus,
+			&i.PaidAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.RecurringGroupID,
+			&i.OccurrenceNumber,
+			&i.RescheduleCount,
+			&i.RescheduledAt,
+			&i.ClientFullName,
+			&i.ClientEmail,
+			&i.CompanyCompanyName,
+			&i.ServiceNameRo,
 		); err != nil {
 			return nil, err
 		}

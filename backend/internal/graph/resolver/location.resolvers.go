@@ -141,7 +141,47 @@ func (r *mutationResolver) UpdateCompanyServiceAreas(ctx context.Context, areaId
 
 // UpdateWorkerServiceAreas is the resolver for the updateWorkerServiceAreas field.
 func (r *mutationResolver) UpdateWorkerServiceAreas(ctx context.Context, workerID string, areaIds []string) ([]*model.CityArea, error) {
-	panic(fmt.Errorf("not implemented: UpdateWorkerServiceAreas - updateWorkerServiceAreas"))
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil {
+		return nil, fmt.Errorf("not authenticated")
+	}
+	if claims.Role != "company_admin" && claims.Role != "global_admin" {
+		return nil, fmt.Errorf("not authorized")
+	}
+
+	wID := stringToUUID(workerID)
+
+	// Delete all existing worker areas, then insert new ones.
+	if err := r.Queries.DeleteAllWorkerServiceAreas(ctx, wID); err != nil {
+		return nil, fmt.Errorf("failed to clear worker service areas: %w", err)
+	}
+
+	for _, areaID := range areaIds {
+		_, err := r.Queries.InsertWorkerServiceArea(ctx, db.InsertWorkerServiceAreaParams{
+			WorkerID:   wID,
+			CityAreaID: stringToUUID(areaID),
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to add area %s: %w", areaID, err)
+		}
+	}
+
+	// Return updated list.
+	rows, err := r.Queries.ListWorkerServiceAreas(ctx, wID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list worker areas: %w", err)
+	}
+
+	var result []*model.CityArea
+	for _, row := range rows {
+		result = append(result, &model.CityArea{
+			ID:       uuidToString(row.CityAreaID),
+			Name:     row.AreaName,
+			CityID:   uuidToString(row.CityID),
+			CityName: row.CityName,
+		})
+	}
+	return result, nil
 }
 
 // ActiveCities is the resolver for the activeCities field.
@@ -235,12 +275,27 @@ func (r *queryResolver) MyCompanyServiceAreas(ctx context.Context) ([]*model.Cit
 
 // WorkerServiceAreas is the resolver for the workerServiceAreas field.
 func (r *queryResolver) WorkerServiceAreas(ctx context.Context, workerID string) ([]*model.CityArea, error) {
-	panic(fmt.Errorf("not implemented: WorkerServiceAreas - workerServiceAreas"))
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil {
+		return nil, fmt.Errorf("not authenticated")
+	}
+
+	return r.workerServiceAreasWithFallback(ctx, stringToUUID(workerID))
 }
 
 // MyWorkerServiceAreas is the resolver for the myWorkerServiceAreas field.
 func (r *queryResolver) MyWorkerServiceAreas(ctx context.Context) ([]*model.CityArea, error) {
-	panic(fmt.Errorf("not implemented: MyWorkerServiceAreas - myWorkerServiceAreas"))
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil {
+		return nil, fmt.Errorf("not authenticated")
+	}
+
+	worker, err := r.Queries.GetWorkerByUserID(ctx, stringToUUID(claims.UserID))
+	if err != nil {
+		return nil, fmt.Errorf("worker profile not found")
+	}
+
+	return r.workerServiceAreasWithFallback(ctx, worker.ID)
 }
 
 // SuggestWorkers is the resolver for the suggestWorkers field.

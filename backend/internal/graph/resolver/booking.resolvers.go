@@ -340,7 +340,44 @@ func (r *mutationResolver) CancelBooking(ctx context.Context, id string, reason 
 
 // AssignWorkerToBooking is the resolver for the assignWorkerToBooking field.
 func (r *mutationResolver) AssignWorkerToBooking(ctx context.Context, bookingID string, workerID string) (*model.Booking, error) {
-	panic(fmt.Errorf("not implemented: AssignWorkerToBooking - assignWorkerToBooking"))
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil {
+		return nil, fmt.Errorf("not authenticated")
+	}
+	if claims.Role != "company_admin" && claims.Role != "global_admin" {
+		return nil, fmt.Errorf("not authorized")
+	}
+
+	// Look up worker to get their company ID.
+	wID := stringToUUID(workerID)
+	worker, err := r.Queries.GetWorkerByID(ctx, wID)
+	if err != nil {
+		return nil, fmt.Errorf("worker not found: %w", err)
+	}
+
+	// Company admin can only assign workers from their own company.
+	if claims.Role == "company_admin" {
+		company, cErr := r.Queries.GetCompanyByAdminUserID(ctx, stringToUUID(claims.UserID))
+		if cErr != nil {
+			return nil, fmt.Errorf("company not found for user")
+		}
+		if uuidToString(worker.CompanyID) != uuidToString(company.ID) {
+			return nil, fmt.Errorf("worker does not belong to your company")
+		}
+	}
+
+	booking, err := r.Queries.AssignWorkerToBooking(ctx, db.AssignWorkerToBookingParams{
+		ID:        stringToUUID(bookingID),
+		CompanyID: worker.CompanyID,
+		WorkerID:  wID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to assign worker: %w", err)
+	}
+
+	gqlBooking := dbBookingToGQL(booking)
+	r.enrichBooking(ctx, booking, gqlBooking)
+	return gqlBooking, nil
 }
 
 // ConfirmBooking is the resolver for the confirmBooking field.

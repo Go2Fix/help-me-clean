@@ -102,6 +102,33 @@ SELECT COUNT(*) FROM bookings WHERE
     (@query::text = '' OR reference_code ILIKE '%' || @query::text || '%')
     AND (@status_filter::text = '' OR status::text = @status_filter::text);
 
+-- name: SearchBookingsWithDetails :many
+SELECT b.*,
+       u.full_name AS client_full_name,
+       u.email AS client_email,
+       c.company_name AS company_company_name,
+       sd.name_ro AS service_name_ro
+FROM bookings b
+LEFT JOIN users u ON b.client_user_id = u.id
+LEFT JOIN companies c ON b.company_id = c.id
+LEFT JOIN service_definitions sd ON b.service_type = sd.service_type
+WHERE
+    (@query::text = '' OR b.reference_code ILIKE '%' || @query::text || '%'
+     OR u.full_name ILIKE '%' || @query::text || '%'
+     OR c.company_name ILIKE '%' || @query::text || '%')
+    AND (@status_filter::text = '' OR b.status::text = @status_filter::text)
+ORDER BY b.created_at DESC LIMIT $1 OFFSET $2;
+
+-- name: CountSearchBookingsWithDetails :one
+SELECT COUNT(*) FROM bookings b
+LEFT JOIN users u ON b.client_user_id = u.id
+LEFT JOIN companies c ON b.company_id = c.id
+WHERE
+    (@query::text = '' OR b.reference_code ILIKE '%' || @query::text || '%'
+     OR u.full_name ILIKE '%' || @query::text || '%'
+     OR c.company_name ILIKE '%' || @query::text || '%')
+    AND (@status_filter::text = '' OR b.status::text = @status_filter::text);
+
 -- name: ListBookingsByCompanyAndDateRange :many
 SELECT * FROM bookings
 WHERE company_id = $1

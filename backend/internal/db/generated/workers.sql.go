@@ -192,7 +192,7 @@ const getWorkerPerformanceStats = `-- name: GetWorkerPerformanceStats :one
 SELECT
     c.id,
     u.full_name,
-    c.rating_avg,
+    COALESCE((SELECT AVG(rating) FROM reviews WHERE reviewed_worker_id = c.id), 0)::DECIMAL(3,2) AS rating_avg,
     COUNT(b.id) FILTER (WHERE b.status = 'completed')::bigint AS total_completed_jobs,
     COUNT(b.id) FILTER (WHERE b.status = 'completed' AND b.completed_at >= date_trunc('month', CURRENT_DATE))::bigint AS this_month_completed,
     COALESCE(SUM(COALESCE(b.final_total, b.estimated_total)) FILTER (WHERE b.status = 'completed'), 0)::numeric AS total_earnings,
@@ -201,7 +201,7 @@ FROM workers c
 JOIN users u ON c.user_id = u.id
 LEFT JOIN bookings b ON b.worker_id = c.id
 WHERE c.id = $1
-GROUP BY c.id, u.full_name, c.rating_avg
+GROUP BY c.id, u.full_name
 `
 
 type GetWorkerPerformanceStatsRow struct {

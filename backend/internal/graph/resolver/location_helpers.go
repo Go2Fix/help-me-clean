@@ -41,6 +41,46 @@ func (r *Resolver) dbCityToGQL(ctx context.Context, c db.EnabledCity) (*model.En
 	}, nil
 }
 
+// workerServiceAreasWithFallback returns worker areas, falling back to company areas if none assigned.
+func (r *Resolver) workerServiceAreasWithFallback(ctx context.Context, workerID pgtype.UUID) ([]*model.CityArea, error) {
+	rows, err := r.Queries.ListWorkerServiceAreas(ctx, workerID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list worker areas: %w", err)
+	}
+
+	if len(rows) > 0 {
+		result := make([]*model.CityArea, len(rows))
+		for i, row := range rows {
+			result[i] = &model.CityArea{
+				ID:       uuidToString(row.CityAreaID),
+				Name:     row.AreaName,
+				CityID:   uuidToString(row.CityID),
+				CityName: row.CityName,
+			}
+		}
+		return result, nil
+	}
+
+	worker, err := r.Queries.GetWorkerByID(ctx, workerID)
+	if err != nil {
+		return nil, nil
+	}
+	companyRows, err := r.Queries.ListCompanyServiceAreas(ctx, worker.CompanyID)
+	if err != nil {
+		return nil, nil
+	}
+	result := make([]*model.CityArea, len(companyRows))
+	for i, row := range companyRows {
+		result[i] = &model.CityArea{
+			ID:       uuidToString(row.CityAreaID),
+			Name:     row.AreaName,
+			CityID:   uuidToString(row.CityID),
+			CityName: row.CityName,
+		}
+	}
+	return result, nil
+}
+
 // parsedSlot holds a parsed time slot with date context.
 type parsedSlot struct {
 	Date      string
@@ -313,9 +353,19 @@ func (r *Resolver) evaluateWorkerForSlots(
 		status = "unavailable"
 	}
 
+	// Compute dynamic rating and completed jobs from reviews/bookings tables.
+	dynamicRating := numericToFloat(w.RatingAvg) // fallback to DB column
+	if avg, err := r.Queries.GetAverageWorkerRating(ctx, w.ID); err == nil {
+		dynamicRating = numericToFloat(avg)
+	}
+	dynamicCompleted := int4Val(w.TotalJobsCompleted) // fallback to DB column
+	if count, err := r.Queries.CountCompletedJobsByWorker(ctx, w.ID); err == nil {
+		dynamicCompleted = int(count)
+	}
+
 	score := matching.ComputeMatchScore(matching.ScoreInput{
-		RatingAvg:        numericToFloat(w.RatingAvg),
-		TotalJobsDone:    int4Val(w.TotalJobsCompleted),
+		RatingAvg:        dynamicRating,
+		TotalJobsDone:    dynamicCompleted,
 		IsAreaMatch:      true,
 		PlacementFound:   bestPlacement != nil && bestPlacement.Found,
 		GapScoreH:        gapScore,
@@ -332,8 +382,8 @@ func (r *Resolver) evaluateWorkerForSlots(
 			ID:                 workerID,
 			UserID:             &userID,
 			FullName:           w.FullName,
-			RatingAvg:          numericToFloat(w.RatingAvg),
-			TotalJobsCompleted: int4Val(w.TotalJobsCompleted),
+			RatingAvg:          dynamicRating,
+			TotalJobsCompleted: dynamicCompleted,
 			User: &model.User{
 				ID:        userID,
 				AvatarURL: textPtr(w.AvatarUrl),

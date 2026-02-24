@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
-import { Star, Briefcase, CalendarCheck, FileText, User as UserIcon } from 'lucide-react';
+import { Star, Briefcase, CalendarCheck, FileText, User as UserIcon, MapPin } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
@@ -12,6 +12,7 @@ import { useAuth } from '@/context/AuthContext';
 import {
   MY_WORKER_PROFILE,
   MY_WORKER_STATS,
+  MY_WORKER_SERVICE_AREAS,
   ACCEPT_INVITATION,
   UPLOAD_WORKER_DOCUMENT,
   DELETE_WORKER_DOCUMENT,
@@ -37,9 +38,11 @@ export default function ProfilePage() {
   const { user } = useAuth();
   const { data: profileData, loading: profileLoading } = useQuery(MY_WORKER_PROFILE);
   const { data: statsData, loading: statsLoading } = useQuery(MY_WORKER_STATS);
+  const { data: areasData } = useQuery(MY_WORKER_SERVICE_AREAS);
 
   const profile = profileData?.myWorkerProfile;
   const stats = statsData?.myWorkerStats;
+  const serviceAreas: { id: string; name: string; cityName: string }[] = areasData?.myWorkerServiceAreas ?? [];
   const loading = profileLoading || statsLoading;
 
   // Accept invitation
@@ -236,6 +239,31 @@ export default function ProfilePage() {
               </Card>
             </div>
           )}
+
+          {/* Service Areas */}
+          <Card className="mb-6">
+            <div className="flex items-center gap-2 mb-4">
+              <MapPin className="h-5 w-5 text-gray-500" />
+              <h2 className="text-lg font-semibold text-gray-900">Zone de lucru</h2>
+            </div>
+            {serviceAreas.length === 0 ? (
+              <p className="text-sm text-gray-500">
+                Nu ai zone de lucru asignate. Contacteaza administratorul firmei pentru a-ti seta zonele.
+              </p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {serviceAreas.map((area) => (
+                  <span
+                    key={area.id}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-50 text-sm font-medium text-blue-700"
+                  >
+                    <MapPin className="h-3.5 w-3.5" />
+                    {area.name}, {area.cityName}
+                  </span>
+                ))}
+              </div>
+            )}
+          </Card>
 
           {/* My Documents */}
           {profile && (

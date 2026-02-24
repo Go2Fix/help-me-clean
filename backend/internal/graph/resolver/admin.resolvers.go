@@ -345,7 +345,9 @@ func (r *queryResolver) PendingCompanyApplications(ctx context.Context) ([]*mode
 
 	result := make([]*model.Company, len(companies))
 	for i, c := range companies {
-		result[i] = dbCompanyToGQL(c)
+		gqlCompany := dbCompanyToGQL(c)
+		r.enrichCompanyStats(ctx, c.ID, gqlCompany)
+		result[i] = gqlCompany
 	}
 
 	return result, nil
@@ -353,7 +355,75 @@ func (r *queryResolver) PendingCompanyApplications(ctx context.Context) ([]*mode
 
 // AllWorkers is the resolver for the allWorkers field.
 func (r *queryResolver) AllWorkers(ctx context.Context) ([]*model.WorkerProfile, error) {
-	panic(fmt.Errorf("not implemented: AllWorkers - allWorkers"))
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil || claims.Role != "global_admin" {
+		return nil, fmt.Errorf("admin access required")
+	}
+
+	rows, err := r.Queries.ListAllActiveWorkers(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list workers: %w", err)
+	}
+
+	// Batch-load users and companies to avoid N+1.
+	userIDs := map[string]bool{}
+	companyIDs := map[string]bool{}
+	for _, w := range rows {
+		userIDs[uuidToString(w.UserID)] = true
+		companyIDs[uuidToString(w.CompanyID)] = true
+	}
+
+	userMap := map[string]db.User{}
+	for uid := range userIDs {
+		if u, uErr := r.Queries.GetUserByID(ctx, stringToUUID(uid)); uErr == nil {
+			userMap[uid] = u
+		}
+	}
+
+	companyMap := map[string]db.Company{}
+	for cid := range companyIDs {
+		if c, cErr := r.Queries.GetCompanyByID(ctx, stringToUUID(cid)); cErr == nil {
+			companyMap[cid] = c
+		}
+	}
+
+	result := make([]*model.WorkerProfile, 0, len(rows))
+	for _, w := range rows {
+		uid := uuidToString(w.UserID)
+		cid := uuidToString(w.CompanyID)
+
+		worker := db.Worker{
+			ID:                 w.ID,
+			UserID:             w.UserID,
+			CompanyID:          w.CompanyID,
+			Status:             w.Status,
+			IsCompanyAdmin:     w.IsCompanyAdmin,
+			InviteToken:        w.InviteToken,
+			InviteExpiresAt:    w.InviteExpiresAt,
+			Bio:                w.Bio,
+			RatingAvg:          w.RatingAvg,
+			TotalJobsCompleted: w.TotalJobsCompleted,
+			CreatedAt:          w.CreatedAt,
+			UpdatedAt:          w.UpdatedAt,
+		}
+
+		var userPtr *db.User
+		if u, ok := userMap[uid]; ok {
+			userPtr = &u
+		}
+		profile := dbWorkerToGQL(worker, userPtr)
+		r.enrichWorkerStats(ctx, w.ID, profile)
+
+		if c, ok := companyMap[cid]; ok {
+			gqlCompany := dbCompanyToGQL(c)
+			r.enrichCompanyStats(ctx, c.ID, gqlCompany)
+			profile.Company = gqlCompany
+		}
+
+		result = append(result, profile)
+	}
+
+	return result, nil
 }
 
 // AllChatRooms is the resolver for the allChatRooms field.
@@ -435,7 +505,9 @@ func (r *queryResolver) SearchCompanies(ctx context.Context, query *string, stat
 
 	edges := make([]*model.Company, len(companies))
 	for i, c := range companies {
-		edges[i] = dbCompanyToGQL(c)
+		gqlCompany := dbCompanyToGQL(c)
+		r.enrichCompanyStats(ctx, c.ID, gqlCompany)
+		edges[i] = gqlCompany
 	}
 
 	return &model.CompanyConnection{
@@ -491,7 +563,7 @@ func (r *queryResolver) SearchBookings(ctx context.Context, query *string, statu
 		statusFilter = strings.ToLower(string(*status))
 	}
 
-	dbBookings, err := r.Queries.SearchBookings(ctx, db.SearchBookingsParams{
+	rows, err := r.Queries.SearchBookingsWithDetails(ctx, db.SearchBookingsWithDetailsParams{
 		Limit:        l,
 		Offset:       o,
 		Query:        q,
@@ -501,7 +573,7 @@ func (r *queryResolver) SearchBookings(ctx context.Context, query *string, statu
 		return nil, fmt.Errorf("failed to search bookings: %w", err)
 	}
 
-	count, err := r.Queries.CountSearchBookings(ctx, db.CountSearchBookingsParams{
+	count, err := r.Queries.CountSearchBookingsWithDetails(ctx, db.CountSearchBookingsWithDetailsParams{
 		Query:        q,
 		StatusFilter: statusFilter,
 	})
@@ -509,10 +581,9 @@ func (r *queryResolver) SearchBookings(ctx context.Context, query *string, statu
 		return nil, fmt.Errorf("failed to count bookings: %w", err)
 	}
 
-	bookings := make([]*model.Booking, len(dbBookings))
-	for i, b := range dbBookings {
-		gqlBooking := dbBookingToGQL(b)
-		r.enrichBooking(ctx, b, gqlBooking)
+	bookings := make([]*model.Booking, len(rows))
+	for i, row := range rows {
+		gqlBooking := dbSearchBookingRowToGQL(row)
 		bookings[i] = gqlBooking
 	}
 

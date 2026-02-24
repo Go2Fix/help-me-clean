@@ -89,6 +89,15 @@ FROM bookings WHERE company_id = $1;
 -- name: UpdateCompanyLogo :one
 UPDATE companies SET logo_url = $2, updated_at = NOW() WHERE id = $1 RETURNING *;
 
+-- name: GetCompanyAverageRating :one
+SELECT COALESCE(AVG(r.rating), 0)::DECIMAL(3,2) AS avg_rating
+FROM reviews r
+JOIN workers w ON r.reviewed_worker_id = w.id
+WHERE w.company_id = $1;
+
+-- name: CountCompletedJobsByCompany :one
+SELECT COUNT(*) FROM bookings WHERE company_id = $1 AND status = 'completed';
+
 -- name: CheckCompanyDocumentsReady :one
 -- Returns true if all 3 required documents exist and are approved
 SELECT
