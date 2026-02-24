@@ -12,6 +12,7 @@ import (
 	db "go2fix-backend/internal/db/generated"
 	"go2fix-backend/internal/graph/model"
 	subSvc "go2fix-backend/internal/service/subscription"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
@@ -333,6 +334,28 @@ func (r *mutationResolver) ResolveSubscriptionWorkerChange(ctx context.Context, 
 		}
 	}
 
+	// Validate worker availability for all upcoming bookings before committing.
+	upcomingBookings, _ := r.Queries.GetUpcomingBookingsBySubscription(ctx, subUUID)
+	var availConflicts []string
+	for _, b := range upcomingBookings {
+		if b.Status != db.BookingStatusAssigned && b.Status != db.BookingStatusConfirmed {
+			continue
+		}
+		date := b.ScheduledDate.Time
+		startMin := int(b.ScheduledStartTime.Microseconds / 60_000_000)
+		durationMin := int(numericToFloat(b.EstimatedDurationHours) * 60)
+
+		avail, reason, _ := r.checkWorkerAvailabilityForBooking(
+			ctx, newWorkerUUID, worker.CompanyID, date, startMin, durationMin, nil,
+		)
+		if !avail {
+			availConflicts = append(availConflicts, fmt.Sprintf("%s: %s", dateToString(b.ScheduledDate), reason))
+		}
+	}
+	if len(availConflicts) > 0 {
+		return nil, fmt.Errorf("WORKER_HAS_CONFLICTS: Lucratorul nu este disponibil pentru %d programari: %s", len(availConflicts), strings.Join(availConflicts, "; "))
+	}
+
 	// Resolve: update worker_id + company_id, clear pending request.
 	updated, err := r.Queries.ResolveSubscriptionWorkerChange(ctx, db.ResolveSubscriptionWorkerChangeParams{
 		ID:        subUUID,
@@ -352,6 +375,149 @@ func (r *mutationResolver) ResolveSubscriptionWorkerChange(ctx context.Context, 
 	// Notify the client.
 	workerName := "lucratorul nou"
 	if workerUser, uErr := r.Queries.GetUserByID(ctx, worker.UserID); uErr == nil {
+		workerName = workerUser.FullName
+	}
+	go r.sendWorkerChangedNotification(context.Background(), updated, workerName)
+
+	return r.fullSubscription(ctx, updated)
+}
+
+// ResolveSubscriptionWorkerChangePerBooking is the resolver for the resolveSubscriptionWorkerChangePerBooking field.
+// Allows per-booking worker assignment when resolving a subscription worker change.
+func (r *mutationResolver) ResolveSubscriptionWorkerChangePerBooking(ctx context.Context, id string, defaultWorkerID string, assignments []*model.BookingWorkerAssignment) (*model.ServiceSubscription, error) {
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil {
+		return nil, fmt.Errorf("not authenticated")
+	}
+	if claims.Role != "company_admin" && claims.Role != "global_admin" {
+		return nil, fmt.Errorf("not authorized")
+	}
+
+	// Load subscription.
+	subUUID := stringToUUID(id)
+	sub, err := r.Queries.GetSubscriptionByID(ctx, subUUID)
+	if err != nil {
+		return nil, fmt.Errorf("subscription not found")
+	}
+
+	// Company admin: verify the subscription belongs to their company.
+	if claims.Role == "company_admin" {
+		company, cErr := r.Queries.GetCompanyByAdminUserID(ctx, stringToUUID(claims.UserID))
+		if cErr != nil {
+			return nil, fmt.Errorf("company not found")
+		}
+		if uuidToString(company.ID) != uuidToString(sub.CompanyID) {
+			return nil, fmt.Errorf("not authorized — subscription belongs to another company")
+		}
+	}
+
+	// Load and validate the default worker.
+	defaultWorkerUUID := stringToUUID(defaultWorkerID)
+	defaultWorker, err := r.Queries.GetWorkerByID(ctx, defaultWorkerUUID)
+	if err != nil {
+		return nil, fmt.Errorf("default worker not found")
+	}
+
+	// Company admin: verify default worker belongs to their company.
+	if claims.Role == "company_admin" {
+		company, _ := r.Queries.GetCompanyByAdminUserID(ctx, stringToUUID(claims.UserID))
+		if uuidToString(defaultWorker.CompanyID) != uuidToString(company.ID) {
+			return nil, fmt.Errorf("default worker does not belong to your company")
+		}
+	}
+
+	// Build assignment map: bookingID -> workerID.
+	assignmentMap := make(map[string]string)
+	for _, a := range assignments {
+		assignmentMap[a.BookingID] = a.WorkerID
+	}
+
+	// Load upcoming bookings.
+	upcomingBookings, err := r.Queries.GetUpcomingBookingsBySubscription(ctx, subUUID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load upcoming bookings: %w", err)
+	}
+
+	// VALIDATION PASS — check all bookings before writing anything.
+	type bookingAssignment struct {
+		bookingUUID      pgtype.UUID
+		targetWorkerUUID pgtype.UUID
+	}
+	var toReassign []bookingAssignment
+	var validationErrors []string
+
+	for _, b := range upcomingBookings {
+		if b.Status != db.BookingStatusAssigned && b.Status != db.BookingStatusConfirmed {
+			continue
+		}
+
+		// Determine target worker for this booking.
+		targetWorkerIDStr := defaultWorkerID
+		if overrideID, ok := assignmentMap[uuidToString(b.ID)]; ok {
+			targetWorkerIDStr = overrideID
+		}
+		targetWorkerUUID := stringToUUID(targetWorkerIDStr)
+
+		// Load and validate target worker.
+		targetWorker, wErr := r.Queries.GetWorkerByID(ctx, targetWorkerUUID)
+		if wErr != nil {
+			validationErrors = append(validationErrors, fmt.Sprintf("Programare %s (%s): lucratorul nu a fost gasit", b.ReferenceCode, dateToString(b.ScheduledDate)))
+			continue
+		}
+
+		// Company admin: verify target worker belongs to their company.
+		if claims.Role == "company_admin" {
+			company, _ := r.Queries.GetCompanyByAdminUserID(ctx, stringToUUID(claims.UserID))
+			if uuidToString(targetWorker.CompanyID) != uuidToString(company.ID) {
+				validationErrors = append(validationErrors, fmt.Sprintf("Programare %s (%s): lucratorul nu apartine companiei tale", b.ReferenceCode, dateToString(b.ScheduledDate)))
+				continue
+			}
+		}
+
+		// Check availability.
+		date := b.ScheduledDate.Time
+		startMin := int(b.ScheduledStartTime.Microseconds / 60_000_000)
+		durationMin := int(numericToFloat(b.EstimatedDurationHours) * 60)
+
+		avail, reason, _ := r.checkWorkerAvailabilityForBooking(
+			ctx, targetWorkerUUID, targetWorker.CompanyID, date, startMin, durationMin, nil,
+		)
+		if !avail {
+			validationErrors = append(validationErrors, fmt.Sprintf("Programare %s (%s): %s", b.ReferenceCode, dateToString(b.ScheduledDate), reason))
+			continue
+		}
+
+		toReassign = append(toReassign, bookingAssignment{
+			bookingUUID:      b.ID,
+			targetWorkerUUID: targetWorkerUUID,
+		})
+	}
+
+	if len(validationErrors) > 0 {
+		return nil, fmt.Errorf("VALIDATION_FAILED: %s", strings.Join(validationErrors, "; "))
+	}
+
+	// COMMIT PASS — all validated, now write.
+	for _, ba := range toReassign {
+		_, _ = r.Queries.ReassignSingleBookingWorker(ctx, db.ReassignSingleBookingWorkerParams{
+			ID:       ba.bookingUUID,
+			WorkerID: ba.targetWorkerUUID,
+		})
+	}
+
+	// Update subscription with default worker, clear pending request.
+	updated, err := r.Queries.ResolveSubscriptionWorkerChange(ctx, db.ResolveSubscriptionWorkerChangeParams{
+		ID:        subUUID,
+		WorkerID:  defaultWorkerUUID,
+		CompanyID: defaultWorker.CompanyID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve worker change: %w", err)
+	}
+
+	// Notify the client.
+	workerName := "lucratorul nou"
+	if workerUser, uErr := r.Queries.GetUserByID(ctx, defaultWorker.UserID); uErr == nil {
 		workerName = workerUser.FullName
 	}
 	go r.sendWorkerChangedNotification(context.Background(), updated, workerName)
@@ -645,5 +811,108 @@ func (r *queryResolver) SubscriptionStats(ctx context.Context) (*model.Subscript
 		PastDueCount:            int(stats.PastDueCount),
 		CancelledCount:          int(stats.CancelledCount),
 		MonthlyRecurringRevenue: int(stats.MonthlyRecurringRevenueBani),
+	}, nil
+}
+
+// CheckWorkerForSubscriptionBookings is the resolver for the checkWorkerForSubscriptionBookings field.
+func (r *queryResolver) CheckWorkerForSubscriptionBookings(ctx context.Context, subscriptionID string, workerID string) (*model.SubscriptionWorkerAvailabilityCheck, error) {
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil {
+		return nil, fmt.Errorf("not authenticated")
+	}
+	if claims.Role != "company_admin" && claims.Role != "global_admin" {
+		return nil, fmt.Errorf("not authorized")
+	}
+
+	// Load subscription.
+	subUUID := stringToUUID(subscriptionID)
+	sub, err := r.Queries.GetSubscriptionByID(ctx, subUUID)
+	if err != nil {
+		return nil, fmt.Errorf("subscription not found")
+	}
+
+	// Company admin: verify the subscription belongs to their company.
+	if claims.Role == "company_admin" {
+		company, cErr := r.Queries.GetCompanyByAdminUserID(ctx, stringToUUID(claims.UserID))
+		if cErr != nil {
+			return nil, fmt.Errorf("company not found")
+		}
+		if uuidToString(company.ID) != uuidToString(sub.CompanyID) {
+			return nil, fmt.Errorf("not authorized — subscription belongs to another company")
+		}
+	}
+
+	// Load and validate the new worker.
+	newWorkerUUID := stringToUUID(workerID)
+	worker, err := r.Queries.GetWorkerByID(ctx, newWorkerUUID)
+	if err != nil {
+		return nil, fmt.Errorf("worker not found")
+	}
+
+	// Company admin: verify worker belongs to their company.
+	if claims.Role == "company_admin" {
+		company, _ := r.Queries.GetCompanyByAdminUserID(ctx, stringToUUID(claims.UserID))
+		if uuidToString(worker.CompanyID) != uuidToString(company.ID) {
+			return nil, fmt.Errorf("worker does not belong to your company")
+		}
+	}
+
+	// Get worker name.
+	workerName := "Lucrator"
+	if workerUser, uErr := r.Queries.GetUserByID(ctx, worker.UserID); uErr == nil {
+		workerName = workerUser.FullName
+	}
+
+	// Get upcoming bookings for the subscription.
+	upcomingBookings, err := r.Queries.GetUpcomingBookingsBySubscription(ctx, subUUID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load upcoming bookings: %w", err)
+	}
+
+	var bookings []*model.BookingAvailabilityStatus
+	availableCount := 0
+	conflictCount := 0
+
+	for _, b := range upcomingBookings {
+		if b.Status != db.BookingStatusAssigned && b.Status != db.BookingStatusConfirmed {
+			continue
+		}
+
+		date := b.ScheduledDate.Time
+		startMin := int(b.ScheduledStartTime.Microseconds / 60_000_000)
+		durationMin := int(numericToFloat(b.EstimatedDurationHours) * 60)
+
+		avail, reason, conflicts := r.checkWorkerAvailabilityForBooking(
+			ctx, newWorkerUUID, worker.CompanyID, date, startMin, durationMin, nil,
+		)
+
+		bas := &model.BookingAvailabilityStatus{
+			BookingID:              uuidToString(b.ID),
+			ScheduledDate:          dateToString(b.ScheduledDate),
+			ScheduledStartTime:     timeToString(b.ScheduledStartTime),
+			EstimatedDurationHours: numericToFloat(b.EstimatedDurationHours),
+			ReferenceCode:          b.ReferenceCode,
+			Available:              avail,
+			Conflicts:              conflicts,
+		}
+		if !avail {
+			bas.Reason = &reason
+			conflictCount++
+		} else {
+			bas.Conflicts = []string{}
+			availableCount++
+		}
+
+		bookings = append(bookings, bas)
+	}
+
+	return &model.SubscriptionWorkerAvailabilityCheck{
+		SubscriptionID: subscriptionID,
+		WorkerID:       workerID,
+		WorkerName:     workerName,
+		AllAvailable:   conflictCount == 0,
+		Bookings:       bookings,
+		AvailableCount: availableCount,
+		ConflictCount:  conflictCount,
 	}, nil
 }

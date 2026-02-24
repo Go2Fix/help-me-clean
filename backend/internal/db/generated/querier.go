@@ -362,6 +362,7 @@ type Querier interface {
 	PauseRecurringGroup(ctx context.Context, id pgtype.UUID) (RecurringBookingGroup, error)
 	PauseSubscription(ctx context.Context, id pgtype.UUID) (Subscription, error)
 	ReassignFutureSubscriptionBookings(ctx context.Context, arg ReassignFutureSubscriptionBookingsParams) error
+	ReassignSingleBookingWorker(ctx context.Context, arg ReassignSingleBookingWorkerParams) (Booking, error)
 	RejectCompany(ctx context.Context, arg RejectCompanyParams) (Company, error)
 	RequestSubscriptionWorkerChange(ctx context.Context, arg RequestSubscriptionWorkerChangeParams) (Subscription, error)
 	RescheduleBooking(ctx context.Context, arg RescheduleBookingParams) (Booking, error)

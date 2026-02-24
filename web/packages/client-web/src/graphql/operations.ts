@@ -625,6 +625,61 @@ export const RESOLVE_SUBSCRIPTION_WORKER_CHANGE = gql`
   }
 `;
 
+export const CHECK_WORKER_FOR_SUBSCRIPTION = gql`
+  query CheckWorkerForSubscriptionBookings($subscriptionId: ID!, $workerId: ID!) {
+    checkWorkerForSubscriptionBookings(subscriptionId: $subscriptionId, workerId: $workerId) {
+      subscriptionId
+      workerId
+      workerName
+      allAvailable
+      availableCount
+      conflictCount
+      bookings {
+        bookingId
+        scheduledDate
+        scheduledStartTime
+        estimatedDurationHours
+        referenceCode
+        available
+        reason
+        conflicts
+      }
+    }
+  }
+`;
+
+export const RESOLVE_WORKER_CHANGE_PER_BOOKING = gql`
+  mutation ResolveSubscriptionWorkerChangePerBooking(
+    $id: ID!
+    $defaultWorkerId: ID!
+    $assignments: [BookingWorkerAssignment!]!
+  ) {
+    resolveSubscriptionWorkerChangePerBooking(
+      id: $id
+      defaultWorkerId: $defaultWorkerId
+      assignments: $assignments
+    ) {
+      id
+      status
+      workerChangeRequestedAt
+      workerChangeReason
+      worker {
+        id
+        fullName
+        ratingAvg
+        user {
+          id
+          avatarUrl
+        }
+      }
+      company {
+        id
+        companyName
+      }
+    }
+  }
+`;
+
 export const MY_SUBSCRIPTIONS = gql`
   query MySubscriptions {
     mySubscriptions {

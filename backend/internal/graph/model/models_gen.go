@@ -124,6 +124,17 @@ type Booking struct {
 	CreatedAt              time.Time          `json:"createdAt"`
 }
 
+type BookingAvailabilityStatus struct {
+	BookingID              string   `json:"bookingId"`
+	ScheduledDate          string   `json:"scheduledDate"`
+	ScheduledStartTime     string   `json:"scheduledStartTime"`
+	EstimatedDurationHours float64  `json:"estimatedDurationHours"`
+	ReferenceCode          string   `json:"referenceCode"`
+	Available              bool     `json:"available"`
+	Reason                 *string  `json:"reason,omitempty"`
+	Conflicts              []string `json:"conflicts"`
+}
+
 type BookingConnection struct {
 	Edges      []*Booking `json:"edges"`
 	PageInfo   *PageInfo  `json:"pageInfo"`
@@ -149,6 +160,11 @@ type BookingTimeSlot struct {
 	StartTime  string `json:"startTime"`
 	EndTime    string `json:"endTime"`
 	IsSelected bool   `json:"isSelected"`
+}
+
+type BookingWorkerAssignment struct {
+	BookingID string `json:"bookingId"`
+	WorkerID  string `json:"workerId"`
 }
 
 type BookingsByStatus struct {
@@ -841,6 +857,16 @@ type SubscriptionStats struct {
 	PastDueCount            int `json:"pastDueCount"`
 	CancelledCount          int `json:"cancelledCount"`
 	MonthlyRecurringRevenue int `json:"monthlyRecurringRevenue"`
+}
+
+type SubscriptionWorkerAvailabilityCheck struct {
+	SubscriptionID string                       `json:"subscriptionId"`
+	WorkerID       string                       `json:"workerId"`
+	WorkerName     string                       `json:"workerName"`
+	AllAvailable   bool                         `json:"allAvailable"`
+	Bookings       []*BookingAvailabilityStatus `json:"bookings"`
+	AvailableCount int                          `json:"availableCount"`
+	ConflictCount  int                          `json:"conflictCount"`
 }
 
 type SubscriptionWorkerSuggestion struct {

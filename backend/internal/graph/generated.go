@@ -120,6 +120,17 @@ type ComplexityRoot struct {
 		Worker                 func(childComplexity int) int
 	}
 
+	BookingAvailabilityStatus struct {
+		Available              func(childComplexity int) int
+		BookingID              func(childComplexity int) int
+		Conflicts              func(childComplexity int) int
+		EstimatedDurationHours func(childComplexity int) int
+		Reason                 func(childComplexity int) int
+		ReferenceCode          func(childComplexity int) int
+		ScheduledDate          func(childComplexity int) int
+		ScheduledStartTime     func(childComplexity int) int
+	}
+
 	BookingConnection struct {
 		Edges      func(childComplexity int) int
 		PageInfo   func(childComplexity int) int
@@ -388,111 +399,112 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AcceptInvitation                func(childComplexity int, token string) int
-		ActivateWorker                  func(childComplexity int, id string) int
-		AddAddress                      func(childComplexity int, input model.AddAddressInput) int
-		AdminCancelBooking              func(childComplexity int, id string, reason string) int
-		AdminCancelSubscription         func(childComplexity int, id string, reason *string) int
-		AdminIssueRefund                func(childComplexity int, bookingID string, amount int, reason string) int
-		AdminRescheduleBooking          func(childComplexity int, id string, scheduledDate string, scheduledStartTime string, reason *string) int
-		AdminUpdateCompanyProfile       func(childComplexity int, input model.AdminUpdateCompanyInput) int
-		AdminUpdateCompanyStatus        func(childComplexity int, id string, status model.CompanyStatus) int
-		AdminUpdateUserProfile          func(childComplexity int, userID string, fullName string, phone *string) int
-		ApplyAsCompany                  func(childComplexity int, input model.CompanyApplicationInput) int
-		ApproveCompany                  func(childComplexity int, id string) int
-		AssignWorkerToBooking           func(childComplexity int, bookingID string, workerID string) int
-		AttachPaymentMethod             func(childComplexity int, stripePaymentMethodID string) int
-		CancelBooking                   func(childComplexity int, id string, reason *string) int
-		CancelInvoice                   func(childComplexity int, id string) int
-		CancelSubscription              func(childComplexity int, id string, reason *string) int
-		ClaimCompany                    func(childComplexity int, claimToken string) int
-		CompleteJob                     func(childComplexity int, id string) int
-		ConfirmBooking                  func(childComplexity int, id string) int
-		CreateAdminChatRoom             func(childComplexity int, userIds []string) int
-		CreateBookingPaymentIntent      func(childComplexity int, bookingID string) int
-		CreateBookingRequest            func(childComplexity int, input model.CreateBookingInput) int
-		CreateCity                      func(childComplexity int, name string, county string) int
-		CreateCityArea                  func(childComplexity int, cityID string, name string) int
-		CreateMonthlyPayout             func(childComplexity int, companyID string, periodFrom string, periodTo string) int
-		CreateServiceDefinition         func(childComplexity int, input model.CreateServiceDefinitionInput) int
-		CreateServiceExtra              func(childComplexity int, input model.CreateServiceExtraInput) int
-		CreateSetupIntent               func(childComplexity int) int
-		CreateSubscription              func(childComplexity int, input model.CreateSubscriptionInput) int
-		DeleteAddress                   func(childComplexity int, id string) int
-		DeleteCityArea                  func(childComplexity int, id string) int
-		DeleteCompanyDocument           func(childComplexity int, id string) int
-		DeleteMyAccount                 func(childComplexity int) int
-		DeletePaymentMethod             func(childComplexity int, id string) int
-		DeleteReview                    func(childComplexity int, id string) int
-		DeleteWorkerDocument            func(childComplexity int, id string) int
-		GenerateBookingInvoice          func(childComplexity int, bookingID string) int
-		GenerateCommissionInvoice       func(childComplexity int, payoutID string) int
-		GenerateCreditNote              func(childComplexity int, invoiceID string, amount int, reason string) int
-		GeneratePersonalityInsights     func(childComplexity int, workerID string) int
-		InitiateConnectOnboarding       func(childComplexity int) int
-		InviteSelfAsWorker              func(childComplexity int) int
-		InviteWorker                    func(childComplexity int, input model.InviteWorkerInput) int
-		JoinWaitlist                    func(childComplexity int, input model.JoinWaitlistInput) int
-		Logout                          func(childComplexity int) int
-		MarkAllNotificationsRead        func(childComplexity int) int
-		MarkBookingPaid                 func(childComplexity int, id string) int
-		MarkMessagesAsRead              func(childComplexity int, roomID string) int
-		MarkNotificationRead            func(childComplexity int, id string) int
-		OpenBookingChat                 func(childComplexity int, bookingID string) int
-		PauseSubscription               func(childComplexity int, id string) int
-		ProcessRefund                   func(childComplexity int, refundRequestID string, approved bool) int
-		ReactivateUser                  func(childComplexity int, id string) int
-		RefreshConnectOnboarding        func(childComplexity int) int
-		RefreshEFacturaStatus           func(childComplexity int, id string) int
-		RefreshToken                    func(childComplexity int) int
-		RegeneratePersonalityInsights   func(childComplexity int, workerID string) int
-		RegisterDeviceToken             func(childComplexity int, token string) int
-		RejectCompany                   func(childComplexity int, id string, reason string) int
-		RequestEmailOtp                 func(childComplexity int, email string, role model.UserRole) int
-		RequestRefund                   func(childComplexity int, bookingID string, reason string) int
-		RequestSubscriptionWorkerChange func(childComplexity int, id string, reason *string) int
-		RescheduleBooking               func(childComplexity int, id string, scheduledDate string, scheduledStartTime string, reason *string) int
-		ResolveSubscriptionWorkerChange func(childComplexity int, id string, workerID string) int
-		ResumeSubscription              func(childComplexity int, id string) int
-		ReviewCompanyDocument           func(childComplexity int, id string, approved bool, rejectionReason *string) int
-		ReviewWorkerDocument            func(childComplexity int, id string, approved bool, rejectionReason *string) int
-		SelectBookingTimeSlot           func(childComplexity int, bookingID string, timeSlotID string) int
-		SendMessage                     func(childComplexity int, roomID string, content string, messageType *string) int
-		SetDefaultAddress               func(childComplexity int, id string) int
-		SetDefaultPaymentMethod         func(childComplexity int, id string) int
-		SetWorkerDateOverride           func(childComplexity int, date string, isAvailable bool, startTime string, endTime string) int
-		SetWorkerDateOverrideByAdmin    func(childComplexity int, workerID string, date string, isAvailable bool, startTime string, endTime string) int
-		SignInWithGoogle                func(childComplexity int, idToken string, role model.UserRole) int
-		StartJob                        func(childComplexity int, id string) int
-		SubmitPersonalityAssessment     func(childComplexity int, answers []*model.PersonalityAnswerInput) int
-		SubmitReview                    func(childComplexity int, input model.SubmitReviewInput) int
-		SuspendCompany                  func(childComplexity int, id string, reason string) int
-		SuspendUser                     func(childComplexity int, id string, reason string) int
-		ToggleCityActive                func(childComplexity int, id string, isActive bool) int
-		TransmitInvoiceToEFactura       func(childComplexity int, id string) int
-		UpdateAddress                   func(childComplexity int, id string, input model.UpdateAddressInput) int
-		UpdateAvailability              func(childComplexity int, slots []*model.AvailabilitySlotInput) int
-		UpdateCompanyProfile            func(childComplexity int, input model.UpdateCompanyInput) int
-		UpdateCompanyServiceAreas       func(childComplexity int, areaIds []string) int
-		UpdatePayoutStatus              func(childComplexity int, payoutID string, status model.PayoutStatus, notes *string) int
-		UpdatePlatformSetting           func(childComplexity int, key string, value string) int
-		UpdateProfile                   func(childComplexity int, input model.UpdateProfileInput) int
-		UpdateRecurringDiscount         func(childComplexity int, recurrenceType model.RecurrenceType, discountPct float64) int
-		UpdateServiceDefinition         func(childComplexity int, input model.UpdateServiceDefinitionInput) int
-		UpdateServiceExtra              func(childComplexity int, input model.UpdateServiceExtraInput) int
-		UpdateUserRole                  func(childComplexity int, userID string, role model.UserRole) int
-		UpdateWorkerAvailability        func(childComplexity int, workerID string, slots []*model.AvailabilitySlotInput) int
-		UpdateWorkerProfile             func(childComplexity int, input model.UpdateWorkerProfileInput) int
-		UpdateWorkerServiceAreas        func(childComplexity int, workerID string, areaIds []string) int
-		UpdateWorkerStatus              func(childComplexity int, id string, status model.WorkerStatus) int
-		UploadAvatar                    func(childComplexity int, file graphql.Upload) int
-		UploadCompanyDocument           func(childComplexity int, companyID string, documentType string, file graphql.Upload) int
-		UploadCompanyLogo               func(childComplexity int, file graphql.Upload) int
-		UploadFile                      func(childComplexity int, file graphql.Upload, purpose string) int
-		UploadWorkerAvatar              func(childComplexity int, workerID string, file graphql.Upload) int
-		UploadWorkerDocument            func(childComplexity int, workerID string, documentType string, file graphql.Upload) int
-		UpsertBillingProfile            func(childComplexity int, input model.BillingProfileInput) int
-		VerifyEmailOtp                  func(childComplexity int, email string, code string, role model.UserRole) int
+		AcceptInvitation                          func(childComplexity int, token string) int
+		ActivateWorker                            func(childComplexity int, id string) int
+		AddAddress                                func(childComplexity int, input model.AddAddressInput) int
+		AdminCancelBooking                        func(childComplexity int, id string, reason string) int
+		AdminCancelSubscription                   func(childComplexity int, id string, reason *string) int
+		AdminIssueRefund                          func(childComplexity int, bookingID string, amount int, reason string) int
+		AdminRescheduleBooking                    func(childComplexity int, id string, scheduledDate string, scheduledStartTime string, reason *string) int
+		AdminUpdateCompanyProfile                 func(childComplexity int, input model.AdminUpdateCompanyInput) int
+		AdminUpdateCompanyStatus                  func(childComplexity int, id string, status model.CompanyStatus) int
+		AdminUpdateUserProfile                    func(childComplexity int, userID string, fullName string, phone *string) int
+		ApplyAsCompany                            func(childComplexity int, input model.CompanyApplicationInput) int
+		ApproveCompany                            func(childComplexity int, id string) int
+		AssignWorkerToBooking                     func(childComplexity int, bookingID string, workerID string) int
+		AttachPaymentMethod                       func(childComplexity int, stripePaymentMethodID string) int
+		CancelBooking                             func(childComplexity int, id string, reason *string) int
+		CancelInvoice                             func(childComplexity int, id string) int
+		CancelSubscription                        func(childComplexity int, id string, reason *string) int
+		ClaimCompany                              func(childComplexity int, claimToken string) int
+		CompleteJob                               func(childComplexity int, id string) int
+		ConfirmBooking                            func(childComplexity int, id string) int
+		CreateAdminChatRoom                       func(childComplexity int, userIds []string) int
+		CreateBookingPaymentIntent                func(childComplexity int, bookingID string) int
+		CreateBookingRequest                      func(childComplexity int, input model.CreateBookingInput) int
+		CreateCity                                func(childComplexity int, name string, county string) int
+		CreateCityArea                            func(childComplexity int, cityID string, name string) int
+		CreateMonthlyPayout                       func(childComplexity int, companyID string, periodFrom string, periodTo string) int
+		CreateServiceDefinition                   func(childComplexity int, input model.CreateServiceDefinitionInput) int
+		CreateServiceExtra                        func(childComplexity int, input model.CreateServiceExtraInput) int
+		CreateSetupIntent                         func(childComplexity int) int
+		CreateSubscription                        func(childComplexity int, input model.CreateSubscriptionInput) int
+		DeleteAddress                             func(childComplexity int, id string) int
+		DeleteCityArea                            func(childComplexity int, id string) int
+		DeleteCompanyDocument                     func(childComplexity int, id string) int
+		DeleteMyAccount                           func(childComplexity int) int
+		DeletePaymentMethod                       func(childComplexity int, id string) int
+		DeleteReview                              func(childComplexity int, id string) int
+		DeleteWorkerDocument                      func(childComplexity int, id string) int
+		GenerateBookingInvoice                    func(childComplexity int, bookingID string) int
+		GenerateCommissionInvoice                 func(childComplexity int, payoutID string) int
+		GenerateCreditNote                        func(childComplexity int, invoiceID string, amount int, reason string) int
+		GeneratePersonalityInsights               func(childComplexity int, workerID string) int
+		InitiateConnectOnboarding                 func(childComplexity int) int
+		InviteSelfAsWorker                        func(childComplexity int) int
+		InviteWorker                              func(childComplexity int, input model.InviteWorkerInput) int
+		JoinWaitlist                              func(childComplexity int, input model.JoinWaitlistInput) int
+		Logout                                    func(childComplexity int) int
+		MarkAllNotificationsRead                  func(childComplexity int) int
+		MarkBookingPaid                           func(childComplexity int, id string) int
+		MarkMessagesAsRead                        func(childComplexity int, roomID string) int
+		MarkNotificationRead                      func(childComplexity int, id string) int
+		OpenBookingChat                           func(childComplexity int, bookingID string) int
+		PauseSubscription                         func(childComplexity int, id string) int
+		ProcessRefund                             func(childComplexity int, refundRequestID string, approved bool) int
+		ReactivateUser                            func(childComplexity int, id string) int
+		RefreshConnectOnboarding                  func(childComplexity int) int
+		RefreshEFacturaStatus                     func(childComplexity int, id string) int
+		RefreshToken                              func(childComplexity int) int
+		RegeneratePersonalityInsights             func(childComplexity int, workerID string) int
+		RegisterDeviceToken                       func(childComplexity int, token string) int
+		RejectCompany                             func(childComplexity int, id string, reason string) int
+		RequestEmailOtp                           func(childComplexity int, email string, role model.UserRole) int
+		RequestRefund                             func(childComplexity int, bookingID string, reason string) int
+		RequestSubscriptionWorkerChange           func(childComplexity int, id string, reason *string) int
+		RescheduleBooking                         func(childComplexity int, id string, scheduledDate string, scheduledStartTime string, reason *string) int
+		ResolveSubscriptionWorkerChange           func(childComplexity int, id string, workerID string) int
+		ResolveSubscriptionWorkerChangePerBooking func(childComplexity int, id string, defaultWorkerID string, assignments []*model.BookingWorkerAssignment) int
+		ResumeSubscription                        func(childComplexity int, id string) int
+		ReviewCompanyDocument                     func(childComplexity int, id string, approved bool, rejectionReason *string) int
+		ReviewWorkerDocument                      func(childComplexity int, id string, approved bool, rejectionReason *string) int
+		SelectBookingTimeSlot                     func(childComplexity int, bookingID string, timeSlotID string) int
+		SendMessage                               func(childComplexity int, roomID string, content string, messageType *string) int
+		SetDefaultAddress                         func(childComplexity int, id string) int
+		SetDefaultPaymentMethod                   func(childComplexity int, id string) int
+		SetWorkerDateOverride                     func(childComplexity int, date string, isAvailable bool, startTime string, endTime string) int
+		SetWorkerDateOverrideByAdmin              func(childComplexity int, workerID string, date string, isAvailable bool, startTime string, endTime string) int
+		SignInWithGoogle                          func(childComplexity int, idToken string, role model.UserRole) int
+		StartJob                                  func(childComplexity int, id string) int
+		SubmitPersonalityAssessment               func(childComplexity int, answers []*model.PersonalityAnswerInput) int
+		SubmitReview                              func(childComplexity int, input model.SubmitReviewInput) int
+		SuspendCompany                            func(childComplexity int, id string, reason string) int
+		SuspendUser                               func(childComplexity int, id string, reason string) int
+		ToggleCityActive                          func(childComplexity int, id string, isActive bool) int
+		TransmitInvoiceToEFactura                 func(childComplexity int, id string) int
+		UpdateAddress                             func(childComplexity int, id string, input model.UpdateAddressInput) int
+		UpdateAvailability                        func(childComplexity int, slots []*model.AvailabilitySlotInput) int
+		UpdateCompanyProfile                      func(childComplexity int, input model.UpdateCompanyInput) int
+		UpdateCompanyServiceAreas                 func(childComplexity int, areaIds []string) int
+		UpdatePayoutStatus                        func(childComplexity int, payoutID string, status model.PayoutStatus, notes *string) int
+		UpdatePlatformSetting                     func(childComplexity int, key string, value string) int
+		UpdateProfile                             func(childComplexity int, input model.UpdateProfileInput) int
+		UpdateRecurringDiscount                   func(childComplexity int, recurrenceType model.RecurrenceType, discountPct float64) int
+		UpdateServiceDefinition                   func(childComplexity int, input model.UpdateServiceDefinitionInput) int
+		UpdateServiceExtra                        func(childComplexity int, input model.UpdateServiceExtraInput) int
+		UpdateUserRole                            func(childComplexity int, userID string, role model.UserRole) int
+		UpdateWorkerAvailability                  func(childComplexity int, workerID string, slots []*model.AvailabilitySlotInput) int
+		UpdateWorkerProfile                       func(childComplexity int, input model.UpdateWorkerProfileInput) int
+		UpdateWorkerServiceAreas                  func(childComplexity int, workerID string, areaIds []string) int
+		UpdateWorkerStatus                        func(childComplexity int, id string, status model.WorkerStatus) int
+		UploadAvatar                              func(childComplexity int, file graphql.Upload) int
+		UploadCompanyDocument                     func(childComplexity int, companyID string, documentType string, file graphql.Upload) int
+		UploadCompanyLogo                         func(childComplexity int, file graphql.Upload) int
+		UploadFile                                func(childComplexity int, file graphql.Upload, purpose string) int
+		UploadWorkerAvatar                        func(childComplexity int, workerID string, file graphql.Upload) int
+		UploadWorkerDocument                      func(childComplexity int, workerID string, documentType string, file graphql.Upload) int
+		UpsertBillingProfile                      func(childComplexity int, input model.BillingProfileInput) int
+		VerifyEmailOtp                            func(childComplexity int, email string, code string, role model.UserRole) int
 	}
 
 	Notification struct {
@@ -661,112 +673,113 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		ActiveCities                 func(childComplexity int) int
-		AllBookings                  func(childComplexity int, status *model.BookingStatus, companyID *string, dateFrom *string, dateTo *string, first *int, after *string) int
-		AllChatRooms                 func(childComplexity int) int
-		AllCities                    func(childComplexity int) int
-		AllExtras                    func(childComplexity int) int
-		AllInvoices                  func(childComplexity int, typeArg *model.InvoiceType, status *model.InvoiceStatus, companyID *string, first *int, after *string) int
-		AllPaymentTransactions       func(childComplexity int, status *model.PaymentTransactionStatus, first *int, after *string) int
-		AllPayouts                   func(childComplexity int, companyID *string, status *model.PayoutStatus, first *int, after *string) int
-		AllRefundRequests            func(childComplexity int, status *model.RefundStatus, first *int, after *string) int
-		AllReviews                   func(childComplexity int, limit *int, offset *int, rating *int, reviewType *string) int
-		AllServices                  func(childComplexity int) int
-		AllSubscriptions             func(childComplexity int, status *model.SubscriptionStatus, limit *int, offset *int) int
-		AllUsers                     func(childComplexity int) int
-		AllWorkers                   func(childComplexity int) int
-		AvailableExtras              func(childComplexity int) int
-		AvailableServices            func(childComplexity int) int
-		Booking                      func(childComplexity int, id string) int
-		BookingPaymentDetails        func(childComplexity int, bookingID string) int
-		BookingPolicy                func(childComplexity int) int
-		BookingsByStatus             func(childComplexity int) int
-		ChatRoom                     func(childComplexity int, id string) int
-		CheckWorkerAvailability      func(childComplexity int, bookingID string, date string, startTime string) int
-		CityAreas                    func(childComplexity int, cityID string) int
-		ClientInvoiceForBooking      func(childComplexity int, bookingID string) int
-		Companies                    func(childComplexity int, status *model.CompanyStatus, first *int, after *string) int
-		Company                      func(childComplexity int, id string) int
-		CompanyBookings              func(childComplexity int, status *model.BookingStatus, first *int, after *string) int
-		CompanyBookingsByDateRange   func(childComplexity int, from string, to string) int
-		CompanyChatRooms             func(childComplexity int) int
-		CompanyFinancialSummary      func(childComplexity int, companyID string) int
-		CompanyInvoiceForBooking     func(childComplexity int, bookingID string) int
-		CompanyInvoices              func(childComplexity int, status *model.InvoiceStatus, first *int, after *string) int
-		CompanyPerformance           func(childComplexity int, first *int) int
-		CompanyReceivedInvoices      func(childComplexity int, first *int, after *string) int
-		CompanyRevenueByDateRange    func(childComplexity int, from string, to string) int
-		CompanySubscriptions         func(childComplexity int, limit *int, offset *int) int
-		EstimatePrice                func(childComplexity int, input model.PriceEstimateInput) int
-		GetDocumentURL               func(childComplexity int, documentID string) int
-		InvoiceAnalytics             func(childComplexity int, from string, to string) int
-		InvoiceDetail                func(childComplexity int, id string) int
-		IsCitySupported              func(childComplexity int, city string) int
-		Me                           func(childComplexity int) int
-		MyAddresses                  func(childComplexity int) int
-		MyAssignedJobs               func(childComplexity int, status *model.BookingStatus) int
-		MyBillingProfile             func(childComplexity int) int
-		MyBookings                   func(childComplexity int, status *model.BookingStatus, first *int, after *string) int
-		MyChatRooms                  func(childComplexity int) int
-		MyCompany                    func(childComplexity int) int
-		MyCompanyEarnings            func(childComplexity int, from string, to string) int
-		MyCompanyFinancialSummary    func(childComplexity int) int
-		MyCompanyServiceAreas        func(childComplexity int) int
-		MyCompanyWorkSchedule        func(childComplexity int) int
-		MyConnectStatus              func(childComplexity int) int
-		MyInvoices                   func(childComplexity int, first *int, after *string) int
-		MyNotifications              func(childComplexity int, first *int, after *string, unreadOnly *bool) int
-		MyPaymentHistory             func(childComplexity int, limit *int, offset *int) int
-		MyPaymentMethods             func(childComplexity int) int
-		MyPayoutDetail               func(childComplexity int, id string) int
-		MyPayouts                    func(childComplexity int, first *int, after *string) int
-		MyPersonalityAssessment      func(childComplexity int) int
-		MyRefundRequests             func(childComplexity int) int
-		MySubscriptions              func(childComplexity int) int
-		MyWorkerAvailability         func(childComplexity int) int
-		MyWorkerBookingsByDateRange  func(childComplexity int, from string, to string) int
-		MyWorkerCompanySchedule      func(childComplexity int) int
-		MyWorkerDateOverrides        func(childComplexity int, from string, to string) int
-		MyWorkerProfile              func(childComplexity int) int
-		MyWorkerReviews              func(childComplexity int, limit *int, offset *int) int
-		MyWorkerServiceAreas         func(childComplexity int) int
-		MyWorkerStats                func(childComplexity int) int
-		MyWorkers                    func(childComplexity int) int
-		PendingCompanyApplications   func(childComplexity int) int
-		PendingCompanyDocuments      func(childComplexity int) int
-		PendingWorkerDocuments       func(childComplexity int) int
-		PersonalityQuestions         func(childComplexity int) int
-		PlatformMode                 func(childComplexity int) int
-		PlatformRevenueReport        func(childComplexity int, from string, to string) int
-		PlatformSettings             func(childComplexity int) int
-		PlatformStats                func(childComplexity int, dateFrom *string, dateTo *string) int
-		PlatformTotals               func(childComplexity int) int
-		RecurringDiscounts           func(childComplexity int) int
-		RevenueByDateRange           func(childComplexity int, from string, to string) int
-		RevenueByMonth               func(childComplexity int, months *int) int
-		RevenueByServiceType         func(childComplexity int, from string, to string) int
-		SearchBookings               func(childComplexity int, query *string, status *model.BookingStatus, limit *int, offset *int) int
-		SearchCompanies              func(childComplexity int, query *string, status *model.CompanyStatus, limit *int, offset *int) int
-		SearchCompanyBookings        func(childComplexity int, query *string, status *string, dateFrom *string, dateTo *string, limit *int, offset *int) int
-		SearchUsers                  func(childComplexity int, query *string, role *model.UserRole, status *model.UserStatus, limit *int, offset *int) int
-		SearchWorkerBookings         func(childComplexity int, query *string, status *string, dateFrom *string, dateTo *string, limit *int, offset *int) int
-		ServiceSubscription          func(childComplexity int, id string) int
-		SubscriptionPricingPreview   func(childComplexity int, serviceType model.ServiceType, recurrenceType model.RecurrenceType, numRooms int, numBathrooms int, areaSqm *int, propertyType *string, hasPets *bool, extras []*model.ExtraInput) int
-		SubscriptionStats            func(childComplexity int) int
-		SuggestWorkerForSubscription func(childComplexity int, cityID string, areaID string, recurrenceType model.RecurrenceType, dayOfWeek int, preferredTimeStart string, preferredTimeEnd string, estimatedDurationHours float64) int
-		SuggestWorkers               func(childComplexity int, cityID string, areaID string, timeSlots []*model.TimeSlotInput, estimatedDurationHours float64) int
-		TodaysJobs                   func(childComplexity int) int
-		TopCompaniesByRevenue        func(childComplexity int, from string, to string, limit *int) int
-		UnreadNotificationCount      func(childComplexity int) int
-		User                         func(childComplexity int, id string) int
-		WaitlistLeads                func(childComplexity int, leadType *model.WaitlistLeadType, limit *int, offset *int) int
-		WaitlistStats                func(childComplexity int) int
-		WorkerDateOverrides          func(childComplexity int, workerID string, from string, to string) int
-		WorkerDocuments              func(childComplexity int, workerID string) int
-		WorkerEarningsByDateRange    func(childComplexity int, from string, to string) int
-		WorkerPerformance            func(childComplexity int, workerID string) int
-		WorkerPersonalityAssessment  func(childComplexity int, workerID string) int
-		WorkerServiceAreas           func(childComplexity int, workerID string) int
+		ActiveCities                       func(childComplexity int) int
+		AllBookings                        func(childComplexity int, status *model.BookingStatus, companyID *string, dateFrom *string, dateTo *string, first *int, after *string) int
+		AllChatRooms                       func(childComplexity int) int
+		AllCities                          func(childComplexity int) int
+		AllExtras                          func(childComplexity int) int
+		AllInvoices                        func(childComplexity int, typeArg *model.InvoiceType, status *model.InvoiceStatus, companyID *string, first *int, after *string) int
+		AllPaymentTransactions             func(childComplexity int, status *model.PaymentTransactionStatus, first *int, after *string) int
+		AllPayouts                         func(childComplexity int, companyID *string, status *model.PayoutStatus, first *int, after *string) int
+		AllRefundRequests                  func(childComplexity int, status *model.RefundStatus, first *int, after *string) int
+		AllReviews                         func(childComplexity int, limit *int, offset *int, rating *int, reviewType *string) int
+		AllServices                        func(childComplexity int) int
+		AllSubscriptions                   func(childComplexity int, status *model.SubscriptionStatus, limit *int, offset *int) int
+		AllUsers                           func(childComplexity int) int
+		AllWorkers                         func(childComplexity int) int
+		AvailableExtras                    func(childComplexity int) int
+		AvailableServices                  func(childComplexity int) int
+		Booking                            func(childComplexity int, id string) int
+		BookingPaymentDetails              func(childComplexity int, bookingID string) int
+		BookingPolicy                      func(childComplexity int) int
+		BookingsByStatus                   func(childComplexity int) int
+		ChatRoom                           func(childComplexity int, id string) int
+		CheckWorkerAvailability            func(childComplexity int, bookingID string, date string, startTime string) int
+		CheckWorkerForSubscriptionBookings func(childComplexity int, subscriptionID string, workerID string) int
+		CityAreas                          func(childComplexity int, cityID string) int
+		ClientInvoiceForBooking            func(childComplexity int, bookingID string) int
+		Companies                          func(childComplexity int, status *model.CompanyStatus, first *int, after *string) int
+		Company                            func(childComplexity int, id string) int
+		CompanyBookings                    func(childComplexity int, status *model.BookingStatus, first *int, after *string) int
+		CompanyBookingsByDateRange         func(childComplexity int, from string, to string) int
+		CompanyChatRooms                   func(childComplexity int) int
+		CompanyFinancialSummary            func(childComplexity int, companyID string) int
+		CompanyInvoiceForBooking           func(childComplexity int, bookingID string) int
+		CompanyInvoices                    func(childComplexity int, status *model.InvoiceStatus, first *int, after *string) int
+		CompanyPerformance                 func(childComplexity int, first *int) int
+		CompanyReceivedInvoices            func(childComplexity int, first *int, after *string) int
+		CompanyRevenueByDateRange          func(childComplexity int, from string, to string) int
+		CompanySubscriptions               func(childComplexity int, limit *int, offset *int) int
+		EstimatePrice                      func(childComplexity int, input model.PriceEstimateInput) int
+		GetDocumentURL                     func(childComplexity int, documentID string) int
+		InvoiceAnalytics                   func(childComplexity int, from string, to string) int
+		InvoiceDetail                      func(childComplexity int, id string) int
+		IsCitySupported                    func(childComplexity int, city string) int
+		Me                                 func(childComplexity int) int
+		MyAddresses                        func(childComplexity int) int
+		MyAssignedJobs                     func(childComplexity int, status *model.BookingStatus) int
+		MyBillingProfile                   func(childComplexity int) int
+		MyBookings                         func(childComplexity int, status *model.BookingStatus, first *int, after *string) int
+		MyChatRooms                        func(childComplexity int) int
+		MyCompany                          func(childComplexity int) int
+		MyCompanyEarnings                  func(childComplexity int, from string, to string) int
+		MyCompanyFinancialSummary          func(childComplexity int) int
+		MyCompanyServiceAreas              func(childComplexity int) int
+		MyCompanyWorkSchedule              func(childComplexity int) int
+		MyConnectStatus                    func(childComplexity int) int
+		MyInvoices                         func(childComplexity int, first *int, after *string) int
+		MyNotifications                    func(childComplexity int, first *int, after *string, unreadOnly *bool) int
+		MyPaymentHistory                   func(childComplexity int, limit *int, offset *int) int
+		MyPaymentMethods                   func(childComplexity int) int
+		MyPayoutDetail                     func(childComplexity int, id string) int
+		MyPayouts                          func(childComplexity int, first *int, after *string) int
+		MyPersonalityAssessment            func(childComplexity int) int
+		MyRefundRequests                   func(childComplexity int) int
+		MySubscriptions                    func(childComplexity int) int
+		MyWorkerAvailability               func(childComplexity int) int
+		MyWorkerBookingsByDateRange        func(childComplexity int, from string, to string) int
+		MyWorkerCompanySchedule            func(childComplexity int) int
+		MyWorkerDateOverrides              func(childComplexity int, from string, to string) int
+		MyWorkerProfile                    func(childComplexity int) int
+		MyWorkerReviews                    func(childComplexity int, limit *int, offset *int) int
+		MyWorkerServiceAreas               func(childComplexity int) int
+		MyWorkerStats                      func(childComplexity int) int
+		MyWorkers                          func(childComplexity int) int
+		PendingCompanyApplications         func(childComplexity int) int
+		PendingCompanyDocuments            func(childComplexity int) int
+		PendingWorkerDocuments             func(childComplexity int) int
+		PersonalityQuestions               func(childComplexity int) int
+		PlatformMode                       func(childComplexity int) int
+		PlatformRevenueReport              func(childComplexity int, from string, to string) int
+		PlatformSettings                   func(childComplexity int) int
+		PlatformStats                      func(childComplexity int, dateFrom *string, dateTo *string) int
+		PlatformTotals                     func(childComplexity int) int
+		RecurringDiscounts                 func(childComplexity int) int
+		RevenueByDateRange                 func(childComplexity int, from string, to string) int
+		RevenueByMonth                     func(childComplexity int, months *int) int
+		RevenueByServiceType               func(childComplexity int, from string, to string) int
+		SearchBookings                     func(childComplexity int, query *string, status *model.BookingStatus, limit *int, offset *int) int
+		SearchCompanies                    func(childComplexity int, query *string, status *model.CompanyStatus, limit *int, offset *int) int
+		SearchCompanyBookings              func(childComplexity int, query *string, status *string, dateFrom *string, dateTo *string, limit *int, offset *int) int
+		SearchUsers                        func(childComplexity int, query *string, role *model.UserRole, status *model.UserStatus, limit *int, offset *int) int
+		SearchWorkerBookings               func(childComplexity int, query *string, status *string, dateFrom *string, dateTo *string, limit *int, offset *int) int
+		ServiceSubscription                func(childComplexity int, id string) int
+		SubscriptionPricingPreview         func(childComplexity int, serviceType model.ServiceType, recurrenceType model.RecurrenceType, numRooms int, numBathrooms int, areaSqm *int, propertyType *string, hasPets *bool, extras []*model.ExtraInput) int
+		SubscriptionStats                  func(childComplexity int) int
+		SuggestWorkerForSubscription       func(childComplexity int, cityID string, areaID string, recurrenceType model.RecurrenceType, dayOfWeek int, preferredTimeStart string, preferredTimeEnd string, estimatedDurationHours float64) int
+		SuggestWorkers                     func(childComplexity int, cityID string, areaID string, timeSlots []*model.TimeSlotInput, estimatedDurationHours float64) int
+		TodaysJobs                         func(childComplexity int) int
+		TopCompaniesByRevenue              func(childComplexity int, from string, to string, limit *int) int
+		UnreadNotificationCount            func(childComplexity int) int
+		User                               func(childComplexity int, id string) int
+		WaitlistLeads                      func(childComplexity int, leadType *model.WaitlistLeadType, limit *int, offset *int) int
+		WaitlistStats                      func(childComplexity int) int
+		WorkerDateOverrides                func(childComplexity int, workerID string, from string, to string) int
+		WorkerDocuments                    func(childComplexity int, workerID string) int
+		WorkerEarningsByDateRange          func(childComplexity int, from string, to string) int
+		WorkerPerformance                  func(childComplexity int, workerID string) int
+		WorkerPersonalityAssessment        func(childComplexity int, workerID string) int
+		WorkerServiceAreas                 func(childComplexity int, workerID string) int
 	}
 
 	RecurringDiscount struct {
@@ -923,6 +936,16 @@ type ComplexityRoot struct {
 		MonthlyRecurringRevenue func(childComplexity int) int
 		PastDueCount            func(childComplexity int) int
 		PausedCount             func(childComplexity int) int
+	}
+
+	SubscriptionWorkerAvailabilityCheck struct {
+		AllAvailable   func(childComplexity int) int
+		AvailableCount func(childComplexity int) int
+		Bookings       func(childComplexity int) int
+		ConflictCount  func(childComplexity int) int
+		SubscriptionID func(childComplexity int) int
+		WorkerID       func(childComplexity int) int
+		WorkerName     func(childComplexity int) int
 	}
 
 	SubscriptionWorkerSuggestion struct {
@@ -1151,6 +1174,7 @@ type MutationResolver interface {
 	CancelSubscription(ctx context.Context, id string, reason *string) (*model.ServiceSubscription, error)
 	RequestSubscriptionWorkerChange(ctx context.Context, id string, reason *string) (*model.ServiceSubscription, error)
 	ResolveSubscriptionWorkerChange(ctx context.Context, id string, workerID string) (*model.ServiceSubscription, error)
+	ResolveSubscriptionWorkerChangePerBooking(ctx context.Context, id string, defaultWorkerID string, assignments []*model.BookingWorkerAssignment) (*model.ServiceSubscription, error)
 	AdminCancelSubscription(ctx context.Context, id string, reason *string) (*model.ServiceSubscription, error)
 	UpdateRecurringDiscount(ctx context.Context, recurrenceType model.RecurrenceType, discountPct float64) (*model.RecurringDiscount, error)
 	UpdateProfile(ctx context.Context, input model.UpdateProfileInput) (*model.User, error)
@@ -1264,6 +1288,7 @@ type QueryResolver interface {
 	CompanySubscriptions(ctx context.Context, limit *int, offset *int) (*model.SubscriptionConnection, error)
 	AllSubscriptions(ctx context.Context, status *model.SubscriptionStatus, limit *int, offset *int) (*model.SubscriptionConnection, error)
 	SubscriptionStats(ctx context.Context) (*model.SubscriptionStats, error)
+	CheckWorkerForSubscriptionBookings(ctx context.Context, subscriptionID string, workerID string) (*model.SubscriptionWorkerAvailabilityCheck, error)
 	Me(ctx context.Context) (*model.User, error)
 	SearchUsers(ctx context.Context, query *string, role *model.UserRole, status *model.UserStatus, limit *int, offset *int) (*model.UserConnection, error)
 	User(ctx context.Context, id string) (*model.User, error)
@@ -1662,6 +1687,55 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Booking.Worker(childComplexity), true
+
+	case "BookingAvailabilityStatus.available":
+		if e.complexity.BookingAvailabilityStatus.Available == nil {
+			break
+		}
+
+		return e.complexity.BookingAvailabilityStatus.Available(childComplexity), true
+	case "BookingAvailabilityStatus.bookingId":
+		if e.complexity.BookingAvailabilityStatus.BookingID == nil {
+			break
+		}
+
+		return e.complexity.BookingAvailabilityStatus.BookingID(childComplexity), true
+	case "BookingAvailabilityStatus.conflicts":
+		if e.complexity.BookingAvailabilityStatus.Conflicts == nil {
+			break
+		}
+
+		return e.complexity.BookingAvailabilityStatus.Conflicts(childComplexity), true
+	case "BookingAvailabilityStatus.estimatedDurationHours":
+		if e.complexity.BookingAvailabilityStatus.EstimatedDurationHours == nil {
+			break
+		}
+
+		return e.complexity.BookingAvailabilityStatus.EstimatedDurationHours(childComplexity), true
+	case "BookingAvailabilityStatus.reason":
+		if e.complexity.BookingAvailabilityStatus.Reason == nil {
+			break
+		}
+
+		return e.complexity.BookingAvailabilityStatus.Reason(childComplexity), true
+	case "BookingAvailabilityStatus.referenceCode":
+		if e.complexity.BookingAvailabilityStatus.ReferenceCode == nil {
+			break
+		}
+
+		return e.complexity.BookingAvailabilityStatus.ReferenceCode(childComplexity), true
+	case "BookingAvailabilityStatus.scheduledDate":
+		if e.complexity.BookingAvailabilityStatus.ScheduledDate == nil {
+			break
+		}
+
+		return e.complexity.BookingAvailabilityStatus.ScheduledDate(childComplexity), true
+	case "BookingAvailabilityStatus.scheduledStartTime":
+		if e.complexity.BookingAvailabilityStatus.ScheduledStartTime == nil {
+			break
+		}
+
+		return e.complexity.BookingAvailabilityStatus.ScheduledStartTime(childComplexity), true
 
 	case "BookingConnection.edges":
 		if e.complexity.BookingConnection.Edges == nil {
@@ -3418,6 +3492,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.ResolveSubscriptionWorkerChange(childComplexity, args["id"].(string), args["workerId"].(string)), true
+	case "Mutation.resolveSubscriptionWorkerChangePerBooking":
+		if e.complexity.Mutation.ResolveSubscriptionWorkerChangePerBooking == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_resolveSubscriptionWorkerChangePerBooking_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ResolveSubscriptionWorkerChangePerBooking(childComplexity, args["id"].(string), args["defaultWorkerId"].(string), args["assignments"].([]*model.BookingWorkerAssignment)), true
 	case "Mutation.resumeSubscription":
 		if e.complexity.Mutation.ResumeSubscription == nil {
 			break
@@ -4730,6 +4815,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.CheckWorkerAvailability(childComplexity, args["bookingId"].(string), args["date"].(string), args["startTime"].(string)), true
+	case "Query.checkWorkerForSubscriptionBookings":
+		if e.complexity.Query.CheckWorkerForSubscriptionBookings == nil {
+			break
+		}
+
+		args, err := ec.field_Query_checkWorkerForSubscriptionBookings_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.CheckWorkerForSubscriptionBookings(childComplexity, args["subscriptionId"].(string), args["workerId"].(string)), true
 	case "Query.cityAreas":
 		if e.complexity.Query.CityAreas == nil {
 			break
@@ -6176,6 +6272,49 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.SubscriptionStats.PausedCount(childComplexity), true
 
+	case "SubscriptionWorkerAvailabilityCheck.allAvailable":
+		if e.complexity.SubscriptionWorkerAvailabilityCheck.AllAvailable == nil {
+			break
+		}
+
+		return e.complexity.SubscriptionWorkerAvailabilityCheck.AllAvailable(childComplexity), true
+	case "SubscriptionWorkerAvailabilityCheck.availableCount":
+		if e.complexity.SubscriptionWorkerAvailabilityCheck.AvailableCount == nil {
+			break
+		}
+
+		return e.complexity.SubscriptionWorkerAvailabilityCheck.AvailableCount(childComplexity), true
+	case "SubscriptionWorkerAvailabilityCheck.bookings":
+		if e.complexity.SubscriptionWorkerAvailabilityCheck.Bookings == nil {
+			break
+		}
+
+		return e.complexity.SubscriptionWorkerAvailabilityCheck.Bookings(childComplexity), true
+	case "SubscriptionWorkerAvailabilityCheck.conflictCount":
+		if e.complexity.SubscriptionWorkerAvailabilityCheck.ConflictCount == nil {
+			break
+		}
+
+		return e.complexity.SubscriptionWorkerAvailabilityCheck.ConflictCount(childComplexity), true
+	case "SubscriptionWorkerAvailabilityCheck.subscriptionId":
+		if e.complexity.SubscriptionWorkerAvailabilityCheck.SubscriptionID == nil {
+			break
+		}
+
+		return e.complexity.SubscriptionWorkerAvailabilityCheck.SubscriptionID(childComplexity), true
+	case "SubscriptionWorkerAvailabilityCheck.workerId":
+		if e.complexity.SubscriptionWorkerAvailabilityCheck.WorkerID == nil {
+			break
+		}
+
+		return e.complexity.SubscriptionWorkerAvailabilityCheck.WorkerID(childComplexity), true
+	case "SubscriptionWorkerAvailabilityCheck.workerName":
+		if e.complexity.SubscriptionWorkerAvailabilityCheck.WorkerName == nil {
+			break
+		}
+
+		return e.complexity.SubscriptionWorkerAvailabilityCheck.WorkerName(childComplexity), true
+
 	case "SubscriptionWorkerSuggestion.availableWeeks":
 		if e.complexity.SubscriptionWorkerSuggestion.AvailableWeeks == nil {
 			break
@@ -6779,6 +6918,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputAdminUpdateCompanyInput,
 		ec.unmarshalInputAvailabilitySlotInput,
 		ec.unmarshalInputBillingProfileInput,
+		ec.unmarshalInputBookingWorkerAssignment,
 		ec.unmarshalInputCompanyApplicationInput,
 		ec.unmarshalInputCreateBookingInput,
 		ec.unmarshalInputCreateServiceDefinitionInput,
@@ -7702,6 +7842,27 @@ func (ec *executionContext) field_Mutation_rescheduleBooking_args(ctx context.Co
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_resolveSubscriptionWorkerChangePerBooking_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "defaultWorkerId", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["defaultWorkerId"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "assignments", ec.unmarshalNBookingWorkerAssignment2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingWorkerAssignmentᚄ)
+	if err != nil {
+		return nil, err
+	}
+	args["assignments"] = arg2
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_resolveSubscriptionWorkerChange_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -8577,6 +8738,22 @@ func (ec *executionContext) field_Query_checkWorkerAvailability_args(ctx context
 		return nil, err
 	}
 	args["startTime"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_checkWorkerForSubscriptionBookings_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "subscriptionId", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["subscriptionId"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "workerId", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["workerId"] = arg1
 	return args, nil
 }
 
@@ -11463,6 +11640,238 @@ func (ec *executionContext) fieldContext_Booking_createdAt(_ context.Context, fi
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type DateTime does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BookingAvailabilityStatus_bookingId(ctx context.Context, field graphql.CollectedField, obj *model.BookingAvailabilityStatus) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BookingAvailabilityStatus_bookingId,
+		func(ctx context.Context) (any, error) {
+			return obj.BookingID, nil
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BookingAvailabilityStatus_bookingId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BookingAvailabilityStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BookingAvailabilityStatus_scheduledDate(ctx context.Context, field graphql.CollectedField, obj *model.BookingAvailabilityStatus) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BookingAvailabilityStatus_scheduledDate,
+		func(ctx context.Context) (any, error) {
+			return obj.ScheduledDate, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BookingAvailabilityStatus_scheduledDate(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BookingAvailabilityStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BookingAvailabilityStatus_scheduledStartTime(ctx context.Context, field graphql.CollectedField, obj *model.BookingAvailabilityStatus) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BookingAvailabilityStatus_scheduledStartTime,
+		func(ctx context.Context) (any, error) {
+			return obj.ScheduledStartTime, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BookingAvailabilityStatus_scheduledStartTime(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BookingAvailabilityStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BookingAvailabilityStatus_estimatedDurationHours(ctx context.Context, field graphql.CollectedField, obj *model.BookingAvailabilityStatus) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BookingAvailabilityStatus_estimatedDurationHours,
+		func(ctx context.Context) (any, error) {
+			return obj.EstimatedDurationHours, nil
+		},
+		nil,
+		ec.marshalNFloat2float64,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BookingAvailabilityStatus_estimatedDurationHours(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BookingAvailabilityStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BookingAvailabilityStatus_referenceCode(ctx context.Context, field graphql.CollectedField, obj *model.BookingAvailabilityStatus) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BookingAvailabilityStatus_referenceCode,
+		func(ctx context.Context) (any, error) {
+			return obj.ReferenceCode, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BookingAvailabilityStatus_referenceCode(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BookingAvailabilityStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BookingAvailabilityStatus_available(ctx context.Context, field graphql.CollectedField, obj *model.BookingAvailabilityStatus) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BookingAvailabilityStatus_available,
+		func(ctx context.Context) (any, error) {
+			return obj.Available, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BookingAvailabilityStatus_available(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BookingAvailabilityStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BookingAvailabilityStatus_reason(ctx context.Context, field graphql.CollectedField, obj *model.BookingAvailabilityStatus) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BookingAvailabilityStatus_reason,
+		func(ctx context.Context) (any, error) {
+			return obj.Reason, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_BookingAvailabilityStatus_reason(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BookingAvailabilityStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BookingAvailabilityStatus_conflicts(ctx context.Context, field graphql.CollectedField, obj *model.BookingAvailabilityStatus) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BookingAvailabilityStatus_conflicts,
+		func(ctx context.Context) (any, error) {
+			return obj.Conflicts, nil
+		},
+		nil,
+		ec.marshalNString2ᚕstringᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BookingAvailabilityStatus_conflicts(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BookingAvailabilityStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -23328,6 +23737,127 @@ func (ec *executionContext) fieldContext_Mutation_resolveSubscriptionWorkerChang
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_resolveSubscriptionWorkerChangePerBooking(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_resolveSubscriptionWorkerChangePerBooking,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().ResolveSubscriptionWorkerChangePerBooking(ctx, fc.Args["id"].(string), fc.Args["defaultWorkerId"].(string), fc.Args["assignments"].([]*model.BookingWorkerAssignment))
+		},
+		nil,
+		ec.marshalNServiceSubscription2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceSubscription,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_resolveSubscriptionWorkerChangePerBooking(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ServiceSubscription_id(ctx, field)
+			case "client":
+				return ec.fieldContext_ServiceSubscription_client(ctx, field)
+			case "company":
+				return ec.fieldContext_ServiceSubscription_company(ctx, field)
+			case "worker":
+				return ec.fieldContext_ServiceSubscription_worker(ctx, field)
+			case "address":
+				return ec.fieldContext_ServiceSubscription_address(ctx, field)
+			case "recurrenceType":
+				return ec.fieldContext_ServiceSubscription_recurrenceType(ctx, field)
+			case "dayOfWeek":
+				return ec.fieldContext_ServiceSubscription_dayOfWeek(ctx, field)
+			case "preferredTime":
+				return ec.fieldContext_ServiceSubscription_preferredTime(ctx, field)
+			case "serviceType":
+				return ec.fieldContext_ServiceSubscription_serviceType(ctx, field)
+			case "serviceName":
+				return ec.fieldContext_ServiceSubscription_serviceName(ctx, field)
+			case "propertyType":
+				return ec.fieldContext_ServiceSubscription_propertyType(ctx, field)
+			case "numRooms":
+				return ec.fieldContext_ServiceSubscription_numRooms(ctx, field)
+			case "numBathrooms":
+				return ec.fieldContext_ServiceSubscription_numBathrooms(ctx, field)
+			case "areaSqm":
+				return ec.fieldContext_ServiceSubscription_areaSqm(ctx, field)
+			case "hasPets":
+				return ec.fieldContext_ServiceSubscription_hasPets(ctx, field)
+			case "specialInstructions":
+				return ec.fieldContext_ServiceSubscription_specialInstructions(ctx, field)
+			case "hourlyRate":
+				return ec.fieldContext_ServiceSubscription_hourlyRate(ctx, field)
+			case "estimatedDurationHours":
+				return ec.fieldContext_ServiceSubscription_estimatedDurationHours(ctx, field)
+			case "perSessionOriginal":
+				return ec.fieldContext_ServiceSubscription_perSessionOriginal(ctx, field)
+			case "discountPct":
+				return ec.fieldContext_ServiceSubscription_discountPct(ctx, field)
+			case "perSessionDiscounted":
+				return ec.fieldContext_ServiceSubscription_perSessionDiscounted(ctx, field)
+			case "sessionsPerMonth":
+				return ec.fieldContext_ServiceSubscription_sessionsPerMonth(ctx, field)
+			case "monthlyAmount":
+				return ec.fieldContext_ServiceSubscription_monthlyAmount(ctx, field)
+			case "platformCommissionPct":
+				return ec.fieldContext_ServiceSubscription_platformCommissionPct(ctx, field)
+			case "stripeSubscriptionId":
+				return ec.fieldContext_ServiceSubscription_stripeSubscriptionId(ctx, field)
+			case "status":
+				return ec.fieldContext_ServiceSubscription_status(ctx, field)
+			case "currentPeriodStart":
+				return ec.fieldContext_ServiceSubscription_currentPeriodStart(ctx, field)
+			case "currentPeriodEnd":
+				return ec.fieldContext_ServiceSubscription_currentPeriodEnd(ctx, field)
+			case "cancelledAt":
+				return ec.fieldContext_ServiceSubscription_cancelledAt(ctx, field)
+			case "cancellationReason":
+				return ec.fieldContext_ServiceSubscription_cancellationReason(ctx, field)
+			case "pausedAt":
+				return ec.fieldContext_ServiceSubscription_pausedAt(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_ServiceSubscription_createdAt(ctx, field)
+			case "workerChangeRequestedAt":
+				return ec.fieldContext_ServiceSubscription_workerChangeRequestedAt(ctx, field)
+			case "workerChangeReason":
+				return ec.fieldContext_ServiceSubscription_workerChangeReason(ctx, field)
+			case "bookings":
+				return ec.fieldContext_ServiceSubscription_bookings(ctx, field)
+			case "upcomingBookings":
+				return ec.fieldContext_ServiceSubscription_upcomingBookings(ctx, field)
+			case "totalBookings":
+				return ec.fieldContext_ServiceSubscription_totalBookings(ctx, field)
+			case "completedBookings":
+				return ec.fieldContext_ServiceSubscription_completedBookings(ctx, field)
+			case "extras":
+				return ec.fieldContext_ServiceSubscription_extras(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ServiceSubscription", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_resolveSubscriptionWorkerChangePerBooking_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_adminCancelSubscription(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -33167,6 +33697,63 @@ func (ec *executionContext) fieldContext_Query_subscriptionStats(_ context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_checkWorkerForSubscriptionBookings(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_checkWorkerForSubscriptionBookings,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Query().CheckWorkerForSubscriptionBookings(ctx, fc.Args["subscriptionId"].(string), fc.Args["workerId"].(string))
+		},
+		nil,
+		ec.marshalNSubscriptionWorkerAvailabilityCheck2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐSubscriptionWorkerAvailabilityCheck,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_checkWorkerForSubscriptionBookings(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "subscriptionId":
+				return ec.fieldContext_SubscriptionWorkerAvailabilityCheck_subscriptionId(ctx, field)
+			case "workerId":
+				return ec.fieldContext_SubscriptionWorkerAvailabilityCheck_workerId(ctx, field)
+			case "workerName":
+				return ec.fieldContext_SubscriptionWorkerAvailabilityCheck_workerName(ctx, field)
+			case "allAvailable":
+				return ec.fieldContext_SubscriptionWorkerAvailabilityCheck_allAvailable(ctx, field)
+			case "bookings":
+				return ec.fieldContext_SubscriptionWorkerAvailabilityCheck_bookings(ctx, field)
+			case "availableCount":
+				return ec.fieldContext_SubscriptionWorkerAvailabilityCheck_availableCount(ctx, field)
+			case "conflictCount":
+				return ec.fieldContext_SubscriptionWorkerAvailabilityCheck_conflictCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SubscriptionWorkerAvailabilityCheck", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_checkWorkerForSubscriptionBookings_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_me(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -38186,6 +38773,227 @@ func (ec *executionContext) fieldContext_SubscriptionStats_monthlyRecurringReven
 	return fc, nil
 }
 
+func (ec *executionContext) _SubscriptionWorkerAvailabilityCheck_subscriptionId(ctx context.Context, field graphql.CollectedField, obj *model.SubscriptionWorkerAvailabilityCheck) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_SubscriptionWorkerAvailabilityCheck_subscriptionId,
+		func(ctx context.Context) (any, error) {
+			return obj.SubscriptionID, nil
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_SubscriptionWorkerAvailabilityCheck_subscriptionId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SubscriptionWorkerAvailabilityCheck",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SubscriptionWorkerAvailabilityCheck_workerId(ctx context.Context, field graphql.CollectedField, obj *model.SubscriptionWorkerAvailabilityCheck) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_SubscriptionWorkerAvailabilityCheck_workerId,
+		func(ctx context.Context) (any, error) {
+			return obj.WorkerID, nil
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_SubscriptionWorkerAvailabilityCheck_workerId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SubscriptionWorkerAvailabilityCheck",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SubscriptionWorkerAvailabilityCheck_workerName(ctx context.Context, field graphql.CollectedField, obj *model.SubscriptionWorkerAvailabilityCheck) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_SubscriptionWorkerAvailabilityCheck_workerName,
+		func(ctx context.Context) (any, error) {
+			return obj.WorkerName, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_SubscriptionWorkerAvailabilityCheck_workerName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SubscriptionWorkerAvailabilityCheck",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SubscriptionWorkerAvailabilityCheck_allAvailable(ctx context.Context, field graphql.CollectedField, obj *model.SubscriptionWorkerAvailabilityCheck) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_SubscriptionWorkerAvailabilityCheck_allAvailable,
+		func(ctx context.Context) (any, error) {
+			return obj.AllAvailable, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_SubscriptionWorkerAvailabilityCheck_allAvailable(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SubscriptionWorkerAvailabilityCheck",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SubscriptionWorkerAvailabilityCheck_bookings(ctx context.Context, field graphql.CollectedField, obj *model.SubscriptionWorkerAvailabilityCheck) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_SubscriptionWorkerAvailabilityCheck_bookings,
+		func(ctx context.Context) (any, error) {
+			return obj.Bookings, nil
+		},
+		nil,
+		ec.marshalNBookingAvailabilityStatus2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingAvailabilityStatusᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_SubscriptionWorkerAvailabilityCheck_bookings(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SubscriptionWorkerAvailabilityCheck",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "bookingId":
+				return ec.fieldContext_BookingAvailabilityStatus_bookingId(ctx, field)
+			case "scheduledDate":
+				return ec.fieldContext_BookingAvailabilityStatus_scheduledDate(ctx, field)
+			case "scheduledStartTime":
+				return ec.fieldContext_BookingAvailabilityStatus_scheduledStartTime(ctx, field)
+			case "estimatedDurationHours":
+				return ec.fieldContext_BookingAvailabilityStatus_estimatedDurationHours(ctx, field)
+			case "referenceCode":
+				return ec.fieldContext_BookingAvailabilityStatus_referenceCode(ctx, field)
+			case "available":
+				return ec.fieldContext_BookingAvailabilityStatus_available(ctx, field)
+			case "reason":
+				return ec.fieldContext_BookingAvailabilityStatus_reason(ctx, field)
+			case "conflicts":
+				return ec.fieldContext_BookingAvailabilityStatus_conflicts(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type BookingAvailabilityStatus", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SubscriptionWorkerAvailabilityCheck_availableCount(ctx context.Context, field graphql.CollectedField, obj *model.SubscriptionWorkerAvailabilityCheck) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_SubscriptionWorkerAvailabilityCheck_availableCount,
+		func(ctx context.Context) (any, error) {
+			return obj.AvailableCount, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_SubscriptionWorkerAvailabilityCheck_availableCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SubscriptionWorkerAvailabilityCheck",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SubscriptionWorkerAvailabilityCheck_conflictCount(ctx context.Context, field graphql.CollectedField, obj *model.SubscriptionWorkerAvailabilityCheck) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_SubscriptionWorkerAvailabilityCheck_conflictCount,
+		func(ctx context.Context) (any, error) {
+			return obj.ConflictCount, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_SubscriptionWorkerAvailabilityCheck_conflictCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SubscriptionWorkerAvailabilityCheck",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _SubscriptionWorkerSuggestion_worker(ctx context.Context, field graphql.CollectedField, obj *model.SubscriptionWorkerSuggestion) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -43047,6 +43855,40 @@ func (ec *executionContext) unmarshalInputBillingProfileInput(ctx context.Contex
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputBookingWorkerAssignment(ctx context.Context, obj any) (model.BookingWorkerAssignment, error) {
+	var it model.BookingWorkerAssignment
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"bookingId", "workerId"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "bookingId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bookingId"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.BookingID = data
+		case "workerId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("workerId"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.WorkerID = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCompanyApplicationInput(ctx context.Context, obj any) (model.CompanyApplicationInput, error) {
 	var it model.CompanyApplicationInput
 	asMap := map[string]any{}
@@ -44739,6 +45581,77 @@ func (ec *executionContext) _Booking(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = ec._Booking_chatRoom(ctx, field, obj)
 		case "createdAt":
 			out.Values[i] = ec._Booking_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var bookingAvailabilityStatusImplementors = []string{"BookingAvailabilityStatus"}
+
+func (ec *executionContext) _BookingAvailabilityStatus(ctx context.Context, sel ast.SelectionSet, obj *model.BookingAvailabilityStatus) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, bookingAvailabilityStatusImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("BookingAvailabilityStatus")
+		case "bookingId":
+			out.Values[i] = ec._BookingAvailabilityStatus_bookingId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "scheduledDate":
+			out.Values[i] = ec._BookingAvailabilityStatus_scheduledDate(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "scheduledStartTime":
+			out.Values[i] = ec._BookingAvailabilityStatus_scheduledStartTime(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "estimatedDurationHours":
+			out.Values[i] = ec._BookingAvailabilityStatus_estimatedDurationHours(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "referenceCode":
+			out.Values[i] = ec._BookingAvailabilityStatus_referenceCode(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "available":
+			out.Values[i] = ec._BookingAvailabilityStatus_available(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "reason":
+			out.Values[i] = ec._BookingAvailabilityStatus_reason(ctx, field, obj)
+		case "conflicts":
+			out.Values[i] = ec._BookingAvailabilityStatus_conflicts(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -47198,6 +48111,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "resolveSubscriptionWorkerChange":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_resolveSubscriptionWorkerChange(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "resolveSubscriptionWorkerChangePerBooking":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_resolveSubscriptionWorkerChangePerBooking(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -50434,6 +51354,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "checkWorkerForSubscriptionBookings":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_checkWorkerForSubscriptionBookings(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "me":
 			field := field
 
@@ -51842,6 +52784,75 @@ func (ec *executionContext) _SubscriptionStats(ctx context.Context, sel ast.Sele
 			}
 		case "monthlyRecurringRevenue":
 			out.Values[i] = ec._SubscriptionStats_monthlyRecurringRevenue(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var subscriptionWorkerAvailabilityCheckImplementors = []string{"SubscriptionWorkerAvailabilityCheck"}
+
+func (ec *executionContext) _SubscriptionWorkerAvailabilityCheck(ctx context.Context, sel ast.SelectionSet, obj *model.SubscriptionWorkerAvailabilityCheck) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, subscriptionWorkerAvailabilityCheckImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SubscriptionWorkerAvailabilityCheck")
+		case "subscriptionId":
+			out.Values[i] = ec._SubscriptionWorkerAvailabilityCheck_subscriptionId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "workerId":
+			out.Values[i] = ec._SubscriptionWorkerAvailabilityCheck_workerId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "workerName":
+			out.Values[i] = ec._SubscriptionWorkerAvailabilityCheck_workerName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "allAvailable":
+			out.Values[i] = ec._SubscriptionWorkerAvailabilityCheck_allAvailable(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "bookings":
+			out.Values[i] = ec._SubscriptionWorkerAvailabilityCheck_bookings(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "availableCount":
+			out.Values[i] = ec._SubscriptionWorkerAvailabilityCheck_availableCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "conflictCount":
+			out.Values[i] = ec._SubscriptionWorkerAvailabilityCheck_conflictCount(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -53334,6 +54345,60 @@ func (ec *executionContext) marshalNBooking2ᚖgo2fixᚑbackendᚋinternalᚋgra
 	return ec._Booking(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNBookingAvailabilityStatus2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingAvailabilityStatusᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.BookingAvailabilityStatus) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNBookingAvailabilityStatus2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingAvailabilityStatus(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNBookingAvailabilityStatus2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingAvailabilityStatus(ctx context.Context, sel ast.SelectionSet, v *model.BookingAvailabilityStatus) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._BookingAvailabilityStatus(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNBookingConnection2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingConnection(ctx context.Context, sel ast.SelectionSet, v model.BookingConnection) graphql.Marshaler {
 	return ec._BookingConnection(ctx, sel, &v)
 }
@@ -53478,6 +54543,26 @@ func (ec *executionContext) marshalNBookingTimeSlot2ᚖgo2fixᚑbackendᚋintern
 		return graphql.Null
 	}
 	return ec._BookingTimeSlot(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNBookingWorkerAssignment2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingWorkerAssignmentᚄ(ctx context.Context, v any) ([]*model.BookingWorkerAssignment, error) {
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]*model.BookingWorkerAssignment, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNBookingWorkerAssignment2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingWorkerAssignment(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalNBookingWorkerAssignment2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingWorkerAssignment(ctx context.Context, v any) (*model.BookingWorkerAssignment, error) {
+	res, err := ec.unmarshalInputBookingWorkerAssignment(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNBookingsByStatus2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingsByStatusᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.BookingsByStatus) graphql.Marshaler {
@@ -56030,6 +57115,20 @@ func (ec *executionContext) unmarshalNSubscriptionStatus2go2fixᚑbackendᚋinte
 
 func (ec *executionContext) marshalNSubscriptionStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐSubscriptionStatus(ctx context.Context, sel ast.SelectionSet, v model.SubscriptionStatus) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) marshalNSubscriptionWorkerAvailabilityCheck2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐSubscriptionWorkerAvailabilityCheck(ctx context.Context, sel ast.SelectionSet, v model.SubscriptionWorkerAvailabilityCheck) graphql.Marshaler {
+	return ec._SubscriptionWorkerAvailabilityCheck(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNSubscriptionWorkerAvailabilityCheck2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐSubscriptionWorkerAvailabilityCheck(ctx context.Context, sel ast.SelectionSet, v *model.SubscriptionWorkerAvailabilityCheck) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._SubscriptionWorkerAvailabilityCheck(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNSubscriptionWorkerSuggestion2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐSubscriptionWorkerSuggestionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.SubscriptionWorkerSuggestion) graphql.Marshaler {

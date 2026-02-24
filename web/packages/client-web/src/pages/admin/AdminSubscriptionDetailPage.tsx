@@ -22,23 +22,20 @@ import {
   Star,
   Loader2,
   AlertTriangle,
-  Search,
-  CheckCircle,
 } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import { formatCurrency } from '@/utils/format';
-import { cn } from '@go2fix/shared';
 import {
   SUBSCRIPTION_DETAIL,
   ADMIN_CANCEL_SUBSCRIPTION,
   PAUSE_SUBSCRIPTION,
   RESUME_SUBSCRIPTION,
-  RESOLVE_SUBSCRIPTION_WORKER_CHANGE,
   ALL_WORKERS,
 } from '@/graphql/operations';
+import WorkerChangeModal from '@/components/subscription/WorkerChangeModal';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -208,9 +205,6 @@ export default function AdminSubscriptionDetailPage() {
   const [cancelReason, setCancelReason] = useState('');
   const [workerChangeModal, setWorkerChangeModal] = useState(false);
   const [workerChangeSuccess, setWorkerChangeSuccess] = useState(false);
-  const [workerChangeError, setWorkerChangeError] = useState<string | null>(null);
-  const [selectedWorkerId, setSelectedWorkerId] = useState<string | null>(null);
-  const [workerSearch, setWorkerSearch] = useState('');
 
   const { data, loading, error } = useQuery<{ serviceSubscription: Subscription }>(
     SUBSCRIPTION_DETAIL,
@@ -228,19 +222,6 @@ export default function AdminSubscriptionDetailPage() {
 
   const [resumeSub, { loading: resuming }] = useMutation(RESUME_SUBSCRIPTION, {
     refetchQueries: [{ query: SUBSCRIPTION_DETAIL, variables: { id } }],
-  });
-
-  const [resolveWorkerChange, { loading: resolvingWorker }] = useMutation(RESOLVE_SUBSCRIPTION_WORKER_CHANGE, {
-    refetchQueries: [{ query: SUBSCRIPTION_DETAIL, variables: { id } }],
-    onCompleted: () => {
-      setWorkerChangeModal(false);
-      setWorkerChangeError(null);
-      setSelectedWorkerId(null);
-      setWorkerSearch('');
-      setWorkerChangeSuccess(true);
-      setTimeout(() => setWorkerChangeSuccess(false), 5000);
-    },
-    onError: (err) => setWorkerChangeError(err.message),
   });
 
   const { data: workersData, loading: loadingWorkers } = useQuery<{ allWorkers: WorkerOption[] }>(ALL_WORKERS, {
@@ -392,12 +373,7 @@ export default function AdminSubscriptionDetailPage() {
               <Button
                 size="sm"
                 className="mt-3"
-                onClick={() => {
-                  setWorkerChangeError(null);
-                  setSelectedWorkerId(null);
-                  setWorkerSearch('');
-                  setWorkerChangeModal(true);
-                }}
+                onClick={() => setWorkerChangeModal(true)}
               >
                 <RefreshCw className="h-4 w-4" />
                 Atribuie lucrator nou
@@ -681,12 +657,7 @@ export default function AdminSubscriptionDetailPage() {
                     variant="outline"
                     size="sm"
                     className="w-full mt-3"
-                    onClick={() => {
-                      setWorkerChangeError(null);
-                      setSelectedWorkerId(null);
-                      setWorkerSearch('');
-                      setWorkerChangeModal(true);
-                    }}
+                    onClick={() => setWorkerChangeModal(true)}
                   >
                     <RefreshCw className="h-4 w-4" />
                     Schimba lucratorul
@@ -817,102 +788,21 @@ export default function AdminSubscriptionDetailPage() {
       </Modal>
 
       {/* Worker Change Modal */}
-      <Modal
+      <WorkerChangeModal
         open={workerChangeModal}
         onClose={() => setWorkerChangeModal(false)}
-        title="Atribuie lucrator nou"
-      >
-        <div className="space-y-4">
-          {sub.workerChangeRequestedAt && sub.workerChangeReason && (
-            <div className="flex items-start gap-3 p-3 rounded-xl bg-amber-50 border border-amber-100">
-              <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-medium text-amber-800">Motiv cerere client</p>
-                <p className="text-sm text-amber-700 mt-0.5">{sub.workerChangeReason}</p>
-              </div>
-            </div>
-          )}
-
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Cauta lucrator..."
-              value={workerSearch}
-              onChange={(e) => setWorkerSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 bg-white text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-            />
-          </div>
-
-          {/* Worker List */}
-          <div className="max-h-64 overflow-y-auto space-y-1 -mx-1 px-1">
-            {loadingWorkers ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-6 w-6 animate-spin text-primary" />
-              </div>
-            ) : (
-              (workersData?.allWorkers ?? [])
-                .filter((w) => w.status === 'ACTIVE' || w.status === 'active')
-                .filter((w) =>
-                  !workerSearch ||
-                  w.fullName.toLowerCase().includes(workerSearch.toLowerCase()) ||
-                  (w.company?.companyName ?? '').toLowerCase().includes(workerSearch.toLowerCase())
-                )
-                .map((w) => (
-                  <button
-                    key={w.id}
-                    type="button"
-                    onClick={() => setSelectedWorkerId(w.id)}
-                    className={cn(
-                      'w-full flex items-center gap-3 p-3 rounded-xl border transition-colors text-left cursor-pointer',
-                      selectedWorkerId === w.id
-                        ? 'border-primary bg-primary/5'
-                        : 'border-transparent hover:bg-gray-50'
-                    )}
-                  >
-                    <div className="h-9 w-9 rounded-full bg-accent/10 flex items-center justify-center shrink-0">
-                      <span className="text-sm font-semibold text-accent">
-                        {w.fullName.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">{w.fullName}</p>
-                      <p className="text-xs text-gray-500 truncate">
-                        {w.company?.companyName ?? 'Fara companie'}
-                        {w.ratingAvg != null ? ` · ★ ${w.ratingAvg.toFixed(1)}` : ''}
-                        {w.totalJobsCompleted > 0 ? ` · ${w.totalJobsCompleted} comenzi` : ''}
-                      </p>
-                    </div>
-                    {selectedWorkerId === w.id && (
-                      <CheckCircle className="h-5 w-5 text-primary shrink-0" />
-                    )}
-                  </button>
-                ))
-            )}
-          </div>
-
-          {workerChangeError && (
-            <div className="flex items-start gap-3 px-4 py-3 rounded-xl bg-red-50 border border-red-100">
-              <AlertTriangle className="h-4 w-4 text-red-600 shrink-0 mt-0.5" />
-              <p className="text-sm text-red-700">{workerChangeError}</p>
-            </div>
-          )}
-
-          <div className="flex justify-end gap-3 pt-2">
-            <Button variant="ghost" onClick={() => setWorkerChangeModal(false)}>
-              Anuleaza
-            </Button>
-            <Button
-              loading={resolvingWorker}
-              disabled={!selectedWorkerId}
-              onClick={() => selectedWorkerId && resolveWorkerChange({ variables: { id: sub.id, workerId: selectedWorkerId } })}
-            >
-              Confirma schimbarea
-            </Button>
-          </div>
-        </div>
-      </Modal>
+        subscriptionId={sub.id}
+        workerChangeReason={sub.workerChangeReason}
+        workerChangeRequestedAt={sub.workerChangeRequestedAt}
+        workers={workersData?.allWorkers ?? []}
+        loadingWorkers={loadingWorkers}
+        showCompanyName={true}
+        onSuccess={() => {
+          setWorkerChangeSuccess(true);
+          setTimeout(() => setWorkerChangeSuccess(false), 5000);
+        }}
+        refetchQueries={[{ query: SUBSCRIPTION_DETAIL, variables: { id } }]}
+      />
     </div>
   );
 }

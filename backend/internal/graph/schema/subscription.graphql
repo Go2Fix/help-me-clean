@@ -100,7 +100,35 @@ type SubscriptionWorkerSuggestion {
   suggestedTimeEnd: String
 }
 
+# ─── Worker Change Availability ───────────────────────────────────────────
+
+type BookingAvailabilityStatus {
+  bookingId: ID!
+  scheduledDate: String!
+  scheduledStartTime: String!
+  estimatedDurationHours: Float!
+  referenceCode: String!
+  available: Boolean!
+  reason: String
+  conflicts: [String!]!
+}
+
+type SubscriptionWorkerAvailabilityCheck {
+  subscriptionId: ID!
+  workerId: ID!
+  workerName: String!
+  allAvailable: Boolean!
+  bookings: [BookingAvailabilityStatus!]!
+  availableCount: Int!
+  conflictCount: Int!
+}
+
 # ─── Inputs ────────────────────────────────────────────────────────────────
+
+input BookingWorkerAssignment {
+  bookingId: ID!
+  workerId: ID!
+}
 
 input CreateSubscriptionInput {
   addressId: ID
@@ -157,6 +185,9 @@ extend type Query {
   # Admin
   allSubscriptions(status: SubscriptionStatus, limit: Int, offset: Int): SubscriptionConnection!
   subscriptionStats: SubscriptionStats!
+
+  # Worker change availability check (admin/company)
+  checkWorkerForSubscriptionBookings(subscriptionId: ID!, workerId: ID!): SubscriptionWorkerAvailabilityCheck!
 }
 
 # ─── Mutations ─────────────────────────────────────────────────────────────
@@ -173,6 +204,13 @@ extend type Mutation {
 
   # Admin/Company — resolve a pending worker change request by assigning a new worker
   resolveSubscriptionWorkerChange(id: ID!, workerId: ID!): ServiceSubscription!
+
+  # Admin/Company — resolve with per-booking worker assignments (for conflict cases)
+  resolveSubscriptionWorkerChangePerBooking(
+    id: ID!
+    defaultWorkerId: ID!
+    assignments: [BookingWorkerAssignment!]!
+  ): ServiceSubscription!
 
   # Admin
   adminCancelSubscription(id: ID!, reason: String): ServiceSubscription!

@@ -118,6 +118,13 @@ WHERE subscription_id = @subscription_id
   AND scheduled_date > CURRENT_DATE
   AND status IN ('assigned', 'confirmed');
 
+-- name: ReassignSingleBookingWorker :one
+UPDATE bookings
+SET worker_id = $2, updated_at = NOW()
+WHERE id = $1
+  AND status IN ('assigned', 'confirmed')
+RETURNING *;
+
 -- ─── SUBSCRIPTION EXTRAS ──────────────────────────────────────────────────
 
 -- name: InsertSubscriptionExtra :exec

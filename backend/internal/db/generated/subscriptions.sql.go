@@ -1133,6 +1133,63 @@ func (q *Queries) ReassignFutureSubscriptionBookings(ctx context.Context, arg Re
 	return err
 }
 
+const reassignSingleBookingWorker = `-- name: ReassignSingleBookingWorker :one
+UPDATE bookings
+SET worker_id = $2, updated_at = NOW()
+WHERE id = $1
+  AND status IN ('assigned', 'confirmed')
+RETURNING id, reference_code, client_user_id, company_id, worker_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number, reschedule_count, rescheduled_at, subscription_id
+`
+
+type ReassignSingleBookingWorkerParams struct {
+	ID       pgtype.UUID `json:"id"`
+	WorkerID pgtype.UUID `json:"worker_id"`
+}
+
+func (q *Queries) ReassignSingleBookingWorker(ctx context.Context, arg ReassignSingleBookingWorkerParams) (Booking, error) {
+	row := q.db.QueryRow(ctx, reassignSingleBookingWorker, arg.ID, arg.WorkerID)
+	var i Booking
+	err := row.Scan(
+		&i.ID,
+		&i.ReferenceCode,
+		&i.ClientUserID,
+		&i.CompanyID,
+		&i.WorkerID,
+		&i.AddressID,
+		&i.ServiceType,
+		&i.ScheduledDate,
+		&i.ScheduledStartTime,
+		&i.EstimatedDurationHours,
+		&i.PropertyType,
+		&i.NumRooms,
+		&i.NumBathrooms,
+		&i.AreaSqm,
+		&i.HasPets,
+		&i.SpecialInstructions,
+		&i.HourlyRate,
+		&i.EstimatedTotal,
+		&i.FinalTotal,
+		&i.PlatformCommissionPct,
+		&i.PlatformCommissionAmount,
+		&i.Status,
+		&i.StartedAt,
+		&i.CompletedAt,
+		&i.CancelledAt,
+		&i.CancellationReason,
+		&i.StripePaymentIntentID,
+		&i.PaymentStatus,
+		&i.PaidAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.RecurringGroupID,
+		&i.OccurrenceNumber,
+		&i.RescheduleCount,
+		&i.RescheduledAt,
+		&i.SubscriptionID,
+	)
+	return i, err
+}
+
 const requestSubscriptionWorkerChange = `-- name: RequestSubscriptionWorkerChange :one
 UPDATE subscriptions
 SET worker_change_requested_at = NOW(), worker_change_reason = $2, updated_at = NOW()

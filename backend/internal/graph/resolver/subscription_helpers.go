@@ -6,9 +6,12 @@ import (
 	"log"
 	"math"
 	"strings"
+	"time"
 
 	db "go2fix-backend/internal/db/generated"
 	"go2fix-backend/internal/graph/model"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 // dbSubscriptionToGQL converts a DB subscription to a GQL ServiceSubscription.
@@ -278,6 +281,107 @@ func (r *Resolver) sendWorkerChangeRequestNotifications(ctx context.Context, sub
 			}
 		}
 	}
+}
+
+// checkWorkerAvailabilityForBooking checks whether a worker is available for a specific
+// booking time slot by running the 4-layer availability check:
+//  1. Company work schedule (is it a work day? within hours?)
+//  2. Worker date override (day off?)
+//  3. Worker weekly availability slots
+//  4. Existing booking overlap
+func (r *Resolver) checkWorkerAvailabilityForBooking(
+	ctx context.Context,
+	workerID, companyID pgtype.UUID,
+	date time.Time,
+	startTimeMinutes, durationMinutes int,
+	excludeBookingID *pgtype.UUID,
+) (available bool, reason string, conflicts []string) {
+	pgDate := pgtype.Date{Time: date, Valid: true}
+	dayOfWeek := int32(date.Weekday()) // 0=Sunday
+	reqEnd := startTimeMinutes + durationMinutes
+
+	// Layer 1: Company work schedule.
+	if companyID.Valid {
+		companySchedule, _ := r.Queries.ListCompanyWorkSchedule(ctx, companyID)
+		for _, cs := range companySchedule {
+			if cs.DayOfWeek == dayOfWeek {
+				if !cs.IsWorkDay {
+					reason := "Partenerul selectat nu lucreaza in aceasta zi"
+					return false, reason, []string{reason}
+				}
+				csStart := int(cs.StartTime.Microseconds / 60_000_000)
+				csEnd := int(cs.EndTime.Microseconds / 60_000_000)
+				schedStr := fmt.Sprintf("%02d:%02d-%02d:%02d", csStart/60, csStart%60, csEnd/60, csEnd%60)
+				if startTimeMinutes < csStart || startTimeMinutes >= csEnd {
+					reason := fmt.Sprintf("Ora selectata este in afara programului (%s)", schedStr)
+					return false, reason, []string{reason}
+				}
+				if reqEnd > csEnd {
+					reason := fmt.Sprintf("Comanda depaseste programul — sfarsit estimat %02d:%02d, partenerul inchide la %02d:%02d", reqEnd/60, reqEnd%60, csEnd/60, csEnd%60)
+					return false, reason, []string{reason}
+				}
+				break
+			}
+		}
+	}
+
+	// Layer 2: Worker date override (day off).
+	override, err := r.Queries.GetWorkerDateOverride(ctx, db.GetWorkerDateOverrideParams{
+		WorkerID:     workerID,
+		OverrideDate: pgDate,
+	})
+	if err == nil && !override.IsAvailable {
+		reason := "Lucratorul nu este disponibil in aceasta zi (zi libera)"
+		return false, reason, []string{reason}
+	}
+
+	// Layer 3: Worker weekly availability for day of week.
+	availSlots, _ := r.Queries.ListWorkerAvailability(ctx, workerID)
+	hasSlotForDay := false
+	inSchedule := false
+	for _, slot := range availSlots {
+		if slot.DayOfWeek == dayOfWeek {
+			hasSlotForDay = true
+			if slot.IsAvailable.Valid && slot.IsAvailable.Bool {
+				slotStart := int(slot.StartTime.Microseconds / 60_000_000)
+				slotEnd := int(slot.EndTime.Microseconds / 60_000_000)
+				if startTimeMinutes >= slotStart && reqEnd <= slotEnd {
+					inSchedule = true
+					break
+				}
+			}
+		}
+	}
+	if hasSlotForDay && !inSchedule {
+		reason := "Programarea nu se incadreaza in orarul lucratorului"
+		return false, reason, []string{reason}
+	}
+
+	// Layer 4: Existing booking overlap.
+	existingBookings, _ := r.Queries.ListWorkerBookingsForDate(ctx, db.ListWorkerBookingsForDateParams{
+		WorkerID:      workerID,
+		ScheduledDate: pgDate,
+	})
+	for _, eb := range existingBookings {
+		// Skip the excluded booking if provided (e.g. the booking being rescheduled).
+		if excludeBookingID != nil && eb.ID == *excludeBookingID {
+			continue
+		}
+		ebStart := int(eb.ScheduledStartTime.Microseconds / 60_000_000)
+		ebDuration := int(numericToFloat(eb.EstimatedDurationHours) * 60)
+		ebEnd := ebStart + ebDuration
+
+		if startTimeMinutes < ebEnd && reqEnd > ebStart {
+			conflictTime := fmt.Sprintf("%02d:%02d-%02d:%02d", ebStart/60, ebStart%60, ebEnd/60, ebEnd%60)
+			conflicts = append(conflicts, fmt.Sprintf("Conflict cu alta programare (%s)", conflictTime))
+		}
+	}
+
+	if len(conflicts) > 0 {
+		return false, "Lucratorul are alte programari in acest interval", conflicts
+	}
+
+	return true, "", nil
 }
 
 // sendWorkerChangedNotification notifies the client that their subscription worker has been changed.
