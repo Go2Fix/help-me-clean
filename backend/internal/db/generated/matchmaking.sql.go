@@ -33,7 +33,7 @@ func (q *Queries) CountWorkerBookingsInDateRange(ctx context.Context, arg CountW
 }
 
 const findMatchingWorkers = `-- name: FindMatchingWorkers :many
-SELECT DISTINCT c.id, u.full_name, c.rating_avg, c.total_jobs_completed,
+SELECT DISTINCT c.id, c.user_id, u.full_name, u.avatar_url, c.rating_avg, c.total_jobs_completed,
        co.company_name, co.id AS company_id
 FROM workers c
 JOIN users u ON c.user_id = u.id
@@ -47,7 +47,9 @@ ORDER BY c.rating_avg DESC, c.total_jobs_completed DESC
 
 type FindMatchingWorkersRow struct {
 	ID                 pgtype.UUID    `json:"id"`
+	UserID             pgtype.UUID    `json:"user_id"`
 	FullName           string         `json:"full_name"`
+	AvatarUrl          pgtype.Text    `json:"avatar_url"`
 	RatingAvg          pgtype.Numeric `json:"rating_avg"`
 	TotalJobsCompleted pgtype.Int4    `json:"total_jobs_completed"`
 	CompanyName        string         `json:"company_name"`
@@ -65,7 +67,9 @@ func (q *Queries) FindMatchingWorkers(ctx context.Context, cityAreaID pgtype.UUI
 		var i FindMatchingWorkersRow
 		if err := rows.Scan(
 			&i.ID,
+			&i.UserID,
 			&i.FullName,
+			&i.AvatarUrl,
 			&i.RatingAvg,
 			&i.TotalJobsCompleted,
 			&i.CompanyName,

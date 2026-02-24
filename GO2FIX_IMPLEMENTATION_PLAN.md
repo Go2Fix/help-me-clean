@@ -148,23 +148,25 @@ All indexes already existed from prior migrations. No new migration needed.
 
 > Key differentiators for the platform.
 
-### P2-1: Smart Time Suggestion During Booking
+### P2-1: Smart Time Suggestion During Booking ✅ COMPLETED
 
 **Problem:** When no workers are available for selected time, booking just fails. Should suggest alternatives.
 
 **Implementation:**
-- [ ] Backend: Create `suggestAlternativeSlots` query
-  - Input: service type, date, preferred time range, location/zone
-  - Logic: Find nearest available slots from all qualified workers in the area
-  - Return: Up to 3 alternative time slots with availability
-- [ ] Frontend: When "no availability" is returned during booking:
-  - Show friendly message: "Ne pare rau, nu avem disponibilitate pentru intervalul ales"
-  - Display suggested alternatives: "Ce parere ai daca venim in intervalul X-Y?"
-  - Each suggestion is clickable → selects that slot
-  - "Alege alt interval" button to try different date
-- [ ] Admin: Dashboard shows demand heatmap (which time slots are most requested but unavailable) — helps with capacity planning
+- [x] Backend: Implemented `SuggestWorkers` resolver in `location.resolvers.go`
+  - Extended `FindMatchingWorkers` query with `user_id` + `avatar_url` (no N+1 queries)
+  - Created `suggestWorkersForSlots` + `evaluateWorkerForSlots` helpers in `location_helpers.go`
+  - Uses matching engine: `ComputeFreeIntervals` → `FindOptimalPlacement` → `ComputeMatchScore`
+  - Determines availability status: "available" (within requested window), "partial" (different time same day), "unavailable"
+  - Falls back to full-day placement when client's preferred slot has no room
+  - Returns top 5 workers sorted by match score (rating, gap optimization, load balancing)
+- [x] Frontend: Enhanced `StepWorker` component in `BookingPage.tsx`
+  - Improved empty state: Calendar icon, friendly message, "Alege alt interval" button navigates back to schedule step
+  - Smart amber info banner when a "partial" worker is selected, showing their actual available time window
+  - All existing worker cards, availability badges, and suggested times continue to work
+- [ ] Admin: Dashboard demand heatmap — deferred to post-MVP
 
-**Effort:** 6-8 hours
+**Completed:** Feb 2026
 
 ---
 

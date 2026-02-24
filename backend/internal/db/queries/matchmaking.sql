@@ -1,5 +1,5 @@
 -- name: FindMatchingWorkers :many
-SELECT DISTINCT c.id, u.full_name, c.rating_avg, c.total_jobs_completed,
+SELECT DISTINCT c.id, c.user_id, u.full_name, u.avatar_url, c.rating_avg, c.total_jobs_completed,
        co.company_name, co.id AS company_id
 FROM workers c
 JOIN users u ON c.user_id = u.id

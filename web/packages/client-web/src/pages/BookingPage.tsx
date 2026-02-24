@@ -878,6 +878,10 @@ export default function BookingPage() {
                 updateForm={updateForm}
                 estimatedHours={estimate?.estimatedHours}
                 minHours={selectedService?.minHours}
+                onChangeSchedule={() => {
+                  const schedIdx = STEPS.findIndex((s) => s.key === 'schedule');
+                  if (schedIdx >= 0) setCurrentStep(schedIdx);
+                }}
               />
             )}
 
@@ -2681,11 +2685,13 @@ function StepWorker({
   updateForm,
   estimatedHours,
   minHours,
+  onChangeSchedule,
 }: {
   form: BookingFormState;
   updateForm: (updates: Partial<BookingFormState>) => void;
   estimatedHours?: number;
   minHours?: number;
+  onChangeSchedule?: () => void;
 }) {
   const duration = estimatedHours ?? minHours ?? 2;
   const firstSlot = form.timeSlots[0];
@@ -2827,13 +2833,31 @@ function StepWorker({
 
       {/* Job schedule header */}
       {firstSlot && (
-        <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-blue-50 border border-blue-200 mb-6">
-          <Calendar className="h-4 w-4 text-blue-600 shrink-0" />
-          <span className="text-sm text-blue-800 font-medium">
-            Programarea ta: {new Date(firstSlot.date).toLocaleDateString('ro-RO', { day: 'numeric', month: 'long', year: 'numeric' })},{' '}
-            {firstSlot.startTime} - {firstSlot.endTime}
-            {duration ? ` (${duration} ${duration === 1 ? 'ora' : 'ore'})` : ''}
-          </span>
+        <div className="mb-6 space-y-2">
+          <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-blue-50 border border-blue-200">
+            <Calendar className="h-4 w-4 text-blue-600 shrink-0" />
+            <span className="text-sm text-blue-800 font-medium">
+              Programarea ta: {new Date(firstSlot.date).toLocaleDateString('ro-RO', { day: 'numeric', month: 'long', year: 'numeric' })},{' '}
+              {firstSlot.startTime} - {firstSlot.endTime}
+              {duration ? ` (${duration} ${duration === 1 ? 'ora' : 'ore'})` : ''}
+            </span>
+          </div>
+          {/* Show suggested time when selected worker has a different slot */}
+          {(() => {
+            const selected = suggestions.find((s) => s.worker.id === form.preferredWorkerId);
+            if (!selected || selected.availabilityStatus !== 'partial' || !selected.suggestedStartTime || !selected.suggestedEndTime) return null;
+            return (
+              <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200">
+                <Info className="h-4 w-4 text-amber-600 shrink-0" />
+                <span className="text-sm text-amber-800">
+                  Curățătorul este disponibil la ora <strong>{selected.suggestedStartTime} - {selected.suggestedEndTime}</strong>
+                  {selected.suggestedDate && selected.suggestedDate !== firstSlot.date && (
+                    <> pe {new Date(selected.suggestedDate + 'T00:00:00').toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long' })}</>
+                  )}
+                </span>
+              </div>
+            );
+          })()}
         </div>
       )}
 
@@ -2954,11 +2978,19 @@ function StepWorker({
       ) : (
         <Card>
           <div className="text-center py-6">
-            <Users className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-            <p className="text-sm text-gray-500">
-              Nu am găsit curățători disponibili în această zonă și dată. Te rugăm
-              să încerci o altă dată sau să verifici zona.
+            <Calendar className="h-10 w-10 text-gray-300 mx-auto mb-3" />
+            <p className="text-sm font-medium text-gray-700 mb-1">
+              Nu sunt curățători disponibili
             </p>
+            <p className="text-sm text-gray-500 mb-4">
+              Nu am găsit curățători pentru intervalul ales. Încearcă o altă dată sau oră.
+            </p>
+            {onChangeSchedule && (
+              <Button variant="outline" size="sm" onClick={onChangeSchedule}>
+                <Calendar className="h-4 w-4 mr-1.5" />
+                Alege alt interval
+              </Button>
+            )}
           </div>
         </Card>
       )}

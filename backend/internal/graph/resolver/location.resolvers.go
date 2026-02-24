@@ -245,7 +245,11 @@ func (r *queryResolver) MyWorkerServiceAreas(ctx context.Context) ([]*model.City
 
 // SuggestWorkers is the resolver for the suggestWorkers field.
 func (r *queryResolver) SuggestWorkers(ctx context.Context, cityID string, areaID string, timeSlots []*model.TimeSlotInput, estimatedDurationHours float64) ([]*model.WorkerSuggestion, error) {
-	panic(fmt.Errorf("not implemented: SuggestWorkers - suggestWorkers"))
+	areaUUID := stringToUUID(areaID)
+	if !areaUUID.Valid {
+		return nil, fmt.Errorf("invalid area ID")
+	}
+	return r.suggestWorkersForSlots(ctx, areaUUID, timeSlots, estimatedDurationHours)
 }
 
 // IsCitySupported is the resolver for the isCitySupported field.
