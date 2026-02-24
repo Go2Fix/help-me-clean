@@ -95,6 +95,7 @@ const tabs: { key: TabKey; label: string; icon: typeof Settings }[] = [
 
 const SETTING_GROUPS: { title: string; keys: string[] }[] = [
   { title: 'Business', keys: ['platform_commission_pct', 'min_booking_hours', 'max_booking_hours', 'default_hourly_rate', 'booking_auto_cancel_hours', 'require_company_approval'] },
+  { title: 'Anulare / Reprogramare', keys: ['cancel_free_hours_before', 'cancel_late_refund_pct', 'reschedule_free_hours_before', 'reschedule_max_per_booking'] },
   { title: 'Contact', keys: ['support_email', 'support_phone'] },
   { title: 'Politici', keys: ['privacy_url', 'terms_url'] },
 ];
@@ -106,13 +107,17 @@ const SETTING_LABELS: Record<string, string> = {
   default_hourly_rate: 'Tarif orar implicit (RON)',
   booking_auto_cancel_hours: 'Anulare automata rezervare (ore)',
   require_company_approval: 'Aprobare companie necesara',
+  cancel_free_hours_before: 'Anulare gratuita inainte de (ore)',
+  cancel_late_refund_pct: 'Rambursare anulare tarzie (%)',
+  reschedule_free_hours_before: 'Reprogramare gratuita inainte de (ore)',
+  reschedule_max_per_booking: 'Max reprogramari per rezervare',
   support_email: 'Email suport',
   support_phone: 'Telefon suport',
   privacy_url: 'URL Politica confidentialitate',
   terms_url: 'URL Termeni si conditii',
 };
 
-const NUMBER_KEYS = new Set(['platform_commission_pct', 'min_booking_hours', 'max_booking_hours', 'default_hourly_rate', 'booking_auto_cancel_hours']);
+const NUMBER_KEYS = new Set(['platform_commission_pct', 'min_booking_hours', 'max_booking_hours', 'default_hourly_rate', 'booking_auto_cancel_hours', 'cancel_free_hours_before', 'cancel_late_refund_pct', 'reschedule_free_hours_before', 'reschedule_max_per_booking']);
 
 const SERVICE_TYPE_OPTIONS = [
   { value: 'STANDARD', label: 'Standard' },

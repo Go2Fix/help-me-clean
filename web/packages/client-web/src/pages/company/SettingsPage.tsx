@@ -9,6 +9,7 @@ import Input from '@/components/ui/Input';
 import FileUpload from '@/components/ui/FileUpload';
 import DocumentCard from '@/components/ui/DocumentCard';
 import AvatarUpload from '@/components/ui/AvatarUpload';
+import TimeInput24h from '@/components/ui/TimeInput24h';
 import { cn } from '@go2fix/shared';
 import {
   MY_COMPANY,
@@ -662,28 +663,16 @@ export default function SettingsPage() {
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <input
-                  type="time"
+                <TimeInput24h
                   value={day.startTime}
-                  onChange={(e) => updateScheduleDay(day.dayOfWeek, { startTime: e.target.value })}
+                  onChange={(v) => updateScheduleDay(day.dayOfWeek, { startTime: v })}
                   disabled={!day.isWorkDay}
-                  className={cn(
-                    'rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 transition-colors',
-                    'focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600',
-                    !day.isWorkDay && 'opacity-40 cursor-not-allowed bg-gray-100',
-                  )}
                 />
                 <span className="text-sm text-gray-400">-</span>
-                <input
-                  type="time"
+                <TimeInput24h
                   value={day.endTime}
-                  onChange={(e) => updateScheduleDay(day.dayOfWeek, { endTime: e.target.value })}
+                  onChange={(v) => updateScheduleDay(day.dayOfWeek, { endTime: v })}
                   disabled={!day.isWorkDay}
-                  className={cn(
-                    'rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 transition-colors',
-                    'focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600',
-                    !day.isWorkDay && 'opacity-40 cursor-not-allowed bg-gray-100',
-                  )}
                 />
               </div>
             </div>

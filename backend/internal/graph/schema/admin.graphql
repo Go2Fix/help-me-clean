@@ -61,6 +61,7 @@ extend type Query {
 
 extend type Mutation {
   adminCancelBooking(id: ID!, reason: String!): Booking!
+  adminRescheduleBooking(id: ID!, scheduledDate: String!, scheduledStartTime: String!, reason: String): Booking!
   suspendUser(id: ID!, reason: String!): User!
   reactivateUser(id: ID!): User!
   uploadFile(file: Upload!, purpose: String!): UploadResult!

@@ -12,3 +12,6 @@ ORDER BY override_date;
 
 -- name: DeleteWorkerDateOverride :exec
 DELETE FROM worker_date_overrides WHERE worker_id = $1 AND override_date = $2;
+
+-- name: GetWorkerDateOverride :one
+SELECT * FROM worker_date_overrides WHERE worker_id = $1 AND override_date = $2;

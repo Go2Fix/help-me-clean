@@ -126,9 +126,13 @@ type InvoicesTab = 'issued' | 'received';
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
+const PAGE_SIZE = 20;
+
 export default function CompanyInvoicesPage() {
   const [activeTab, setActiveTab] = useState<InvoicesTab>('issued');
   const [statusFilter, setStatusFilter] = useState<string>('');
+  const [issuedPage, setIssuedPage] = useState(0);
+  const [receivedPage, setReceivedPage] = useState(0);
 
   // Modal state for generating an invoice
   const [generateModalOpen, setGenerateModalOpen] = useState(false);
@@ -142,17 +146,22 @@ export default function CompanyInvoicesPage() {
   const { data, loading, refetch } = useQuery(COMPANY_INVOICES, {
     variables: {
       status: statusFilter || undefined,
-      first: 50,
+      first: PAGE_SIZE,
+      after: issuedPage > 0 ? String(issuedPage * PAGE_SIZE) : undefined,
     },
+    fetchPolicy: 'cache-and-network',
     skip: activeTab !== 'issued',
   });
 
   const {
     data: receivedData,
     loading: receivedLoading,
-    fetchMore: fetchMoreReceived,
   } = useQuery(COMPANY_RECEIVED_INVOICES, {
-    variables: { first: 50 },
+    variables: {
+      first: PAGE_SIZE,
+      after: receivedPage > 0 ? String(receivedPage * PAGE_SIZE) : undefined,
+    },
+    fetchPolicy: 'cache-and-network',
     skip: activeTab !== 'received',
   });
 
@@ -180,8 +189,14 @@ export default function CompanyInvoicesPage() {
   });
 
   const invoices: InvoiceEdge[] = data?.companyInvoices?.edges ?? [];
+  const issuedTotalCount: number = data?.companyInvoices?.totalCount ?? 0;
+  const issuedTotalPages = Math.max(1, Math.ceil(issuedTotalCount / PAGE_SIZE));
+  const issuedHasNext = data?.companyInvoices?.pageInfo?.hasNextPage ?? false;
+
   const receivedInvoices: ReceivedInvoiceEdge[] = receivedData?.companyReceivedInvoices?.edges ?? [];
-  const receivedPageInfo = receivedData?.companyReceivedInvoices?.pageInfo;
+  const receivedTotalCount: number = receivedData?.companyReceivedInvoices?.totalCount ?? 0;
+  const receivedTotalPages = Math.max(1, Math.ceil(receivedTotalCount / PAGE_SIZE));
+  const receivedHasNext = receivedData?.companyReceivedInvoices?.pageInfo?.hasNextPage ?? false;
 
   // ─── Handlers ─────────────────────────────────────────────────────────────
 
@@ -224,25 +239,6 @@ export default function CompanyInvoicesPage() {
   const openCancelModal = (invoiceId: string) => {
     setCancelInvoiceId(invoiceId);
     setCancelModalOpen(true);
-  };
-
-  const handleLoadMoreReceived = () => {
-    if (!receivedPageInfo?.hasNextPage || !receivedPageInfo.endCursor) return;
-    fetchMoreReceived({
-      variables: { after: receivedPageInfo.endCursor, first: 50 },
-      updateQuery: (prev, { fetchMoreResult }) => {
-        if (!fetchMoreResult) return prev;
-        return {
-          companyReceivedInvoices: {
-            ...fetchMoreResult.companyReceivedInvoices,
-            edges: [
-              ...prev.companyReceivedInvoices.edges,
-              ...fetchMoreResult.companyReceivedInvoices.edges,
-            ],
-          },
-        };
-      },
-    });
   };
 
   // ─── Render ──────────────────────────────────────────────────────────────────
@@ -302,7 +298,7 @@ export default function CompanyInvoicesPage() {
               <Select
                 options={statusFilterOptions}
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
+                onChange={(e) => { setStatusFilter(e.target.value); setIssuedPage(0); }}
                 label="Filtreaza dupa status"
               />
             </div>
@@ -429,11 +425,41 @@ export default function CompanyInvoicesPage() {
               </div>
             )}
           </Card>
+
+          {/* Issued Pagination */}
+          {issuedTotalCount > 0 && (
+            <div className="flex flex-wrap items-center justify-between gap-3 mt-6">
+              <span className="text-sm text-gray-500">
+                {issuedTotalCount} {issuedTotalCount === 1 ? 'factura' : 'facturi'} &middot; Pagina {issuedPage + 1} din {issuedTotalPages}
+              </span>
+              {issuedTotalPages > 1 && (
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={issuedPage === 0}
+                    onClick={() => setIssuedPage((p) => p - 1)}
+                  >
+                    Anterior
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={!issuedHasNext}
+                    onClick={() => setIssuedPage((p) => p + 1)}
+                  >
+                    Urmator
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
         </>
       )}
 
       {/* ─── Received Invoices Tab ───────────────────────────────────────── */}
       {activeTab === 'received' && (
+        <>
         <Card padding={false}>
           {receivedLoading ? (
             <LoadingSpinner text="Se incarca facturile primite..." />
@@ -516,16 +542,39 @@ export default function CompanyInvoicesPage() {
                   </tbody>
                 </table>
               </div>
-              {receivedPageInfo?.hasNextPage && (
-                <div className="flex justify-center py-4 border-t border-gray-100">
-                  <Button variant="ghost" size="sm" onClick={handleLoadMoreReceived}>
-                    Incarca mai multe
-                  </Button>
-                </div>
-              )}
             </>
           )}
         </Card>
+
+        {/* Received Pagination */}
+        {receivedTotalCount > 0 && (
+          <div className="flex flex-wrap items-center justify-between gap-3 mt-6">
+            <span className="text-sm text-gray-500">
+              {receivedTotalCount} {receivedTotalCount === 1 ? 'factura' : 'facturi'} &middot; Pagina {receivedPage + 1} din {receivedTotalPages}
+            </span>
+            {receivedTotalPages > 1 && (
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={receivedPage === 0}
+                  onClick={() => setReceivedPage((p) => p - 1)}
+                >
+                  Anterior
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={!receivedHasNext}
+                  onClick={() => setReceivedPage((p) => p + 1)}
+                >
+                  Urmator
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
+        </>
       )}
 
       {/* Generate Invoice Modal */}

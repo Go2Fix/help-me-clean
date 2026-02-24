@@ -170,45 +170,32 @@ All indexes already existed from prior migrations. No new migration needed.
 
 ---
 
-### P2-2: Booking Reschedule with Configurable Rules
+### P2-2: Booking Reschedule with Configurable Rules ✅ COMPLETED
 
 **Problem:** No reschedule/cancel flow with appropriate fee/refund logic.
 
 **Implementation:**
 
-**Backend — Cancellation policy engine:**
-- [ ] Create `cancellation_policies` table:
-  ```
-  id, name, hours_before_start, action (FULL_REFUND | PARTIAL_REFUND | FEE | NO_REFUND),
-  refund_percentage, fee_amount_cents, is_active, created_at, updated_at
-  ```
-- [ ] Default policies (admin-configurable):
-  - 48+ hours before: Full refund (100%)
-  - 24-48 hours before: Partial refund (50%)
-  - Less than 24 hours: No refund
-  - Reschedule within 24h: Charge reschedule fee
-- [ ] Create `rescheduleBooking` mutation:
-  - Calculate applicable policy based on time until scheduled start
-  - Apply refund or charge fee via Stripe
-  - Generate appropriate invoice/credit note
-  - Move booking to new date/time (check worker availability)
-- [ ] Create `cancelBooking` mutation (client-initiated):
-  - Same policy engine
-  - Process refund if applicable
-  - Free up worker's schedule slot
+**Backend:**
+- [x] Migration 000034: `reschedule_count` + `rescheduled_at` columns on bookings, `booking_rescheduled` notification type, policy settings in platform_settings
+- [x] `RescheduleBooking` sqlc query (atomic counter increment + schedule update)
+- [x] `rescheduleBooking` mutation — auth check, status guard (ASSIGNED/CONFIRMED only), policy-based count limit, date/time validation, async notifications
+- [x] `adminRescheduleBooking` mutation — admin-only, no count limits
+- [x] `bookingPolicy` query — returns configurable policy values (cancel/reschedule hours, refund %, max reschedules)
+- [x] `reschedule_helpers.go` — `loadBookingPolicy`, `hoursUntilBooking`, `sendRescheduleNotifications`
+- [x] Policy settings: `cancel_free_hours_before` (48h), `cancel_late_refund_pct` (50%), `reschedule_free_hours_before` (24h), `reschedule_max_per_booking` (2)
 
-**Frontend — Client flow:**
-- [ ] Add "Reprogrameaza" and "Anuleaza" buttons on booking detail page
-- [ ] Reschedule: Show calendar with available slots + policy info ("Reprogramarea in mai putin de 24h implica o taxa de X lei")
-- [ ] Cancel: Show refund info based on policy ("Vei primi o rambursare de X% din valoarea rezervarii")
-- [ ] Confirmation step before processing
+**Frontend — All user types:**
+- [x] Shared `RescheduleModal` component with date/time pickers, policy warnings, reschedule count display
+- [x] Client BookingDetailPage: "Reprogrameaza" button + RescheduleModal + policy-aware cancel (refund % message)
+- [x] Company OrderDetailPage: "Reprogrameaza" button + RescheduleModal + policy-aware cancel
+- [x] Admin BookingDetailPage: "Reprogrameaza" button + RescheduleModal (isAdmin, no limits)
 
 **Frontend — Admin configuration:**
-- [ ] New "Politici anulare" section in admin settings
-- [ ] CRUD for cancellation policies
-- [ ] Preview: Show what happens at each time threshold
+- [x] "Anulare / Reprogramare" settings group in admin SettingsPage with all 4 policy keys
+- [ ] Advanced: Stripe auto-refund on cancel based on policy — deferred to post-MVP
 
-**Effort:** 8-10 hours
+**Completed:** Feb 2026
 
 ---
 

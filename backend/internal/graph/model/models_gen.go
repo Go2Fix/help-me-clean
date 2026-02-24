@@ -115,6 +115,8 @@ type Booking struct {
 	PaidAt                 *time.Time         `json:"paidAt,omitempty"`
 	RecurringGroupID       *string            `json:"recurringGroupId,omitempty"`
 	OccurrenceNumber       *int               `json:"occurrenceNumber,omitempty"`
+	RescheduleCount        int                `json:"rescheduleCount"`
+	RescheduledAt          *time.Time         `json:"rescheduledAt,omitempty"`
 	TimeSlots              []*BookingTimeSlot `json:"timeSlots"`
 	Review                 *Review            `json:"review,omitempty"`
 	ChatRoom               *ChatRoom          `json:"chatRoom,omitempty"`
@@ -131,6 +133,13 @@ type BookingExtra struct {
 	Extra    *ServiceExtra `json:"extra"`
 	Price    float64       `json:"price"`
 	Quantity int           `json:"quantity"`
+}
+
+type BookingPolicy struct {
+	CancelFreeHoursBefore     int `json:"cancelFreeHoursBefore"`
+	CancelLateRefundPct       int `json:"cancelLateRefundPct"`
+	RescheduleFreeHoursBefore int `json:"rescheduleFreeHoursBefore"`
+	RescheduleMaxPerBooking   int `json:"rescheduleMaxPerBooking"`
 }
 
 type BookingTimeSlot struct {
@@ -895,6 +904,12 @@ type WorkScheduleDayInput struct {
 	StartTime string `json:"startTime"`
 	EndTime   string `json:"endTime"`
 	IsWorkDay bool   `json:"isWorkDay"`
+}
+
+type WorkerAvailabilityCheck struct {
+	Available bool     `json:"available"`
+	Reason    *string  `json:"reason,omitempty"`
+	Conflicts []string `json:"conflicts"`
 }
 
 type WorkerDailyEarnings struct {

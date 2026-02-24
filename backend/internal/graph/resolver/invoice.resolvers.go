@@ -283,9 +283,7 @@ func (r *queryResolver) MyInvoices(ctx context.Context, first *int, after *strin
 
 	edges := make([]*model.Invoice, len(invoices))
 	for i, inv := range invoices {
-		gqlInv := dbInvoiceToGQL(inv)
-		r.enrichInvoice(ctx, inv, gqlInv)
-		edges[i] = gqlInv
+		edges[i] = dbInvoiceToGQL(inv)
 	}
 
 	total, _ := r.Queries.CountInvoicesByClient(ctx, userID)
@@ -316,6 +314,38 @@ func (r *queryResolver) InvoiceDetail(ctx context.Context, id string) (*model.In
 	inv, err := r.Queries.GetInvoiceByID(ctx, stringToUUID(id))
 	if err != nil {
 		return nil, fmt.Errorf("invoice not found: %w", err)
+	}
+
+	gqlInvoice := dbInvoiceToGQL(inv)
+	r.enrichInvoice(ctx, inv, gqlInvoice)
+	return gqlInvoice, nil
+}
+
+// ClientInvoiceForBooking is the resolver for the clientInvoiceForBooking field.
+func (r *queryResolver) ClientInvoiceForBooking(ctx context.Context, bookingID string) (*model.Invoice, error) {
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil {
+		return nil, fmt.Errorf("not authenticated")
+	}
+	if claims.Role != "client" {
+		return nil, fmt.Errorf("only clients can view their invoices")
+	}
+
+	// Verify the booking belongs to this client.
+	booking, err := r.Queries.GetBookingByID(ctx, stringToUUID(bookingID))
+	if err != nil {
+		return nil, nil
+	}
+	if uuidToString(booking.ClientUserID) != claims.UserID {
+		return nil, fmt.Errorf("not authorized to view this booking's invoice")
+	}
+
+	inv, err := r.Queries.GetInvoiceByBookingAndType(ctx, db.GetInvoiceByBookingAndTypeParams{
+		BookingID:   stringToUUID(bookingID),
+		InvoiceType: db.InvoiceTypeClientService,
+	})
+	if err != nil {
+		return nil, nil
 	}
 
 	gqlInvoice := dbInvoiceToGQL(inv)
@@ -374,9 +404,7 @@ func (r *queryResolver) CompanyInvoices(ctx context.Context, status *model.Invoi
 
 	edges := make([]*model.Invoice, len(invoices))
 	for i, inv := range invoices {
-		gqlInv := dbInvoiceToGQL(inv)
-		r.enrichInvoice(ctx, inv, gqlInv)
-		edges[i] = gqlInv
+		edges[i] = dbInvoiceToGQL(inv)
 	}
 
 	total, _ := r.Queries.CountInvoicesByCompany(ctx, company.ID)
@@ -437,9 +465,7 @@ func (r *queryResolver) CompanyReceivedInvoices(ctx context.Context, first *int,
 
 	edges := make([]*model.Invoice, len(invoices))
 	for i, inv := range invoices {
-		gqlInv := dbInvoiceToGQL(inv)
-		r.enrichInvoice(ctx, inv, gqlInv)
-		edges[i] = gqlInv
+		edges[i] = dbInvoiceToGQL(inv)
 	}
 
 	total, _ := r.Queries.CountReceivedInvoicesByCompany(ctx, company.ID)
@@ -547,9 +573,7 @@ func (r *queryResolver) AllInvoices(ctx context.Context, typeArg *model.InvoiceT
 
 	edges := make([]*model.Invoice, len(invoices))
 	for i, inv := range invoices {
-		gqlInv := dbInvoiceToGQL(inv)
-		r.enrichInvoice(ctx, inv, gqlInv)
-		edges[i] = gqlInv
+		edges[i] = dbInvoiceToGQL(inv)
 	}
 
 	var endCursor *string

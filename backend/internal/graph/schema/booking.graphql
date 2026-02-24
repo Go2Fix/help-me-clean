@@ -50,6 +50,8 @@ type Booking {
   paidAt: DateTime
   recurringGroupId: ID
   occurrenceNumber: Int
+  rescheduleCount: Int!
+  rescheduledAt: DateTime
   timeSlots: [BookingTimeSlot!]!
   review: Review
   chatRoom: ChatRoom
@@ -82,6 +84,19 @@ type BookingConnection {
   totalCount: Int!
 }
 
+type BookingPolicy {
+  cancelFreeHoursBefore: Int!
+  cancelLateRefundPct: Int!
+  rescheduleFreeHoursBefore: Int!
+  rescheduleMaxPerBooking: Int!
+}
+
+type WorkerAvailabilityCheck {
+  available: Boolean!
+  reason: String
+  conflicts: [String!]!
+}
+
 extend type Query {
   myBookings(status: BookingStatus, first: Int, after: String): BookingConnection!
   booking(id: ID!): Booking!
@@ -91,6 +106,8 @@ extend type Query {
   allBookings(status: BookingStatus, companyId: ID, dateFrom: String, dateTo: String, first: Int, after: String): BookingConnection!
   companyBookingsByDateRange(from: String!, to: String!): [Booking!]!
   searchCompanyBookings(query: String, status: String, dateFrom: String, dateTo: String, limit: Int, offset: Int): BookingConnection!
+  bookingPolicy: BookingPolicy!
+  checkWorkerAvailability(bookingId: ID!, date: String!, startTime: String!): WorkerAvailabilityCheck!
 }
 
 extend type Mutation {
@@ -101,6 +118,7 @@ extend type Mutation {
   startJob(id: ID!): Booking!
   completeJob(id: ID!): Booking!
   selectBookingTimeSlot(bookingId: ID!, timeSlotId: ID!): Booking!
+  rescheduleBooking(id: ID!, scheduledDate: String!, scheduledStartTime: String!, reason: String): Booking!
 }
 
 input CreateBookingInput {

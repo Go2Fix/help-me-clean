@@ -216,29 +216,33 @@ export default function OrdersPage() {
       </Card>
 
       {/* Pagination */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mt-6">
-        <span className="text-sm text-gray-500">
-          Pagina {page + 1} din {totalPages}
-        </span>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={page === 0}
-            onClick={() => setPage((p) => p - 1)}
-          >
-            Anterior
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={page >= totalPages - 1}
-            onClick={() => setPage((p) => p + 1)}
-          >
-            Urmator
-          </Button>
+      {totalCount > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-3 mt-6">
+          <span className="text-sm text-gray-500">
+            {totalCount} {totalCount === 1 ? 'comanda' : 'comenzi'} &middot; Pagina {page + 1} din {totalPages}
+          </span>
+          {totalPages > 1 && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page === 0}
+                onClick={() => setPage((p) => p - 1)}
+              >
+                Anterior
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page >= totalPages - 1}
+                onClick={() => setPage((p) => p + 1)}
+              >
+                Urmator
+              </Button>
+            </div>
+          )}
         </div>
-      </div>
+      )}
     </div>
   );
 }

@@ -223,6 +223,8 @@ export const CLIENT_BOOKING_DETAIL = gql`
       paidAt
       recurringGroupId
       occurrenceNumber
+      rescheduleCount
+      rescheduledAt
       createdAt
       startedAt
       completedAt
@@ -235,33 +237,13 @@ export const CLIENT_BOOKING_DETAIL = gql`
         entryCode
         notes
       }
-      company {
-        id
-        companyName
-        contactPhone
-        logoUrl
-      }
-      client {
-        id
-        fullName
-        email
-        phone
-      }
       worker {
         id
         fullName
-        phone
         user {
           id
           avatarUrl
         }
-      }
-      timeSlots {
-        id
-        slotDate
-        startTime
-        endTime
-        isSelected
       }
       extras {
         extra {
@@ -292,6 +274,51 @@ export const CANCEL_BOOKING = gql`
     cancelBooking(id: $id, reason: $reason) {
       id
       referenceCode
+      status
+    }
+  }
+`;
+
+export const BOOKING_POLICY = gql`
+  query BookingPolicy {
+    bookingPolicy {
+      cancelFreeHoursBefore
+      cancelLateRefundPct
+      rescheduleFreeHoursBefore
+      rescheduleMaxPerBooking
+    }
+  }
+`;
+
+export const CHECK_WORKER_AVAILABILITY = gql`
+  query CheckWorkerAvailability($bookingId: ID!, $date: String!, $startTime: String!) {
+    checkWorkerAvailability(bookingId: $bookingId, date: $date, startTime: $startTime) {
+      available
+      reason
+      conflicts
+    }
+  }
+`;
+
+export const RESCHEDULE_BOOKING = gql`
+  mutation RescheduleBooking(
+    $id: ID!
+    $scheduledDate: String!
+    $scheduledStartTime: String!
+    $reason: String
+  ) {
+    rescheduleBooking(
+      id: $id
+      scheduledDate: $scheduledDate
+      scheduledStartTime: $scheduledStartTime
+      reason: $reason
+    ) {
+      id
+      referenceCode
+      scheduledDate
+      scheduledStartTime
+      rescheduleCount
+      rescheduledAt
       status
     }
   }
@@ -956,6 +983,8 @@ export const COMPANY_BOOKING_DETAIL = gql`
       cancellationReason
       recurringGroupId
       occurrenceNumber
+      rescheduleCount
+      rescheduledAt
       includedItems
       extras {
         extra {
@@ -1305,6 +1334,8 @@ export const ADMIN_BOOKING_DETAIL = gql`
       paidAt
       recurringGroupId
       occurrenceNumber
+      rescheduleCount
+      rescheduledAt
       startedAt
       completedAt
       cancelledAt
@@ -1415,6 +1446,30 @@ export const ADMIN_CANCEL_BOOKING = gql`
   mutation AdminCancelBooking($id: ID!, $reason: String!) {
     adminCancelBooking(id: $id, reason: $reason) {
       id
+      status
+    }
+  }
+`;
+
+export const ADMIN_RESCHEDULE_BOOKING = gql`
+  mutation AdminRescheduleBooking(
+    $id: ID!
+    $scheduledDate: String!
+    $scheduledStartTime: String!
+    $reason: String
+  ) {
+    adminRescheduleBooking(
+      id: $id
+      scheduledDate: $scheduledDate
+      scheduledStartTime: $scheduledStartTime
+      reason: $reason
+    ) {
+      id
+      referenceCode
+      scheduledDate
+      scheduledStartTime
+      rescheduleCount
+      rescheduledAt
       status
     }
   }
@@ -2578,8 +2633,8 @@ export const MY_REFUND_REQUESTS = gql`
 `;
 
 export const MY_PAYMENT_HISTORY = gql`
-  query MyPaymentHistory($first: Int, $after: String) {
-    myPaymentHistory(first: $first, after: $after) {
+  query MyPaymentHistory($limit: Int, $offset: Int) {
+    myPaymentHistory(limit: $limit, offset: $offset) {
       edges {
         id
         amount
@@ -2595,7 +2650,6 @@ export const MY_PAYMENT_HISTORY = gql`
       }
       pageInfo {
         hasNextPage
-        endCursor
       }
       totalCount
     }
@@ -2821,6 +2875,21 @@ export const INVOICE_DETAIL = gql`
         companyName
       }
       createdAt
+    }
+  }
+`;
+
+export const CLIENT_INVOICE_FOR_BOOKING = gql`
+  query ClientInvoiceForBooking($bookingId: ID!) {
+    clientInvoiceForBooking(bookingId: $bookingId) {
+      id
+      invoiceNumber
+      status
+      totalAmount
+      currency
+      downloadUrl
+      issuedAt
+      sellerCompanyName
     }
   }
 `;

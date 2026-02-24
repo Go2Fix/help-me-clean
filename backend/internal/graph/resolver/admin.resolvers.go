@@ -13,6 +13,7 @@ import (
 	"go2fix-backend/internal/graph/model"
 	"go2fix-backend/internal/storage"
 	"strings"
+	"time"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -34,6 +35,51 @@ func (r *mutationResolver) AdminCancelBooking(ctx context.Context, id string, re
 	}
 
 	return dbBookingToGQL(booking), nil
+}
+
+// AdminRescheduleBooking is the resolver for the adminRescheduleBooking field.
+func (r *mutationResolver) AdminRescheduleBooking(ctx context.Context, id string, scheduledDate string, scheduledStartTime string, reason *string) (*model.Booking, error) {
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil || claims.Role != "global_admin" {
+		return nil, fmt.Errorf("admin access required")
+	}
+
+	bookingID := stringToUUID(id)
+	current, err := r.Queries.GetBookingByID(ctx, bookingID)
+	if err != nil {
+		return nil, fmt.Errorf("booking not found: %w", err)
+	}
+
+	if current.Status != db.BookingStatusAssigned && current.Status != db.BookingStatusConfirmed {
+		return nil, fmt.Errorf("nu se poate reprograma o comanda cu statusul %s", current.Status)
+	}
+
+	newDate, err := time.Parse("2006-01-02", scheduledDate)
+	if err != nil {
+		return nil, fmt.Errorf("format data invalid: %w", err)
+	}
+	newTime, err := time.Parse("15:04", scheduledStartTime)
+	if err != nil {
+		return nil, fmt.Errorf("format ora invalid: %w", err)
+	}
+
+	booking, err := r.Queries.RescheduleBooking(ctx, db.RescheduleBookingParams{
+		ID:            bookingID,
+		ScheduledDate: pgtype.Date{Time: newDate, Valid: true},
+		ScheduledStartTime: pgtype.Time{
+			Microseconds: int64(newTime.Hour())*3_600_000_000 + int64(newTime.Minute())*60_000_000,
+			Valid:        true,
+		},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to reschedule booking: %w", err)
+	}
+
+	go r.sendRescheduleNotifications(context.Background(), booking, scheduledDate, scheduledStartTime)
+
+	result := dbBookingToGQL(booking)
+	r.enrichBooking(ctx, booking, result)
+	return result, nil
 }
 
 // SuspendUser is the resolver for the suspendUser field.
@@ -322,42 +368,7 @@ func (r *queryResolver) AllChatRooms(ctx context.Context) ([]*model.ChatRoom, er
 		return nil, fmt.Errorf("failed to list chat rooms: %w", err)
 	}
 
-	result := make([]*model.ChatRoom, len(rooms))
-	for i, room := range rooms {
-		gqlRoom := dbChatRoomToGQL(room)
-
-		// Load participants.
-		participants, err := r.Queries.ListChatParticipants(ctx, room.ID)
-		if err == nil {
-			var gqlParticipants []*model.ChatParticipant
-			for _, p := range participants {
-				user, err := r.Queries.GetUserByID(ctx, p.UserID)
-				if err != nil {
-					continue
-				}
-				gqlParticipants = append(gqlParticipants, &model.ChatParticipant{
-					User:     dbUserToGQL(user),
-					JoinedAt: timestamptzToTime(p.JoinedAt),
-				})
-			}
-			gqlRoom.Participants = gqlParticipants
-		}
-
-		// Load last message.
-		lastMsgRow, err := r.Queries.GetLastChatMessage(ctx, room.ID)
-		if err == nil {
-			lastMsg := dbChatMessageToGQL(lastMsgRow)
-			sender, err := r.Queries.GetUserByID(ctx, lastMsgRow.SenderID)
-			if err == nil {
-				lastMsg.Sender = dbUserToGQL(sender)
-			}
-			gqlRoom.LastMessage = lastMsg
-		}
-
-		result[i] = gqlRoom
-	}
-
-	return result, nil
+	return r.enrichChatRoomList(ctx, rooms)
 }
 
 // AllUsers is the resolver for the allUsers field.

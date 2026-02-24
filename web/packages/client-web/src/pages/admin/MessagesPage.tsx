@@ -76,7 +76,7 @@ function formatMessageTime(dateStr: string): string {
     const isToday = date.toDateString() === now.toDateString();
 
     if (isToday) {
-      return date.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' });
+      return date.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit', hour12: false });
     }
 
     return date.toLocaleDateString('ro-RO', {
@@ -84,6 +84,7 @@ function formatMessageTime(dateStr: string): string {
       month: 'short',
       hour: '2-digit',
       minute: '2-digit',
+      hour12: false,
     });
   } catch {
     return '';

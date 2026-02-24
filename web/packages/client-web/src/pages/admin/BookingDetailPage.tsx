@@ -19,13 +19,15 @@ import {
   Search,
   Check,
   Repeat,
+  CalendarClock,
 } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
-import { ADMIN_BOOKING_DETAIL, ADMIN_CANCEL_BOOKING, ALL_BOOKINGS, ALL_WORKERS, ASSIGN_WORKER, MARK_BOOKING_PAID } from '@/graphql/operations';
+import RescheduleModal from '@/components/booking/RescheduleModal';
+import { ADMIN_BOOKING_DETAIL, ADMIN_CANCEL_BOOKING, ADMIN_RESCHEDULE_BOOKING, ALL_BOOKINGS, ALL_WORKERS, ASSIGN_WORKER, MARK_BOOKING_PAID } from '@/graphql/operations';
 import { formatCurrency, formatDate, formatDateTime } from '@/utils/format';
 
 const statusVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
@@ -66,6 +68,7 @@ export default function BookingDetailPage() {
   const navigate = useNavigate();
   const [cancelModal, setCancelModal] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
+  const [rescheduleModal, setRescheduleModal] = useState(false);
   const [assignModal, setAssignModal] = useState(false);
   const [workerSearch, setWorkerSearch] = useState('');
 
@@ -86,6 +89,11 @@ export default function BookingDetailPage() {
       { query: ADMIN_BOOKING_DETAIL, variables: { id } },
       { query: ALL_BOOKINGS, variables: { first: 50 } },
     ],
+  });
+
+  const [adminRescheduleBooking, { loading: rescheduling }] = useMutation(ADMIN_RESCHEDULE_BOOKING, {
+    refetchQueries: [{ query: ADMIN_BOOKING_DETAIL, variables: { id } }],
+    onCompleted: () => setRescheduleModal(false),
   });
 
   const [markPaid, { loading: markingPaid }] = useMutation(MARK_BOOKING_PAID, {
@@ -184,9 +192,15 @@ export default function BookingDetailPage() {
           <p className="text-gray-500 mt-0.5">{booking.serviceName}</p>
         </div>
         {canCancel && (
-          <Button variant="danger" onClick={() => setCancelModal(true)}>
-            Anuleaza comanda
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => setRescheduleModal(true)}>
+              <CalendarClock className="h-4 w-4" />
+              Reprogrameaza
+            </Button>
+            <Button variant="danger" onClick={() => setCancelModal(true)}>
+              Anuleaza comanda
+            </Button>
+          </div>
         )}
       </div>
 
@@ -575,6 +589,26 @@ export default function BookingDetailPage() {
           )}
         </div>
       </Modal>
+
+      {/* Reschedule Modal */}
+      <RescheduleModal
+        open={rescheduleModal}
+        onClose={() => setRescheduleModal(false)}
+        loading={rescheduling}
+        bookingId={booking.id}
+        hasWorker={!!booking.worker}
+        onConfirm={async (date, time, reason) => {
+          await adminRescheduleBooking({
+            variables: { id: booking.id, scheduledDate: date, scheduledStartTime: time, reason },
+          });
+        }}
+        rescheduleFreeHoursBefore={24}
+        rescheduleMaxPerBooking={99}
+        currentRescheduleCount={booking.rescheduleCount ?? 0}
+        scheduledDate={booking.scheduledDate}
+        scheduledStartTime={booking.scheduledStartTime}
+        isAdmin
+      />
     </div>
   );
 }

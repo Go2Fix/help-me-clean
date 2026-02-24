@@ -181,13 +181,18 @@ export default function InvoicesPage() {
   const [billingError, setBillingError] = useState('');
   const [expandedInvoiceId, setExpandedInvoiceId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState('');
+  const [page, setPage] = useState(0);
 
   // ─── Queries & Mutations ────────────────────────────────────────────────
 
-  const { data: invoicesData, loading: loadingInvoices, fetchMore } = useQuery<InvoicesData>(
+  const { data: invoicesData, loading: loadingInvoices } = useQuery<InvoicesData>(
     MY_INVOICES,
     {
-      variables: { first: PAGE_SIZE },
+      variables: {
+        first: PAGE_SIZE,
+        after: page > 0 ? String(page * PAGE_SIZE) : undefined,
+      },
+      fetchPolicy: 'cache-and-network',
       skip: !isAuthenticated,
     },
   );
@@ -229,16 +234,9 @@ export default function InvoicesPage() {
 
   // ─── Handlers ───────────────────────────────────────────────────────────
 
-  const handleLoadMore = useCallback(() => {
-    if (!invoicesData?.myInvoices.pageInfo.endCursor) return;
-
-    fetchMore({
-      variables: {
-        first: PAGE_SIZE,
-        after: invoicesData.myInvoices.pageInfo.endCursor,
-      },
-    });
-  }, [invoicesData, fetchMore]);
+  const invoiceTotalCount = invoicesData?.myInvoices?.totalCount ?? 0;
+  const invoiceTotalPages = Math.max(1, Math.ceil(invoiceTotalCount / PAGE_SIZE));
+  const hasNextPage = invoicesData?.myInvoices?.pageInfo?.hasNextPage ?? false;
 
   const handleBillingSave = useCallback(
     async (e: React.FormEvent) => {
@@ -293,7 +291,6 @@ export default function InvoicesPage() {
   const filteredInvoices = statusFilter
     ? invoices.filter((inv) => inv.status === statusFilter)
     : invoices;
-  const hasMore = invoicesData?.myInvoices.pageInfo.hasNextPage ?? false;
   const billing = billingData?.myBillingProfile;
 
   // ─── Render ─────────────────────────────────────────────────────────────
@@ -541,12 +538,6 @@ export default function InvoicesPage() {
       {/* Invoices Section */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-gray-900">Facturi emise</h2>
-        {invoicesData && invoicesData.myInvoices.totalCount > 0 && (
-          <span className="text-sm text-gray-500">
-            {invoicesData.myInvoices.totalCount}{' '}
-            {invoicesData.myInvoices.totalCount === 1 ? 'factura' : 'facturi'}
-          </span>
-        )}
       </div>
 
       {/* Status Filter */}
@@ -790,15 +781,36 @@ export default function InvoicesPage() {
             </table>
           </div>
 
-          {/* Load More */}
-          {hasMore && (
-            <div className="px-3 md:px-6 py-4 border-t border-gray-100 text-center">
-              <Button variant="ghost" onClick={handleLoadMore}>
-                Incarca mai multe
+        </Card>
+      )}
+
+      {/* Pagination */}
+      {invoiceTotalCount > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-3 mt-6">
+          <span className="text-sm text-gray-500">
+            {invoiceTotalCount} {invoiceTotalCount === 1 ? 'factura' : 'facturi'} &middot; Pagina {page + 1} din {invoiceTotalPages}
+          </span>
+          {invoiceTotalPages > 1 && (
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page === 0}
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+              >
+                Anterior
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!hasNextPage}
+                onClick={() => setPage((p) => p + 1)}
+              >
+                Urmator
               </Button>
             </div>
           )}
-        </Card>
+        </div>
       )}
 
       {/* Empty State */}

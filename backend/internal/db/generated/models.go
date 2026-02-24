@@ -237,18 +237,19 @@ func (ns NullInvoiceType) Value() (driver.Value, error) {
 type NotificationType string
 
 const (
-	NotificationTypeBookingCreated   NotificationType = "booking_created"
-	NotificationTypeBookingAssigned  NotificationType = "booking_assigned"
-	NotificationTypeBookingConfirmed NotificationType = "booking_confirmed"
-	NotificationTypeBookingStarted   NotificationType = "booking_started"
-	NotificationTypeBookingCompleted NotificationType = "booking_completed"
-	NotificationTypeBookingCancelled NotificationType = "booking_cancelled"
-	NotificationTypeCleanerInvited   NotificationType = "cleaner_invited"
-	NotificationTypeCompanyApproved  NotificationType = "company_approved"
-	NotificationTypeCompanyRejected  NotificationType = "company_rejected"
-	NotificationTypeNewMessage       NotificationType = "new_message"
-	NotificationTypeReviewReceived   NotificationType = "review_received"
-	NotificationTypePaymentProcessed NotificationType = "payment_processed"
+	NotificationTypeBookingCreated     NotificationType = "booking_created"
+	NotificationTypeBookingAssigned    NotificationType = "booking_assigned"
+	NotificationTypeBookingConfirmed   NotificationType = "booking_confirmed"
+	NotificationTypeBookingStarted     NotificationType = "booking_started"
+	NotificationTypeBookingCompleted   NotificationType = "booking_completed"
+	NotificationTypeBookingCancelled   NotificationType = "booking_cancelled"
+	NotificationTypeCleanerInvited     NotificationType = "cleaner_invited"
+	NotificationTypeCompanyApproved    NotificationType = "company_approved"
+	NotificationTypeCompanyRejected    NotificationType = "company_rejected"
+	NotificationTypeNewMessage         NotificationType = "new_message"
+	NotificationTypeReviewReceived     NotificationType = "review_received"
+	NotificationTypePaymentProcessed   NotificationType = "payment_processed"
+	NotificationTypeBookingRescheduled NotificationType = "booking_rescheduled"
 )
 
 func (e *NotificationType) Scan(src interface{}) error {
@@ -722,6 +723,8 @@ type Booking struct {
 	UpdatedAt                pgtype.Timestamptz `json:"updated_at"`
 	RecurringGroupID         pgtype.UUID        `json:"recurring_group_id"`
 	OccurrenceNumber         pgtype.Int4        `json:"occurrence_number"`
+	RescheduleCount          int32              `json:"reschedule_count"`
+	RescheduledAt            pgtype.Timestamptz `json:"rescheduled_at"`
 }
 
 type BookingExtra struct {

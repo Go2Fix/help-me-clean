@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useQuery } from '@apollo/client';
-import { Receipt, ChevronRight } from 'lucide-react';
+import { Receipt, ChevronRight, ChevronLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import Button from '@/components/ui/Button';
@@ -30,7 +30,6 @@ interface PaymentHistoryData {
     edges: PaymentEdge[];
     pageInfo: {
       hasNextPage: boolean;
-      endCursor: string | null;
     };
     totalCount: number;
   };
@@ -93,13 +92,14 @@ export default function PaymentHistoryPage() {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState('');
+  const [page, setPage] = useState(0);
 
   // ─── Query ──────────────────────────────────────────────────────────────
 
-  const { data, loading, fetchMore } = useQuery<PaymentHistoryData>(
+  const { data, loading } = useQuery<PaymentHistoryData>(
     MY_PAYMENT_HISTORY,
     {
-      variables: { first: PAGE_SIZE },
+      variables: { limit: PAGE_SIZE, offset: page * PAGE_SIZE },
       skip: !isAuthenticated,
     },
   );
@@ -113,17 +113,6 @@ export default function PaymentHistoryPage() {
 
   // ─── Handlers ───────────────────────────────────────────────────────────
 
-  const handleLoadMore = useCallback(() => {
-    if (!data?.myPaymentHistory.pageInfo.endCursor) return;
-
-    fetchMore({
-      variables: {
-        first: PAGE_SIZE,
-        after: data.myPaymentHistory.pageInfo.endCursor,
-      },
-    });
-  }, [data, fetchMore]);
-
   const handleRowClick = useCallback(
     (bookingId: string) => {
       navigate(`/cont/comenzi/${bookingId}`);
@@ -135,8 +124,8 @@ export default function PaymentHistoryPage() {
   const filteredPayments = statusFilter
     ? payments.filter((p) => p.status === statusFilter)
     : payments;
-  const hasMore = data?.myPaymentHistory.pageInfo.hasNextPage ?? false;
   const totalCount = data?.myPaymentHistory.totalCount ?? 0;
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
   const refundRequests = refundData?.myRefundRequests ?? [];
 
   // ─── Render ─────────────────────────────────────────────────────────────
@@ -149,11 +138,6 @@ export default function PaymentHistoryPage() {
           <h1 className="text-2xl font-bold text-gray-900">Istoric plati</h1>
           <p className="text-gray-500 mt-1">
             Toate platile efectuate pentru rezervarile tale.
-            {totalCount > 0 && (
-              <span className="ml-1 font-medium text-gray-700">
-                ({totalCount} {totalCount === 1 ? 'tranzactie' : 'tranzactii'})
-              </span>
-            )}
           </p>
         </div>
       </div>
@@ -243,15 +227,6 @@ export default function PaymentHistoryPage() {
               </tbody>
             </table>
           </div>
-
-          {/* Load More */}
-          {hasMore && (
-            <div className="px-3 md:px-6 py-4 border-t border-gray-100 text-center">
-              <Button variant="ghost" onClick={handleLoadMore}>
-                Incarca mai multe
-              </Button>
-            </div>
-          )}
         </Card>
       )}
 
@@ -267,6 +242,40 @@ export default function PaymentHistoryPage() {
           <p className="text-gray-500">
             Istoricul platilor va aparea aici dupa prima ta rezervare platita.
           </p>
+        </div>
+      )}
+
+      {/* Pagination */}
+      {totalCount > 0 && (
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mt-6">
+          <span className="text-sm text-gray-500">
+            {totalCount} {totalCount === 1 ? 'tranzactie' : 'tranzactii'} &middot; Pagina {page + 1} din {totalPages}
+          </span>
+          {totalPages > 1 && (
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page === 0}
+                onClick={() => setPage((p) => p - 1)}
+              >
+                <ChevronLeft className="h-4 w-4" />
+                <span className="hidden sm:inline">Anterior</span>
+              </Button>
+              <span className="text-sm text-gray-700">
+                {page + 1} / {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page + 1 >= totalPages}
+                onClick={() => setPage((p) => p + 1)}
+              >
+                <span className="hidden sm:inline">Urmator</span>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
         </div>
       )}
 

@@ -198,42 +198,7 @@ func (r *queryResolver) MyChatRooms(ctx context.Context) ([]*model.ChatRoom, err
 		return nil, fmt.Errorf("failed to list chat rooms: %w", err)
 	}
 
-	result := make([]*model.ChatRoom, len(rooms))
-	for i, room := range rooms {
-		gqlRoom := dbChatRoomToGQL(room)
-
-		// Load participants.
-		participants, err := r.Queries.ListChatParticipants(ctx, room.ID)
-		if err == nil {
-			var gqlParticipants []*model.ChatParticipant
-			for _, p := range participants {
-				user, err := r.Queries.GetUserByID(ctx, p.UserID)
-				if err != nil {
-					continue
-				}
-				gqlParticipants = append(gqlParticipants, &model.ChatParticipant{
-					User:     dbUserToGQL(user),
-					JoinedAt: timestamptzToTime(p.JoinedAt),
-				})
-			}
-			gqlRoom.Participants = gqlParticipants
-		}
-
-		// Load last message.
-		lastMsgRow, err := r.Queries.GetLastChatMessage(ctx, room.ID)
-		if err == nil {
-			lastMsg := dbChatMessageToGQL(lastMsgRow)
-			sender, err := r.Queries.GetUserByID(ctx, lastMsgRow.SenderID)
-			if err == nil {
-				lastMsg.Sender = dbUserToGQL(sender)
-			}
-			gqlRoom.LastMessage = lastMsg
-		}
-
-		result[i] = gqlRoom
-	}
-
-	return result, nil
+	return r.enrichChatRoomList(ctx, rooms)
 }
 
 // ChatRoom is the resolver for the chatRoom field.
@@ -264,48 +229,60 @@ func (r *queryResolver) ChatRoom(ctx context.Context, id string) (*model.ChatRoo
 		}
 	}
 
-	// Load participants.
-	participants, err := r.Queries.ListChatParticipants(ctx, room.ID)
-	if err == nil {
-		var gqlParticipants []*model.ChatParticipant
-		for _, p := range participants {
-			user, err := r.Queries.GetUserByID(ctx, p.UserID)
-			if err != nil {
-				continue
-			}
-			gqlParticipants = append(gqlParticipants, &model.ChatParticipant{
-				User:     dbUserToGQL(user),
-				JoinedAt: timestamptzToTime(p.JoinedAt),
-			})
-		}
-		gqlRoom.Participants = gqlParticipants
+	// Collect all user IDs (participants + message senders) for batch loading.
+	userIDs := map[string]bool{}
+
+	participants, _ := r.Queries.ListChatParticipants(ctx, room.ID)
+	for _, p := range participants {
+		userIDs[uuidToString(p.UserID)] = true
 	}
 
-	// Load messages.
-	messages, err := r.Queries.ListChatMessages(ctx, db.ListChatMessagesParams{
+	messages, _ := r.Queries.ListChatMessages(ctx, db.ListChatMessagesParams{
 		RoomID: room.ID,
 		Limit:  50,
 		Offset: 0,
 	})
-	if err == nil {
-		var gqlMessages []*model.ChatMessage
-		for _, m := range messages {
-			gqlMsg := dbChatMessageToGQL(m)
-			sender, err := r.Queries.GetUserByID(ctx, m.SenderID)
-			if err == nil {
-				gqlMsg.Sender = dbUserToGQL(sender)
-			}
-			gqlMessages = append(gqlMessages, gqlMsg)
+	for _, m := range messages {
+		userIDs[uuidToString(m.SenderID)] = true
+	}
+
+	// Load all unique users in one pass.
+	userMap := map[string]*model.User{}
+	for uid := range userIDs {
+		if u, uErr := r.Queries.GetUserByID(ctx, stringToUUID(uid)); uErr == nil {
+			userMap[uid] = dbUserToGQL(u)
 		}
-		gqlRoom.Messages = &model.ChatMessageConnection{
-			Edges: gqlMessages,
-			PageInfo: &model.PageInfo{
-				HasNextPage: false,
-			},
+	}
+
+	// Build participants.
+	var gqlParticipants []*model.ChatParticipant
+	for _, p := range participants {
+		if u, ok := userMap[uuidToString(p.UserID)]; ok {
+			gqlParticipants = append(gqlParticipants, &model.ChatParticipant{
+				User:     u,
+				JoinedAt: timestamptzToTime(p.JoinedAt),
+			})
 		}
-		if len(gqlMessages) > 0 {
-			gqlRoom.LastMessage = gqlMessages[len(gqlMessages)-1]
+	}
+	gqlRoom.Participants = gqlParticipants
+
+	// Build messages.
+	var gqlMessages []*model.ChatMessage
+	for _, m := range messages {
+		gqlMsg := dbChatMessageToGQL(m)
+		if u, ok := userMap[uuidToString(m.SenderID)]; ok {
+			gqlMsg.Sender = u
 		}
+		gqlMessages = append(gqlMessages, gqlMsg)
+	}
+	gqlRoom.Messages = &model.ChatMessageConnection{
+		Edges: gqlMessages,
+		PageInfo: &model.PageInfo{
+			HasNextPage: false,
+		},
+	}
+	if len(gqlMessages) > 0 {
+		gqlRoom.LastMessage = gqlMessages[len(gqlMessages)-1]
 	}
 
 	return gqlRoom, nil

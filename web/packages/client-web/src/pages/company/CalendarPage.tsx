@@ -7,6 +7,7 @@ import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Modal from '@/components/ui/Modal';
+import TimeInput24h from '@/components/ui/TimeInput24h';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import {
   MY_WORKERS,
@@ -557,10 +558,16 @@ export default function CalendarPage() {
           </div>
           {modal.isAvailable && (
             <div className="grid grid-cols-2 gap-3">
-              <Input label="Ora de inceput" type="time" value={modal.startTime}
-                onChange={(e) => setModal((p) => ({ ...p, startTime: e.target.value }))} />
-              <Input label="Ora de sfarsit" type="time" value={modal.endTime}
-                onChange={(e) => setModal((p) => ({ ...p, endTime: e.target.value }))} />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Ora de inceput</label>
+                <TimeInput24h value={modal.startTime}
+                  onChange={(v) => setModal((p) => ({ ...p, startTime: v }))} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Ora de sfarsit</label>
+                <TimeInput24h value={modal.endTime}
+                  onChange={(v) => setModal((p) => ({ ...p, endTime: v }))} />
+              </div>
             </div>
           )}
           <p className="text-xs text-gray-400">

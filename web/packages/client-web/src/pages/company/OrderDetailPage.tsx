@@ -5,12 +5,13 @@ import {
   ArrowLeft, MapPin, Phone, Mail, Clock, Calendar, Search, Loader2,
   Star, Check, Repeat, FileText, CheckCircle, XCircle, AlertCircle, Home,
   UserPlus, Download, ExternalLink, MessageSquare, Receipt, CreditCard,
-  ChevronDown, Eye,
+  ChevronDown, Eye, CalendarClock, AlertTriangle,
 } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
+import RescheduleModal from '@/components/booking/RescheduleModal';
 import {
   COMPANY_BOOKING_DETAIL,
   COMPANY_BOOKINGS,
@@ -23,6 +24,8 @@ import {
   COMPANY_INVOICE_FOR_BOOKING,
   BOOKING_PAYMENT_DETAILS,
   GENERATE_BOOKING_INVOICE,
+  BOOKING_POLICY,
+  RESCHEDULE_BOOKING,
 } from '@/graphql/operations';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -51,6 +54,7 @@ function formatDateTime(date: string): string {
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
+    hour12: false,
   });
 }
 
@@ -233,6 +237,7 @@ export default function OrderDetailPage() {
   const [workerSearch, setWorkerSearch] = useState('');
   const [cancelModal, setCancelModal] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
+  const [rescheduleModal, setRescheduleModal] = useState(false);
   const [invoiceExpanded, setInvoiceExpanded] = useState(false);
 
   // ─── Queries ─────────────────────────────────────────────────────────────
@@ -320,6 +325,13 @@ export default function OrderDetailPage() {
 
   const [generateInvoice, { loading: generatingInvoice }] = useMutation(GENERATE_BOOKING_INVOICE, {
     refetchQueries: [{ query: COMPANY_INVOICE_FOR_BOOKING, variables: { bookingId: id } }],
+  });
+
+  const { data: policyData } = useQuery(BOOKING_POLICY);
+
+  const [rescheduleBooking, { loading: rescheduling }] = useMutation(RESCHEDULE_BOOKING, {
+    refetchQueries: [{ query: COMPANY_BOOKING_DETAIL, variables: { id } }],
+    onCompleted: () => setRescheduleModal(false),
   });
 
   // ─── Handlers ────────────────────────────────────────────────────────────
@@ -490,9 +502,15 @@ export default function OrderDetailPage() {
             </Button>
           </Link>
           {canCancel && (
-            <Button variant="danger" size="sm" onClick={() => setCancelModal(true)}>
-              Anuleaza
-            </Button>
+            <>
+              <Button variant="outline" size="sm" onClick={() => setRescheduleModal(true)}>
+                <CalendarClock className="h-4 w-4" />
+                Reprogrameaza
+              </Button>
+              <Button variant="danger" size="sm" onClick={() => setCancelModal(true)}>
+                Anuleaza
+              </Button>
+            </>
           )}
         </div>
       </div>
@@ -1361,6 +1379,27 @@ export default function OrderDetailPage() {
         title="Anuleaza comanda"
       >
         <div className="space-y-4">
+          {(() => {
+            const policy = policyData?.bookingPolicy;
+            if (!policy || !booking) return null;
+            const [h, m] = (booking.scheduledStartTime || '08:00').split(':').map(Number);
+            const start = new Date(`${booking.scheduledDate}T${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:00`);
+            const hoursUntil = (start.getTime() - Date.now()) / 3_600_000;
+            let msg: string;
+            if (hoursUntil >= policy.cancelFreeHoursBefore) {
+              msg = 'Clientul va primi o rambursare completa (100%).';
+            } else if (hoursUntil >= 24) {
+              msg = `Clientul va primi o rambursare partiala (${policy.cancelLateRefundPct}%).`;
+            } else {
+              msg = 'Nu se acorda rambursare pentru anulari cu mai putin de 24 de ore inainte.';
+            }
+            return (
+              <div className="flex items-start gap-3 p-3 mb-4 rounded-xl bg-blue-50 border border-blue-100">
+                <AlertTriangle className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
+                <p className="text-sm text-blue-800">{msg}</p>
+              </div>
+            );
+          })()}
           <p className="text-sm text-gray-600">
             Esti sigur ca vrei sa anulezi comanda <strong>#{booking.referenceCode}</strong>? Aceasta
             actiune nu poate fi reversata.
@@ -1402,6 +1441,25 @@ export default function OrderDetailPage() {
           </div>
         </div>
       </Modal>
+
+      {/* ─── Reschedule Booking Modal ──────────────────────────────────────── */}
+      <RescheduleModal
+        open={rescheduleModal}
+        onClose={() => setRescheduleModal(false)}
+        loading={rescheduling}
+        bookingId={booking.id}
+        hasWorker={!!booking.worker}
+        onConfirm={async (date, time, reason) => {
+          await rescheduleBooking({
+            variables: { id: booking.id, scheduledDate: date, scheduledStartTime: time, reason },
+          });
+        }}
+        rescheduleFreeHoursBefore={policyData?.bookingPolicy?.rescheduleFreeHoursBefore ?? 24}
+        rescheduleMaxPerBooking={policyData?.bookingPolicy?.rescheduleMaxPerBooking ?? 2}
+        currentRescheduleCount={booking.rescheduleCount ?? 0}
+        scheduledDate={booking.scheduledDate}
+        scheduledStartTime={booking.scheduledStartTime}
+      />
     </div>
   );
 }

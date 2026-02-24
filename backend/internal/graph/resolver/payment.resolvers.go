@@ -623,7 +623,7 @@ func (r *mutationResolver) MarkBookingPaid(ctx context.Context, id string) (*mod
 }
 
 // MyPaymentHistory is the resolver for the myPaymentHistory field.
-func (r *queryResolver) MyPaymentHistory(ctx context.Context, first *int, after *string) (*model.PaymentHistoryConnection, error) {
+func (r *queryResolver) MyPaymentHistory(ctx context.Context, limit *int, offset *int) (*model.PaymentHistoryConnection, error) {
 	claims := auth.GetUserFromContext(ctx)
 	if claims == nil {
 		return nil, fmt.Errorf("not authenticated")
@@ -632,32 +632,52 @@ func (r *queryResolver) MyPaymentHistory(ctx context.Context, first *int, after 
 		return nil, fmt.Errorf("only clients can view payment history")
 	}
 
-	limit := int32(20)
-	if first != nil {
-		limit = int32(*first)
+	lim := int32(20)
+	if limit != nil {
+		lim = int32(*limit)
 	}
-	offset := int32(0)
-	if after != nil {
-		fmt.Sscanf(*after, "%d", &offset)
+	off := int32(0)
+	if offset != nil {
+		off = int32(*offset)
 	}
 
 	userUUID := stringToUUID(claims.UserID)
 
 	txns, err := r.Queries.ListPaymentHistoryByUser(ctx, db.ListPaymentHistoryByUserParams{
 		ClientUserID: userUUID,
-		Limit:        limit + 1,
-		Offset:       offset,
+		Limit:        lim + 1,
+		Offset:       off,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to list payment history: %w", err)
 	}
 
-	hasNext := len(txns) > int(limit)
+	hasNext := len(txns) > int(lim)
 	if hasNext {
-		txns = txns[:limit]
+		txns = txns[:lim]
 	}
 
 	totalCount, _ := r.Queries.CountPaymentHistoryByUser(ctx, userUUID)
+
+	// Batch-load bookings: collect unique booking IDs, load each once.
+	bookingIDs := map[string]bool{}
+	for _, txn := range txns {
+		bookingIDs[uuidToString(txn.BookingID)] = true
+	}
+	bookingMap := map[string]db.Booking{}
+	for bid := range bookingIDs {
+		if b, bErr := r.Queries.GetBookingByID(ctx, stringToUUID(bid)); bErr == nil {
+			bookingMap[bid] = b
+		}
+	}
+
+	// Build service name map (single query).
+	serviceNameMap := map[string]string{}
+	if services, sErr := r.Queries.ListActiveServices(ctx); sErr == nil {
+		for _, s := range services {
+			serviceNameMap[string(s.ServiceType)] = s.NameRo
+		}
+	}
 
 	edges := make([]*model.PaymentHistoryEntry, len(txns))
 	for i, txn := range txns {
@@ -668,31 +688,24 @@ func (r *queryResolver) MyPaymentHistory(ctx context.Context, first *int, after 
 			Status:    model.PaymentTransactionStatus(strings.ToUpper(string(txn.Status))),
 			CreatedAt: timestamptzToTime(txn.CreatedAt),
 		}
-		// Set PaidAt if status is succeeded.
 		if txn.Status == db.PaymentTransactionStatusSucceeded {
 			paidAt := timestamptzToTime(txn.UpdatedAt)
 			entry.PaidAt = &paidAt
 		}
-		// Enrich with booking data.
-		if booking, err := r.Queries.GetBookingByID(ctx, txn.BookingID); err == nil {
-			gqlBooking := dbBookingToGQL(booking)
-			r.enrichBooking(ctx, booking, gqlBooking)
+		if b, ok := bookingMap[uuidToString(txn.BookingID)]; ok {
+			gqlBooking := dbBookingToGQL(b)
+			if name, ok := serviceNameMap[string(b.ServiceType)]; ok {
+				gqlBooking.ServiceName = name
+			}
 			entry.Booking = gqlBooking
 		}
 		edges[i] = entry
-	}
-
-	var endCursor *string
-	if len(txns) > 0 {
-		c := fmt.Sprintf("%d", offset+limit)
-		endCursor = &c
 	}
 
 	return &model.PaymentHistoryConnection{
 		Edges: edges,
 		PageInfo: &model.PageInfo{
 			HasNextPage: hasNext,
-			EndCursor:   endCursor,
 		},
 		TotalCount: int(totalCount),
 	}, nil
@@ -711,24 +724,58 @@ func (r *queryResolver) MyRefundRequests(ctx context.Context) ([]*model.RefundRe
 		return nil, fmt.Errorf("failed to list refund requests: %w", err)
 	}
 
+	// Batch-load bookings + users: collect unique IDs first.
+	bookingIDs := map[string]bool{}
+	userIDs := map[string]bool{}
+	for _, ref := range refunds {
+		bookingIDs[uuidToString(ref.BookingID)] = true
+		if ref.RequestedByUserID.Valid {
+			userIDs[uuidToString(ref.RequestedByUserID)] = true
+		}
+		if ref.ApprovedByUserID.Valid {
+			userIDs[uuidToString(ref.ApprovedByUserID)] = true
+		}
+	}
+
+	bookingMap := map[string]db.Booking{}
+	for bid := range bookingIDs {
+		if b, bErr := r.Queries.GetBookingByID(ctx, stringToUUID(bid)); bErr == nil {
+			bookingMap[bid] = b
+		}
+	}
+	userMap := map[string]*model.User{}
+	for uid := range userIDs {
+		if u, uErr := r.Queries.GetUserByID(ctx, stringToUUID(uid)); uErr == nil {
+			userMap[uid] = dbUserToGQL(u)
+		}
+	}
+
+	// Build service name map (single query).
+	serviceNameMap := map[string]string{}
+	if services, sErr := r.Queries.ListActiveServices(ctx); sErr == nil {
+		for _, s := range services {
+			serviceNameMap[string(s.ServiceType)] = s.NameRo
+		}
+	}
+
 	results := make([]*model.RefundRequest, len(refunds))
 	for i, ref := range refunds {
 		gqlRef := dbRefundRequestToGQL(ref)
-		// Enrich with booking data.
-		if booking, err := r.Queries.GetBookingByID(ctx, ref.BookingID); err == nil {
-			gqlBooking := dbBookingToGQL(booking)
-			r.enrichBooking(ctx, booking, gqlBooking)
+		if b, ok := bookingMap[uuidToString(ref.BookingID)]; ok {
+			gqlBooking := dbBookingToGQL(b)
+			if name, ok := serviceNameMap[string(b.ServiceType)]; ok {
+				gqlBooking.ServiceName = name
+			}
 			gqlRef.Booking = gqlBooking
 		}
-		// Enrich with user data.
 		if ref.RequestedByUserID.Valid {
-			if user, err := r.Queries.GetUserByID(ctx, ref.RequestedByUserID); err == nil {
-				gqlRef.RequestedBy = dbUserToGQL(user)
+			if u, ok := userMap[uuidToString(ref.RequestedByUserID)]; ok {
+				gqlRef.RequestedBy = u
 			}
 		}
 		if ref.ApprovedByUserID.Valid {
-			if user, err := r.Queries.GetUserByID(ctx, ref.ApprovedByUserID); err == nil {
-				gqlRef.ApprovedBy = dbUserToGQL(user)
+			if u, ok := userMap[uuidToString(ref.ApprovedByUserID)]; ok {
+				gqlRef.ApprovedBy = u
 			}
 		}
 		results[i] = gqlRef

@@ -25,6 +25,30 @@ func (q *Queries) DeleteWorkerDateOverride(ctx context.Context, arg DeleteWorker
 	return err
 }
 
+const getWorkerDateOverride = `-- name: GetWorkerDateOverride :one
+SELECT id, worker_id, override_date, is_available, start_time, end_time, created_at FROM worker_date_overrides WHERE worker_id = $1 AND override_date = $2
+`
+
+type GetWorkerDateOverrideParams struct {
+	WorkerID     pgtype.UUID `json:"worker_id"`
+	OverrideDate pgtype.Date `json:"override_date"`
+}
+
+func (q *Queries) GetWorkerDateOverride(ctx context.Context, arg GetWorkerDateOverrideParams) (WorkerDateOverride, error) {
+	row := q.db.QueryRow(ctx, getWorkerDateOverride, arg.WorkerID, arg.OverrideDate)
+	var i WorkerDateOverride
+	err := row.Scan(
+		&i.ID,
+		&i.WorkerID,
+		&i.OverrideDate,
+		&i.IsAvailable,
+		&i.StartTime,
+		&i.EndTime,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const listWorkerDateOverrides = `-- name: ListWorkerDateOverrides :many
 SELECT id, worker_id, override_date, is_available, start_time, end_time, created_at FROM worker_date_overrides
 WHERE worker_id = $1 AND override_date >= $2 AND override_date <= $3

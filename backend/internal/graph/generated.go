@@ -105,6 +105,8 @@ type ComplexityRoot struct {
 		PropertyType           func(childComplexity int) int
 		RecurringGroupID       func(childComplexity int) int
 		ReferenceCode          func(childComplexity int) int
+		RescheduleCount        func(childComplexity int) int
+		RescheduledAt          func(childComplexity int) int
 		Review                 func(childComplexity int) int
 		ScheduledDate          func(childComplexity int) int
 		ScheduledStartTime     func(childComplexity int) int
@@ -127,6 +129,13 @@ type ComplexityRoot struct {
 		Extra    func(childComplexity int) int
 		Price    func(childComplexity int) int
 		Quantity func(childComplexity int) int
+	}
+
+	BookingPolicy struct {
+		CancelFreeHoursBefore     func(childComplexity int) int
+		CancelLateRefundPct       func(childComplexity int) int
+		RescheduleFreeHoursBefore func(childComplexity int) int
+		RescheduleMaxPerBooking   func(childComplexity int) int
 	}
 
 	BookingTimeSlot struct {
@@ -383,6 +392,7 @@ type ComplexityRoot struct {
 		AddAddress                    func(childComplexity int, input model.AddAddressInput) int
 		AdminCancelBooking            func(childComplexity int, id string, reason string) int
 		AdminIssueRefund              func(childComplexity int, bookingID string, amount int, reason string) int
+		AdminRescheduleBooking        func(childComplexity int, id string, scheduledDate string, scheduledStartTime string, reason *string) int
 		AdminUpdateCompanyProfile     func(childComplexity int, input model.AdminUpdateCompanyInput) int
 		AdminUpdateCompanyStatus      func(childComplexity int, id string, status model.CompanyStatus) int
 		AdminUpdateUserProfile        func(childComplexity int, userID string, fullName string, phone *string) int
@@ -437,6 +447,7 @@ type ComplexityRoot struct {
 		RejectCompany                 func(childComplexity int, id string, reason string) int
 		RequestEmailOtp               func(childComplexity int, email string, role model.UserRole) int
 		RequestRefund                 func(childComplexity int, bookingID string, reason string) int
+		RescheduleBooking             func(childComplexity int, id string, scheduledDate string, scheduledStartTime string, reason *string) int
 		ResumeRecurringGroup          func(childComplexity int, id string) int
 		ReviewCompanyDocument         func(childComplexity int, id string, approved bool, rejectionReason *string) int
 		ReviewWorkerDocument          func(childComplexity int, id string, approved bool, rejectionReason *string) int
@@ -661,9 +672,12 @@ type ComplexityRoot struct {
 		AvailableServices           func(childComplexity int) int
 		Booking                     func(childComplexity int, id string) int
 		BookingPaymentDetails       func(childComplexity int, bookingID string) int
+		BookingPolicy               func(childComplexity int) int
 		BookingsByStatus            func(childComplexity int) int
 		ChatRoom                    func(childComplexity int, id string) int
+		CheckWorkerAvailability     func(childComplexity int, bookingID string, date string, startTime string) int
 		CityAreas                   func(childComplexity int, cityID string) int
+		ClientInvoiceForBooking     func(childComplexity int, bookingID string) int
 		Companies                   func(childComplexity int, status *model.CompanyStatus, first *int, after *string) int
 		Company                     func(childComplexity int, id string) int
 		CompanyBookings             func(childComplexity int, status *model.BookingStatus, first *int, after *string) int
@@ -694,7 +708,7 @@ type ComplexityRoot struct {
 		MyConnectStatus             func(childComplexity int) int
 		MyInvoices                  func(childComplexity int, first *int, after *string) int
 		MyNotifications             func(childComplexity int, first *int, after *string, unreadOnly *bool) int
-		MyPaymentHistory            func(childComplexity int, first *int, after *string) int
+		MyPaymentHistory            func(childComplexity int, limit *int, offset *int) int
 		MyPaymentMethods            func(childComplexity int) int
 		MyPayoutDetail              func(childComplexity int, id string) int
 		MyPayouts                   func(childComplexity int, first *int, after *string) int
@@ -908,6 +922,12 @@ type ComplexityRoot struct {
 		TotalCount   func(childComplexity int) int
 	}
 
+	WorkerAvailabilityCheck struct {
+		Available func(childComplexity int) int
+		Conflicts func(childComplexity int) int
+		Reason    func(childComplexity int) int
+	}
+
 	WorkerDailyEarnings struct {
 		Amount func(childComplexity int) int
 		Date   func(childComplexity int) int
@@ -986,6 +1006,7 @@ type ComplexityRoot struct {
 
 type MutationResolver interface {
 	AdminCancelBooking(ctx context.Context, id string, reason string) (*model.Booking, error)
+	AdminRescheduleBooking(ctx context.Context, id string, scheduledDate string, scheduledStartTime string, reason *string) (*model.Booking, error)
 	SuspendUser(ctx context.Context, id string, reason string) (*model.User, error)
 	ReactivateUser(ctx context.Context, id string) (*model.User, error)
 	UploadFile(ctx context.Context, file graphql.Upload, purpose string) (*model.UploadResult, error)
@@ -1005,6 +1026,7 @@ type MutationResolver interface {
 	StartJob(ctx context.Context, id string) (*model.Booking, error)
 	CompleteJob(ctx context.Context, id string) (*model.Booking, error)
 	SelectBookingTimeSlot(ctx context.Context, bookingID string, timeSlotID string) (*model.Booking, error)
+	RescheduleBooking(ctx context.Context, id string, scheduledDate string, scheduledStartTime string, reason *string) (*model.Booking, error)
 	SendMessage(ctx context.Context, roomID string, content string, messageType *string) (*model.ChatMessage, error)
 	MarkMessagesAsRead(ctx context.Context, roomID string) (bool, error)
 	CreateAdminChatRoom(ctx context.Context, userIds []string) (*model.ChatRoom, error)
@@ -1113,6 +1135,8 @@ type QueryResolver interface {
 	AllBookings(ctx context.Context, status *model.BookingStatus, companyID *string, dateFrom *string, dateTo *string, first *int, after *string) (*model.BookingConnection, error)
 	CompanyBookingsByDateRange(ctx context.Context, from string, to string) ([]*model.Booking, error)
 	SearchCompanyBookings(ctx context.Context, query *string, status *string, dateFrom *string, dateTo *string, limit *int, offset *int) (*model.BookingConnection, error)
+	BookingPolicy(ctx context.Context) (*model.BookingPolicy, error)
+	CheckWorkerAvailability(ctx context.Context, bookingID string, date string, startTime string) (*model.WorkerAvailabilityCheck, error)
 	MyChatRooms(ctx context.Context) ([]*model.ChatRoom, error)
 	ChatRoom(ctx context.Context, id string) (*model.ChatRoom, error)
 	MyAddresses(ctx context.Context) ([]*model.Address, error)
@@ -1128,6 +1152,7 @@ type QueryResolver interface {
 	MyBillingProfile(ctx context.Context) (*model.ClientBillingProfile, error)
 	MyInvoices(ctx context.Context, first *int, after *string) (*model.InvoiceConnection, error)
 	InvoiceDetail(ctx context.Context, id string) (*model.Invoice, error)
+	ClientInvoiceForBooking(ctx context.Context, bookingID string) (*model.Invoice, error)
 	CompanyInvoices(ctx context.Context, status *model.InvoiceStatus, first *int, after *string) (*model.InvoiceConnection, error)
 	CompanyReceivedInvoices(ctx context.Context, first *int, after *string) (*model.InvoiceConnection, error)
 	CompanyInvoiceForBooking(ctx context.Context, bookingID string) (*model.Invoice, error)
@@ -1143,7 +1168,7 @@ type QueryResolver interface {
 	IsCitySupported(ctx context.Context, city string) (bool, error)
 	MyNotifications(ctx context.Context, first *int, after *string, unreadOnly *bool) (*model.NotificationConnection, error)
 	UnreadNotificationCount(ctx context.Context) (int, error)
-	MyPaymentHistory(ctx context.Context, first *int, after *string) (*model.PaymentHistoryConnection, error)
+	MyPaymentHistory(ctx context.Context, limit *int, offset *int) (*model.PaymentHistoryConnection, error)
 	MyRefundRequests(ctx context.Context) ([]*model.RefundRequest, error)
 	BookingPaymentDetails(ctx context.Context, bookingID string) (*model.PaymentTransaction, error)
 	MyConnectStatus(ctx context.Context) (*model.StripeConnectStatus, error)
@@ -1485,6 +1510,18 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Booking.ReferenceCode(childComplexity), true
+	case "Booking.rescheduleCount":
+		if e.complexity.Booking.RescheduleCount == nil {
+			break
+		}
+
+		return e.complexity.Booking.RescheduleCount(childComplexity), true
+	case "Booking.rescheduledAt":
+		if e.complexity.Booking.RescheduledAt == nil {
+			break
+		}
+
+		return e.complexity.Booking.RescheduledAt(childComplexity), true
 	case "Booking.review":
 		if e.complexity.Booking.Review == nil {
 			break
@@ -1583,6 +1620,31 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.BookingExtra.Quantity(childComplexity), true
+
+	case "BookingPolicy.cancelFreeHoursBefore":
+		if e.complexity.BookingPolicy.CancelFreeHoursBefore == nil {
+			break
+		}
+
+		return e.complexity.BookingPolicy.CancelFreeHoursBefore(childComplexity), true
+	case "BookingPolicy.cancelLateRefundPct":
+		if e.complexity.BookingPolicy.CancelLateRefundPct == nil {
+			break
+		}
+
+		return e.complexity.BookingPolicy.CancelLateRefundPct(childComplexity), true
+	case "BookingPolicy.rescheduleFreeHoursBefore":
+		if e.complexity.BookingPolicy.RescheduleFreeHoursBefore == nil {
+			break
+		}
+
+		return e.complexity.BookingPolicy.RescheduleFreeHoursBefore(childComplexity), true
+	case "BookingPolicy.rescheduleMaxPerBooking":
+		if e.complexity.BookingPolicy.RescheduleMaxPerBooking == nil {
+			break
+		}
+
+		return e.complexity.BookingPolicy.RescheduleMaxPerBooking(childComplexity), true
 
 	case "BookingTimeSlot.endTime":
 		if e.complexity.BookingTimeSlot.EndTime == nil {
@@ -2656,6 +2718,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.AdminIssueRefund(childComplexity, args["bookingId"].(string), args["amount"].(int), args["reason"].(string)), true
+	case "Mutation.adminRescheduleBooking":
+		if e.complexity.Mutation.AdminRescheduleBooking == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_adminRescheduleBooking_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AdminRescheduleBooking(childComplexity, args["id"].(string), args["scheduledDate"].(string), args["scheduledStartTime"].(string), args["reason"].(*string)), true
 	case "Mutation.adminUpdateCompanyProfile":
 		if e.complexity.Mutation.AdminUpdateCompanyProfile == nil {
 			break
@@ -3210,6 +3283,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.RequestRefund(childComplexity, args["bookingId"].(string), args["reason"].(string)), true
+	case "Mutation.rescheduleBooking":
+		if e.complexity.Mutation.RescheduleBooking == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_rescheduleBooking_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RescheduleBooking(childComplexity, args["id"].(string), args["scheduledDate"].(string), args["scheduledStartTime"].(string), args["reason"].(*string)), true
 	case "Mutation.resumeRecurringGroup":
 		if e.complexity.Mutation.ResumeRecurringGroup == nil {
 			break
@@ -4466,6 +4550,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.BookingPaymentDetails(childComplexity, args["bookingId"].(string)), true
+	case "Query.bookingPolicy":
+		if e.complexity.Query.BookingPolicy == nil {
+			break
+		}
+
+		return e.complexity.Query.BookingPolicy(childComplexity), true
 	case "Query.bookingsByStatus":
 		if e.complexity.Query.BookingsByStatus == nil {
 			break
@@ -4483,6 +4573,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.ChatRoom(childComplexity, args["id"].(string)), true
+	case "Query.checkWorkerAvailability":
+		if e.complexity.Query.CheckWorkerAvailability == nil {
+			break
+		}
+
+		args, err := ec.field_Query_checkWorkerAvailability_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.CheckWorkerAvailability(childComplexity, args["bookingId"].(string), args["date"].(string), args["startTime"].(string)), true
 	case "Query.cityAreas":
 		if e.complexity.Query.CityAreas == nil {
 			break
@@ -4494,6 +4595,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.CityAreas(childComplexity, args["cityId"].(string)), true
+	case "Query.clientInvoiceForBooking":
+		if e.complexity.Query.ClientInvoiceForBooking == nil {
+			break
+		}
+
+		args, err := ec.field_Query_clientInvoiceForBooking_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ClientInvoiceForBooking(childComplexity, args["bookingId"].(string)), true
 	case "Query.companies":
 		if e.complexity.Query.Companies == nil {
 			break
@@ -4784,7 +4896,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Query.MyPaymentHistory(childComplexity, args["first"].(*int), args["after"].(*string)), true
+		return e.complexity.Query.MyPaymentHistory(childComplexity, args["limit"].(*int), args["offset"].(*int)), true
 	case "Query.myPaymentMethods":
 		if e.complexity.Query.MyPaymentMethods == nil {
 			break
@@ -5893,6 +6005,25 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.WaitlistStats.TotalCount(childComplexity), true
 
+	case "WorkerAvailabilityCheck.available":
+		if e.complexity.WorkerAvailabilityCheck.Available == nil {
+			break
+		}
+
+		return e.complexity.WorkerAvailabilityCheck.Available(childComplexity), true
+	case "WorkerAvailabilityCheck.conflicts":
+		if e.complexity.WorkerAvailabilityCheck.Conflicts == nil {
+			break
+		}
+
+		return e.complexity.WorkerAvailabilityCheck.Conflicts(childComplexity), true
+	case "WorkerAvailabilityCheck.reason":
+		if e.complexity.WorkerAvailabilityCheck.Reason == nil {
+			break
+		}
+
+		return e.complexity.WorkerAvailabilityCheck.Reason(childComplexity), true
+
 	case "WorkerDailyEarnings.amount":
 		if e.complexity.WorkerDailyEarnings.Amount == nil {
 			break
@@ -6473,6 +6604,32 @@ func (ec *executionContext) field_Mutation_adminIssueRefund_args(ctx context.Con
 		return nil, err
 	}
 	args["reason"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_adminRescheduleBooking_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "scheduledDate", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["scheduledDate"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "scheduledStartTime", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["scheduledStartTime"] = arg2
+	arg3, err := graphql.ProcessArgField(ctx, rawArgs, "reason", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["reason"] = arg3
 	return args, nil
 }
 
@@ -7059,6 +7216,32 @@ func (ec *executionContext) field_Mutation_requestRefund_args(ctx context.Contex
 		return nil, err
 	}
 	args["reason"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_rescheduleBooking_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "scheduledDate", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["scheduledDate"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "scheduledStartTime", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["scheduledStartTime"] = arg2
+	arg3, err := graphql.ProcessArgField(ctx, rawArgs, "reason", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["reason"] = arg3
 	return args, nil
 }
 
@@ -7866,6 +8049,27 @@ func (ec *executionContext) field_Query_chatRoom_args(ctx context.Context, rawAr
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_checkWorkerAvailability_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "bookingId", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["bookingId"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "date", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["date"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "startTime", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["startTime"] = arg2
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_cityAreas_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -7874,6 +8078,17 @@ func (ec *executionContext) field_Query_cityAreas_args(ctx context.Context, rawA
 		return nil, err
 	}
 	args["cityId"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_clientInvoiceForBooking_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "bookingId", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["bookingId"] = arg0
 	return args, nil
 }
 
@@ -8180,16 +8395,16 @@ func (ec *executionContext) field_Query_myNotifications_args(ctx context.Context
 func (ec *executionContext) field_Query_myPaymentHistory_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "first", ec.unmarshalOInt2ᚖint)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "limit", ec.unmarshalOInt2ᚖint)
 	if err != nil {
 		return nil, err
 	}
-	args["first"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "after", ec.unmarshalOString2ᚖstring)
+	args["limit"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "offset", ec.unmarshalOInt2ᚖint)
 	if err != nil {
 		return nil, err
 	}
-	args["after"] = arg1
+	args["offset"] = arg1
 	return args, nil
 }
 
@@ -10393,6 +10608,64 @@ func (ec *executionContext) fieldContext_Booking_occurrenceNumber(_ context.Cont
 	return fc, nil
 }
 
+func (ec *executionContext) _Booking_rescheduleCount(ctx context.Context, field graphql.CollectedField, obj *model.Booking) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Booking_rescheduleCount,
+		func(ctx context.Context) (any, error) {
+			return obj.RescheduleCount, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Booking_rescheduleCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Booking",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Booking_rescheduledAt(ctx context.Context, field graphql.CollectedField, obj *model.Booking) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Booking_rescheduledAt,
+		func(ctx context.Context) (any, error) {
+			return obj.RescheduledAt, nil
+		},
+		nil,
+		ec.marshalODateTime2ᚖtimeᚐTime,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Booking_rescheduledAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Booking",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type DateTime does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Booking_timeSlots(ctx context.Context, field graphql.CollectedField, obj *model.Booking) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -10641,6 +10914,10 @@ func (ec *executionContext) fieldContext_BookingConnection_edges(_ context.Conte
 				return ec.fieldContext_Booking_recurringGroupId(ctx, field)
 			case "occurrenceNumber":
 				return ec.fieldContext_Booking_occurrenceNumber(ctx, field)
+			case "rescheduleCount":
+				return ec.fieldContext_Booking_rescheduleCount(ctx, field)
+			case "rescheduledAt":
+				return ec.fieldContext_Booking_rescheduledAt(ctx, field)
 			case "timeSlots":
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
@@ -10817,6 +11094,122 @@ func (ec *executionContext) _BookingExtra_quantity(ctx context.Context, field gr
 func (ec *executionContext) fieldContext_BookingExtra_quantity(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "BookingExtra",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BookingPolicy_cancelFreeHoursBefore(ctx context.Context, field graphql.CollectedField, obj *model.BookingPolicy) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BookingPolicy_cancelFreeHoursBefore,
+		func(ctx context.Context) (any, error) {
+			return obj.CancelFreeHoursBefore, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BookingPolicy_cancelFreeHoursBefore(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BookingPolicy",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BookingPolicy_cancelLateRefundPct(ctx context.Context, field graphql.CollectedField, obj *model.BookingPolicy) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BookingPolicy_cancelLateRefundPct,
+		func(ctx context.Context) (any, error) {
+			return obj.CancelLateRefundPct, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BookingPolicy_cancelLateRefundPct(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BookingPolicy",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BookingPolicy_rescheduleFreeHoursBefore(ctx context.Context, field graphql.CollectedField, obj *model.BookingPolicy) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BookingPolicy_rescheduleFreeHoursBefore,
+		func(ctx context.Context) (any, error) {
+			return obj.RescheduleFreeHoursBefore, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BookingPolicy_rescheduleFreeHoursBefore(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BookingPolicy",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BookingPolicy_rescheduleMaxPerBooking(ctx context.Context, field graphql.CollectedField, obj *model.BookingPolicy) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BookingPolicy_rescheduleMaxPerBooking,
+		func(ctx context.Context) (any, error) {
+			return obj.RescheduleMaxPerBooking, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BookingPolicy_rescheduleMaxPerBooking(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BookingPolicy",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -11501,6 +11894,10 @@ func (ec *executionContext) fieldContext_ChatRoom_booking(_ context.Context, fie
 				return ec.fieldContext_Booking_recurringGroupId(ctx, field)
 			case "occurrenceNumber":
 				return ec.fieldContext_Booking_occurrenceNumber(ctx, field)
+			case "rescheduleCount":
+				return ec.fieldContext_Booking_rescheduleCount(ctx, field)
+			case "rescheduledAt":
+				return ec.fieldContext_Booking_rescheduledAt(ctx, field)
 			case "timeSlots":
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
@@ -15218,6 +15615,10 @@ func (ec *executionContext) fieldContext_Invoice_booking(_ context.Context, fiel
 				return ec.fieldContext_Booking_recurringGroupId(ctx, field)
 			case "occurrenceNumber":
 				return ec.fieldContext_Booking_occurrenceNumber(ctx, field)
+			case "rescheduleCount":
+				return ec.fieldContext_Booking_rescheduleCount(ctx, field)
+			case "rescheduledAt":
+				return ec.fieldContext_Booking_rescheduledAt(ctx, field)
 			case "timeSlots":
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
@@ -16353,6 +16754,10 @@ func (ec *executionContext) fieldContext_Mutation_adminCancelBooking(ctx context
 				return ec.fieldContext_Booking_recurringGroupId(ctx, field)
 			case "occurrenceNumber":
 				return ec.fieldContext_Booking_occurrenceNumber(ctx, field)
+			case "rescheduleCount":
+				return ec.fieldContext_Booking_rescheduleCount(ctx, field)
+			case "rescheduledAt":
+				return ec.fieldContext_Booking_rescheduledAt(ctx, field)
 			case "timeSlots":
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
@@ -16373,6 +16778,125 @@ func (ec *executionContext) fieldContext_Mutation_adminCancelBooking(ctx context
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_adminCancelBooking_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_adminRescheduleBooking(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_adminRescheduleBooking,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().AdminRescheduleBooking(ctx, fc.Args["id"].(string), fc.Args["scheduledDate"].(string), fc.Args["scheduledStartTime"].(string), fc.Args["reason"].(*string))
+		},
+		nil,
+		ec.marshalNBooking2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_adminRescheduleBooking(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Booking_id(ctx, field)
+			case "referenceCode":
+				return ec.fieldContext_Booking_referenceCode(ctx, field)
+			case "client":
+				return ec.fieldContext_Booking_client(ctx, field)
+			case "company":
+				return ec.fieldContext_Booking_company(ctx, field)
+			case "worker":
+				return ec.fieldContext_Booking_worker(ctx, field)
+			case "address":
+				return ec.fieldContext_Booking_address(ctx, field)
+			case "serviceType":
+				return ec.fieldContext_Booking_serviceType(ctx, field)
+			case "serviceName":
+				return ec.fieldContext_Booking_serviceName(ctx, field)
+			case "includedItems":
+				return ec.fieldContext_Booking_includedItems(ctx, field)
+			case "scheduledDate":
+				return ec.fieldContext_Booking_scheduledDate(ctx, field)
+			case "scheduledStartTime":
+				return ec.fieldContext_Booking_scheduledStartTime(ctx, field)
+			case "estimatedDurationHours":
+				return ec.fieldContext_Booking_estimatedDurationHours(ctx, field)
+			case "propertyType":
+				return ec.fieldContext_Booking_propertyType(ctx, field)
+			case "numRooms":
+				return ec.fieldContext_Booking_numRooms(ctx, field)
+			case "numBathrooms":
+				return ec.fieldContext_Booking_numBathrooms(ctx, field)
+			case "areaSqm":
+				return ec.fieldContext_Booking_areaSqm(ctx, field)
+			case "hasPets":
+				return ec.fieldContext_Booking_hasPets(ctx, field)
+			case "specialInstructions":
+				return ec.fieldContext_Booking_specialInstructions(ctx, field)
+			case "hourlyRate":
+				return ec.fieldContext_Booking_hourlyRate(ctx, field)
+			case "estimatedTotal":
+				return ec.fieldContext_Booking_estimatedTotal(ctx, field)
+			case "finalTotal":
+				return ec.fieldContext_Booking_finalTotal(ctx, field)
+			case "platformCommissionPct":
+				return ec.fieldContext_Booking_platformCommissionPct(ctx, field)
+			case "extras":
+				return ec.fieldContext_Booking_extras(ctx, field)
+			case "status":
+				return ec.fieldContext_Booking_status(ctx, field)
+			case "startedAt":
+				return ec.fieldContext_Booking_startedAt(ctx, field)
+			case "completedAt":
+				return ec.fieldContext_Booking_completedAt(ctx, field)
+			case "cancelledAt":
+				return ec.fieldContext_Booking_cancelledAt(ctx, field)
+			case "cancellationReason":
+				return ec.fieldContext_Booking_cancellationReason(ctx, field)
+			case "paymentStatus":
+				return ec.fieldContext_Booking_paymentStatus(ctx, field)
+			case "paidAt":
+				return ec.fieldContext_Booking_paidAt(ctx, field)
+			case "recurringGroupId":
+				return ec.fieldContext_Booking_recurringGroupId(ctx, field)
+			case "occurrenceNumber":
+				return ec.fieldContext_Booking_occurrenceNumber(ctx, field)
+			case "rescheduleCount":
+				return ec.fieldContext_Booking_rescheduleCount(ctx, field)
+			case "rescheduledAt":
+				return ec.fieldContext_Booking_rescheduledAt(ctx, field)
+			case "timeSlots":
+				return ec.fieldContext_Booking_timeSlots(ctx, field)
+			case "review":
+				return ec.fieldContext_Booking_review(ctx, field)
+			case "chatRoom":
+				return ec.fieldContext_Booking_chatRoom(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Booking_createdAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Booking", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_adminRescheduleBooking_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -17104,6 +17628,10 @@ func (ec *executionContext) fieldContext_Mutation_createBookingRequest(ctx conte
 				return ec.fieldContext_Booking_recurringGroupId(ctx, field)
 			case "occurrenceNumber":
 				return ec.fieldContext_Booking_occurrenceNumber(ctx, field)
+			case "rescheduleCount":
+				return ec.fieldContext_Booking_rescheduleCount(ctx, field)
+			case "rescheduledAt":
+				return ec.fieldContext_Booking_rescheduledAt(ctx, field)
 			case "timeSlots":
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
@@ -17219,6 +17747,10 @@ func (ec *executionContext) fieldContext_Mutation_cancelBooking(ctx context.Cont
 				return ec.fieldContext_Booking_recurringGroupId(ctx, field)
 			case "occurrenceNumber":
 				return ec.fieldContext_Booking_occurrenceNumber(ctx, field)
+			case "rescheduleCount":
+				return ec.fieldContext_Booking_rescheduleCount(ctx, field)
+			case "rescheduledAt":
+				return ec.fieldContext_Booking_rescheduledAt(ctx, field)
 			case "timeSlots":
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
@@ -17334,6 +17866,10 @@ func (ec *executionContext) fieldContext_Mutation_assignWorkerToBooking(ctx cont
 				return ec.fieldContext_Booking_recurringGroupId(ctx, field)
 			case "occurrenceNumber":
 				return ec.fieldContext_Booking_occurrenceNumber(ctx, field)
+			case "rescheduleCount":
+				return ec.fieldContext_Booking_rescheduleCount(ctx, field)
+			case "rescheduledAt":
+				return ec.fieldContext_Booking_rescheduledAt(ctx, field)
 			case "timeSlots":
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
@@ -17449,6 +17985,10 @@ func (ec *executionContext) fieldContext_Mutation_confirmBooking(ctx context.Con
 				return ec.fieldContext_Booking_recurringGroupId(ctx, field)
 			case "occurrenceNumber":
 				return ec.fieldContext_Booking_occurrenceNumber(ctx, field)
+			case "rescheduleCount":
+				return ec.fieldContext_Booking_rescheduleCount(ctx, field)
+			case "rescheduledAt":
+				return ec.fieldContext_Booking_rescheduledAt(ctx, field)
 			case "timeSlots":
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
@@ -17564,6 +18104,10 @@ func (ec *executionContext) fieldContext_Mutation_startJob(ctx context.Context, 
 				return ec.fieldContext_Booking_recurringGroupId(ctx, field)
 			case "occurrenceNumber":
 				return ec.fieldContext_Booking_occurrenceNumber(ctx, field)
+			case "rescheduleCount":
+				return ec.fieldContext_Booking_rescheduleCount(ctx, field)
+			case "rescheduledAt":
+				return ec.fieldContext_Booking_rescheduledAt(ctx, field)
 			case "timeSlots":
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
@@ -17679,6 +18223,10 @@ func (ec *executionContext) fieldContext_Mutation_completeJob(ctx context.Contex
 				return ec.fieldContext_Booking_recurringGroupId(ctx, field)
 			case "occurrenceNumber":
 				return ec.fieldContext_Booking_occurrenceNumber(ctx, field)
+			case "rescheduleCount":
+				return ec.fieldContext_Booking_rescheduleCount(ctx, field)
+			case "rescheduledAt":
+				return ec.fieldContext_Booking_rescheduledAt(ctx, field)
 			case "timeSlots":
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
@@ -17794,6 +18342,10 @@ func (ec *executionContext) fieldContext_Mutation_selectBookingTimeSlot(ctx cont
 				return ec.fieldContext_Booking_recurringGroupId(ctx, field)
 			case "occurrenceNumber":
 				return ec.fieldContext_Booking_occurrenceNumber(ctx, field)
+			case "rescheduleCount":
+				return ec.fieldContext_Booking_rescheduleCount(ctx, field)
+			case "rescheduledAt":
+				return ec.fieldContext_Booking_rescheduledAt(ctx, field)
 			case "timeSlots":
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
@@ -17814,6 +18366,125 @@ func (ec *executionContext) fieldContext_Mutation_selectBookingTimeSlot(ctx cont
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_selectBookingTimeSlot_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_rescheduleBooking(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_rescheduleBooking,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().RescheduleBooking(ctx, fc.Args["id"].(string), fc.Args["scheduledDate"].(string), fc.Args["scheduledStartTime"].(string), fc.Args["reason"].(*string))
+		},
+		nil,
+		ec.marshalNBooking2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_rescheduleBooking(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Booking_id(ctx, field)
+			case "referenceCode":
+				return ec.fieldContext_Booking_referenceCode(ctx, field)
+			case "client":
+				return ec.fieldContext_Booking_client(ctx, field)
+			case "company":
+				return ec.fieldContext_Booking_company(ctx, field)
+			case "worker":
+				return ec.fieldContext_Booking_worker(ctx, field)
+			case "address":
+				return ec.fieldContext_Booking_address(ctx, field)
+			case "serviceType":
+				return ec.fieldContext_Booking_serviceType(ctx, field)
+			case "serviceName":
+				return ec.fieldContext_Booking_serviceName(ctx, field)
+			case "includedItems":
+				return ec.fieldContext_Booking_includedItems(ctx, field)
+			case "scheduledDate":
+				return ec.fieldContext_Booking_scheduledDate(ctx, field)
+			case "scheduledStartTime":
+				return ec.fieldContext_Booking_scheduledStartTime(ctx, field)
+			case "estimatedDurationHours":
+				return ec.fieldContext_Booking_estimatedDurationHours(ctx, field)
+			case "propertyType":
+				return ec.fieldContext_Booking_propertyType(ctx, field)
+			case "numRooms":
+				return ec.fieldContext_Booking_numRooms(ctx, field)
+			case "numBathrooms":
+				return ec.fieldContext_Booking_numBathrooms(ctx, field)
+			case "areaSqm":
+				return ec.fieldContext_Booking_areaSqm(ctx, field)
+			case "hasPets":
+				return ec.fieldContext_Booking_hasPets(ctx, field)
+			case "specialInstructions":
+				return ec.fieldContext_Booking_specialInstructions(ctx, field)
+			case "hourlyRate":
+				return ec.fieldContext_Booking_hourlyRate(ctx, field)
+			case "estimatedTotal":
+				return ec.fieldContext_Booking_estimatedTotal(ctx, field)
+			case "finalTotal":
+				return ec.fieldContext_Booking_finalTotal(ctx, field)
+			case "platformCommissionPct":
+				return ec.fieldContext_Booking_platformCommissionPct(ctx, field)
+			case "extras":
+				return ec.fieldContext_Booking_extras(ctx, field)
+			case "status":
+				return ec.fieldContext_Booking_status(ctx, field)
+			case "startedAt":
+				return ec.fieldContext_Booking_startedAt(ctx, field)
+			case "completedAt":
+				return ec.fieldContext_Booking_completedAt(ctx, field)
+			case "cancelledAt":
+				return ec.fieldContext_Booking_cancelledAt(ctx, field)
+			case "cancellationReason":
+				return ec.fieldContext_Booking_cancellationReason(ctx, field)
+			case "paymentStatus":
+				return ec.fieldContext_Booking_paymentStatus(ctx, field)
+			case "paidAt":
+				return ec.fieldContext_Booking_paidAt(ctx, field)
+			case "recurringGroupId":
+				return ec.fieldContext_Booking_recurringGroupId(ctx, field)
+			case "occurrenceNumber":
+				return ec.fieldContext_Booking_occurrenceNumber(ctx, field)
+			case "rescheduleCount":
+				return ec.fieldContext_Booking_rescheduleCount(ctx, field)
+			case "rescheduledAt":
+				return ec.fieldContext_Booking_rescheduledAt(ctx, field)
+			case "timeSlots":
+				return ec.fieldContext_Booking_timeSlots(ctx, field)
+			case "review":
+				return ec.fieldContext_Booking_review(ctx, field)
+			case "chatRoom":
+				return ec.fieldContext_Booking_chatRoom(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Booking_createdAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Booking", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_rescheduleBooking_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -20670,6 +21341,10 @@ func (ec *executionContext) fieldContext_Mutation_markBookingPaid(ctx context.Co
 				return ec.fieldContext_Booking_recurringGroupId(ctx, field)
 			case "occurrenceNumber":
 				return ec.fieldContext_Booking_occurrenceNumber(ctx, field)
+			case "rescheduleCount":
+				return ec.fieldContext_Booking_rescheduleCount(ctx, field)
+			case "rescheduledAt":
+				return ec.fieldContext_Booking_rescheduledAt(ctx, field)
 			case "timeSlots":
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
@@ -23378,6 +24053,10 @@ func (ec *executionContext) fieldContext_PaymentHistoryEntry_booking(_ context.C
 				return ec.fieldContext_Booking_recurringGroupId(ctx, field)
 			case "occurrenceNumber":
 				return ec.fieldContext_Booking_occurrenceNumber(ctx, field)
+			case "rescheduleCount":
+				return ec.fieldContext_Booking_rescheduleCount(ctx, field)
+			case "rescheduledAt":
+				return ec.fieldContext_Booking_rescheduledAt(ctx, field)
 			case "timeSlots":
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
@@ -24003,6 +24682,10 @@ func (ec *executionContext) fieldContext_PaymentTransaction_booking(_ context.Co
 				return ec.fieldContext_Booking_recurringGroupId(ctx, field)
 			case "occurrenceNumber":
 				return ec.fieldContext_Booking_occurrenceNumber(ctx, field)
+			case "rescheduleCount":
+				return ec.fieldContext_Booking_rescheduleCount(ctx, field)
+			case "rescheduledAt":
+				return ec.fieldContext_Booking_rescheduledAt(ctx, field)
 			case "timeSlots":
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
@@ -24396,6 +25079,10 @@ func (ec *executionContext) fieldContext_PayoutLineItem_booking(_ context.Contex
 				return ec.fieldContext_Booking_recurringGroupId(ctx, field)
 			case "occurrenceNumber":
 				return ec.fieldContext_Booking_occurrenceNumber(ctx, field)
+			case "rescheduleCount":
+				return ec.fieldContext_Booking_rescheduleCount(ctx, field)
+			case "rescheduledAt":
+				return ec.fieldContext_Booking_rescheduledAt(ctx, field)
 			case "timeSlots":
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
@@ -27324,6 +28011,10 @@ func (ec *executionContext) fieldContext_Query_booking(ctx context.Context, fiel
 				return ec.fieldContext_Booking_recurringGroupId(ctx, field)
 			case "occurrenceNumber":
 				return ec.fieldContext_Booking_occurrenceNumber(ctx, field)
+			case "rescheduleCount":
+				return ec.fieldContext_Booking_rescheduleCount(ctx, field)
+			case "rescheduledAt":
+				return ec.fieldContext_Booking_rescheduledAt(ctx, field)
 			case "timeSlots":
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
@@ -27488,6 +28179,10 @@ func (ec *executionContext) fieldContext_Query_myAssignedJobs(ctx context.Contex
 				return ec.fieldContext_Booking_recurringGroupId(ctx, field)
 			case "occurrenceNumber":
 				return ec.fieldContext_Booking_occurrenceNumber(ctx, field)
+			case "rescheduleCount":
+				return ec.fieldContext_Booking_rescheduleCount(ctx, field)
+			case "rescheduledAt":
+				return ec.fieldContext_Booking_rescheduledAt(ctx, field)
 			case "timeSlots":
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
@@ -27602,6 +28297,10 @@ func (ec *executionContext) fieldContext_Query_todaysJobs(_ context.Context, fie
 				return ec.fieldContext_Booking_recurringGroupId(ctx, field)
 			case "occurrenceNumber":
 				return ec.fieldContext_Booking_occurrenceNumber(ctx, field)
+			case "rescheduleCount":
+				return ec.fieldContext_Booking_rescheduleCount(ctx, field)
+			case "rescheduledAt":
+				return ec.fieldContext_Booking_rescheduledAt(ctx, field)
 			case "timeSlots":
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
@@ -27755,6 +28454,10 @@ func (ec *executionContext) fieldContext_Query_companyBookingsByDateRange(ctx co
 				return ec.fieldContext_Booking_recurringGroupId(ctx, field)
 			case "occurrenceNumber":
 				return ec.fieldContext_Booking_occurrenceNumber(ctx, field)
+			case "rescheduleCount":
+				return ec.fieldContext_Booking_rescheduleCount(ctx, field)
+			case "rescheduledAt":
+				return ec.fieldContext_Booking_rescheduledAt(ctx, field)
 			case "timeSlots":
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
@@ -27824,6 +28527,94 @@ func (ec *executionContext) fieldContext_Query_searchCompanyBookings(ctx context
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_searchCompanyBookings_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_bookingPolicy(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_bookingPolicy,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.Query().BookingPolicy(ctx)
+		},
+		nil,
+		ec.marshalNBookingPolicy2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingPolicy,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_bookingPolicy(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "cancelFreeHoursBefore":
+				return ec.fieldContext_BookingPolicy_cancelFreeHoursBefore(ctx, field)
+			case "cancelLateRefundPct":
+				return ec.fieldContext_BookingPolicy_cancelLateRefundPct(ctx, field)
+			case "rescheduleFreeHoursBefore":
+				return ec.fieldContext_BookingPolicy_rescheduleFreeHoursBefore(ctx, field)
+			case "rescheduleMaxPerBooking":
+				return ec.fieldContext_BookingPolicy_rescheduleMaxPerBooking(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type BookingPolicy", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_checkWorkerAvailability(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_checkWorkerAvailability,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Query().CheckWorkerAvailability(ctx, fc.Args["bookingId"].(string), fc.Args["date"].(string), fc.Args["startTime"].(string))
+		},
+		nil,
+		ec.marshalNWorkerAvailabilityCheck2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐWorkerAvailabilityCheck,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_checkWorkerAvailability(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "available":
+				return ec.fieldContext_WorkerAvailabilityCheck_available(ctx, field)
+			case "reason":
+				return ec.fieldContext_WorkerAvailabilityCheck_reason(ctx, field)
+			case "conflicts":
+				return ec.fieldContext_WorkerAvailabilityCheck_conflicts(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type WorkerAvailabilityCheck", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_checkWorkerAvailability_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -28643,6 +29434,93 @@ func (ec *executionContext) fieldContext_Query_invoiceDetail(ctx context.Context
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_clientInvoiceForBooking(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_clientInvoiceForBooking,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Query().ClientInvoiceForBooking(ctx, fc.Args["bookingId"].(string))
+		},
+		nil,
+		ec.marshalOInvoice2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐInvoice,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_clientInvoiceForBooking(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Invoice_id(ctx, field)
+			case "invoiceType":
+				return ec.fieldContext_Invoice_invoiceType(ctx, field)
+			case "invoiceNumber":
+				return ec.fieldContext_Invoice_invoiceNumber(ctx, field)
+			case "status":
+				return ec.fieldContext_Invoice_status(ctx, field)
+			case "sellerCompanyName":
+				return ec.fieldContext_Invoice_sellerCompanyName(ctx, field)
+			case "sellerCui":
+				return ec.fieldContext_Invoice_sellerCui(ctx, field)
+			case "buyerName":
+				return ec.fieldContext_Invoice_buyerName(ctx, field)
+			case "buyerCui":
+				return ec.fieldContext_Invoice_buyerCui(ctx, field)
+			case "subtotalAmount":
+				return ec.fieldContext_Invoice_subtotalAmount(ctx, field)
+			case "vatRate":
+				return ec.fieldContext_Invoice_vatRate(ctx, field)
+			case "vatAmount":
+				return ec.fieldContext_Invoice_vatAmount(ctx, field)
+			case "totalAmount":
+				return ec.fieldContext_Invoice_totalAmount(ctx, field)
+			case "currency":
+				return ec.fieldContext_Invoice_currency(ctx, field)
+			case "booking":
+				return ec.fieldContext_Invoice_booking(ctx, field)
+			case "company":
+				return ec.fieldContext_Invoice_company(ctx, field)
+			case "efacturaStatus":
+				return ec.fieldContext_Invoice_efacturaStatus(ctx, field)
+			case "downloadUrl":
+				return ec.fieldContext_Invoice_downloadUrl(ctx, field)
+			case "issuedAt":
+				return ec.fieldContext_Invoice_issuedAt(ctx, field)
+			case "dueDate":
+				return ec.fieldContext_Invoice_dueDate(ctx, field)
+			case "notes":
+				return ec.fieldContext_Invoice_notes(ctx, field)
+			case "lineItems":
+				return ec.fieldContext_Invoice_lineItems(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Invoice_createdAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Invoice", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_clientInvoiceForBooking_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_companyInvoices(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -29382,7 +30260,7 @@ func (ec *executionContext) _Query_myPaymentHistory(ctx context.Context, field g
 		ec.fieldContext_Query_myPaymentHistory,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Query().MyPaymentHistory(ctx, fc.Args["first"].(*int), fc.Args["after"].(*string))
+			return ec.resolvers.Query().MyPaymentHistory(ctx, fc.Args["limit"].(*int), fc.Args["offset"].(*int))
 		},
 		nil,
 		ec.marshalNPaymentHistoryConnection2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPaymentHistoryConnection,
@@ -31304,6 +32182,10 @@ func (ec *executionContext) fieldContext_Query_myWorkerBookingsByDateRange(ctx c
 				return ec.fieldContext_Booking_recurringGroupId(ctx, field)
 			case "occurrenceNumber":
 				return ec.fieldContext_Booking_occurrenceNumber(ctx, field)
+			case "rescheduleCount":
+				return ec.fieldContext_Booking_rescheduleCount(ctx, field)
+			case "rescheduledAt":
+				return ec.fieldContext_Booking_rescheduledAt(ctx, field)
 			case "timeSlots":
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
@@ -32659,6 +33541,10 @@ func (ec *executionContext) fieldContext_RecurringBookingGroup_occurrences(_ con
 				return ec.fieldContext_Booking_recurringGroupId(ctx, field)
 			case "occurrenceNumber":
 				return ec.fieldContext_Booking_occurrenceNumber(ctx, field)
+			case "rescheduleCount":
+				return ec.fieldContext_Booking_rescheduleCount(ctx, field)
+			case "rescheduledAt":
+				return ec.fieldContext_Booking_rescheduledAt(ctx, field)
 			case "timeSlots":
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
@@ -32762,6 +33648,10 @@ func (ec *executionContext) fieldContext_RecurringBookingGroup_upcomingOccurrenc
 				return ec.fieldContext_Booking_recurringGroupId(ctx, field)
 			case "occurrenceNumber":
 				return ec.fieldContext_Booking_occurrenceNumber(ctx, field)
+			case "rescheduleCount":
+				return ec.fieldContext_Booking_rescheduleCount(ctx, field)
+			case "rescheduledAt":
+				return ec.fieldContext_Booking_rescheduledAt(ctx, field)
 			case "timeSlots":
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
@@ -32981,6 +33871,10 @@ func (ec *executionContext) fieldContext_RefundRequest_booking(_ context.Context
 				return ec.fieldContext_Booking_recurringGroupId(ctx, field)
 			case "occurrenceNumber":
 				return ec.fieldContext_Booking_occurrenceNumber(ctx, field)
+			case "rescheduleCount":
+				return ec.fieldContext_Booking_rescheduleCount(ctx, field)
+			case "rescheduledAt":
+				return ec.fieldContext_Booking_rescheduledAt(ctx, field)
 			case "timeSlots":
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
@@ -33534,6 +34428,10 @@ func (ec *executionContext) fieldContext_Review_booking(_ context.Context, field
 				return ec.fieldContext_Booking_recurringGroupId(ctx, field)
 			case "occurrenceNumber":
 				return ec.fieldContext_Booking_occurrenceNumber(ctx, field)
+			case "rescheduleCount":
+				return ec.fieldContext_Booking_rescheduleCount(ctx, field)
+			case "rescheduledAt":
+				return ec.fieldContext_Booking_rescheduledAt(ctx, field)
 			case "timeSlots":
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
@@ -35699,6 +36597,93 @@ func (ec *executionContext) fieldContext_WaitlistStats_totalCount(_ context.Cont
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _WorkerAvailabilityCheck_available(ctx context.Context, field graphql.CollectedField, obj *model.WorkerAvailabilityCheck) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_WorkerAvailabilityCheck_available,
+		func(ctx context.Context) (any, error) {
+			return obj.Available, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_WorkerAvailabilityCheck_available(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "WorkerAvailabilityCheck",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _WorkerAvailabilityCheck_reason(ctx context.Context, field graphql.CollectedField, obj *model.WorkerAvailabilityCheck) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_WorkerAvailabilityCheck_reason,
+		func(ctx context.Context) (any, error) {
+			return obj.Reason, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_WorkerAvailabilityCheck_reason(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "WorkerAvailabilityCheck",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _WorkerAvailabilityCheck_conflicts(ctx context.Context, field graphql.CollectedField, obj *model.WorkerAvailabilityCheck) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_WorkerAvailabilityCheck_conflicts,
+		func(ctx context.Context) (any, error) {
+			return obj.Conflicts, nil
+		},
+		nil,
+		ec.marshalNString2ᚕstringᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_WorkerAvailabilityCheck_conflicts(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "WorkerAvailabilityCheck",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -40756,6 +41741,13 @@ func (ec *executionContext) _Booking(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = ec._Booking_recurringGroupId(ctx, field, obj)
 		case "occurrenceNumber":
 			out.Values[i] = ec._Booking_occurrenceNumber(ctx, field, obj)
+		case "rescheduleCount":
+			out.Values[i] = ec._Booking_rescheduleCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "rescheduledAt":
+			out.Values[i] = ec._Booking_rescheduledAt(ctx, field, obj)
 		case "timeSlots":
 			out.Values[i] = ec._Booking_timeSlots(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -40865,6 +41857,60 @@ func (ec *executionContext) _BookingExtra(ctx context.Context, sel ast.Selection
 			}
 		case "quantity":
 			out.Values[i] = ec._BookingExtra_quantity(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var bookingPolicyImplementors = []string{"BookingPolicy"}
+
+func (ec *executionContext) _BookingPolicy(ctx context.Context, sel ast.SelectionSet, obj *model.BookingPolicy) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, bookingPolicyImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("BookingPolicy")
+		case "cancelFreeHoursBefore":
+			out.Values[i] = ec._BookingPolicy_cancelFreeHoursBefore(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "cancelLateRefundPct":
+			out.Values[i] = ec._BookingPolicy_cancelLateRefundPct(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "rescheduleFreeHoursBefore":
+			out.Values[i] = ec._BookingPolicy_rescheduleFreeHoursBefore(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "rescheduleMaxPerBooking":
+			out.Values[i] = ec._BookingPolicy_rescheduleMaxPerBooking(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -42602,6 +43648,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "adminRescheduleBooking":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_adminRescheduleBooking(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "suspendUser":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_suspendUser(ctx, field)
@@ -42731,6 +43784,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "selectBookingTimeSlot":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_selectBookingTimeSlot(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "rescheduleBooking":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_rescheduleBooking(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -45035,6 +46095,50 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "bookingPolicy":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_bookingPolicy(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "checkWorkerAvailability":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_checkWorkerAvailability(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "myChatRooms":
 			field := field
 
@@ -45353,6 +46457,25 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "clientInvoiceForBooking":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_clientInvoiceForBooking(ctx, field)
 				return res
 			}
 
@@ -47678,6 +48801,52 @@ func (ec *executionContext) _WaitlistStats(ctx context.Context, sel ast.Selectio
 	return out
 }
 
+var workerAvailabilityCheckImplementors = []string{"WorkerAvailabilityCheck"}
+
+func (ec *executionContext) _WorkerAvailabilityCheck(ctx context.Context, sel ast.SelectionSet, obj *model.WorkerAvailabilityCheck) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, workerAvailabilityCheckImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("WorkerAvailabilityCheck")
+		case "available":
+			out.Values[i] = ec._WorkerAvailabilityCheck_available(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "reason":
+			out.Values[i] = ec._WorkerAvailabilityCheck_reason(ctx, field, obj)
+		case "conflicts":
+			out.Values[i] = ec._WorkerAvailabilityCheck_conflicts(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var workerDailyEarningsImplementors = []string{"WorkerDailyEarnings"}
 
 func (ec *executionContext) _WorkerDailyEarnings(ctx context.Context, sel ast.SelectionSet, obj *model.WorkerDailyEarnings) graphql.Marshaler {
@@ -48758,6 +49927,20 @@ func (ec *executionContext) marshalNBookingExtra2ᚖgo2fixᚑbackendᚋinternal�
 		return graphql.Null
 	}
 	return ec._BookingExtra(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNBookingPolicy2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingPolicy(ctx context.Context, sel ast.SelectionSet, v model.BookingPolicy) graphql.Marshaler {
+	return ec._BookingPolicy(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNBookingPolicy2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingPolicy(ctx context.Context, sel ast.SelectionSet, v *model.BookingPolicy) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._BookingPolicy(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNBookingStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingStatus(ctx context.Context, v any) (model.BookingStatus, error) {
@@ -51572,6 +52755,20 @@ func (ec *executionContext) marshalNWaitlistStats2ᚖgo2fixᚑbackendᚋinternal
 func (ec *executionContext) unmarshalNWorkScheduleDayInput2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐWorkScheduleDayInput(ctx context.Context, v any) (*model.WorkScheduleDayInput, error) {
 	res, err := ec.unmarshalInputWorkScheduleDayInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNWorkerAvailabilityCheck2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐWorkerAvailabilityCheck(ctx context.Context, sel ast.SelectionSet, v model.WorkerAvailabilityCheck) graphql.Marshaler {
+	return ec._WorkerAvailabilityCheck(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNWorkerAvailabilityCheck2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐWorkerAvailabilityCheck(ctx context.Context, sel ast.SelectionSet, v *model.WorkerAvailabilityCheck) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._WorkerAvailabilityCheck(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNWorkerDailyEarnings2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐWorkerDailyEarningsᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.WorkerDailyEarnings) graphql.Marshaler {

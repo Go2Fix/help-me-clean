@@ -1176,7 +1176,7 @@ func (q *Queries) ListUnpaidCompanyTransactions(ctx context.Context, arg ListUnp
 
 const markBookingPaid = `-- name: MarkBookingPaid :one
 UPDATE bookings SET payment_status = 'paid', paid_at = NOW(), updated_at = NOW()
-WHERE id = $1 RETURNING id, reference_code, client_user_id, company_id, worker_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number
+WHERE id = $1 RETURNING id, reference_code, client_user_id, company_id, worker_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number, reschedule_count, rescheduled_at
 `
 
 func (q *Queries) MarkBookingPaid(ctx context.Context, id pgtype.UUID) (Booking, error) {
@@ -1216,6 +1216,8 @@ func (q *Queries) MarkBookingPaid(ctx context.Context, id pgtype.UUID) (Booking,
 		&i.UpdatedAt,
 		&i.RecurringGroupID,
 		&i.OccurrenceNumber,
+		&i.RescheduleCount,
+		&i.RescheduledAt,
 	)
 	return i, err
 }
@@ -1225,7 +1227,7 @@ UPDATE bookings
 SET payment_status = 'paid', paid_at = NOW(),
     status = CASE WHEN status = 'assigned' THEN 'confirmed'::booking_status ELSE status END,
     updated_at = NOW()
-WHERE id = $1 RETURNING id, reference_code, client_user_id, company_id, worker_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number
+WHERE id = $1 RETURNING id, reference_code, client_user_id, company_id, worker_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number, reschedule_count, rescheduled_at
 `
 
 // Atomically marks a booking as paid AND auto-confirms it if still assigned.
@@ -1267,6 +1269,8 @@ func (q *Queries) MarkBookingPaidAndConfirmed(ctx context.Context, id pgtype.UUI
 		&i.UpdatedAt,
 		&i.RecurringGroupID,
 		&i.OccurrenceNumber,
+		&i.RescheduleCount,
+		&i.RescheduledAt,
 	)
 	return i, err
 }
@@ -1385,7 +1389,7 @@ func (q *Queries) SumRefundedAmountByBooking(ctx context.Context, bookingID pgty
 const updateBookingPayment = `-- name: UpdateBookingPayment :one
 
 UPDATE bookings SET stripe_payment_intent_id = $2, payment_status = $3, updated_at = NOW()
-WHERE id = $1 RETURNING id, reference_code, client_user_id, company_id, worker_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number
+WHERE id = $1 RETURNING id, reference_code, client_user_id, company_id, worker_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number, reschedule_count, rescheduled_at
 `
 
 type UpdateBookingPaymentParams struct {
@@ -1434,6 +1438,8 @@ func (q *Queries) UpdateBookingPayment(ctx context.Context, arg UpdateBookingPay
 		&i.UpdatedAt,
 		&i.RecurringGroupID,
 		&i.OccurrenceNumber,
+		&i.RescheduleCount,
+		&i.RescheduledAt,
 	)
 	return i, err
 }

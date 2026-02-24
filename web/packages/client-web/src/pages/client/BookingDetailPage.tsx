@@ -11,8 +11,6 @@ import {
   Bath,
   Ruler,
   PawPrint,
-  Building2,
-  Phone,
   FileText,
   MessageCircle,
   CreditCard,
@@ -24,6 +22,9 @@ import {
   XCircle,
   KeyRound,
   Timer,
+  CalendarClock,
+  AlertTriangle,
+  Download,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import Button from '@/components/ui/Button';
@@ -31,7 +32,8 @@ import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/ClientBadge';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Modal from '@/components/ui/Modal';
-import { CLIENT_BOOKING_DETAIL, CANCEL_BOOKING, OPEN_BOOKING_CHAT, CREATE_BOOKING_PAYMENT_INTENT, REQUEST_REFUND, SUBMIT_REVIEW } from '@/graphql/operations';
+import { CLIENT_BOOKING_DETAIL, CANCEL_BOOKING, OPEN_BOOKING_CHAT, CREATE_BOOKING_PAYMENT_INTENT, REQUEST_REFUND, SUBMIT_REVIEW, BOOKING_POLICY, RESCHEDULE_BOOKING, CLIENT_INVOICE_FOR_BOOKING } from '@/graphql/operations';
+import RescheduleModal from '@/components/booking/RescheduleModal';
 import { StripeElementsWrapper } from '@/context/StripeContext';
 import StripePaymentForm from '@/components/payment/StripePaymentForm';
 
@@ -47,29 +49,13 @@ interface BookingAddress {
   notes?: string;
 }
 
-interface BookingCompany {
-  id: string;
-  companyName: string;
-  contactPhone?: string;
-  logoUrl?: string;
-}
-
 interface BookingWorker {
   id: string;
   fullName: string;
-  phone?: string;
   user?: {
     id: string;
     avatarUrl?: string;
   };
-}
-
-interface BookingTimeSlot {
-  id: string;
-  slotDate: string;
-  startTime: string;
-  endTime: string;
-  isSelected: boolean;
 }
 
 interface BookingReview {
@@ -100,11 +86,12 @@ interface BookingData {
   paidAt?: string;
   recurringGroupId?: string;
   occurrenceNumber?: number;
+  rescheduleCount?: number;
+  rescheduledAt?: string;
   createdAt: string;
   startedAt?: string;
   completedAt?: string;
   address: BookingAddress;
-  company?: BookingCompany;
   worker?: BookingWorker;
   includedItems: string[];
   extras: {
@@ -121,7 +108,7 @@ interface BookingData {
     price: number;
     quantity: number;
   }[];
-  timeSlots?: BookingTimeSlot[];
+
   review?: BookingReview;
 }
 
@@ -169,6 +156,7 @@ function formatDateTime(dateStr: string): string {
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
+      hour12: false,
     });
   } catch {
     return dateStr;
@@ -183,6 +171,7 @@ export default function BookingDetailPage() {
   const { isAuthenticated, loading: authLoading } = useAuth();
 
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [rescheduleModalOpen, setRescheduleModalOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewComment, setReviewComment] = useState('');
@@ -203,6 +192,18 @@ export default function BookingDetailPage() {
     },
     // Mutation returns { id, status } — Apollo auto-updates the normalized booking entity.
     // MY_BOOKINGS self-corrects via cache-and-network on next visit.
+  });
+
+  const bookingStatus = data?.booking?.status;
+  const { data: invoiceData } = useQuery(CLIENT_INVOICE_FOR_BOOKING, {
+    variables: { bookingId: id },
+    skip: !id || !isAuthenticated || bookingStatus !== 'COMPLETED',
+  });
+
+  const { data: policyData } = useQuery(BOOKING_POLICY);
+  const [rescheduleBooking, { loading: rescheduling }] = useMutation(RESCHEDULE_BOOKING, {
+    refetchQueries: [{ query: CLIENT_BOOKING_DETAIL, variables: { id } }],
+    onCompleted: () => setRescheduleModalOpen(false),
   });
 
   const [openBookingChat, { loading: openingChat }] = useMutation(OPEN_BOOKING_CHAT, {
@@ -423,6 +424,47 @@ export default function BookingDetailPage() {
           </div>
         </div>
 
+        {/* Key info hero */}
+        <Card className="mb-6">
+          <div className="space-y-4">
+            <div className="flex items-center gap-4 sm:gap-8">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                  <Calendar className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <div className="text-xs text-gray-400 uppercase tracking-wide">Data</div>
+                  <div className="text-lg font-bold text-gray-900">
+                    {formatDate(booking.scheduledDate)}
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                  <Clock className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <div className="text-xs text-gray-400 uppercase tracking-wide">Ora</div>
+                  <div className="text-lg font-bold text-gray-900">
+                    {formatTime(booking.scheduledStartTime)}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                <MapPin className="h-6 w-6 text-primary" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-xs text-gray-400 uppercase tracking-wide">Adresa</div>
+                <div className="text-lg font-bold text-gray-900">
+                  {formatAddress(booking.address)}
+                </div>
+              </div>
+            </div>
+          </div>
+        </Card>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Details */}
           <div className="lg:col-span-2 space-y-6">
@@ -476,28 +518,6 @@ export default function BookingDetailPage() {
                 Detalii programare
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                    <Calendar className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <div className="text-xs text-gray-400">Data</div>
-                    <div className="text-sm font-medium text-gray-900">
-                      {formatDate(booking.scheduledDate)}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                    <Clock className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <div className="text-xs text-gray-400">Ora</div>
-                    <div className="text-sm font-medium text-gray-900">
-                      {formatTime(booking.scheduledStartTime)}
-                    </div>
-                  </div>
-                </div>
                 {booking.propertyType && (
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center shrink-0">
@@ -629,89 +649,42 @@ export default function BookingDetailPage() {
               </Card>
             )}
 
-            {/* Time Slots */}
-            {booking.timeSlots && booking.timeSlots.length > 0 && (
+            {/* Address details (entry code & notes) */}
+            {(booking.address.entryCode || booking.address.notes) && (
               <Card>
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                  Intervale propuse
+                  Detalii acces
                 </h2>
-                <div className="space-y-3">
-                  {booking.timeSlots.map((slot) => (
-                    <div
-                      key={slot.id}
-                      className={`flex items-center gap-3 p-3 rounded-xl border ${
-                        slot.isSelected
-                          ? 'border-blue-200 bg-blue-50'
-                          : 'border-gray-200 bg-white'
-                      }`}
-                    >
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                        slot.isSelected ? 'bg-blue-100' : 'bg-primary/10'
-                      }`}>
-                        <Calendar className={`h-5 w-5 ${slot.isSelected ? 'text-blue-600' : 'text-primary'}`} />
+                <div className="space-y-4">
+                  {booking.address.entryCode && (
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
+                        <KeyRound className="h-5 w-5 text-amber-600" />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-gray-900">
-                          {formatDate(slot.slotDate)}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {formatTime(slot.startTime)} - {formatTime(slot.endTime)}
+                      <div>
+                        <div className="text-xs text-gray-400">Cod acces</div>
+                        <div className="text-sm font-mono font-semibold text-gray-900">
+                          {booking.address.entryCode}
                         </div>
                       </div>
-                      {slot.isSelected && (
-                        <div className="flex items-center gap-1.5 text-blue-600">
-                          <Check className="h-4 w-4" />
-                          <span className="text-xs font-semibold">Confirmat</span>
-                        </div>
-                      )}
                     </div>
-                  ))}
+                  )}
+                  {booking.address.notes && (
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
+                        <FileText className="h-5 w-5 text-gray-500" />
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-400">Note adresa</div>
+                        <p className="text-sm text-gray-700 mt-0.5 whitespace-pre-wrap">
+                          {booking.address.notes}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </Card>
             )}
-
-            {/* Address */}
-            <Card>
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                Adresa
-              </h2>
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                    <MapPin className="h-5 w-5 text-primary" />
-                  </div>
-                  <div className="text-sm text-gray-700">
-                    {formatAddress(booking.address)}
-                  </div>
-                </div>
-                {booking.address.entryCode && (
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
-                      <KeyRound className="h-5 w-5 text-amber-600" />
-                    </div>
-                    <div>
-                      <div className="text-xs text-gray-400">Cod acces</div>
-                      <div className="text-sm font-mono font-semibold text-gray-900">
-                        {booking.address.entryCode}
-                      </div>
-                    </div>
-                  </div>
-                )}
-                {booking.address.notes && (
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
-                      <FileText className="h-5 w-5 text-gray-500" />
-                    </div>
-                    <div>
-                      <div className="text-xs text-gray-400">Note adresa</div>
-                      <p className="text-sm text-gray-700 mt-0.5 whitespace-pre-wrap">
-                        {booking.address.notes}
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </Card>
 
             {/* Special Instructions */}
             {booking.specialInstructions && (
@@ -733,78 +706,53 @@ export default function BookingDetailPage() {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Company / Worker info */}
-            {(booking.company || booking.worker) && (
+            {/* Worker info */}
+            {booking.worker && (
               <Card>
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                  Echipa de curatenie
+                  Lucratorul tau
                 </h2>
-                <div className="space-y-4">
-                  {booking.company && (
-                    <div className="flex items-center gap-3">
-                      {booking.company.logoUrl ? (
-                        <img
-                          src={booking.company.logoUrl}
-                          alt={booking.company.companyName}
-                          className="w-10 h-10 rounded-xl object-cover shrink-0"
-                        />
-                      ) : (
-                        <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center shrink-0">
-                          <Building2 className="h-5 w-5 text-secondary" />
-                        </div>
-                      )}
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          {booking.company.companyName}
-                        </div>
-                        {booking.company.contactPhone && (
-                          <div className="flex items-center gap-1 text-xs text-gray-500 mt-0.5">
-                            <Phone className="h-3 w-3" />
-                            {booking.company.contactPhone}
-                          </div>
-                        )}
-                      </div>
+                <div className="flex flex-col items-center gap-3">
+                  {booking.worker.user?.avatarUrl ? (
+                    <img
+                      src={booking.worker.user.avatarUrl}
+                      alt={booking.worker.fullName}
+                      className="w-24 h-24 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center">
+                      <span className="text-2xl font-semibold text-primary">
+                        {booking.worker.fullName
+                          .split(' ')
+                          .map((w) => w.charAt(0))
+                          .slice(0, 2)
+                          .join('')
+                          .toUpperCase()}
+                      </span>
                     </div>
                   )}
-                  {booking.worker && (
-                    <div className="flex items-center gap-3">
-                      {booking.worker.user?.avatarUrl ? (
-                        <img
-                          src={booking.worker.user.avatarUrl}
-                          alt={booking.worker.fullName}
-                          className="w-10 h-10 rounded-full object-cover shrink-0"
-                        />
-                      ) : (
-                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                          <span className="text-sm font-semibold text-primary">
-                            {booking.worker.fullName
-                              .split(' ')
-                              .map((w) => w.charAt(0))
-                              .slice(0, 2)
-                              .join('')
-                              .toUpperCase()}
-                          </span>
-                        </div>
-                      )}
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          {booking.worker.fullName}
-                        </div>
-                        {booking.worker.phone && (
-                          <div className="flex items-center gap-1 text-xs text-gray-500 mt-0.5">
-                            <Phone className="h-3 w-3" />
-                            {booking.worker.phone}
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                  <div className="text-base font-semibold text-gray-900">
+                    {booking.worker.fullName}
+                  </div>
+                  {!isCancelled && booking.status !== 'COMPLETED' && (
+                    <Button
+                      className="w-full"
+                      loading={openingChat}
+                      onClick={() =>
+                        openBookingChat({ variables: { bookingId: booking.id } })
+                      }
+                    >
+                      <MessageCircle className="h-4 w-4" />
+                      Deschide chat
+                    </Button>
                   )}
                 </div>
               </Card>
             )}
 
-            {/* Chat */}
-            <Card>
+            {/* Chat (when no worker assigned) */}
+            {!booking.worker && !isCancelled && booking.status !== 'COMPLETED' && (
+              <Card>
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">
                   Chat
                 </h2>
@@ -819,6 +767,7 @@ export default function BookingDetailPage() {
                   Deschide chat
                 </Button>
               </Card>
+            )}
 
             {/* Payment — show for any unpaid booking with company, or any paid booking */}
             {booking.paymentStatus === 'paid' && (
@@ -851,7 +800,7 @@ export default function BookingDetailPage() {
               </Card>
             )}
 
-            {booking.paymentStatus !== 'paid' && booking.company && !booking.status.startsWith('CANCELLED') && (
+            {booking.paymentStatus !== 'paid' && !booking.status.startsWith('CANCELLED') && (
               <Card>
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">
                   Plata
@@ -898,6 +847,57 @@ export default function BookingDetailPage() {
                       {paymentError}
                     </div>
                   )}
+                </div>
+              </Card>
+            )}
+
+            {/* Invoice */}
+            {invoiceData?.clientInvoiceForBooking && (
+              <Card>
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                  Factura
+                </h2>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-sm font-semibold text-gray-900">
+                        {invoiceData.clientInvoiceForBooking.invoiceNumber ?? 'Draft'}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {invoiceData.clientInvoiceForBooking.sellerCompanyName}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm font-bold text-gray-900">
+                        {(invoiceData.clientInvoiceForBooking.totalAmount / 100).toFixed(2)} lei
+                      </div>
+                      {invoiceData.clientInvoiceForBooking.issuedAt && (
+                        <div className="text-xs text-gray-400">
+                          {formatDate(invoiceData.clientInvoiceForBooking.issuedAt)}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => navigate(`/cont/facturi/${invoiceData.clientInvoiceForBooking.id}`)}
+                    >
+                      <FileText className="h-4 w-4" />
+                      Vezi factura
+                    </Button>
+                    {invoiceData.clientInvoiceForBooking.downloadUrl && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(invoiceData.clientInvoiceForBooking.downloadUrl, '_blank')}
+                      >
+                        <Download className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </Card>
             )}
@@ -1014,13 +1014,38 @@ export default function BookingDetailPage() {
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">
                   Actiuni
                 </h2>
-                <Button
-                  variant="danger"
-                  className="w-full"
-                  onClick={() => setCancelModalOpen(true)}
-                >
-                  Anuleaza comanda
-                </Button>
+                <div className="space-y-2">
+                  {(() => {
+                    const maxReschedules = policyData?.bookingPolicy?.rescheduleMaxPerBooking ?? 2;
+                    const currentCount = booking.rescheduleCount ?? 0;
+                    const limitReached = currentCount >= maxReschedules;
+                    return (
+                      <div>
+                        <Button
+                          variant="outline"
+                          className="w-full"
+                          disabled={limitReached}
+                          onClick={() => setRescheduleModalOpen(true)}
+                        >
+                          <CalendarClock className="h-4 w-4" />
+                          Reprogrameaza
+                        </Button>
+                        {limitReached && (
+                          <p className="text-xs text-gray-400 mt-1.5 text-center">
+                            Ai atins limita de {maxReschedules} reprogramari
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })()}
+                  <Button
+                    variant="danger"
+                    className="w-full"
+                    onClick={() => setCancelModalOpen(true)}
+                  >
+                    Anuleaza comanda
+                  </Button>
+                </div>
               </Card>
             )}
           </div>
@@ -1032,6 +1057,27 @@ export default function BookingDetailPage() {
           onClose={() => setCancelModalOpen(false)}
           title="Anuleaza comanda"
         >
+          {(() => {
+            const policy = policyData?.bookingPolicy;
+            if (!policy) return null;
+            const [h, m] = (booking.scheduledStartTime || '08:00').split(':').map(Number);
+            const start = new Date(`${booking.scheduledDate}T${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:00`);
+            const hoursUntil = (start.getTime() - Date.now()) / 3_600_000;
+            let msg: string;
+            if (hoursUntil >= policy.cancelFreeHoursBefore) {
+              msg = 'Vei primi o rambursare completa (100%).';
+            } else if (hoursUntil >= 24) {
+              msg = `Vei primi o rambursare partiala (${policy.cancelLateRefundPct}%).`;
+            } else {
+              msg = 'Nu se acorda rambursare pentru anulari cu mai putin de 24 de ore inainte.';
+            }
+            return (
+              <div className="flex items-start gap-3 p-3 mb-4 rounded-xl bg-blue-50 border border-blue-100">
+                <AlertTriangle className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
+                <p className="text-sm text-blue-800">{msg}</p>
+              </div>
+            );
+          })()}
           <p className="text-sm text-gray-500 mb-4">
             Esti sigur ca vrei sa anulezi aceasta comanda? Aceasta actiune nu
             poate fi anulata.
@@ -1064,6 +1110,25 @@ export default function BookingDetailPage() {
             </Button>
           </div>
         </Modal>
+
+        {/* Reschedule Modal */}
+        <RescheduleModal
+          open={rescheduleModalOpen}
+          onClose={() => setRescheduleModalOpen(false)}
+          loading={rescheduling}
+          bookingId={booking.id}
+          hasWorker={!!booking.worker}
+          onConfirm={async (date, time, reason) => {
+            await rescheduleBooking({
+              variables: { id: booking.id, scheduledDate: date, scheduledStartTime: time, reason },
+            });
+          }}
+          rescheduleFreeHoursBefore={policyData?.bookingPolicy?.rescheduleFreeHoursBefore ?? 24}
+          rescheduleMaxPerBooking={policyData?.bookingPolicy?.rescheduleMaxPerBooking ?? 2}
+          currentRescheduleCount={booking.rescheduleCount ?? 0}
+          scheduledDate={booking.scheduledDate}
+          scheduledStartTime={booking.scheduledStartTime}
+        />
 
         {/* Stripe Payment Modal */}
         <Modal

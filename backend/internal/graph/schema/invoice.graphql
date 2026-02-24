@@ -117,6 +117,7 @@ extend type Query {
   myBillingProfile: ClientBillingProfile
   myInvoices(first: Int, after: String): InvoiceConnection!
   invoiceDetail(id: ID!): Invoice!
+  clientInvoiceForBooking(bookingId: ID!): Invoice
 
   # Company
   companyInvoices(status: InvoiceStatus, first: Int, after: String): InvoiceConnection!

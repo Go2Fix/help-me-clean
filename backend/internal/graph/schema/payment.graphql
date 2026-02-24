@@ -144,7 +144,7 @@ type ConnectOnboardingLink {
 
 extend type Query {
   # Client
-  myPaymentHistory(first: Int, after: String): PaymentHistoryConnection!
+  myPaymentHistory(limit: Int, offset: Int): PaymentHistoryConnection!
   myRefundRequests: [RefundRequest!]!
   bookingPaymentDetails(bookingId: ID!): PaymentTransaction
 

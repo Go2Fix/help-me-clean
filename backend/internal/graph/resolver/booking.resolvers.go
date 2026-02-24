@@ -502,6 +502,73 @@ func (r *mutationResolver) SelectBookingTimeSlot(ctx context.Context, bookingID 
 	return result, nil
 }
 
+// RescheduleBooking is the resolver for the rescheduleBooking field.
+func (r *mutationResolver) RescheduleBooking(ctx context.Context, id string, scheduledDate string, scheduledStartTime string, reason *string) (*model.Booking, error) {
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil {
+		return nil, fmt.Errorf("not authenticated")
+	}
+
+	bookingID := stringToUUID(id)
+	if err := r.AuthzHelper.CanAccessBooking(ctx, bookingID); err != nil {
+		return nil, err
+	}
+
+	current, err := r.Queries.GetBookingByID(ctx, bookingID)
+	if err != nil {
+		return nil, fmt.Errorf("booking not found: %w", err)
+	}
+
+	// Only ASSIGNED or CONFIRMED can be rescheduled.
+	if current.Status != db.BookingStatusAssigned && current.Status != db.BookingStatusConfirmed {
+		return nil, fmt.Errorf("nu se poate reprograma o comanda cu statusul %s", current.Status)
+	}
+
+	// Admin bypasses reschedule count limit.
+	isAdmin := claims.Role == "global_admin"
+	policy := loadBookingPolicy(ctx, r.Queries)
+	if !isAdmin {
+		if int(current.RescheduleCount) >= policy.RescheduleMaxPerBooking {
+			return nil, fmt.Errorf("ai atins limita maxima de %d reprogramari pentru aceasta comanda", policy.RescheduleMaxPerBooking)
+		}
+	}
+
+	// Parse and validate new date/time.
+	newDate, err := time.Parse("2006-01-02", scheduledDate)
+	if err != nil {
+		return nil, fmt.Errorf("format data invalid: %w", err)
+	}
+	if newDate.Before(time.Now().Truncate(24 * time.Hour)) {
+		return nil, fmt.Errorf("nu se poate programa in trecut")
+	}
+	newTime, err := time.Parse("15:04", scheduledStartTime)
+	if err != nil {
+		return nil, fmt.Errorf("format ora invalid: %w", err)
+	}
+
+	newDatePg := pgtype.Date{Time: newDate, Valid: true}
+	newTimePg := pgtype.Time{
+		Microseconds: int64(newTime.Hour())*3_600_000_000 + int64(newTime.Minute())*60_000_000,
+		Valid:        true,
+	}
+
+	booking, err := r.Queries.RescheduleBooking(ctx, db.RescheduleBookingParams{
+		ID:                 bookingID,
+		ScheduledDate:      newDatePg,
+		ScheduledStartTime: newTimePg,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to reschedule booking: %w", err)
+	}
+
+	// Notify all parties asynchronously.
+	go r.sendRescheduleNotifications(context.Background(), booking, scheduledDate, scheduledStartTime)
+
+	result := dbBookingToGQL(booking)
+	r.enrichBooking(ctx, booking, result)
+	return result, nil
+}
+
 // MyBookings is the resolver for the myBookings field.
 func (r *queryResolver) MyBookings(ctx context.Context, status *model.BookingStatus, first *int, after *string) (*model.BookingConnection, error) {
 	claims := auth.GetUserFromContext(ctx)
@@ -515,25 +582,37 @@ func (r *queryResolver) MyBookings(ctx context.Context, status *model.BookingSta
 	}
 	offset := int32(0)
 	if after != nil {
-		// Simple offset-based pagination: after is the offset as a string.
 		fmt.Sscanf(*after, "%d", &offset)
 	}
 
+	clientUID := stringToUUID(claims.UserID)
+
 	var bookings []db.Booking
+	var totalCount int64
 	var err error
 	if status != nil {
+		dbStatus := gqlBookingStatusToDb(*status)
 		bookings, err = r.Queries.ListBookingsByClientAndStatus(ctx, db.ListBookingsByClientAndStatusParams{
-			ClientUserID: stringToUUID(claims.UserID),
-			Status:       gqlBookingStatusToDb(*status),
+			ClientUserID: clientUID,
+			Status:       dbStatus,
 			Limit:        limit + 1,
 			Offset:       offset,
 		})
+		if err == nil {
+			totalCount, _ = r.Queries.CountBookingsByClientAndStatus(ctx, db.CountBookingsByClientAndStatusParams{
+				ClientUserID: clientUID,
+				Status:       dbStatus,
+			})
+		}
 	} else {
 		bookings, err = r.Queries.ListBookingsByClient(ctx, db.ListBookingsByClientParams{
-			ClientUserID: stringToUUID(claims.UserID),
+			ClientUserID: clientUID,
 			Limit:        limit + 1,
 			Offset:       offset,
 		})
+		if err == nil {
+			totalCount, _ = r.Queries.CountBookingsByClient(ctx, clientUID)
+		}
 	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to list bookings: %w", err)
@@ -544,10 +623,20 @@ func (r *queryResolver) MyBookings(ctx context.Context, status *model.BookingSta
 		bookings = bookings[:limit]
 	}
 
+	// Build service name map with a single query instead of N queries.
+	serviceNameMap := map[string]string{}
+	if services, sErr := r.Queries.ListActiveServices(ctx); sErr == nil {
+		for _, s := range services {
+			serviceNameMap[string(s.ServiceType)] = s.NameRo
+		}
+	}
+
 	edges := make([]*model.Booking, len(bookings))
 	for i, b := range bookings {
 		gqlBooking := dbBookingToGQL(b)
-		r.enrichBooking(ctx, b, gqlBooking)
+		if name, ok := serviceNameMap[string(b.ServiceType)]; ok {
+			gqlBooking.ServiceName = name
+		}
 		edges[i] = gqlBooking
 	}
 
@@ -563,7 +652,7 @@ func (r *queryResolver) MyBookings(ctx context.Context, status *model.BookingSta
 			HasNextPage: hasNext,
 			EndCursor:   endCursor,
 		},
-		TotalCount: len(edges),
+		TotalCount: int(totalCount),
 	}, nil
 }
 
@@ -615,19 +704,30 @@ func (r *queryResolver) CompanyBookings(ctx context.Context, status *model.Booki
 	}
 
 	var bookings []db.Booking
+	var totalCount int64
 	if status != nil {
+		dbStatus := gqlBookingStatusToDb(*status)
 		bookings, err = r.Queries.ListBookingsByCompanyAndStatus(ctx, db.ListBookingsByCompanyAndStatusParams{
 			CompanyID: company.ID,
-			Status:    gqlBookingStatusToDb(*status),
+			Status:    dbStatus,
 			Limit:     limit + 1,
 			Offset:    offset,
 		})
+		if err == nil {
+			totalCount, _ = r.Queries.CountBookingsByCompanyAndStatus(ctx, db.CountBookingsByCompanyAndStatusParams{
+				CompanyID: company.ID,
+				Status:    dbStatus,
+			})
+		}
 	} else {
 		bookings, err = r.Queries.ListBookingsByCompany(ctx, db.ListBookingsByCompanyParams{
 			CompanyID: company.ID,
 			Limit:     limit + 1,
 			Offset:    offset,
 		})
+		if err == nil {
+			totalCount, _ = r.Queries.CountBookingsByCompany(ctx, company.ID)
+		}
 	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to list company bookings: %w", err)
@@ -638,10 +738,71 @@ func (r *queryResolver) CompanyBookings(ctx context.Context, status *model.Booki
 		bookings = bookings[:limit]
 	}
 
+	// Build service name map with a single query instead of N queries.
+	serviceNameMap := map[string]string{}
+	if services, sErr := r.Queries.ListActiveServices(ctx); sErr == nil {
+		for _, s := range services {
+			serviceNameMap[string(s.ServiceType)] = s.NameRo
+		}
+	}
+
+	// Collect unique IDs for batch-style lookups.
+	clientIDs := map[string]bool{}
+	workerIDs := map[string]bool{}
+	addressIDs := map[string]bool{}
+	for _, b := range bookings {
+		if b.ClientUserID.Valid {
+			clientIDs[uuidToString(b.ClientUserID)] = true
+		}
+		if b.WorkerID.Valid {
+			workerIDs[uuidToString(b.WorkerID)] = true
+		}
+		if b.AddressID.Valid {
+			addressIDs[uuidToString(b.AddressID)] = true
+		}
+	}
+
+	// Load unique clients.
+	clientMap := map[string]*model.User{}
+	for id := range clientIDs {
+		if u, uErr := r.Queries.GetUserByID(ctx, stringToUUID(id)); uErr == nil {
+			clientMap[id] = dbUserToGQL(u)
+		}
+	}
+
+	// Load unique workers (lightweight: worker + user for fullName).
+	workerMap := map[string]*model.WorkerProfile{}
+	for id := range workerIDs {
+		if w, wErr := r.Queries.GetWorkerByID(ctx, stringToUUID(id)); wErr == nil {
+			if u, uErr := r.Queries.GetUserByID(ctx, w.UserID); uErr == nil {
+				workerMap[id] = dbWorkerToGQL(w, &u)
+			}
+		}
+	}
+
+	// Load unique addresses.
+	addressMap := map[string]*model.Address{}
+	for id := range addressIDs {
+		if a, aErr := r.Queries.GetAddressByID(ctx, stringToUUID(id)); aErr == nil {
+			addressMap[id] = dbAddressToGQL(a)
+		}
+	}
+
 	edges := make([]*model.Booking, len(bookings))
 	for i, b := range bookings {
 		gqlBooking := dbBookingToGQL(b)
-		r.enrichBooking(ctx, b, gqlBooking)
+		if name, ok := serviceNameMap[string(b.ServiceType)]; ok {
+			gqlBooking.ServiceName = name
+		}
+		if b.ClientUserID.Valid {
+			gqlBooking.Client = clientMap[uuidToString(b.ClientUserID)]
+		}
+		if b.WorkerID.Valid {
+			gqlBooking.Worker = workerMap[uuidToString(b.WorkerID)]
+		}
+		if b.AddressID.Valid {
+			gqlBooking.Address = addressMap[uuidToString(b.AddressID)]
+		}
 		edges[i] = gqlBooking
 	}
 
@@ -657,7 +818,7 @@ func (r *queryResolver) CompanyBookings(ctx context.Context, status *model.Booki
 			HasNextPage: hasNext,
 			EndCursor:   endCursor,
 		},
-		TotalCount: len(edges),
+		TotalCount: int(totalCount),
 	}, nil
 }
 
@@ -885,10 +1046,20 @@ func (r *queryResolver) SearchCompanyBookings(ctx context.Context, query *string
 		bookings = bookings[:qLimit]
 	}
 
+	// Build service name map (single query) for serviceName field.
+	serviceNameMap := map[string]string{}
+	if services, sErr := r.Queries.ListActiveServices(ctx); sErr == nil {
+		for _, s := range services {
+			serviceNameMap[string(s.ServiceType)] = s.NameRo
+		}
+	}
+
 	edges := make([]*model.Booking, len(bookings))
 	for i, b := range bookings {
 		gqlBooking := dbBookingToGQL(b)
-		r.enrichBooking(ctx, b, gqlBooking)
+		if name, ok := serviceNameMap[string(b.ServiceType)]; ok {
+			gqlBooking.ServiceName = name
+		}
 		edges[i] = gqlBooking
 	}
 
@@ -908,4 +1079,144 @@ func (r *queryResolver) SearchCompanyBookings(ctx context.Context, query *string
 		},
 		TotalCount: int(total),
 	}, nil
+}
+
+// BookingPolicy is the resolver for the bookingPolicy field.
+func (r *queryResolver) BookingPolicy(ctx context.Context) (*model.BookingPolicy, error) {
+	p := loadBookingPolicy(ctx, r.Queries)
+	return &model.BookingPolicy{
+		CancelFreeHoursBefore:     p.CancelFreeHoursBefore,
+		CancelLateRefundPct:       p.CancelLateRefundPct,
+		RescheduleFreeHoursBefore: p.RescheduleFreeHoursBefore,
+		RescheduleMaxPerBooking:   p.RescheduleMaxPerBooking,
+	}, nil
+}
+
+// CheckWorkerAvailability is the resolver for the checkWorkerAvailability field.
+func (r *queryResolver) CheckWorkerAvailability(ctx context.Context, bookingID string, date string, startTime string) (*model.WorkerAvailabilityCheck, error) {
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil {
+		return nil, fmt.Errorf("not authenticated")
+	}
+
+	bID := stringToUUID(bookingID)
+	if err := r.AuthzHelper.CanAccessBooking(ctx, bID); err != nil {
+		return nil, err
+	}
+
+	booking, err := r.Queries.GetBookingByID(ctx, bID)
+	if err != nil {
+		return nil, fmt.Errorf("booking not found: %w", err)
+	}
+
+	// If no worker assigned, nothing to check.
+	if !booking.WorkerID.Valid {
+		return &model.WorkerAvailabilityCheck{Available: true, Conflicts: []string{}}, nil
+	}
+
+	parsedDate, err := time.Parse("2006-01-02", date)
+	if err != nil {
+		return nil, fmt.Errorf("invalid date format: %w", err)
+	}
+
+	parts := strings.Split(startTime, ":")
+	if len(parts) < 2 {
+		return nil, fmt.Errorf("invalid time format, expected HH:MM")
+	}
+
+	var reqHour, reqMin int
+	fmt.Sscanf(parts[0], "%d", &reqHour)
+	fmt.Sscanf(parts[1], "%d", &reqMin)
+	reqMinutes := reqHour*60 + reqMin
+
+	conflicts := []string{}
+	pgDate := pgtype.Date{Time: parsedDate, Valid: true}
+	dayOfWeek := int32(parsedDate.Weekday()) // 0=Sunday
+	bookingDurationMin := int(numericToFloat(booking.EstimatedDurationHours) * 60)
+	reqEnd := reqMinutes + bookingDurationMin
+
+	// 1. Check company work schedule for the day.
+	if booking.CompanyID.Valid {
+		companySchedule, _ := r.Queries.ListCompanyWorkSchedule(ctx, booking.CompanyID)
+		for _, cs := range companySchedule {
+			if cs.DayOfWeek == dayOfWeek {
+				if !cs.IsWorkDay {
+					reason := "Partenerul selectat nu lucreaza in aceasta zi"
+					return &model.WorkerAvailabilityCheck{Available: false, Reason: &reason, Conflicts: []string{reason}}, nil
+				}
+				csStart := int(cs.StartTime.Microseconds / 60_000_000)
+				csEnd := int(cs.EndTime.Microseconds / 60_000_000)
+				schedStr := fmt.Sprintf("%02d:%02d-%02d:%02d", csStart/60, csStart%60, csEnd/60, csEnd%60)
+				if reqMinutes < csStart || reqMinutes >= csEnd {
+					reason := fmt.Sprintf("Ora selectata este in afara programului (%s)", schedStr)
+					return &model.WorkerAvailabilityCheck{Available: false, Reason: &reason, Conflicts: []string{reason}}, nil
+				}
+				if reqEnd > csEnd {
+					reason := fmt.Sprintf("Comanda depaseste programul — sfarsit estimat %02d:%02d, partenerul inchide la %02d:%02d", reqEnd/60, reqEnd%60, csEnd/60, csEnd%60)
+					return &model.WorkerAvailabilityCheck{Available: false, Reason: &reason, Conflicts: []string{reason}}, nil
+				}
+				break
+			}
+		}
+	}
+
+	// 2. Check worker date override (day off).
+	override, err := r.Queries.GetWorkerDateOverride(ctx, db.GetWorkerDateOverrideParams{
+		WorkerID:     booking.WorkerID,
+		OverrideDate: pgDate,
+	})
+	if err == nil && !override.IsAvailable {
+		reason := "Lucratorul nu este disponibil in aceasta zi (zi libera)"
+		return &model.WorkerAvailabilityCheck{Available: false, Reason: &reason, Conflicts: []string{reason}}, nil
+	}
+
+	// 3. Check worker weekly availability for day of week.
+	availSlots, _ := r.Queries.ListWorkerAvailability(ctx, booking.WorkerID)
+	hasSlotForDay := false
+	inSchedule := false
+	for _, slot := range availSlots {
+		if slot.DayOfWeek == dayOfWeek {
+			hasSlotForDay = true
+			if slot.IsAvailable.Valid && slot.IsAvailable.Bool {
+				slotStart := int(slot.StartTime.Microseconds / 60_000_000)
+				slotEnd := int(slot.EndTime.Microseconds / 60_000_000)
+				if reqMinutes >= slotStart && reqEnd <= slotEnd {
+					inSchedule = true
+					break
+				}
+			}
+		}
+	}
+	if hasSlotForDay && !inSchedule {
+		reason := "Programarea nu se incadreaza in orarul lucratorului"
+		conflicts = append(conflicts, reason)
+		return &model.WorkerAvailabilityCheck{Available: false, Reason: &reason, Conflicts: conflicts}, nil
+	}
+
+	// 4. Check for conflicting bookings.
+	existingBookings, _ := r.Queries.ListWorkerBookingsForDate(ctx, db.ListWorkerBookingsForDateParams{
+		WorkerID:      booking.WorkerID,
+		ScheduledDate: pgDate,
+	})
+	for _, eb := range existingBookings {
+		// Skip the current booking (it's the one being rescheduled).
+		if eb.ID == bID {
+			continue
+		}
+		ebStart := int(eb.ScheduledStartTime.Microseconds / 60_000_000)
+		ebDuration := int(numericToFloat(eb.EstimatedDurationHours) * 60)
+		ebEnd := ebStart + ebDuration
+
+		if reqMinutes < ebEnd && reqEnd > ebStart {
+			conflictTime := fmt.Sprintf("%02d:%02d-%02d:%02d", ebStart/60, ebStart%60, ebEnd/60, ebEnd%60)
+			conflicts = append(conflicts, fmt.Sprintf("Conflict cu alta programare (%s)", conflictTime))
+		}
+	}
+
+	if len(conflicts) > 0 {
+		reason := "Lucratorul are alte programari in acest interval"
+		return &model.WorkerAvailabilityCheck{Available: false, Reason: &reason, Conflicts: conflicts}, nil
+	}
+
+	return &model.WorkerAvailabilityCheck{Available: true, Conflicts: []string{}}, nil
 }

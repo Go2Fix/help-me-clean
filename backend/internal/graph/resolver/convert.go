@@ -347,6 +347,8 @@ func dbBookingToGQL(b db.Booking) *model.Booking {
 		Status:                dbBookingStatusToGQL(b.Status),
 		RecurringGroupID:      recurringGroupID,
 		OccurrenceNumber:      int4Ptr(b.OccurrenceNumber),
+		RescheduleCount:       int(b.RescheduleCount),
+		RescheduledAt:         timestamptzToTimePtr(b.RescheduledAt),
 		StartedAt:             timestamptzToTimePtr(b.StartedAt),
 		CompletedAt:           timestamptzToTimePtr(b.CompletedAt),
 		CancelledAt:           timestamptzToTimePtr(b.CancelledAt),

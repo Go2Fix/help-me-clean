@@ -7,6 +7,18 @@ SELECT * FROM bookings WHERE reference_code = $1;
 -- name: ListBookingsByClient :many
 SELECT * FROM bookings WHERE client_user_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3;
 
+-- name: CountBookingsByClient :one
+SELECT COUNT(*) FROM bookings WHERE client_user_id = $1;
+
+-- name: CountBookingsByClientAndStatus :one
+SELECT COUNT(*) FROM bookings WHERE client_user_id = $1 AND status = $2;
+
+-- name: CountBookingsByCompany :one
+SELECT COUNT(*) FROM bookings WHERE company_id = $1;
+
+-- name: CountBookingsByCompanyAndStatus :one
+SELECT COUNT(*) FROM bookings WHERE company_id = $1 AND status = $2;
+
 -- name: ListBookingsByCompany :many
 SELECT * FROM bookings WHERE company_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3;
 
@@ -146,6 +158,12 @@ SELECT COUNT(*) FROM bookings WHERE
 
 -- name: UpdateBookingSchedule :one
 UPDATE bookings SET scheduled_date = $2, scheduled_start_time = $3, updated_at = NOW()
+WHERE id = $1 RETURNING *;
+
+-- name: RescheduleBooking :one
+UPDATE bookings
+SET scheduled_date = $2, scheduled_start_time = $3,
+    reschedule_count = reschedule_count + 1, rescheduled_at = NOW(), updated_at = NOW()
 WHERE id = $1 RETURNING *;
 
 -- name: InsertBookingExtra :exec

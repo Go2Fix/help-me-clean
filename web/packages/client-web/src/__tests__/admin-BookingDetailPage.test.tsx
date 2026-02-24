@@ -20,6 +20,7 @@ vi.mock('@apollo/client', async () => {
     ...actual,
     useQuery: vi.fn(),
     useMutation: vi.fn(() => [mockMutate, { loading: false }]),
+    useLazyQuery: vi.fn(() => [vi.fn(), { data: null, loading: false }]),
   };
 });
 

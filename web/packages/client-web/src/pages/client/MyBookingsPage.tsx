@@ -301,31 +301,33 @@ export default function MyBookingsPage() {
             )}
 
             {/* Pagination */}
-            {!loading && !error && totalCount > PAGE_SIZE && (
+            {!error && totalCount > 0 && (
               <div className="flex flex-wrap items-center justify-between gap-3 mt-6">
                 <p className="text-sm text-gray-500">
-                  Pagina {page + 1} din {totalPages}
+                  {totalCount} {totalCount === 1 ? 'comanda' : 'comenzi'} &middot; Pagina {page + 1} din {totalPages}
                 </p>
-                <div className="flex items-center gap-3">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={page === 0}
-                    onClick={() => setPage((p) => Math.max(0, p - 1))}
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                    Anterior
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={!hasNextPage}
-                    onClick={() => setPage((p) => p + 1)}
-                  >
-                    Urmator
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
+                {totalPages > 1 && (
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={page === 0}
+                      onClick={() => setPage((p) => Math.max(0, p - 1))}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      Anterior
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={!hasNextPage}
+                      onClick={() => setPage((p) => p + 1)}
+                    >
+                      Urmator
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </>

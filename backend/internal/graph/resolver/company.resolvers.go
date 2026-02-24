@@ -570,42 +570,7 @@ func (r *queryResolver) CompanyChatRooms(ctx context.Context) ([]*model.ChatRoom
 		return nil, fmt.Errorf("failed to list company chat rooms: %w", err)
 	}
 
-	result := make([]*model.ChatRoom, len(rooms))
-	for i, room := range rooms {
-		gqlRoom := dbChatRoomToGQL(room)
-
-		// Load participants.
-		participants, err := r.Queries.ListChatParticipants(ctx, room.ID)
-		if err == nil {
-			var gqlParticipants []*model.ChatParticipant
-			for _, p := range participants {
-				user, err := r.Queries.GetUserByID(ctx, p.UserID)
-				if err != nil {
-					continue
-				}
-				gqlParticipants = append(gqlParticipants, &model.ChatParticipant{
-					User:     dbUserToGQL(user),
-					JoinedAt: timestamptzToTime(p.JoinedAt),
-				})
-			}
-			gqlRoom.Participants = gqlParticipants
-		}
-
-		// Load last message.
-		lastMsgRow, err := r.Queries.GetLastChatMessage(ctx, room.ID)
-		if err == nil {
-			lastMsg := dbChatMessageToGQL(lastMsgRow)
-			sender, err := r.Queries.GetUserByID(ctx, lastMsgRow.SenderID)
-			if err == nil {
-				lastMsg.Sender = dbUserToGQL(sender)
-			}
-			gqlRoom.LastMessage = lastMsg
-		}
-
-		result[i] = gqlRoom
-	}
-
-	return result, nil
+	return r.enrichChatRoomList(ctx, rooms)
 }
 
 // PendingCompanyDocuments is the resolver for the pendingCompanyDocuments field.

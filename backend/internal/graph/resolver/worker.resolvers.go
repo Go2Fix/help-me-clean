@@ -638,30 +638,31 @@ func (r *queryResolver) MyWorkers(ctx context.Context) ([]*model.WorkerProfile, 
 		return nil, fmt.Errorf("failed to list workers: %w", err)
 	}
 
-	result := make([]*model.WorkerProfile, len(workers))
-	for i, c := range workers {
-		// Load full worker profile with User/Company/Documents/PersonalityAssessment relationships
-		profile, err := r.workerWithCompany(ctx, c)
-		if err != nil {
-			return nil, fmt.Errorf("failed to load worker %s: %w", uuidToString(c.ID), err)
-		}
-
-		// Load availability for each worker.
-		avails, err := r.Queries.ListWorkerAvailability(ctx, c.ID)
-		if err == nil {
-			slots := make([]*model.AvailabilitySlot, len(avails))
-			for j, a := range avails {
-				slots[j] = &model.AvailabilitySlot{
-					ID:          uuidToString(a.ID),
-					DayOfWeek:   int(a.DayOfWeek),
-					StartTime:   timeToString(a.StartTime),
-					EndTime:     timeToString(a.EndTime),
-					IsAvailable: boolVal(a.IsAvailable),
+	// Batch-load users for all workers (1 query per unique user, not per worker).
+	userMap := map[string]db.User{}
+	for _, c := range workers {
+		if c.UserID.Valid {
+			uid := uuidToString(c.UserID)
+			if _, exists := userMap[uid]; !exists {
+				if u, uErr := r.Queries.GetUserByID(ctx, c.UserID); uErr == nil {
+					userMap[uid] = u
 				}
 			}
-			profile.Availability = slots
 		}
+	}
 
+	result := make([]*model.WorkerProfile, len(workers))
+	for i, c := range workers {
+		var uPtr *db.User
+		if c.UserID.Valid {
+			if u, ok := userMap[uuidToString(c.UserID)]; ok {
+				uPtr = &u
+			}
+		}
+		profile := dbWorkerToGQL(c, uPtr)
+		if uPtr != nil {
+			profile.User = dbUserToGQL(*uPtr)
+		}
 		result[i] = profile
 	}
 
