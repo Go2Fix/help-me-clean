@@ -420,6 +420,7 @@ type ComplexityRoot struct {
 		AdminUpdateUserProfile                    func(childComplexity int, userID string, fullName string, phone *string) int
 		ApplyAsCompany                            func(childComplexity int, input model.CompanyApplicationInput) int
 		ApproveCompany                            func(childComplexity int, id string) int
+		ApproveReview                             func(childComplexity int, id string) int
 		AssignWorkerToBooking                     func(childComplexity int, bookingID string, workerID string) int
 		AttachPaymentMethod                       func(childComplexity int, stripePaymentMethodID string) int
 		CancelBooking                             func(childComplexity int, id string, reason *string) int
@@ -469,6 +470,7 @@ type ComplexityRoot struct {
 		RegeneratePersonalityInsights             func(childComplexity int, workerID string) int
 		RegisterDeviceToken                       func(childComplexity int, token string) int
 		RejectCompany                             func(childComplexity int, id string, reason string) int
+		RejectReview                              func(childComplexity int, id string) int
 		RequestEmailOtp                           func(childComplexity int, email string, role model.UserRole) int
 		RequestRefund                             func(childComplexity int, bookingID string, reason string) int
 		RequestSubscriptionWorkerChange           func(childComplexity int, id string, reason *string) int
@@ -516,6 +518,7 @@ type ComplexityRoot struct {
 		UploadCompanyDocument                     func(childComplexity int, companyID string, documentType string, file graphql.Upload) int
 		UploadCompanyLogo                         func(childComplexity int, file graphql.Upload) int
 		UploadFile                                func(childComplexity int, file graphql.Upload, purpose string) int
+		UploadReviewPhotos                        func(childComplexity int, reviewID string, files []*graphql.Upload) int
 		UploadWorkerAvatar                        func(childComplexity int, workerID string, file graphql.Upload) int
 		UploadWorkerDocument                      func(childComplexity int, workerID string, documentType string, file graphql.Upload) int
 		UpsertBillingProfile                      func(childComplexity int, input model.BillingProfileInput) int
@@ -855,19 +858,31 @@ type ComplexityRoot struct {
 	}
 
 	Review struct {
-		Booking    func(childComplexity int) int
-		Comment    func(childComplexity int) int
-		CreatedAt  func(childComplexity int) int
-		ID         func(childComplexity int) int
-		Rating     func(childComplexity int) int
-		ReviewType func(childComplexity int) int
-		Reviewer   func(childComplexity int) int
-		Worker     func(childComplexity int) int
+		Booking             func(childComplexity int) int
+		Comment             func(childComplexity int) int
+		CreatedAt           func(childComplexity int) int
+		ID                  func(childComplexity int) int
+		Photos              func(childComplexity int) int
+		Rating              func(childComplexity int) int
+		RatingCommunication func(childComplexity int) int
+		RatingPunctuality   func(childComplexity int) int
+		RatingQuality       func(childComplexity int) int
+		RatingValue         func(childComplexity int) int
+		ReviewType          func(childComplexity int) int
+		Reviewer            func(childComplexity int) int
+		Status              func(childComplexity int) int
+		Worker              func(childComplexity int) int
 	}
 
 	ReviewConnection struct {
 		Reviews    func(childComplexity int) int
 		TotalCount func(childComplexity int) int
+	}
+
+	ReviewPhoto struct {
+		ID        func(childComplexity int) int
+		PhotoURL  func(childComplexity int) int
+		SortOrder func(childComplexity int) int
 	}
 
 	ServiceCategory struct {
@@ -1169,6 +1184,8 @@ type MutationResolver interface {
 	AdminUpdateCompanyProfile(ctx context.Context, input model.AdminUpdateCompanyInput) (*model.Company, error)
 	AdminUpdateCompanyStatus(ctx context.Context, id string, status model.CompanyStatus) (*model.Company, error)
 	DeleteReview(ctx context.Context, id string) (bool, error)
+	ApproveReview(ctx context.Context, id string) (*model.Review, error)
+	RejectReview(ctx context.Context, id string) (*model.Review, error)
 	SignInWithGoogle(ctx context.Context, idToken string, role model.UserRole) (*model.AuthPayload, error)
 	RefreshToken(ctx context.Context) (*model.AuthPayload, error)
 	RegisterDeviceToken(ctx context.Context, token string) (bool, error)
@@ -1236,6 +1253,7 @@ type MutationResolver interface {
 	GeneratePersonalityInsights(ctx context.Context, workerID string) (*model.PersonalityInsights, error)
 	RegeneratePersonalityInsights(ctx context.Context, workerID string) (*model.PersonalityInsights, error)
 	SubmitReview(ctx context.Context, input model.SubmitReviewInput) (*model.Review, error)
+	UploadReviewPhotos(ctx context.Context, reviewID string, files []*graphql.Upload) ([]*model.ReviewPhoto, error)
 	UpdateServiceDefinition(ctx context.Context, input model.UpdateServiceDefinitionInput) (*model.ServiceDefinition, error)
 	CreateServiceDefinition(ctx context.Context, input model.CreateServiceDefinitionInput) (*model.ServiceDefinition, error)
 	UpdateServiceExtra(ctx context.Context, input model.UpdateServiceExtraInput) (*model.ServiceExtra, error)
@@ -3070,6 +3088,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.ApproveCompany(childComplexity, args["id"].(string)), true
+	case "Mutation.approveReview":
+		if e.complexity.Mutation.ApproveReview == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_approveReview_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ApproveReview(childComplexity, args["id"].(string)), true
 	case "Mutation.assignWorkerToBooking":
 		if e.complexity.Mutation.AssignWorkerToBooking == nil {
 			break
@@ -3569,6 +3598,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.RejectCompany(childComplexity, args["id"].(string), args["reason"].(string)), true
+	case "Mutation.rejectReview":
+		if e.complexity.Mutation.RejectReview == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_rejectReview_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RejectReview(childComplexity, args["id"].(string)), true
 	case "Mutation.requestEmailOtp":
 		if e.complexity.Mutation.RequestEmailOtp == nil {
 			break
@@ -4086,6 +4126,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.UploadFile(childComplexity, args["file"].(graphql.Upload), args["purpose"].(string)), true
+	case "Mutation.uploadReviewPhotos":
+		if e.complexity.Mutation.UploadReviewPhotos == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_uploadReviewPhotos_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UploadReviewPhotos(childComplexity, args["reviewId"].(string), args["files"].([]*graphql.Upload)), true
 	case "Mutation.uploadWorkerAvatar":
 		if e.complexity.Mutation.UploadWorkerAvatar == nil {
 			break
@@ -6062,12 +6113,42 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Review.ID(childComplexity), true
+	case "Review.photos":
+		if e.complexity.Review.Photos == nil {
+			break
+		}
+
+		return e.complexity.Review.Photos(childComplexity), true
 	case "Review.rating":
 		if e.complexity.Review.Rating == nil {
 			break
 		}
 
 		return e.complexity.Review.Rating(childComplexity), true
+	case "Review.ratingCommunication":
+		if e.complexity.Review.RatingCommunication == nil {
+			break
+		}
+
+		return e.complexity.Review.RatingCommunication(childComplexity), true
+	case "Review.ratingPunctuality":
+		if e.complexity.Review.RatingPunctuality == nil {
+			break
+		}
+
+		return e.complexity.Review.RatingPunctuality(childComplexity), true
+	case "Review.ratingQuality":
+		if e.complexity.Review.RatingQuality == nil {
+			break
+		}
+
+		return e.complexity.Review.RatingQuality(childComplexity), true
+	case "Review.ratingValue":
+		if e.complexity.Review.RatingValue == nil {
+			break
+		}
+
+		return e.complexity.Review.RatingValue(childComplexity), true
 	case "Review.reviewType":
 		if e.complexity.Review.ReviewType == nil {
 			break
@@ -6080,6 +6161,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Review.Reviewer(childComplexity), true
+	case "Review.status":
+		if e.complexity.Review.Status == nil {
+			break
+		}
+
+		return e.complexity.Review.Status(childComplexity), true
 	case "Review.worker":
 		if e.complexity.Review.Worker == nil {
 			break
@@ -6099,6 +6186,25 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.ReviewConnection.TotalCount(childComplexity), true
+
+	case "ReviewPhoto.id":
+		if e.complexity.ReviewPhoto.ID == nil {
+			break
+		}
+
+		return e.complexity.ReviewPhoto.ID(childComplexity), true
+	case "ReviewPhoto.photoUrl":
+		if e.complexity.ReviewPhoto.PhotoURL == nil {
+			break
+		}
+
+		return e.complexity.ReviewPhoto.PhotoURL(childComplexity), true
+	case "ReviewPhoto.sortOrder":
+		if e.complexity.ReviewPhoto.SortOrder == nil {
+			break
+		}
+
+		return e.complexity.ReviewPhoto.SortOrder(childComplexity), true
 
 	case "ServiceCategory.commissionPct":
 		if e.complexity.ServiceCategory.CommissionPct == nil {
@@ -7726,6 +7832,17 @@ func (ec *executionContext) field_Mutation_approveCompany_args(ctx context.Conte
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_approveReview_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_assignWorkerToBooking_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -8229,6 +8346,17 @@ func (ec *executionContext) field_Mutation_rejectCompany_args(ctx context.Contex
 		return nil, err
 	}
 	args["reason"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_rejectReview_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -8956,6 +9084,22 @@ func (ec *executionContext) field_Mutation_uploadFile_args(ctx context.Context, 
 		return nil, err
 	}
 	args["purpose"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_uploadReviewPhotos_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "reviewId", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["reviewId"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "files", ec.unmarshalNUpload2ᚕᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUploadᚄ)
+	if err != nil {
+		return nil, err
+	}
+	args["files"] = arg1
 	return args, nil
 }
 
@@ -12174,10 +12318,22 @@ func (ec *executionContext) fieldContext_Booking_review(_ context.Context, field
 				return ec.fieldContext_Review_worker(ctx, field)
 			case "rating":
 				return ec.fieldContext_Review_rating(ctx, field)
+			case "ratingPunctuality":
+				return ec.fieldContext_Review_ratingPunctuality(ctx, field)
+			case "ratingQuality":
+				return ec.fieldContext_Review_ratingQuality(ctx, field)
+			case "ratingCommunication":
+				return ec.fieldContext_Review_ratingCommunication(ctx, field)
+			case "ratingValue":
+				return ec.fieldContext_Review_ratingValue(ctx, field)
 			case "comment":
 				return ec.fieldContext_Review_comment(ctx, field)
 			case "reviewType":
 				return ec.fieldContext_Review_reviewType(ctx, field)
+			case "status":
+				return ec.fieldContext_Review_status(ctx, field)
+			case "photos":
+				return ec.fieldContext_Review_photos(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Review_createdAt(ctx, field)
 			}
@@ -19258,6 +19414,148 @@ func (ec *executionContext) fieldContext_Mutation_deleteReview(ctx context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_approveReview(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_approveReview,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().ApproveReview(ctx, fc.Args["id"].(string))
+		},
+		nil,
+		ec.marshalNReview2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐReview,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_approveReview(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Review_id(ctx, field)
+			case "booking":
+				return ec.fieldContext_Review_booking(ctx, field)
+			case "reviewer":
+				return ec.fieldContext_Review_reviewer(ctx, field)
+			case "worker":
+				return ec.fieldContext_Review_worker(ctx, field)
+			case "rating":
+				return ec.fieldContext_Review_rating(ctx, field)
+			case "ratingPunctuality":
+				return ec.fieldContext_Review_ratingPunctuality(ctx, field)
+			case "ratingQuality":
+				return ec.fieldContext_Review_ratingQuality(ctx, field)
+			case "ratingCommunication":
+				return ec.fieldContext_Review_ratingCommunication(ctx, field)
+			case "ratingValue":
+				return ec.fieldContext_Review_ratingValue(ctx, field)
+			case "comment":
+				return ec.fieldContext_Review_comment(ctx, field)
+			case "reviewType":
+				return ec.fieldContext_Review_reviewType(ctx, field)
+			case "status":
+				return ec.fieldContext_Review_status(ctx, field)
+			case "photos":
+				return ec.fieldContext_Review_photos(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Review_createdAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Review", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_approveReview_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_rejectReview(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_rejectReview,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().RejectReview(ctx, fc.Args["id"].(string))
+		},
+		nil,
+		ec.marshalNReview2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐReview,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_rejectReview(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Review_id(ctx, field)
+			case "booking":
+				return ec.fieldContext_Review_booking(ctx, field)
+			case "reviewer":
+				return ec.fieldContext_Review_reviewer(ctx, field)
+			case "worker":
+				return ec.fieldContext_Review_worker(ctx, field)
+			case "rating":
+				return ec.fieldContext_Review_rating(ctx, field)
+			case "ratingPunctuality":
+				return ec.fieldContext_Review_ratingPunctuality(ctx, field)
+			case "ratingQuality":
+				return ec.fieldContext_Review_ratingQuality(ctx, field)
+			case "ratingCommunication":
+				return ec.fieldContext_Review_ratingCommunication(ctx, field)
+			case "ratingValue":
+				return ec.fieldContext_Review_ratingValue(ctx, field)
+			case "comment":
+				return ec.fieldContext_Review_comment(ctx, field)
+			case "reviewType":
+				return ec.fieldContext_Review_reviewType(ctx, field)
+			case "status":
+				return ec.fieldContext_Review_status(ctx, field)
+			case "photos":
+				return ec.fieldContext_Review_photos(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Review_createdAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Review", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_rejectReview_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_signInWithGoogle(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -23869,10 +24167,22 @@ func (ec *executionContext) fieldContext_Mutation_submitReview(ctx context.Conte
 				return ec.fieldContext_Review_worker(ctx, field)
 			case "rating":
 				return ec.fieldContext_Review_rating(ctx, field)
+			case "ratingPunctuality":
+				return ec.fieldContext_Review_ratingPunctuality(ctx, field)
+			case "ratingQuality":
+				return ec.fieldContext_Review_ratingQuality(ctx, field)
+			case "ratingCommunication":
+				return ec.fieldContext_Review_ratingCommunication(ctx, field)
+			case "ratingValue":
+				return ec.fieldContext_Review_ratingValue(ctx, field)
 			case "comment":
 				return ec.fieldContext_Review_comment(ctx, field)
 			case "reviewType":
 				return ec.fieldContext_Review_reviewType(ctx, field)
+			case "status":
+				return ec.fieldContext_Review_status(ctx, field)
+			case "photos":
+				return ec.fieldContext_Review_photos(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Review_createdAt(ctx, field)
 			}
@@ -23887,6 +24197,55 @@ func (ec *executionContext) fieldContext_Mutation_submitReview(ctx context.Conte
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_submitReview_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_uploadReviewPhotos(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_uploadReviewPhotos,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().UploadReviewPhotos(ctx, fc.Args["reviewId"].(string), fc.Args["files"].([]*graphql.Upload))
+		},
+		nil,
+		ec.marshalNReviewPhoto2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐReviewPhotoᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_uploadReviewPhotos(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ReviewPhoto_id(ctx, field)
+			case "photoUrl":
+				return ec.fieldContext_ReviewPhoto_photoUrl(ctx, field)
+			case "sortOrder":
+				return ec.fieldContext_ReviewPhoto_sortOrder(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ReviewPhoto", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_uploadReviewPhotos_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -38212,6 +38571,122 @@ func (ec *executionContext) fieldContext_Review_rating(_ context.Context, field 
 	return fc, nil
 }
 
+func (ec *executionContext) _Review_ratingPunctuality(ctx context.Context, field graphql.CollectedField, obj *model.Review) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Review_ratingPunctuality,
+		func(ctx context.Context) (any, error) {
+			return obj.RatingPunctuality, nil
+		},
+		nil,
+		ec.marshalOInt2ᚖint,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Review_ratingPunctuality(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Review",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Review_ratingQuality(ctx context.Context, field graphql.CollectedField, obj *model.Review) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Review_ratingQuality,
+		func(ctx context.Context) (any, error) {
+			return obj.RatingQuality, nil
+		},
+		nil,
+		ec.marshalOInt2ᚖint,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Review_ratingQuality(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Review",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Review_ratingCommunication(ctx context.Context, field graphql.CollectedField, obj *model.Review) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Review_ratingCommunication,
+		func(ctx context.Context) (any, error) {
+			return obj.RatingCommunication, nil
+		},
+		nil,
+		ec.marshalOInt2ᚖint,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Review_ratingCommunication(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Review",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Review_ratingValue(ctx context.Context, field graphql.CollectedField, obj *model.Review) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Review_ratingValue,
+		func(ctx context.Context) (any, error) {
+			return obj.RatingValue, nil
+		},
+		nil,
+		ec.marshalOInt2ᚖint,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Review_ratingValue(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Review",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Review_comment(ctx context.Context, field graphql.CollectedField, obj *model.Review) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -38265,6 +38740,72 @@ func (ec *executionContext) fieldContext_Review_reviewType(_ context.Context, fi
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Review_status(ctx context.Context, field graphql.CollectedField, obj *model.Review) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Review_status,
+		func(ctx context.Context) (any, error) {
+			return obj.Status, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Review_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Review",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Review_photos(ctx context.Context, field graphql.CollectedField, obj *model.Review) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Review_photos,
+		func(ctx context.Context) (any, error) {
+			return obj.Photos, nil
+		},
+		nil,
+		ec.marshalNReviewPhoto2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐReviewPhotoᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Review_photos(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Review",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ReviewPhoto_id(ctx, field)
+			case "photoUrl":
+				return ec.fieldContext_ReviewPhoto_photoUrl(ctx, field)
+			case "sortOrder":
+				return ec.fieldContext_ReviewPhoto_sortOrder(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ReviewPhoto", field.Name)
 		},
 	}
 	return fc, nil
@@ -38333,10 +38874,22 @@ func (ec *executionContext) fieldContext_ReviewConnection_reviews(_ context.Cont
 				return ec.fieldContext_Review_worker(ctx, field)
 			case "rating":
 				return ec.fieldContext_Review_rating(ctx, field)
+			case "ratingPunctuality":
+				return ec.fieldContext_Review_ratingPunctuality(ctx, field)
+			case "ratingQuality":
+				return ec.fieldContext_Review_ratingQuality(ctx, field)
+			case "ratingCommunication":
+				return ec.fieldContext_Review_ratingCommunication(ctx, field)
+			case "ratingValue":
+				return ec.fieldContext_Review_ratingValue(ctx, field)
 			case "comment":
 				return ec.fieldContext_Review_comment(ctx, field)
 			case "reviewType":
 				return ec.fieldContext_Review_reviewType(ctx, field)
+			case "status":
+				return ec.fieldContext_Review_status(ctx, field)
+			case "photos":
+				return ec.fieldContext_Review_photos(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Review_createdAt(ctx, field)
 			}
@@ -38365,6 +38918,93 @@ func (ec *executionContext) _ReviewConnection_totalCount(ctx context.Context, fi
 func (ec *executionContext) fieldContext_ReviewConnection_totalCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ReviewConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ReviewPhoto_id(ctx context.Context, field graphql.CollectedField, obj *model.ReviewPhoto) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ReviewPhoto_id,
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ReviewPhoto_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ReviewPhoto",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ReviewPhoto_photoUrl(ctx context.Context, field graphql.CollectedField, obj *model.ReviewPhoto) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ReviewPhoto_photoUrl,
+		func(ctx context.Context) (any, error) {
+			return obj.PhotoURL, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ReviewPhoto_photoUrl(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ReviewPhoto",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ReviewPhoto_sortOrder(ctx context.Context, field graphql.CollectedField, obj *model.ReviewPhoto) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ReviewPhoto_sortOrder,
+		func(ctx context.Context) (any, error) {
+			return obj.SortOrder, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ReviewPhoto_sortOrder(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ReviewPhoto",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -47911,7 +48551,7 @@ func (ec *executionContext) unmarshalInputSubmitReviewInput(ctx context.Context,
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"bookingId", "rating", "comment"}
+	fieldsInOrder := [...]string{"bookingId", "rating", "ratingPunctuality", "ratingQuality", "ratingCommunication", "ratingValue", "comment"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -47932,6 +48572,34 @@ func (ec *executionContext) unmarshalInputSubmitReviewInput(ctx context.Context,
 				return it, err
 			}
 			it.Rating = data
+		case "ratingPunctuality":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ratingPunctuality"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RatingPunctuality = data
+		case "ratingQuality":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ratingQuality"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RatingQuality = data
+		case "ratingCommunication":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ratingCommunication"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RatingCommunication = data
+		case "ratingValue":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ratingValue"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RatingValue = data
 		case "comment":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("comment"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
@@ -50988,6 +51656,20 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "approveReview":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_approveReview(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "rejectReview":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_rejectReview(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "signInWithGoogle":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_signInWithGoogle(ctx, field)
@@ -51453,6 +52135,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "submitReview":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_submitReview(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "uploadReviewPhotos":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_uploadReviewPhotos(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -55776,10 +56465,28 @@ func (ec *executionContext) _Review(ctx context.Context, sel ast.SelectionSet, o
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "ratingPunctuality":
+			out.Values[i] = ec._Review_ratingPunctuality(ctx, field, obj)
+		case "ratingQuality":
+			out.Values[i] = ec._Review_ratingQuality(ctx, field, obj)
+		case "ratingCommunication":
+			out.Values[i] = ec._Review_ratingCommunication(ctx, field, obj)
+		case "ratingValue":
+			out.Values[i] = ec._Review_ratingValue(ctx, field, obj)
 		case "comment":
 			out.Values[i] = ec._Review_comment(ctx, field, obj)
 		case "reviewType":
 			out.Values[i] = ec._Review_reviewType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "status":
+			out.Values[i] = ec._Review_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "photos":
+			out.Values[i] = ec._Review_photos(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -55829,6 +56536,55 @@ func (ec *executionContext) _ReviewConnection(ctx context.Context, sel ast.Selec
 			}
 		case "totalCount":
 			out.Values[i] = ec._ReviewConnection_totalCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var reviewPhotoImplementors = []string{"ReviewPhoto"}
+
+func (ec *executionContext) _ReviewPhoto(ctx context.Context, sel ast.SelectionSet, obj *model.ReviewPhoto) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, reviewPhotoImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ReviewPhoto")
+		case "id":
+			out.Values[i] = ec._ReviewPhoto_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "photoUrl":
+			out.Values[i] = ec._ReviewPhoto_photoUrl(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "sortOrder":
+			out.Values[i] = ec._ReviewPhoto_sortOrder(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -60655,6 +61411,60 @@ func (ec *executionContext) marshalNReviewConnection2ᚖgo2fixᚑbackendᚋinter
 	return ec._ReviewConnection(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNReviewPhoto2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐReviewPhotoᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ReviewPhoto) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNReviewPhoto2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐReviewPhoto(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNReviewPhoto2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐReviewPhoto(ctx context.Context, sel ast.SelectionSet, v *model.ReviewPhoto) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ReviewPhoto(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNServiceCategory2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceCategory(ctx context.Context, sel ast.SelectionSet, v model.ServiceCategory) graphql.Marshaler {
 	return ec._ServiceCategory(ctx, sel, &v)
 }
@@ -61267,6 +62077,58 @@ func (ec *executionContext) unmarshalNUpload2githubᚗcomᚋ99designsᚋgqlgen�
 func (ec *executionContext) marshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx context.Context, sel ast.SelectionSet, v graphql.Upload) graphql.Marshaler {
 	_ = sel
 	res := graphql.MarshalUpload(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) unmarshalNUpload2ᚕᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUploadᚄ(ctx context.Context, v any) ([]*graphql.Upload, error) {
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]*graphql.Upload, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNUpload2ᚕᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUploadᚄ(ctx context.Context, sel ast.SelectionSet, v []*graphql.Upload) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalNUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx context.Context, v any) (*graphql.Upload, error) {
+	res, err := graphql.UnmarshalUpload(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx context.Context, sel ast.SelectionSet, v *graphql.Upload) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	_ = sel
+	res := graphql.MarshalUpload(*v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")

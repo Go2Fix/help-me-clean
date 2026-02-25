@@ -771,11 +771,25 @@ func dbChatMessageToGQL(m db.ChatMessage) *model.ChatMessage {
 
 func dbReviewToGQL(r db.Review) *model.Review {
 	return &model.Review{
-		ID:         uuidToString(r.ID),
-		Rating:     int(r.Rating),
-		Comment:    textPtr(r.Comment),
-		ReviewType: r.ReviewType,
-		CreatedAt:  timestamptzToTime(r.CreatedAt),
+		ID:                  uuidToString(r.ID),
+		Rating:              int(r.Rating),
+		RatingPunctuality:   int4Ptr(r.RatingPunctuality),
+		RatingQuality:       int4Ptr(r.RatingQuality),
+		RatingCommunication: int4Ptr(r.RatingCommunication),
+		RatingValue:         int4Ptr(r.RatingValue),
+		Comment:             textPtr(r.Comment),
+		ReviewType:          r.ReviewType,
+		Status:              r.Status,
+		Photos:              []*model.ReviewPhoto{},
+		CreatedAt:           timestamptzToTime(r.CreatedAt),
+	}
+}
+
+func dbReviewPhotoToGQL(p db.ReviewPhoto) *model.ReviewPhoto {
+	return &model.ReviewPhoto{
+		ID:        uuidToString(p.ID),
+		PhotoURL:  p.PhotoUrl,
+		SortOrder: int(p.SortOrder),
 	}
 }
 

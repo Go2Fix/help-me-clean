@@ -46,6 +46,7 @@ import ClientInvoicesPage from '@/pages/client/InvoicesPage';
 import RecurringGroupDetailPage from '@/pages/client/RecurringGroupDetailPage';
 import ClientSubscriptionsPage from '@/pages/client/SubscriptionsPage';
 import SubscriptionDetailPage from '@/pages/client/SubscriptionDetailPage';
+import SupportPage from '@/pages/client/SupportPage';
 
 // Company pages
 import CompanyDashboardPage from '@/pages/company/DashboardPage';
@@ -225,6 +226,7 @@ function AppRoutes() {
         <Route path="plati/istoric" element={<PaymentHistoryPage />} />
         <Route path="facturi" element={<ClientInvoicesPage />} />
         <Route path="setari" element={<ProfilePage />} />
+        <Route path="ajutor" element={<SupportPage />} />
       </Route>
 
       {/* Company routes - Sidebar layout, auth + COMPANY_ADMIN role */}

@@ -119,6 +119,7 @@ type Querier interface {
 	// ============================================
 	CreateRefundRequest(ctx context.Context, arg CreateRefundRequestParams) (RefundRequest, error)
 	CreateReview(ctx context.Context, arg CreateReviewParams) (Review, error)
+	CreateReviewPhoto(ctx context.Context, arg CreateReviewPhotoParams) (ReviewPhoto, error)
 	CreateServiceCategory(ctx context.Context, arg CreateServiceCategoryParams) (ServiceCategory, error)
 	CreateServiceDefinition(ctx context.Context, arg CreateServiceDefinitionParams) (ServiceDefinition, error)
 	CreateServiceExtra(ctx context.Context, arg CreateServiceExtraParams) (ServiceExtra, error)
@@ -145,6 +146,7 @@ type Querier interface {
 	// Delete personality insight (for regeneration)
 	DeletePersonalityInsight(ctx context.Context, assessmentID pgtype.UUID) error
 	DeleteReview(ctx context.Context, id pgtype.UUID) error
+	DeleteReviewPhoto(ctx context.Context, id pgtype.UUID) error
 	DeleteUser(ctx context.Context, id pgtype.UUID) error
 	DeleteWorkerAvailability(ctx context.Context, workerID pgtype.UUID) error
 	DeleteWorkerDateOverride(ctx context.Context, arg DeleteWorkerDateOverrideParams) error
@@ -233,6 +235,7 @@ type Querier interface {
 	GetRevenueByMonth(ctx context.Context, limit int32) ([]GetRevenueByMonthRow, error)
 	GetRevenueByServiceType(ctx context.Context, arg GetRevenueByServiceTypeParams) ([]GetRevenueByServiceTypeRow, error)
 	GetReviewByBookingID(ctx context.Context, bookingID pgtype.UUID) (Review, error)
+	GetReviewByID(ctx context.Context, id pgtype.UUID) (Review, error)
 	GetSelectedTimeSlot(ctx context.Context, bookingID pgtype.UUID) (BookingTimeSlot, error)
 	GetServiceByID(ctx context.Context, id pgtype.UUID) (ServiceDefinition, error)
 	GetServiceByType(ctx context.Context, serviceType ServiceType) (ServiceDefinition, error)
@@ -362,6 +365,7 @@ type Querier interface {
 	ListRecurringGroupsByClient(ctx context.Context, clientUserID pgtype.UUID) ([]RecurringBookingGroup, error)
 	ListRefundRequestsByStatus(ctx context.Context, arg ListRefundRequestsByStatusParams) ([]RefundRequest, error)
 	ListRefundRequestsByUser(ctx context.Context, requestedByUserID pgtype.UUID) ([]RefundRequest, error)
+	ListReviewPhotos(ctx context.Context, reviewID pgtype.UUID) ([]ReviewPhoto, error)
 	ListReviewsByCompanyWorkers(ctx context.Context, arg ListReviewsByCompanyWorkersParams) ([]Review, error)
 	ListReviewsByWorkerID(ctx context.Context, arg ListReviewsByWorkerIDParams) ([]Review, error)
 	ListServicesByCategory(ctx context.Context, categoryID pgtype.UUID) ([]ServiceDefinition, error)
@@ -452,6 +456,7 @@ type Querier interface {
 	UpdatePlatformSetting(ctx context.Context, arg UpdatePlatformSettingParams) (PlatformSetting, error)
 	UpdateRecurringDiscount(ctx context.Context, arg UpdateRecurringDiscountParams) (RecurringDiscount, error)
 	UpdateRefundRequestStatus(ctx context.Context, arg UpdateRefundRequestStatusParams) (RefundRequest, error)
+	UpdateReviewStatus(ctx context.Context, arg UpdateReviewStatusParams) (Review, error)
 	UpdateServiceCategory(ctx context.Context, arg UpdateServiceCategoryParams) (ServiceCategory, error)
 	UpdateServiceDefinition(ctx context.Context, arg UpdateServiceDefinitionParams) (ServiceDefinition, error)
 	UpdateServiceExtra(ctx context.Context, arg UpdateServiceExtraParams) (ServiceExtra, error)

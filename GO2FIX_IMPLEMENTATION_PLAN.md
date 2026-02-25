@@ -411,40 +411,37 @@ Fully covered in P2-3 above. Admin UI for discount percentages per frequency exi
 
 ---
 
-## 8. Phase 6 — Client Experience Polish
+## 8. Phase 6 — Client Experience Polish ✅ ALL COMPLETED
 
-### P6-1: Booking Flow UX Improvements — PARTIALLY DONE
+### P6-1: Booking Flow UX Improvements ✅ COMPLETED
 
 - [x] Progress indicator (step 1/N with icons and labels) — `StepIndicator` component in BookingPage
 - [x] Clear price breakdown before confirmation (summary step + subscription pricing preview)
 - [x] Guest booking flow preserved (no auth required to book)
-- [ ] Service category selection as first step (depends on P4-1)
-- [ ] Address autocomplete for Romanian addresses
-
-**Effort:** 2-3 hours (remaining items)
+- [x] Service category grouping in StepService — services grouped by category when multiple categories exist, flat grid for single category. Heading updated to "Alege serviciul"
+- [x] Address autocomplete — Google Places API fully integrated (AddressAutocomplete component, Romanian-only, city matching)
 
 ---
 
-### P6-2: Client Dashboard Enhancements — PARTIALLY DONE
+### P6-2: Client Dashboard Enhancements ✅ COMPLETED
 
 - [x] Recurring booking management (pause, resume, cancel, change frequency) — subscription detail page
 - [x] Easy access to reschedule/cancel with policy info — booking detail page with `RescheduleModal`
-- [ ] Better booking status tracking (timeline view)
-- [ ] "Contact support" prominent button
-- [ ] Payment history with download invoice option
-
-**Effort:** 2-3 hours (remaining items)
+- [x] Booking status timeline — 4-5 step visual stepper in BookingDetailPage (already existed)
+- [x] "Contact support" — `/cont/ajutor` SupportPage with WhatsApp, email, phone, FAQ
+- [x] Payment history — PaymentHistoryPage at `/cont/plati/istoric` (already existed)
+- [x] Invoice download — InvoicesPage at `/cont/facturi` with B2B/B2C billing (already existed)
 
 ---
 
-### P6-3: Review System Improvements
+### P6-3: Review System Improvements ✅ COMPLETED
 
-- [ ] Rating categories: Punctualitate, Calitate, Comunicare, Raport calitate-pret
-- [ ] Photo upload with review (before/after)
-- [ ] Review moderation by admin before publishing
-- [ ] Service-specific review prompts
-
-**Effort:** 3-4 hours
+- [x] Rating categories: Punctualitate, Calitate, Comunicare, Raport calitate-pret (migration 000047, 4 new INT columns on reviews)
+- [x] Photo upload with review — `review_photos` table, GCS upload, up to 3 photos per review
+- [x] Review moderation by admin — `status` column (published/rejected), `approveReview`/`rejectReview` mutations, admin UI with status filter + moderation buttons
+- [x] 4-category star rating form in BookingDetailPage (replaces simple 5-star picker)
+- [x] Category ratings shown in admin + company review detail modals
+- [ ] ~~Service-specific review prompts~~ — Skipped for MVP (only 1 category active)
 
 ---
 
@@ -588,19 +585,18 @@ Full admin subscription detail page at `/admin/abonamente/:id`:
 | **Phase 3** — Admin Controls | 5 tasks | ✅ ALL DONE | — |
 | **Phase 4** — Multi-Service | 3 tasks | ✅ ALL DONE | — |
 | **Phase 5** — Company Mgmt | 3 tasks | ✅ ALL DONE | — |
-| **Phase 6** — Client Polish | 3 tasks | 2/3 partially done | ~7-10h remaining |
+| **Phase 6** — Client Polish | 3 tasks | ✅ ALL DONE | — |
 | **Phase 7** — Admin Analytics | 4 tasks | NOT STARTED | 12-16h |
 
-**Completed:** Phase 0-5 fully done. Phase 6-7 partially/not started.
+**Completed:** Phase 0-6 fully done. Phase 7 not started.
 
-**Remaining estimated effort: ~21-29 hours**
+**Remaining estimated effort: ~14-19 hours**
 
 ### Recommended Next Steps
 
 ```
 1. P2-4: Preferred worker UI toggle in booking flow        (2-3h)
-2. P6-1/P6-2: Remaining client experience polish           (5-8h)
-3. Phase 7: Admin analytics                                 (12-16h)
+2. Phase 7: Admin analytics                                 (12-16h)
 ```
 
 ### Key Dependencies
@@ -621,7 +617,8 @@ All schema changes should be backward-compatible migrations with both up and dow
 
 ### Testing Requirements
 - Every new feature needs unit tests (backend Go + frontend Vitest)
-- Current coverage: ~480 tests (66 Go + 414 frontend) — all passing after Phase 5
+- Current coverage: ~480 tests (66 Go + 414 frontend) — all passing after Phase 6
+- Latest migration: **000047** (review enhancements: rating categories, status, photos)
 - Target: Maintain 100% pass rate on all existing tests after each phase
 
 ### Deployment

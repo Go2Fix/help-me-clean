@@ -71,19 +71,27 @@ func (q *Queries) CountReviewsByWorkerID(ctx context.Context, reviewedWorkerID p
 }
 
 const createReview = `-- name: CreateReview :one
-INSERT INTO reviews (booking_id, reviewer_user_id, reviewed_user_id, reviewed_worker_id, rating, comment, review_type)
-VALUES ($1, $2, $3, $4, $5, $6, $7)
-RETURNING id, booking_id, reviewer_user_id, reviewed_user_id, reviewed_worker_id, rating, comment, review_type, created_at
+INSERT INTO reviews (
+  booking_id, reviewer_user_id, reviewed_user_id, reviewed_worker_id,
+  rating, rating_punctuality, rating_quality, rating_communication, rating_value,
+  comment, review_type, status
+)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'published')
+RETURNING id, booking_id, reviewer_user_id, reviewed_user_id, reviewed_worker_id, rating, comment, review_type, created_at, rating_punctuality, rating_quality, rating_communication, rating_value, status
 `
 
 type CreateReviewParams struct {
-	BookingID        pgtype.UUID `json:"booking_id"`
-	ReviewerUserID   pgtype.UUID `json:"reviewer_user_id"`
-	ReviewedUserID   pgtype.UUID `json:"reviewed_user_id"`
-	ReviewedWorkerID pgtype.UUID `json:"reviewed_worker_id"`
-	Rating           int32       `json:"rating"`
-	Comment          pgtype.Text `json:"comment"`
-	ReviewType       string      `json:"review_type"`
+	BookingID           pgtype.UUID `json:"booking_id"`
+	ReviewerUserID      pgtype.UUID `json:"reviewer_user_id"`
+	ReviewedUserID      pgtype.UUID `json:"reviewed_user_id"`
+	ReviewedWorkerID    pgtype.UUID `json:"reviewed_worker_id"`
+	Rating              int32       `json:"rating"`
+	RatingPunctuality   pgtype.Int4 `json:"rating_punctuality"`
+	RatingQuality       pgtype.Int4 `json:"rating_quality"`
+	RatingCommunication pgtype.Int4 `json:"rating_communication"`
+	RatingValue         pgtype.Int4 `json:"rating_value"`
+	Comment             pgtype.Text `json:"comment"`
+	ReviewType          string      `json:"review_type"`
 }
 
 func (q *Queries) CreateReview(ctx context.Context, arg CreateReviewParams) (Review, error) {
@@ -93,6 +101,10 @@ func (q *Queries) CreateReview(ctx context.Context, arg CreateReviewParams) (Rev
 		arg.ReviewedUserID,
 		arg.ReviewedWorkerID,
 		arg.Rating,
+		arg.RatingPunctuality,
+		arg.RatingQuality,
+		arg.RatingCommunication,
+		arg.RatingValue,
 		arg.Comment,
 		arg.ReviewType,
 	)
@@ -107,6 +119,36 @@ func (q *Queries) CreateReview(ctx context.Context, arg CreateReviewParams) (Rev
 		&i.Comment,
 		&i.ReviewType,
 		&i.CreatedAt,
+		&i.RatingPunctuality,
+		&i.RatingQuality,
+		&i.RatingCommunication,
+		&i.RatingValue,
+		&i.Status,
+	)
+	return i, err
+}
+
+const createReviewPhoto = `-- name: CreateReviewPhoto :one
+INSERT INTO review_photos (review_id, photo_url, sort_order)
+VALUES ($1, $2, $3)
+RETURNING id, review_id, photo_url, sort_order, created_at
+`
+
+type CreateReviewPhotoParams struct {
+	ReviewID  pgtype.UUID `json:"review_id"`
+	PhotoUrl  string      `json:"photo_url"`
+	SortOrder int32       `json:"sort_order"`
+}
+
+func (q *Queries) CreateReviewPhoto(ctx context.Context, arg CreateReviewPhotoParams) (ReviewPhoto, error) {
+	row := q.db.QueryRow(ctx, createReviewPhoto, arg.ReviewID, arg.PhotoUrl, arg.SortOrder)
+	var i ReviewPhoto
+	err := row.Scan(
+		&i.ID,
+		&i.ReviewID,
+		&i.PhotoUrl,
+		&i.SortOrder,
+		&i.CreatedAt,
 	)
 	return i, err
 }
@@ -117,6 +159,15 @@ DELETE FROM reviews WHERE id = $1
 
 func (q *Queries) DeleteReview(ctx context.Context, id pgtype.UUID) error {
 	_, err := q.db.Exec(ctx, deleteReview, id)
+	return err
+}
+
+const deleteReviewPhoto = `-- name: DeleteReviewPhoto :exec
+DELETE FROM review_photos WHERE id = $1
+`
+
+func (q *Queries) DeleteReviewPhoto(ctx context.Context, id pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteReviewPhoto, id)
 	return err
 }
 
@@ -132,7 +183,7 @@ func (q *Queries) GetAverageWorkerRating(ctx context.Context, reviewedWorkerID p
 }
 
 const getReviewByBookingID = `-- name: GetReviewByBookingID :one
-SELECT id, booking_id, reviewer_user_id, reviewed_user_id, reviewed_worker_id, rating, comment, review_type, created_at FROM reviews WHERE booking_id = $1
+SELECT id, booking_id, reviewer_user_id, reviewed_user_id, reviewed_worker_id, rating, comment, review_type, created_at, rating_punctuality, rating_quality, rating_communication, rating_value, status FROM reviews WHERE booking_id = $1
 `
 
 func (q *Queries) GetReviewByBookingID(ctx context.Context, bookingID pgtype.UUID) (Review, error) {
@@ -148,12 +199,43 @@ func (q *Queries) GetReviewByBookingID(ctx context.Context, bookingID pgtype.UUI
 		&i.Comment,
 		&i.ReviewType,
 		&i.CreatedAt,
+		&i.RatingPunctuality,
+		&i.RatingQuality,
+		&i.RatingCommunication,
+		&i.RatingValue,
+		&i.Status,
+	)
+	return i, err
+}
+
+const getReviewByID = `-- name: GetReviewByID :one
+SELECT id, booking_id, reviewer_user_id, reviewed_user_id, reviewed_worker_id, rating, comment, review_type, created_at, rating_punctuality, rating_quality, rating_communication, rating_value, status FROM reviews WHERE id = $1
+`
+
+func (q *Queries) GetReviewByID(ctx context.Context, id pgtype.UUID) (Review, error) {
+	row := q.db.QueryRow(ctx, getReviewByID, id)
+	var i Review
+	err := row.Scan(
+		&i.ID,
+		&i.BookingID,
+		&i.ReviewerUserID,
+		&i.ReviewedUserID,
+		&i.ReviewedWorkerID,
+		&i.Rating,
+		&i.Comment,
+		&i.ReviewType,
+		&i.CreatedAt,
+		&i.RatingPunctuality,
+		&i.RatingQuality,
+		&i.RatingCommunication,
+		&i.RatingValue,
+		&i.Status,
 	)
 	return i, err
 }
 
 const listAllReviews = `-- name: ListAllReviews :many
-SELECT id, booking_id, reviewer_user_id, reviewed_user_id, reviewed_worker_id, rating, comment, review_type, created_at FROM reviews ORDER BY created_at DESC LIMIT $1 OFFSET $2
+SELECT id, booking_id, reviewer_user_id, reviewed_user_id, reviewed_worker_id, rating, comment, review_type, created_at, rating_punctuality, rating_quality, rating_communication, rating_value, status FROM reviews ORDER BY created_at DESC LIMIT $1 OFFSET $2
 `
 
 type ListAllReviewsParams struct {
@@ -180,6 +262,11 @@ func (q *Queries) ListAllReviews(ctx context.Context, arg ListAllReviewsParams) 
 			&i.Comment,
 			&i.ReviewType,
 			&i.CreatedAt,
+			&i.RatingPunctuality,
+			&i.RatingQuality,
+			&i.RatingCommunication,
+			&i.RatingValue,
+			&i.Status,
 		); err != nil {
 			return nil, err
 		}
@@ -192,7 +279,7 @@ func (q *Queries) ListAllReviews(ctx context.Context, arg ListAllReviewsParams) 
 }
 
 const listAllReviewsFiltered = `-- name: ListAllReviewsFiltered :many
-SELECT id, booking_id, reviewer_user_id, reviewed_user_id, reviewed_worker_id, rating, comment, review_type, created_at FROM reviews
+SELECT id, booking_id, reviewer_user_id, reviewed_user_id, reviewed_worker_id, rating, comment, review_type, created_at, rating_punctuality, rating_quality, rating_communication, rating_value, status FROM reviews
 WHERE ($3::int IS NULL OR rating = $3)
   AND ($4::text IS NULL OR review_type = $4)
 ORDER BY created_at DESC
@@ -230,6 +317,41 @@ func (q *Queries) ListAllReviewsFiltered(ctx context.Context, arg ListAllReviews
 			&i.Comment,
 			&i.ReviewType,
 			&i.CreatedAt,
+			&i.RatingPunctuality,
+			&i.RatingQuality,
+			&i.RatingCommunication,
+			&i.RatingValue,
+			&i.Status,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listReviewPhotos = `-- name: ListReviewPhotos :many
+SELECT id, review_id, photo_url, sort_order, created_at FROM review_photos WHERE review_id = $1 ORDER BY sort_order
+`
+
+func (q *Queries) ListReviewPhotos(ctx context.Context, reviewID pgtype.UUID) ([]ReviewPhoto, error) {
+	rows, err := q.db.Query(ctx, listReviewPhotos, reviewID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ReviewPhoto
+	for rows.Next() {
+		var i ReviewPhoto
+		if err := rows.Scan(
+			&i.ID,
+			&i.ReviewID,
+			&i.PhotoUrl,
+			&i.SortOrder,
+			&i.CreatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -242,7 +364,7 @@ func (q *Queries) ListAllReviewsFiltered(ctx context.Context, arg ListAllReviews
 }
 
 const listReviewsByCompanyWorkers = `-- name: ListReviewsByCompanyWorkers :many
-SELECT r.id, r.booking_id, r.reviewer_user_id, r.reviewed_user_id, r.reviewed_worker_id, r.rating, r.comment, r.review_type, r.created_at FROM reviews r
+SELECT r.id, r.booking_id, r.reviewer_user_id, r.reviewed_user_id, r.reviewed_worker_id, r.rating, r.comment, r.review_type, r.created_at, r.rating_punctuality, r.rating_quality, r.rating_communication, r.rating_value, r.status FROM reviews r
 JOIN workers w ON r.reviewed_worker_id = w.id
 WHERE w.company_id = $1
   AND ($4::int IS NULL OR r.rating = $4)
@@ -281,6 +403,11 @@ func (q *Queries) ListReviewsByCompanyWorkers(ctx context.Context, arg ListRevie
 			&i.Comment,
 			&i.ReviewType,
 			&i.CreatedAt,
+			&i.RatingPunctuality,
+			&i.RatingQuality,
+			&i.RatingCommunication,
+			&i.RatingValue,
+			&i.Status,
 		); err != nil {
 			return nil, err
 		}
@@ -293,7 +420,7 @@ func (q *Queries) ListReviewsByCompanyWorkers(ctx context.Context, arg ListRevie
 }
 
 const listReviewsByWorkerID = `-- name: ListReviewsByWorkerID :many
-SELECT id, booking_id, reviewer_user_id, reviewed_user_id, reviewed_worker_id, rating, comment, review_type, created_at FROM reviews WHERE reviewed_worker_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3
+SELECT id, booking_id, reviewer_user_id, reviewed_user_id, reviewed_worker_id, rating, comment, review_type, created_at, rating_punctuality, rating_quality, rating_communication, rating_value, status FROM reviews WHERE reviewed_worker_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3
 `
 
 type ListReviewsByWorkerIDParams struct {
@@ -321,6 +448,11 @@ func (q *Queries) ListReviewsByWorkerID(ctx context.Context, arg ListReviewsByWo
 			&i.Comment,
 			&i.ReviewType,
 			&i.CreatedAt,
+			&i.RatingPunctuality,
+			&i.RatingQuality,
+			&i.RatingCommunication,
+			&i.RatingValue,
+			&i.Status,
 		); err != nil {
 			return nil, err
 		}
@@ -330,4 +462,35 @@ func (q *Queries) ListReviewsByWorkerID(ctx context.Context, arg ListReviewsByWo
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateReviewStatus = `-- name: UpdateReviewStatus :one
+UPDATE reviews SET status = $2 WHERE id = $1 RETURNING id, booking_id, reviewer_user_id, reviewed_user_id, reviewed_worker_id, rating, comment, review_type, created_at, rating_punctuality, rating_quality, rating_communication, rating_value, status
+`
+
+type UpdateReviewStatusParams struct {
+	ID     pgtype.UUID `json:"id"`
+	Status string      `json:"status"`
+}
+
+func (q *Queries) UpdateReviewStatus(ctx context.Context, arg UpdateReviewStatusParams) (Review, error) {
+	row := q.db.QueryRow(ctx, updateReviewStatus, arg.ID, arg.Status)
+	var i Review
+	err := row.Scan(
+		&i.ID,
+		&i.BookingID,
+		&i.ReviewerUserID,
+		&i.ReviewedUserID,
+		&i.ReviewedWorkerID,
+		&i.Rating,
+		&i.Comment,
+		&i.ReviewType,
+		&i.CreatedAt,
+		&i.RatingPunctuality,
+		&i.RatingQuality,
+		&i.RatingCommunication,
+		&i.RatingValue,
+		&i.Status,
+	)
+	return i, err
 }

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { useNavigate } from 'react-router-dom';
-import { Star, Trash2, MessageSquare } from 'lucide-react';
+import { Star, Trash2, MessageSquare, Clock, Sparkles, MessageCircle, Scale, CheckCircle, XCircle } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
@@ -9,7 +9,7 @@ import Modal from '@/components/ui/Modal';
 import Select from '@/components/ui/Select';
 import AdminPagination from '@/components/admin/AdminPagination';
 import { formatDate } from '@/utils/format';
-import { ALL_REVIEWS, DELETE_REVIEW } from '@/graphql/operations';
+import { ALL_REVIEWS, DELETE_REVIEW, APPROVE_REVIEW, REJECT_REVIEW } from '@/graphql/operations';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -18,6 +18,12 @@ const PAGE_SIZE = 20;
 const reviewTypeBadge: Record<string, { label: string; variant: 'default' | 'info' }> = {
   CLIENT_REVIEW: { label: 'Client', variant: 'info' },
   COMPANY_REVIEW: { label: 'Companie', variant: 'default' },
+};
+
+const statusBadge: Record<string, { label: string; className: string }> = {
+  PUBLISHED: { label: 'Publicata', className: 'bg-green-100 text-green-800' },
+  PENDING: { label: 'In asteptare', className: 'bg-yellow-100 text-yellow-800' },
+  REJECTED: { label: 'Respinsa', className: 'bg-red-100 text-red-800' },
 };
 
 const ratingOptions = [
@@ -35,13 +41,32 @@ const typeOptions = [
   { value: 'COMPANY_REVIEW', label: 'Companie' },
 ];
 
+const statusOptions = [
+  { value: '', label: 'Toate statusurile' },
+  { value: 'PUBLISHED', label: 'Publicata' },
+  { value: 'PENDING', label: 'In asteptare' },
+  { value: 'REJECTED', label: 'Respinsa' },
+];
+
 // ─── Types ──────────────────────────────────────────────────────────────────
+
+interface ReviewPhoto {
+  id: string;
+  photoUrl: string;
+  sortOrder: number;
+}
 
 interface Review {
   id: string;
   rating: number;
+  ratingPunctuality: number | null;
+  ratingQuality: number | null;
+  ratingCommunication: number | null;
+  ratingValue: number | null;
   comment: string | null;
   reviewType: string;
+  status: string;
+  photos: ReviewPhoto[];
   createdAt: string;
   booking: { id: string; referenceCode: string } | null;
   reviewer: { id: string; fullName: string } | null;
@@ -75,6 +100,32 @@ function StarRatingFull({ rating }: { rating: number }) {
   );
 }
 
+function CategoryRatingRow({ label, icon: Icon, value }: { label: string; icon: typeof Star; value: number | null }) {
+  if (!value) return null;
+  return (
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-2">
+        <Icon className="h-3.5 w-3.5 text-gray-400" />
+        <span className="text-xs text-gray-600">{label}</span>
+      </div>
+      <div className="flex gap-0.5">
+        {[1, 2, 3, 4, 5].map((s) => (
+          <Star key={s} className={`h-3.5 w-3.5 ${s <= value ? 'fill-accent text-accent' : 'text-gray-300'}`} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const badge = statusBadge[status] ?? { label: status, className: 'bg-gray-100 text-gray-800' };
+  return (
+    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${badge.className}`}>
+      {badge.label}
+    </span>
+  );
+}
+
 // ─── Component ──────────────────────────────────────────────────────────────
 
 export default function ReviewsPage() {
@@ -82,6 +133,7 @@ export default function ReviewsPage() {
   const [page, setPage] = useState(0);
   const [ratingFilter, setRatingFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
+  const [_statusFilter, setStatusFilter] = useState('');
   const [deleteModal, setDeleteModal] = useState<{ open: boolean; reviewId: string }>({
     open: false,
     reviewId: '',
@@ -101,13 +153,39 @@ export default function ReviewsPage() {
     refetchQueries: [{ query: ALL_REVIEWS, variables }],
   });
 
-  const reviews: Review[] = data?.allReviews?.reviews ?? [];
+  const [approveReview, { loading: approving }] = useMutation(APPROVE_REVIEW, {
+    refetchQueries: [{ query: ALL_REVIEWS, variables }],
+  });
+
+  const [rejectReview, { loading: rejecting }] = useMutation(REJECT_REVIEW, {
+    refetchQueries: [{ query: ALL_REVIEWS, variables }],
+  });
+
+  const allReviews: Review[] = data?.allReviews?.reviews ?? [];
+  // Client-side status filter (backend doesn't support it yet)
+  const reviews = _statusFilter
+    ? allReviews.filter((r) => r.status === _statusFilter)
+    : allReviews;
   const totalCount: number = data?.allReviews?.totalCount ?? 0;
 
   const handleDelete = async () => {
     if (!deleteModal.reviewId) return;
     await deleteReview({ variables: { id: deleteModal.reviewId } });
     setDeleteModal({ open: false, reviewId: '' });
+  };
+
+  const handleApprove = async (reviewId: string) => {
+    await approveReview({ variables: { id: reviewId } });
+    if (detailReview?.id === reviewId) {
+      setDetailReview((prev) => prev ? { ...prev, status: 'PUBLISHED' } : null);
+    }
+  };
+
+  const handleReject = async (reviewId: string) => {
+    await rejectReview({ variables: { id: reviewId } });
+    if (detailReview?.id === reviewId) {
+      setDetailReview((prev) => prev ? { ...prev, status: 'REJECTED' } : null);
+    }
   };
 
   const handleFilterChange = (
@@ -151,6 +229,13 @@ export default function ReviewsPage() {
               onChange={(e) => handleFilterChange(setTypeFilter, e.target.value)}
             />
           </div>
+          <div className="w-full sm:w-44">
+            <Select
+              options={statusOptions}
+              value={_statusFilter}
+              onChange={(e) => handleFilterChange(setStatusFilter, e.target.value)}
+            />
+          </div>
         </div>
 
         {loading ? (
@@ -185,6 +270,9 @@ export default function ReviewsPage() {
                   </th>
                   <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 sm:px-6 py-3">
                     Tip
+                  </th>
+                  <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 sm:px-6 py-3">
+                    Status
                   </th>
                   <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 sm:px-6 py-3 hidden md:table-cell">
                     Recenzor
@@ -229,6 +317,11 @@ export default function ReviewsPage() {
                       {/* Tip */}
                       <td className="px-4 sm:px-6 py-4">
                         <Badge variant={typeBadge.variant}>{typeBadge.label}</Badge>
+                      </td>
+
+                      {/* Status */}
+                      <td className="px-4 sm:px-6 py-4">
+                        <StatusBadge status={review.status} />
                       </td>
 
                       {/* Recenzor (hidden on mobile) */}
@@ -289,15 +382,46 @@ export default function ReviewsPage() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <StarRatingFull rating={detailReview.rating} />
-              <Badge variant={(reviewTypeBadge[detailReview.reviewType] ?? { variant: 'default' as const }).variant}>
-                {(reviewTypeBadge[detailReview.reviewType] ?? { label: detailReview.reviewType }).label}
-              </Badge>
+              <div className="flex items-center gap-2">
+                <StatusBadge status={detailReview.status} />
+                <Badge variant={(reviewTypeBadge[detailReview.reviewType] ?? { variant: 'default' as const }).variant}>
+                  {(reviewTypeBadge[detailReview.reviewType] ?? { label: detailReview.reviewType }).label}
+                </Badge>
+              </div>
             </div>
+
+            {/* Category ratings */}
+            {(detailReview.ratingPunctuality || detailReview.ratingQuality || detailReview.ratingCommunication || detailReview.ratingValue) && (
+              <div className="space-y-2 p-3 bg-gray-50 rounded-xl">
+                <p className="text-xs font-medium text-gray-500 mb-2">Categorii</p>
+                <CategoryRatingRow label="Punctualitate" icon={Clock} value={detailReview.ratingPunctuality} />
+                <CategoryRatingRow label="Calitate" icon={Sparkles} value={detailReview.ratingQuality} />
+                <CategoryRatingRow label="Comunicare" icon={MessageCircle} value={detailReview.ratingCommunication} />
+                <CategoryRatingRow label="Raport calitate-pret" icon={Scale} value={detailReview.ratingValue} />
+              </div>
+            )}
 
             {detailReview.comment && (
               <div>
                 <p className="text-xs font-medium text-gray-500 mb-1">Comentariu</p>
                 <p className="text-sm text-gray-900">{detailReview.comment}</p>
+              </div>
+            )}
+
+            {/* Photos */}
+            {detailReview.photos && detailReview.photos.length > 0 && (
+              <div>
+                <p className="text-xs font-medium text-gray-500 mb-2">Poze</p>
+                <div className="flex gap-2">
+                  {detailReview.photos.map((photo) => (
+                    <img
+                      key={photo.id}
+                      src={photo.photoUrl}
+                      alt="Poza recenzie"
+                      className="h-20 w-20 rounded-lg object-cover border border-gray-200"
+                    />
+                  ))}
+                </div>
               </div>
             )}
 
@@ -329,6 +453,28 @@ export default function ReviewsPage() {
 
             <div className="flex justify-end gap-3 pt-2 border-t border-gray-100">
               <Button variant="ghost" onClick={() => setDetailReview(null)}>Inchide</Button>
+              {detailReview.status !== 'PUBLISHED' && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  loading={approving}
+                  onClick={() => handleApprove(detailReview.id)}
+                >
+                  <CheckCircle className="h-4 w-4" />
+                  Publica
+                </Button>
+              )}
+              {detailReview.status !== 'REJECTED' && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  loading={rejecting}
+                  onClick={() => handleReject(detailReview.id)}
+                >
+                  <XCircle className="h-4 w-4" />
+                  Respinge
+                </Button>
+              )}
               <Button
                 variant="danger"
                 size="sm"

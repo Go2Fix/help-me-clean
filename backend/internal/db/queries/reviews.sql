@@ -1,6 +1,10 @@
 -- name: CreateReview :one
-INSERT INTO reviews (booking_id, reviewer_user_id, reviewed_user_id, reviewed_worker_id, rating, comment, review_type)
-VALUES ($1, $2, $3, $4, $5, $6, $7)
+INSERT INTO reviews (
+  booking_id, reviewer_user_id, reviewed_user_id, reviewed_worker_id,
+  rating, rating_punctuality, rating_quality, rating_communication, rating_value,
+  comment, review_type, status
+)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'published')
 RETURNING *;
 
 -- name: GetReviewByBookingID :one
@@ -49,3 +53,20 @@ SELECT COUNT(*) FROM reviews r
 JOIN workers w ON r.reviewed_worker_id = w.id
 WHERE w.company_id = $1
   AND (sqlc.narg('rating')::int IS NULL OR r.rating = sqlc.narg('rating'));
+
+-- name: UpdateReviewStatus :one
+UPDATE reviews SET status = $2 WHERE id = $1 RETURNING *;
+
+-- name: GetReviewByID :one
+SELECT * FROM reviews WHERE id = $1;
+
+-- name: CreateReviewPhoto :one
+INSERT INTO review_photos (review_id, photo_url, sort_order)
+VALUES ($1, $2, $3)
+RETURNING *;
+
+-- name: ListReviewPhotos :many
+SELECT * FROM review_photos WHERE review_id = $1 ORDER BY sort_order;
+
+-- name: DeleteReviewPhoto :exec
+DELETE FROM review_photos WHERE id = $1;

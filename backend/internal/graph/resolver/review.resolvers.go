@@ -11,7 +11,9 @@ import (
 	"go2fix-backend/internal/auth"
 	db "go2fix-backend/internal/db/generated"
 	"go2fix-backend/internal/graph/model"
+	"go2fix-backend/internal/storage"
 
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -31,19 +33,73 @@ func (r *mutationResolver) SubmitReview(ctx context.Context, input model.SubmitR
 	}
 
 	review, err := r.Queries.CreateReview(ctx, db.CreateReviewParams{
-		BookingID:        bookingUUID,
-		ReviewerUserID:   stringToUUID(claims.UserID),
-		ReviewedUserID:   booking.ClientUserID,
-		ReviewedWorkerID: booking.WorkerID,
-		Rating:           int32(input.Rating),
-		Comment:          stringToText(input.Comment),
-		ReviewType:       "client_to_worker",
+		BookingID:           bookingUUID,
+		ReviewerUserID:      stringToUUID(claims.UserID),
+		ReviewedUserID:      booking.ClientUserID,
+		ReviewedWorkerID:    booking.WorkerID,
+		Rating:              int32(input.Rating),
+		RatingPunctuality:   intToInt4(input.RatingPunctuality),
+		RatingQuality:       intToInt4(input.RatingQuality),
+		RatingCommunication: intToInt4(input.RatingCommunication),
+		RatingValue:         intToInt4(input.RatingValue),
+		Comment:             stringToText(input.Comment),
+		ReviewType:          "client_to_worker",
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to submit review: %w", err)
 	}
 
 	return dbReviewToGQL(review), nil
+}
+
+// UploadReviewPhotos is the resolver for the uploadReviewPhotos field.
+func (r *mutationResolver) UploadReviewPhotos(ctx context.Context, reviewID string, files []*graphql.Upload) ([]*model.ReviewPhoto, error) {
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil {
+		return nil, fmt.Errorf("not authenticated")
+	}
+
+	if len(files) > 3 {
+		return nil, fmt.Errorf("maximum 3 photos allowed per review")
+	}
+
+	reviewUUID := stringToUUID(reviewID)
+
+	// Verify the review exists and belongs to the authenticated user.
+	review, err := r.Queries.GetReviewByID(ctx, reviewUUID)
+	if err != nil {
+		return nil, fmt.Errorf("review not found: %w", err)
+	}
+	if uuidToString(review.ReviewerUserID) != claims.UserID {
+		return nil, fmt.Errorf("not authorized: you can only upload photos to your own reviews")
+	}
+
+	result := make([]*model.ReviewPhoto, 0, len(files))
+	for i, file := range files {
+		if err := storage.ValidateUpload(*file); err != nil {
+			return nil, fmt.Errorf("file validation failed for %s: %w", file.Filename, err)
+		}
+
+		sanitizedFilename := storage.SanitizeFilename(file.Filename)
+		path := fmt.Sprintf("uploads/reviews/%s/photos", reviewID)
+		fileURL, err := r.Storage.Upload(ctx, path, sanitizedFilename, file.File, storage.StorageTypePublic)
+		if err != nil {
+			return nil, fmt.Errorf("failed to upload photo: %w", err)
+		}
+
+		photo, err := r.Queries.CreateReviewPhoto(ctx, db.CreateReviewPhotoParams{
+			ReviewID:  reviewUUID,
+			PhotoUrl:  fileURL,
+			SortOrder: int32(i),
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to save review photo: %w", err)
+		}
+
+		result = append(result, dbReviewPhotoToGQL(photo))
+	}
+
+	return result, nil
 }
 
 // CompanyWorkerReviews is the resolver for the companyWorkerReviews field.

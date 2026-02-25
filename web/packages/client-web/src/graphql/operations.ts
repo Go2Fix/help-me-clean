@@ -287,7 +287,17 @@ export const CLIENT_BOOKING_DETAIL = gql`
       review {
         id
         rating
+        ratingPunctuality
+        ratingQuality
+        ratingCommunication
+        ratingValue
         comment
+        status
+        photos {
+          id
+          photoUrl
+          sortOrder
+        }
         createdAt
       }
     }
@@ -364,7 +374,17 @@ export const SUBMIT_REVIEW = gql`
     submitReview(input: $input) {
       id
       rating
+      ratingPunctuality
+      ratingQuality
+      ratingCommunication
+      ratingValue
       comment
+      status
+      photos {
+        id
+        photoUrl
+        sortOrder
+      }
       createdAt
     }
   }
@@ -2548,8 +2568,18 @@ export const ALL_REVIEWS = gql`
       reviews {
         id
         rating
+        ratingPunctuality
+        ratingQuality
+        ratingCommunication
+        ratingValue
         comment
         reviewType
+        status
+        photos {
+          id
+          photoUrl
+          sortOrder
+        }
         createdAt
         booking {
           id
@@ -2571,6 +2601,34 @@ export const DELETE_REVIEW = gql`
   }
 `;
 
+export const APPROVE_REVIEW = gql`
+  mutation ApproveReview($id: ID!) {
+    approveReview(id: $id) {
+      id
+      status
+    }
+  }
+`;
+
+export const REJECT_REVIEW = gql`
+  mutation RejectReview($id: ID!) {
+    rejectReview(id: $id) {
+      id
+      status
+    }
+  }
+`;
+
+export const UPLOAD_REVIEW_PHOTOS = gql`
+  mutation UploadReviewPhotos($reviewId: ID!, $files: [Upload!]!) {
+    uploadReviewPhotos(reviewId: $reviewId, files: $files) {
+      id
+      photoUrl
+      sortOrder
+    }
+  }
+`;
+
 // ─── Company: Worker Reviews ────────────────────────────────────────────────
 
 export const COMPANY_WORKER_REVIEWS = gql`
@@ -2579,8 +2637,18 @@ export const COMPANY_WORKER_REVIEWS = gql`
       reviews {
         id
         rating
+        ratingPunctuality
+        ratingQuality
+        ratingCommunication
+        ratingValue
         comment
         reviewType
+        status
+        photos {
+          id
+          photoUrl
+          sortOrder
+        }
         createdAt
         booking {
           id
@@ -3030,8 +3098,18 @@ export const MY_WORKER_REVIEWS = gql`
       reviews {
         id
         rating
+        ratingPunctuality
+        ratingQuality
+        ratingCommunication
+        ratingValue
         comment
         reviewType
+        status
+        photos {
+          id
+          photoUrl
+          sortOrder
+        }
         createdAt
         booking {
           id

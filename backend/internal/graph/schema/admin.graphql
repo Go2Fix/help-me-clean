@@ -68,6 +68,8 @@ extend type Mutation {
   adminUpdateCompanyProfile(input: AdminUpdateCompanyInput!): Company!
   adminUpdateCompanyStatus(id: ID!, status: CompanyStatus!): Company!
   deleteReview(id: ID!): Boolean!
+  approveReview(id: ID!): Review!
+  rejectReview(id: ID!): Review!
 }
 
 input AdminUpdateCompanyInput {

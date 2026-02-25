@@ -4,9 +4,21 @@ type Review {
   reviewer: User
   worker: WorkerProfile
   rating: Int!
+  ratingPunctuality: Int
+  ratingQuality: Int
+  ratingCommunication: Int
+  ratingValue: Int
   comment: String
   reviewType: String!
+  status: String!
+  photos: [ReviewPhoto!]!
   createdAt: DateTime!
+}
+
+type ReviewPhoto {
+  id: ID!
+  photoUrl: String!
+  sortOrder: Int!
 }
 
 type ReviewConnection {
@@ -20,10 +32,15 @@ extend type Query {
 
 extend type Mutation {
   submitReview(input: SubmitReviewInput!): Review!
+  uploadReviewPhotos(reviewId: ID!, files: [Upload!]!): [ReviewPhoto!]!
 }
 
 input SubmitReviewInput {
   bookingId: ID!
   rating: Int!
+  ratingPunctuality: Int
+  ratingQuality: Int
+  ratingCommunication: Int
+  ratingValue: Int
   comment: String
 }

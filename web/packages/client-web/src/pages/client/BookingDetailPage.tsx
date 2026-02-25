@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useParams, useNavigate, Navigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@apollo/client';
 import {
@@ -25,14 +25,18 @@ import {
   CalendarClock,
   AlertTriangle,
   Download,
+  Scale,
+  Camera,
+  X,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/ClientBadge';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Modal from '@/components/ui/Modal';
-import { CLIENT_BOOKING_DETAIL, CANCEL_BOOKING, OPEN_BOOKING_CHAT, CREATE_BOOKING_PAYMENT_INTENT, REQUEST_REFUND, SUBMIT_REVIEW, BOOKING_POLICY, RESCHEDULE_BOOKING, CLIENT_INVOICE_FOR_BOOKING } from '@/graphql/operations';
+import { CLIENT_BOOKING_DETAIL, CANCEL_BOOKING, OPEN_BOOKING_CHAT, CREATE_BOOKING_PAYMENT_INTENT, REQUEST_REFUND, SUBMIT_REVIEW, UPLOAD_REVIEW_PHOTOS, BOOKING_POLICY, RESCHEDULE_BOOKING, CLIENT_INVOICE_FOR_BOOKING } from '@/graphql/operations';
 import RescheduleModal from '@/components/booking/RescheduleModal';
 import { StripeElementsWrapper } from '@/context/StripeContext';
 import StripePaymentForm from '@/components/payment/StripePaymentForm';
@@ -58,10 +62,22 @@ interface BookingWorker {
   };
 }
 
+interface ReviewPhoto {
+  id: string;
+  photoUrl: string;
+  sortOrder: number;
+}
+
 interface BookingReview {
   id: string;
   rating: number;
+  ratingPunctuality?: number;
+  ratingQuality?: number;
+  ratingCommunication?: number;
+  ratingValue?: number;
   comment?: string;
+  status?: string;
+  photos?: ReviewPhoto[];
   createdAt: string;
 }
 
@@ -172,6 +188,31 @@ function formatDateTime(dateStr: string): string {
   }
 }
 
+// ─── Rating Row ─────────────────────────────────────────────────────────────
+
+function RatingRow({ label, icon: Icon, value, onChange }: { label: string; icon: LucideIcon; value: number; onChange: (v: number) => void }) {
+  return (
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-2">
+        <Icon className="h-4 w-4 text-gray-400" />
+        <span className="text-sm text-gray-700">{label}</span>
+      </div>
+      <div className="flex gap-1">
+        {[1, 2, 3, 4, 5].map((s) => (
+          <button
+            key={s}
+            type="button"
+            onClick={() => onChange(s)}
+            className={`cursor-pointer ${s <= value ? 'text-amber-400' : 'text-gray-300'}`}
+          >
+            <Star className="h-5 w-5" fill={s <= value ? 'currentColor' : 'none'} />
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function BookingDetailPage() {
@@ -184,6 +225,12 @@ export default function BookingDetailPage() {
   const [cancelReason, setCancelReason] = useState('');
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewComment, setReviewComment] = useState('');
+  const [ratingPunctuality, setRatingPunctuality] = useState(0);
+  const [ratingQuality, setRatingQuality] = useState(0);
+  const [ratingCommunication, setRatingCommunication] = useState(0);
+  const [ratingValue, setRatingValue] = useState(0);
+  const [reviewPhotos, setReviewPhotos] = useState<File[]>([]);
+  const photoInputRef = useRef<HTMLInputElement>(null);
 
   const { data, loading, error, refetch } = useQuery<{ booking: BookingData }>(
     CLIENT_BOOKING_DETAIL,
@@ -238,10 +285,27 @@ export default function BookingDetailPage() {
   const [refundModalOpen, setRefundModalOpen] = useState(false);
   const [refundReason, setRefundReason] = useState('');
 
+  const [uploadReviewPhotosMutation] = useMutation(UPLOAD_REVIEW_PHOTOS);
+
   const [submitReview, { loading: submittingReview }] = useMutation(SUBMIT_REVIEW, {
-    onCompleted: () => {
+    onCompleted: async (result) => {
+      const reviewId = result?.submitReview?.id;
+      if (reviewId && reviewPhotos.length > 0) {
+        try {
+          await uploadReviewPhotosMutation({
+            variables: { reviewId, files: reviewPhotos },
+          });
+        } catch {
+          // Photo upload failed but review was created successfully
+        }
+      }
       setReviewRating(0);
       setReviewComment('');
+      setRatingPunctuality(0);
+      setRatingQuality(0);
+      setRatingCommunication(0);
+      setRatingValue(0);
+      setReviewPhotos([]);
     },
     refetchQueries: [{ query: CLIENT_BOOKING_DETAIL, variables: { id } }],
   });
@@ -925,6 +989,7 @@ export default function BookingDetailPage() {
                       Recenzia ta
                     </h2>
                     <div className="space-y-3">
+                      {/* Overall rating */}
                       <div className="flex items-center gap-1">
                         {[1, 2, 3, 4, 5].map((star) => (
                           <Star
@@ -937,10 +1002,46 @@ export default function BookingDetailPage() {
                           />
                         ))}
                       </div>
+                      {/* Category breakdowns */}
+                      {(booking.review.ratingPunctuality || booking.review.ratingQuality || booking.review.ratingCommunication || booking.review.ratingValue) && (
+                        <div className="space-y-2 pt-2">
+                          {([
+                            { label: 'Punctualitate', icon: Clock, value: booking.review!.ratingPunctuality },
+                            { label: 'Calitate', icon: Sparkles, value: booking.review!.ratingQuality },
+                            { label: 'Comunicare', icon: MessageCircle, value: booking.review!.ratingCommunication },
+                            { label: 'Raport calitate-pret', icon: Scale, value: booking.review!.ratingValue },
+                          ] as { label: string; icon: LucideIcon; value: number | undefined }[]).map((cat) => cat.value ? (
+                            <div key={cat.label} className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <cat.icon className="h-3.5 w-3.5 text-gray-400" />
+                                <span className="text-xs text-gray-600">{cat.label}</span>
+                              </div>
+                              <div className="flex gap-0.5">
+                                {[1, 2, 3, 4, 5].map((s) => (
+                                  <Star key={s} className={`h-3.5 w-3.5 ${s <= cat.value! ? 'text-accent fill-accent' : 'text-gray-300'}`} />
+                                ))}
+                              </div>
+                            </div>
+                          ) : null)}
+                        </div>
+                      )}
                       {booking.review.comment && (
                         <p className="text-sm text-gray-700">
                           {booking.review.comment}
                         </p>
+                      )}
+                      {/* Review photos */}
+                      {booking.review.photos && booking.review.photos.length > 0 && (
+                        <div className="flex gap-2 pt-1">
+                          {booking.review.photos.map((photo) => (
+                            <img
+                              key={photo.id}
+                              src={photo.photoUrl}
+                              alt="Poza recenzie"
+                              className="h-16 w-16 rounded-lg object-cover border border-gray-200"
+                            />
+                          ))}
+                        </div>
                       )}
                       <p className="text-xs text-gray-500">
                         Trimisa pe {formatDate(booking.review.createdAt)}
@@ -953,24 +1054,31 @@ export default function BookingDetailPage() {
                       Lasa o recenzie
                     </h2>
                     <div className="space-y-4">
-                      <div className="flex items-center gap-1">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <button
-                            key={star}
-                            type="button"
-                            className="cursor-pointer p-0.5 transition-colors"
-                            onClick={() => setReviewRating(star)}
-                          >
-                            <Star
-                              className={`h-7 w-7 ${
-                                star <= reviewRating
-                                  ? 'text-accent fill-accent'
-                                  : 'text-gray-300'
-                              }`}
-                            />
-                          </button>
-                        ))}
+                      {/* Category ratings */}
+                      <div className="space-y-3">
+                        <RatingRow label="Punctualitate" icon={Clock} value={ratingPunctuality} onChange={setRatingPunctuality} />
+                        <RatingRow label="Calitate" icon={Sparkles} value={ratingQuality} onChange={setRatingQuality} />
+                        <RatingRow label="Comunicare" icon={MessageCircle} value={ratingCommunication} onChange={setRatingCommunication} />
+                        <RatingRow label="Raport calitate-pret" icon={Scale} value={ratingValue} onChange={setRatingValue} />
                       </div>
+
+                      {/* Auto-calculated overall display */}
+                      {(ratingPunctuality > 0 || ratingQuality > 0 || ratingCommunication > 0 || ratingValue > 0) && (
+                        <div className="flex items-center gap-2 pt-1 border-t border-gray-100">
+                          <span className="text-sm font-medium text-gray-700">Nota generala:</span>
+                          <div className="flex items-center gap-1">
+                            <Star className="h-4 w-4 text-accent fill-accent" />
+                            <span className="text-sm font-bold text-gray-900">
+                              {(() => {
+                                const filled = [ratingPunctuality, ratingQuality, ratingCommunication, ratingValue].filter(v => v > 0);
+                                return filled.length > 0 ? Math.round(filled.reduce((a, b) => a + b, 0) / filled.length) : 0;
+                              })()}
+                            </span>
+                            <span className="text-xs text-gray-400">/ 5</span>
+                          </div>
+                        </div>
+                      )}
+
                       <textarea
                         className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary resize-none"
                         rows={3}
@@ -978,21 +1086,74 @@ export default function BookingDetailPage() {
                         value={reviewComment}
                         onChange={(e) => setReviewComment(e.target.value)}
                       />
+
+                      {/* Photo upload */}
+                      <div>
+                        <input
+                          ref={photoInputRef}
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          className="hidden"
+                          onChange={(e) => {
+                            const files = Array.from(e.target.files ?? []);
+                            setReviewPhotos((prev) => [...prev, ...files].slice(0, 3));
+                            e.target.value = '';
+                          }}
+                        />
+                        {reviewPhotos.length > 0 && (
+                          <div className="flex gap-2 mb-3">
+                            {reviewPhotos.map((file, idx) => (
+                              <div key={idx} className="relative">
+                                <img
+                                  src={URL.createObjectURL(file)}
+                                  alt={`Poza ${idx + 1}`}
+                                  className="h-16 w-16 rounded-lg object-cover border border-gray-200"
+                                />
+                                <button
+                                  type="button"
+                                  className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-gray-800 text-white flex items-center justify-center cursor-pointer hover:bg-gray-700"
+                                  onClick={() => setReviewPhotos((prev) => prev.filter((_, i) => i !== idx))}
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {reviewPhotos.length < 3 && (
+                          <button
+                            type="button"
+                            className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
+                            onClick={() => photoInputRef.current?.click()}
+                          >
+                            <Camera className="h-4 w-4" />
+                            Adauga poze ({reviewPhotos.length}/3)
+                          </button>
+                        )}
+                      </div>
+
                       <Button
                         className="w-full"
-                        disabled={reviewRating === 0}
+                        disabled={ratingPunctuality === 0 && ratingQuality === 0 && ratingCommunication === 0 && ratingValue === 0}
                         loading={submittingReview}
-                        onClick={() =>
+                        onClick={() => {
+                          const filled = [ratingPunctuality, ratingQuality, ratingCommunication, ratingValue].filter(v => v > 0);
+                          const overall = filled.length > 0 ? Math.round(filled.reduce((a, b) => a + b, 0) / filled.length) : 0;
                           submitReview({
                             variables: {
                               input: {
                                 bookingId: booking.id,
-                                rating: reviewRating,
+                                rating: overall,
+                                ratingPunctuality: ratingPunctuality || undefined,
+                                ratingQuality: ratingQuality || undefined,
+                                ratingCommunication: ratingCommunication || undefined,
+                                ratingValue: ratingValue || undefined,
                                 comment: reviewComment.trim() || undefined,
                               },
                             },
-                          })
-                        }
+                          });
+                        }}
                       >
                         <Star className="h-4 w-4" />
                         Trimite recenzia

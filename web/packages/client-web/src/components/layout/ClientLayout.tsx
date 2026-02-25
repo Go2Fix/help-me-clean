@@ -10,6 +10,7 @@ import {
   Settings,
   Sparkles,
   User,
+  LifeBuoy,
 } from 'lucide-react';
 import DashboardLayout from './DashboardLayout';
 import Button from '@/components/ui/Button';
@@ -23,6 +24,7 @@ const navItems = [
   { to: '/cont/plati', icon: CreditCard, label: 'Plati' },
   { to: '/cont/facturi', icon: FileText, label: 'Facturi' },
   { to: '/cont/setari', icon: Settings, label: 'Profil & Setari' },
+  { to: '/cont/ajutor', icon: LifeBuoy, label: 'Ajutor' },
 ];
 
 export default function ClientLayout() {

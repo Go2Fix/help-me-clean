@@ -70,6 +70,7 @@ import {
   SUBSCRIPTION_PRICING_PREVIEW,
   CREATE_SUBSCRIPTION,
   SERVICE_CATEGORY_BY_SLUG,
+  SERVICE_CATEGORIES,
 } from '@/graphql/operations';
 
 const stripePromise = loadStripe(
@@ -427,6 +428,10 @@ export default function BookingPage() {
     fetchPolicy: 'cache-first',
   });
   const urlCategory = (categoryData as { serviceCategoryBySlug?: { id: string; nameRo: string; slug: string; formFields?: string | null } })?.serviceCategoryBySlug;
+
+  const { data: allCategoriesData } = useQuery(SERVICE_CATEGORIES, { fetchPolicy: 'cache-first' });
+  const allCategories: { id: string; slug: string; nameRo: string; icon: string; isActive: boolean }[] =
+    (allCategoriesData?.serviceCategories ?? []).filter((c: { isActive: boolean }) => c.isActive);
 
   const categoryFormFields: FormFieldDefinition[] = parseFormFields(urlCategory?.formFields);
   const isCleaning = !urlCategory || urlCategory.slug === 'curatenie';
@@ -1060,6 +1065,7 @@ export default function BookingPage() {
             {STEPS[currentStep]?.key === 'service' && (
               <StepService
                 services={services}
+                categories={allCategories}
                 loading={servicesLoading}
                 selected={form.serviceType}
                 onSelect={(type) => {
@@ -1500,88 +1506,130 @@ function StepIndicator({ currentStep, steps }: { currentStep: number; steps: rea
 
 function StepService({
   services,
+  categories,
   loading,
   selected,
   onSelect,
 }: {
   services: ServiceDefinition[];
+  categories: { id: string; slug: string; nameRo: string; icon: string }[];
   loading: boolean;
   selected: string;
   onSelect: (type: string) => void;
 }) {
+  // Group services by category
+  const grouped = useMemo(() => {
+    const map = new Map<string, ServiceDefinition[]>();
+    services.forEach((s) => {
+      const key = s.categoryId || 'uncategorized';
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(s);
+    });
+    return map;
+  }, [services]);
+
+  const categoryMap = useMemo(() => {
+    const m: Record<string, { nameRo: string; icon: string }> = {};
+    categories.forEach((c) => { m[c.id] = { nameRo: c.nameRo, icon: c.icon }; });
+    return m;
+  }, [categories]);
+
+  const showCategoryHeaders = grouped.size > 1;
+
   if (loading) {
     return <LoadingSpinner text="Se încarcă serviciile..." />;
   }
 
+  const renderServiceCard = (service: ServiceDefinition) => {
+    const isSelected = selected === service.serviceType;
+    const isRecommended = service.serviceType === 'STANDARD_CLEANING';
+    const includedItems = service.includedItems ?? [];
+    return (
+      <Card
+        key={service.id}
+        className={cn(
+          'cursor-pointer transition-all relative',
+          isSelected
+            ? 'ring-2 ring-blue-600 border-blue-600 shadow-md shadow-blue-600/10'
+            : 'hover:shadow-md hover:border-gray-300',
+        )}
+        onClick={() => onSelect(service.serviceType)}
+      >
+        {isRecommended && (
+          <div className="absolute -top-2.5 left-4 bg-emerald-500 text-white text-xs font-bold px-3 py-0.5 rounded-full">
+            Recomandat
+          </div>
+        )}
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex items-center gap-2.5">
+            <span className="text-2xl">
+              {SERVICE_ICONS[service.serviceType] || service.icon || '\uD83E\uDDF9'}
+            </span>
+            <div>
+              <h3 className="font-semibold text-gray-900 leading-tight">
+                {service.nameRo}
+              </h3>
+              <div className="flex items-baseline gap-1 mt-0.5">
+                <span className="text-base font-bold text-blue-600">
+                  {service.basePricePerHour} lei
+                </span>
+                <span className="text-xs text-gray-400">/oră</span>
+                <span className="text-xs text-gray-400 ml-1">
+                  · min. {service.minHours} ore
+                </span>
+              </div>
+            </div>
+          </div>
+          {isSelected && (
+            <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center shrink-0 ml-2">
+              <Check className="h-4 w-4 text-white" />
+            </div>
+          )}
+        </div>
+        {includedItems.length > 0 && (
+          <ul className="space-y-1">
+            {includedItems.map((item) => (
+              <li key={item} className="flex items-center gap-2 text-xs text-gray-600">
+                <Check className="h-3 w-3 text-emerald-500 shrink-0" />
+                {item}
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
+    );
+  };
+
   return (
     <div>
       <h2 className="text-xl font-semibold text-gray-900 mb-2">
-        Alege tipul de curățenie
+        Alege serviciul
       </h2>
       <p className="text-sm text-gray-500 mb-6">
         Selectează serviciul potrivit nevoilor tale.
       </p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {services.map((service) => {
-          const isSelected = selected === service.serviceType;
-          const isRecommended = service.serviceType === 'STANDARD_CLEANING';
-          const includedItems = service.includedItems ?? [];
+      {showCategoryHeaders ? (
+        Array.from(grouped.entries()).map(([catId, catServices]) => {
+          const cat = categoryMap[catId];
           return (
-            <Card
-              key={service.id}
-              className={cn(
-                'cursor-pointer transition-all relative',
-                isSelected
-                  ? 'ring-2 ring-blue-600 border-blue-600 shadow-md shadow-blue-600/10'
-                  : 'hover:shadow-md hover:border-gray-300',
-              )}
-              onClick={() => onSelect(service.serviceType)}
-            >
-              {isRecommended && (
-                <div className="absolute -top-2.5 left-4 bg-emerald-500 text-white text-xs font-bold px-3 py-0.5 rounded-full">
-                  Recomandat
-                </div>
-              )}
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-2.5">
-                  <span className="text-2xl">
-                    {SERVICE_ICONS[service.serviceType] || service.icon || '\uD83E\uDDF9'}
-                  </span>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 leading-tight">
-                      {service.nameRo}
-                    </h3>
-                    <div className="flex items-baseline gap-1 mt-0.5">
-                      <span className="text-base font-bold text-blue-600">
-                        {service.basePricePerHour} lei
-                      </span>
-                      <span className="text-xs text-gray-400">/oră</span>
-                      <span className="text-xs text-gray-400 ml-1">
-                        · min. {service.minHours} ore
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                {isSelected && (
-                  <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center shrink-0 ml-2">
-                    <Check className="h-4 w-4 text-white" />
-                  </div>
-                )}
+            <div key={catId} className="mb-8 last:mb-0">
+              <div className="flex items-center gap-2 mb-4">
+                {cat?.icon && <span className="text-2xl">{cat.icon}</span>}
+                <h3 className="text-lg font-semibold text-gray-900">
+                  {cat?.nameRo || 'Alte servicii'}
+                </h3>
               </div>
-              {includedItems.length > 0 && (
-                <ul className="space-y-1">
-                  {includedItems.map((item) => (
-                    <li key={item} className="flex items-center gap-2 text-xs text-gray-600">
-                      <Check className="h-3 w-3 text-emerald-500 shrink-0" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </Card>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {catServices.map(renderServiceCard)}
+              </div>
+            </div>
           );
-        })}
-      </div>
+        })
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {services.map(renderServiceCard)}
+        </div>
+      )}
       <p className="text-xs text-gray-400 mt-4 text-center">
         Prețul final depinde de suprafața și durata efectivă a lucrării.
       </p>

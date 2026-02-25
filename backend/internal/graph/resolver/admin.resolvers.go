@@ -207,6 +207,42 @@ func (r *mutationResolver) DeleteReview(ctx context.Context, id string) (bool, e
 	return true, nil
 }
 
+// ApproveReview is the resolver for the approveReview field.
+func (r *mutationResolver) ApproveReview(ctx context.Context, id string) (*model.Review, error) {
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil {
+		return nil, fmt.Errorf("not authenticated")
+	}
+
+	review, err := r.Queries.UpdateReviewStatus(ctx, db.UpdateReviewStatusParams{
+		ID:     stringToUUID(id),
+		Status: "published",
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to approve review: %w", err)
+	}
+
+	return dbReviewToGQL(review), nil
+}
+
+// RejectReview is the resolver for the rejectReview field.
+func (r *mutationResolver) RejectReview(ctx context.Context, id string) (*model.Review, error) {
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil {
+		return nil, fmt.Errorf("not authenticated")
+	}
+
+	review, err := r.Queries.UpdateReviewStatus(ctx, db.UpdateReviewStatusParams{
+		ID:     stringToUUID(id),
+		Status: "rejected",
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to reject review: %w", err)
+	}
+
+	return dbReviewToGQL(review), nil
+}
+
 // PlatformStats is the resolver for the platformStats field.
 func (r *queryResolver) PlatformStats(ctx context.Context, dateFrom *string, dateTo *string) (*model.PlatformStats, error) {
 	claims := auth.GetUserFromContext(ctx)

@@ -777,19 +777,31 @@ type RevenueByMonth struct {
 }
 
 type Review struct {
-	ID         string         `json:"id"`
-	Booking    *Booking       `json:"booking,omitempty"`
-	Reviewer   *User          `json:"reviewer,omitempty"`
-	Worker     *WorkerProfile `json:"worker,omitempty"`
-	Rating     int            `json:"rating"`
-	Comment    *string        `json:"comment,omitempty"`
-	ReviewType string         `json:"reviewType"`
-	CreatedAt  time.Time      `json:"createdAt"`
+	ID                  string         `json:"id"`
+	Booking             *Booking       `json:"booking,omitempty"`
+	Reviewer            *User          `json:"reviewer,omitempty"`
+	Worker              *WorkerProfile `json:"worker,omitempty"`
+	Rating              int            `json:"rating"`
+	RatingPunctuality   *int           `json:"ratingPunctuality,omitempty"`
+	RatingQuality       *int           `json:"ratingQuality,omitempty"`
+	RatingCommunication *int           `json:"ratingCommunication,omitempty"`
+	RatingValue         *int           `json:"ratingValue,omitempty"`
+	Comment             *string        `json:"comment,omitempty"`
+	ReviewType          string         `json:"reviewType"`
+	Status              string         `json:"status"`
+	Photos              []*ReviewPhoto `json:"photos"`
+	CreatedAt           time.Time      `json:"createdAt"`
 }
 
 type ReviewConnection struct {
 	Reviews    []*Review `json:"reviews"`
 	TotalCount int       `json:"totalCount"`
+}
+
+type ReviewPhoto struct {
+	ID        string `json:"id"`
+	PhotoURL  string `json:"photoUrl"`
+	SortOrder int    `json:"sortOrder"`
 }
 
 type ServiceCategory struct {
@@ -903,9 +915,13 @@ type StripeConnectStatus struct {
 }
 
 type SubmitReviewInput struct {
-	BookingID string  `json:"bookingId"`
-	Rating    int     `json:"rating"`
-	Comment   *string `json:"comment,omitempty"`
+	BookingID           string  `json:"bookingId"`
+	Rating              int     `json:"rating"`
+	RatingPunctuality   *int    `json:"ratingPunctuality,omitempty"`
+	RatingQuality       *int    `json:"ratingQuality,omitempty"`
+	RatingCommunication *int    `json:"ratingCommunication,omitempty"`
+	RatingValue         *int    `json:"ratingValue,omitempty"`
+	Comment             *string `json:"comment,omitempty"`
 }
 
 type SubscriptionConnection struct {

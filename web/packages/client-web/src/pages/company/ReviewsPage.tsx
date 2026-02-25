@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@apollo/client';
 import { useNavigate } from 'react-router-dom';
-import { Star, MessageSquare, BarChart3, Trophy } from 'lucide-react';
+import { Star, MessageSquare, BarChart3, Trophy, Clock, Sparkles, Scale } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Modal from '@/components/ui/Modal';
@@ -29,8 +29,13 @@ const ratingOptions = [
 interface Review {
   id: string;
   rating: number;
+  ratingPunctuality: number | null;
+  ratingQuality: number | null;
+  ratingCommunication: number | null;
+  ratingValue: number | null;
   comment: string | null;
   reviewType: string;
+  status: string;
   createdAt: string;
   booking: { id: string; referenceCode: string } | null;
   reviewer: { id: string; fullName: string } | null;
@@ -287,6 +292,29 @@ export default function CompanyReviewsPage() {
         {detailReview && (
           <div className="space-y-4">
             <StarRatingFull rating={detailReview.rating} />
+
+            {(detailReview.ratingPunctuality || detailReview.ratingQuality || detailReview.ratingCommunication || detailReview.ratingValue) && (
+              <div className="space-y-2 bg-gray-50 rounded-xl p-3">
+                {[
+                  { label: 'Punctualitate', icon: Clock, value: detailReview.ratingPunctuality },
+                  { label: 'Calitate', icon: Sparkles, value: detailReview.ratingQuality },
+                  { label: 'Comunicare', icon: MessageSquare, value: detailReview.ratingCommunication },
+                  { label: 'Raport calitate-pret', icon: Scale, value: detailReview.ratingValue },
+                ].filter(r => r.value).map(r => (
+                  <div key={r.label} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <r.icon className="h-3.5 w-3.5 text-gray-400" />
+                      <span className="text-xs text-gray-600">{r.label}</span>
+                    </div>
+                    <div className="flex gap-0.5">
+                      {[1, 2, 3, 4, 5].map(s => (
+                        <Star key={s} className={s <= (r.value ?? 0) ? 'h-3.5 w-3.5 fill-accent text-accent' : 'h-3.5 w-3.5 text-gray-300'} />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {detailReview.comment && (
               <div>

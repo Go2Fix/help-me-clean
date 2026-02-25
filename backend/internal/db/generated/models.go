@@ -1272,15 +1272,28 @@ type RefundRequest struct {
 }
 
 type Review struct {
-	ID               pgtype.UUID        `json:"id"`
-	BookingID        pgtype.UUID        `json:"booking_id"`
-	ReviewerUserID   pgtype.UUID        `json:"reviewer_user_id"`
-	ReviewedUserID   pgtype.UUID        `json:"reviewed_user_id"`
-	ReviewedWorkerID pgtype.UUID        `json:"reviewed_worker_id"`
-	Rating           int32              `json:"rating"`
-	Comment          pgtype.Text        `json:"comment"`
-	ReviewType       string             `json:"review_type"`
-	CreatedAt        pgtype.Timestamptz `json:"created_at"`
+	ID                  pgtype.UUID        `json:"id"`
+	BookingID           pgtype.UUID        `json:"booking_id"`
+	ReviewerUserID      pgtype.UUID        `json:"reviewer_user_id"`
+	ReviewedUserID      pgtype.UUID        `json:"reviewed_user_id"`
+	ReviewedWorkerID    pgtype.UUID        `json:"reviewed_worker_id"`
+	Rating              int32              `json:"rating"`
+	Comment             pgtype.Text        `json:"comment"`
+	ReviewType          string             `json:"review_type"`
+	CreatedAt           pgtype.Timestamptz `json:"created_at"`
+	RatingPunctuality   pgtype.Int4        `json:"rating_punctuality"`
+	RatingQuality       pgtype.Int4        `json:"rating_quality"`
+	RatingCommunication pgtype.Int4        `json:"rating_communication"`
+	RatingValue         pgtype.Int4        `json:"rating_value"`
+	Status              string             `json:"status"`
+}
+
+type ReviewPhoto struct {
+	ID        pgtype.UUID        `json:"id"`
+	ReviewID  pgtype.UUID        `json:"review_id"`
+	PhotoUrl  string             `json:"photo_url"`
+	SortOrder int32              `json:"sort_order"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
 type ServiceCategory struct {
