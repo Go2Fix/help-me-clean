@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"go2fix-backend/internal/auth"
 	db "go2fix-backend/internal/db/generated"
+	"go2fix-backend/internal/graph"
 	"go2fix-backend/internal/graph/model"
 	"go2fix-backend/internal/storage"
 	"strings"
@@ -621,6 +622,64 @@ func (r *mutationResolver) ActivateWorker(ctx context.Context, id string) (*mode
 	return r.workerWithCompany(ctx, worker)
 }
 
+// UpdateWorkerServiceCategories is the resolver for the updateWorkerServiceCategories field.
+func (r *mutationResolver) UpdateWorkerServiceCategories(ctx context.Context, workerID string, categoryIds []string) ([]*model.ServiceCategory, error) {
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil {
+		return nil, fmt.Errorf("not authenticated")
+	}
+	if claims.Role != "company_admin" && claims.Role != "global_admin" {
+		return nil, fmt.Errorf("not authorized")
+	}
+
+	workerUUID := stringToUUID(workerID)
+
+	// Company admin can only update workers from their own company.
+	if claims.Role == "company_admin" {
+		company, err := r.Queries.GetCompanyByAdminUserID(ctx, stringToUUID(claims.UserID))
+		if err != nil {
+			return nil, fmt.Errorf("company not found for user")
+		}
+		worker, err := r.Queries.GetWorkerByID(ctx, workerUUID)
+		if err != nil {
+			return nil, fmt.Errorf("worker not found: %w", err)
+		}
+		if uuidToString(worker.CompanyID) != uuidToString(company.ID) {
+			return nil, fmt.Errorf("worker does not belong to your company")
+		}
+	}
+
+	// Delete all existing categories and insert the new ones.
+	if err := r.Queries.DeleteAllWorkerServiceCategories(ctx, workerUUID); err != nil {
+		return nil, fmt.Errorf("failed to clear worker categories: %w", err)
+	}
+	for _, catID := range categoryIds {
+		if err := r.Queries.InsertWorkerServiceCategory(ctx, db.InsertWorkerServiceCategoryParams{
+			WorkerID:   workerUUID,
+			CategoryID: stringToUUID(catID),
+		}); err != nil {
+			return nil, fmt.Errorf("failed to assign category: %w", err)
+		}
+	}
+
+	// Return the updated list.
+	rows, err := r.Queries.ListWorkerServiceCategories(ctx, workerUUID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list worker categories: %w", err)
+	}
+	result := make([]*model.ServiceCategory, len(rows))
+	for i, row := range rows {
+		result[i] = &model.ServiceCategory{
+			ID:     uuidToString(row.CategoryID),
+			Slug:   row.Slug,
+			NameRo: row.NameRo,
+			NameEn: row.NameEn,
+			Icon:   textPtr(row.Icon),
+		}
+	}
+	return result, nil
+}
+
 // MyWorkers is the resolver for the myWorkers field.
 func (r *queryResolver) MyWorkers(ctx context.Context) ([]*model.WorkerProfile, error) {
 	claims := auth.GetUserFromContext(ctx)
@@ -1208,3 +1267,31 @@ func (r *queryResolver) PendingWorkerDocuments(ctx context.Context) ([]*model.Wo
 	}
 	return result, nil
 }
+
+// ServiceCategories is the resolver for the serviceCategories field.
+func (r *workerProfileResolver) ServiceCategories(ctx context.Context, obj *model.WorkerProfile) ([]*model.ServiceCategory, error) {
+	workerUUID := stringToUUID(obj.ID)
+	if !workerUUID.Valid {
+		return []*model.ServiceCategory{}, nil
+	}
+	rows, err := r.Queries.ListWorkerServiceCategories(ctx, workerUUID)
+	if err != nil {
+		return []*model.ServiceCategory{}, nil
+	}
+	result := make([]*model.ServiceCategory, len(rows))
+	for i, row := range rows {
+		result[i] = &model.ServiceCategory{
+			ID:     uuidToString(row.CategoryID),
+			Slug:   row.Slug,
+			NameRo: row.NameRo,
+			NameEn: row.NameEn,
+			Icon:   textPtr(row.Icon),
+		}
+	}
+	return result, nil
+}
+
+// WorkerProfile returns graph.WorkerProfileResolver implementation.
+func (r *Resolver) WorkerProfile() graph.WorkerProfileResolver { return &workerProfileResolver{r} }
+
+type workerProfileResolver struct{ *Resolver }

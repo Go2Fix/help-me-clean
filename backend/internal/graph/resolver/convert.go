@@ -349,6 +349,11 @@ func gqlPricingModelToDb(pm model.PricingModel) db.PricingModel {
 }
 
 func dbServiceExtraToGQL(e db.ServiceExtra) *model.ServiceExtra {
+	var categoryID *string
+	if e.CategoryID.Valid {
+		s := uuidToString(e.CategoryID)
+		categoryID = &s
+	}
 	return &model.ServiceExtra{
 		ID:              uuidToString(e.ID),
 		NameRo:          e.NameRo,
@@ -359,6 +364,7 @@ func dbServiceExtraToGQL(e db.ServiceExtra) *model.ServiceExtra {
 		IsActive:        boolVal(e.IsActive),
 		AllowMultiple:   e.AllowMultiple,
 		UnitLabel:       textPtr(e.UnitLabel),
+		CategoryID:      categoryID,
 	}
 }
 
@@ -376,6 +382,12 @@ func dbBookingToGQL(b db.Booking) *model.Booking {
 	if b.SubscriptionID.Valid {
 		s := uuidToString(b.SubscriptionID)
 		subscriptionID = &s
+	}
+
+	var categoryID *string
+	if b.CategoryID.Valid {
+		s := uuidToString(b.CategoryID)
+		categoryID = &s
 	}
 
 	return &model.Booking{
@@ -416,6 +428,7 @@ func dbBookingToGQL(b db.Booking) *model.Booking {
 		IncludedItems:         []string{},
 		PaymentStatus:         paymentStatus,
 		PaidAt:                timestamptzToTimePtr(b.PaidAt),
+		CategoryID:            categoryID,
 		CreatedAt:             timestamptzToTime(b.CreatedAt),
 	}
 }

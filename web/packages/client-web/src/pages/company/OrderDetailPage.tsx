@@ -490,9 +490,16 @@ export default function OrderDetailPage() {
               </Badge>
             )}
           </div>
-          <p className="text-sm text-gray-500 mt-1">
-            {booking.serviceName} &middot; Creata pe {formatDateTime(booking.createdAt)}
-          </p>
+          <div className="flex flex-wrap items-center gap-2 mt-1">
+            <p className="text-sm text-gray-500">
+              {booking.serviceName} &middot; Creata pe {formatDateTime(booking.createdAt)}
+            </p>
+            {booking.category && (
+              <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-medium">
+                {booking.category.icon} {booking.category.nameRo}
+              </span>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <Link to="/firma/mesaje">

@@ -32,6 +32,7 @@ type Company {
   documents: [CompanyDocument!]!
   workers: [WorkerProfile!]!
   commissionOverridePct: Float
+  serviceCategories: [ServiceCategory!]!
   admin: User
   createdAt: DateTime!
 }
@@ -95,6 +96,7 @@ extend type Mutation {
   suspendCompany(id: ID!, reason: String!): Company!
   reviewCompanyDocument(id: ID!, approved: Boolean!, rejectionReason: String): CompanyDocument!
   setCompanyCommissionOverride(id: ID!, pct: Float): Company!
+  updateCompanyServiceCategories(categoryIds: [ID!]!): [ServiceCategory!]!
 }
 
 input CompanyApplicationInput {

@@ -30,42 +30,36 @@ import {
 import { cn } from '@go2fix/shared';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
-import { AVAILABLE_SERVICES } from '@/graphql/operations';
+import { SERVICE_CATEGORIES } from '@/graphql/operations';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-interface ServiceDefinition {
+interface ServiceCategory {
   id: string;
-  serviceType: string;
+  slug: string;
   nameRo: string;
-  descriptionRo: string;
-  basePricePerHour: number;
-  minHours: number;
+  nameEn: string;
   icon: string;
+  isActive: boolean;
 }
 
-// ─── Static (icon/style only) data ───────────────────────────────────────────
+// ─── Coming-soon placeholder categories (frontend-only) ─────────────────────
 
-const SERVICE_ICONS: Record<string, string> = {
-  STANDARD_CLEANING: '🏠',
-  DEEP_CLEANING: '✨',
-  OFFICE_CLEANING: '🏢',
-  POST_CONSTRUCTION: '🔨',
-  MOVE_IN_OUT_CLEANING: '📦',
-  WINDOW_CLEANING: '🪟',
-  CARPET_CLEANING: '🧹',
-  UPHOLSTERY_CLEANING: '🛋️',
+const COMING_SOON_CATEGORIES = [
+  { slug: 'dezinfectie', icon: '🦠', nameRo: 'Dezinfecție', nameEn: 'Disinfection', descKey: 'disinfectionDesc' },
+  { slug: 'instalatii', icon: '🔧', nameRo: 'Instalații sanitare', nameEn: 'Plumbing', descKey: 'plumbingDesc' },
+  { slug: 'electrician', icon: '⚡', nameRo: 'Electrician', nameEn: 'Electrical', descKey: 'electricalDesc' },
+];
+
+const CATEGORY_DESC_KEYS: Record<string, string> = {
+  curatenie: 'cleaningDesc',
 };
 
-const SERVICE_COLORS: Record<string, string> = {
-  STANDARD_CLEANING: 'border-t-primary',
-  DEEP_CLEANING: 'border-t-secondary',
-  OFFICE_CLEANING: 'border-t-blue-400',
-  POST_CONSTRUCTION: 'border-t-amber-500',
-  MOVE_IN_OUT_CLEANING: 'border-t-purple-500',
-  WINDOW_CLEANING: 'border-t-sky-400',
-  CARPET_CLEANING: 'border-t-emerald-400',
-  UPHOLSTERY_CLEANING: 'border-t-rose-400',
+const CATEGORY_COLORS: Record<string, string> = {
+  curatenie: 'border-t-primary',
+  dezinfectie: 'border-t-secondary',
+  instalatii: 'border-t-amber-500',
+  electrician: 'border-t-purple-500',
 };
 
 const TRUST_ITEM_STYLES = [
@@ -116,7 +110,7 @@ export default function HomePage() {
   const { lang } = useLanguage();
   const { user, isAuthenticated, loading: authLoading } = useAuth();
   const { isPreRelease, loading: platformLoading } = usePlatform();
-  const { data, loading } = useQuery(AVAILABLE_SERVICES, {
+  const { data: categoriesData, loading: categoriesLoading } = useQuery(SERVICE_CATEGORIES, {
     fetchPolicy: 'cache-first',
   });
 
@@ -133,7 +127,10 @@ export default function HomePage() {
         : '/worker'
       : '/admin';
 
-  const services: ServiceDefinition[] = data?.availableServices ?? [];
+  const categories: ServiceCategory[] = categoriesData?.serviceCategories ?? [];
+  // Filter out any coming-soon slugs that now exist as real categories in the DB
+  const realSlugs = new Set(categories.map((c) => c.slug));
+  const comingSoon = COMING_SOON_CATEGORIES.filter((c) => !realSlugs.has(c.slug));
 
   return (
     <div>
@@ -337,56 +334,86 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Services ─────────────────────────────────────────────────────────── */}
+      {/* ── Categories ──────────────────────────────────────────────────────── */}
       <section id="servicii" className="py-20 sm:py-24 bg-white scroll-mt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="mb-12">
-            <p className="text-primary text-sm font-semibold uppercase tracking-widest mb-3">{t('services.sectionLabel')}</p>
+            <p className="text-primary text-sm font-semibold uppercase tracking-widest mb-3">{t('categories.sectionLabel')}</p>
             <h2 className="text-4xl font-black text-gray-900 mb-4">
-              {t('services.title')}
+              {t('categories.title')}
             </h2>
             <p className="text-gray-500 max-w-xl text-lg">
-              {t('services.subtitle')}
+              {t('categories.subtitle')}
             </p>
           </div>
 
-          {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" data-testid="services-skeleton">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
+          {categoriesLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" data-testid="categories-skeleton">
+              {[1, 2, 3, 4].map((i) => (
                 <Card key={i} className="border-t-4 border-t-gray-200 animate-pulse">
-                  <div className="h-8 w-8 bg-gray-200 rounded mb-4" />
-                  <div className="h-5 w-3/4 bg-gray-200 rounded mb-2" />
+                  <div className="h-12 w-12 bg-gray-200 rounded-xl mb-4" />
+                  <div className="h-6 w-3/4 bg-gray-200 rounded mb-3" />
                   <div className="h-4 w-full bg-gray-200 rounded mb-1" />
                   <div className="h-4 w-2/3 bg-gray-200 rounded mb-4" />
-                  <div className="h-6 w-20 bg-gray-200 rounded" />
+                  <div className="h-5 w-28 bg-gray-200 rounded" />
                 </Card>
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 animate-[fadeIn_0.3s_ease-out]">
-              {services.map((service) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-[fadeIn_0.3s_ease-out]">
+              {/* Active categories from DB */}
+              {categories.map((category) => {
+                const categoryPath = lang === 'en'
+                  ? `/en/services/${category.slug}`
+                  : `/servicii/${category.slug}`;
+                const descKey = CATEGORY_DESC_KEYS[category.slug] || 'cleaningDesc';
+                return (
+                  <Card
+                    key={category.id}
+                    className={cn(
+                      'border-t-4 hover:-translate-y-1 hover:shadow-lg transition-all duration-200 cursor-pointer group',
+                      CATEGORY_COLORS[category.slug] ?? 'border-t-primary'
+                    )}
+                    onClick={() => navigate(categoryPath)}
+                  >
+                    <div className="text-4xl mb-4">
+                      {category.icon || '🏠'}
+                    </div>
+                    <h3 className="text-lg font-black text-gray-900 mb-2 group-hover:text-primary transition-colors">
+                      {lang === 'en' ? category.nameEn : category.nameRo}
+                    </h3>
+                    <p className="text-sm text-gray-500 mb-5 leading-relaxed">
+                      {t(`categories.${descKey}`)}
+                    </p>
+                    <div className="flex items-center gap-1.5 text-primary font-semibold text-sm group-hover:gap-2.5 transition-all">
+                      {t('categories.viewCategory')} <ArrowRight className="h-4 w-4" />
+                    </div>
+                  </Card>
+                );
+              })}
+
+              {/* Coming-soon placeholder categories */}
+              {comingSoon.map((placeholder) => (
                 <Card
-                  key={service.id}
-                  className={`border-t-4 ${SERVICE_COLORS[service.serviceType] ?? 'border-t-gray-200'} hover:-translate-y-1 hover:shadow-lg transition-all duration-200 cursor-pointer group`}
-                  onClick={() => navigate(`${ROUTE_MAP.booking[lang]}?service=${service.serviceType}`)}
+                  key={placeholder.slug}
+                  className={cn(
+                    'border-t-4 opacity-60 relative overflow-hidden',
+                    CATEGORY_COLORS[placeholder.slug] ?? 'border-t-gray-300'
+                  )}
                 >
-                  <div className="text-3xl mb-4">
-                    {SERVICE_ICONS[service.serviceType] || service.icon || '🧹'}
-                  </div>
-                  <h3 className="text-base font-bold text-gray-900 mb-2 group-hover:text-primary transition-colors">
-                    {service.nameRo}
-                  </h3>
-                  <p className="text-sm text-gray-500 mb-4 line-clamp-2">
-                    {service.descriptionRo}
-                  </p>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-xl font-black text-primary">
-                      {service.basePricePerHour} lei
+                  <div className="absolute top-3 right-3">
+                    <span className="bg-amber-100 text-amber-700 text-xs font-semibold px-2.5 py-1 rounded-full">
+                      {t('categories.comingSoon')}
                     </span>
-                    <span className="text-sm text-gray-400">{t('services.priceUnit')}</span>
                   </div>
-                  <p className="text-xs text-gray-400 mt-0.5">
-                    {t('services.minHours', { count: service.minHours })}
+                  <div className="text-4xl mb-4">
+                    {placeholder.icon}
+                  </div>
+                  <h3 className="text-lg font-black text-gray-900 mb-2">
+                    {lang === 'en' ? placeholder.nameEn : placeholder.nameRo}
+                  </h3>
+                  <p className="text-sm text-gray-500 mb-5 leading-relaxed">
+                    {t(`categories.${placeholder.descKey}`)}
                   </p>
                 </Card>
               ))}

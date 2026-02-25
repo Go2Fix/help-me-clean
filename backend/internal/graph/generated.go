@@ -40,9 +40,12 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	Booking() BookingResolver
+	Company() CompanyResolver
 	Mutation() MutationResolver
 	PersonalityAssessment() PersonalityAssessmentResolver
 	Query() QueryResolver
+	WorkerProfile() WorkerProfileResolver
 }
 
 type DirectiveRoot struct {
@@ -83,6 +86,8 @@ type ComplexityRoot struct {
 		AreaSqm                func(childComplexity int) int
 		CancellationReason     func(childComplexity int) int
 		CancelledAt            func(childComplexity int) int
+		Category               func(childComplexity int) int
+		CategoryID             func(childComplexity int) int
 		ChatRoom               func(childComplexity int) int
 		Client                 func(childComplexity int) int
 		Company                func(childComplexity int) int
@@ -234,6 +239,7 @@ type ComplexityRoot struct {
 		MaxServiceRadiusKm    func(childComplexity int) int
 		RatingAvg             func(childComplexity int) int
 		RejectionReason       func(childComplexity int) int
+		ServiceCategories     func(childComplexity int) int
 		Status                func(childComplexity int) int
 		TotalJobsCompleted    func(childComplexity int) int
 		Workers               func(childComplexity int) int
@@ -491,6 +497,7 @@ type ComplexityRoot struct {
 		UpdateCityPricingMultiplier               func(childComplexity int, id string, pricingMultiplier float64) int
 		UpdateCompanyProfile                      func(childComplexity int, input model.UpdateCompanyInput) int
 		UpdateCompanyServiceAreas                 func(childComplexity int, areaIds []string) int
+		UpdateCompanyServiceCategories            func(childComplexity int, categoryIds []string) int
 		UpdatePayoutStatus                        func(childComplexity int, payoutID string, status model.PayoutStatus, notes *string) int
 		UpdatePlatformSetting                     func(childComplexity int, key string, value string) int
 		UpdateProfile                             func(childComplexity int, input model.UpdateProfileInput) int
@@ -502,6 +509,7 @@ type ComplexityRoot struct {
 		UpdateWorkerAvailability                  func(childComplexity int, workerID string, slots []*model.AvailabilitySlotInput) int
 		UpdateWorkerProfile                       func(childComplexity int, input model.UpdateWorkerProfileInput) int
 		UpdateWorkerServiceAreas                  func(childComplexity int, workerID string, areaIds []string) int
+		UpdateWorkerServiceCategories             func(childComplexity int, workerID string, categoryIds []string) int
 		UpdateWorkerStatus                        func(childComplexity int, id string, status model.WorkerStatus) int
 		UploadAvatar                              func(childComplexity int, file graphql.Upload) int
 		UploadCompanyDocument                     func(childComplexity int, companyID string, documentType string, file graphql.Upload) int
@@ -716,6 +724,7 @@ type ComplexityRoot struct {
 		AllUsers                           func(childComplexity int) int
 		AllWorkers                         func(childComplexity int) int
 		AvailableExtras                    func(childComplexity int) int
+		AvailableExtrasByCategory          func(childComplexity int, categoryID string) int
 		AvailableServices                  func(childComplexity int) int
 		Booking                            func(childComplexity int, id string) int
 		BookingPaymentDetails              func(childComplexity int, bookingID string) int
@@ -797,8 +806,8 @@ type ComplexityRoot struct {
 		ServiceSubscription                func(childComplexity int, id string) int
 		SubscriptionPricingPreview         func(childComplexity int, serviceType model.ServiceType, recurrenceType model.RecurrenceType, numRooms int, numBathrooms int, areaSqm *int, propertyType *string, hasPets *bool, extras []*model.ExtraInput) int
 		SubscriptionStats                  func(childComplexity int) int
-		SuggestWorkerForSubscription       func(childComplexity int, cityID string, areaID string, recurrenceType model.RecurrenceType, dayOfWeek int, preferredTimeStart string, preferredTimeEnd string, estimatedDurationHours float64) int
-		SuggestWorkers                     func(childComplexity int, cityID string, areaID string, timeSlots []*model.TimeSlotInput, estimatedDurationHours float64) int
+		SuggestWorkerForSubscription       func(childComplexity int, cityID string, areaID string, recurrenceType model.RecurrenceType, dayOfWeek int, preferredTimeStart string, preferredTimeEnd string, estimatedDurationHours float64, categoryID *string) int
+		SuggestWorkers                     func(childComplexity int, cityID string, areaID string, timeSlots []*model.TimeSlotInput, estimatedDurationHours float64, categoryID *string) int
 		TodaysJobs                         func(childComplexity int) int
 		TopCompaniesByRevenue              func(childComplexity int, from string, to string, limit *int) int
 		UnreadNotificationCount            func(childComplexity int) int
@@ -897,6 +906,7 @@ type ComplexityRoot struct {
 
 	ServiceExtra struct {
 		AllowMultiple   func(childComplexity int) int
+		CategoryID      func(childComplexity int) int
 		DurationMinutes func(childComplexity int) int
 		ID              func(childComplexity int) int
 		Icon            func(childComplexity int) int
@@ -1111,6 +1121,7 @@ type ComplexityRoot struct {
 		PersonalityAssessment func(childComplexity int) int
 		Phone                 func(childComplexity int) int
 		RatingAvg             func(childComplexity int) int
+		ServiceCategories     func(childComplexity int) int
 		Status                func(childComplexity int) int
 		TotalJobsCompleted    func(childComplexity int) int
 		User                  func(childComplexity int) int
@@ -1139,6 +1150,12 @@ type ComplexityRoot struct {
 	}
 }
 
+type BookingResolver interface {
+	Category(ctx context.Context, obj *model.Booking) (*model.ServiceCategory, error)
+}
+type CompanyResolver interface {
+	ServiceCategories(ctx context.Context, obj *model.Company) ([]*model.ServiceCategory, error)
+}
 type MutationResolver interface {
 	AdminCancelBooking(ctx context.Context, id string, reason string) (*model.Booking, error)
 	AdminRescheduleBooking(ctx context.Context, id string, scheduledDate string, scheduledStartTime string, reason *string) (*model.Booking, error)
@@ -1183,6 +1200,7 @@ type MutationResolver interface {
 	SuspendCompany(ctx context.Context, id string, reason string) (*model.Company, error)
 	ReviewCompanyDocument(ctx context.Context, id string, approved bool, rejectionReason *string) (*model.CompanyDocument, error)
 	SetCompanyCommissionOverride(ctx context.Context, id string, pct *float64) (*model.Company, error)
+	UpdateCompanyServiceCategories(ctx context.Context, categoryIds []string) ([]*model.ServiceCategory, error)
 	UpsertBillingProfile(ctx context.Context, input model.BillingProfileInput) (*model.ClientBillingProfile, error)
 	GenerateBookingInvoice(ctx context.Context, bookingID string) (*model.Invoice, error)
 	CancelInvoice(ctx context.Context, id string) (*model.Invoice, error)
@@ -1250,6 +1268,7 @@ type MutationResolver interface {
 	DeleteWorkerDocument(ctx context.Context, id string) (bool, error)
 	ReviewWorkerDocument(ctx context.Context, id string, approved bool, rejectionReason *string) (*model.WorkerDocument, error)
 	ActivateWorker(ctx context.Context, id string) (*model.WorkerProfile, error)
+	UpdateWorkerServiceCategories(ctx context.Context, workerID string, categoryIds []string) ([]*model.ServiceCategory, error)
 }
 type PersonalityAssessmentResolver interface {
 	Insights(ctx context.Context, obj *model.PersonalityAssessment) (*model.PersonalityInsights, error)
@@ -1310,7 +1329,7 @@ type QueryResolver interface {
 	MyCompanyServiceAreas(ctx context.Context) ([]*model.CityArea, error)
 	WorkerServiceAreas(ctx context.Context, workerID string) ([]*model.CityArea, error)
 	MyWorkerServiceAreas(ctx context.Context) ([]*model.CityArea, error)
-	SuggestWorkers(ctx context.Context, cityID string, areaID string, timeSlots []*model.TimeSlotInput, estimatedDurationHours float64) ([]*model.WorkerSuggestion, error)
+	SuggestWorkers(ctx context.Context, cityID string, areaID string, timeSlots []*model.TimeSlotInput, estimatedDurationHours float64, categoryID *string) ([]*model.WorkerSuggestion, error)
 	IsCitySupported(ctx context.Context, city string) (bool, error)
 	MyNotifications(ctx context.Context, first *int, after *string, unreadOnly *bool) (*model.NotificationConnection, error)
 	UnreadNotificationCount(ctx context.Context) (int, error)
@@ -1330,6 +1349,7 @@ type QueryResolver interface {
 	WorkerPersonalityAssessment(ctx context.Context, workerID string) (*model.PersonalityAssessment, error)
 	AvailableServices(ctx context.Context) ([]*model.ServiceDefinition, error)
 	AvailableExtras(ctx context.Context) ([]*model.ServiceExtra, error)
+	AvailableExtrasByCategory(ctx context.Context, categoryID string) ([]*model.ServiceExtra, error)
 	EstimatePrice(ctx context.Context, input model.PriceEstimateInput) (*model.PriceEstimate, error)
 	ServiceCategories(ctx context.Context) ([]*model.ServiceCategory, error)
 	ServiceCategoryBySlug(ctx context.Context, slug string) (*model.ServiceCategory, error)
@@ -1339,7 +1359,7 @@ type QueryResolver interface {
 	PlatformSettings(ctx context.Context) ([]*model.PlatformSetting, error)
 	RecurringDiscounts(ctx context.Context) ([]*model.RecurringDiscount, error)
 	SubscriptionPricingPreview(ctx context.Context, serviceType model.ServiceType, recurrenceType model.RecurrenceType, numRooms int, numBathrooms int, areaSqm *int, propertyType *string, hasPets *bool, extras []*model.ExtraInput) (*model.SubscriptionPricing, error)
-	SuggestWorkerForSubscription(ctx context.Context, cityID string, areaID string, recurrenceType model.RecurrenceType, dayOfWeek int, preferredTimeStart string, preferredTimeEnd string, estimatedDurationHours float64) ([]*model.SubscriptionWorkerSuggestion, error)
+	SuggestWorkerForSubscription(ctx context.Context, cityID string, areaID string, recurrenceType model.RecurrenceType, dayOfWeek int, preferredTimeStart string, preferredTimeEnd string, estimatedDurationHours float64, categoryID *string) ([]*model.SubscriptionWorkerSuggestion, error)
 	MySubscriptions(ctx context.Context) ([]*model.ServiceSubscription, error)
 	ServiceSubscription(ctx context.Context, id string) (*model.ServiceSubscription, error)
 	CompanySubscriptions(ctx context.Context, limit *int, offset *int) (*model.SubscriptionConnection, error)
@@ -1366,6 +1386,9 @@ type QueryResolver interface {
 	WorkerDateOverrides(ctx context.Context, workerID string, from string, to string) ([]*model.WorkerDateOverride, error)
 	WorkerDocuments(ctx context.Context, workerID string) ([]*model.WorkerDocument, error)
 	PendingWorkerDocuments(ctx context.Context) ([]*model.WorkerDocument, error)
+}
+type WorkerProfileResolver interface {
+	ServiceCategories(ctx context.Context, obj *model.WorkerProfile) ([]*model.ServiceCategory, error)
 }
 
 type executableSchema struct {
@@ -1534,6 +1557,18 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Booking.CancelledAt(childComplexity), true
+	case "Booking.category":
+		if e.complexity.Booking.Category == nil {
+			break
+		}
+
+		return e.complexity.Booking.Category(childComplexity), true
+	case "Booking.categoryId":
+		if e.complexity.Booking.CategoryID == nil {
+			break
+		}
+
+		return e.complexity.Booking.CategoryID(childComplexity), true
 	case "Booking.chatRoom":
 		if e.complexity.Booking.ChatRoom == nil {
 			break
@@ -2224,6 +2259,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Company.RejectionReason(childComplexity), true
+	case "Company.serviceCategories":
+		if e.complexity.Company.ServiceCategories == nil {
+			break
+		}
+
+		return e.complexity.Company.ServiceCategories(childComplexity), true
 	case "Company.status":
 		if e.complexity.Company.Status == nil {
 			break
@@ -3836,6 +3877,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.UpdateCompanyServiceAreas(childComplexity, args["areaIds"].([]string)), true
+	case "Mutation.updateCompanyServiceCategories":
+		if e.complexity.Mutation.UpdateCompanyServiceCategories == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateCompanyServiceCategories_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateCompanyServiceCategories(childComplexity, args["categoryIds"].([]string)), true
 	case "Mutation.updatePayoutStatus":
 		if e.complexity.Mutation.UpdatePayoutStatus == nil {
 			break
@@ -3957,6 +4009,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.UpdateWorkerServiceAreas(childComplexity, args["workerId"].(string), args["areaIds"].([]string)), true
+	case "Mutation.updateWorkerServiceCategories":
+		if e.complexity.Mutation.UpdateWorkerServiceCategories == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateWorkerServiceCategories_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateWorkerServiceCategories(childComplexity, args["workerId"].(string), args["categoryIds"].([]string)), true
 	case "Mutation.updateWorkerStatus":
 		if e.complexity.Mutation.UpdateWorkerStatus == nil {
 			break
@@ -4964,6 +5027,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.AvailableExtras(childComplexity), true
+	case "Query.availableExtrasByCategory":
+		if e.complexity.Query.AvailableExtrasByCategory == nil {
+			break
+		}
+
+		args, err := ec.field_Query_availableExtrasByCategory_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.AvailableExtrasByCategory(childComplexity, args["categoryId"].(string)), true
 	case "Query.availableServices":
 		if e.complexity.Query.AvailableServices == nil {
 			break
@@ -5700,7 +5774,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Query.SuggestWorkerForSubscription(childComplexity, args["cityId"].(string), args["areaId"].(string), args["recurrenceType"].(model.RecurrenceType), args["dayOfWeek"].(int), args["preferredTimeStart"].(string), args["preferredTimeEnd"].(string), args["estimatedDurationHours"].(float64)), true
+		return e.complexity.Query.SuggestWorkerForSubscription(childComplexity, args["cityId"].(string), args["areaId"].(string), args["recurrenceType"].(model.RecurrenceType), args["dayOfWeek"].(int), args["preferredTimeStart"].(string), args["preferredTimeEnd"].(string), args["estimatedDurationHours"].(float64), args["categoryId"].(*string)), true
 	case "Query.suggestWorkers":
 		if e.complexity.Query.SuggestWorkers == nil {
 			break
@@ -5711,7 +5785,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Query.SuggestWorkers(childComplexity, args["cityId"].(string), args["areaId"].(string), args["timeSlots"].([]*model.TimeSlotInput), args["estimatedDurationHours"].(float64)), true
+		return e.complexity.Query.SuggestWorkers(childComplexity, args["cityId"].(string), args["areaId"].(string), args["timeSlots"].([]*model.TimeSlotInput), args["estimatedDurationHours"].(float64), args["categoryId"].(*string)), true
 	case "Query.todaysJobs":
 		if e.complexity.Query.TodaysJobs == nil {
 			break
@@ -6192,6 +6266,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.ServiceExtra.AllowMultiple(childComplexity), true
+	case "ServiceExtra.categoryId":
+		if e.complexity.ServiceExtra.CategoryID == nil {
+			break
+		}
+
+		return e.complexity.ServiceExtra.CategoryID(childComplexity), true
 	case "ServiceExtra.durationMinutes":
 		if e.complexity.ServiceExtra.DurationMinutes == nil {
 			break
@@ -7119,6 +7199,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.WorkerProfile.RatingAvg(childComplexity), true
+	case "WorkerProfile.serviceCategories":
+		if e.complexity.WorkerProfile.ServiceCategories == nil {
+			break
+		}
+
+		return e.complexity.WorkerProfile.ServiceCategories(childComplexity), true
 	case "WorkerProfile.status":
 		if e.complexity.WorkerProfile.Status == nil {
 			break
@@ -8581,6 +8667,17 @@ func (ec *executionContext) field_Mutation_updateCompanyServiceAreas_args(ctx co
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_updateCompanyServiceCategories_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "categoryIds", ec.unmarshalNID2ᚕstringᚄ)
+	if err != nil {
+		return nil, err
+	}
+	args["categoryIds"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_updatePayoutStatus_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -8734,6 +8831,22 @@ func (ec *executionContext) field_Mutation_updateWorkerServiceAreas_args(ctx con
 		return nil, err
 	}
 	args["areaIds"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateWorkerServiceCategories_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "workerId", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["workerId"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "categoryIds", ec.unmarshalNID2ᚕstringᚄ)
+	if err != nil {
+		return nil, err
+	}
+	args["categoryIds"] = arg1
 	return args, nil
 }
 
@@ -9071,6 +9184,17 @@ func (ec *executionContext) field_Query_allSubscriptions_args(ctx context.Contex
 		return nil, err
 	}
 	args["offset"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_availableExtrasByCategory_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "categoryId", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["categoryId"] = arg0
 	return args, nil
 }
 
@@ -9930,6 +10054,11 @@ func (ec *executionContext) field_Query_suggestWorkerForSubscription_args(ctx co
 		return nil, err
 	}
 	args["estimatedDurationHours"] = arg6
+	arg7, err := graphql.ProcessArgField(ctx, rawArgs, "categoryId", ec.unmarshalOID2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["categoryId"] = arg7
 	return args, nil
 }
 
@@ -9956,6 +10085,11 @@ func (ec *executionContext) field_Query_suggestWorkers_args(ctx context.Context,
 		return nil, err
 	}
 	args["estimatedDurationHours"] = arg3
+	arg4, err := graphql.ProcessArgField(ctx, rawArgs, "categoryId", ec.unmarshalOID2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["categoryId"] = arg4
 	return args, nil
 }
 
@@ -10926,6 +11060,8 @@ func (ec *executionContext) fieldContext_Booking_company(_ context.Context, fiel
 				return ec.fieldContext_Company_workers(ctx, field)
 			case "commissionOverridePct":
 				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
+			case "serviceCategories":
+				return ec.fieldContext_Company_serviceCategories(ctx, field)
 			case "admin":
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
@@ -10993,6 +11129,8 @@ func (ec *executionContext) fieldContext_Booking_worker(_ context.Context, field
 				return ec.fieldContext_WorkerProfile_personalityAssessment(ctx, field)
 			case "availability":
 				return ec.fieldContext_WorkerProfile_availability(ctx, field)
+			case "serviceCategories":
+				return ec.fieldContext_WorkerProfile_serviceCategories(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_WorkerProfile_createdAt(ctx, field)
 			}
@@ -12037,6 +12175,90 @@ func (ec *executionContext) fieldContext_Booking_chatRoom(_ context.Context, fie
 	return fc, nil
 }
 
+func (ec *executionContext) _Booking_categoryId(ctx context.Context, field graphql.CollectedField, obj *model.Booking) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Booking_categoryId,
+		func(ctx context.Context) (any, error) {
+			return obj.CategoryID, nil
+		},
+		nil,
+		ec.marshalOID2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Booking_categoryId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Booking",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Booking_category(ctx context.Context, field graphql.CollectedField, obj *model.Booking) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Booking_category,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.Booking().Category(ctx, obj)
+		},
+		nil,
+		ec.marshalOServiceCategory2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceCategory,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Booking_category(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Booking",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ServiceCategory_id(ctx, field)
+			case "slug":
+				return ec.fieldContext_ServiceCategory_slug(ctx, field)
+			case "nameRo":
+				return ec.fieldContext_ServiceCategory_nameRo(ctx, field)
+			case "nameEn":
+				return ec.fieldContext_ServiceCategory_nameEn(ctx, field)
+			case "descriptionRo":
+				return ec.fieldContext_ServiceCategory_descriptionRo(ctx, field)
+			case "descriptionEn":
+				return ec.fieldContext_ServiceCategory_descriptionEn(ctx, field)
+			case "icon":
+				return ec.fieldContext_ServiceCategory_icon(ctx, field)
+			case "imageUrl":
+				return ec.fieldContext_ServiceCategory_imageUrl(ctx, field)
+			case "commissionPct":
+				return ec.fieldContext_ServiceCategory_commissionPct(ctx, field)
+			case "sortOrder":
+				return ec.fieldContext_ServiceCategory_sortOrder(ctx, field)
+			case "isActive":
+				return ec.fieldContext_ServiceCategory_isActive(ctx, field)
+			case "services":
+				return ec.fieldContext_ServiceCategory_services(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ServiceCategory", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Booking_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.Booking) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -12398,6 +12620,10 @@ func (ec *executionContext) fieldContext_BookingConnection_edges(_ context.Conte
 				return ec.fieldContext_Booking_review(ctx, field)
 			case "chatRoom":
 				return ec.fieldContext_Booking_chatRoom(ctx, field)
+			case "categoryId":
+				return ec.fieldContext_Booking_categoryId(ctx, field)
+			case "category":
+				return ec.fieldContext_Booking_category(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -12513,6 +12739,8 @@ func (ec *executionContext) fieldContext_BookingExtra_extra(_ context.Context, f
 				return ec.fieldContext_ServiceExtra_allowMultiple(ctx, field)
 			case "unitLabel":
 				return ec.fieldContext_ServiceExtra_unitLabel(ctx, field)
+			case "categoryId":
+				return ec.fieldContext_ServiceExtra_categoryId(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ServiceExtra", field.Name)
 		},
@@ -13380,6 +13608,10 @@ func (ec *executionContext) fieldContext_ChatRoom_booking(_ context.Context, fie
 				return ec.fieldContext_Booking_review(ctx, field)
 			case "chatRoom":
 				return ec.fieldContext_Booking_chatRoom(ctx, field)
+			case "categoryId":
+				return ec.fieldContext_Booking_categoryId(ctx, field)
+			case "category":
+				return ec.fieldContext_Booking_category(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -14631,6 +14863,8 @@ func (ec *executionContext) fieldContext_Company_workers(_ context.Context, fiel
 				return ec.fieldContext_WorkerProfile_personalityAssessment(ctx, field)
 			case "availability":
 				return ec.fieldContext_WorkerProfile_availability(ctx, field)
+			case "serviceCategories":
+				return ec.fieldContext_WorkerProfile_serviceCategories(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_WorkerProfile_createdAt(ctx, field)
 			}
@@ -14664,6 +14898,61 @@ func (ec *executionContext) fieldContext_Company_commissionOverridePct(_ context
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Company_serviceCategories(ctx context.Context, field graphql.CollectedField, obj *model.Company) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Company_serviceCategories,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.Company().ServiceCategories(ctx, obj)
+		},
+		nil,
+		ec.marshalNServiceCategory2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceCategoryᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Company_serviceCategories(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Company",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ServiceCategory_id(ctx, field)
+			case "slug":
+				return ec.fieldContext_ServiceCategory_slug(ctx, field)
+			case "nameRo":
+				return ec.fieldContext_ServiceCategory_nameRo(ctx, field)
+			case "nameEn":
+				return ec.fieldContext_ServiceCategory_nameEn(ctx, field)
+			case "descriptionRo":
+				return ec.fieldContext_ServiceCategory_descriptionRo(ctx, field)
+			case "descriptionEn":
+				return ec.fieldContext_ServiceCategory_descriptionEn(ctx, field)
+			case "icon":
+				return ec.fieldContext_ServiceCategory_icon(ctx, field)
+			case "imageUrl":
+				return ec.fieldContext_ServiceCategory_imageUrl(ctx, field)
+			case "commissionPct":
+				return ec.fieldContext_ServiceCategory_commissionPct(ctx, field)
+			case "sortOrder":
+				return ec.fieldContext_ServiceCategory_sortOrder(ctx, field)
+			case "isActive":
+				return ec.fieldContext_ServiceCategory_isActive(ctx, field)
+			case "services":
+				return ec.fieldContext_ServiceCategory_services(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ServiceCategory", field.Name)
 		},
 	}
 	return fc, nil
@@ -14813,6 +15102,8 @@ func (ec *executionContext) fieldContext_CompanyApplicationResult_company(_ cont
 				return ec.fieldContext_Company_workers(ctx, field)
 			case "commissionOverridePct":
 				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
+			case "serviceCategories":
+				return ec.fieldContext_Company_serviceCategories(ctx, field)
 			case "admin":
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
@@ -14917,6 +15208,8 @@ func (ec *executionContext) fieldContext_CompanyConnection_edges(_ context.Conte
 				return ec.fieldContext_Company_workers(ctx, field)
 			case "commissionOverridePct":
 				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
+			case "serviceCategories":
+				return ec.fieldContext_Company_serviceCategories(ctx, field)
 			case "admin":
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
@@ -15578,6 +15871,8 @@ func (ec *executionContext) fieldContext_CompanyPayout_company(_ context.Context
 				return ec.fieldContext_Company_workers(ctx, field)
 			case "commissionOverridePct":
 				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
+			case "serviceCategories":
+				return ec.fieldContext_Company_serviceCategories(ctx, field)
 			case "admin":
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
@@ -15926,6 +16221,8 @@ func (ec *executionContext) fieldContext_CompanyPerformance_company(_ context.Co
 				return ec.fieldContext_Company_workers(ctx, field)
 			case "commissionOverridePct":
 				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
+			case "serviceCategories":
+				return ec.fieldContext_Company_serviceCategories(ctx, field)
 			case "admin":
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
@@ -16627,6 +16924,8 @@ func (ec *executionContext) fieldContext_ExtraLineItem_extra(_ context.Context, 
 				return ec.fieldContext_ServiceExtra_allowMultiple(ctx, field)
 			case "unitLabel":
 				return ec.fieldContext_ServiceExtra_unitLabel(ctx, field)
+			case "categoryId":
+				return ec.fieldContext_ServiceExtra_categoryId(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ServiceExtra", field.Name)
 		},
@@ -17169,6 +17468,10 @@ func (ec *executionContext) fieldContext_Invoice_booking(_ context.Context, fiel
 				return ec.fieldContext_Booking_review(ctx, field)
 			case "chatRoom":
 				return ec.fieldContext_Booking_chatRoom(ctx, field)
+			case "categoryId":
+				return ec.fieldContext_Booking_categoryId(ctx, field)
+			case "category":
+				return ec.fieldContext_Booking_category(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -17242,6 +17545,8 @@ func (ec *executionContext) fieldContext_Invoice_company(_ context.Context, fiel
 				return ec.fieldContext_Company_workers(ctx, field)
 			case "commissionOverridePct":
 				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
+			case "serviceCategories":
+				return ec.fieldContext_Company_serviceCategories(ctx, field)
 			case "admin":
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
@@ -18312,6 +18617,10 @@ func (ec *executionContext) fieldContext_Mutation_adminCancelBooking(ctx context
 				return ec.fieldContext_Booking_review(ctx, field)
 			case "chatRoom":
 				return ec.fieldContext_Booking_chatRoom(ctx, field)
+			case "categoryId":
+				return ec.fieldContext_Booking_categoryId(ctx, field)
+			case "category":
+				return ec.fieldContext_Booking_category(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -18433,6 +18742,10 @@ func (ec *executionContext) fieldContext_Mutation_adminRescheduleBooking(ctx con
 				return ec.fieldContext_Booking_review(ctx, field)
 			case "chatRoom":
 				return ec.fieldContext_Booking_chatRoom(ctx, field)
+			case "categoryId":
+				return ec.fieldContext_Booking_categoryId(ctx, field)
+			case "category":
+				return ec.fieldContext_Booking_category(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -18691,6 +19004,8 @@ func (ec *executionContext) fieldContext_Mutation_adminUpdateCompanyProfile(ctx 
 				return ec.fieldContext_Company_workers(ctx, field)
 			case "commissionOverridePct":
 				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
+			case "serviceCategories":
+				return ec.fieldContext_Company_serviceCategories(ctx, field)
 			case "admin":
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
@@ -18778,6 +19093,8 @@ func (ec *executionContext) fieldContext_Mutation_adminUpdateCompanyStatus(ctx c
 				return ec.fieldContext_Company_workers(ctx, field)
 			case "commissionOverridePct":
 				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
+			case "serviceCategories":
+				return ec.fieldContext_Company_serviceCategories(ctx, field)
 			case "admin":
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
@@ -19194,6 +19511,10 @@ func (ec *executionContext) fieldContext_Mutation_createBookingRequest(ctx conte
 				return ec.fieldContext_Booking_review(ctx, field)
 			case "chatRoom":
 				return ec.fieldContext_Booking_chatRoom(ctx, field)
+			case "categoryId":
+				return ec.fieldContext_Booking_categoryId(ctx, field)
+			case "category":
+				return ec.fieldContext_Booking_category(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -19315,6 +19636,10 @@ func (ec *executionContext) fieldContext_Mutation_cancelBooking(ctx context.Cont
 				return ec.fieldContext_Booking_review(ctx, field)
 			case "chatRoom":
 				return ec.fieldContext_Booking_chatRoom(ctx, field)
+			case "categoryId":
+				return ec.fieldContext_Booking_categoryId(ctx, field)
+			case "category":
+				return ec.fieldContext_Booking_category(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -19436,6 +19761,10 @@ func (ec *executionContext) fieldContext_Mutation_assignWorkerToBooking(ctx cont
 				return ec.fieldContext_Booking_review(ctx, field)
 			case "chatRoom":
 				return ec.fieldContext_Booking_chatRoom(ctx, field)
+			case "categoryId":
+				return ec.fieldContext_Booking_categoryId(ctx, field)
+			case "category":
+				return ec.fieldContext_Booking_category(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -19557,6 +19886,10 @@ func (ec *executionContext) fieldContext_Mutation_confirmBooking(ctx context.Con
 				return ec.fieldContext_Booking_review(ctx, field)
 			case "chatRoom":
 				return ec.fieldContext_Booking_chatRoom(ctx, field)
+			case "categoryId":
+				return ec.fieldContext_Booking_categoryId(ctx, field)
+			case "category":
+				return ec.fieldContext_Booking_category(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -19678,6 +20011,10 @@ func (ec *executionContext) fieldContext_Mutation_startJob(ctx context.Context, 
 				return ec.fieldContext_Booking_review(ctx, field)
 			case "chatRoom":
 				return ec.fieldContext_Booking_chatRoom(ctx, field)
+			case "categoryId":
+				return ec.fieldContext_Booking_categoryId(ctx, field)
+			case "category":
+				return ec.fieldContext_Booking_category(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -19799,6 +20136,10 @@ func (ec *executionContext) fieldContext_Mutation_completeJob(ctx context.Contex
 				return ec.fieldContext_Booking_review(ctx, field)
 			case "chatRoom":
 				return ec.fieldContext_Booking_chatRoom(ctx, field)
+			case "categoryId":
+				return ec.fieldContext_Booking_categoryId(ctx, field)
+			case "category":
+				return ec.fieldContext_Booking_category(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -19920,6 +20261,10 @@ func (ec *executionContext) fieldContext_Mutation_selectBookingTimeSlot(ctx cont
 				return ec.fieldContext_Booking_review(ctx, field)
 			case "chatRoom":
 				return ec.fieldContext_Booking_chatRoom(ctx, field)
+			case "categoryId":
+				return ec.fieldContext_Booking_categoryId(ctx, field)
+			case "category":
+				return ec.fieldContext_Booking_category(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -20041,6 +20386,10 @@ func (ec *executionContext) fieldContext_Mutation_rescheduleBooking(ctx context.
 				return ec.fieldContext_Booking_review(ctx, field)
 			case "chatRoom":
 				return ec.fieldContext_Booking_chatRoom(ctx, field)
+			case "categoryId":
+				return ec.fieldContext_Booking_categoryId(ctx, field)
+			case "category":
+				return ec.fieldContext_Booking_category(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -20723,6 +21072,8 @@ func (ec *executionContext) fieldContext_Mutation_claimCompany(ctx context.Conte
 				return ec.fieldContext_Company_workers(ctx, field)
 			case "commissionOverridePct":
 				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
+			case "serviceCategories":
+				return ec.fieldContext_Company_serviceCategories(ctx, field)
 			case "admin":
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
@@ -20810,6 +21161,8 @@ func (ec *executionContext) fieldContext_Mutation_updateCompanyProfile(ctx conte
 				return ec.fieldContext_Company_workers(ctx, field)
 			case "commissionOverridePct":
 				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
+			case "serviceCategories":
+				return ec.fieldContext_Company_serviceCategories(ctx, field)
 			case "admin":
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
@@ -20897,6 +21250,8 @@ func (ec *executionContext) fieldContext_Mutation_uploadCompanyLogo(ctx context.
 				return ec.fieldContext_Company_workers(ctx, field)
 			case "commissionOverridePct":
 				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
+			case "serviceCategories":
+				return ec.fieldContext_Company_serviceCategories(ctx, field)
 			case "admin":
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
@@ -21084,6 +21439,8 @@ func (ec *executionContext) fieldContext_Mutation_approveCompany(ctx context.Con
 				return ec.fieldContext_Company_workers(ctx, field)
 			case "commissionOverridePct":
 				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
+			case "serviceCategories":
+				return ec.fieldContext_Company_serviceCategories(ctx, field)
 			case "admin":
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
@@ -21171,6 +21528,8 @@ func (ec *executionContext) fieldContext_Mutation_rejectCompany(ctx context.Cont
 				return ec.fieldContext_Company_workers(ctx, field)
 			case "commissionOverridePct":
 				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
+			case "serviceCategories":
+				return ec.fieldContext_Company_serviceCategories(ctx, field)
 			case "admin":
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
@@ -21258,6 +21617,8 @@ func (ec *executionContext) fieldContext_Mutation_suspendCompany(ctx context.Con
 				return ec.fieldContext_Company_workers(ctx, field)
 			case "commissionOverridePct":
 				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
+			case "serviceCategories":
+				return ec.fieldContext_Company_serviceCategories(ctx, field)
 			case "admin":
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
@@ -21404,6 +21765,8 @@ func (ec *executionContext) fieldContext_Mutation_setCompanyCommissionOverride(c
 				return ec.fieldContext_Company_workers(ctx, field)
 			case "commissionOverridePct":
 				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
+			case "serviceCategories":
+				return ec.fieldContext_Company_serviceCategories(ctx, field)
 			case "admin":
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
@@ -21420,6 +21783,73 @@ func (ec *executionContext) fieldContext_Mutation_setCompanyCommissionOverride(c
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_setCompanyCommissionOverride_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateCompanyServiceCategories(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_updateCompanyServiceCategories,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().UpdateCompanyServiceCategories(ctx, fc.Args["categoryIds"].([]string))
+		},
+		nil,
+		ec.marshalNServiceCategory2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceCategoryᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateCompanyServiceCategories(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ServiceCategory_id(ctx, field)
+			case "slug":
+				return ec.fieldContext_ServiceCategory_slug(ctx, field)
+			case "nameRo":
+				return ec.fieldContext_ServiceCategory_nameRo(ctx, field)
+			case "nameEn":
+				return ec.fieldContext_ServiceCategory_nameEn(ctx, field)
+			case "descriptionRo":
+				return ec.fieldContext_ServiceCategory_descriptionRo(ctx, field)
+			case "descriptionEn":
+				return ec.fieldContext_ServiceCategory_descriptionEn(ctx, field)
+			case "icon":
+				return ec.fieldContext_ServiceCategory_icon(ctx, field)
+			case "imageUrl":
+				return ec.fieldContext_ServiceCategory_imageUrl(ctx, field)
+			case "commissionPct":
+				return ec.fieldContext_ServiceCategory_commissionPct(ctx, field)
+			case "sortOrder":
+				return ec.fieldContext_ServiceCategory_sortOrder(ctx, field)
+			case "isActive":
+				return ec.fieldContext_ServiceCategory_isActive(ctx, field)
+			case "services":
+				return ec.fieldContext_ServiceCategory_services(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ServiceCategory", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateCompanyServiceCategories_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -23081,6 +23511,10 @@ func (ec *executionContext) fieldContext_Mutation_markBookingPaid(ctx context.Co
 				return ec.fieldContext_Booking_review(ctx, field)
 			case "chatRoom":
 				return ec.fieldContext_Booking_chatRoom(ctx, field)
+			case "categoryId":
+				return ec.fieldContext_Booking_categoryId(ctx, field)
+			case "category":
+				return ec.fieldContext_Booking_category(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -23542,6 +23976,8 @@ func (ec *executionContext) fieldContext_Mutation_updateServiceExtra(ctx context
 				return ec.fieldContext_ServiceExtra_allowMultiple(ctx, field)
 			case "unitLabel":
 				return ec.fieldContext_ServiceExtra_unitLabel(ctx, field)
+			case "categoryId":
+				return ec.fieldContext_ServiceExtra_categoryId(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ServiceExtra", field.Name)
 		},
@@ -23603,6 +24039,8 @@ func (ec *executionContext) fieldContext_Mutation_createServiceExtra(ctx context
 				return ec.fieldContext_ServiceExtra_allowMultiple(ctx, field)
 			case "unitLabel":
 				return ec.fieldContext_ServiceExtra_unitLabel(ctx, field)
+			case "categoryId":
+				return ec.fieldContext_ServiceExtra_categoryId(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ServiceExtra", field.Name)
 		},
@@ -25224,6 +25662,8 @@ func (ec *executionContext) fieldContext_Mutation_inviteWorker(ctx context.Conte
 				return ec.fieldContext_WorkerProfile_personalityAssessment(ctx, field)
 			case "availability":
 				return ec.fieldContext_WorkerProfile_availability(ctx, field)
+			case "serviceCategories":
+				return ec.fieldContext_WorkerProfile_serviceCategories(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_WorkerProfile_createdAt(ctx, field)
 			}
@@ -25300,6 +25740,8 @@ func (ec *executionContext) fieldContext_Mutation_inviteSelfAsWorker(_ context.C
 				return ec.fieldContext_WorkerProfile_personalityAssessment(ctx, field)
 			case "availability":
 				return ec.fieldContext_WorkerProfile_availability(ctx, field)
+			case "serviceCategories":
+				return ec.fieldContext_WorkerProfile_serviceCategories(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_WorkerProfile_createdAt(ctx, field)
 			}
@@ -25366,6 +25808,8 @@ func (ec *executionContext) fieldContext_Mutation_updateWorkerStatus(ctx context
 				return ec.fieldContext_WorkerProfile_personalityAssessment(ctx, field)
 			case "availability":
 				return ec.fieldContext_WorkerProfile_availability(ctx, field)
+			case "serviceCategories":
+				return ec.fieldContext_WorkerProfile_serviceCategories(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_WorkerProfile_createdAt(ctx, field)
 			}
@@ -25443,6 +25887,8 @@ func (ec *executionContext) fieldContext_Mutation_acceptInvitation(ctx context.C
 				return ec.fieldContext_WorkerProfile_personalityAssessment(ctx, field)
 			case "availability":
 				return ec.fieldContext_WorkerProfile_availability(ctx, field)
+			case "serviceCategories":
+				return ec.fieldContext_WorkerProfile_serviceCategories(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_WorkerProfile_createdAt(ctx, field)
 			}
@@ -25626,6 +26072,8 @@ func (ec *executionContext) fieldContext_Mutation_updateWorkerProfile(ctx contex
 				return ec.fieldContext_WorkerProfile_personalityAssessment(ctx, field)
 			case "availability":
 				return ec.fieldContext_WorkerProfile_availability(ctx, field)
+			case "serviceCategories":
+				return ec.fieldContext_WorkerProfile_serviceCategories(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_WorkerProfile_createdAt(ctx, field)
 			}
@@ -25703,6 +26151,8 @@ func (ec *executionContext) fieldContext_Mutation_uploadWorkerAvatar(ctx context
 				return ec.fieldContext_WorkerProfile_personalityAssessment(ctx, field)
 			case "availability":
 				return ec.fieldContext_WorkerProfile_availability(ctx, field)
+			case "serviceCategories":
+				return ec.fieldContext_WorkerProfile_serviceCategories(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_WorkerProfile_createdAt(ctx, field)
 			}
@@ -26045,6 +26495,8 @@ func (ec *executionContext) fieldContext_Mutation_activateWorker(ctx context.Con
 				return ec.fieldContext_WorkerProfile_personalityAssessment(ctx, field)
 			case "availability":
 				return ec.fieldContext_WorkerProfile_availability(ctx, field)
+			case "serviceCategories":
+				return ec.fieldContext_WorkerProfile_serviceCategories(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_WorkerProfile_createdAt(ctx, field)
 			}
@@ -26059,6 +26511,73 @@ func (ec *executionContext) fieldContext_Mutation_activateWorker(ctx context.Con
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_activateWorker_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateWorkerServiceCategories(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_updateWorkerServiceCategories,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().UpdateWorkerServiceCategories(ctx, fc.Args["workerId"].(string), fc.Args["categoryIds"].([]string))
+		},
+		nil,
+		ec.marshalNServiceCategory2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceCategoryᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateWorkerServiceCategories(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ServiceCategory_id(ctx, field)
+			case "slug":
+				return ec.fieldContext_ServiceCategory_slug(ctx, field)
+			case "nameRo":
+				return ec.fieldContext_ServiceCategory_nameRo(ctx, field)
+			case "nameEn":
+				return ec.fieldContext_ServiceCategory_nameEn(ctx, field)
+			case "descriptionRo":
+				return ec.fieldContext_ServiceCategory_descriptionRo(ctx, field)
+			case "descriptionEn":
+				return ec.fieldContext_ServiceCategory_descriptionEn(ctx, field)
+			case "icon":
+				return ec.fieldContext_ServiceCategory_icon(ctx, field)
+			case "imageUrl":
+				return ec.fieldContext_ServiceCategory_imageUrl(ctx, field)
+			case "commissionPct":
+				return ec.fieldContext_ServiceCategory_commissionPct(ctx, field)
+			case "sortOrder":
+				return ec.fieldContext_ServiceCategory_sortOrder(ctx, field)
+			case "isActive":
+				return ec.fieldContext_ServiceCategory_isActive(ctx, field)
+			case "services":
+				return ec.fieldContext_ServiceCategory_services(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ServiceCategory", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateWorkerServiceCategories_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -26673,6 +27192,10 @@ func (ec *executionContext) fieldContext_PaymentHistoryEntry_booking(_ context.C
 				return ec.fieldContext_Booking_review(ctx, field)
 			case "chatRoom":
 				return ec.fieldContext_Booking_chatRoom(ctx, field)
+			case "categoryId":
+				return ec.fieldContext_Booking_categoryId(ctx, field)
+			case "category":
+				return ec.fieldContext_Booking_category(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -27304,6 +27827,10 @@ func (ec *executionContext) fieldContext_PaymentTransaction_booking(_ context.Co
 				return ec.fieldContext_Booking_review(ctx, field)
 			case "chatRoom":
 				return ec.fieldContext_Booking_chatRoom(ctx, field)
+			case "categoryId":
+				return ec.fieldContext_Booking_categoryId(ctx, field)
+			case "category":
+				return ec.fieldContext_Booking_category(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -27703,6 +28230,10 @@ func (ec *executionContext) fieldContext_PayoutLineItem_booking(_ context.Contex
 				return ec.fieldContext_Booking_review(ctx, field)
 			case "chatRoom":
 				return ec.fieldContext_Booking_chatRoom(ctx, field)
+			case "categoryId":
+				return ec.fieldContext_Booking_categoryId(ctx, field)
+			case "category":
+				return ec.fieldContext_Booking_category(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -30331,6 +30862,8 @@ func (ec *executionContext) fieldContext_Query_pendingCompanyApplications(_ cont
 				return ec.fieldContext_Company_workers(ctx, field)
 			case "commissionOverridePct":
 				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
+			case "serviceCategories":
+				return ec.fieldContext_Company_serviceCategories(ctx, field)
 			case "admin":
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
@@ -30398,6 +30931,8 @@ func (ec *executionContext) fieldContext_Query_allWorkers(_ context.Context, fie
 				return ec.fieldContext_WorkerProfile_personalityAssessment(ctx, field)
 			case "availability":
 				return ec.fieldContext_WorkerProfile_availability(ctx, field)
+			case "serviceCategories":
+				return ec.fieldContext_WorkerProfile_serviceCategories(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_WorkerProfile_createdAt(ctx, field)
 			}
@@ -31143,6 +31678,10 @@ func (ec *executionContext) fieldContext_Query_booking(ctx context.Context, fiel
 				return ec.fieldContext_Booking_review(ctx, field)
 			case "chatRoom":
 				return ec.fieldContext_Booking_chatRoom(ctx, field)
+			case "categoryId":
+				return ec.fieldContext_Booking_categoryId(ctx, field)
+			case "category":
+				return ec.fieldContext_Booking_category(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -31313,6 +31852,10 @@ func (ec *executionContext) fieldContext_Query_myAssignedJobs(ctx context.Contex
 				return ec.fieldContext_Booking_review(ctx, field)
 			case "chatRoom":
 				return ec.fieldContext_Booking_chatRoom(ctx, field)
+			case "categoryId":
+				return ec.fieldContext_Booking_categoryId(ctx, field)
+			case "category":
+				return ec.fieldContext_Booking_category(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -31433,6 +31976,10 @@ func (ec *executionContext) fieldContext_Query_todaysJobs(_ context.Context, fie
 				return ec.fieldContext_Booking_review(ctx, field)
 			case "chatRoom":
 				return ec.fieldContext_Booking_chatRoom(ctx, field)
+			case "categoryId":
+				return ec.fieldContext_Booking_categoryId(ctx, field)
+			case "category":
+				return ec.fieldContext_Booking_category(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -31592,6 +32139,10 @@ func (ec *executionContext) fieldContext_Query_companyBookingsByDateRange(ctx co
 				return ec.fieldContext_Booking_review(ctx, field)
 			case "chatRoom":
 				return ec.fieldContext_Booking_chatRoom(ctx, field)
+			case "categoryId":
+				return ec.fieldContext_Booking_categoryId(ctx, field)
+			case "category":
+				return ec.fieldContext_Booking_category(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -32015,6 +32566,8 @@ func (ec *executionContext) fieldContext_Query_myCompany(_ context.Context, fiel
 				return ec.fieldContext_Company_workers(ctx, field)
 			case "commissionOverridePct":
 				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
+			case "serviceCategories":
+				return ec.fieldContext_Company_serviceCategories(ctx, field)
 			case "admin":
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
@@ -32220,6 +32773,8 @@ func (ec *executionContext) fieldContext_Query_company(ctx context.Context, fiel
 				return ec.fieldContext_Company_workers(ctx, field)
 			case "commissionOverridePct":
 				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
+			case "serviceCategories":
+				return ec.fieldContext_Company_serviceCategories(ctx, field)
 			case "admin":
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
@@ -33214,7 +33769,7 @@ func (ec *executionContext) _Query_suggestWorkers(ctx context.Context, field gra
 		ec.fieldContext_Query_suggestWorkers,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Query().SuggestWorkers(ctx, fc.Args["cityId"].(string), fc.Args["areaId"].(string), fc.Args["timeSlots"].([]*model.TimeSlotInput), fc.Args["estimatedDurationHours"].(float64))
+			return ec.resolvers.Query().SuggestWorkers(ctx, fc.Args["cityId"].(string), fc.Args["areaId"].(string), fc.Args["timeSlots"].([]*model.TimeSlotInput), fc.Args["estimatedDurationHours"].(float64), fc.Args["categoryId"].(*string))
 		},
 		nil,
 		ec.marshalNWorkerSuggestion2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐWorkerSuggestionᚄ,
@@ -34283,9 +34838,74 @@ func (ec *executionContext) fieldContext_Query_availableExtras(_ context.Context
 				return ec.fieldContext_ServiceExtra_allowMultiple(ctx, field)
 			case "unitLabel":
 				return ec.fieldContext_ServiceExtra_unitLabel(ctx, field)
+			case "categoryId":
+				return ec.fieldContext_ServiceExtra_categoryId(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ServiceExtra", field.Name)
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_availableExtrasByCategory(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_availableExtrasByCategory,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Query().AvailableExtrasByCategory(ctx, fc.Args["categoryId"].(string))
+		},
+		nil,
+		ec.marshalNServiceExtra2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceExtraᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_availableExtrasByCategory(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ServiceExtra_id(ctx, field)
+			case "nameRo":
+				return ec.fieldContext_ServiceExtra_nameRo(ctx, field)
+			case "nameEn":
+				return ec.fieldContext_ServiceExtra_nameEn(ctx, field)
+			case "price":
+				return ec.fieldContext_ServiceExtra_price(ctx, field)
+			case "durationMinutes":
+				return ec.fieldContext_ServiceExtra_durationMinutes(ctx, field)
+			case "icon":
+				return ec.fieldContext_ServiceExtra_icon(ctx, field)
+			case "isActive":
+				return ec.fieldContext_ServiceExtra_isActive(ctx, field)
+			case "allowMultiple":
+				return ec.fieldContext_ServiceExtra_allowMultiple(ctx, field)
+			case "unitLabel":
+				return ec.fieldContext_ServiceExtra_unitLabel(ctx, field)
+			case "categoryId":
+				return ec.fieldContext_ServiceExtra_categoryId(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ServiceExtra", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_availableExtrasByCategory_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -34641,6 +35261,8 @@ func (ec *executionContext) fieldContext_Query_allExtras(_ context.Context, fiel
 				return ec.fieldContext_ServiceExtra_allowMultiple(ctx, field)
 			case "unitLabel":
 				return ec.fieldContext_ServiceExtra_unitLabel(ctx, field)
+			case "categoryId":
+				return ec.fieldContext_ServiceExtra_categoryId(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ServiceExtra", field.Name)
 		},
@@ -34787,7 +35409,7 @@ func (ec *executionContext) _Query_suggestWorkerForSubscription(ctx context.Cont
 		ec.fieldContext_Query_suggestWorkerForSubscription,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Query().SuggestWorkerForSubscription(ctx, fc.Args["cityId"].(string), fc.Args["areaId"].(string), fc.Args["recurrenceType"].(model.RecurrenceType), fc.Args["dayOfWeek"].(int), fc.Args["preferredTimeStart"].(string), fc.Args["preferredTimeEnd"].(string), fc.Args["estimatedDurationHours"].(float64))
+			return ec.resolvers.Query().SuggestWorkerForSubscription(ctx, fc.Args["cityId"].(string), fc.Args["areaId"].(string), fc.Args["recurrenceType"].(model.RecurrenceType), fc.Args["dayOfWeek"].(int), fc.Args["preferredTimeStart"].(string), fc.Args["preferredTimeEnd"].(string), fc.Args["estimatedDurationHours"].(float64), fc.Args["categoryId"].(*string))
 		},
 		nil,
 		ec.marshalNSubscriptionWorkerSuggestion2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐSubscriptionWorkerSuggestionᚄ,
@@ -35604,6 +36226,8 @@ func (ec *executionContext) fieldContext_Query_myWorkers(_ context.Context, fiel
 				return ec.fieldContext_WorkerProfile_personalityAssessment(ctx, field)
 			case "availability":
 				return ec.fieldContext_WorkerProfile_availability(ctx, field)
+			case "serviceCategories":
+				return ec.fieldContext_WorkerProfile_serviceCategories(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_WorkerProfile_createdAt(ctx, field)
 			}
@@ -35669,6 +36293,8 @@ func (ec *executionContext) fieldContext_Query_myWorkerProfile(_ context.Context
 				return ec.fieldContext_WorkerProfile_personalityAssessment(ctx, field)
 			case "availability":
 				return ec.fieldContext_WorkerProfile_availability(ctx, field)
+			case "serviceCategories":
+				return ec.fieldContext_WorkerProfile_serviceCategories(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_WorkerProfile_createdAt(ctx, field)
 			}
@@ -35918,6 +36544,10 @@ func (ec *executionContext) fieldContext_Query_myWorkerBookingsByDateRange(ctx c
 				return ec.fieldContext_Booking_review(ctx, field)
 			case "chatRoom":
 				return ec.fieldContext_Booking_chatRoom(ctx, field)
+			case "categoryId":
+				return ec.fieldContext_Booking_categoryId(ctx, field)
+			case "category":
+				return ec.fieldContext_Booking_category(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -36658,6 +37288,10 @@ func (ec *executionContext) fieldContext_RefundRequest_booking(_ context.Context
 				return ec.fieldContext_Booking_review(ctx, field)
 			case "chatRoom":
 				return ec.fieldContext_Booking_chatRoom(ctx, field)
+			case "categoryId":
+				return ec.fieldContext_Booking_categoryId(ctx, field)
+			case "category":
+				return ec.fieldContext_Booking_category(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -37217,6 +37851,10 @@ func (ec *executionContext) fieldContext_Review_booking(_ context.Context, field
 				return ec.fieldContext_Booking_review(ctx, field)
 			case "chatRoom":
 				return ec.fieldContext_Booking_chatRoom(ctx, field)
+			case "categoryId":
+				return ec.fieldContext_Booking_categoryId(ctx, field)
+			case "category":
+				return ec.fieldContext_Booking_category(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -38667,6 +39305,35 @@ func (ec *executionContext) fieldContext_ServiceExtra_unitLabel(_ context.Contex
 	return fc, nil
 }
 
+func (ec *executionContext) _ServiceExtra_categoryId(ctx context.Context, field graphql.CollectedField, obj *model.ServiceExtra) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ServiceExtra_categoryId,
+		func(ctx context.Context) (any, error) {
+			return obj.CategoryID, nil
+		},
+		nil,
+		ec.marshalOID2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ServiceExtra_categoryId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceExtra",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ServiceRevenue_serviceType(ctx context.Context, field graphql.CollectedField, obj *model.ServiceRevenue) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -38898,6 +39565,8 @@ func (ec *executionContext) fieldContext_ServiceSubscription_company(_ context.C
 				return ec.fieldContext_Company_workers(ctx, field)
 			case "commissionOverridePct":
 				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
+			case "serviceCategories":
+				return ec.fieldContext_Company_serviceCategories(ctx, field)
 			case "admin":
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
@@ -38965,6 +39634,8 @@ func (ec *executionContext) fieldContext_ServiceSubscription_worker(_ context.Co
 				return ec.fieldContext_WorkerProfile_personalityAssessment(ctx, field)
 			case "availability":
 				return ec.fieldContext_WorkerProfile_availability(ctx, field)
+			case "serviceCategories":
+				return ec.fieldContext_WorkerProfile_serviceCategories(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_WorkerProfile_createdAt(ctx, field)
 			}
@@ -39970,6 +40641,10 @@ func (ec *executionContext) fieldContext_ServiceSubscription_bookings(_ context.
 				return ec.fieldContext_Booking_review(ctx, field)
 			case "chatRoom":
 				return ec.fieldContext_Booking_chatRoom(ctx, field)
+			case "categoryId":
+				return ec.fieldContext_Booking_categoryId(ctx, field)
+			case "category":
+				return ec.fieldContext_Booking_category(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -40079,6 +40754,10 @@ func (ec *executionContext) fieldContext_ServiceSubscription_upcomingBookings(_ 
 				return ec.fieldContext_Booking_review(ctx, field)
 			case "chatRoom":
 				return ec.fieldContext_Booking_chatRoom(ctx, field)
+			case "categoryId":
+				return ec.fieldContext_Booking_categoryId(ctx, field)
+			case "category":
+				return ec.fieldContext_Booking_category(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -41033,6 +41712,8 @@ func (ec *executionContext) fieldContext_SubscriptionWorkerSuggestion_worker(_ c
 				return ec.fieldContext_WorkerProfile_personalityAssessment(ctx, field)
 			case "availability":
 				return ec.fieldContext_WorkerProfile_availability(ctx, field)
+			case "serviceCategories":
+				return ec.fieldContext_WorkerProfile_serviceCategories(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_WorkerProfile_createdAt(ctx, field)
 			}
@@ -41106,6 +41787,8 @@ func (ec *executionContext) fieldContext_SubscriptionWorkerSuggestion_company(_ 
 				return ec.fieldContext_Company_workers(ctx, field)
 			case "commissionOverridePct":
 				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
+			case "serviceCategories":
+				return ec.fieldContext_Company_serviceCategories(ctx, field)
 			case "admin":
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
@@ -41811,6 +42494,8 @@ func (ec *executionContext) fieldContext_User_workerProfile(_ context.Context, f
 				return ec.fieldContext_WorkerProfile_personalityAssessment(ctx, field)
 			case "availability":
 				return ec.fieldContext_WorkerProfile_availability(ctx, field)
+			case "serviceCategories":
+				return ec.fieldContext_WorkerProfile_serviceCategories(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_WorkerProfile_createdAt(ctx, field)
 			}
@@ -43146,6 +43831,8 @@ func (ec *executionContext) fieldContext_WorkerProfile_company(_ context.Context
 				return ec.fieldContext_Company_workers(ctx, field)
 			case "commissionOverridePct":
 				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
+			case "serviceCategories":
+				return ec.fieldContext_Company_serviceCategories(ctx, field)
 			case "admin":
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
@@ -43555,6 +44242,61 @@ func (ec *executionContext) fieldContext_WorkerProfile_availability(_ context.Co
 	return fc, nil
 }
 
+func (ec *executionContext) _WorkerProfile_serviceCategories(ctx context.Context, field graphql.CollectedField, obj *model.WorkerProfile) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_WorkerProfile_serviceCategories,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.WorkerProfile().ServiceCategories(ctx, obj)
+		},
+		nil,
+		ec.marshalNServiceCategory2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceCategoryᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_WorkerProfile_serviceCategories(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "WorkerProfile",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ServiceCategory_id(ctx, field)
+			case "slug":
+				return ec.fieldContext_ServiceCategory_slug(ctx, field)
+			case "nameRo":
+				return ec.fieldContext_ServiceCategory_nameRo(ctx, field)
+			case "nameEn":
+				return ec.fieldContext_ServiceCategory_nameEn(ctx, field)
+			case "descriptionRo":
+				return ec.fieldContext_ServiceCategory_descriptionRo(ctx, field)
+			case "descriptionEn":
+				return ec.fieldContext_ServiceCategory_descriptionEn(ctx, field)
+			case "icon":
+				return ec.fieldContext_ServiceCategory_icon(ctx, field)
+			case "imageUrl":
+				return ec.fieldContext_ServiceCategory_imageUrl(ctx, field)
+			case "commissionPct":
+				return ec.fieldContext_ServiceCategory_commissionPct(ctx, field)
+			case "sortOrder":
+				return ec.fieldContext_ServiceCategory_sortOrder(ctx, field)
+			case "isActive":
+				return ec.fieldContext_ServiceCategory_isActive(ctx, field)
+			case "services":
+				return ec.fieldContext_ServiceCategory_services(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ServiceCategory", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _WorkerProfile_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.WorkerProfile) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -43785,6 +44527,8 @@ func (ec *executionContext) fieldContext_WorkerSuggestion_worker(_ context.Conte
 				return ec.fieldContext_WorkerProfile_personalityAssessment(ctx, field)
 			case "availability":
 				return ec.fieldContext_WorkerProfile_availability(ctx, field)
+			case "serviceCategories":
+				return ec.fieldContext_WorkerProfile_serviceCategories(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_WorkerProfile_createdAt(ctx, field)
 			}
@@ -43858,6 +44602,8 @@ func (ec *executionContext) fieldContext_WorkerSuggestion_company(_ context.Cont
 				return ec.fieldContext_Company_workers(ctx, field)
 			case "commissionOverridePct":
 				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
+			case "serviceCategories":
+				return ec.fieldContext_Company_serviceCategories(ctx, field)
 			case "admin":
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
@@ -45975,7 +46721,7 @@ func (ec *executionContext) unmarshalInputCreateBookingInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"addressId", "address", "serviceType", "scheduledDate", "scheduledStartTime", "timeSlots", "propertyType", "numRooms", "numBathrooms", "areaSqm", "hasPets", "specialInstructions", "extras", "guestEmail", "guestName", "guestPhone", "preferredWorkerId", "suggestedStartTime", "recurrence"}
+	fieldsInOrder := [...]string{"addressId", "address", "serviceType", "categoryId", "scheduledDate", "scheduledStartTime", "timeSlots", "propertyType", "numRooms", "numBathrooms", "areaSqm", "hasPets", "specialInstructions", "extras", "guestEmail", "guestName", "guestPhone", "preferredWorkerId", "suggestedStartTime", "recurrence"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -46003,6 +46749,13 @@ func (ec *executionContext) unmarshalInputCreateBookingInput(ctx context.Context
 				return it, err
 			}
 			it.ServiceType = data
+		case "categoryId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoryId"))
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CategoryID = data
 		case "scheduledDate":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("scheduledDate"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
@@ -46343,7 +47096,7 @@ func (ec *executionContext) unmarshalInputCreateServiceExtraInput(ctx context.Co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"nameRo", "nameEn", "price", "durationMinutes", "isActive", "allowMultiple", "unitLabel"}
+	fieldsInOrder := [...]string{"nameRo", "nameEn", "price", "durationMinutes", "isActive", "allowMultiple", "unitLabel", "categoryId"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -46399,6 +47152,13 @@ func (ec *executionContext) unmarshalInputCreateServiceExtraInput(ctx context.Co
 				return it, err
 			}
 			it.UnitLabel = data
+		case "categoryId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoryId"))
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CategoryID = data
 		}
 	}
 
@@ -47322,7 +48082,7 @@ func (ec *executionContext) unmarshalInputUpdateServiceExtraInput(ctx context.Co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "nameRo", "nameEn", "price", "durationMinutes", "isActive", "allowMultiple", "unitLabel"}
+	fieldsInOrder := [...]string{"id", "nameRo", "nameEn", "price", "durationMinutes", "isActive", "allowMultiple", "unitLabel", "categoryId"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -47385,6 +48145,13 @@ func (ec *executionContext) unmarshalInputUpdateServiceExtraInput(ctx context.Co
 				return it, err
 			}
 			it.UnitLabel = data
+		case "categoryId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoryId"))
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CategoryID = data
 		}
 	}
 
@@ -47676,12 +48443,12 @@ func (ec *executionContext) _Booking(ctx context.Context, sel ast.SelectionSet, 
 		case "id":
 			out.Values[i] = ec._Booking_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "referenceCode":
 			out.Values[i] = ec._Booking_referenceCode(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "client":
 			out.Values[i] = ec._Booking_client(ctx, field, obj)
@@ -47694,32 +48461,32 @@ func (ec *executionContext) _Booking(ctx context.Context, sel ast.SelectionSet, 
 		case "serviceType":
 			out.Values[i] = ec._Booking_serviceType(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "serviceName":
 			out.Values[i] = ec._Booking_serviceName(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "includedItems":
 			out.Values[i] = ec._Booking_includedItems(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "scheduledDate":
 			out.Values[i] = ec._Booking_scheduledDate(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "scheduledStartTime":
 			out.Values[i] = ec._Booking_scheduledStartTime(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "estimatedDurationHours":
 			out.Values[i] = ec._Booking_estimatedDurationHours(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "propertyType":
 			out.Values[i] = ec._Booking_propertyType(ctx, field, obj)
@@ -47736,29 +48503,29 @@ func (ec *executionContext) _Booking(ctx context.Context, sel ast.SelectionSet, 
 		case "hourlyRate":
 			out.Values[i] = ec._Booking_hourlyRate(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "estimatedTotal":
 			out.Values[i] = ec._Booking_estimatedTotal(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "finalTotal":
 			out.Values[i] = ec._Booking_finalTotal(ctx, field, obj)
 		case "platformCommissionPct":
 			out.Values[i] = ec._Booking_platformCommissionPct(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "extras":
 			out.Values[i] = ec._Booking_extras(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "status":
 			out.Values[i] = ec._Booking_status(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "startedAt":
 			out.Values[i] = ec._Booking_startedAt(ctx, field, obj)
@@ -47771,7 +48538,7 @@ func (ec *executionContext) _Booking(ctx context.Context, sel ast.SelectionSet, 
 		case "paymentStatus":
 			out.Values[i] = ec._Booking_paymentStatus(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "paidAt":
 			out.Values[i] = ec._Booking_paidAt(ctx, field, obj)
@@ -47784,23 +48551,58 @@ func (ec *executionContext) _Booking(ctx context.Context, sel ast.SelectionSet, 
 		case "rescheduleCount":
 			out.Values[i] = ec._Booking_rescheduleCount(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "rescheduledAt":
 			out.Values[i] = ec._Booking_rescheduledAt(ctx, field, obj)
 		case "timeSlots":
 			out.Values[i] = ec._Booking_timeSlots(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "review":
 			out.Values[i] = ec._Booking_review(ctx, field, obj)
 		case "chatRoom":
 			out.Values[i] = ec._Booking_chatRoom(ctx, field, obj)
+		case "categoryId":
+			out.Values[i] = ec._Booking_categoryId(ctx, field, obj)
+		case "category":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Booking_category(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "createdAt":
 			out.Values[i] = ec._Booking_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -48504,52 +49306,52 @@ func (ec *executionContext) _Company(ctx context.Context, sel ast.SelectionSet, 
 		case "id":
 			out.Values[i] = ec._Company_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "companyName":
 			out.Values[i] = ec._Company_companyName(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "cui":
 			out.Values[i] = ec._Company_cui(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "companyType":
 			out.Values[i] = ec._Company_companyType(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "legalRepresentative":
 			out.Values[i] = ec._Company_legalRepresentative(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "contactEmail":
 			out.Values[i] = ec._Company_contactEmail(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "contactPhone":
 			out.Values[i] = ec._Company_contactPhone(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "address":
 			out.Values[i] = ec._Company_address(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "city":
 			out.Values[i] = ec._Company_city(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "county":
 			out.Values[i] = ec._Company_county(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "description":
 			out.Values[i] = ec._Company_description(ctx, field, obj)
@@ -48558,43 +49360,79 @@ func (ec *executionContext) _Company(ctx context.Context, sel ast.SelectionSet, 
 		case "status":
 			out.Values[i] = ec._Company_status(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "rejectionReason":
 			out.Values[i] = ec._Company_rejectionReason(ctx, field, obj)
 		case "maxServiceRadiusKm":
 			out.Values[i] = ec._Company_maxServiceRadiusKm(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "ratingAvg":
 			out.Values[i] = ec._Company_ratingAvg(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "totalJobsCompleted":
 			out.Values[i] = ec._Company_totalJobsCompleted(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "documents":
 			out.Values[i] = ec._Company_documents(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "workers":
 			out.Values[i] = ec._Company_workers(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "commissionOverridePct":
 			out.Values[i] = ec._Company_commissionOverridePct(ctx, field, obj)
+		case "serviceCategories":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Company_serviceCategories(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "admin":
 			out.Values[i] = ec._Company_admin(ctx, field, obj)
 		case "createdAt":
 			out.Values[i] = ec._Company_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -50060,6 +50898,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "updateCompanyServiceCategories":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateCompanyServiceCategories(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "upsertBillingProfile":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_upsertBillingProfile(ctx, field)
@@ -50525,6 +51370,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "activateWorker":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_activateWorker(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updateWorkerServiceCategories":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateWorkerServiceCategories(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -53490,6 +54342,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "availableExtrasByCategory":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_availableExtrasByCategory(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "estimatePrice":
 			field := field
 
@@ -54865,6 +55739,8 @@ func (ec *executionContext) _ServiceExtra(ctx context.Context, sel ast.Selection
 			}
 		case "unitLabel":
 			out.Values[i] = ec._ServiceExtra_unitLabel(ctx, field, obj)
+		case "categoryId":
+			out.Values[i] = ec._ServiceExtra_categoryId(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -56136,7 +57012,7 @@ func (ec *executionContext) _WorkerProfile(ctx context.Context, sel ast.Selectio
 		case "id":
 			out.Values[i] = ec._WorkerProfile_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "userId":
 			out.Values[i] = ec._WorkerProfile_userId(ctx, field, obj)
@@ -56147,7 +57023,7 @@ func (ec *executionContext) _WorkerProfile(ctx context.Context, sel ast.Selectio
 		case "fullName":
 			out.Values[i] = ec._WorkerProfile_fullName(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "phone":
 			out.Values[i] = ec._WorkerProfile_phone(ctx, field, obj)
@@ -56158,41 +57034,77 @@ func (ec *executionContext) _WorkerProfile(ctx context.Context, sel ast.Selectio
 		case "status":
 			out.Values[i] = ec._WorkerProfile_status(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "isCompanyAdmin":
 			out.Values[i] = ec._WorkerProfile_isCompanyAdmin(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "inviteToken":
 			out.Values[i] = ec._WorkerProfile_inviteToken(ctx, field, obj)
 		case "ratingAvg":
 			out.Values[i] = ec._WorkerProfile_ratingAvg(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "totalJobsCompleted":
 			out.Values[i] = ec._WorkerProfile_totalJobsCompleted(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "documents":
 			out.Values[i] = ec._WorkerProfile_documents(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "personalityAssessment":
 			out.Values[i] = ec._WorkerProfile_personalityAssessment(ctx, field, obj)
 		case "availability":
 			out.Values[i] = ec._WorkerProfile_availability(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "serviceCategories":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._WorkerProfile_serviceCategories(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "createdAt":
 			out.Values[i] = ec._WorkerProfile_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))

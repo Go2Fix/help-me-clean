@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"go2fix-backend/internal/auth"
 	db "go2fix-backend/internal/db/generated"
+	"go2fix-backend/internal/graph"
 	"go2fix-backend/internal/graph/model"
 	"log"
 	"strings"
@@ -17,6 +18,22 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 )
+
+// Category is the resolver for the category field.
+func (r *bookingResolver) Category(ctx context.Context, obj *model.Booking) (*model.ServiceCategory, error) {
+	if obj.CategoryID == nil || *obj.CategoryID == "" {
+		return nil, nil
+	}
+	catUUID := stringToUUID(*obj.CategoryID)
+	if !catUUID.Valid {
+		return nil, nil
+	}
+	cat, err := r.Queries.GetServiceCategoryByID(ctx, catUUID)
+	if err != nil {
+		return nil, nil // gracefully return nil if category not found
+	}
+	return dbServiceCatToGQL(cat), nil
+}
 
 // CreateBookingRequest is the resolver for the createBookingRequest field.
 func (r *mutationResolver) CreateBookingRequest(ctx context.Context, input model.CreateBookingInput) (*model.Booking, error) {
@@ -215,6 +232,14 @@ func (r *mutationResolver) CreateBookingRequest(ctx context.Context, input model
 		}
 	}
 
+	// Resolve category_id: prefer explicit input, fall back to service definition's category.
+	var bookingCategoryID pgtype.UUID
+	if input.CategoryID != nil && *input.CategoryID != "" {
+		bookingCategoryID = stringToUUID(*input.CategoryID)
+	} else if serviceDef.CategoryID.Valid {
+		bookingCategoryID = serviceDef.CategoryID
+	}
+
 	booking, err := r.Queries.CreateBooking(ctx, db.CreateBookingParams{
 		ReferenceCode: referenceCode,
 		ClientUserID:  userID,
@@ -242,6 +267,7 @@ func (r *mutationResolver) CreateBookingRequest(ctx context.Context, input model
 		PlatformCommissionPct:  float64ToNumeric(commissionPct),
 		CityPricingMultiplier:  float64ToNumeric(cityMultiplier),
 		PricingModel:           db.NullPricingModel{PricingModel: serviceDef.PricingModel, Valid: true},
+		CategoryID:             bookingCategoryID,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create booking: %w", err)
@@ -360,6 +386,24 @@ func (r *mutationResolver) AssignWorkerToBooking(ctx context.Context, bookingID 
 		}
 		if uuidToString(worker.CompanyID) != uuidToString(company.ID) {
 			return nil, fmt.Errorf("worker does not belong to your company")
+		}
+	}
+
+	// Validate worker has the booking's category.
+	existingBooking, err := r.Queries.GetBookingByID(ctx, stringToUUID(bookingID))
+	if err != nil {
+		return nil, fmt.Errorf("booking not found: %w", err)
+	}
+	if existingBooking.CategoryID.Valid {
+		hasCategory, catErr := r.Queries.WorkerHasCategory(ctx, db.WorkerHasCategoryParams{
+			WorkerID:   wID,
+			CategoryID: existingBooking.CategoryID,
+		})
+		if catErr != nil {
+			return nil, fmt.Errorf("failed to verify worker category: %w", catErr)
+		}
+		if !hasCategory {
+			return nil, fmt.Errorf("worker is not qualified for this booking's service category")
 		}
 	}
 
@@ -1254,3 +1298,8 @@ func (r *queryResolver) CheckWorkerAvailability(ctx context.Context, bookingID s
 
 	return &model.WorkerAvailabilityCheck{Available: true, Conflicts: []string{}}, nil
 }
+
+// Booking returns graph.BookingResolver implementation.
+func (r *Resolver) Booking() graph.BookingResolver { return &bookingResolver{r} }
+
+type bookingResolver struct{ *Resolver }

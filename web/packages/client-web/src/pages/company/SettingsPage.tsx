@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation } from '@apollo/client';
-import { Building2, Save, FileText, MapPin, Clock, ChevronDown, ChevronRight, CheckSquare, Square, CreditCard, ExternalLink, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { Building2, Save, FileText, MapPin, Clock, ChevronDown, ChevronRight, CheckSquare, Square, CreditCard, ExternalLink, CheckCircle2, AlertCircle, Loader2, Layers } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
@@ -24,6 +24,8 @@ import {
   UPLOAD_COMPANY_DOCUMENT,
   DELETE_COMPANY_DOCUMENT,
   UPLOAD_COMPANY_LOGO,
+  SERVICE_CATEGORIES,
+  UPDATE_COMPANY_SERVICE_CATEGORIES,
 } from '@/graphql/operations';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -85,6 +87,15 @@ interface WorkScheduleDay {
   startTime: string;
   endTime: string;
   isWorkDay: boolean;
+}
+
+interface ServiceCategory {
+  id: string;
+  slug: string;
+  nameRo: string;
+  nameEn: string;
+  icon: string;
+  isActive: boolean;
 }
 
 /** Display order: Mon(1)..Sun(0) */
@@ -222,6 +233,15 @@ export default function SettingsPage() {
     refetchQueries: [{ query: MY_COMPANY_SERVICE_AREAS }],
   });
 
+  // Service categories
+  const { data: categoriesData, loading: categoriesLoading } = useQuery(SERVICE_CATEGORIES);
+  const [updateCompanyCategories, { loading: savingCategories }] = useMutation(UPDATE_COMPANY_SERVICE_CATEGORIES, {
+    refetchQueries: [{ query: MY_COMPANY }],
+  });
+  const allCategories: ServiceCategory[] = ((categoriesData?.serviceCategories ?? []) as ServiceCategory[]).filter(
+    (c) => c.isActive,
+  );
+
   const [description, setDescription] = useState('');
   const [contactEmail, setContactEmail] = useState('');
   const [contactPhone, setContactPhone] = useState('');
@@ -235,6 +255,11 @@ export default function SettingsPage() {
   const [expandedCities, setExpandedCities] = useState<Set<string>>(new Set());
   const [areasSuccessMessage, setAreasSuccessMessage] = useState('');
   const [areasErrorMessage, setAreasErrorMessage] = useState('');
+
+  // Service categories state
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<Set<string>>(new Set());
+  const [categoriesSuccessMessage, setCategoriesSuccessMessage] = useState('');
+  const [categoriesErrorMessage, setCategoriesErrorMessage] = useState('');
 
   useEffect(() => {
     if (company) {
@@ -272,6 +297,15 @@ export default function SettingsPage() {
       setSelectedAreaIds(ids);
     }
   }, [companyAreasData]);
+
+  // Initialize selected categories from company's current service categories
+  useEffect(() => {
+    if (company?.serviceCategories) {
+      setSelectedCategoryIds(
+        new Set((company.serviceCategories as Array<{ id: string }>).map((c) => c.id)),
+      );
+    }
+  }, [company]);
 
   const cities: City[] = useMemo(
     () => (citiesData?.activeCities as City[] | undefined) ?? [],
@@ -398,6 +432,37 @@ export default function SettingsPage() {
 
   const allSelectedInCity = (city: City): boolean => {
     return city.areas.length > 0 && city.areas.every((a) => selectedAreaIds.has(a.id));
+  };
+
+  // ─── Service Category Handlers ──────────────────────────────────────────
+
+  const toggleCategoryId = (categoryId: string) => {
+    setSelectedCategoryIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(categoryId)) {
+        next.delete(categoryId);
+      } else {
+        next.add(categoryId);
+      }
+      return next;
+    });
+  };
+
+  const handleSaveCategories = async () => {
+    setCategoriesSuccessMessage('');
+    setCategoriesErrorMessage('');
+    try {
+      await updateCompanyCategories({
+        variables: {
+          categoryIds: Array.from(selectedCategoryIds),
+        },
+      });
+      setCategoriesSuccessMessage('Categoriile de servicii au fost salvate cu succes.');
+      setTimeout(() => setCategoriesSuccessMessage(''), 3000);
+    } catch {
+      setCategoriesErrorMessage('Eroare la salvarea categoriilor. Incearca din nou.');
+      setTimeout(() => setCategoriesErrorMessage(''), 4000);
+    }
   };
 
   // ─── Render ────────────────────────────────────────────────────────────────
@@ -756,6 +821,95 @@ export default function SettingsPage() {
                   />
                 ))}
             </div>
+          </div>
+        )}
+      </Card>
+
+      {/* Service Categories */}
+      <Card className="mb-6">
+        <div className="flex items-center gap-2 mb-2">
+          <Layers className="h-5 w-5 text-gray-500" />
+          <h2 className="text-lg font-semibold text-gray-900">Categorii de servicii</h2>
+        </div>
+        <p className="text-sm text-gray-500 mb-5">
+          Selecteaza categoriile de servicii pe care firma ta le ofera. Clientii vor putea gasi firma ta in functie de aceste categorii.
+        </p>
+
+        {categoriesLoading ? (
+          <div className="animate-pulse space-y-3">
+            <div className="h-12 bg-gray-100 rounded-xl" />
+            <div className="h-12 bg-gray-100 rounded-xl" />
+            <div className="h-12 bg-gray-100 rounded-xl" />
+          </div>
+        ) : allCategories.length === 0 ? (
+          <div className="text-center py-8">
+            <Layers className="h-10 w-10 text-gray-300 mx-auto mb-3" />
+            <p className="text-sm text-gray-500">Nu exista categorii de servicii disponibile momentan.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {allCategories.map((cat) => {
+              const isSelected = selectedCategoryIds.has(cat.id);
+              return (
+                <label
+                  key={cat.id}
+                  className={cn(
+                    'flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-all border',
+                    isSelected
+                      ? 'border-blue-200 bg-blue-50'
+                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50',
+                  )}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => toggleCategoryId(cat.id)}
+                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600/30"
+                  />
+                  {cat.icon && <span className="text-lg">{cat.icon}</span>}
+                  <span className={cn(
+                    'text-sm',
+                    isSelected ? 'font-medium text-blue-900' : 'text-gray-700',
+                  )}>
+                    {cat.nameRo}
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Summary */}
+        {allCategories.length > 0 && (
+          <div className="mt-4 flex items-center gap-2 text-sm text-gray-500">
+            <Layers className="h-4 w-4" />
+            <span>
+              {selectedCategoryIds.size === 0
+                ? 'Nicio categorie selectata'
+                : `${selectedCategoryIds.size} ${selectedCategoryIds.size === 1 ? 'categorie selectata' : 'categorii selectate'}`}
+            </span>
+          </div>
+        )}
+
+        {/* Feedback messages */}
+        {categoriesSuccessMessage && (
+          <div className="mt-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-700">
+            {categoriesSuccessMessage}
+          </div>
+        )}
+        {categoriesErrorMessage && (
+          <div className="mt-4 p-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">
+            {categoriesErrorMessage}
+          </div>
+        )}
+
+        {/* Save button */}
+        {allCategories.length > 0 && (
+          <div className="mt-5">
+            <Button onClick={handleSaveCategories} loading={savingCategories}>
+              <Save className="h-4 w-4" />
+              Salveaza categoriile
+            </Button>
           </div>
         )}
       </Card>

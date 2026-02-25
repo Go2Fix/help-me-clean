@@ -50,6 +50,7 @@ extend type Query {
     areaId: ID!
     timeSlots: [TimeSlotInput!]!
     estimatedDurationHours: Float!
+    categoryId: ID
   ): [WorkerSuggestion!]!
 
   # Validate city is supported

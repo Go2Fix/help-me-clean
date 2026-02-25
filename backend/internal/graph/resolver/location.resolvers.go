@@ -12,6 +12,8 @@ import (
 	db "go2fix-backend/internal/db/generated"
 	"go2fix-backend/internal/graph/model"
 	"strings"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 // CreateCity is the resolver for the createCity field.
@@ -321,12 +323,16 @@ func (r *queryResolver) MyWorkerServiceAreas(ctx context.Context) ([]*model.City
 }
 
 // SuggestWorkers is the resolver for the suggestWorkers field.
-func (r *queryResolver) SuggestWorkers(ctx context.Context, cityID string, areaID string, timeSlots []*model.TimeSlotInput, estimatedDurationHours float64) ([]*model.WorkerSuggestion, error) {
+func (r *queryResolver) SuggestWorkers(ctx context.Context, cityID string, areaID string, timeSlots []*model.TimeSlotInput, estimatedDurationHours float64, categoryID *string) ([]*model.WorkerSuggestion, error) {
 	areaUUID := stringToUUID(areaID)
 	if !areaUUID.Valid {
 		return nil, fmt.Errorf("invalid area ID")
 	}
-	return r.suggestWorkersForSlots(ctx, areaUUID, timeSlots, estimatedDurationHours)
+	var catUUID pgtype.UUID
+	if categoryID != nil && *categoryID != "" {
+		catUUID = stringToUUID(*categoryID)
+	}
+	return r.suggestWorkersForSlots(ctx, areaUUID, catUUID, timeSlots, estimatedDurationHours)
 }
 
 // IsCitySupported is the resolver for the isCitySupported field.

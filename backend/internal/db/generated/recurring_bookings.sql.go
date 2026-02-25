@@ -158,7 +158,7 @@ func (q *Queries) CreateRecurringGroup(ctx context.Context, arg CreateRecurringG
 }
 
 const getBookingsByRecurringGroup = `-- name: GetBookingsByRecurringGroup :many
-SELECT id, reference_code, client_user_id, company_id, worker_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number, reschedule_count, rescheduled_at, subscription_id, city_pricing_multiplier, pricing_model FROM bookings
+SELECT id, reference_code, client_user_id, company_id, worker_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number, reschedule_count, rescheduled_at, subscription_id, city_pricing_multiplier, pricing_model, category_id FROM bookings
 WHERE recurring_group_id = $1
 ORDER BY scheduled_date, scheduled_start_time
 `
@@ -211,6 +211,7 @@ func (q *Queries) GetBookingsByRecurringGroup(ctx context.Context, recurringGrou
 			&i.SubscriptionID,
 			&i.CityPricingMultiplier,
 			&i.PricingModel,
+			&i.CategoryID,
 		); err != nil {
 			return nil, err
 		}
@@ -304,7 +305,7 @@ func (q *Queries) GetRecurringGroupExtras(ctx context.Context, groupID pgtype.UU
 }
 
 const getUpcomingBookingsByRecurringGroup = `-- name: GetUpcomingBookingsByRecurringGroup :many
-SELECT id, reference_code, client_user_id, company_id, worker_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number, reschedule_count, rescheduled_at, subscription_id, city_pricing_multiplier, pricing_model FROM bookings
+SELECT id, reference_code, client_user_id, company_id, worker_id, address_id, service_type, scheduled_date, scheduled_start_time, estimated_duration_hours, property_type, num_rooms, num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total, final_total, platform_commission_pct, platform_commission_amount, status, started_at, completed_at, cancelled_at, cancellation_reason, stripe_payment_intent_id, payment_status, paid_at, created_at, updated_at, recurring_group_id, occurrence_number, reschedule_count, rescheduled_at, subscription_id, city_pricing_multiplier, pricing_model, category_id FROM bookings
 WHERE recurring_group_id = $1
   AND scheduled_date >= CURRENT_DATE
   AND status NOT IN ('cancelled_by_client', 'cancelled_by_company', 'cancelled_by_admin')
@@ -359,6 +360,7 @@ func (q *Queries) GetUpcomingBookingsByRecurringGroup(ctx context.Context, recur
 			&i.SubscriptionID,
 			&i.CityPricingMultiplier,
 			&i.PricingModel,
+			&i.CategoryID,
 		); err != nil {
 			return nil, err
 		}

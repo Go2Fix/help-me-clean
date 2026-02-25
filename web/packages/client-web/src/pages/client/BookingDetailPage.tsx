@@ -65,11 +65,20 @@ interface BookingReview {
   createdAt: string;
 }
 
+interface BookingCategory {
+  id: string;
+  slug: string;
+  nameRo: string;
+  nameEn: string;
+  icon: string;
+}
+
 interface BookingData {
   id: string;
   referenceCode: string;
   serviceType: string;
   serviceName: string;
+  category?: BookingCategory;
   scheduledDate: string;
   scheduledStartTime: string;
   estimatedDurationHours: number;
@@ -401,11 +410,16 @@ export default function BookingDetailPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
           <div>
-            <div className="flex items-center gap-3 mb-2">
+            <div className="flex flex-wrap items-center gap-3 mb-2">
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
                 {booking.serviceName}
               </h1>
               <Badge status={booking.status} />
+              {booking.category && (
+                <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 font-medium">
+                  {booking.category.icon} {booking.category.nameRo}
+                </span>
+              )}
             </div>
             <div className="flex items-center gap-2 text-gray-500">
               <Hash className="h-4 w-4" />

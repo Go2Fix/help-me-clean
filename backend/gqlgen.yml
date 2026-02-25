@@ -39,3 +39,15 @@ models:
     fields:
       cleanerProfile:
         resolver: true
+  WorkerProfile:
+    fields:
+      serviceCategories:
+        resolver: true
+  Company:
+    fields:
+      serviceCategories:
+        resolver: true
+  Booking:
+    fields:
+      category:
+        resolver: true

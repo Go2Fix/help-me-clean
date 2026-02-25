@@ -1,21 +1,21 @@
 {
   "meta": {
-    "title": "Professional Cleaning Services in Romania | Go2Fix.ro",
-    "description": "Romania's first cleaning marketplace. Verified companies, transparent pricing, online payment. Book standard, deep or post-construction cleaning in minutes."
+    "title": "Home Services in Romania | Go2Fix.ro",
+    "description": "Romania's first home services marketplace. Cleaning, disinfection, plumbing and more. Verified companies, transparent pricing, online payment."
   },
   "preReleaseBanner": "Platform launching soon!",
   "preReleaseBannerLink": "Join the waitlist →",
   "hero": {
-    "badge": "Romania's #1 cleaning platform",
-    "headline1": "Clean home,",
+    "badge": "Romania's #1 home services platform",
+    "headline1": "Home services,",
     "headline2": "no hassle.",
     "headline3": "",
-    "subheadline": "We connect clients with verified cleaning companies in Romania. Book in 2 minutes, pay online, enjoy the result.",
+    "subheadline": "We connect clients with verified home service companies in Romania. Book in 2 minutes, pay online, enjoy the result.",
     "ctaDashboard": "Go to your account",
     "ctaAdmin": "Admin panel",
     "ctaServices": "View services",
     "ctaWaitlist": "Join the waitlist",
-    "ctaBook": "Book a cleaning",
+    "ctaBook": "Book a service",
     "ctaMyAccount": "My account",
     "ctaDiscover": "Discover services",
     "socialProof": "bookings made"
@@ -42,20 +42,23 @@
     "noSubscription": "No subscription",
     "freeCancellation": "Free cancellation"
   },
-  "services": {
+  "categories": {
     "sectionLabel": "Services",
-    "title": "What can we do for you?",
-    "subtitle": "Choose the right cleaning type and book in minutes.",
-    "loading": "Loading services...",
-    "priceUnit": "/hour",
-    "minHours": "Minimum {{count}} hours"
+    "title": "What services do we offer?",
+    "subtitle": "Choose the right service category and discover available options.",
+    "viewCategory": "View services",
+    "comingSoon": "Coming soon",
+    "cleaningDesc": "Standard, deep, post-construction cleaning and more.",
+    "disinfectionDesc": "Professional disinfection for homes and commercial spaces.",
+    "plumbingDesc": "Plumbing installation, repairs and fitting.",
+    "electricalDesc": "Electrical installation, repairs and inspections."
   },
   "howItWorks": {
     "sectionLabel": "Process",
     "title": "How does it work?",
-    "subtitle": "Three simple steps to a clean home.",
+    "subtitle": "Three simple steps to the service you need.",
     "step1Title": "Choose your service",
-    "step1Desc": "Select the cleaning type, number of rooms and preferred date.",
+    "step1Desc": "Select the service category, type and preferred date.",
     "step2Title": "Schedule",
     "step2Desc": "Confirm the details and place your order. A company will accept quickly.",
     "step3Title": "Enjoy the result",
@@ -105,24 +108,24 @@
     "t2": {
       "name": "Andrei Popescu",
       "city": "Bucharest",
-      "text": "The platform is simple and intuitive. I've booked cleaning 3 times and each time it was perfect."
+      "text": "The platform is simple and intuitive. I've booked 3 times and each time it was perfect."
     },
     "t3": {
       "name": "Elena Dumitrescu",
       "city": "Bucharest",
-      "text": "Transparent pricing, no unpleasant surprises. The cleaning team was punctual and professional."
+      "text": "Transparent pricing, no unpleasant surprises. The team was punctual and professional."
     }
   },
   "partners": {
     "sectionLabel": "Partners",
-    "title": "Are you a cleaning company?",
+    "title": "Are you a service company?",
     "subtitle": "Join Go2Fix and receive orders from clients across Romania.",
     "step1Title": "Apply online",
     "step1Desc": "Submit your company documents in 5 minutes, directly from the platform.",
     "step2Title": "Get approved",
     "step2Desc": "Our team verifies and activates your account within 24–48 hours.",
     "step3Title": "Receive orders",
-    "step3Desc": "Clients find you and book directly — you focus on the cleaning.",
+    "step3Desc": "Clients find you and book directly — you focus on the service.",
     "b1Title": "New clients",
     "b1Desc": "Receive orders from verified clients in your service area.",
     "b2Title": "Digital payments",

@@ -111,6 +111,10 @@ func (r *mutationResolver) UpdateServiceExtra(ctx context.Context, input model.U
 		return nil, fmt.Errorf("not authorized")
 	}
 
+	var extraCategoryID pgtype.UUID
+	if input.CategoryID != nil {
+		extraCategoryID = stringToUUID(*input.CategoryID)
+	}
 	updated, err := r.Queries.UpdateServiceExtra(ctx, db.UpdateServiceExtraParams{
 		ID:              stringToUUID(input.ID),
 		NameRo:          input.NameRo,
@@ -120,6 +124,7 @@ func (r *mutationResolver) UpdateServiceExtra(ctx context.Context, input model.U
 		IsActive:        pgtype.Bool{Bool: input.IsActive, Valid: true},
 		AllowMultiple:   input.AllowMultiple,
 		UnitLabel:       stringToText(input.UnitLabel),
+		CategoryID:      extraCategoryID,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to update service extra: %w", err)
@@ -135,6 +140,10 @@ func (r *mutationResolver) CreateServiceExtra(ctx context.Context, input model.C
 		return nil, fmt.Errorf("not authorized")
 	}
 
+	var newExtraCategoryID pgtype.UUID
+	if input.CategoryID != nil {
+		newExtraCategoryID = stringToUUID(*input.CategoryID)
+	}
 	created, err := r.Queries.CreateServiceExtra(ctx, db.CreateServiceExtraParams{
 		NameRo:          input.NameRo,
 		NameEn:          input.NameEn,
@@ -143,6 +152,7 @@ func (r *mutationResolver) CreateServiceExtra(ctx context.Context, input model.C
 		IsActive:        pgtype.Bool{Bool: input.IsActive, Valid: true},
 		AllowMultiple:   input.AllowMultiple,
 		UnitLabel:       stringToText(input.UnitLabel),
+		CategoryID:      newExtraCategoryID,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create service extra: %w", err)
@@ -234,6 +244,19 @@ func (r *queryResolver) AvailableExtras(ctx context.Context) ([]*model.ServiceEx
 		return nil, fmt.Errorf("failed to list extras: %w", err)
 	}
 
+	result := make([]*model.ServiceExtra, len(extras))
+	for i, e := range extras {
+		result[i] = dbServiceExtraToGQL(e)
+	}
+	return result, nil
+}
+
+// AvailableExtrasByCategory is the resolver for the availableExtrasByCategory field.
+func (r *queryResolver) AvailableExtrasByCategory(ctx context.Context, categoryID string) ([]*model.ServiceExtra, error) {
+	extras, err := r.Queries.ListActiveExtrasByCategory(ctx, stringToUUID(categoryID))
+	if err != nil {
+		return nil, fmt.Errorf("failed to list extras by category: %w", err)
+	}
 	result := make([]*model.ServiceExtra, len(extras))
 	for i, e := range extras {
 		result[i] = dbServiceExtraToGQL(e)

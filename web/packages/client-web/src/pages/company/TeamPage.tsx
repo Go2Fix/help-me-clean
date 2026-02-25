@@ -13,6 +13,14 @@ import { MY_WORKERS_LIST, INVITE_WORKER } from '@/graphql/operations';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
+interface ServiceCategory {
+  id: string;
+  slug: string;
+  nameRo: string;
+  nameEn: string;
+  icon: string;
+}
+
 interface Worker {
   id: string;
   fullName: string;
@@ -24,6 +32,7 @@ interface Worker {
   ratingAvg: number | null;
   totalJobsCompleted: number;
   createdAt: string;
+  serviceCategories?: ServiceCategory[];
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -212,6 +221,18 @@ export default function TeamPage() {
                             <span className="font-semibold text-gray-900 truncate">{worker.fullName}</span>
                             {worker.isCompanyAdmin && <Badge variant="info">Admin</Badge>}
                           </div>
+                          {worker.serviceCategories && worker.serviceCategories.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {worker.serviceCategories.map((cat) => (
+                                <span
+                                  key={cat.id}
+                                  className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700"
+                                >
+                                  {cat.icon} {cat.nameRo}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </td>

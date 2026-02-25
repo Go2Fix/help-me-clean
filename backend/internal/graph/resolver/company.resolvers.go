@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"go2fix-backend/internal/auth"
 	db "go2fix-backend/internal/db/generated"
+	"go2fix-backend/internal/graph"
 	"go2fix-backend/internal/graph/model"
 	"go2fix-backend/internal/storage"
 	"log"
@@ -19,6 +20,29 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/jackc/pgx/v5/pgtype"
 )
+
+// ServiceCategories is the resolver for the serviceCategories field.
+func (r *companyResolver) ServiceCategories(ctx context.Context, obj *model.Company) ([]*model.ServiceCategory, error) {
+	companyUUID := stringToUUID(obj.ID)
+	if !companyUUID.Valid {
+		return []*model.ServiceCategory{}, nil
+	}
+	rows, err := r.Queries.ListCompanyServiceCategories(ctx, companyUUID)
+	if err != nil {
+		return []*model.ServiceCategory{}, nil
+	}
+	result := make([]*model.ServiceCategory, len(rows))
+	for i, row := range rows {
+		result[i] = &model.ServiceCategory{
+			ID:     uuidToString(row.CategoryID),
+			Slug:   row.Slug,
+			NameRo: row.NameRo,
+			NameEn: row.NameEn,
+			Icon:   textPtr(row.Icon),
+		}
+	}
+	return result, nil
+}
 
 // ApplyAsCompany is the resolver for the applyAsCompany field.
 func (r *mutationResolver) ApplyAsCompany(ctx context.Context, input model.CompanyApplicationInput) (*model.CompanyApplicationResult, error) {
@@ -416,6 +440,52 @@ func (r *mutationResolver) SetCompanyCommissionOverride(ctx context.Context, id 
 	return dbCompanyToGQL(company), nil
 }
 
+// UpdateCompanyServiceCategories is the resolver for the updateCompanyServiceCategories field.
+func (r *mutationResolver) UpdateCompanyServiceCategories(ctx context.Context, categoryIds []string) ([]*model.ServiceCategory, error) {
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil {
+		return nil, fmt.Errorf("not authenticated")
+	}
+	if claims.Role != "company_admin" && claims.Role != "global_admin" {
+		return nil, fmt.Errorf("not authorized")
+	}
+
+	company, err := r.Queries.GetCompanyByAdminUserID(ctx, stringToUUID(claims.UserID))
+	if err != nil {
+		return nil, fmt.Errorf("company not found for user: %w", err)
+	}
+
+	// Delete all existing categories and insert the new ones.
+	if err := r.Queries.DeleteAllCompanyServiceCategories(ctx, company.ID); err != nil {
+		return nil, fmt.Errorf("failed to clear company categories: %w", err)
+	}
+	for _, catID := range categoryIds {
+		if err := r.Queries.InsertCompanyServiceCategory(ctx, db.InsertCompanyServiceCategoryParams{
+			CompanyID:  company.ID,
+			CategoryID: stringToUUID(catID),
+		}); err != nil {
+			return nil, fmt.Errorf("failed to assign category: %w", err)
+		}
+	}
+
+	// Return the updated list.
+	rows, err := r.Queries.ListCompanyServiceCategories(ctx, company.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list company categories: %w", err)
+	}
+	result := make([]*model.ServiceCategory, len(rows))
+	for i, row := range rows {
+		result[i] = &model.ServiceCategory{
+			ID:     uuidToString(row.CategoryID),
+			Slug:   row.Slug,
+			NameRo: row.NameRo,
+			NameEn: row.NameEn,
+			Icon:   textPtr(row.Icon),
+		}
+	}
+	return result, nil
+}
+
 // MyCompany is the resolver for the myCompany field.
 func (r *queryResolver) MyCompany(ctx context.Context) (*model.Company, error) {
 	claims := auth.GetUserFromContext(ctx)
@@ -673,3 +743,8 @@ func (r *queryResolver) GetDocumentURL(ctx context.Context, documentID string) (
 	}
 	return r.Storage.GetSignedURL(ctx, workerDoc.FileUrl)
 }
+
+// Company returns graph.CompanyResolver implementation.
+func (r *Resolver) Company() graph.CompanyResolver { return &companyResolver{r} }
+
+type companyResolver struct{ *Resolver }

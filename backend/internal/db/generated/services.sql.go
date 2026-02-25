@@ -81,8 +81,8 @@ func (q *Queries) CreateServiceDefinition(ctx context.Context, arg CreateService
 }
 
 const createServiceExtra = `-- name: CreateServiceExtra :one
-INSERT INTO service_extras (name_ro, name_en, price, duration_minutes, is_active, allow_multiple, unit_label)
-VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, name_ro, name_en, price, icon, is_active, duration_minutes, allow_multiple, unit_label
+INSERT INTO service_extras (name_ro, name_en, price, duration_minutes, is_active, allow_multiple, unit_label, category_id)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id, name_ro, name_en, price, icon, is_active, duration_minutes, allow_multiple, unit_label, category_id
 `
 
 type CreateServiceExtraParams struct {
@@ -93,6 +93,7 @@ type CreateServiceExtraParams struct {
 	IsActive        pgtype.Bool    `json:"is_active"`
 	AllowMultiple   bool           `json:"allow_multiple"`
 	UnitLabel       pgtype.Text    `json:"unit_label"`
+	CategoryID      pgtype.UUID    `json:"category_id"`
 }
 
 func (q *Queries) CreateServiceExtra(ctx context.Context, arg CreateServiceExtraParams) (ServiceExtra, error) {
@@ -104,6 +105,7 @@ func (q *Queries) CreateServiceExtra(ctx context.Context, arg CreateServiceExtra
 		arg.IsActive,
 		arg.AllowMultiple,
 		arg.UnitLabel,
+		arg.CategoryID,
 	)
 	var i ServiceExtra
 	err := row.Scan(
@@ -116,12 +118,13 @@ func (q *Queries) CreateServiceExtra(ctx context.Context, arg CreateServiceExtra
 		&i.DurationMinutes,
 		&i.AllowMultiple,
 		&i.UnitLabel,
+		&i.CategoryID,
 	)
 	return i, err
 }
 
 const getExtraByID = `-- name: GetExtraByID :one
-SELECT id, name_ro, name_en, price, icon, is_active, duration_minutes, allow_multiple, unit_label FROM service_extras WHERE id = $1
+SELECT id, name_ro, name_en, price, icon, is_active, duration_minutes, allow_multiple, unit_label, category_id FROM service_extras WHERE id = $1
 `
 
 func (q *Queries) GetExtraByID(ctx context.Context, id pgtype.UUID) (ServiceExtra, error) {
@@ -137,6 +140,7 @@ func (q *Queries) GetExtraByID(ctx context.Context, id pgtype.UUID) (ServiceExtr
 		&i.DurationMinutes,
 		&i.AllowMultiple,
 		&i.UnitLabel,
+		&i.CategoryID,
 	)
 	return i, err
 }
@@ -206,7 +210,7 @@ func (q *Queries) GetServiceByType(ctx context.Context, serviceType ServiceType)
 }
 
 const listActiveExtras = `-- name: ListActiveExtras :many
-SELECT id, name_ro, name_en, price, icon, is_active, duration_minutes, allow_multiple, unit_label FROM service_extras WHERE is_active = TRUE ORDER BY name_en
+SELECT id, name_ro, name_en, price, icon, is_active, duration_minutes, allow_multiple, unit_label, category_id FROM service_extras WHERE is_active = TRUE ORDER BY name_en
 `
 
 func (q *Queries) ListActiveExtras(ctx context.Context) ([]ServiceExtra, error) {
@@ -228,6 +232,44 @@ func (q *Queries) ListActiveExtras(ctx context.Context) ([]ServiceExtra, error) 
 			&i.DurationMinutes,
 			&i.AllowMultiple,
 			&i.UnitLabel,
+			&i.CategoryID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listActiveExtrasByCategory = `-- name: ListActiveExtrasByCategory :many
+SELECT id, name_ro, name_en, price, icon, is_active, duration_minutes, allow_multiple, unit_label, category_id FROM service_extras
+WHERE is_active = TRUE AND (category_id = $1 OR category_id IS NULL)
+ORDER BY name_en
+`
+
+func (q *Queries) ListActiveExtrasByCategory(ctx context.Context, categoryID pgtype.UUID) ([]ServiceExtra, error) {
+	rows, err := q.db.Query(ctx, listActiveExtrasByCategory, categoryID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ServiceExtra
+	for rows.Next() {
+		var i ServiceExtra
+		if err := rows.Scan(
+			&i.ID,
+			&i.NameRo,
+			&i.NameEn,
+			&i.Price,
+			&i.Icon,
+			&i.IsActive,
+			&i.DurationMinutes,
+			&i.AllowMultiple,
+			&i.UnitLabel,
+			&i.CategoryID,
 		); err != nil {
 			return nil, err
 		}
@@ -285,7 +327,7 @@ func (q *Queries) ListActiveServices(ctx context.Context) ([]ServiceDefinition, 
 }
 
 const listAllExtras = `-- name: ListAllExtras :many
-SELECT id, name_ro, name_en, price, icon, is_active, duration_minutes, allow_multiple, unit_label FROM service_extras ORDER BY name_ro
+SELECT id, name_ro, name_en, price, icon, is_active, duration_minutes, allow_multiple, unit_label, category_id FROM service_extras ORDER BY name_ro
 `
 
 func (q *Queries) ListAllExtras(ctx context.Context) ([]ServiceExtra, error) {
@@ -307,6 +349,7 @@ func (q *Queries) ListAllExtras(ctx context.Context) ([]ServiceExtra, error) {
 			&i.DurationMinutes,
 			&i.AllowMultiple,
 			&i.UnitLabel,
+			&i.CategoryID,
 		); err != nil {
 			return nil, err
 		}
@@ -435,8 +478,8 @@ func (q *Queries) UpdateServiceDefinition(ctx context.Context, arg UpdateService
 
 const updateServiceExtra = `-- name: UpdateServiceExtra :one
 UPDATE service_extras SET name_ro = $2, name_en = $3, price = $4, duration_minutes = $5,
-    is_active = $6, allow_multiple = $7, unit_label = $8
-WHERE id = $1 RETURNING id, name_ro, name_en, price, icon, is_active, duration_minutes, allow_multiple, unit_label
+    is_active = $6, allow_multiple = $7, unit_label = $8, category_id = $9
+WHERE id = $1 RETURNING id, name_ro, name_en, price, icon, is_active, duration_minutes, allow_multiple, unit_label, category_id
 `
 
 type UpdateServiceExtraParams struct {
@@ -448,6 +491,7 @@ type UpdateServiceExtraParams struct {
 	IsActive        pgtype.Bool    `json:"is_active"`
 	AllowMultiple   bool           `json:"allow_multiple"`
 	UnitLabel       pgtype.Text    `json:"unit_label"`
+	CategoryID      pgtype.UUID    `json:"category_id"`
 }
 
 func (q *Queries) UpdateServiceExtra(ctx context.Context, arg UpdateServiceExtraParams) (ServiceExtra, error) {
@@ -460,6 +504,7 @@ func (q *Queries) UpdateServiceExtra(ctx context.Context, arg UpdateServiceExtra
 		arg.IsActive,
 		arg.AllowMultiple,
 		arg.UnitLabel,
+		arg.CategoryID,
 	)
 	var i ServiceExtra
 	err := row.Scan(
@@ -472,6 +517,7 @@ func (q *Queries) UpdateServiceExtra(ctx context.Context, arg UpdateServiceExtra
 		&i.DurationMinutes,
 		&i.AllowMultiple,
 		&i.UnitLabel,
+		&i.CategoryID,
 	)
 	return i, err
 }

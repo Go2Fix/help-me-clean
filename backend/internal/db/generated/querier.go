@@ -35,6 +35,7 @@ type Querier interface {
 	CheckTransactionInPayout(ctx context.Context, paymentTransactionID pgtype.UUID) (bool, error)
 	ClaimCompanyByToken(ctx context.Context, arg ClaimCompanyByTokenParams) (Company, error)
 	ClearCompanyCommissionOverride(ctx context.Context, id pgtype.UUID) (Company, error)
+	CompanyHasCategory(ctx context.Context, arg CompanyHasCategoryParams) (bool, error)
 	CompleteBooking(ctx context.Context, id pgtype.UUID) (Booking, error)
 	CountActiveEmailOTPs(ctx context.Context, email string) (int64, error)
 	CountActiveRecurringGroups(ctx context.Context) (int64, error)
@@ -130,7 +131,9 @@ type Querier interface {
 	DeactivateUser(ctx context.Context, id pgtype.UUID) error
 	DeleteAddress(ctx context.Context, id pgtype.UUID) error
 	DeleteAllCompanyServiceAreas(ctx context.Context, companyID pgtype.UUID) error
+	DeleteAllCompanyServiceCategories(ctx context.Context, companyID pgtype.UUID) error
 	DeleteAllWorkerServiceAreas(ctx context.Context, workerID pgtype.UUID) error
+	DeleteAllWorkerServiceCategories(ctx context.Context, workerID pgtype.UUID) error
 	DeleteArea(ctx context.Context, id pgtype.UUID) error
 	DeleteBillingProfile(ctx context.Context, id pgtype.UUID) error
 	DeleteBookingTimeSlots(ctx context.Context, bookingID pgtype.UUID) error
@@ -146,12 +149,16 @@ type Querier interface {
 	DeleteWorkerDateOverride(ctx context.Context, arg DeleteWorkerDateOverrideParams) error
 	DeleteWorkerDocument(ctx context.Context, id pgtype.UUID) error
 	DeselectAllBookingTimeSlots(ctx context.Context, bookingID pgtype.UUID) error
+	// Area + category + no-conflict filtering for worker replacement.
+	FindAvailableWorkersByCategory(ctx context.Context, arg FindAvailableWorkersByCategoryParams) ([]FindAvailableWorkersByCategoryRow, error)
 	// Finds workers in an area who have no conflicting bookings on a specific date.
 	// Orders by same-company first (matching $4), then by rating.
 	FindAvailableWorkersForDateAndArea(ctx context.Context, arg FindAvailableWorkersForDateAndAreaParams) ([]FindAvailableWorkersForDateAndAreaRow, error)
 	FindChatRoomByExactParticipants(ctx context.Context, arg FindChatRoomByExactParticipantsParams) (ChatRoom, error)
 	FindDirectChatRoom(ctx context.Context, arg FindDirectChatRoomParams) (ChatRoom, error)
 	FindMatchingWorkers(ctx context.Context, cityAreaID pgtype.UUID) ([]FindMatchingWorkersRow, error)
+	// Area + category filtering: only returns workers (and their companies) qualified for the given category.
+	FindMatchingWorkersByCategory(ctx context.Context, arg FindMatchingWorkersByCategoryParams) ([]FindMatchingWorkersByCategoryRow, error)
 	GetAddressByID(ctx context.Context, id pgtype.UUID) (ClientAddress, error)
 	GetAreaByID(ctx context.Context, id pgtype.UUID) (GetAreaByIDRow, error)
 	GetAverageWorkerRating(ctx context.Context, reviewedWorkerID pgtype.UUID) (pgtype.Numeric, error)
@@ -259,13 +266,16 @@ type Querier interface {
 	HasPersonalityAssessment(ctx context.Context, workerID pgtype.UUID) (bool, error)
 	InsertBookingExtra(ctx context.Context, arg InsertBookingExtraParams) error
 	InsertCompanyServiceArea(ctx context.Context, arg InsertCompanyServiceAreaParams) (CompanyServiceArea, error)
+	InsertCompanyServiceCategory(ctx context.Context, arg InsertCompanyServiceCategoryParams) error
 	InsertRecurringGroupExtra(ctx context.Context, arg InsertRecurringGroupExtraParams) error
 	// ─── SUBSCRIPTION EXTRAS ──────────────────────────────────────────────────
 	InsertSubscriptionExtra(ctx context.Context, arg InsertSubscriptionExtraParams) error
 	InsertWorkerServiceArea(ctx context.Context, arg InsertWorkerServiceAreaParams) (WorkerServiceArea, error)
+	InsertWorkerServiceCategory(ctx context.Context, arg InsertWorkerServiceCategoryParams) error
 	LinkWorkerToUser(ctx context.Context, arg LinkWorkerToUserParams) (Worker, error)
 	ListActiveCities(ctx context.Context) ([]ListActiveCitiesRow, error)
 	ListActiveExtras(ctx context.Context) ([]ServiceExtra, error)
+	ListActiveExtrasByCategory(ctx context.Context, categoryID pgtype.UUID) ([]ServiceExtra, error)
 	ListActiveRecurringDiscounts(ctx context.Context) ([]RecurringDiscount, error)
 	ListActiveRecurringGroupsByClient(ctx context.Context, clientUserID pgtype.UUID) ([]RecurringBookingGroup, error)
 	ListActiveServiceCategories(ctx context.Context) ([]ServiceCategory, error)
@@ -308,6 +318,7 @@ type Querier interface {
 	ListCompaniesByStatus(ctx context.Context, arg ListCompaniesByStatusParams) ([]Company, error)
 	ListCompanyDocuments(ctx context.Context, companyID pgtype.UUID) ([]CompanyDocument, error)
 	ListCompanyServiceAreas(ctx context.Context, companyID pgtype.UUID) ([]ListCompanyServiceAreasRow, error)
+	ListCompanyServiceCategories(ctx context.Context, companyID pgtype.UUID) ([]ListCompanyServiceCategoriesRow, error)
 	ListCompanyWorkSchedule(ctx context.Context, companyID pgtype.UUID) ([]CompanyWorkSchedule, error)
 	ListEnabledCities(ctx context.Context) ([]ListEnabledCitiesRow, error)
 	ListInvoiceLineItems(ctx context.Context, invoiceID pgtype.UUID) ([]InvoiceLineItem, error)
@@ -365,6 +376,7 @@ type Querier interface {
 	ListWorkerDateOverrides(ctx context.Context, arg ListWorkerDateOverridesParams) ([]WorkerDateOverride, error)
 	ListWorkerDocuments(ctx context.Context, workerID pgtype.UUID) ([]WorkerDocument, error)
 	ListWorkerServiceAreas(ctx context.Context, workerID pgtype.UUID) ([]ListWorkerServiceAreasRow, error)
+	ListWorkerServiceCategories(ctx context.Context, workerID pgtype.UUID) ([]ListWorkerServiceCategoriesRow, error)
 	ListWorkersByCompany(ctx context.Context, companyID pgtype.UUID) ([]Worker, error)
 	MarkAllNotificationsRead(ctx context.Context, userID pgtype.UUID) error
 	MarkBookingPaid(ctx context.Context, id pgtype.UUID) (Booking, error)
@@ -459,6 +471,7 @@ type Querier interface {
 	// UpsertPlatformLegalEntity creates or updates the platform legal entity.
 	UpsertPlatformLegalEntity(ctx context.Context, arg UpsertPlatformLegalEntityParams) (PlatformLegalEntity, error)
 	UpsertWorkerDateOverride(ctx context.Context, arg UpsertWorkerDateOverrideParams) (WorkerDateOverride, error)
+	WorkerHasCategory(ctx context.Context, arg WorkerHasCategoryParams) (bool, error)
 }
 
 var _ Querier = (*Queries)(nil)

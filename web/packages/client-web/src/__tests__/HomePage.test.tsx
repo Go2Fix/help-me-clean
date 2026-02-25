@@ -3,7 +3,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { MockedProvider, type MockedResponse } from '@apollo/client/testing';
 import { HelmetProvider } from 'react-helmet-async';
 import { useAuth } from '@/context/AuthContext';
-import { AVAILABLE_SERVICES } from '@/graphql/operations';
+import { SERVICE_CATEGORIES } from '@/graphql/operations';
 import HomePage from '@/pages/HomePage';
 
 vi.mock('@/context/AuthContext', () => ({
@@ -29,45 +29,31 @@ vi.mock('@/context/PlatformContext', () => ({
 
 const mockUseAuth = vi.mocked(useAuth);
 
-const mockServices = [
+const mockCategories = [
   {
     id: '1',
-    serviceType: 'STANDARD_CLEANING',
-    nameRo: 'Curatenie Standard',
-    nameEn: 'Standard Cleaning',
-    descriptionRo: 'Curatenie generala pentru locuinta ta.',
-    descriptionEn: 'General cleaning.',
-    basePricePerHour: 50,
-    minHours: 2,
-    icon: '🏠',
-  },
-  {
-    id: '2',
-    serviceType: 'DEEP_CLEANING',
-    nameRo: 'Curatenie Generala',
-    nameEn: 'Deep Cleaning',
-    descriptionRo: 'Curatenie aprofundata.',
-    descriptionEn: 'Deep cleaning.',
-    basePricePerHour: 75,
-    minHours: 3,
-    icon: '✨',
+    slug: 'curatenie',
+    nameRo: 'Curățenie',
+    nameEn: 'Cleaning',
+    icon: '🧹',
+    isActive: true,
   },
 ];
 
 const successMock: MockedResponse[] = [
   {
-    request: { query: AVAILABLE_SERVICES },
+    request: { query: SERVICE_CATEGORIES },
     result: {
-      data: { availableServices: mockServices },
+      data: { serviceCategories: mockCategories },
     },
   },
 ];
 
 const loadingMock: MockedResponse[] = [
   {
-    request: { query: AVAILABLE_SERVICES },
+    request: { query: SERVICE_CATEGORIES },
     result: {
-      data: { availableServices: mockServices },
+      data: { serviceCategories: mockCategories },
     },
     delay: 100000, // long delay to keep in loading state
   },
@@ -109,29 +95,29 @@ describe('HomePage', () => {
     });
   });
 
-  it('shows hero title "Casă curată"', () => {
+  it('shows hero title', () => {
     renderHomePage();
-    expect(screen.getByText(/Casă curată/)).toBeInTheDocument();
+    expect(screen.getByText(/Servicii pentru casă/)).toBeInTheDocument();
   });
 
   it('shows hero subtitle text', () => {
     renderHomePage();
     expect(
-      screen.getByText(/firme de cur/),
+      screen.getByText(/firme verificate de servicii/),
     ).toBeInTheDocument();
   });
 
-  it('shows "Rezervă o curățenie" button', () => {
+  it('shows "Rezervă un serviciu" button', () => {
     renderHomePage();
     expect(
-      screen.getByRole('button', { name: /Rezervă o curățenie/ }),
+      screen.getByRole('button', { name: /Rezervă un serviciu/ }),
     ).toBeInTheDocument();
   });
 
   it('shows "Vezi serviciile" button', () => {
     renderHomePage();
     expect(
-      screen.getByRole('button', { name: 'Vezi serviciile' }),
+      screen.getByRole('button', { name: /Vezi serviciile/ }),
     ).toBeInTheDocument();
   });
 
@@ -160,29 +146,36 @@ describe('HomePage', () => {
     expect(screen.getByText('Suport rapid')).toBeInTheDocument();
   });
 
-  it('shows services section heading', () => {
+  it('shows categories section heading', () => {
     renderHomePage();
-    expect(screen.getByText('Ce putem face pentru tine?')).toBeInTheDocument();
+    expect(screen.getByText('Ce servicii oferim?')).toBeInTheDocument();
   });
 
-  it('shows services from query after loading', async () => {
+  it('shows active category from query after loading', async () => {
     renderHomePage();
     expect(
-      await screen.findByText('Curatenie Standard'),
+      await screen.findByText('Curățenie'),
     ).toBeInTheDocument();
-    expect(screen.getByText('Curatenie Generala')).toBeInTheDocument();
   });
 
-  it('shows service prices from query', async () => {
+  it('shows coming-soon placeholder categories', async () => {
     renderHomePage();
-    await screen.findByText('Curatenie Standard');
-    expect(screen.getByText('50 lei')).toBeInTheDocument();
-    expect(screen.getByText('75 lei')).toBeInTheDocument();
+    await screen.findByText('Curățenie');
+    expect(screen.getByText('Dezinfecție')).toBeInTheDocument();
+    expect(screen.getByText('Instalații sanitare')).toBeInTheDocument();
+    expect(screen.getByText('Electrician')).toBeInTheDocument();
   });
 
-  it('shows skeleton cards while services are loading', () => {
+  it('shows "În curând" badge on coming-soon categories', async () => {
+    renderHomePage();
+    await screen.findByText('Curățenie');
+    const badges = screen.getAllByText('În curând');
+    expect(badges.length).toBe(3);
+  });
+
+  it('shows skeleton cards while categories are loading', () => {
     renderHomePage(loadingMock);
-    expect(screen.getByTestId('services-skeleton')).toBeInTheDocument();
+    expect(screen.getByTestId('categories-skeleton')).toBeInTheDocument();
   });
 
   it('shows "Rezervă acum" button in how-it-works section', () => {

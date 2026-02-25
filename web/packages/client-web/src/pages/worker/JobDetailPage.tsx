@@ -66,6 +66,7 @@ interface BookingData {
   company?: { id: string; companyName: string; contactPhone?: string };
   extras: BookingExtra[];
   review?: { id: string; rating: number; comment?: string; createdAt: string };
+  category?: { id: string; slug: string; nameRo: string; nameEn: string; icon?: string } | null;
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -275,6 +276,11 @@ export default function JobDetailPage() {
           <div className="flex flex-wrap items-center gap-3">
             <h1 className="text-2xl font-bold text-gray-900">{booking.serviceName}</h1>
             <Badge variant={badge.variant}>{badge.label}</Badge>
+            {booking.category && (
+              <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-medium">
+                {booking.category.icon} {booking.category.nameRo}
+              </span>
+            )}
             {booking.recurringGroupId && (
               <Badge variant="info">
                 <Repeat className="h-3 w-3 mr-1" />

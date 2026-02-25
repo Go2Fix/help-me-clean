@@ -40,6 +40,7 @@ interface Job {
   status: string;
   address: { streetAddress: string; city: string } | null;
   client: { fullName: string } | null;
+  category?: { id: string; slug: string; nameRo: string; nameEn: string; icon?: string } | null;
 }
 
 interface Review {
@@ -298,6 +299,11 @@ export default function DashboardPage() {
                     <Badge variant={statusVariant[job.status] ?? 'default'} className="shrink-0">
                       {statusLabel[job.status] ?? job.status}
                     </Badge>
+                    {job.category && (
+                      <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-medium shrink-0">
+                        {job.category.icon} {job.category.nameRo}
+                      </span>
+                    )}
                   </div>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-gray-500">
                     <span className="flex items-center gap-1">

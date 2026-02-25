@@ -25,6 +25,40 @@ WHERE worker_id = $1
   AND scheduled_date <= $3
   AND status NOT IN ('cancelled_by_client', 'cancelled_by_company', 'cancelled_by_admin');
 
+-- name: FindMatchingWorkersByCategory :many
+-- Area + category filtering: only returns workers (and their companies) qualified for the given category.
+SELECT DISTINCT c.id, c.user_id, u.full_name, u.avatar_url, c.rating_avg, c.total_jobs_completed,
+       co.company_name, co.id AS company_id
+FROM workers c
+JOIN users u ON c.user_id = u.id
+JOIN companies co ON c.company_id = co.id
+JOIN company_service_areas csa ON csa.company_id = co.id AND csa.city_area_id = @area_id
+JOIN worker_service_areas wsa ON wsa.worker_id = c.id AND wsa.city_area_id = @area_id
+JOIN company_service_categories ccsc ON ccsc.company_id = co.id AND ccsc.category_id = @category_id
+JOIN worker_service_categories wcsc ON wcsc.worker_id = c.id AND wcsc.category_id = @category_id
+WHERE c.status = 'active'
+  AND co.status = 'approved'
+ORDER BY c.rating_avg DESC, c.total_jobs_completed DESC;
+
+-- name: FindAvailableWorkersByCategory :many
+-- Area + category + no-conflict filtering for worker replacement.
+SELECT w.id, w.user_id, w.company_id, w.rating_avg
+FROM workers w
+JOIN worker_service_areas wsa ON wsa.worker_id = w.id AND wsa.city_area_id = @cat_area_id
+JOIN companies co ON w.company_id = co.id AND co.status = 'approved'
+JOIN worker_service_categories wcsc ON wcsc.worker_id = w.id AND wcsc.category_id = @cat_category_id
+JOIN company_service_categories ccsc ON ccsc.company_id = co.id AND ccsc.category_id = @cat_category_id
+WHERE w.status = 'active'
+  AND w.id != @cat_exclude_worker_id
+  AND w.id NOT IN (
+    SELECT DISTINCT b.worker_id FROM bookings b
+    WHERE b.scheduled_date = @cat_target_date
+      AND b.worker_id IS NOT NULL
+      AND b.status NOT IN ('cancelled_by_client', 'cancelled_by_company', 'cancelled_by_admin')
+  )
+ORDER BY (CASE WHEN w.company_id = @cat_preferred_company_id THEN 0 ELSE 1 END), w.rating_avg DESC
+LIMIT 5;
+
 -- name: FindAvailableWorkersForDateAndArea :many
 -- Finds workers in an area who have no conflicting bookings on a specific date.
 -- Orders by same-company first (matching $4), then by rating.

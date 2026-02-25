@@ -3,7 +3,7 @@ import { useQuery, useMutation } from '@apollo/client';
 import { Link } from 'react-router-dom';
 import {
   Phone, FileText, Building2, Star, Briefcase, Camera, Loader2,
-  Check, MapPin, Info, Brain, MessageSquare, Calendar,
+  Check, MapPin, Info, Brain, MessageSquare, Calendar, Layers,
 } from 'lucide-react';
 import { cn } from '@go2fix/shared';
 import Card from '@/components/ui/Card';
@@ -429,6 +429,41 @@ export default function SettingsPage() {
           <Info className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" />
           <p className="text-xs text-blue-700">
             Zonele de lucru sunt gestionate de administratorul firmei tale.
+          </p>
+        </div>
+      </Card>
+
+      {/* ── 5b. Service Categories (read-only) ─────────────────────── */}
+      <Card className="mb-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Layers className="h-5 w-5 text-blue-600" />
+          <h2 className="text-lg font-semibold text-gray-900">Categoriile mele de servicii</h2>
+        </div>
+
+        {profileLoading ? (
+          <p className="text-sm text-gray-400">Se incarca categoriile...</p>
+        ) : !profile?.serviceCategories || profile.serviceCategories.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            <div className="p-3 rounded-full bg-gray-100 mb-3">
+              <Layers className="h-6 w-6 text-gray-400" />
+            </div>
+            <p className="text-sm text-gray-500">Nicio categorie atribuita inca.</p>
+          </div>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {profile.serviceCategories.map((cat: { id: string; nameRo: string; icon?: string }) => (
+              <Badge key={cat.id} variant="info">
+                {cat.icon && <span className="mr-1">{cat.icon}</span>}
+                {cat.nameRo}
+              </Badge>
+            ))}
+          </div>
+        )}
+
+        <div className="flex items-start gap-2 mt-4 p-3 rounded-xl bg-blue-50 border border-blue-100">
+          <Info className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" />
+          <p className="text-xs text-blue-700">
+            Categoriile de servicii sunt gestionate de administratorul firmei tale.
           </p>
         </div>
       </Card>

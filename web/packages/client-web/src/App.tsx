@@ -31,6 +31,7 @@ import TermsPage from '@/pages/TermsPage';
 import PrivacyPage from '@/pages/PrivacyPage';
 import BlogListPage from '@/pages/blog/BlogListPage';
 import BlogPostPage from '@/pages/blog/BlogPostPage';
+import CategoryLandingPage from '@/pages/CategoryLandingPage';
 
 // Client pages
 import ClientDashboardPage from '@/pages/client/ClientDashboardPage';
@@ -173,6 +174,7 @@ function AppRoutes() {
       <Route element={<PublicLayout />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/servicii" element={<Navigate to="/#servicii" replace />} />
+        <Route path="/servicii/:categorySlug" element={<CategoryLandingPage />} />
         <Route path="/claim-firma/:token" element={<ClaimCompanyPage />} />
         <Route path="/lista-asteptare" element={<WaitlistPage />} />
         <Route path="/despre-noi" element={<AboutPage />} />
@@ -187,6 +189,7 @@ function AppRoutes() {
       {/* ── English public routes (/en/ prefix) ── */}
       <Route path="/en" element={<PublicLayout />}>
         <Route index element={<HomePage />} />
+        <Route path="services/:categorySlug" element={<CategoryLandingPage />} />
         <Route path="about-us" element={<AboutPage />} />
         <Route path="contact" element={<ContactPage />} />
         <Route path="for-companies" element={<ForCompaniesPage />} />

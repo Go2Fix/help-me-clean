@@ -22,6 +22,7 @@ import {
   AlertCircle,
   FileCheck,
   CheckCircle,
+  Layers,
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/utils/format';
 import Card from '@/components/ui/Card';
@@ -564,6 +565,31 @@ export default function CompanyDetailPage() {
               )}
               <p className="text-xs text-gray-400">
                 Zonele de serviciu sunt gestionate de administratorul firmei.
+              </p>
+            </Card>
+
+            {/* Service Categories */}
+            <Card>
+              <div className="flex items-center gap-2 mb-4">
+                <Layers className="h-5 w-5 text-primary" />
+                <h3 className="text-lg font-semibold text-gray-900">Categorii servicii</h3>
+              </div>
+              {company.serviceCategories && company.serviceCategories.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {company.serviceCategories.map((cat: { id: string; slug: string; nameRo: string; icon?: string }) => (
+                    <Badge key={cat.id} variant="info">
+                      {cat.icon && <span className="mr-1">{cat.icon}</span>}
+                      {cat.nameRo}
+                    </Badge>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-400">
+                  Nicio categorie de servicii configurata.
+                </p>
+              )}
+              <p className="text-xs text-gray-400 mt-3">
+                Categoriile sunt gestionate de administratorul firmei.
               </p>
             </Card>
 

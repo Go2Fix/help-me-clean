@@ -26,11 +26,12 @@ INSERT INTO subscriptions (
     per_session_original, discount_pct, per_session_discounted,
     sessions_per_month, monthly_amount, monthly_amount_bani,
     platform_commission_pct, stripe_subscription_id, stripe_price_id,
-    stripe_product_id, status, current_period_start, current_period_end
+    stripe_product_id, status, current_period_start, current_period_end,
+    category_id
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
     $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27,
-    $28, $29
+    $28, $29, $30
 ) RETURNING *;
 
 -- name: GetSubscriptionByID :one

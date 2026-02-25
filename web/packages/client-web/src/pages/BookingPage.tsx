@@ -53,6 +53,7 @@ import EmailOtpModal from '@/components/auth/EmailOtpModal';
 import {
   AVAILABLE_SERVICES,
   AVAILABLE_EXTRAS,
+  AVAILABLE_EXTRAS_BY_CATEGORY,
   ESTIMATE_PRICE,
   CREATE_BOOKING_REQUEST,
   MY_ADDRESSES,
@@ -64,6 +65,7 @@ import {
   RECURRING_DISCOUNTS,
   SUBSCRIPTION_PRICING_PREVIEW,
   CREATE_SUBSCRIPTION,
+  SERVICE_CATEGORY_BY_SLUG,
 } from '@/graphql/operations';
 
 const stripePromise = loadStripe(
@@ -82,6 +84,9 @@ interface ServiceDefinition {
   icon: string;
   isActive?: boolean;
   includedItems: string[];
+  categoryId?: string;
+  pricingModel?: string;
+  pricePerSqm?: number;
 }
 
 interface ExtraDefinition {
@@ -212,6 +217,7 @@ interface SavedPaymentMethod {
 
 interface BookingFormState {
   serviceType: string;
+  categoryId: string;
   propertyType: string;
   numRooms: number;
   numBathrooms: number;
@@ -346,6 +352,7 @@ export default function BookingPage() {
   const { isAuthenticated, user, loginWithGoogle } = useAuth();
 
   const preselectedService = searchParams.get('service') || '';
+  const categorySlug = searchParams.get('category') || '';
 
   const [currentStep, setCurrentStep] = useState(preselectedService ? 1 : 0);
   const [bookingResult, setBookingResult] = useState<{
@@ -373,6 +380,7 @@ export default function BookingPage() {
 
   const [form, setForm] = useState<BookingFormState>({
     serviceType: preselectedService,
+    categoryId: '',
     propertyType: 'Apartament',
     numRooms: 2,
     numBathrooms: 1,
@@ -405,8 +413,23 @@ export default function BookingPage() {
   const { data: servicesData, loading: servicesLoading } =
     useQuery(AVAILABLE_SERVICES, { fetchPolicy: 'cache-first' });
 
-  const { data: extrasData } = useQuery(AVAILABLE_EXTRAS, {
+  // Fetch category by slug if ?category=<slug> is in URL
+  const { data: categoryData } = useQuery(SERVICE_CATEGORY_BY_SLUG, {
+    variables: { slug: categorySlug },
+    skip: !categorySlug,
     fetchPolicy: 'cache-first',
+  });
+  const urlCategory = (categoryData as { serviceCategoryBySlug?: { id: string; nameRo: string; slug: string } })?.serviceCategoryBySlug;
+
+  // Use category-specific extras when a category is known, otherwise global
+  const { data: categoryExtrasData } = useQuery(AVAILABLE_EXTRAS_BY_CATEGORY, {
+    variables: { categoryId: form.categoryId },
+    skip: !form.categoryId,
+    fetchPolicy: 'cache-first',
+  });
+  const { data: globalExtrasData } = useQuery(AVAILABLE_EXTRAS, {
+    fetchPolicy: 'cache-first',
+    skip: !!form.categoryId,
   });
 
   const { data: addressesData } = useQuery<{ myAddresses: SavedAddress[] }>(
@@ -440,15 +463,38 @@ export default function BookingPage() {
     useLazyQuery(SUBSCRIPTION_PRICING_PREVIEW, { fetchPolicy: 'network-only' });
   const subPricing = subPricingData?.subscriptionPricingPreview as SubscriptionPricingPreview | undefined;
 
-  const services: ServiceDefinition[] = servicesData?.availableServices ?? [];
-  const extras: ExtraDefinition[] = extrasData?.availableExtras ?? [];
+  const allServices: ServiceDefinition[] = servicesData?.availableServices ?? [];
+
+  // Filter services by category if URL slug is set
+  const services: ServiceDefinition[] = useMemo(() => {
+    if (urlCategory) {
+      return allServices.filter((s) => s.categoryId === urlCategory.id);
+    }
+    return allServices;
+  }, [allServices, urlCategory]);
+
+  const extras: ExtraDefinition[] = form.categoryId
+    ? ((categoryExtrasData as { availableExtrasByCategory?: ExtraDefinition[] })?.availableExtrasByCategory ?? [])
+    : (globalExtrasData?.availableExtras ?? []);
   const savedAddresses: SavedAddress[] = addressesData?.myAddresses ?? [];
   const estimate = estimateData?.estimatePrice;
+
+  // Set categoryId from URL category when it loads
+  useEffect(() => {
+    if (urlCategory && !form.categoryId) {
+      setForm((prev) => ({ ...prev, categoryId: urlCategory.id }));
+    }
+  }, [urlCategory, form.categoryId]);
 
   // Auto-select first service when data loads and none is preselected
   useEffect(() => {
     if (!form.serviceType && services.length > 0) {
-      setForm((prev) => ({ ...prev, serviceType: services[0].serviceType }));
+      const firstService = services[0];
+      setForm((prev) => ({
+        ...prev,
+        serviceType: firstService.serviceType,
+        categoryId: prev.categoryId || firstService.categoryId || '',
+      }));
     }
   }, [services, form.serviceType]);
 
@@ -529,8 +575,11 @@ export default function BookingPage() {
     switch (stepKey) {
       case 'service':
         return !!form.serviceType;
-      case 'details':
-        return form.numRooms >= 1 && form.numBathrooms >= 1 && !!form.areaSqm && parseInt(form.areaSqm, 10) > 0;
+      case 'details': {
+        const areaOk = !!form.areaSqm && parseInt(form.areaSqm, 10) > 0;
+        if (selectedService?.pricingModel === 'PER_SQM') return areaOk;
+        return form.numRooms >= 1 && form.numBathrooms >= 1 && areaOk;
+      }
       case 'schedule':
         if (form.isRecurring) {
           return !!form.recurrenceType && form.recurrenceDayOfWeek >= 1 && !!form.preferredTimeStart && !!form.preferredTimeEnd;
@@ -608,6 +657,7 @@ export default function BookingPage() {
     try {
       const input: Record<string, unknown> = {
         serviceType: form.serviceType,
+        categoryId: form.categoryId || undefined,
         scheduledDate: form.timeSlots[0]?.date,
         scheduledStartTime: form.timeSlots[0]?.startTime,
         timeSlots: form.timeSlots.map((s) => ({
@@ -660,6 +710,7 @@ export default function BookingPage() {
   const buildBookingInput = useCallback(() => {
     const input: Record<string, unknown> = {
       serviceType: form.serviceType,
+      categoryId: form.categoryId || undefined,
       scheduledDate: form.timeSlots[0]?.date,
       scheduledStartTime: form.timeSlots[0]?.startTime,
       timeSlots: form.timeSlots.map((s) => ({
@@ -718,6 +769,7 @@ export default function BookingPage() {
       try {
         const subInput: Record<string, unknown> = {
           serviceType: form.serviceType,
+          categoryId: form.categoryId || undefined,
           recurrenceType: form.recurrenceType,
           dayOfWeek: form.recurrenceDayOfWeek,
           preferredTime: form.preferredTimeStart || '09:00',
@@ -975,7 +1027,13 @@ export default function BookingPage() {
                 services={services}
                 loading={servicesLoading}
                 selected={form.serviceType}
-                onSelect={(type) => updateForm({ serviceType: type })}
+                onSelect={(type) => {
+                  const svc = services.find((s) => s.serviceType === type);
+                  updateForm({
+                    serviceType: type,
+                    categoryId: svc?.categoryId || form.categoryId,
+                  });
+                }}
               />
             )}
 
@@ -1512,106 +1570,125 @@ function StepDetails({
   selectedService?: ServiceDefinition;
   estimatedHours?: number;
 }) {
+  const isPerSqm = selectedService?.pricingModel === 'PER_SQM';
+
   return (
     <div>
       <h2 className="text-xl font-semibold text-gray-900 mb-2">
         Detalii proprietate
       </h2>
       <p className="text-sm text-gray-500 mb-4">
-        Spune-ne mai multe despre spațiul care trebuie curățat.
+        {isPerSqm
+          ? 'Spune-ne suprafața care necesită intervenție.'
+          : 'Spune-ne mai multe despre spațiul care trebuie curățat.'}
       </p>
       {selectedService && (
         <div className="flex items-start gap-3 p-4 rounded-xl bg-blue-50 border border-blue-100 mb-6">
           <Sparkles className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" />
           <p className="text-sm text-blue-800">
-            <strong>{selectedService.nameRo}</strong> pentru {form.propertyType.toLowerCase()} cu{' '}
-            <strong>{form.numRooms} {form.numRooms === 1 ? 'cameră' : 'camere'}</strong>
-            {estimatedHours ? (
-              <> — estimăm <strong>~{estimatedHours} ore</strong>
-              {form.areaSqm ? ` pentru ${form.areaSqm} m²` : ''}</>
+            {isPerSqm ? (
+              <>
+                <strong>{selectedService.nameRo}</strong>
+                {form.areaSqm
+                  ? <> — <strong>{form.areaSqm} m²</strong>{selectedService.pricePerSqm ? <> × {selectedService.pricePerSqm} lei/m²</> : ''}</>
+                  : <> — completează suprafața pentru estimarea prețului</>}
+              </>
             ) : (
-              <> — completează detaliile pentru a vedea durata estimată</>
-            )}.
+              <>
+                <strong>{selectedService.nameRo}</strong> pentru {form.propertyType.toLowerCase()} cu{' '}
+                <strong>{form.numRooms} {form.numRooms === 1 ? 'cameră' : 'camere'}</strong>
+                {estimatedHours ? (
+                  <> — estimăm <strong>~{estimatedHours} ore</strong>
+                  {form.areaSqm ? ` pentru ${form.areaSqm} m²` : ''}</>
+                ) : (
+                  <> — completează detaliile pentru a vedea durata estimată</>
+                )}.
+              </>
+            )}
           </p>
         </div>
       )}
 
       <Card className="space-y-6">
-        {/* Property Type */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-3">
-            Tip proprietate
-          </label>
-          <div className="grid grid-cols-3 gap-3">
-            {PROPERTY_TYPES.map((pt) => {
-              const Icon = pt.icon;
-              const isSelected = form.propertyType === pt.value;
-              return (
-                <button
-                  key={pt.value}
-                  type="button"
-                  onClick={() => updateForm({ propertyType: pt.value })}
-                  className={cn(
-                    'relative flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all cursor-pointer',
-                    isSelected
-                      ? 'border-blue-600 bg-blue-50 shadow-sm'
-                      : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50',
-                  )}
-                >
-                  <Icon
+        {/* Property Type — only for hourly pricing */}
+        {!isPerSqm && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Tip proprietate
+            </label>
+            <div className="grid grid-cols-3 gap-3">
+              {PROPERTY_TYPES.map((pt) => {
+                const Icon = pt.icon;
+                const isSelected = form.propertyType === pt.value;
+                return (
+                  <button
+                    key={pt.value}
+                    type="button"
+                    onClick={() => updateForm({ propertyType: pt.value })}
                     className={cn(
-                      'h-6 w-6',
-                      isSelected ? 'text-blue-600' : 'text-gray-400',
-                    )}
-                  />
-                  <span
-                    className={cn(
-                      'text-sm font-medium',
-                      isSelected ? 'text-blue-600' : 'text-gray-700',
+                      'relative flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all cursor-pointer',
+                      isSelected
+                        ? 'border-blue-600 bg-blue-50 shadow-sm'
+                        : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50',
                     )}
                   >
-                    {pt.label}
-                  </span>
-                  {pt.badge && (
+                    <Icon
+                      className={cn(
+                        'h-6 w-6',
+                        isSelected ? 'text-blue-600' : 'text-gray-400',
+                      )}
+                    />
                     <span
                       className={cn(
-                        'absolute -top-2 -right-2 text-xs font-bold px-1.5 py-0.5 rounded-md',
-                        isSelected
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-amber-100 text-amber-700',
+                        'text-sm font-medium',
+                        isSelected ? 'text-blue-600' : 'text-gray-700',
                       )}
                     >
-                      {pt.badge}
+                      {pt.label}
                     </span>
-                  )}
-                  {isSelected && (
-                    <div className="absolute top-1.5 left-1.5 w-4 h-4 rounded-full bg-blue-600 flex items-center justify-center">
-                      <Check className="h-2.5 w-2.5 text-white" />
-                    </div>
-                  )}
-                </button>
-              );
-            })}
+                    {pt.badge && (
+                      <span
+                        className={cn(
+                          'absolute -top-2 -right-2 text-xs font-bold px-1.5 py-0.5 rounded-md',
+                          isSelected
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-amber-100 text-amber-700',
+                        )}
+                      >
+                        {pt.badge}
+                      </span>
+                    )}
+                    {isSelected && (
+                      <div className="absolute top-1.5 left-1.5 w-4 h-4 rounded-full bg-blue-600 flex items-center justify-center">
+                        <Check className="h-2.5 w-2.5 text-white" />
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Rooms stepper */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <StepperField
-            label="Numar camere"
-            value={form.numRooms}
-            min={1}
-            max={10}
-            onChange={(v) => updateForm({ numRooms: v })}
-          />
-          <StepperField
-            label="Numar bai"
-            value={form.numBathrooms}
-            min={1}
-            max={5}
-            onChange={(v) => updateForm({ numBathrooms: v })}
-          />
-        </div>
+        {/* Rooms stepper — only for hourly pricing */}
+        {!isPerSqm && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <StepperField
+              label="Numar camere"
+              value={form.numRooms}
+              min={1}
+              max={10}
+              onChange={(v) => updateForm({ numRooms: v })}
+            />
+            <StepperField
+              label="Numar bai"
+              value={form.numBathrooms}
+              min={1}
+              max={5}
+              onChange={(v) => updateForm({ numBathrooms: v })}
+            />
+          </div>
+        )}
 
         {/* Area */}
         <Input
@@ -1623,42 +1700,44 @@ function StepDetails({
           min={1}
         />
 
-        {/* Pets toggle */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Animale de companie
-          </label>
-          <button
-            type="button"
-            onClick={() => updateForm({ hasPets: !form.hasPets })}
-            className={cn(
-              'flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all cursor-pointer w-full sm:w-auto',
-              form.hasPets
-                ? 'border-blue-600 bg-blue-50'
-                : 'border-gray-200 bg-white hover:border-gray-300',
-            )}
-          >
-            <PawPrint
+        {/* Pets toggle — only for hourly pricing */}
+        {!isPerSqm && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Animale de companie
+            </label>
+            <button
+              type="button"
+              onClick={() => updateForm({ hasPets: !form.hasPets })}
               className={cn(
-                'h-5 w-5',
-                form.hasPets ? 'text-blue-600' : 'text-gray-400',
-              )}
-            />
-            <span
-              className={cn(
-                'text-sm font-medium',
-                form.hasPets ? 'text-blue-600' : 'text-gray-700',
+                'flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all cursor-pointer w-full sm:w-auto',
+                form.hasPets
+                  ? 'border-blue-600 bg-blue-50'
+                  : 'border-gray-200 bg-white hover:border-gray-300',
               )}
             >
-              Am animale de companie
-            </span>
-            {form.hasPets && (
-              <span className="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md ml-auto">
-                +15 lei
+              <PawPrint
+                className={cn(
+                  'h-5 w-5',
+                  form.hasPets ? 'text-blue-600' : 'text-gray-400',
+                )}
+              />
+              <span
+                className={cn(
+                  'text-sm font-medium',
+                  form.hasPets ? 'text-blue-600' : 'text-gray-700',
+                )}
+              >
+                Am animale de companie
               </span>
-            )}
-          </button>
-        </div>
+              {form.hasPets && (
+                <span className="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md ml-auto">
+                  +15 lei
+                </span>
+              )}
+            </button>
+          </div>
+        )}
       </Card>
 
       {/* Extras */}
@@ -3051,6 +3130,7 @@ function StepWorkerOneTime({
         endTime: s.endTime,
       })),
       estimatedDurationHours: duration,
+      categoryId: form.categoryId || undefined,
     },
     skip:
       !form.selectedCityId ||
@@ -3395,6 +3475,7 @@ function StepWorkerSubscription({
       preferredTimeStart: form.preferredTimeStart,
       preferredTimeEnd: form.preferredTimeEnd,
       estimatedDurationHours: duration,
+      categoryId: form.categoryId || undefined,
     },
     skip: !canQuery,
     fetchPolicy: 'network-only',
@@ -3765,6 +3846,7 @@ function StepSummary({
         endTime: s.endTime,
       })),
       estimatedDurationHours: estimate?.estimatedHours ?? selectedService?.minHours ?? 2,
+      categoryId: form.categoryId || undefined,
     },
     skip:
       !form.preferredWorkerId ||

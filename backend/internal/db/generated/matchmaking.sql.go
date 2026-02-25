@@ -32,6 +32,72 @@ func (q *Queries) CountWorkerBookingsInDateRange(ctx context.Context, arg CountW
 	return count, err
 }
 
+const findAvailableWorkersByCategory = `-- name: FindAvailableWorkersByCategory :many
+SELECT w.id, w.user_id, w.company_id, w.rating_avg
+FROM workers w
+JOIN worker_service_areas wsa ON wsa.worker_id = w.id AND wsa.city_area_id = $1
+JOIN companies co ON w.company_id = co.id AND co.status = 'approved'
+JOIN worker_service_categories wcsc ON wcsc.worker_id = w.id AND wcsc.category_id = $2
+JOIN company_service_categories ccsc ON ccsc.company_id = co.id AND ccsc.category_id = $2
+WHERE w.status = 'active'
+  AND w.id != $3
+  AND w.id NOT IN (
+    SELECT DISTINCT b.worker_id FROM bookings b
+    WHERE b.scheduled_date = $4
+      AND b.worker_id IS NOT NULL
+      AND b.status NOT IN ('cancelled_by_client', 'cancelled_by_company', 'cancelled_by_admin')
+  )
+ORDER BY (CASE WHEN w.company_id = $5 THEN 0 ELSE 1 END), w.rating_avg DESC
+LIMIT 5
+`
+
+type FindAvailableWorkersByCategoryParams struct {
+	CatAreaID             pgtype.UUID `json:"cat_area_id"`
+	CatCategoryID         pgtype.UUID `json:"cat_category_id"`
+	CatExcludeWorkerID    pgtype.UUID `json:"cat_exclude_worker_id"`
+	CatTargetDate         pgtype.Date `json:"cat_target_date"`
+	CatPreferredCompanyID pgtype.UUID `json:"cat_preferred_company_id"`
+}
+
+type FindAvailableWorkersByCategoryRow struct {
+	ID        pgtype.UUID    `json:"id"`
+	UserID    pgtype.UUID    `json:"user_id"`
+	CompanyID pgtype.UUID    `json:"company_id"`
+	RatingAvg pgtype.Numeric `json:"rating_avg"`
+}
+
+// Area + category + no-conflict filtering for worker replacement.
+func (q *Queries) FindAvailableWorkersByCategory(ctx context.Context, arg FindAvailableWorkersByCategoryParams) ([]FindAvailableWorkersByCategoryRow, error) {
+	rows, err := q.db.Query(ctx, findAvailableWorkersByCategory,
+		arg.CatAreaID,
+		arg.CatCategoryID,
+		arg.CatExcludeWorkerID,
+		arg.CatTargetDate,
+		arg.CatPreferredCompanyID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FindAvailableWorkersByCategoryRow
+	for rows.Next() {
+		var i FindAvailableWorkersByCategoryRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.CompanyID,
+			&i.RatingAvg,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const findAvailableWorkersForDateAndArea = `-- name: FindAvailableWorkersForDateAndArea :many
 SELECT w.id, w.user_id, w.company_id, w.rating_avg
 FROM workers w
@@ -128,6 +194,67 @@ func (q *Queries) FindMatchingWorkers(ctx context.Context, cityAreaID pgtype.UUI
 	var items []FindMatchingWorkersRow
 	for rows.Next() {
 		var i FindMatchingWorkersRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.FullName,
+			&i.AvatarUrl,
+			&i.RatingAvg,
+			&i.TotalJobsCompleted,
+			&i.CompanyName,
+			&i.CompanyID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const findMatchingWorkersByCategory = `-- name: FindMatchingWorkersByCategory :many
+SELECT DISTINCT c.id, c.user_id, u.full_name, u.avatar_url, c.rating_avg, c.total_jobs_completed,
+       co.company_name, co.id AS company_id
+FROM workers c
+JOIN users u ON c.user_id = u.id
+JOIN companies co ON c.company_id = co.id
+JOIN company_service_areas csa ON csa.company_id = co.id AND csa.city_area_id = $1
+JOIN worker_service_areas wsa ON wsa.worker_id = c.id AND wsa.city_area_id = $1
+JOIN company_service_categories ccsc ON ccsc.company_id = co.id AND ccsc.category_id = $2
+JOIN worker_service_categories wcsc ON wcsc.worker_id = c.id AND wcsc.category_id = $2
+WHERE c.status = 'active'
+  AND co.status = 'approved'
+ORDER BY c.rating_avg DESC, c.total_jobs_completed DESC
+`
+
+type FindMatchingWorkersByCategoryParams struct {
+	AreaID     pgtype.UUID `json:"area_id"`
+	CategoryID pgtype.UUID `json:"category_id"`
+}
+
+type FindMatchingWorkersByCategoryRow struct {
+	ID                 pgtype.UUID    `json:"id"`
+	UserID             pgtype.UUID    `json:"user_id"`
+	FullName           string         `json:"full_name"`
+	AvatarUrl          pgtype.Text    `json:"avatar_url"`
+	RatingAvg          pgtype.Numeric `json:"rating_avg"`
+	TotalJobsCompleted pgtype.Int4    `json:"total_jobs_completed"`
+	CompanyName        string         `json:"company_name"`
+	CompanyID          pgtype.UUID    `json:"company_id"`
+}
+
+// Area + category filtering: only returns workers (and their companies) qualified for the given category.
+func (q *Queries) FindMatchingWorkersByCategory(ctx context.Context, arg FindMatchingWorkersByCategoryParams) ([]FindMatchingWorkersByCategoryRow, error) {
+	rows, err := q.db.Query(ctx, findMatchingWorkersByCategory, arg.AreaID, arg.CategoryID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FindMatchingWorkersByCategoryRow
+	for rows.Next() {
+		var i FindMatchingWorkersByCategoryRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.UserID,

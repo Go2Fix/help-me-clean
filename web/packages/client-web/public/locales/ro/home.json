@@ -1,21 +1,21 @@
 {
   "meta": {
-    "title": "Servicii de Curățenie la Domiciliu | Go2Fix.ro",
-    "description": "Prima platformă de curățenie din România. Firme verificate, prețuri transparente, plată online. Rezervă curățenie standard, generală sau post-construcție."
+    "title": "Servicii pentru Casă | Go2Fix.ro",
+    "description": "Prima platformă marketplace de servicii pentru casă din România. Curățenie, dezinfecție, instalații și multe altele. Firme verificate, prețuri transparente."
   },
   "preReleaseBanner": "Platforma se lansează în curând!",
   "preReleaseBannerLink": "Înscrie-te pe lista de așteptare →",
   "hero": {
-    "badge": "Platforma #1 de curățenie din România",
-    "headline1": "Casă curată,",
+    "badge": "Platforma #1 de servicii pentru casă",
+    "headline1": "Servicii pentru casă,",
     "headline2": "fără bătăi",
     "headline3": "de cap.",
-    "subheadline": "Conectăm clienții cu firme de curățenie verificate din România. Rezervi în 2 minute, plătești online, te bucuri de rezultat.",
+    "subheadline": "Conectăm clienții cu firme verificate de servicii pentru casă din România. Rezervi în 2 minute, plătești online, te bucuri de rezultat.",
     "ctaDashboard": "Mergi la contul tău",
     "ctaAdmin": "Panou admin",
     "ctaServices": "Vezi serviciile",
     "ctaWaitlist": "Înregistrează-te pe lista de așteptare",
-    "ctaBook": "Rezervă o curățenie",
+    "ctaBook": "Rezervă un serviciu",
     "ctaMyAccount": "Contul meu",
     "ctaDiscover": "Descoperă serviciile",
     "socialProof": "rezervări efectuate"
@@ -42,20 +42,23 @@
     "noSubscription": "Fără abonament",
     "freeCancellation": "Anulare gratuită"
   },
-  "services": {
+  "categories": {
     "sectionLabel": "Servicii",
-    "title": "Ce putem face pentru tine?",
-    "subtitle": "Alege tipul de curățenie potrivit și rezervă în câteva minute.",
-    "loading": "Se încarcă serviciile...",
-    "priceUnit": "/oră",
-    "minHours": "Minim {{count}} ore"
+    "title": "Ce servicii oferim?",
+    "subtitle": "Alege categoria de serviciu potrivită și descoperă opțiunile disponibile.",
+    "viewCategory": "Vezi serviciile",
+    "comingSoon": "În curând",
+    "cleaningDesc": "Curățenie standard, generală, post-construcție și multe altele.",
+    "disinfectionDesc": "Dezinfecție profesională pentru locuințe și spații comerciale.",
+    "plumbingDesc": "Instalații sanitare, reparații și montaj.",
+    "electricalDesc": "Instalații electrice, reparații și verificări."
   },
   "howItWorks": {
     "sectionLabel": "Proces",
     "title": "Cum funcționează?",
-    "subtitle": "Trei pași simpli către o locuință curată.",
+    "subtitle": "Trei pași simpli către serviciul dorit.",
     "step1Title": "Alege serviciul",
-    "step1Desc": "Selectează tipul de curățenie, numărul de camere și data dorită.",
+    "step1Desc": "Selectează categoria de serviciu, tipul dorit și data preferată.",
     "step2Title": "Programează",
     "step2Desc": "Confirmă detaliile și plasează comanda. O firmă va prelua cererea ta rapid.",
     "step3Title": "Bucură-te de rezultat",
@@ -105,24 +108,24 @@
     "t2": {
       "name": "Andrei Popescu",
       "city": "București",
-      "text": "Platforma e simplă și intuitivă. Am rezervat curățenie de 3 ori și de fiecare dată a fost perfect."
+      "text": "Platforma e simplă și intuitivă. Am rezervat de 3 ori și de fiecare dată a fost perfect."
     },
     "t3": {
       "name": "Elena Dumitrescu",
       "city": "București",
-      "text": "Prețuri transparente, fără surprize neplăcute. Echipa de curățenie a fost punctuală și profesionistă."
+      "text": "Prețuri transparente, fără surprize neplăcute. Echipa a fost punctuală și profesionistă."
     }
   },
   "partners": {
     "sectionLabel": "Parteneri",
-    "title": "Ești firmă de curățenie?",
+    "title": "Ești firmă de servicii?",
     "subtitle": "Alătură-te platformei Go2Fix și primește comenzi de la clienți din toată România.",
     "step1Title": "Aplici online",
     "step1Desc": "Trimiți documentele firmei în 5 minute, direct din platformă.",
     "step2Title": "Ești aprobat",
     "step2Desc": "Echipa noastră verifică și activează contul tău în 24–48 de ore.",
     "step3Title": "Primești comenzi",
-    "step3Desc": "Clienții te găsesc și rezervă direct — tu te ocupi de curățenie.",
+    "step3Desc": "Clienții te găsesc și rezervă direct — tu te ocupi de serviciu.",
     "b1Title": "Clienți noi",
     "b1Desc": "Primești comenzi de la clienți verificați din zona ta de acoperire.",
     "b2Title": "Plăți digitale",

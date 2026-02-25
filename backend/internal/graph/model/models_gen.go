@@ -121,6 +121,8 @@ type Booking struct {
 	TimeSlots              []*BookingTimeSlot `json:"timeSlots"`
 	Review                 *Review            `json:"review,omitempty"`
 	ChatRoom               *ChatRoom          `json:"chatRoom,omitempty"`
+	CategoryID             *string            `json:"categoryId,omitempty"`
+	Category               *ServiceCategory   `json:"category,omitempty"`
 	CreatedAt              time.Time          `json:"createdAt"`
 }
 
@@ -244,6 +246,7 @@ type Company struct {
 	Documents             []*CompanyDocument `json:"documents"`
 	Workers               []*WorkerProfile   `json:"workers"`
 	CommissionOverridePct *float64           `json:"commissionOverridePct,omitempty"`
+	ServiceCategories     []*ServiceCategory `json:"serviceCategories"`
 	Admin                 *User              `json:"admin,omitempty"`
 	CreatedAt             time.Time          `json:"createdAt"`
 }
@@ -341,6 +344,7 @@ type CreateBookingInput struct {
 	AddressID           *string          `json:"addressId,omitempty"`
 	Address             *AddAddressInput `json:"address,omitempty"`
 	ServiceType         ServiceType      `json:"serviceType"`
+	CategoryID          *string          `json:"categoryId,omitempty"`
 	ScheduledDate       *string          `json:"scheduledDate,omitempty"`
 	ScheduledStartTime  *string          `json:"scheduledStartTime,omitempty"`
 	TimeSlots           []*TimeSlotInput `json:"timeSlots,omitempty"`
@@ -398,6 +402,7 @@ type CreateServiceExtraInput struct {
 	IsActive        bool    `json:"isActive"`
 	AllowMultiple   bool    `json:"allowMultiple"`
 	UnitLabel       *string `json:"unitLabel,omitempty"`
+	CategoryID      *string `json:"categoryId,omitempty"`
 }
 
 type CreateSubscriptionInput struct {
@@ -829,6 +834,7 @@ type ServiceExtra struct {
 	IsActive        bool    `json:"isActive"`
 	AllowMultiple   bool    `json:"allowMultiple"`
 	UnitLabel       *string `json:"unitLabel,omitempty"`
+	CategoryID      *string `json:"categoryId,omitempty"`
 }
 
 type ServiceRevenue struct {
@@ -1021,6 +1027,7 @@ type UpdateServiceExtraInput struct {
 	IsActive        bool    `json:"isActive"`
 	AllowMultiple   bool    `json:"allowMultiple"`
 	UnitLabel       *string `json:"unitLabel,omitempty"`
+	CategoryID      *string `json:"categoryId,omitempty"`
 }
 
 type UpdateWorkerProfileInput struct {
@@ -1133,6 +1140,7 @@ type WorkerProfile struct {
 	Documents             []*WorkerDocument      `json:"documents"`
 	PersonalityAssessment *PersonalityAssessment `json:"personalityAssessment,omitempty"`
 	Availability          []*AvailabilitySlot    `json:"availability"`
+	ServiceCategories     []*ServiceCategory     `json:"serviceCategories"`
 	CreatedAt             time.Time              `json:"createdAt"`
 }
 

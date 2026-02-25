@@ -165,6 +165,7 @@ export default function OrdersPage() {
                   const status = (booking.status as string) || 'CONFIRMED';
                   const client = booking.client as Record<string, unknown> | null;
                   const address = booking.address as Record<string, unknown> | null;
+                  const category = booking.category as { id: string; slug: string; nameRo: string; nameEn: string; icon?: string } | null;
 
                   return (
                     <tr
@@ -181,6 +182,11 @@ export default function OrdersPage() {
                             <span className="text-xs font-medium text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
                               <Repeat className="h-3 w-3" />
                               <span className="hidden md:inline">Recurent</span>
+                            </span>
+                          )}
+                          {category && (
+                            <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-medium">
+                              {category.icon} {category.nameRo}
                             </span>
                           )}
                         </div>

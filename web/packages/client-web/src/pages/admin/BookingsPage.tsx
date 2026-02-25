@@ -64,6 +64,7 @@ interface BookingEdge {
   recurringGroupId?: string;
   occurrenceNumber?: number | null;
   createdAt: string;
+  category: { id: string; slug: string; nameRo: string; nameEn: string; icon: string } | null;
   client: { id: string; fullName: string; email: string } | null;
   company: { id: string; companyName: string } | null;
 }
@@ -162,6 +163,13 @@ export default function BookingsPage() {
                 {/* Recurring icon */}
                 {booking.recurringGroupId && (
                   <Repeat className="h-3.5 w-3.5 text-blue-400 shrink-0" />
+                )}
+
+                {/* Category badge */}
+                {booking.category && (
+                  <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-medium shrink-0">
+                    {booking.category.icon} {booking.category.nameRo}
+                  </span>
                 )}
 
                 {/* Service name — main title */}

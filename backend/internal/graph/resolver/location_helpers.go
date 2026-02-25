@@ -121,19 +121,46 @@ type parsedSlot struct {
 }
 
 // suggestWorkersForSlots finds and ranks available workers for the given time slots.
+// When categoryID is valid, only workers qualified for that category are considered.
 func (r *Resolver) suggestWorkersForSlots(
 	ctx context.Context,
 	areaID pgtype.UUID,
+	categoryID pgtype.UUID,
 	timeSlots []*model.TimeSlotInput,
 	estimatedDurationHours float64,
 ) ([]*model.WorkerSuggestion, error) {
 	config := matching.DefaultMatchConfig()
 	jobDurationMicros := int64(math.Ceil(estimatedDurationHours * float64(matching.HourMicros)))
 
-	// 1. Find all active workers in the area.
-	workers, err := r.Queries.FindMatchingWorkers(ctx, areaID)
-	if err != nil {
-		return nil, err
+	// 1. Find all active workers in the area (optionally filtered by category).
+	var workers []db.FindMatchingWorkersRow
+	var err error
+	if categoryID.Valid {
+		catRows, catErr := r.Queries.FindMatchingWorkersByCategory(ctx, db.FindMatchingWorkersByCategoryParams{
+			AreaID:     areaID,
+			CategoryID: categoryID,
+		})
+		if catErr != nil {
+			return nil, catErr
+		}
+		// Convert to FindMatchingWorkersRow (identical fields).
+		for _, cr := range catRows {
+			workers = append(workers, db.FindMatchingWorkersRow{
+				ID:                 cr.ID,
+				UserID:             cr.UserID,
+				FullName:           cr.FullName,
+				AvatarUrl:          cr.AvatarUrl,
+				RatingAvg:          cr.RatingAvg,
+				TotalJobsCompleted: cr.TotalJobsCompleted,
+				CompanyName:        cr.CompanyName,
+				CompanyID:          cr.CompanyID,
+			})
+		}
+	} else {
+		workers, err = r.Queries.FindMatchingWorkers(ctx, areaID)
+		if err != nil {
+			return nil, err
+		}
 	}
 	if len(workers) == 0 {
 		return []*model.WorkerSuggestion{}, nil

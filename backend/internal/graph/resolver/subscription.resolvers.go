@@ -636,13 +636,18 @@ func (r *queryResolver) SubscriptionPricingPreview(ctx context.Context, serviceT
 }
 
 // SuggestWorkerForSubscription is the resolver for the suggestWorkerForSubscription field.
-func (r *queryResolver) SuggestWorkerForSubscription(ctx context.Context, cityID string, areaID string, recurrenceType model.RecurrenceType, dayOfWeek int, preferredTimeStart string, preferredTimeEnd string, estimatedDurationHours float64) ([]*model.SubscriptionWorkerSuggestion, error) {
+func (r *queryResolver) SuggestWorkerForSubscription(ctx context.Context, cityID string, areaID string, recurrenceType model.RecurrenceType, dayOfWeek int, preferredTimeStart string, preferredTimeEnd string, estimatedDurationHours float64, categoryID *string) ([]*model.SubscriptionWorkerSuggestion, error) {
 	areaUUID := stringToUUID(areaID)
 	if !areaUUID.Valid {
 		return nil, fmt.Errorf("invalid area ID")
 	}
 
-	return r.suggestWorkersForSubscription(ctx, areaUUID, gqlRecurrenceTypeToDb(recurrenceType), dayOfWeek, preferredTimeStart, preferredTimeEnd, estimatedDurationHours)
+	var catUUID pgtype.UUID
+	if categoryID != nil && *categoryID != "" {
+		catUUID = stringToUUID(*categoryID)
+	}
+
+	return r.suggestWorkersForSubscription(ctx, areaUUID, catUUID, gqlRecurrenceTypeToDb(recurrenceType), dayOfWeek, preferredTimeStart, preferredTimeEnd, estimatedDurationHours)
 }
 
 // MySubscriptions is the resolver for the mySubscriptions field.

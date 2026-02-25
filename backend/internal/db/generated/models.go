@@ -818,6 +818,7 @@ type Booking struct {
 	SubscriptionID           pgtype.UUID        `json:"subscription_id"`
 	CityPricingMultiplier    pgtype.Numeric     `json:"city_pricing_multiplier"`
 	PricingModel             NullPricingModel   `json:"pricing_model"`
+	CategoryID               pgtype.UUID        `json:"category_id"`
 }
 
 type BookingExtra struct {
@@ -982,6 +983,13 @@ type CompanyServiceArea struct {
 	ID         pgtype.UUID        `json:"id"`
 	CompanyID  pgtype.UUID        `json:"company_id"`
 	CityAreaID pgtype.UUID        `json:"city_area_id"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+}
+
+type CompanyServiceCategory struct {
+	ID         pgtype.UUID        `json:"id"`
+	CompanyID  pgtype.UUID        `json:"company_id"`
+	CategoryID pgtype.UUID        `json:"category_id"`
 	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 }
 
@@ -1326,6 +1334,7 @@ type ServiceExtra struct {
 	DurationMinutes int32          `json:"duration_minutes"`
 	AllowMultiple   bool           `json:"allow_multiple"`
 	UnitLabel       pgtype.Text    `json:"unit_label"`
+	CategoryID      pgtype.UUID    `json:"category_id"`
 }
 
 type Subscription struct {
@@ -1366,6 +1375,7 @@ type Subscription struct {
 	UpdatedAt               pgtype.Timestamptz `json:"updated_at"`
 	WorkerChangeRequestedAt pgtype.Timestamptz `json:"worker_change_requested_at"`
 	WorkerChangeReason      pgtype.Text        `json:"worker_change_reason"`
+	CategoryID              pgtype.UUID        `json:"category_id"`
 }
 
 type SubscriptionExtra struct {
@@ -1454,5 +1464,12 @@ type WorkerServiceArea struct {
 	ID         pgtype.UUID        `json:"id"`
 	WorkerID   pgtype.UUID        `json:"worker_id"`
 	CityAreaID pgtype.UUID        `json:"city_area_id"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+}
+
+type WorkerServiceCategory struct {
+	ID         pgtype.UUID        `json:"id"`
+	WorkerID   pgtype.UUID        `json:"worker_id"`
+	CategoryID pgtype.UUID        `json:"category_id"`
 	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 }

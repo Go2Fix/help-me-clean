@@ -50,6 +50,7 @@ type ServiceExtra {
   isActive: Boolean!
   allowMultiple: Boolean!
   unitLabel: String
+  categoryId: ID
 }
 
 type PriceEstimate {
@@ -74,6 +75,7 @@ type ExtraLineItem {
 extend type Query {
   availableServices: [ServiceDefinition!]!
   availableExtras: [ServiceExtra!]!
+  availableExtrasByCategory(categoryId: ID!): [ServiceExtra!]!
   estimatePrice(input: PriceEstimateInput!): PriceEstimate!
   serviceCategories: [ServiceCategory!]!
   serviceCategoryBySlug(slug: String!): ServiceCategory
@@ -150,6 +152,7 @@ input UpdateServiceExtraInput {
   isActive: Boolean!
   allowMultiple: Boolean!
   unitLabel: String
+  categoryId: ID
 }
 
 input CreateServiceExtraInput {
@@ -160,6 +163,7 @@ input CreateServiceExtraInput {
   isActive: Boolean!
   allowMultiple: Boolean!
   unitLabel: String
+  categoryId: ID
 }
 
 input CreateServiceCategoryInput {

@@ -5,7 +5,7 @@ import {
   ArrowLeft, Mail, Phone, Star, Copy, Check, Users,
   Briefcase, TrendingUp, Calendar, DollarSign, ChevronDown,
   MapPin, CheckCircle, FileText, Upload as UploadIcon, AlertCircle, User, Brain,
-  Shield, Sparkles, AlertTriangle,
+  Shield, Sparkles, AlertTriangle, Layers,
 } from 'lucide-react';
 import { cn } from '@go2fix/shared';
 import Card from '@/components/ui/Card';
@@ -17,6 +17,7 @@ import {
   MY_WORKERS, UPDATE_WORKER_STATUS, WORKER_PERFORMANCE,
   MY_COMPANY_SERVICE_AREAS, WORKER_SERVICE_AREAS, UPDATE_WORKER_SERVICE_AREAS,
   UPLOAD_WORKER_DOCUMENT, UPLOAD_WORKER_AVATAR,
+  SERVICE_CATEGORIES, UPDATE_WORKER_SERVICE_CATEGORIES,
 } from '@/graphql/operations';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -71,6 +72,14 @@ interface PersonalityAssessment {
   insights?: PersonalityInsights | null;
 }
 
+interface ServiceCategory {
+  id: string;
+  slug: string;
+  nameRo: string;
+  nameEn: string;
+  icon: string;
+}
+
 interface Worker {
   id: string;
   userId: string;
@@ -85,6 +94,7 @@ interface Worker {
   ratingAvg: number | null;
   totalJobsCompleted: number;
   availability: AvailabilitySlot[];
+  serviceCategories?: ServiceCategory[];
   createdAt: string;
   documents: WorkerDocument[];
   personalityAssessment?: PersonalityAssessment | null;
@@ -270,6 +280,9 @@ export default function WorkerDetailPage() {
   const [docTypeModal, setDocTypeModal] = useState<File | null>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<Set<string>>(new Set());
+  const [saveCategoriesSuccess, setSaveCategoriesSuccess] = useState(false);
+  const [saveCategoriesError, setSaveCategoriesError] = useState('');
 
   // ─── Queries ────────────────────────────────────────────────────────────
   const { data, loading, refetch } = useQuery(MY_WORKERS);
@@ -291,6 +304,15 @@ export default function WorkerDetailPage() {
   const [updateWorkerAreas, { loading: savingAreas }] = useMutation(UPDATE_WORKER_SERVICE_AREAS);
   const [uploadDocument] = useMutation(UPLOAD_WORKER_DOCUMENT);
   const [uploadAvatar] = useMutation(UPLOAD_WORKER_AVATAR);
+
+  // ─── Service Categories ───────────────────────────────────────────────
+  const { data: categoriesData, loading: categoriesLoading } = useQuery(SERVICE_CATEGORIES);
+  const [updateWorkerCategories, { loading: savingCategories }] = useMutation(UPDATE_WORKER_SERVICE_CATEGORIES, {
+    refetchQueries: [{ query: MY_WORKERS }],
+  });
+  const allCategories: ServiceCategory[] = (categoriesData?.serviceCategories ?? []).filter(
+    (c: ServiceCategory & { isActive: boolean }) => c.isActive,
+  );
 
   // ─── Derived data ──────────────────────────────────────────────────────
   const workers: Worker[] = data?.myWorkers ?? [];
@@ -329,6 +351,13 @@ export default function WorkerDetailPage() {
       });
     }
   }, [worker, fetchWorkerAreas, companyAreas]);
+
+  // Initialize selected categories from worker data
+  useEffect(() => {
+    if (worker?.serviceCategories) {
+      setSelectedCategoryIds(new Set(worker.serviceCategories.map((c) => c.id)));
+    }
+  }, [worker]);
 
   // ─── Handlers ───────────────────────────────────────────────────────────
 
@@ -392,6 +421,37 @@ export default function WorkerDetailPage() {
       setTimeout(() => setSaveAreasSuccess(false), 3000);
     } catch {
       /* Apollo error handling */
+    }
+  };
+
+  const toggleCategory = (categoryId: string) => {
+    setSelectedCategoryIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(categoryId)) {
+        next.delete(categoryId);
+      } else {
+        next.add(categoryId);
+      }
+      return next;
+    });
+  };
+
+  const handleSaveCategories = async () => {
+    if (!worker) return;
+    setSaveCategoriesSuccess(false);
+    setSaveCategoriesError('');
+    try {
+      await updateWorkerCategories({
+        variables: {
+          workerId: worker.id,
+          categoryIds: Array.from(selectedCategoryIds),
+        },
+      });
+      setSaveCategoriesSuccess(true);
+      setTimeout(() => setSaveCategoriesSuccess(false), 3000);
+    } catch {
+      setSaveCategoriesError('Eroare la salvarea categoriilor. Incearca din nou.');
+      setTimeout(() => setSaveCategoriesError(''), 4000);
     }
   };
 
@@ -745,6 +805,92 @@ export default function WorkerDetailPage() {
             <div className="mt-4">
               <Button onClick={handleSaveAreas} loading={savingAreas}>
                 Salveaza zonele
+              </Button>
+            </div>
+          </>
+        )}
+      </Card>
+
+      {/* 5b. Service Categories Card */}
+      <Card className="mb-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Layers className="h-5 w-5 text-primary" />
+          <h2 className="font-semibold text-gray-900">Categorii servicii</h2>
+        </div>
+
+        {categoriesLoading ? (
+          <div className="space-y-3">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="animate-pulse">
+                <div className="h-8 bg-gray-100 rounded w-full" />
+              </div>
+            ))}
+          </div>
+        ) : allCategories.length === 0 ? (
+          <div className="text-center py-6 bg-gray-50 rounded-xl">
+            <Layers className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+            <p className="text-sm text-gray-500">Nu exista categorii de servicii disponibile.</p>
+          </div>
+        ) : (
+          <>
+            <p className="text-sm text-gray-500 mb-4">
+              Selecteaza categoriile de servicii pe care acest lucrator le poate efectua.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {allCategories.map((cat: ServiceCategory) => {
+                const isSelected = selectedCategoryIds.has(cat.id);
+                return (
+                  <label
+                    key={cat.id}
+                    className={cn(
+                      'flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all border',
+                      isSelected
+                        ? 'border-primary/30 bg-primary/5'
+                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50',
+                    )}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => toggleCategory(cat.id)}
+                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600/30"
+                    />
+                    {cat.icon && <span className="text-lg">{cat.icon}</span>}
+                    <span className={cn(
+                      'text-sm',
+                      isSelected ? 'font-medium text-gray-900' : 'text-gray-700',
+                    )}>
+                      {cat.nameRo}
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+
+            <p className="text-xs text-gray-400 mt-3">
+              {selectedCategoryIds.size === 0
+                ? 'Nicio categorie selectata'
+                : `${selectedCategoryIds.size} ${selectedCategoryIds.size === 1 ? 'categorie selectata' : 'categorii selectate'}`}
+            </p>
+
+            {saveCategoriesSuccess && (
+              <div className="flex items-center gap-2 px-3 py-2 bg-emerald-50 rounded-lg mt-3">
+                <CheckCircle className="h-4 w-4 text-secondary shrink-0" />
+                <p className="text-sm text-emerald-700 font-medium">
+                  Categoriile au fost salvate cu succes!
+                </p>
+              </div>
+            )}
+
+            {saveCategoriesError && (
+              <div className="mt-3 p-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">
+                {saveCategoriesError}
+              </div>
+            )}
+
+            <div className="mt-4">
+              <Button onClick={handleSaveCategories} loading={savingCategories}>
+                Salveaza categoriile
               </Button>
             </div>
           </>

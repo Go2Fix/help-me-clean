@@ -76,6 +76,7 @@ interface ExtraDef {
   isActive: boolean;
   allowMultiple: boolean;
   unitLabel?: string | null;
+  categoryId?: string | null;
 }
 
 interface RecurringDiscount {
@@ -806,6 +807,7 @@ function ServicesTab() {
 
 function ExtrasTab() {
   const { data, loading } = useQuery<{ allExtras: ExtraDef[] }>(ALL_EXTRAS);
+  const { data: categoriesData } = useQuery<{ allServiceCategories: ServiceCategory[] }>(ALL_SERVICE_CATEGORIES);
   const [updateExtra] = useMutation(UPDATE_SERVICE_EXTRA, {
     refetchQueries: [{ query: ALL_EXTRAS }],
   });
@@ -814,33 +816,41 @@ function ExtrasTab() {
   });
 
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editFields, setEditFields] = useState({ nameRo: '', nameEn: '', price: 0, durationMinutes: 0, allowMultiple: false, unitLabel: '' });
+  const [editFields, setEditFields] = useState({ nameRo: '', nameEn: '', price: 0, durationMinutes: 0, allowMultiple: false, unitLabel: '', categoryId: '' as string });
   const [showModal, setShowModal] = useState(false);
-  const [newExtra, setNewExtra] = useState({ nameRo: '', nameEn: '', price: 0, durationMinutes: 0, isActive: true, allowMultiple: false, unitLabel: '' });
+  const [newExtra, setNewExtra] = useState({ nameRo: '', nameEn: '', price: 0, durationMinutes: 0, isActive: true, allowMultiple: false, unitLabel: '', categoryId: '' as string });
   const [creating, setCreating] = useState(false);
 
   const extras = data?.allExtras ?? [];
+  const categories = categoriesData?.allServiceCategories ?? [];
+  const categoryOptions = [{ value: '', label: 'Global (toate categoriile)' }, ...categories.map((c) => ({ value: c.id, label: c.nameRo }))];
+
+  const getCategoryName = (categoryId?: string | null) => {
+    if (!categoryId) return null;
+    const cat = categories.find((c) => c.id === categoryId);
+    return cat?.nameRo ?? null;
+  };
 
   const startEdit = (e: ExtraDef) => {
     setEditingId(e.id);
-    setEditFields({ nameRo: e.nameRo, nameEn: e.nameEn, price: e.price, durationMinutes: e.durationMinutes, allowMultiple: e.allowMultiple, unitLabel: e.unitLabel ?? '' });
+    setEditFields({ nameRo: e.nameRo, nameEn: e.nameEn, price: e.price, durationMinutes: e.durationMinutes, allowMultiple: e.allowMultiple, unitLabel: e.unitLabel ?? '', categoryId: e.categoryId ?? '' });
   };
 
   const saveEdit = async (ex: ExtraDef) => {
-    await updateExtra({ variables: { input: { id: ex.id, ...editFields, unitLabel: editFields.unitLabel || null, isActive: ex.isActive } } });
+    await updateExtra({ variables: { input: { id: ex.id, ...editFields, unitLabel: editFields.unitLabel || null, categoryId: editFields.categoryId || null, isActive: ex.isActive } } });
     setEditingId(null);
   };
 
   const toggleActive = async (e: ExtraDef) => {
-    await updateExtra({ variables: { input: { id: e.id, nameRo: e.nameRo, nameEn: e.nameEn, price: e.price, durationMinutes: e.durationMinutes, isActive: !e.isActive, allowMultiple: e.allowMultiple, unitLabel: e.unitLabel ?? null } } });
+    await updateExtra({ variables: { input: { id: e.id, nameRo: e.nameRo, nameEn: e.nameEn, price: e.price, durationMinutes: e.durationMinutes, isActive: !e.isActive, allowMultiple: e.allowMultiple, unitLabel: e.unitLabel ?? null, categoryId: e.categoryId ?? null } } });
   };
 
   const handleCreate = async () => {
     setCreating(true);
     try {
-      await createExtra({ variables: { input: { ...newExtra, unitLabel: newExtra.unitLabel || null } } });
+      await createExtra({ variables: { input: { ...newExtra, unitLabel: newExtra.unitLabel || null, categoryId: newExtra.categoryId || null } } });
       setShowModal(false);
-      setNewExtra({ nameRo: '', nameEn: '', price: 0, durationMinutes: 0, isActive: true, allowMultiple: false, unitLabel: '' });
+      setNewExtra({ nameRo: '', nameEn: '', price: 0, durationMinutes: 0, isActive: true, allowMultiple: false, unitLabel: '', categoryId: '' });
     } finally {
       setCreating(false);
     }
@@ -870,6 +880,7 @@ function ExtrasTab() {
                   <th className="text-left font-medium text-gray-500 px-4 py-3">Nume EN</th>
                   <th className="text-right font-medium text-gray-500 px-4 py-3">Pret (RON)</th>
                   <th className="text-right font-medium text-gray-500 px-4 py-3" title="Durata adaugata (minute)">Durata(min)</th>
+                  <th className="text-left font-medium text-gray-500 px-4 py-3">Categorie</th>
                   <th className="text-center font-medium text-gray-500 px-4 py-3">Tip</th>
                   <th className="text-center font-medium text-gray-500 px-4 py-3">Activ</th>
                   <th className="px-4 py-3 w-10" />
@@ -929,6 +940,21 @@ function ExtrasTab() {
                           />
                         ) : (
                           <span className="text-gray-600">{ex.durationMinutes} min</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        {isEditing ? (
+                          <select
+                            value={editFields.categoryId}
+                            onChange={(e) => setEditFields((f) => ({ ...f, categoryId: e.target.value }))}
+                            className="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer"
+                          >
+                            {categoryOptions.map((opt) => (
+                              <option key={opt.value} value={opt.value}>{opt.label}</option>
+                            ))}
+                          </select>
+                        ) : (
+                          <span className="text-gray-600 text-xs">{getCategoryName(ex.categoryId) ?? <span className="text-gray-300 italic">Global</span>}</span>
                         )}
                       </td>
                       <td className="px-4 py-3 text-center">
@@ -994,6 +1020,12 @@ function ExtrasTab() {
 
       <Modal open={showModal} onClose={() => setShowModal(false)} title="Adauga extra">
         <div className="space-y-4">
+          <Select
+            label="Categorie"
+            options={categoryOptions}
+            value={newExtra.categoryId}
+            onChange={(e) => setNewExtra((s) => ({ ...s, categoryId: e.target.value }))}
+          />
           <Input
             label="Nume RO"
             value={newExtra.nameRo}

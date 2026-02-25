@@ -23,6 +23,7 @@ type WorkerProfile {
   documents: [WorkerDocument!]!
   personalityAssessment: PersonalityAssessment
   availability: [AvailabilitySlot!]!
+  serviceCategories: [ServiceCategory!]!
   createdAt: DateTime!
 }
 
@@ -108,6 +109,7 @@ extend type Mutation {
   deleteWorkerDocument(id: ID!): Boolean!
   reviewWorkerDocument(id: ID!, approved: Boolean!, rejectionReason: String): WorkerDocument!
   activateWorker(id: ID!): WorkerProfile!
+  updateWorkerServiceCategories(workerId: ID!, categoryIds: [ID!]!): [ServiceCategory!]!
 }
 
 input InviteWorkerInput {

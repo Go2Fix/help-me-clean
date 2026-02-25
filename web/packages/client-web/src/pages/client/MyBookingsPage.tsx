@@ -21,6 +21,14 @@ import { MY_BOOKINGS, MY_RECURRING_GROUPS } from '@/graphql/operations';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
+interface BookingCategory {
+  id: string;
+  slug: string;
+  nameRo: string;
+  nameEn: string;
+  icon: string;
+}
+
 interface Booking {
   id: string;
   referenceCode: string;
@@ -33,6 +41,7 @@ interface Booking {
   recurringGroupId?: string;
   occurrenceNumber?: number;
   createdAt: string;
+  category?: BookingCategory;
 }
 
 interface BookingsData {
@@ -242,6 +251,11 @@ export default function MyBookingsPage() {
                             <span className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
                               <Repeat className="h-3 w-3" />
                               Recurent
+                            </span>
+                          )}
+                          {booking.category && (
+                            <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-medium">
+                              {booking.category.icon} {booking.category.nameRo}
                             </span>
                           )}
                         </div>

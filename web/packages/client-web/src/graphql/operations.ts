@@ -121,6 +121,9 @@ export const AVAILABLE_SERVICES = gql`
       minHours
       icon
       includedItems
+      categoryId
+      pricingModel
+      pricePerSqm
     }
   }
 `;
@@ -190,6 +193,14 @@ export const MY_BOOKINGS = gql`
         scheduledStartTime
         estimatedTotal
         status
+        categoryId
+        category {
+          id
+          slug
+          nameRo
+          nameEn
+          icon
+        }
         recurringGroupId
       subscriptionId
         occurrenceNumber
@@ -211,6 +222,14 @@ export const CLIENT_BOOKING_DETAIL = gql`
       referenceCode
       serviceType
       serviceName
+      categoryId
+      category {
+        id
+        slug
+        nameRo
+        nameEn
+        icon
+      }
       includedItems
       scheduledDate
       scheduledStartTime
@@ -550,6 +569,7 @@ export const SUGGEST_WORKER_FOR_SUBSCRIPTION = gql`
     $preferredTimeStart: String!
     $preferredTimeEnd: String!
     $estimatedDurationHours: Float!
+    $categoryId: ID
   ) {
     suggestWorkerForSubscription(
       cityId: $cityId
@@ -559,6 +579,7 @@ export const SUGGEST_WORKER_FOR_SUBSCRIPTION = gql`
       preferredTimeStart: $preferredTimeStart
       preferredTimeEnd: $preferredTimeEnd
       estimatedDurationHours: $estimatedDurationHours
+      categoryId: $categoryId
     ) {
       worker {
         id
@@ -1215,6 +1236,13 @@ export const MY_COMPANY = gql`
       maxServiceRadiusKm
       ratingAvg
       totalJobsCompleted
+      serviceCategories {
+        id
+        slug
+        nameRo
+        nameEn
+        icon
+      }
       documents {
         id
         documentType
@@ -1283,6 +1311,13 @@ export const MY_WORKERS_LIST = gql`
       }
       ratingAvg
       totalJobsCompleted
+      serviceCategories {
+        id
+        slug
+        nameRo
+        nameEn
+        icon
+      }
       createdAt
     }
   }
@@ -1306,6 +1341,13 @@ export const MY_WORKERS = gql`
       inviteToken
       ratingAvg
       totalJobsCompleted
+      serviceCategories {
+        id
+        slug
+        nameRo
+        nameEn
+        icon
+      }
       company {
         id
         companyName
@@ -1404,6 +1446,14 @@ export const COMPANY_BOOKINGS = gql`
         scheduledStartTime
         estimatedTotal
         status
+        categoryId
+        category {
+          id
+          slug
+          nameRo
+          nameEn
+          icon
+        }
         createdAt
         client {
           id
@@ -1436,6 +1486,14 @@ export const COMPANY_BOOKING_DETAIL = gql`
       referenceCode
       serviceType
       serviceName
+      categoryId
+      category {
+        id
+        slug
+        nameRo
+        nameEn
+        icon
+      }
       scheduledDate
       scheduledStartTime
       estimatedDurationHours
@@ -1639,6 +1697,13 @@ export const PENDING_COMPANY_APPLICATIONS = gql`
       county
       description
       status
+      serviceCategories {
+        id
+        slug
+        nameRo
+        nameEn
+        icon
+      }
       createdAt
       documents {
         id
@@ -1666,6 +1731,13 @@ export const COMPANIES = gql`
         contactPhone
         city
         county
+        serviceCategories {
+          id
+          slug
+          nameRo
+          nameEn
+          icon
+        }
         createdAt
       }
       totalCount
@@ -1694,6 +1766,13 @@ export const COMPANY = gql`
       ratingAvg
       totalJobsCompleted
       commissionOverridePct
+      serviceCategories {
+        id
+        slug
+        nameRo
+        nameEn
+        icon
+      }
       createdAt
       documents {
         id
@@ -1717,6 +1796,13 @@ export const COMPANY = gql`
           avatarUrl
         }
         status
+        serviceCategories {
+          id
+          slug
+          nameRo
+          nameEn
+          icon
+        }
         documents {
           id
           documentType
@@ -1773,6 +1859,14 @@ export const ALL_BOOKINGS = gql`
         status
         estimatedTotal
         paymentStatus
+        categoryId
+        category {
+          id
+          slug
+          nameRo
+          nameEn
+          icon
+        }
         createdAt
         client {
           id
@@ -1796,6 +1890,14 @@ export const ADMIN_BOOKING_DETAIL = gql`
       referenceCode
       serviceType
       serviceName
+      categoryId
+      category {
+        id
+        slug
+        nameRo
+        nameEn
+        icon
+      }
       scheduledDate
       scheduledStartTime
       estimatedDurationHours
@@ -1885,6 +1987,13 @@ export const ALL_WORKERS = gql`
       status
       ratingAvg
       totalJobsCompleted
+      serviceCategories {
+        id
+        slug
+        nameRo
+        nameEn
+        icon
+      }
       company {
         id
         companyName
@@ -2038,6 +2147,7 @@ export const ALL_EXTRAS = gql`
       isActive
       allowMultiple
       unitLabel
+      categoryId
     }
   }
 `;
@@ -2098,6 +2208,7 @@ export const UPDATE_SERVICE_EXTRA = gql`
       isActive
       allowMultiple
       unitLabel
+      categoryId
     }
   }
 `;
@@ -2113,6 +2224,24 @@ export const CREATE_SERVICE_EXTRA = gql`
       isActive
       allowMultiple
       unitLabel
+      categoryId
+    }
+  }
+`;
+
+export const AVAILABLE_EXTRAS_BY_CATEGORY = gql`
+  query AvailableExtrasByCategory($categoryId: ID!) {
+    availableExtrasByCategory(categoryId: $categoryId) {
+      id
+      nameRo
+      nameEn
+      price
+      durationMinutes
+      icon
+      isActive
+      allowMultiple
+      unitLabel
+      categoryId
     }
   }
 `;
@@ -2178,6 +2307,13 @@ export const GET_USER_WITH_WORKER = gql`
         isCompanyAdmin
         ratingAvg
         totalJobsCompleted
+        serviceCategories {
+          id
+          slug
+          nameRo
+          nameEn
+          icon
+        }
         company {
           id
           companyName
@@ -2258,6 +2394,13 @@ export const SEARCH_COMPANIES = gql`
         contactPhone
         city
         county
+        serviceCategories {
+          id
+          slug
+          nameRo
+          nameEn
+          icon
+        }
         createdAt
       }
       totalCount
@@ -2370,6 +2513,14 @@ export const SEARCH_BOOKINGS = gql`
         estimatedTotal
         status
         paymentStatus
+        categoryId
+        category {
+          id
+          slug
+          nameRo
+          nameEn
+          icon
+        }
         recurringGroupId
       subscriptionId
         occurrenceNumber
@@ -2456,6 +2607,14 @@ export const COMPANY_BOOKINGS_BY_DATE_RANGE = gql`
       estimatedDurationHours
       status
       estimatedTotal
+      categoryId
+      category {
+        id
+        slug
+        nameRo
+        nameEn
+        icon
+      }
       client {
         id
         fullName
@@ -2482,6 +2641,14 @@ export const SEARCH_COMPANY_BOOKINGS = gql`
         scheduledDate
         estimatedTotal
         status
+        categoryId
+        category {
+          id
+          slug
+          nameRo
+          nameEn
+          icon
+        }
         recurringGroupId
       subscriptionId
       }
@@ -2565,6 +2732,14 @@ export const TODAYS_JOBS = gql`
       scheduledStartTime
       estimatedDurationHours
       status
+      categoryId
+      category {
+        id
+        slug
+        nameRo
+        nameEn
+        icon
+      }
       address {
         streetAddress
         city
@@ -2590,6 +2765,14 @@ export const MY_ASSIGNED_JOBS = gql`
       scheduledStartTime
       estimatedDurationHours
       status
+      categoryId
+      category {
+        id
+        slug
+        nameRo
+        nameEn
+        icon
+      }
       address {
         streetAddress
         city
@@ -2617,6 +2800,13 @@ export const MY_WORKER_PROFILE = gql`
       status
       ratingAvg
       totalJobsCompleted
+      serviceCategories {
+        id
+        slug
+        nameRo
+        nameEn
+        icon
+      }
       company {
         id
         companyName
@@ -2731,6 +2921,14 @@ export const SEARCH_WORKER_BOOKINGS = gql`
         hourlyRate
         estimatedTotal
         status
+        categoryId
+        category {
+          id
+          slug
+          nameRo
+          nameEn
+          icon
+        }
         recurringGroupId
       subscriptionId
         occurrenceNumber
@@ -2777,6 +2975,14 @@ export const MY_WORKER_BOOKINGS_BY_DATE_RANGE = gql`
       scheduledStartTime
       estimatedDurationHours
       status
+      categoryId
+      category {
+        id
+        slug
+        nameRo
+        nameEn
+        icon
+      }
       client {
         fullName
         phone
@@ -2971,8 +3177,8 @@ export const IS_CITY_SUPPORTED = gql`
 `;
 
 export const SUGGEST_WORKERS = gql`
-  query SuggestWorkers($cityId: ID!, $areaId: ID!, $timeSlots: [TimeSlotInput!]!, $estimatedDurationHours: Float!) {
-    suggestWorkers(cityId: $cityId, areaId: $areaId, timeSlots: $timeSlots, estimatedDurationHours: $estimatedDurationHours) {
+  query SuggestWorkers($cityId: ID!, $areaId: ID!, $timeSlots: [TimeSlotInput!]!, $estimatedDurationHours: Float!, $categoryId: ID) {
+    suggestWorkers(cityId: $cityId, areaId: $areaId, timeSlots: $timeSlots, estimatedDurationHours: $estimatedDurationHours, categoryId: $categoryId) {
       worker {
         id
         fullName
@@ -4058,6 +4264,43 @@ export const GET_DOCUMENT_URL = gql`
 
 // ─── Service Categories ─────────────────────────────────────────────────────
 
+export const SERVICE_CATEGORIES = gql`
+  query ServiceCategories {
+    serviceCategories {
+      id
+      slug
+      nameRo
+      nameEn
+      icon
+      isActive
+    }
+  }
+`;
+
+export const UPDATE_WORKER_SERVICE_CATEGORIES = gql`
+  mutation UpdateWorkerServiceCategories($workerId: ID!, $categoryIds: [ID!]!) {
+    updateWorkerServiceCategories(workerId: $workerId, categoryIds: $categoryIds) {
+      id
+      slug
+      nameRo
+      nameEn
+      icon
+    }
+  }
+`;
+
+export const UPDATE_COMPANY_SERVICE_CATEGORIES = gql`
+  mutation UpdateCompanyServiceCategories($categoryIds: [ID!]!) {
+    updateCompanyServiceCategories(categoryIds: $categoryIds) {
+      id
+      slug
+      nameRo
+      nameEn
+      icon
+    }
+  }
+`;
+
 export const ALL_SERVICE_CATEGORIES = gql`
   query AllServiceCategories {
     allServiceCategories {
@@ -4075,6 +4318,36 @@ export const ALL_SERVICE_CATEGORIES = gql`
       services {
         id
         nameRo
+      }
+    }
+  }
+`;
+
+export const SERVICE_CATEGORY_BY_SLUG = gql`
+  query ServiceCategoryBySlug($slug: String!) {
+    serviceCategoryBySlug(slug: $slug) {
+      id
+      slug
+      nameRo
+      nameEn
+      descriptionRo
+      descriptionEn
+      icon
+      imageUrl
+      isActive
+      services {
+        id
+        serviceType
+        nameRo
+        nameEn
+        descriptionRo
+        descriptionEn
+        basePricePerHour
+        minHours
+        icon
+        isActive
+        pricingModel
+        pricePerSqm
       }
     }
   }

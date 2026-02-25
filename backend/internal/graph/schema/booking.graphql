@@ -56,6 +56,8 @@ type Booking {
   timeSlots: [BookingTimeSlot!]!
   review: Review
   chatRoom: ChatRoom
+  categoryId: ID
+  category: ServiceCategory
   createdAt: DateTime!
 }
 
@@ -126,6 +128,7 @@ input CreateBookingInput {
   addressId: ID
   address: AddAddressInput
   serviceType: ServiceType!
+  categoryId: ID
   scheduledDate: String
   scheduledStartTime: String
   timeSlots: [TimeSlotInput!]
