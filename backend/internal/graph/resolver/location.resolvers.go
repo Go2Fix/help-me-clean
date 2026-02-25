@@ -29,7 +29,7 @@ func (r *mutationResolver) CreateCity(ctx context.Context, name string, county s
 		return nil, fmt.Errorf("failed to create city: %w", err)
 	}
 
-	return r.dbCityToGQL(ctx, city)
+	return r.dbCityToGQL(ctx, cityRowFromCreate(city))
 }
 
 // ToggleCityActive is the resolver for the toggleCityActive field.
@@ -47,7 +47,29 @@ func (r *mutationResolver) ToggleCityActive(ctx context.Context, id string, isAc
 		return nil, fmt.Errorf("failed to toggle city: %w", err)
 	}
 
-	return r.dbCityToGQL(ctx, city)
+	return r.dbCityToGQL(ctx, cityRowFromUpdateActive(city))
+}
+
+// UpdateCityPricingMultiplier is the resolver for the updateCityPricingMultiplier field.
+func (r *mutationResolver) UpdateCityPricingMultiplier(ctx context.Context, id string, pricingMultiplier float64) (*model.EnabledCity, error) {
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil || claims.Role != "global_admin" {
+		return nil, fmt.Errorf("admin access required")
+	}
+
+	if pricingMultiplier < 0.50 || pricingMultiplier > 3.00 {
+		return nil, fmt.Errorf("pricing multiplier must be between 0.50 and 3.00")
+	}
+
+	city, err := r.Queries.UpdateCityPricingMultiplier(ctx, db.UpdateCityPricingMultiplierParams{
+		ID:                stringToUUID(id),
+		PricingMultiplier: float64ToNumeric(pricingMultiplier),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to update city pricing multiplier: %w", err)
+	}
+
+	return r.dbCityToGQL(ctx, cityRowFromUpdatePricing(city))
 }
 
 // CreateCityArea is the resolver for the createCityArea field.
@@ -193,7 +215,7 @@ func (r *queryResolver) ActiveCities(ctx context.Context) ([]*model.EnabledCity,
 
 	var result []*model.EnabledCity
 	for _, c := range cities {
-		gqlCity, err := r.dbCityToGQL(ctx, c)
+		gqlCity, err := r.dbCityToGQL(ctx, cityRowFromListActive(c))
 		if err != nil {
 			return nil, err
 		}
@@ -235,7 +257,7 @@ func (r *queryResolver) AllCities(ctx context.Context) ([]*model.EnabledCity, er
 
 	var result []*model.EnabledCity
 	for _, c := range cities {
-		gqlCity, err := r.dbCityToGQL(ctx, c)
+		gqlCity, err := r.dbCityToGQL(ctx, cityRowFromListEnabled(c))
 		if err != nil {
 			return nil, err
 		}

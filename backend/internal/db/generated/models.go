@@ -384,6 +384,48 @@ func (ns NullPayoutStatus) Value() (driver.Value, error) {
 	return string(ns.PayoutStatus), nil
 }
 
+type PricingModel string
+
+const (
+	PricingModelHourly PricingModel = "hourly"
+	PricingModelPerSqm PricingModel = "per_sqm"
+)
+
+func (e *PricingModel) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = PricingModel(s)
+	case string:
+		*e = PricingModel(s)
+	default:
+		return fmt.Errorf("unsupported scan type for PricingModel: %T", src)
+	}
+	return nil
+}
+
+type NullPricingModel struct {
+	PricingModel PricingModel `json:"pricing_model"`
+	Valid        bool         `json:"valid"` // Valid is true if PricingModel is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullPricingModel) Scan(value interface{}) error {
+	if value == nil {
+		ns.PricingModel, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.PricingModel.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullPricingModel) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.PricingModel), nil
+}
+
 type RecurrenceType string
 
 const (
@@ -774,6 +816,8 @@ type Booking struct {
 	RescheduleCount          int32              `json:"reschedule_count"`
 	RescheduledAt            pgtype.Timestamptz `json:"rescheduled_at"`
 	SubscriptionID           pgtype.UUID        `json:"subscription_id"`
+	CityPricingMultiplier    pgtype.Numeric     `json:"city_pricing_multiplier"`
+	PricingModel             NullPricingModel   `json:"pricing_model"`
 }
 
 type BookingExtra struct {
@@ -961,11 +1005,12 @@ type EmailOtpCode struct {
 }
 
 type EnabledCity struct {
-	ID        pgtype.UUID        `json:"id"`
-	Name      string             `json:"name"`
-	County    string             `json:"county"`
-	IsActive  bool               `json:"is_active"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	ID                pgtype.UUID        `json:"id"`
+	Name              string             `json:"name"`
+	County            string             `json:"county"`
+	IsActive          bool               `json:"is_active"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+	PricingMultiplier pgtype.Numeric     `json:"pricing_multiplier"`
 }
 
 type Invoice struct {
@@ -1149,6 +1194,18 @@ type PlatformSetting struct {
 	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
 }
 
+type PriceAuditLog struct {
+	ID         pgtype.UUID        `json:"id"`
+	EntityType string             `json:"entity_type"`
+	EntityID   pgtype.UUID        `json:"entity_id"`
+	FieldName  string             `json:"field_name"`
+	OldValue   pgtype.Text        `json:"old_value"`
+	NewValue   pgtype.Text        `json:"new_value"`
+	ChangedBy  pgtype.UUID        `json:"changed_by"`
+	ChangedAt  pgtype.Timestamptz `json:"changed_at"`
+	Reason     pgtype.Text        `json:"reason"`
+}
+
 type RecurringBookingGroup struct {
 	ID                          pgtype.UUID        `json:"id"`
 	ClientUserID                pgtype.UUID        `json:"client_user_id"`
@@ -1217,6 +1274,23 @@ type Review struct {
 	CreatedAt        pgtype.Timestamptz `json:"created_at"`
 }
 
+type ServiceCategory struct {
+	ID            pgtype.UUID `json:"id"`
+	Slug          string      `json:"slug"`
+	NameRo        string      `json:"name_ro"`
+	NameEn        string      `json:"name_en"`
+	DescriptionRo pgtype.Text `json:"description_ro"`
+	DescriptionEn pgtype.Text `json:"description_en"`
+	Icon          pgtype.Text `json:"icon"`
+	ImageUrl      pgtype.Text `json:"image_url"`
+	// Per-category commission rate. NULL means use platform default.
+	CommissionPct pgtype.Numeric     `json:"commission_pct"`
+	SortOrder     int32              `json:"sort_order"`
+	IsActive      bool               `json:"is_active"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+}
+
 type ServiceDefinition struct {
 	ID                 pgtype.UUID        `json:"id"`
 	ServiceType        ServiceType        `json:"service_type"`
@@ -1235,6 +1309,11 @@ type ServiceDefinition struct {
 	HouseMultiplier    pgtype.Numeric     `json:"house_multiplier"`
 	PetDurationMinutes int32              `json:"pet_duration_minutes"`
 	IncludedItems      []string           `json:"included_items"`
+	CategoryID         pgtype.UUID        `json:"category_id"`
+	// How this service is priced: hourly (duration-based) or per_sqm (area-based)
+	PricingModel PricingModel `json:"pricing_model"`
+	// Price per square meter (used when pricing_model = per_sqm)
+	PricePerSqm pgtype.Numeric `json:"price_per_sqm"`
 }
 
 type ServiceExtra struct {

@@ -90,8 +90,9 @@ func (r *mutationResolver) CreateBookingRequest(ctx context.Context, input model
 		return nil, fmt.Errorf("either addressId or address input is required")
 	}
 
-	// Validate city is supported (enabled and active).
+	// Validate city is supported (enabled and active) and get pricing multiplier.
 	var addrCity string
+	cityMultiplier := 1.0
 	if input.AddressID != nil {
 		addr, _ := r.Queries.GetAddressByID(ctx, addressID)
 		addrCity = addr.City
@@ -99,9 +100,12 @@ func (r *mutationResolver) CreateBookingRequest(ctx context.Context, input model
 		addrCity = input.Address.City
 	}
 	if addrCity != "" {
-		_, cityErr := r.Queries.GetCityByName(ctx, strings.TrimSpace(addrCity))
+		city, cityErr := r.Queries.GetCityByName(ctx, strings.TrimSpace(addrCity))
 		if cityErr != nil {
 			return nil, fmt.Errorf("ne pare rau, nu suntem inca activi in %s", addrCity)
+		}
+		if m := numericToFloat(city.PricingMultiplier); m > 0 {
+			cityMultiplier = m
 		}
 	}
 
@@ -112,7 +116,7 @@ func (r *mutationResolver) CreateBookingRequest(ctx context.Context, input model
 		return nil, fmt.Errorf("service type not found: %w", err)
 	}
 
-	hourlyRate := numericToFloat(serviceDef.BasePricePerHour)
+	hourlyRate := numericToFloat(serviceDef.BasePricePerHour) * cityMultiplier
 
 	// Fetch extras for duration and pricing.
 	var extrasDuration []struct {
@@ -185,19 +189,25 @@ func (r *mutationResolver) CreateBookingRequest(ctx context.Context, input model
 
 	referenceCode := fmt.Sprintf("G2F-%d", time.Now().UnixNano()%1000000)
 
-	// Resolve commission rate: per-company override -> platform default -> hardcoded fallback.
+	// Resolve commission rate: company override -> category commission -> platform default -> 25% fallback.
 	commissionPct := 25.0 // hardcoded fallback
-	hasCompanyOverride := false
+	commissionResolved := false
 	if input.PreferredWorkerID != nil && *input.PreferredWorkerID != "" {
 		workerUUID := stringToUUID(*input.PreferredWorkerID)
 		if w, wErr := r.Queries.GetWorkerByID(ctx, workerUUID); wErr == nil {
 			if company, cErr := r.Queries.GetCompanyByID(ctx, w.CompanyID); cErr == nil && company.CommissionOverridePct.Valid {
 				commissionPct = numericToFloat(company.CommissionOverridePct)
-				hasCompanyOverride = true
+				commissionResolved = true
 			}
 		}
 	}
-	if !hasCompanyOverride {
+	if !commissionResolved && serviceDef.CategoryID.Valid {
+		if cat, catErr := r.Queries.GetServiceCategoryByID(ctx, serviceDef.CategoryID); catErr == nil && cat.CommissionPct.Valid {
+			commissionPct = numericToFloat(cat.CommissionPct)
+			commissionResolved = true
+		}
+	}
+	if !commissionResolved {
 		if setting, sErr := r.Queries.GetPlatformSetting(ctx, "platform_commission_pct"); sErr == nil {
 			if v := numericFromString(setting.Value); v > 0 {
 				commissionPct = v
@@ -230,6 +240,8 @@ func (r *mutationResolver) CreateBookingRequest(ctx context.Context, input model
 		RecurringGroupID:       pgtype.UUID{},
 		OccurrenceNumber:       pgtype.Int4{},
 		PlatformCommissionPct:  float64ToNumeric(commissionPct),
+		CityPricingMultiplier:  float64ToNumeric(cityMultiplier),
+		PricingModel:           db.NullPricingModel{PricingModel: serviceDef.PricingModel, Valid: true},
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create booking: %w", err)

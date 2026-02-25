@@ -37,7 +37,7 @@ func (q *Queries) CreateArea(ctx context.Context, arg CreateAreaParams) (CityAre
 const createCity = `-- name: CreateCity :one
 INSERT INTO enabled_cities (name, county)
 VALUES ($1, $2)
-RETURNING id, name, county, is_active, created_at
+RETURNING id, name, county, is_active, pricing_multiplier, created_at
 `
 
 type CreateCityParams struct {
@@ -45,14 +45,24 @@ type CreateCityParams struct {
 	County string `json:"county"`
 }
 
-func (q *Queries) CreateCity(ctx context.Context, arg CreateCityParams) (EnabledCity, error) {
+type CreateCityRow struct {
+	ID                pgtype.UUID        `json:"id"`
+	Name              string             `json:"name"`
+	County            string             `json:"county"`
+	IsActive          bool               `json:"is_active"`
+	PricingMultiplier pgtype.Numeric     `json:"pricing_multiplier"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+}
+
+func (q *Queries) CreateCity(ctx context.Context, arg CreateCityParams) (CreateCityRow, error) {
 	row := q.db.QueryRow(ctx, createCity, arg.Name, arg.County)
-	var i EnabledCity
+	var i CreateCityRow
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
 		&i.County,
 		&i.IsActive,
+		&i.PricingMultiplier,
 		&i.CreatedAt,
 	)
 	return i, err
@@ -96,64 +106,94 @@ func (q *Queries) GetAreaByID(ctx context.Context, id pgtype.UUID) (GetAreaByIDR
 }
 
 const getCityByID = `-- name: GetCityByID :one
-SELECT id, name, county, is_active, created_at
+SELECT id, name, county, is_active, pricing_multiplier, created_at
 FROM enabled_cities
 WHERE id = $1
 `
 
-func (q *Queries) GetCityByID(ctx context.Context, id pgtype.UUID) (EnabledCity, error) {
+type GetCityByIDRow struct {
+	ID                pgtype.UUID        `json:"id"`
+	Name              string             `json:"name"`
+	County            string             `json:"county"`
+	IsActive          bool               `json:"is_active"`
+	PricingMultiplier pgtype.Numeric     `json:"pricing_multiplier"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+}
+
+func (q *Queries) GetCityByID(ctx context.Context, id pgtype.UUID) (GetCityByIDRow, error) {
 	row := q.db.QueryRow(ctx, getCityByID, id)
-	var i EnabledCity
+	var i GetCityByIDRow
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
 		&i.County,
 		&i.IsActive,
+		&i.PricingMultiplier,
 		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const getCityByName = `-- name: GetCityByName :one
-SELECT id, name, county, is_active, created_at
+SELECT id, name, county, is_active, pricing_multiplier, created_at
 FROM enabled_cities
 WHERE LOWER(name) = LOWER($1) AND is_active = TRUE
 `
 
-func (q *Queries) GetCityByName(ctx context.Context, lower string) (EnabledCity, error) {
+type GetCityByNameRow struct {
+	ID                pgtype.UUID        `json:"id"`
+	Name              string             `json:"name"`
+	County            string             `json:"county"`
+	IsActive          bool               `json:"is_active"`
+	PricingMultiplier pgtype.Numeric     `json:"pricing_multiplier"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+}
+
+func (q *Queries) GetCityByName(ctx context.Context, lower string) (GetCityByNameRow, error) {
 	row := q.db.QueryRow(ctx, getCityByName, lower)
-	var i EnabledCity
+	var i GetCityByNameRow
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
 		&i.County,
 		&i.IsActive,
+		&i.PricingMultiplier,
 		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const listActiveCities = `-- name: ListActiveCities :many
-SELECT id, name, county, is_active, created_at
+SELECT id, name, county, is_active, pricing_multiplier, created_at
 FROM enabled_cities
 WHERE is_active = TRUE
 ORDER BY name
 `
 
-func (q *Queries) ListActiveCities(ctx context.Context) ([]EnabledCity, error) {
+type ListActiveCitiesRow struct {
+	ID                pgtype.UUID        `json:"id"`
+	Name              string             `json:"name"`
+	County            string             `json:"county"`
+	IsActive          bool               `json:"is_active"`
+	PricingMultiplier pgtype.Numeric     `json:"pricing_multiplier"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+}
+
+func (q *Queries) ListActiveCities(ctx context.Context) ([]ListActiveCitiesRow, error) {
 	rows, err := q.db.Query(ctx, listActiveCities)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []EnabledCity
+	var items []ListActiveCitiesRow
 	for rows.Next() {
-		var i EnabledCity
+		var i ListActiveCitiesRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
 			&i.County,
 			&i.IsActive,
+			&i.PricingMultiplier,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
@@ -209,25 +249,35 @@ func (q *Queries) ListAreasByCity(ctx context.Context, cityID pgtype.UUID) ([]Li
 }
 
 const listEnabledCities = `-- name: ListEnabledCities :many
-SELECT id, name, county, is_active, created_at
+SELECT id, name, county, is_active, pricing_multiplier, created_at
 FROM enabled_cities
 ORDER BY name
 `
 
-func (q *Queries) ListEnabledCities(ctx context.Context) ([]EnabledCity, error) {
+type ListEnabledCitiesRow struct {
+	ID                pgtype.UUID        `json:"id"`
+	Name              string             `json:"name"`
+	County            string             `json:"county"`
+	IsActive          bool               `json:"is_active"`
+	PricingMultiplier pgtype.Numeric     `json:"pricing_multiplier"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+}
+
+func (q *Queries) ListEnabledCities(ctx context.Context) ([]ListEnabledCitiesRow, error) {
 	rows, err := q.db.Query(ctx, listEnabledCities)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []EnabledCity
+	var items []ListEnabledCitiesRow
 	for rows.Next() {
-		var i EnabledCity
+		var i ListEnabledCitiesRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
 			&i.County,
 			&i.IsActive,
+			&i.PricingMultiplier,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
@@ -244,7 +294,7 @@ const updateCityActive = `-- name: UpdateCityActive :one
 UPDATE enabled_cities
 SET is_active = $2
 WHERE id = $1
-RETURNING id, name, county, is_active, created_at
+RETURNING id, name, county, is_active, pricing_multiplier, created_at
 `
 
 type UpdateCityActiveParams struct {
@@ -252,14 +302,59 @@ type UpdateCityActiveParams struct {
 	IsActive bool        `json:"is_active"`
 }
 
-func (q *Queries) UpdateCityActive(ctx context.Context, arg UpdateCityActiveParams) (EnabledCity, error) {
+type UpdateCityActiveRow struct {
+	ID                pgtype.UUID        `json:"id"`
+	Name              string             `json:"name"`
+	County            string             `json:"county"`
+	IsActive          bool               `json:"is_active"`
+	PricingMultiplier pgtype.Numeric     `json:"pricing_multiplier"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+}
+
+func (q *Queries) UpdateCityActive(ctx context.Context, arg UpdateCityActiveParams) (UpdateCityActiveRow, error) {
 	row := q.db.QueryRow(ctx, updateCityActive, arg.ID, arg.IsActive)
-	var i EnabledCity
+	var i UpdateCityActiveRow
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
 		&i.County,
 		&i.IsActive,
+		&i.PricingMultiplier,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const updateCityPricingMultiplier = `-- name: UpdateCityPricingMultiplier :one
+UPDATE enabled_cities
+SET pricing_multiplier = $2
+WHERE id = $1
+RETURNING id, name, county, is_active, pricing_multiplier, created_at
+`
+
+type UpdateCityPricingMultiplierParams struct {
+	ID                pgtype.UUID    `json:"id"`
+	PricingMultiplier pgtype.Numeric `json:"pricing_multiplier"`
+}
+
+type UpdateCityPricingMultiplierRow struct {
+	ID                pgtype.UUID        `json:"id"`
+	Name              string             `json:"name"`
+	County            string             `json:"county"`
+	IsActive          bool               `json:"is_active"`
+	PricingMultiplier pgtype.Numeric     `json:"pricing_multiplier"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+}
+
+func (q *Queries) UpdateCityPricingMultiplier(ctx context.Context, arg UpdateCityPricingMultiplierParams) (UpdateCityPricingMultiplierRow, error) {
+	row := q.db.QueryRow(ctx, updateCityPricingMultiplier, arg.ID, arg.PricingMultiplier)
+	var i UpdateCityPricingMultiplierRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.County,
+		&i.IsActive,
+		&i.PricingMultiplier,
 		&i.CreatedAt,
 	)
 	return i, err

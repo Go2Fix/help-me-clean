@@ -1,3 +1,23 @@
+enum PricingModel {
+  HOURLY
+  PER_SQM
+}
+
+type ServiceCategory {
+  id: ID!
+  slug: String!
+  nameRo: String!
+  nameEn: String!
+  descriptionRo: String
+  descriptionEn: String
+  icon: String
+  imageUrl: String
+  commissionPct: Float
+  sortOrder: Int!
+  isActive: Boolean!
+  services: [ServiceDefinition!]!
+}
+
 type ServiceDefinition {
   id: ID!
   serviceType: ServiceType!
@@ -15,6 +35,9 @@ type ServiceDefinition {
   icon: String
   isActive: Boolean!
   includedItems: [String!]!
+  categoryId: ID
+  pricingModel: PricingModel!
+  pricePerSqm: Float
 }
 
 type ServiceExtra {
@@ -33,10 +56,13 @@ type PriceEstimate {
   hourlyRate: Float!
   estimatedHours: Float!
   propertyMultiplier: Float!
+  cityPricingMultiplier: Float!
   petsSurcharge: Float!
   subtotal: Float!
   extras: [ExtraLineItem!]!
   total: Float!
+  pricingModel: PricingModel!
+  areaTotal: Float
 }
 
 type ExtraLineItem {
@@ -49,6 +75,9 @@ extend type Query {
   availableServices: [ServiceDefinition!]!
   availableExtras: [ServiceExtra!]!
   estimatePrice(input: PriceEstimateInput!): PriceEstimate!
+  serviceCategories: [ServiceCategory!]!
+  serviceCategoryBySlug(slug: String!): ServiceCategory
+  allServiceCategories: [ServiceCategory!]!
 }
 
 input PriceEstimateInput {
@@ -59,6 +88,7 @@ input PriceEstimateInput {
   propertyType: String
   hasPets: Boolean
   extras: [ExtraInput!]
+  city: String
 }
 
 extend type Query {
@@ -71,6 +101,8 @@ extend type Mutation {
   createServiceDefinition(input: CreateServiceDefinitionInput!): ServiceDefinition!
   updateServiceExtra(input: UpdateServiceExtraInput!): ServiceExtra!
   createServiceExtra(input: CreateServiceExtraInput!): ServiceExtra!
+  createServiceCategory(input: CreateServiceCategoryInput!): ServiceCategory!
+  updateServiceCategory(input: UpdateServiceCategoryInput!): ServiceCategory!
 }
 
 input UpdateServiceDefinitionInput {
@@ -86,6 +118,9 @@ input UpdateServiceDefinitionInput {
   petDurationMinutes: Int!
   isActive: Boolean!
   includedItems: [String!]
+  categoryId: ID
+  pricingModel: PricingModel!
+  pricePerSqm: Float
 }
 
 input CreateServiceDefinitionInput {
@@ -101,6 +136,9 @@ input CreateServiceDefinitionInput {
   petDurationMinutes: Int!
   isActive: Boolean!
   includedItems: [String!]
+  categoryId: ID
+  pricingModel: PricingModel!
+  pricePerSqm: Float
 }
 
 input UpdateServiceExtraInput {
@@ -122,4 +160,30 @@ input CreateServiceExtraInput {
   isActive: Boolean!
   allowMultiple: Boolean!
   unitLabel: String
+}
+
+input CreateServiceCategoryInput {
+  slug: String!
+  nameRo: String!
+  nameEn: String!
+  descriptionRo: String
+  descriptionEn: String
+  icon: String
+  imageUrl: String
+  commissionPct: Float
+  sortOrder: Int!
+  isActive: Boolean!
+}
+
+input UpdateServiceCategoryInput {
+  id: ID!
+  nameRo: String!
+  nameEn: String!
+  descriptionRo: String
+  descriptionEn: String
+  icon: String
+  imageUrl: String
+  commissionPct: Float
+  sortOrder: Int!
+  isActive: Boolean!
 }

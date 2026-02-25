@@ -121,6 +121,9 @@ interface PriceEstimate {
     lineTotal: number;
   }[];
   total: number;
+  cityPricingMultiplier?: number;
+  pricingModel?: string;
+  areaTotal?: number;
 }
 
 interface SelectedExtra {
@@ -467,11 +470,12 @@ export default function BookingPage() {
             propertyType: form.propertyType || undefined,
             hasPets: form.hasPets,
             extras: form.extras.filter((e) => e.quantity > 0),
+            city: form.city || undefined,
           },
         },
       });
     }, 400);
-  }, [form.serviceType, form.numRooms, form.numBathrooms, form.areaSqm, form.propertyType, form.hasPets, form.extras, fetchEstimate]);
+  }, [form.serviceType, form.numRooms, form.numBathrooms, form.areaSqm, form.propertyType, form.hasPets, form.extras, form.city, fetchEstimate]);
 
   useEffect(() => {
     triggerEstimate();
@@ -4020,9 +4024,17 @@ function StepSummary({
               {estimate && (
                 <div className="flex justify-between text-gray-600">
                   <span>
-                    {estimate.hourlyRate} lei/ora x {estimate.estimatedHours} ore
+                    {estimate.pricingModel === 'PER_SQM'
+                      ? `${estimate.hourlyRate} lei/mp x ${estimate.areaTotal ?? 0} mp`
+                      : `${estimate.hourlyRate} lei/ora x ${estimate.estimatedHours} ore`}
                   </span>
                   <span>{estimate.subtotal} lei</span>
+                </div>
+              )}
+              {estimate && (estimate.cityPricingMultiplier ?? 1) > 1 && (
+                <div className="flex justify-between text-gray-600">
+                  <span>Preț ajustat pentru zona ta</span>
+                  <span className="text-amber-600">inclus</span>
                 </div>
               )}
               {estimate && estimate.propertyMultiplier > 1 && (
@@ -4080,10 +4092,18 @@ function StepSummary({
             <div className="space-y-2 text-sm">
               <div className="flex justify-between text-gray-600">
                 <span>
-                  {estimate.hourlyRate} lei/ora x {estimate.estimatedHours} ore
+                  {estimate.pricingModel === 'PER_SQM'
+                    ? `${estimate.hourlyRate} lei/mp x ${estimate.areaTotal ?? 0} mp`
+                    : `${estimate.hourlyRate} lei/ora x ${estimate.estimatedHours} ore`}
                 </span>
                 <span>{estimate.subtotal} lei</span>
               </div>
+              {(estimate.cityPricingMultiplier ?? 1) > 1 && (
+                <div className="flex justify-between text-gray-600">
+                  <span>Preț ajustat pentru zona ta</span>
+                  <span className="text-amber-600">inclus</span>
+                </div>
+              )}
               {estimate.propertyMultiplier > 1 && (
                 <div className="flex justify-between text-gray-600">
                   <span>
@@ -4241,13 +4261,28 @@ function PriceSidebar({
               <span className="font-medium text-gray-900">{form.numBathrooms}</span>
             </div>
 
-            {/* Duration estimate */}
-            {estimate && (
+            {/* Duration / Area estimate */}
+            {estimate && estimate.pricingModel === 'PER_SQM' ? (
+              <div className="flex justify-between">
+                <span className="text-gray-500">Suprafata</span>
+                <span className="font-medium text-gray-900">
+                  {estimate.areaTotal ?? 0} mp
+                </span>
+              </div>
+            ) : estimate ? (
               <div className="flex justify-between">
                 <span className="text-gray-500">Durata estimata</span>
                 <span className="font-medium text-gray-900">
                   ~{estimate.estimatedHours} ore
                 </span>
+              </div>
+            ) : null}
+
+            {/* City pricing note */}
+            {estimate && (estimate.cityPricingMultiplier ?? 1) > 1 && (
+              <div className="flex justify-between text-gray-600">
+                <span>Preț ajustat pentru zona ta</span>
+                <span className="text-amber-600">inclus</span>
               </div>
             )}
 
@@ -4480,9 +4515,13 @@ function MobilePriceFooter({
               </div>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">Pret/ora</span>
+              <span className="text-gray-500">
+                {estimate?.pricingModel === 'PER_SQM' ? 'Pret pe mp' : 'Pret/ora'}
+              </span>
               <span className="font-medium text-gray-900">
-                {selectedService.basePricePerHour} lei
+                {estimate?.pricingModel === 'PER_SQM'
+                  ? `${estimate.hourlyRate} lei`
+                  : `${selectedService.basePricePerHour} lei`}
               </span>
             </div>
 
@@ -4506,13 +4545,28 @@ function MobilePriceFooter({
               </span>
             </div>
 
-            {/* Duration */}
-            {estimate && (
+            {/* Duration / Area */}
+            {estimate && estimate.pricingModel === 'PER_SQM' ? (
+              <div className="flex justify-between">
+                <span className="text-gray-500">Suprafata</span>
+                <span className="font-medium text-gray-900">
+                  {estimate.areaTotal ?? 0} mp
+                </span>
+              </div>
+            ) : estimate ? (
               <div className="flex justify-between">
                 <span className="text-gray-500">Durata</span>
                 <span className="font-medium text-gray-900">
                   ~{estimate.estimatedHours} ore
                 </span>
+              </div>
+            ) : null}
+
+            {/* City pricing note */}
+            {estimate && (estimate.cityPricingMultiplier ?? 1) > 1 && (
+              <div className="flex justify-between text-gray-600">
+                <span>Preț ajustat pentru zona ta</span>
+                <span className="text-amber-600">inclus</span>
               </div>
             )}
 

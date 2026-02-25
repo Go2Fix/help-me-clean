@@ -13,8 +13,9 @@ import (
 
 const createServiceDefinition = `-- name: CreateServiceDefinition :one
 INSERT INTO service_definitions (service_type, name_ro, name_en, base_price_per_hour, min_hours,
-    hours_per_room, hours_per_bathroom, hours_per_100_sqm, house_multiplier, pet_duration_minutes, is_active, included_items)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id, service_type, name_ro, name_en, description_ro, description_en, base_price_per_hour, min_hours, icon, is_active, created_at, hours_per_room, hours_per_bathroom, hours_per_100_sqm, house_multiplier, pet_duration_minutes, included_items
+    hours_per_room, hours_per_bathroom, hours_per_100_sqm, house_multiplier, pet_duration_minutes,
+    is_active, included_items, category_id, pricing_model, price_per_sqm)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING id, service_type, name_ro, name_en, description_ro, description_en, base_price_per_hour, min_hours, icon, is_active, created_at, hours_per_room, hours_per_bathroom, hours_per_100_sqm, house_multiplier, pet_duration_minutes, included_items, category_id, pricing_model, price_per_sqm
 `
 
 type CreateServiceDefinitionParams struct {
@@ -30,6 +31,9 @@ type CreateServiceDefinitionParams struct {
 	PetDurationMinutes int32          `json:"pet_duration_minutes"`
 	IsActive           pgtype.Bool    `json:"is_active"`
 	IncludedItems      []string       `json:"included_items"`
+	CategoryID         pgtype.UUID    `json:"category_id"`
+	PricingModel       PricingModel   `json:"pricing_model"`
+	PricePerSqm        pgtype.Numeric `json:"price_per_sqm"`
 }
 
 func (q *Queries) CreateServiceDefinition(ctx context.Context, arg CreateServiceDefinitionParams) (ServiceDefinition, error) {
@@ -46,6 +50,9 @@ func (q *Queries) CreateServiceDefinition(ctx context.Context, arg CreateService
 		arg.PetDurationMinutes,
 		arg.IsActive,
 		arg.IncludedItems,
+		arg.CategoryID,
+		arg.PricingModel,
+		arg.PricePerSqm,
 	)
 	var i ServiceDefinition
 	err := row.Scan(
@@ -66,6 +73,9 @@ func (q *Queries) CreateServiceDefinition(ctx context.Context, arg CreateService
 		&i.HouseMultiplier,
 		&i.PetDurationMinutes,
 		&i.IncludedItems,
+		&i.CategoryID,
+		&i.PricingModel,
+		&i.PricePerSqm,
 	)
 	return i, err
 }
@@ -131,8 +141,40 @@ func (q *Queries) GetExtraByID(ctx context.Context, id pgtype.UUID) (ServiceExtr
 	return i, err
 }
 
+const getServiceByID = `-- name: GetServiceByID :one
+SELECT id, service_type, name_ro, name_en, description_ro, description_en, base_price_per_hour, min_hours, icon, is_active, created_at, hours_per_room, hours_per_bathroom, hours_per_100_sqm, house_multiplier, pet_duration_minutes, included_items, category_id, pricing_model, price_per_sqm FROM service_definitions WHERE id = $1
+`
+
+func (q *Queries) GetServiceByID(ctx context.Context, id pgtype.UUID) (ServiceDefinition, error) {
+	row := q.db.QueryRow(ctx, getServiceByID, id)
+	var i ServiceDefinition
+	err := row.Scan(
+		&i.ID,
+		&i.ServiceType,
+		&i.NameRo,
+		&i.NameEn,
+		&i.DescriptionRo,
+		&i.DescriptionEn,
+		&i.BasePricePerHour,
+		&i.MinHours,
+		&i.Icon,
+		&i.IsActive,
+		&i.CreatedAt,
+		&i.HoursPerRoom,
+		&i.HoursPerBathroom,
+		&i.HoursPer100Sqm,
+		&i.HouseMultiplier,
+		&i.PetDurationMinutes,
+		&i.IncludedItems,
+		&i.CategoryID,
+		&i.PricingModel,
+		&i.PricePerSqm,
+	)
+	return i, err
+}
+
 const getServiceByType = `-- name: GetServiceByType :one
-SELECT id, service_type, name_ro, name_en, description_ro, description_en, base_price_per_hour, min_hours, icon, is_active, created_at, hours_per_room, hours_per_bathroom, hours_per_100_sqm, house_multiplier, pet_duration_minutes, included_items FROM service_definitions WHERE service_type = $1
+SELECT id, service_type, name_ro, name_en, description_ro, description_en, base_price_per_hour, min_hours, icon, is_active, created_at, hours_per_room, hours_per_bathroom, hours_per_100_sqm, house_multiplier, pet_duration_minutes, included_items, category_id, pricing_model, price_per_sqm FROM service_definitions WHERE service_type = $1
 `
 
 func (q *Queries) GetServiceByType(ctx context.Context, serviceType ServiceType) (ServiceDefinition, error) {
@@ -156,6 +198,9 @@ func (q *Queries) GetServiceByType(ctx context.Context, serviceType ServiceType)
 		&i.HouseMultiplier,
 		&i.PetDurationMinutes,
 		&i.IncludedItems,
+		&i.CategoryID,
+		&i.PricingModel,
+		&i.PricePerSqm,
 	)
 	return i, err
 }
@@ -195,7 +240,7 @@ func (q *Queries) ListActiveExtras(ctx context.Context) ([]ServiceExtra, error) 
 }
 
 const listActiveServices = `-- name: ListActiveServices :many
-SELECT id, service_type, name_ro, name_en, description_ro, description_en, base_price_per_hour, min_hours, icon, is_active, created_at, hours_per_room, hours_per_bathroom, hours_per_100_sqm, house_multiplier, pet_duration_minutes, included_items FROM service_definitions WHERE is_active = TRUE ORDER BY service_type
+SELECT id, service_type, name_ro, name_en, description_ro, description_en, base_price_per_hour, min_hours, icon, is_active, created_at, hours_per_room, hours_per_bathroom, hours_per_100_sqm, house_multiplier, pet_duration_minutes, included_items, category_id, pricing_model, price_per_sqm FROM service_definitions WHERE is_active = TRUE ORDER BY service_type
 `
 
 func (q *Queries) ListActiveServices(ctx context.Context) ([]ServiceDefinition, error) {
@@ -225,6 +270,9 @@ func (q *Queries) ListActiveServices(ctx context.Context) ([]ServiceDefinition, 
 			&i.HouseMultiplier,
 			&i.PetDurationMinutes,
 			&i.IncludedItems,
+			&i.CategoryID,
+			&i.PricingModel,
+			&i.PricePerSqm,
 		); err != nil {
 			return nil, err
 		}
@@ -271,7 +319,7 @@ func (q *Queries) ListAllExtras(ctx context.Context) ([]ServiceExtra, error) {
 }
 
 const listAllServices = `-- name: ListAllServices :many
-SELECT id, service_type, name_ro, name_en, description_ro, description_en, base_price_per_hour, min_hours, icon, is_active, created_at, hours_per_room, hours_per_bathroom, hours_per_100_sqm, house_multiplier, pet_duration_minutes, included_items FROM service_definitions ORDER BY name_ro
+SELECT id, service_type, name_ro, name_en, description_ro, description_en, base_price_per_hour, min_hours, icon, is_active, created_at, hours_per_room, hours_per_bathroom, hours_per_100_sqm, house_multiplier, pet_duration_minutes, included_items, category_id, pricing_model, price_per_sqm FROM service_definitions ORDER BY name_ro
 `
 
 func (q *Queries) ListAllServices(ctx context.Context) ([]ServiceDefinition, error) {
@@ -301,6 +349,9 @@ func (q *Queries) ListAllServices(ctx context.Context) ([]ServiceDefinition, err
 			&i.HouseMultiplier,
 			&i.PetDurationMinutes,
 			&i.IncludedItems,
+			&i.CategoryID,
+			&i.PricingModel,
+			&i.PricePerSqm,
 		); err != nil {
 			return nil, err
 		}
@@ -315,8 +366,9 @@ func (q *Queries) ListAllServices(ctx context.Context) ([]ServiceDefinition, err
 const updateServiceDefinition = `-- name: UpdateServiceDefinition :one
 UPDATE service_definitions SET name_ro = $2, name_en = $3, base_price_per_hour = $4,
     min_hours = $5, hours_per_room = $6, hours_per_bathroom = $7, hours_per_100_sqm = $8,
-    house_multiplier = $9, pet_duration_minutes = $10, is_active = $11, included_items = $12
-WHERE id = $1 RETURNING id, service_type, name_ro, name_en, description_ro, description_en, base_price_per_hour, min_hours, icon, is_active, created_at, hours_per_room, hours_per_bathroom, hours_per_100_sqm, house_multiplier, pet_duration_minutes, included_items
+    house_multiplier = $9, pet_duration_minutes = $10, is_active = $11, included_items = $12,
+    category_id = $13, pricing_model = $14, price_per_sqm = $15
+WHERE id = $1 RETURNING id, service_type, name_ro, name_en, description_ro, description_en, base_price_per_hour, min_hours, icon, is_active, created_at, hours_per_room, hours_per_bathroom, hours_per_100_sqm, house_multiplier, pet_duration_minutes, included_items, category_id, pricing_model, price_per_sqm
 `
 
 type UpdateServiceDefinitionParams struct {
@@ -332,6 +384,9 @@ type UpdateServiceDefinitionParams struct {
 	PetDurationMinutes int32          `json:"pet_duration_minutes"`
 	IsActive           pgtype.Bool    `json:"is_active"`
 	IncludedItems      []string       `json:"included_items"`
+	CategoryID         pgtype.UUID    `json:"category_id"`
+	PricingModel       PricingModel   `json:"pricing_model"`
+	PricePerSqm        pgtype.Numeric `json:"price_per_sqm"`
 }
 
 func (q *Queries) UpdateServiceDefinition(ctx context.Context, arg UpdateServiceDefinitionParams) (ServiceDefinition, error) {
@@ -348,6 +403,9 @@ func (q *Queries) UpdateServiceDefinition(ctx context.Context, arg UpdateService
 		arg.PetDurationMinutes,
 		arg.IsActive,
 		arg.IncludedItems,
+		arg.CategoryID,
+		arg.PricingModel,
+		arg.PricePerSqm,
 	)
 	var i ServiceDefinition
 	err := row.Scan(
@@ -368,6 +426,9 @@ func (q *Queries) UpdateServiceDefinition(ctx context.Context, arg UpdateService
 		&i.HouseMultiplier,
 		&i.PetDurationMinutes,
 		&i.IncludedItems,
+		&i.CategoryID,
+		&i.PricingModel,
+		&i.PricePerSqm,
 	)
 	return i, err
 }

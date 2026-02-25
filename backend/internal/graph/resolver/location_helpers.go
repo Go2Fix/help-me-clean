@@ -15,8 +15,36 @@ import (
 	"go2fix-backend/internal/service/matching"
 )
 
-// dbCityToGQL converts a db.EnabledCity to a GQL model with areas loaded.
-func (r *Resolver) dbCityToGQL(ctx context.Context, c db.EnabledCity) (*model.EnabledCity, error) {
+// cityRow holds common fields shared by all sqlc-generated city row types.
+type cityRow struct {
+	ID                pgtype.UUID
+	Name              string
+	County            string
+	IsActive          bool
+	PricingMultiplier pgtype.Numeric
+}
+
+func cityRowFromEnabled(c db.EnabledCity) cityRow {
+	return cityRow{ID: c.ID, Name: c.Name, County: c.County, IsActive: c.IsActive, PricingMultiplier: c.PricingMultiplier}
+}
+func cityRowFromCreate(c db.CreateCityRow) cityRow {
+	return cityRow{ID: c.ID, Name: c.Name, County: c.County, IsActive: c.IsActive, PricingMultiplier: c.PricingMultiplier}
+}
+func cityRowFromUpdateActive(c db.UpdateCityActiveRow) cityRow {
+	return cityRow{ID: c.ID, Name: c.Name, County: c.County, IsActive: c.IsActive, PricingMultiplier: c.PricingMultiplier}
+}
+func cityRowFromUpdatePricing(c db.UpdateCityPricingMultiplierRow) cityRow {
+	return cityRow{ID: c.ID, Name: c.Name, County: c.County, IsActive: c.IsActive, PricingMultiplier: c.PricingMultiplier}
+}
+func cityRowFromListActive(c db.ListActiveCitiesRow) cityRow {
+	return cityRow{ID: c.ID, Name: c.Name, County: c.County, IsActive: c.IsActive, PricingMultiplier: c.PricingMultiplier}
+}
+func cityRowFromListEnabled(c db.ListEnabledCitiesRow) cityRow {
+	return cityRow{ID: c.ID, Name: c.Name, County: c.County, IsActive: c.IsActive, PricingMultiplier: c.PricingMultiplier}
+}
+
+// dbCityToGQL converts a cityRow to a GQL model with areas loaded.
+func (r *Resolver) dbCityToGQL(ctx context.Context, c cityRow) (*model.EnabledCity, error) {
 	areas, err := r.Queries.ListAreasByCity(ctx, c.ID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list areas for city %s: %w", c.Name, err)
@@ -33,11 +61,12 @@ func (r *Resolver) dbCityToGQL(ctx context.Context, c db.EnabledCity) (*model.En
 	}
 
 	return &model.EnabledCity{
-		ID:       uuidToString(c.ID),
-		Name:     c.Name,
-		County:   c.County,
-		IsActive: c.IsActive,
-		Areas:    gqlAreas,
+		ID:                uuidToString(c.ID),
+		Name:              c.Name,
+		County:            c.County,
+		IsActive:          c.IsActive,
+		PricingMultiplier: numericToFloat(c.PricingMultiplier),
+		Areas:             gqlAreas,
 	}, nil
 }
 

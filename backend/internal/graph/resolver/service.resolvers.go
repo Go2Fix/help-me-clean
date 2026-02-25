@@ -27,6 +27,15 @@ func (r *mutationResolver) UpdateServiceDefinition(ctx context.Context, input mo
 	if includedItemsUpdate == nil {
 		includedItemsUpdate = []string{}
 	}
+	var updateCategoryID pgtype.UUID
+	if input.CategoryID != nil {
+		updateCategoryID = stringToUUID(*input.CategoryID)
+	}
+	var updatePricePerSqm pgtype.Numeric
+	if input.PricePerSqm != nil {
+		updatePricePerSqm = float64ToNumeric(*input.PricePerSqm)
+	}
+
 	updated, err := r.Queries.UpdateServiceDefinition(ctx, db.UpdateServiceDefinitionParams{
 		ID:                 stringToUUID(input.ID),
 		NameRo:             input.NameRo,
@@ -40,6 +49,9 @@ func (r *mutationResolver) UpdateServiceDefinition(ctx context.Context, input mo
 		PetDurationMinutes: int32(input.PetDurationMinutes),
 		IsActive:           pgtype.Bool{Bool: input.IsActive, Valid: true},
 		IncludedItems:      includedItemsUpdate,
+		CategoryID:         updateCategoryID,
+		PricingModel:       gqlPricingModelToDb(input.PricingModel),
+		PricePerSqm:        updatePricePerSqm,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to update service definition: %w", err)
@@ -59,6 +71,15 @@ func (r *mutationResolver) CreateServiceDefinition(ctx context.Context, input mo
 	if includedItemsCreate == nil {
 		includedItemsCreate = []string{}
 	}
+	var createCategoryID pgtype.UUID
+	if input.CategoryID != nil {
+		createCategoryID = stringToUUID(*input.CategoryID)
+	}
+	var createPricePerSqm pgtype.Numeric
+	if input.PricePerSqm != nil {
+		createPricePerSqm = float64ToNumeric(*input.PricePerSqm)
+	}
+
 	created, err := r.Queries.CreateServiceDefinition(ctx, db.CreateServiceDefinitionParams{
 		ServiceType:        gqlServiceTypeToDb(input.ServiceType),
 		NameRo:             input.NameRo,
@@ -72,6 +93,9 @@ func (r *mutationResolver) CreateServiceDefinition(ctx context.Context, input mo
 		PetDurationMinutes: int32(input.PetDurationMinutes),
 		IsActive:           pgtype.Bool{Bool: input.IsActive, Valid: true},
 		IncludedItems:      includedItemsCreate,
+		CategoryID:         createCategoryID,
+		PricingModel:       gqlPricingModelToDb(input.PricingModel),
+		PricePerSqm:        createPricePerSqm,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create service definition: %w", err)
@@ -127,6 +151,68 @@ func (r *mutationResolver) CreateServiceExtra(ctx context.Context, input model.C
 	return dbServiceExtraToGQL(created), nil
 }
 
+// CreateServiceCategory is the resolver for the createServiceCategory field.
+func (r *mutationResolver) CreateServiceCategory(ctx context.Context, input model.CreateServiceCategoryInput) (*model.ServiceCategory, error) {
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil || claims.Role != "global_admin" {
+		return nil, fmt.Errorf("not authorized")
+	}
+
+	var commissionPct pgtype.Numeric
+	if input.CommissionPct != nil {
+		commissionPct = float64ToNumeric(*input.CommissionPct)
+	}
+
+	created, err := r.Queries.CreateServiceCategory(ctx, db.CreateServiceCategoryParams{
+		Slug:          input.Slug,
+		NameRo:        input.NameRo,
+		NameEn:        input.NameEn,
+		DescriptionRo: stringToText(input.DescriptionRo),
+		DescriptionEn: stringToText(input.DescriptionEn),
+		Icon:          stringToText(input.Icon),
+		ImageUrl:      stringToText(input.ImageURL),
+		CommissionPct: commissionPct,
+		SortOrder:     int32(input.SortOrder),
+		IsActive:      input.IsActive,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create service category: %w", err)
+	}
+
+	return dbServiceCatToGQL(created), nil
+}
+
+// UpdateServiceCategory is the resolver for the updateServiceCategory field.
+func (r *mutationResolver) UpdateServiceCategory(ctx context.Context, input model.UpdateServiceCategoryInput) (*model.ServiceCategory, error) {
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil || claims.Role != "global_admin" {
+		return nil, fmt.Errorf("not authorized")
+	}
+
+	var commissionPct pgtype.Numeric
+	if input.CommissionPct != nil {
+		commissionPct = float64ToNumeric(*input.CommissionPct)
+	}
+
+	updated, err := r.Queries.UpdateServiceCategory(ctx, db.UpdateServiceCategoryParams{
+		ID:            stringToUUID(input.ID),
+		NameRo:        input.NameRo,
+		NameEn:        input.NameEn,
+		DescriptionRo: stringToText(input.DescriptionRo),
+		DescriptionEn: stringToText(input.DescriptionEn),
+		Icon:          stringToText(input.Icon),
+		ImageUrl:      stringToText(input.ImageURL),
+		CommissionPct: commissionPct,
+		SortOrder:     int32(input.SortOrder),
+		IsActive:      input.IsActive,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to update service category: %w", err)
+	}
+
+	return dbServiceCatToGQL(updated), nil
+}
+
 // AvailableServices is the resolver for the availableServices field.
 func (r *queryResolver) AvailableServices(ctx context.Context) ([]*model.ServiceDefinition, error) {
 	services, err := r.Queries.ListActiveServices(ctx)
@@ -163,7 +249,17 @@ func (r *queryResolver) EstimatePrice(ctx context.Context, input model.PriceEsti
 		return nil, fmt.Errorf("service type not found: %w", err)
 	}
 
-	hourlyRate := numericToFloat(serviceDef.BasePricePerHour)
+	// City pricing multiplier.
+	cityMultiplier := 1.0
+	if input.City != nil && *input.City != "" {
+		if city, cityErr := r.Queries.GetCityByName(ctx, strings.TrimSpace(*input.City)); cityErr == nil {
+			if m := numericToFloat(city.PricingMultiplier); m > 0 {
+				cityMultiplier = m
+			}
+		}
+	}
+
+	hourlyRate := numericToFloat(serviceDef.BasePricePerHour) * cityMultiplier
 
 	// Fetch extras and build duration info.
 	var extraLineItems []*model.ExtraLineItem
@@ -205,25 +301,95 @@ func (r *queryResolver) EstimatePrice(ctx context.Context, input model.PriceEsti
 		}
 	}
 
-	subtotal := hourlyRate * estimatedHours
-
 	// Pets surcharge (flat fee on top of duration).
 	petsSurcharge := 0.0
 	if input.HasPets != nil && *input.HasPets {
 		petsSurcharge = 15.0
 	}
 
+	// Branch pricing by model.
+	pricingModel := dbPricingModelToGQL(serviceDef.PricingModel)
+	var subtotal float64
+	var areaTotal *float64
+
+	if serviceDef.PricingModel == db.PricingModelPerSqm && input.AreaSqm != nil {
+		pricePerSqm := numericToFloat(serviceDef.PricePerSqm)
+		areaTotalVal := pricePerSqm * float64(*input.AreaSqm) * cityMultiplier
+		areaTotal = &areaTotalVal
+		subtotal = areaTotalVal
+	} else {
+		subtotal = hourlyRate * estimatedHours
+	}
+
 	total := subtotal + extrasTotal + petsSurcharge
 
 	return &model.PriceEstimate{
-		HourlyRate:         hourlyRate,
-		EstimatedHours:     estimatedHours,
-		PropertyMultiplier: propertyMultiplier,
-		PetsSurcharge:      petsSurcharge,
-		Subtotal:           subtotal,
-		Extras:             extraLineItems,
-		Total:              total,
+		HourlyRate:            hourlyRate,
+		EstimatedHours:        estimatedHours,
+		PropertyMultiplier:    propertyMultiplier,
+		CityPricingMultiplier: cityMultiplier,
+		PetsSurcharge:         petsSurcharge,
+		Subtotal:              subtotal,
+		Extras:                extraLineItems,
+		Total:                 total,
+		PricingModel:          pricingModel,
+		AreaTotal:             areaTotal,
 	}, nil
+}
+
+// ServiceCategories is the resolver for the serviceCategories field.
+func (r *queryResolver) ServiceCategories(ctx context.Context) ([]*model.ServiceCategory, error) {
+	categories, err := r.Queries.ListActiveServiceCategories(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list service categories: %w", err)
+	}
+
+	result := make([]*model.ServiceCategory, len(categories))
+	for i, c := range categories {
+		result[i] = dbServiceCatToGQL(c)
+	}
+	return result, nil
+}
+
+// ServiceCategoryBySlug is the resolver for the serviceCategoryBySlug field.
+func (r *queryResolver) ServiceCategoryBySlug(ctx context.Context, slug string) (*model.ServiceCategory, error) {
+	cat, err := r.Queries.GetServiceCategoryBySlug(ctx, slug)
+	if err != nil {
+		return nil, fmt.Errorf("service category not found: %w", err)
+	}
+
+	result := dbServiceCatToGQL(cat)
+
+	// Attach services belonging to this category.
+	services, err := r.Queries.ListServicesByCategory(ctx, cat.ID)
+	if err == nil {
+		gqlServices := make([]*model.ServiceDefinition, len(services))
+		for i, s := range services {
+			gqlServices[i] = dbServiceDefToGQL(s)
+		}
+		result.Services = gqlServices
+	}
+
+	return result, nil
+}
+
+// AllServiceCategories is the resolver for the allServiceCategories field.
+func (r *queryResolver) AllServiceCategories(ctx context.Context) ([]*model.ServiceCategory, error) {
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil || claims.Role != "global_admin" {
+		return nil, fmt.Errorf("not authorized")
+	}
+
+	categories, err := r.Queries.ListAllServiceCategories(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list all service categories: %w", err)
+	}
+
+	result := make([]*model.ServiceCategory, len(categories))
+	for i, c := range categories {
+		result[i] = dbServiceCatToGQL(c)
+	}
+	return result, nil
 }
 
 // AllServices is the resolver for the allServices field.

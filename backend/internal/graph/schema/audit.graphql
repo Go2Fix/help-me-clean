@@ -1,0 +1,21 @@
+type PriceAuditEntry {
+  id: ID!
+  entityType: String!
+  entityId: ID!
+  fieldName: String!
+  oldValue: String
+  newValue: String
+  changedByName: String
+  changedByEmail: String
+  changedAt: DateTime!
+  reason: String
+}
+
+type PriceAuditConnection {
+  entries: [PriceAuditEntry!]!
+  totalCount: Int!
+}
+
+extend type Query {
+  priceAuditLog(entityType: String, limit: Int, offset: Int): PriceAuditConnection!
+}

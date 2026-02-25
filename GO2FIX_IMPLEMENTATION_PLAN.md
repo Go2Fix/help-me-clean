@@ -249,7 +249,7 @@ All indexes already existed from prior migrations. No new migration needed.
 
 > Centralize all platform configuration in admin dashboard.
 
-### P3-1: Unified Pricing Management — REDESIGNED
+### P3-1: Unified Pricing Management ✅ COMPLETED
 
 **Original plan:** Create a separate `service_pricing` table with per-region pricing.
 
@@ -259,12 +259,10 @@ All indexes already existed from prior migrations. No new migration needed.
 - Included items configuration
 - Active/inactive toggle
 
-**Remaining:**
-- [ ] Per-region/city pricing tiers (currently uniform pricing nationwide)
-- [ ] Per-sqm pricing model for non-cleaning services
-- [ ] Price history audit log
-
-**Effort:** 3-4 hours (for regional pricing tiers)
+**Completed (migrations 000038–000042):**
+- [x] Per-region/city pricing tiers — `pricing_multiplier` on `enabled_cities`, editable in admin Cities tab, applied in booking + estimate flows
+- [x] Per-sqm pricing model — `pricing_model` enum (hourly/per_sqm) + `price_per_sqm` on `service_definitions`, branching logic in estimate + booking resolvers, admin UI with conditional fields
+- [x] Price history audit log — `price_audit_log` table, `logPriceChange()` helper, "Jurnal Preturi" tab in admin with paginated/filtered view
 
 ---
 
@@ -280,40 +278,35 @@ Fully covered in P2-3 above. Admin UI for discount percentages per frequency exi
 
 ---
 
-### P3-4: Commission Rate Configuration — PARTIALLY DONE
+### P3-4: Commission Rate Configuration ✅ COMPLETED
 
 **What exists:**
 - [x] Global `platform_commission_pct` in `platform_settings` KV table (default 25%)
 - [x] Admin UI: Editable in SettingsPage → "Business" group
 - [x] Commission applied to Stripe Connect payments via `application_fee_percent`
 - [x] Commission invoices auto-generated for subscriptions
-
-**What's missing:**
-- [ ] Per-service-type commission rates
-- [ ] Per-company override rates (for special partnerships)
-
-**Effort:** 2-3 hours
+- [x] Per-category commission rates — `service_categories` table with `commission_pct`, "Categorii" tab in admin with CRUD
+- [x] Commission hierarchy: company override → category commission → platform default → 25% fallback
 
 ---
 
-### P3-5: Platform Settings Consolidation — MOSTLY DONE
+### P3-5: Platform Settings Consolidation ✅ COMPLETED
 
-**What exists:** Admin SettingsPage has 6 tabs covering most settings:
+**What exists:** Admin SettingsPage has 8 tabs covering all settings:
 
 | Tab | Contents | Status |
 |-----|----------|--------|
-| **Setari Generale** | Commission %, booking hours, hourly rate, auto-cancel, approval, cancel/reschedule policies, contact info, legal URLs | ✅ Done |
-| **Servicii** | Full CRUD for service definitions (pricing, duration, included items) | ✅ Done |
+| **Setari Generale** | Commission %, VAT %, booking hours, hourly rate, auto-cancel, approval, cancel/reschedule policies, contact info, legal URLs | ✅ Done |
+| **Servicii** | Full CRUD for service definitions (pricing, duration, included items, pricing model, category) | ✅ Done |
 | **Extra-uri** | Full CRUD for service extras (price, duration, allow-multiple) | ✅ Done |
-| **Orase** | City + city area management with activate/deactivate | ✅ Done |
+| **Orase** | City + city area management with activate/deactivate + pricing multiplier | ✅ Done |
+| **Categorii** | Service categories CRUD with per-category commission % | ✅ Done |
 | **Reduceri abonamente** | Discount % per recurrence type (weekly/biweekly/monthly) | ✅ Done |
+| **Jurnal Preturi** | Price audit log with pagination and entity type filter | ✅ Done |
 | **Platforma** | Pre-release/live mode toggle + waitlist lead stats | ✅ Done |
 
-**What's missing:**
-- [ ] VAT rate configuration (hardcoded at 21%)
+- [x] VAT rate configuration — configurable via `vat_rate_pct` in platform_settings (migration 000038), cached in invoice service
 - [ ] Settings cache with TTL refresh (currently reads from DB each time)
-
-**Effort:** 1-2 hours
 
 ---
 
@@ -321,29 +314,25 @@ Fully covered in P2-3 above. Admin UI for discount percentages per frequency exi
 
 > Architectural changes to support services beyond cleaning.
 
-### P4-1: Service Categories System
+### P4-1: Service Categories System — PARTIALLY DONE
 
 **Problem:** Currently hardcoded for cleaning (rooms, bathrooms, sqm). Must support any service.
 
-**Implementation:**
-- [ ] Create `service_categories` table:
-  ```
-  id, name, slug, description, icon, pricing_model (HOURLY | PER_UNIT | PER_SQM | FIXED),
-  is_active, sort_order, created_at
-  ```
-- [ ] Create `service_types` table:
-  ```
-  id, category_id, name, slug, description,
-  base_duration_minutes, pricing_fields (JSONB — defines what inputs are needed),
-  is_active, sort_order
-  ```
-- [ ] Seed initial data:
-  - Category: "Curatenie" → Types: "Curatenie generala", "Curatenie dupa renovare", "Curatenie birouri"
-  - Ready for: "Instalatii", "Electrician", "Zugravit", etc.
-- [ ] Update booking flow to be category-aware
-- [ ] Update pricing engine to use category pricing model
+**What's done (migrations 000041–000042):**
+- [x] `service_categories` table: id, slug, name_ro, name_en, description, icon, image_url, commission_pct, sort_order, is_active
+- [x] `category_id` FK on `service_definitions` — all existing services assigned to "curatenie" category
+- [x] Full CRUD via GraphQL + admin "Categorii" tab
+- [x] Per-category commission in booking commission hierarchy
+- [x] Per-sqm pricing model — `pricing_model` enum (hourly/per_sqm) on `service_definitions` + `bookings`
+- [x] Pricing engine branches on model: hourly vs per_sqm calculation
+- [x] Admin UI: pricing model dropdown + conditional price/sqm field in Services tab
 
-**Effort:** 8-10 hours
+**What's remaining:**
+- [ ] Dynamic booking form based on service type (P4-2)
+- [ ] Category-aware booking flow (category selection as first booking step)
+- [ ] `service_types` sub-table for more granular categorization (if needed)
+
+**Effort:** 6-8 hours (remaining items)
 
 ---
 
@@ -595,24 +584,24 @@ Full admin subscription detail page at `/admin/abonamente/:id`:
 | **Phase 0** — Critical Bugs | 4 tasks | ✅ ALL DONE | — |
 | **Phase 1** — Platform Corrections | 4 tasks | ✅ ALL N/A | — |
 | **Phase 2** — Smart Booking | 4 tasks | 3/4 done | P2-4 UI (2-3h) |
-| **Phase 3** — Admin Controls | 5 tasks | 3/5 done | P3-1 partial (3-4h), P3-4 partial (2-3h), P3-5 near-done (1-2h) |
-| **Phase 4** — Multi-Service | 3 tasks | NOT STARTED | 17-22h |
+| **Phase 3** — Admin Controls | 5 tasks | ✅ ALL DONE | — |
+| **Phase 4** — Multi-Service | 3 tasks | 1/3 partially done | P4-1 partial (6-8h), P4-2 (6-8h), P4-3 (3-4h) |
 | **Phase 5** — Company Mgmt | 3 tasks | NOT STARTED | 9-12h |
 | **Phase 6** — Client Polish | 3 tasks | 2/3 partially done | ~7-10h remaining |
 | **Phase 7** — Admin Analytics | 4 tasks | NOT STARTED | 12-16h |
 
-**Completed:** ~60-70% of Phase 0-3 (core platform). ~20% of Phase 4-7.
+**Completed:** Phase 0-3 fully done. Phase 4 partially started (~30%). Phase 5-7 not started.
 
-**Remaining estimated effort: ~55-75 hours**
+**Remaining estimated effort: ~45-60 hours**
 
 ### Recommended Next Steps
 
 ```
 1. P2-4: Preferred worker UI toggle in booking flow        (2-3h)
-2. P3-5: VAT config + settings cache                       (1-2h)
-3. P3-4: Per-company commission overrides                   (2-3h)
-4. P6-2: Remaining client dashboard items                   (2-3h)
-5. Phase 4: Multi-service architecture (biggest remaining)  (17-22h)
+2. P4-1: Category-aware booking flow + dynamic forms       (6-8h)
+3. P6-2: Remaining client dashboard items                   (2-3h)
+4. Phase 5: Company & worker management                     (9-12h)
+5. Phase 7: Admin analytics                                 (12-16h)
 ```
 
 ### Key Dependencies
@@ -629,7 +618,7 @@ Phase 4 (P4-1 service categories) → Phase 6 (P6-1 service category selection i
 ## Technical Notes
 
 ### Database Migration Strategy
-All schema changes should be backward-compatible migrations with both up and down scripts. The worker rename (P0-3) is the largest migration and was done first to unblock multi-service work. Current latest migration: **000035**.
+All schema changes should be backward-compatible migrations with both up and down scripts. The worker rename (P0-3) is the largest migration and was done first to unblock multi-service work. Current latest migration: **000042** (pricing features: VAT config, city pricing multiplier, audit log, service categories, per-sqm pricing model).
 
 ### Testing Requirements
 - Every new feature needs unit tests (backend Go + frontend Vitest)

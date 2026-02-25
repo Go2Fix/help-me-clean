@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
-import { Settings, Package, Sparkles, MapPin, Pencil, Check, X, Plus, ChevronDown, ChevronRight, ToggleLeft, Percent } from 'lucide-react';
+import { Pencil, Check, X, Plus, ChevronDown, ChevronRight } from 'lucide-react';
 import { cn } from '@go2fix/shared';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
@@ -27,11 +27,16 @@ import {
   WAITLIST_LEADS,
   RECURRING_DISCOUNTS,
   UPDATE_RECURRING_DISCOUNT,
+  ALL_SERVICE_CATEGORIES,
+  CREATE_SERVICE_CATEGORY,
+  UPDATE_SERVICE_CATEGORY,
+  PRICE_AUDIT_LOG,
+  UPDATE_CITY_PRICING_MULTIPLIER,
 } from '@/graphql/operations';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type TabKey = 'general' | 'services' | 'extras' | 'cities' | 'discounts' | 'platform';
+type TabKey = 'general' | 'services' | 'extras' | 'cities' | 'categories' | 'discounts' | 'audit' | 'platform';
 
 interface PlatformSetting {
   key: string;
@@ -56,6 +61,9 @@ interface ServiceDef {
   icon?: string;
   isActive: boolean;
   includedItems: string[];
+  categoryId?: string | null;
+  pricingModel: 'HOURLY' | 'PER_SQM';
+  pricePerSqm?: number | null;
 }
 
 interface ExtraDef {
@@ -88,22 +96,52 @@ interface City {
   name: string;
   county: string;
   isActive: boolean;
+  pricingMultiplier: number;
   areas: CityArea[];
+}
+
+interface ServiceCategory {
+  id: string;
+  slug: string;
+  nameRo: string;
+  nameEn: string;
+  descriptionRo?: string | null;
+  descriptionEn?: string | null;
+  icon?: string | null;
+  imageUrl?: string | null;
+  commissionPct?: number | null;
+  sortOrder: number;
+  isActive: boolean;
+  services: { id: string; nameRo: string }[];
+}
+
+interface PriceAuditEntry {
+  id: string;
+  entityType: string;
+  entityId: string;
+  fieldName: string;
+  oldValue?: string | null;
+  newValue?: string | null;
+  changedByName?: string | null;
+  changedByEmail?: string | null;
+  changedAt: string;
 }
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const tabs: { key: TabKey; label: string; icon: typeof Settings }[] = [
-  { key: 'general', label: 'Setari Generale', icon: Settings },
-  { key: 'services', label: 'Servicii', icon: Package },
-  { key: 'extras', label: 'Extra-uri', icon: Sparkles },
-  { key: 'cities', label: 'Orase', icon: MapPin },
-  { key: 'discounts', label: 'Reduceri abonamente', icon: Percent },
-  { key: 'platform', label: 'Platforma', icon: ToggleLeft },
+const tabs: { key: TabKey; label: string }[] = [
+  { key: 'general', label: 'Setari Generale' },
+  { key: 'services', label: 'Servicii' },
+  { key: 'extras', label: 'Extra-uri' },
+  { key: 'cities', label: 'Orase' },
+  { key: 'categories', label: 'Categorii' },
+  { key: 'discounts', label: 'Reduceri abonamente' },
+  { key: 'audit', label: 'Jurnal Preturi' },
+  { key: 'platform', label: 'Platforma' },
 ];
 
 const SETTING_GROUPS: { title: string; keys: string[] }[] = [
-  { title: 'Business', keys: ['platform_commission_pct', 'min_booking_hours', 'max_booking_hours', 'default_hourly_rate', 'booking_auto_cancel_hours', 'require_company_approval'] },
+  { title: 'Business', keys: ['platform_commission_pct', 'vat_rate_pct', 'min_booking_hours', 'max_booking_hours', 'default_hourly_rate', 'booking_auto_cancel_hours', 'require_company_approval'] },
   { title: 'Anulare / Reprogramare', keys: ['cancel_free_hours_before', 'cancel_late_refund_pct', 'reschedule_free_hours_before', 'reschedule_max_per_booking'] },
   { title: 'Contact', keys: ['support_email', 'support_phone'] },
   { title: 'Politici', keys: ['privacy_url', 'terms_url'] },
@@ -111,6 +149,7 @@ const SETTING_GROUPS: { title: string; keys: string[] }[] = [
 
 const SETTING_LABELS: Record<string, string> = {
   platform_commission_pct: 'Comision platforma (%)',
+  vat_rate_pct: 'Cota TVA (%)',
   min_booking_hours: 'Ore minime rezervare',
   max_booking_hours: 'Ore maxime rezervare',
   default_hourly_rate: 'Tarif orar implicit (RON)',
@@ -126,7 +165,7 @@ const SETTING_LABELS: Record<string, string> = {
   terms_url: 'URL Termeni si conditii',
 };
 
-const NUMBER_KEYS = new Set(['platform_commission_pct', 'min_booking_hours', 'max_booking_hours', 'default_hourly_rate', 'booking_auto_cancel_hours', 'cancel_free_hours_before', 'cancel_late_refund_pct', 'reschedule_free_hours_before', 'reschedule_max_per_booking']);
+const NUMBER_KEYS = new Set(['platform_commission_pct', 'vat_rate_pct', 'min_booking_hours', 'max_booking_hours', 'default_hourly_rate', 'booking_auto_cancel_hours', 'cancel_free_hours_before', 'cancel_late_refund_pct', 'reschedule_free_hours_before', 'reschedule_max_per_booking']);
 
 const SERVICE_TYPE_OPTIONS = [
   { value: 'STANDARD', label: 'Standard' },
@@ -135,6 +174,30 @@ const SERVICE_TYPE_OPTIONS = [
   { value: 'OFFICE', label: 'Birou' },
   { value: 'MOVE_IN_OUT', label: 'Mutare' },
 ];
+
+const PRICING_MODEL_OPTIONS = [
+  { value: 'HOURLY', label: 'Orar' },
+  { value: 'PER_SQM', label: 'Pe mp' },
+];
+
+const AUDIT_ENTITY_TYPE_OPTIONS = [
+  { value: '', label: 'Toate' },
+  { value: 'service_definition', label: 'Serviciu' },
+  { value: 'service_extra', label: 'Extra' },
+  { value: 'service_category', label: 'Categorie' },
+  { value: 'platform_setting', label: 'Setare platforma' },
+  { value: 'city_pricing', label: 'Pret oras' },
+  { value: 'company_commission', label: 'Comision companie' },
+];
+
+const AUDIT_ENTITY_LABELS: Record<string, string> = {
+  service_definition: 'Serviciu',
+  service_extra: 'Extra',
+  service_category: 'Categorie',
+  platform_setting: 'Setare platforma',
+  city_pricing: 'Pret oras',
+  company_commission: 'Comision companie',
+};
 
 // ─── Skeleton ────────────────────────────────────────────────────────────────
 
@@ -318,6 +381,7 @@ function GeneralTab() {
 
 function ServicesTab() {
   const { data, loading } = useQuery<{ allServices: ServiceDef[] }>(ALL_SERVICES);
+  const { data: categoriesData } = useQuery<{ allServiceCategories: ServiceCategory[] }>(ALL_SERVICE_CATEGORIES);
   const [updateService] = useMutation(UPDATE_SERVICE_DEFINITION, {
     refetchQueries: [{ query: ALL_SERVICES }],
   });
@@ -326,40 +390,48 @@ function ServicesTab() {
   });
 
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editFields, setEditFields] = useState({ nameRo: '', nameEn: '', basePricePerHour: 0, minHours: 0, hoursPerRoom: 0.5, hoursPerBathroom: 0.5, hoursPer100Sqm: 1.0, houseMultiplier: 1.3, petDurationMinutes: 15, includedItems: [] as string[] });
+  const [editFields, setEditFields] = useState({ nameRo: '', nameEn: '', basePricePerHour: 0, minHours: 0, hoursPerRoom: 0.5, hoursPerBathroom: 0.5, hoursPer100Sqm: 1.0, houseMultiplier: 1.3, petDurationMinutes: 15, includedItems: [] as string[], categoryId: '' as string, pricingModel: 'HOURLY' as string, pricePerSqm: 0 });
   const [newIncludedItem, setNewIncludedItem] = useState('');
   const [showModal, setShowModal] = useState(false);
-  const [newService, setNewService] = useState({ serviceType: 'STANDARD', nameRo: '', nameEn: '', basePricePerHour: 0, minHours: 2, hoursPerRoom: 0.5, hoursPerBathroom: 0.5, hoursPer100Sqm: 1.0, houseMultiplier: 1.3, petDurationMinutes: 15, isActive: true, includedItems: [] as string[] });
+  const [newService, setNewService] = useState({ serviceType: 'STANDARD', nameRo: '', nameEn: '', basePricePerHour: 0, minHours: 2, hoursPerRoom: 0.5, hoursPerBathroom: 0.5, hoursPer100Sqm: 1.0, houseMultiplier: 1.3, petDurationMinutes: 15, isActive: true, includedItems: [] as string[], categoryId: '' as string, pricingModel: 'HOURLY' as string, pricePerSqm: 0 });
   const [newModalItem, setNewModalItem] = useState('');
   const [creating, setCreating] = useState(false);
 
   const services = data?.allServices ?? [];
+  const categories = categoriesData?.allServiceCategories ?? [];
+  const categoryOptions = [{ value: '', label: '-- Fara categorie --' }, ...categories.map((c) => ({ value: c.id, label: c.nameRo }))];
 
   const startEdit = (s: ServiceDef) => {
     setEditingId(s.id);
-    setEditFields({ nameRo: s.nameRo, nameEn: s.nameEn, basePricePerHour: s.basePricePerHour, minHours: s.minHours, hoursPerRoom: s.hoursPerRoom, hoursPerBathroom: s.hoursPerBathroom, hoursPer100Sqm: s.hoursPer100Sqm, houseMultiplier: s.houseMultiplier, petDurationMinutes: s.petDurationMinutes, includedItems: s.includedItems ?? [] });
+    setEditFields({ nameRo: s.nameRo, nameEn: s.nameEn, basePricePerHour: s.basePricePerHour, minHours: s.minHours, hoursPerRoom: s.hoursPerRoom, hoursPerBathroom: s.hoursPerBathroom, hoursPer100Sqm: s.hoursPer100Sqm, houseMultiplier: s.houseMultiplier, petDurationMinutes: s.petDurationMinutes, includedItems: s.includedItems ?? [], categoryId: s.categoryId ?? '', pricingModel: s.pricingModel ?? 'HOURLY', pricePerSqm: s.pricePerSqm ?? 0 });
     setNewIncludedItem('');
   };
 
   const saveEdit = async (s: ServiceDef) => {
-    await updateService({ variables: { input: { id: s.id, ...editFields, isActive: s.isActive } } });
+    await updateService({ variables: { input: { id: s.id, ...editFields, categoryId: editFields.categoryId || null, pricePerSqm: editFields.pricingModel === 'PER_SQM' ? editFields.pricePerSqm : null, isActive: s.isActive } } });
     setEditingId(null);
   };
 
   const toggleActive = async (s: ServiceDef) => {
-    await updateService({ variables: { input: { id: s.id, nameRo: s.nameRo, nameEn: s.nameEn, basePricePerHour: s.basePricePerHour, minHours: s.minHours, hoursPerRoom: s.hoursPerRoom, hoursPerBathroom: s.hoursPerBathroom, hoursPer100Sqm: s.hoursPer100Sqm, houseMultiplier: s.houseMultiplier, petDurationMinutes: s.petDurationMinutes, isActive: !s.isActive, includedItems: s.includedItems ?? [] } } });
+    await updateService({ variables: { input: { id: s.id, nameRo: s.nameRo, nameEn: s.nameEn, basePricePerHour: s.basePricePerHour, minHours: s.minHours, hoursPerRoom: s.hoursPerRoom, hoursPerBathroom: s.hoursPerBathroom, hoursPer100Sqm: s.hoursPer100Sqm, houseMultiplier: s.houseMultiplier, petDurationMinutes: s.petDurationMinutes, isActive: !s.isActive, includedItems: s.includedItems ?? [], categoryId: s.categoryId ?? null, pricingModel: s.pricingModel ?? 'HOURLY', pricePerSqm: s.pricePerSqm ?? null } } });
   };
 
   const handleCreate = async () => {
     setCreating(true);
     try {
-      await createService({ variables: { input: newService } });
+      await createService({ variables: { input: { ...newService, categoryId: newService.categoryId || null, pricePerSqm: newService.pricingModel === 'PER_SQM' ? newService.pricePerSqm : null } } });
       setShowModal(false);
-      setNewService({ serviceType: 'STANDARD', nameRo: '', nameEn: '', basePricePerHour: 0, minHours: 2, hoursPerRoom: 0.5, hoursPerBathroom: 0.5, hoursPer100Sqm: 1.0, houseMultiplier: 1.3, petDurationMinutes: 15, isActive: true, includedItems: [] });
+      setNewService({ serviceType: 'STANDARD', nameRo: '', nameEn: '', basePricePerHour: 0, minHours: 2, hoursPerRoom: 0.5, hoursPerBathroom: 0.5, hoursPer100Sqm: 1.0, houseMultiplier: 1.3, petDurationMinutes: 15, isActive: true, includedItems: [], categoryId: '', pricingModel: 'HOURLY', pricePerSqm: 0 });
       setNewModalItem('');
     } finally {
       setCreating(false);
     }
+  };
+
+  const getCategoryName = (categoryId?: string | null) => {
+    if (!categoryId) return null;
+    const cat = categories.find((c) => c.id === categoryId);
+    return cat?.nameRo ?? null;
   };
 
   return (
@@ -384,13 +456,14 @@ function ServicesTab() {
                 <tr className="border-b border-gray-200 bg-gray-50/50">
                   <th className="text-left font-medium text-gray-500 px-4 py-3">Nume RO</th>
                   <th className="text-left font-medium text-gray-500 px-4 py-3">Nume EN</th>
+                  <th className="text-left font-medium text-gray-500 px-4 py-3">Categorie</th>
+                  <th className="text-center font-medium text-gray-500 px-4 py-3">Model</th>
                   <th className="text-right font-medium text-gray-500 px-4 py-3">Pret/Ora</th>
+                  <th className="text-right font-medium text-gray-500 px-4 py-3">Pret/mp</th>
                   <th className="text-right font-medium text-gray-500 px-4 py-3">Ore Min.</th>
                   <th className="text-right font-medium text-gray-500 px-4 py-3" title="Ore per camera">h/Cam</th>
                   <th className="text-right font-medium text-gray-500 px-4 py-3" title="Ore per baie">h/Baie</th>
-                  <th className="text-right font-medium text-gray-500 px-4 py-3" title="Ore per 100mp">h/100mp</th>
-                  <th className="text-right font-medium text-gray-500 px-4 py-3" title="Multiplicator casa">Casa×</th>
-                  <th className="text-right font-medium text-gray-500 px-4 py-3" title="Minute animale">Pet(min)</th>
+                  <th className="text-right font-medium text-gray-500 px-4 py-3" title="Multiplicator casa">Casa x</th>
                   <th className="text-center font-medium text-gray-500 px-4 py-3">Activ</th>
                   <th className="px-4 py-3 w-10" />
                 </tr>
@@ -426,6 +499,38 @@ function ServicesTab() {
                           <span className="text-gray-600">{s.nameEn}</span>
                         )}
                       </td>
+                      <td className="px-4 py-3">
+                        {isEditing ? (
+                          <select
+                            value={editFields.categoryId}
+                            onChange={(e) => setEditFields((f) => ({ ...f, categoryId: e.target.value }))}
+                            className="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer"
+                          >
+                            {categoryOptions.map((opt) => (
+                              <option key={opt.value} value={opt.value}>{opt.label}</option>
+                            ))}
+                          </select>
+                        ) : (
+                          <span className="text-gray-600 text-xs">{getCategoryName(s.categoryId) ?? <span className="text-gray-300 italic">--</span>}</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        {isEditing ? (
+                          <select
+                            value={editFields.pricingModel}
+                            onChange={(e) => setEditFields((f) => ({ ...f, pricingModel: e.target.value }))}
+                            className="w-20 rounded-lg border border-gray-300 px-1 py-1 text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer"
+                          >
+                            {PRICING_MODEL_OPTIONS.map((opt) => (
+                              <option key={opt.value} value={opt.value}>{opt.label}</option>
+                            ))}
+                          </select>
+                        ) : (
+                          <Badge variant={s.pricingModel === 'PER_SQM' ? 'info' : 'default'}>
+                            {s.pricingModel === 'PER_SQM' ? 'Pe mp' : 'Orar'}
+                          </Badge>
+                        )}
+                      </td>
                       <td className="px-4 py-3 text-right">
                         {isEditing ? (
                           <input
@@ -437,6 +542,20 @@ function ServicesTab() {
                           />
                         ) : (
                           <span className="text-gray-900">{s.basePricePerHour} RON</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        {isEditing && editFields.pricingModel === 'PER_SQM' ? (
+                          <input
+                            type="number"
+                            step="0.1"
+                            value={editFields.pricePerSqm}
+                            onChange={(e) => setEditFields((f) => ({ ...f, pricePerSqm: Number(e.target.value) }))}
+                            onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(s); if (e.key === 'Escape') setEditingId(null); }}
+                            className="w-20 rounded-lg border border-gray-300 px-2 py-1 text-sm text-right focus:outline-none focus:ring-2 focus:ring-primary/30"
+                          />
+                        ) : (
+                          <span className="text-gray-600">{s.pricingModel === 'PER_SQM' && s.pricePerSqm ? `${s.pricePerSqm} RON` : <span className="text-gray-300">--</span>}</span>
                         )}
                       </td>
                       <td className="px-4 py-3 text-right">
@@ -468,23 +587,9 @@ function ServicesTab() {
                       </td>
                       <td className="px-4 py-3 text-right">
                         {isEditing ? (
-                          <input type="number" step="0.1" value={editFields.hoursPer100Sqm} onChange={(e) => setEditFields((f) => ({ ...f, hoursPer100Sqm: Number(e.target.value) }))} onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(s); if (e.key === 'Escape') setEditingId(null); }} className="w-16 rounded-lg border border-gray-300 px-2 py-1 text-sm text-right focus:outline-none focus:ring-2 focus:ring-primary/30" />
-                        ) : (
-                          <span className="text-gray-600">{s.hoursPer100Sqm}</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        {isEditing ? (
                           <input type="number" step="0.05" value={editFields.houseMultiplier} onChange={(e) => setEditFields((f) => ({ ...f, houseMultiplier: Number(e.target.value) }))} onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(s); if (e.key === 'Escape') setEditingId(null); }} className="w-16 rounded-lg border border-gray-300 px-2 py-1 text-sm text-right focus:outline-none focus:ring-2 focus:ring-primary/30" />
                         ) : (
-                          <span className="text-gray-600">{s.houseMultiplier}×</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        {isEditing ? (
-                          <input type="number" value={editFields.petDurationMinutes} onChange={(e) => setEditFields((f) => ({ ...f, petDurationMinutes: Number(e.target.value) }))} onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(s); if (e.key === 'Escape') setEditingId(null); }} className="w-16 rounded-lg border border-gray-300 px-2 py-1 text-sm text-right focus:outline-none focus:ring-2 focus:ring-primary/30" />
-                        ) : (
-                          <span className="text-gray-600">{s.petDurationMinutes}</span>
+                          <span className="text-gray-600">{s.houseMultiplier}x</span>
                         )}
                       </td>
                       <td className="px-4 py-3 text-center">
@@ -509,7 +614,7 @@ function ServicesTab() {
                     </tr>
                     {isEditing && (
                       <tr className="bg-blue-50/50 border-b border-blue-100">
-                        <td colSpan={11} className="px-4 py-3">
+                        <td colSpan={12} className="px-4 py-3">
                           <p className="text-xs font-medium text-gray-500 mb-2">Ce include serviciul</p>
                           <div className="flex flex-wrap gap-1.5 mb-2">
                             {editFields.includedItems.map((item, idx) => (
@@ -535,7 +640,7 @@ function ServicesTab() {
                                 e.preventDefault();
                               }
                             }}
-                            placeholder="Adauga element și apasa Enter"
+                            placeholder="Adauga element si apasa Enter"
                             className="max-w-xs rounded-lg border border-gray-300 px-2.5 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                           />
                         </td>
@@ -558,6 +663,12 @@ function ServicesTab() {
             value={newService.serviceType}
             onChange={(e) => setNewService((s) => ({ ...s, serviceType: e.target.value }))}
           />
+          <Select
+            label="Categorie"
+            options={categoryOptions}
+            value={newService.categoryId}
+            onChange={(e) => setNewService((s) => ({ ...s, categoryId: e.target.value }))}
+          />
           <Input
             label="Nume RO"
             value={newService.nameRo}
@@ -568,6 +679,12 @@ function ServicesTab() {
             value={newService.nameEn}
             onChange={(e) => setNewService((s) => ({ ...s, nameEn: e.target.value }))}
           />
+          <Select
+            label="Model pret"
+            options={PRICING_MODEL_OPTIONS}
+            value={newService.pricingModel}
+            onChange={(e) => setNewService((s) => ({ ...s, pricingModel: e.target.value }))}
+          />
           <div className="grid grid-cols-2 gap-4">
             <Input
               label="Pret/Ora (RON)"
@@ -575,6 +692,15 @@ function ServicesTab() {
               value={newService.basePricePerHour}
               onChange={(e) => setNewService((s) => ({ ...s, basePricePerHour: Number(e.target.value) }))}
             />
+            {newService.pricingModel === 'PER_SQM' && (
+              <Input
+                label="Pret/mp (RON)"
+                type="number"
+                step={0.1}
+                value={newService.pricePerSqm}
+                onChange={(e) => setNewService((s) => ({ ...s, pricePerSqm: Number(e.target.value) }))}
+              />
+            )}
             <Input
               label="Ore minime"
               type="number"
@@ -647,7 +773,7 @@ function ServicesTab() {
                   e.preventDefault();
                 }
               }}
-              placeholder="Adauga element și apasa Enter"
+              placeholder="Adauga element si apasa Enter"
               className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
           </div>
@@ -829,7 +955,7 @@ function ExtrasTab() {
                         ) : (
                           ex.allowMultiple ? (
                             <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
-                              ×{ex.unitLabel ?? '?'}
+                              x{ex.unitLabel ?? '?'}
                             </span>
                           ) : (
                             <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
@@ -900,7 +1026,7 @@ function ExtrasTab() {
                 onChange={(e) => setNewExtra((s) => ({ ...s, allowMultiple: e.target.checked, unitLabel: e.target.checked ? s.unitLabel : '' }))}
                 className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary/30"
               />
-              <span className="text-sm text-gray-700">Permite cantitate multiplă</span>
+              <span className="text-sm text-gray-700">Permite cantitate multipla</span>
             </label>
             {newExtra.allowMultiple && (
               <Input
@@ -952,6 +1078,9 @@ function CitiesTab() {
   const [deleteCityArea] = useMutation(DELETE_CITY_AREA, {
     refetchQueries: [{ query: ALL_CITIES }],
   });
+  const [updateMultiplier] = useMutation(UPDATE_CITY_PRICING_MULTIPLIER, {
+    refetchQueries: [{ query: ALL_CITIES }],
+  });
 
   const [expandedCities, setExpandedCities] = useState<Set<string>>(new Set());
   const [showCityModal, setShowCityModal] = useState(false);
@@ -963,6 +1092,9 @@ function CitiesTab() {
   const [creatingArea, setCreatingArea] = useState(false);
   const [deletingAreaId, setDeletingAreaId] = useState<string | null>(null);
   const [confirmDeleteAreaId, setConfirmDeleteAreaId] = useState<string | null>(null);
+  const [editingMultiplierId, setEditingMultiplierId] = useState<string | null>(null);
+  const [editMultiplierValue, setEditMultiplierValue] = useState('');
+  const [savingMultiplier, setSavingMultiplier] = useState(false);
 
   const cities = data?.allCities ?? [];
 
@@ -1022,6 +1154,24 @@ function CitiesTab() {
     }
   };
 
+  const startEditMultiplier = (city: City) => {
+    setEditingMultiplierId(city.id);
+    setEditMultiplierValue(String(city.pricingMultiplier));
+  };
+
+  const saveMultiplier = async (cityId: string) => {
+    const val = parseFloat(editMultiplierValue);
+    if (isNaN(val) || val <= 0) return;
+    setSavingMultiplier(true);
+    try {
+      await updateMultiplier({ variables: { id: cityId, pricingMultiplier: val } });
+      setEditingMultiplierId(null);
+      setEditMultiplierValue('');
+    } finally {
+      setSavingMultiplier(false);
+    }
+  };
+
   return (
     <>
       <div className="flex items-center justify-between mb-4">
@@ -1045,6 +1195,7 @@ function CitiesTab() {
                   <th className="text-left font-medium text-gray-500 px-4 py-3 w-10" />
                   <th className="text-left font-medium text-gray-500 px-4 py-3">Oras</th>
                   <th className="text-left font-medium text-gray-500 px-4 py-3">Judet</th>
+                  <th className="text-right font-medium text-gray-500 px-4 py-3">Multiplicator</th>
                   <th className="text-center font-medium text-gray-500 px-4 py-3">Activ</th>
                   <th className="text-center font-medium text-gray-500 px-4 py-3">Zone</th>
                   <th className="px-4 py-3 w-10" />
@@ -1053,9 +1204,10 @@ function CitiesTab() {
               <tbody className="divide-y divide-gray-100">
                 {cities.map((city) => {
                   const isExpanded = expandedCities.has(city.id);
+                  const isEditingMultiplier = editingMultiplierId === city.id;
                   return (
                     <tr key={city.id} className="group">
-                      <td colSpan={6} className="p-0">
+                      <td colSpan={7} className="p-0">
                         <div>
                           {/* City row */}
                           <div className="flex items-center hover:bg-gray-50/50 transition-colors">
@@ -1076,6 +1228,47 @@ function CitiesTab() {
                             </div>
                             <div className="px-4 py-3" style={{ minWidth: '120px' }}>
                               <span className="text-gray-600">{city.county}</span>
+                            </div>
+                            <div className="px-4 py-3 text-right" style={{ minWidth: '140px' }}>
+                              {isEditingMultiplier ? (
+                                <div className="flex items-center gap-1 justify-end">
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    min="0.01"
+                                    value={editMultiplierValue}
+                                    onChange={(e) => setEditMultiplierValue(e.target.value)}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') saveMultiplier(city.id);
+                                      if (e.key === 'Escape') setEditingMultiplierId(null);
+                                    }}
+                                    autoFocus
+                                    className="w-20 rounded-lg border border-gray-300 px-2 py-1 text-sm text-right focus:outline-none focus:ring-2 focus:ring-primary/30"
+                                  />
+                                  <button
+                                    onClick={() => saveMultiplier(city.id)}
+                                    disabled={savingMultiplier}
+                                    className="p-1 rounded-lg text-emerald-600 hover:bg-emerald-50 transition cursor-pointer"
+                                  >
+                                    <Check className="h-3.5 w-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={() => setEditingMultiplierId(null)}
+                                    className="p-1 rounded-lg text-gray-400 hover:bg-gray-100 transition cursor-pointer"
+                                  >
+                                    <X className="h-3.5 w-3.5" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => startEditMultiplier(city)}
+                                  className="inline-flex items-center gap-1 text-sm text-gray-900 hover:text-primary transition cursor-pointer"
+                                  title="Editeaza multiplicator"
+                                >
+                                  {city.pricingMultiplier}x
+                                  <Pencil className="h-3 w-3 text-gray-400" />
+                                </button>
+                              )}
                             </div>
                             <div className="px-4 py-3 text-center" style={{ minWidth: '80px' }}>
                               <Toggle checked={city.isActive} onChange={() => handleToggleActive(city)} />
@@ -1205,6 +1398,313 @@ function CitiesTab() {
   );
 }
 
+// ─── Tab: Categorii ─────────────────────────────────────────────────────────
+
+function CategoriesTab() {
+  const { data, loading } = useQuery<{ allServiceCategories: ServiceCategory[] }>(ALL_SERVICE_CATEGORIES);
+  const [createCategory] = useMutation(CREATE_SERVICE_CATEGORY, {
+    refetchQueries: [{ query: ALL_SERVICE_CATEGORIES }],
+  });
+  const [updateCategory] = useMutation(UPDATE_SERVICE_CATEGORY, {
+    refetchQueries: [{ query: ALL_SERVICE_CATEGORIES }],
+  });
+
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editFields, setEditFields] = useState({ nameRo: '', nameEn: '', descriptionRo: '', descriptionEn: '', icon: '', imageUrl: '', commissionPct: 0, sortOrder: 0, isActive: true });
+  const [showModal, setShowModal] = useState(false);
+  const [newCategory, setNewCategory] = useState({ slug: '', nameRo: '', nameEn: '', descriptionRo: '', descriptionEn: '', icon: '', imageUrl: '', commissionPct: 0, sortOrder: 0, isActive: true });
+  const [creating, setCreating] = useState(false);
+
+  const categories = data?.allServiceCategories ?? [];
+
+  const startEdit = (c: ServiceCategory) => {
+    setEditingId(c.id);
+    setEditFields({
+      nameRo: c.nameRo,
+      nameEn: c.nameEn,
+      descriptionRo: c.descriptionRo ?? '',
+      descriptionEn: c.descriptionEn ?? '',
+      icon: c.icon ?? '',
+      imageUrl: c.imageUrl ?? '',
+      commissionPct: c.commissionPct ?? 0,
+      sortOrder: c.sortOrder,
+      isActive: c.isActive,
+    });
+  };
+
+  const saveEdit = async (c: ServiceCategory) => {
+    await updateCategory({
+      variables: {
+        input: {
+          id: c.id,
+          nameRo: editFields.nameRo,
+          nameEn: editFields.nameEn,
+          descriptionRo: editFields.descriptionRo || null,
+          descriptionEn: editFields.descriptionEn || null,
+          icon: editFields.icon || null,
+          imageUrl: editFields.imageUrl || null,
+          commissionPct: editFields.commissionPct || null,
+          sortOrder: editFields.sortOrder,
+          isActive: editFields.isActive,
+        },
+      },
+    });
+    setEditingId(null);
+  };
+
+  const toggleActive = async (c: ServiceCategory) => {
+    await updateCategory({
+      variables: {
+        input: {
+          id: c.id,
+          nameRo: c.nameRo,
+          nameEn: c.nameEn,
+          descriptionRo: c.descriptionRo ?? null,
+          descriptionEn: c.descriptionEn ?? null,
+          icon: c.icon ?? null,
+          imageUrl: c.imageUrl ?? null,
+          commissionPct: c.commissionPct ?? null,
+          sortOrder: c.sortOrder,
+          isActive: !c.isActive,
+        },
+      },
+    });
+  };
+
+  const handleCreate = async () => {
+    setCreating(true);
+    try {
+      await createCategory({
+        variables: {
+          input: {
+            slug: newCategory.slug,
+            nameRo: newCategory.nameRo,
+            nameEn: newCategory.nameEn,
+            descriptionRo: newCategory.descriptionRo || null,
+            descriptionEn: newCategory.descriptionEn || null,
+            icon: newCategory.icon || null,
+            imageUrl: newCategory.imageUrl || null,
+            commissionPct: newCategory.commissionPct || null,
+            sortOrder: newCategory.sortOrder,
+            isActive: newCategory.isActive,
+          },
+        },
+      });
+      setShowModal(false);
+      setNewCategory({ slug: '', nameRo: '', nameEn: '', descriptionRo: '', descriptionEn: '', icon: '', imageUrl: '', commissionPct: 0, sortOrder: 0, isActive: true });
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  return (
+    <>
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-sm text-gray-500">{categories.length} categorii definite</p>
+        <Button size="sm" onClick={() => setShowModal(true)}>
+          <Plus className="h-4 w-4" />
+          Adauga categorie
+        </Button>
+      </div>
+
+      <Card padding={false}>
+        {loading ? (
+          <TableSkeleton />
+        ) : categories.length === 0 ? (
+          <p className="text-center text-gray-400 py-12">Nicio categorie definita.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200 bg-gray-50/50">
+                  <th className="text-left font-medium text-gray-500 px-4 py-3">Slug</th>
+                  <th className="text-left font-medium text-gray-500 px-4 py-3">Nume RO</th>
+                  <th className="text-left font-medium text-gray-500 px-4 py-3">Nume EN</th>
+                  <th className="text-right font-medium text-gray-500 px-4 py-3">Comision (%)</th>
+                  <th className="text-right font-medium text-gray-500 px-4 py-3">Ordine</th>
+                  <th className="text-center font-medium text-gray-500 px-4 py-3">Servicii</th>
+                  <th className="text-center font-medium text-gray-500 px-4 py-3">Activ</th>
+                  <th className="px-4 py-3 w-10" />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {categories.map((cat) => {
+                  const isEditing = editingId === cat.id;
+                  return (
+                    <tr key={cat.id} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="px-4 py-3">
+                        <span className="text-xs font-mono text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">{cat.slug}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        {isEditing ? (
+                          <input
+                            value={editFields.nameRo}
+                            onChange={(e) => setEditFields((f) => ({ ...f, nameRo: e.target.value }))}
+                            onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(cat); if (e.key === 'Escape') setEditingId(null); }}
+                            className="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                            autoFocus
+                          />
+                        ) : (
+                          <span className="font-medium text-gray-900">{cat.nameRo}</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        {isEditing ? (
+                          <input
+                            value={editFields.nameEn}
+                            onChange={(e) => setEditFields((f) => ({ ...f, nameEn: e.target.value }))}
+                            onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(cat); if (e.key === 'Escape') setEditingId(null); }}
+                            className="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                          />
+                        ) : (
+                          <span className="text-gray-600">{cat.nameEn}</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        {isEditing ? (
+                          <input
+                            type="number"
+                            step="0.1"
+                            value={editFields.commissionPct}
+                            onChange={(e) => setEditFields((f) => ({ ...f, commissionPct: Number(e.target.value) }))}
+                            onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(cat); if (e.key === 'Escape') setEditingId(null); }}
+                            className="w-20 rounded-lg border border-gray-300 px-2 py-1 text-sm text-right focus:outline-none focus:ring-2 focus:ring-primary/30"
+                          />
+                        ) : (
+                          <span className="text-gray-900">{cat.commissionPct ?? 0}%</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        {isEditing ? (
+                          <input
+                            type="number"
+                            value={editFields.sortOrder}
+                            onChange={(e) => setEditFields((f) => ({ ...f, sortOrder: Number(e.target.value) }))}
+                            onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(cat); if (e.key === 'Escape') setEditingId(null); }}
+                            className="w-16 rounded-lg border border-gray-300 px-2 py-1 text-sm text-right focus:outline-none focus:ring-2 focus:ring-primary/30"
+                          />
+                        ) : (
+                          <span className="text-gray-600">{cat.sortOrder}</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <Badge variant={cat.services.length > 0 ? 'info' : 'default'}>
+                          {cat.services.length}
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <Toggle checked={cat.isActive} onChange={() => toggleActive(cat)} />
+                      </td>
+                      <td className="px-4 py-3">
+                        {isEditing ? (
+                          <div className="flex items-center gap-1">
+                            <button onClick={() => saveEdit(cat)} className="p-1 rounded-lg text-emerald-600 hover:bg-emerald-50 transition cursor-pointer">
+                              <Check className="h-4 w-4" />
+                            </button>
+                            <button onClick={() => setEditingId(null)} className="p-1 rounded-lg text-gray-400 hover:bg-gray-100 transition cursor-pointer">
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          <button onClick={() => startEdit(cat)} className="p-1 rounded-lg text-gray-400 hover:text-primary hover:bg-primary/5 transition cursor-pointer">
+                            <Pencil className="h-4 w-4" />
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+
+      <Modal open={showModal} onClose={() => setShowModal(false)} title="Adauga categorie">
+        <div className="space-y-4">
+          <Input
+            label="Slug"
+            value={newCategory.slug}
+            onChange={(e) => setNewCategory((s) => ({ ...s, slug: e.target.value }))}
+            placeholder="ex: curatenie"
+          />
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              label="Nume RO"
+              value={newCategory.nameRo}
+              onChange={(e) => setNewCategory((s) => ({ ...s, nameRo: e.target.value }))}
+            />
+            <Input
+              label="Nume EN"
+              value={newCategory.nameEn}
+              onChange={(e) => setNewCategory((s) => ({ ...s, nameEn: e.target.value }))}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              label="Descriere RO"
+              value={newCategory.descriptionRo}
+              onChange={(e) => setNewCategory((s) => ({ ...s, descriptionRo: e.target.value }))}
+            />
+            <Input
+              label="Descriere EN"
+              value={newCategory.descriptionEn}
+              onChange={(e) => setNewCategory((s) => ({ ...s, descriptionEn: e.target.value }))}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              label="Icon"
+              value={newCategory.icon}
+              onChange={(e) => setNewCategory((s) => ({ ...s, icon: e.target.value }))}
+              placeholder="ex: sparkles"
+            />
+            <Input
+              label="URL imagine"
+              value={newCategory.imageUrl}
+              onChange={(e) => setNewCategory((s) => ({ ...s, imageUrl: e.target.value }))}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              label="Comision (%)"
+              type="number"
+              step={0.1}
+              value={newCategory.commissionPct}
+              onChange={(e) => setNewCategory((s) => ({ ...s, commissionPct: Number(e.target.value) }))}
+            />
+            <Input
+              label="Ordine sortare"
+              type="number"
+              value={newCategory.sortOrder}
+              onChange={(e) => setNewCategory((s) => ({ ...s, sortOrder: Number(e.target.value) }))}
+            />
+          </div>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={newCategory.isActive}
+              onChange={(e) => setNewCategory((s) => ({ ...s, isActive: e.target.checked }))}
+              className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary/30"
+            />
+            <span className="text-sm text-gray-700">Activ</span>
+          </label>
+          <div className="flex justify-end gap-3 pt-2">
+            <Button variant="ghost" onClick={() => setShowModal(false)}>Anuleaza</Button>
+            <Button
+              onClick={handleCreate}
+              loading={creating}
+              disabled={!newCategory.slug.trim() || !newCategory.nameRo.trim() || !newCategory.nameEn.trim()}
+            >
+              Creeaza
+            </Button>
+          </div>
+        </div>
+      </Modal>
+    </>
+  );
+}
+
 // ─── Tab: Reduceri abonamente ────────────────────────────────────────────────
 
 const RECURRENCE_LABELS: Record<string, string> = {
@@ -1311,6 +1811,150 @@ function RecurringDiscountsTab() {
   );
 }
 
+// ─── Tab: Jurnal Preturi ────────────────────────────────────────────────────
+
+const AUDIT_PAGE_SIZE = 20;
+
+function AuditLogTab() {
+  const [entityTypeFilter, setEntityTypeFilter] = useState('');
+  const [page, setPage] = useState(0);
+
+  const { data, loading } = useQuery<{
+    priceAuditLog: { entries: PriceAuditEntry[]; totalCount: number };
+  }>(PRICE_AUDIT_LOG, {
+    variables: {
+      entityType: entityTypeFilter || null,
+      limit: AUDIT_PAGE_SIZE,
+      offset: page * AUDIT_PAGE_SIZE,
+    },
+    fetchPolicy: 'cache-and-network',
+  });
+
+  const entries = data?.priceAuditLog.entries ?? [];
+  const totalCount = data?.priceAuditLog.totalCount ?? 0;
+  const totalPages = Math.ceil(totalCount / AUDIT_PAGE_SIZE);
+
+  const handleFilterChange = (newFilter: string) => {
+    setEntityTypeFilter(newFilter);
+    setPage(0);
+  };
+
+  return (
+    <>
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-sm text-gray-500">{totalCount} inregistrari</p>
+        <div className="w-56">
+          <Select
+            options={AUDIT_ENTITY_TYPE_OPTIONS}
+            value={entityTypeFilter}
+            onChange={(e) => handleFilterChange(e.target.value)}
+          />
+        </div>
+      </div>
+
+      <Card padding={false}>
+        {loading && entries.length === 0 ? (
+          <TableSkeleton />
+        ) : entries.length === 0 ? (
+          <p className="text-center text-gray-400 py-12">Nicio inregistrare gasita.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200 bg-gray-50/50">
+                  <th className="text-left font-medium text-gray-500 px-4 py-3">Data</th>
+                  <th className="text-left font-medium text-gray-500 px-4 py-3">Tip Entitate</th>
+                  <th className="text-left font-medium text-gray-500 px-4 py-3">Camp</th>
+                  <th className="text-left font-medium text-gray-500 px-4 py-3">Modificare</th>
+                  <th className="text-left font-medium text-gray-500 px-4 py-3">Modificat de</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {entries.map((entry) => (
+                  <tr key={entry.id} className="hover:bg-gray-50/50 transition-colors">
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <span className="text-gray-600 text-xs">
+                        {new Date(entry.changedAt).toLocaleString('ro-RO', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <Badge variant="default">
+                        {AUDIT_ENTITY_LABELS[entry.entityType] ?? entry.entityType}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="text-xs font-mono text-gray-700 bg-gray-100 px-1.5 py-0.5 rounded">
+                        {entry.fieldName}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1.5 text-xs">
+                        <span className="text-red-600 bg-red-50 px-1.5 py-0.5 rounded line-through">
+                          {entry.oldValue ?? <span className="italic text-gray-400">gol</span>}
+                        </span>
+                        <span className="text-gray-400">&rarr;</span>
+                        <span className="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
+                          {entry.newValue ?? <span className="italic text-gray-400">gol</span>}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="text-xs">
+                        {entry.changedByName && (
+                          <span className="font-medium text-gray-900">{entry.changedByName}</span>
+                        )}
+                        {entry.changedByEmail && (
+                          <span className="text-gray-400 ml-1">({entry.changedByEmail})</span>
+                        )}
+                        {!entry.changedByName && !entry.changedByEmail && (
+                          <span className="text-gray-300 italic">sistem</span>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-4">
+          <p className="text-sm text-gray-500">
+            Pagina {page + 1} din {totalPages}
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              disabled={page === 0}
+            >
+              Inapoi
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+              disabled={page >= totalPages - 1}
+            >
+              Inainte
+            </Button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 // ─── Tab: Platforma ──────────────────────────────────────────────────────────
 
 function PlatformTab() {
@@ -1345,8 +1989,8 @@ function PlatformTab() {
             <h3 className="font-semibold text-gray-900 text-lg">Modul platformei</h3>
             <p className="text-sm text-gray-500 mt-1">
               {isLive
-                ? 'Platforma este LIVE — clienții pot face rezervări normative.'
-                : 'Platforma este în PRE-LANSARE — se colectează înscrieri în lista de așteptare.'}
+                ? 'Platforma este LIVE -- clientii pot face rezervari normative.'
+                : 'Platforma este in PRE-LANSARE -- se colecteaza inscrieri in lista de asteptare.'}
             </p>
           </div>
           <div className="flex items-center gap-4">
@@ -1355,7 +1999,7 @@ function PlatformTab() {
                 isLive ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
               }`}
             >
-              {isLive ? '🟢 LIVE' : '🟡 PRE-LANSARE'}
+              {isLive ? 'LIVE' : 'PRE-LANSARE'}
             </span>
             <button
               onClick={() => setShowConfirm(true)}
@@ -1377,8 +2021,8 @@ function PlatformTab() {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
         {[
-          { label: 'Clienți înscriși', value: statsData?.waitlistStats.clientCount ?? 0, color: 'blue' },
-          { label: 'Firme înscrise', value: statsData?.waitlistStats.companyCount ?? 0, color: 'emerald' },
+          { label: 'Clienti inscrisi', value: statsData?.waitlistStats.clientCount ?? 0, color: 'blue' },
+          { label: 'Firme inscrise', value: statsData?.waitlistStats.companyCount ?? 0, color: 'emerald' },
           { label: 'Total leads', value: statsData?.waitlistStats.totalCount ?? 0, color: 'purple' },
         ].map(({ label, value, color }) => (
           <div key={label} className="bg-white rounded-xl border border-gray-200 p-5 text-center">
@@ -1391,18 +2035,18 @@ function PlatformTab() {
       {/* Leads table */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
-          <h3 className="font-semibold text-gray-900">Lista de așteptare</h3>
+          <h3 className="font-semibold text-gray-900">Lista de asteptare</h3>
         </div>
         {leadsLoading ? (
-          <div className="p-8 text-center text-gray-500">Se încarcă...</div>
+          <div className="p-8 text-center text-gray-500">Se incarca...</div>
         ) : !leadsData?.waitlistLeads?.length ? (
-          <div className="p-8 text-center text-gray-500">Nu există înscrieri încă.</div>
+          <div className="p-8 text-center text-gray-500">Nu exista inscrieri inca.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  {['Tip', 'Nume', 'Email', 'Telefon', 'Oraș/Firmă', 'Data'].map((h) => (
+                  {['Tip', 'Nume', 'Email', 'Telefon', 'Oras/Firma', 'Data'].map((h) => (
                     <th
                       key={h}
                       className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
@@ -1423,13 +2067,13 @@ function PlatformTab() {
                             : 'bg-emerald-100 text-emerald-700'
                         }`}
                       >
-                        {lead.leadType === 'CLIENT' ? 'Client' : 'Firmă'}
+                        {lead.leadType === 'CLIENT' ? 'Client' : 'Firma'}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-900">{lead.name}</td>
                     <td className="px-4 py-3 text-sm text-gray-600">{lead.email}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{lead.phone ?? '—'}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{lead.companyName ?? lead.city ?? '—'}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">{lead.phone ?? '--'}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">{lead.companyName ?? lead.city ?? '--'}</td>
                     <td className="px-4 py-3 text-sm text-gray-500">
                       {new Date(lead.createdAt).toLocaleDateString('ro-RO')}
                     </td>
@@ -1477,35 +2121,13 @@ export default function SettingsPage() {
         <p className="text-gray-500 mt-1">Configuratii generale, servicii, extra-uri si orase.</p>
       </div>
 
-      {/* Tab Bar — dropdown on mobile, pills on desktop */}
-      <div className="mb-6">
-        <div className="md:hidden">
-          <Select
-            options={tabs.map((tab) => ({ value: tab.key, label: tab.label }))}
-            value={activeTab}
-            onChange={(e) => setActiveTab(e.target.value as TabKey)}
-          />
-        </div>
-        <div className="hidden md:flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            return (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                className={cn(
-                  'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap cursor-pointer',
-                  activeTab === tab.key
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700',
-                )}
-              >
-                <Icon className="h-4 w-4" />
-                {tab.label}
-              </button>
-            );
-          })}
-        </div>
+      {/* Tab Selector */}
+      <div className="mb-6 max-w-xs">
+        <Select
+          options={tabs.map((tab) => ({ value: tab.key, label: tab.label }))}
+          value={activeTab}
+          onChange={(e) => setActiveTab(e.target.value as TabKey)}
+        />
       </div>
 
       {/* Tab Content */}
@@ -1513,7 +2135,9 @@ export default function SettingsPage() {
       {activeTab === 'services' && <ServicesTab />}
       {activeTab === 'extras' && <ExtrasTab />}
       {activeTab === 'cities' && <CitiesTab />}
+      {activeTab === 'categories' && <CategoriesTab />}
       {activeTab === 'discounts' && <RecurringDiscountsTab />}
+      {activeTab === 'audit' && <AuditLogTab />}
       {activeTab === 'platform' && <PlatformTab />}
     </div>
   );

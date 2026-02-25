@@ -39,8 +39,9 @@ INSERT INTO bookings (
     reference_code, client_user_id, address_id, service_type, scheduled_date,
     scheduled_start_time, estimated_duration_hours, property_type, num_rooms,
     num_bathrooms, area_sqm, has_pets, special_instructions, hourly_rate, estimated_total,
-    recurring_group_id, occurrence_number, platform_commission_pct
-) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+    recurring_group_id, occurrence_number, platform_commission_pct, city_pricing_multiplier,
+    pricing_model
+) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
 RETURNING *;
 
 -- name: UpdateBookingStatus :one

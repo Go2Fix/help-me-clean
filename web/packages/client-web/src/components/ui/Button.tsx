@@ -58,8 +58,10 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={disabled || loading}
         {...props}
       >
-        {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-        {children}
+        <span className="inline-flex items-center gap-2 pointer-events-none">
+          {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+          {children}
+        </span>
       </button>
     );
   },

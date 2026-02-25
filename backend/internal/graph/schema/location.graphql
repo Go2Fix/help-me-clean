@@ -3,6 +3,7 @@ type EnabledCity {
   name: String!
   county: String!
   isActive: Boolean!
+  pricingMultiplier: Float!
   areas: [CityArea!]!
 }
 
@@ -59,6 +60,7 @@ extend type Mutation {
   # Admin
   createCity(name: String!, county: String!): EnabledCity!
   toggleCityActive(id: ID!, isActive: Boolean!): EnabledCity!
+  updateCityPricingMultiplier(id: ID!, pricingMultiplier: Float!): EnabledCity!
   createCityArea(cityId: ID!, name: String!): CityArea!
   deleteCityArea(id: ID!): Boolean!
 

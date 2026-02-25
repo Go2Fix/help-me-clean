@@ -359,19 +359,35 @@ type CreateBookingInput struct {
 	Recurrence          *RecurrenceInput `json:"recurrence,omitempty"`
 }
 
+type CreateServiceCategoryInput struct {
+	Slug          string   `json:"slug"`
+	NameRo        string   `json:"nameRo"`
+	NameEn        string   `json:"nameEn"`
+	DescriptionRo *string  `json:"descriptionRo,omitempty"`
+	DescriptionEn *string  `json:"descriptionEn,omitempty"`
+	Icon          *string  `json:"icon,omitempty"`
+	ImageURL      *string  `json:"imageUrl,omitempty"`
+	CommissionPct *float64 `json:"commissionPct,omitempty"`
+	SortOrder     int      `json:"sortOrder"`
+	IsActive      bool     `json:"isActive"`
+}
+
 type CreateServiceDefinitionInput struct {
-	ServiceType        ServiceType `json:"serviceType"`
-	NameRo             string      `json:"nameRo"`
-	NameEn             string      `json:"nameEn"`
-	BasePricePerHour   float64     `json:"basePricePerHour"`
-	MinHours           float64     `json:"minHours"`
-	HoursPerRoom       float64     `json:"hoursPerRoom"`
-	HoursPerBathroom   float64     `json:"hoursPerBathroom"`
-	HoursPer100Sqm     float64     `json:"hoursPer100Sqm"`
-	HouseMultiplier    float64     `json:"houseMultiplier"`
-	PetDurationMinutes int         `json:"petDurationMinutes"`
-	IsActive           bool        `json:"isActive"`
-	IncludedItems      []string    `json:"includedItems,omitempty"`
+	ServiceType        ServiceType  `json:"serviceType"`
+	NameRo             string       `json:"nameRo"`
+	NameEn             string       `json:"nameEn"`
+	BasePricePerHour   float64      `json:"basePricePerHour"`
+	MinHours           float64      `json:"minHours"`
+	HoursPerRoom       float64      `json:"hoursPerRoom"`
+	HoursPerBathroom   float64      `json:"hoursPerBathroom"`
+	HoursPer100Sqm     float64      `json:"hoursPer100Sqm"`
+	HouseMultiplier    float64      `json:"houseMultiplier"`
+	PetDurationMinutes int          `json:"petDurationMinutes"`
+	IsActive           bool         `json:"isActive"`
+	IncludedItems      []string     `json:"includedItems,omitempty"`
+	CategoryID         *string      `json:"categoryId,omitempty"`
+	PricingModel       PricingModel `json:"pricingModel"`
+	PricePerSqm        *float64     `json:"pricePerSqm,omitempty"`
 }
 
 type CreateServiceExtraInput struct {
@@ -410,11 +426,12 @@ type DailyRevenue struct {
 }
 
 type EnabledCity struct {
-	ID       string      `json:"id"`
-	Name     string      `json:"name"`
-	County   string      `json:"county"`
-	IsActive bool        `json:"isActive"`
-	Areas    []*CityArea `json:"areas"`
+	ID                string      `json:"id"`
+	Name              string      `json:"name"`
+	County            string      `json:"county"`
+	IsActive          bool        `json:"isActive"`
+	PricingMultiplier float64     `json:"pricingMultiplier"`
+	Areas             []*CityArea `json:"areas"`
 }
 
 type ExtraInput struct {
@@ -670,14 +687,35 @@ type PlatformTotals struct {
 	ActiveCompanies int     `json:"activeCompanies"`
 }
 
+type PriceAuditConnection struct {
+	Entries    []*PriceAuditEntry `json:"entries"`
+	TotalCount int                `json:"totalCount"`
+}
+
+type PriceAuditEntry struct {
+	ID             string    `json:"id"`
+	EntityType     string    `json:"entityType"`
+	EntityID       string    `json:"entityId"`
+	FieldName      string    `json:"fieldName"`
+	OldValue       *string   `json:"oldValue,omitempty"`
+	NewValue       *string   `json:"newValue,omitempty"`
+	ChangedByName  *string   `json:"changedByName,omitempty"`
+	ChangedByEmail *string   `json:"changedByEmail,omitempty"`
+	ChangedAt      time.Time `json:"changedAt"`
+	Reason         *string   `json:"reason,omitempty"`
+}
+
 type PriceEstimate struct {
-	HourlyRate         float64          `json:"hourlyRate"`
-	EstimatedHours     float64          `json:"estimatedHours"`
-	PropertyMultiplier float64          `json:"propertyMultiplier"`
-	PetsSurcharge      float64          `json:"petsSurcharge"`
-	Subtotal           float64          `json:"subtotal"`
-	Extras             []*ExtraLineItem `json:"extras"`
-	Total              float64          `json:"total"`
+	HourlyRate            float64          `json:"hourlyRate"`
+	EstimatedHours        float64          `json:"estimatedHours"`
+	PropertyMultiplier    float64          `json:"propertyMultiplier"`
+	CityPricingMultiplier float64          `json:"cityPricingMultiplier"`
+	PetsSurcharge         float64          `json:"petsSurcharge"`
+	Subtotal              float64          `json:"subtotal"`
+	Extras                []*ExtraLineItem `json:"extras"`
+	Total                 float64          `json:"total"`
+	PricingModel          PricingModel     `json:"pricingModel"`
+	AreaTotal             *float64         `json:"areaTotal,omitempty"`
 }
 
 type PriceEstimateInput struct {
@@ -688,6 +726,7 @@ type PriceEstimateInput struct {
 	PropertyType *string       `json:"propertyType,omitempty"`
 	HasPets      *bool         `json:"hasPets,omitempty"`
 	Extras       []*ExtraInput `json:"extras,omitempty"`
+	City         *string       `json:"city,omitempty"`
 }
 
 type Query struct {
@@ -743,23 +782,41 @@ type ReviewConnection struct {
 	TotalCount int       `json:"totalCount"`
 }
 
+type ServiceCategory struct {
+	ID            string               `json:"id"`
+	Slug          string               `json:"slug"`
+	NameRo        string               `json:"nameRo"`
+	NameEn        string               `json:"nameEn"`
+	DescriptionRo *string              `json:"descriptionRo,omitempty"`
+	DescriptionEn *string              `json:"descriptionEn,omitempty"`
+	Icon          *string              `json:"icon,omitempty"`
+	ImageURL      *string              `json:"imageUrl,omitempty"`
+	CommissionPct *float64             `json:"commissionPct,omitempty"`
+	SortOrder     int                  `json:"sortOrder"`
+	IsActive      bool                 `json:"isActive"`
+	Services      []*ServiceDefinition `json:"services"`
+}
+
 type ServiceDefinition struct {
-	ID                 string      `json:"id"`
-	ServiceType        ServiceType `json:"serviceType"`
-	NameRo             string      `json:"nameRo"`
-	NameEn             string      `json:"nameEn"`
-	DescriptionRo      *string     `json:"descriptionRo,omitempty"`
-	DescriptionEn      *string     `json:"descriptionEn,omitempty"`
-	BasePricePerHour   float64     `json:"basePricePerHour"`
-	MinHours           float64     `json:"minHours"`
-	HoursPerRoom       float64     `json:"hoursPerRoom"`
-	HoursPerBathroom   float64     `json:"hoursPerBathroom"`
-	HoursPer100Sqm     float64     `json:"hoursPer100Sqm"`
-	HouseMultiplier    float64     `json:"houseMultiplier"`
-	PetDurationMinutes int         `json:"petDurationMinutes"`
-	Icon               *string     `json:"icon,omitempty"`
-	IsActive           bool        `json:"isActive"`
-	IncludedItems      []string    `json:"includedItems"`
+	ID                 string       `json:"id"`
+	ServiceType        ServiceType  `json:"serviceType"`
+	NameRo             string       `json:"nameRo"`
+	NameEn             string       `json:"nameEn"`
+	DescriptionRo      *string      `json:"descriptionRo,omitempty"`
+	DescriptionEn      *string      `json:"descriptionEn,omitempty"`
+	BasePricePerHour   float64      `json:"basePricePerHour"`
+	MinHours           float64      `json:"minHours"`
+	HoursPerRoom       float64      `json:"hoursPerRoom"`
+	HoursPerBathroom   float64      `json:"hoursPerBathroom"`
+	HoursPer100Sqm     float64      `json:"hoursPer100Sqm"`
+	HouseMultiplier    float64      `json:"houseMultiplier"`
+	PetDurationMinutes int          `json:"petDurationMinutes"`
+	Icon               *string      `json:"icon,omitempty"`
+	IsActive           bool         `json:"isActive"`
+	IncludedItems      []string     `json:"includedItems"`
+	CategoryID         *string      `json:"categoryId,omitempty"`
+	PricingModel       PricingModel `json:"pricingModel"`
+	PricePerSqm        *float64     `json:"pricePerSqm,omitempty"`
 }
 
 type ServiceExtra struct {
@@ -924,19 +981,35 @@ type UpdateProfileInput struct {
 	PreferredLanguage *string `json:"preferredLanguage,omitempty"`
 }
 
+type UpdateServiceCategoryInput struct {
+	ID            string   `json:"id"`
+	NameRo        string   `json:"nameRo"`
+	NameEn        string   `json:"nameEn"`
+	DescriptionRo *string  `json:"descriptionRo,omitempty"`
+	DescriptionEn *string  `json:"descriptionEn,omitempty"`
+	Icon          *string  `json:"icon,omitempty"`
+	ImageURL      *string  `json:"imageUrl,omitempty"`
+	CommissionPct *float64 `json:"commissionPct,omitempty"`
+	SortOrder     int      `json:"sortOrder"`
+	IsActive      bool     `json:"isActive"`
+}
+
 type UpdateServiceDefinitionInput struct {
-	ID                 string   `json:"id"`
-	NameRo             string   `json:"nameRo"`
-	NameEn             string   `json:"nameEn"`
-	BasePricePerHour   float64  `json:"basePricePerHour"`
-	MinHours           float64  `json:"minHours"`
-	HoursPerRoom       float64  `json:"hoursPerRoom"`
-	HoursPerBathroom   float64  `json:"hoursPerBathroom"`
-	HoursPer100Sqm     float64  `json:"hoursPer100Sqm"`
-	HouseMultiplier    float64  `json:"houseMultiplier"`
-	PetDurationMinutes int      `json:"petDurationMinutes"`
-	IsActive           bool     `json:"isActive"`
-	IncludedItems      []string `json:"includedItems,omitempty"`
+	ID                 string       `json:"id"`
+	NameRo             string       `json:"nameRo"`
+	NameEn             string       `json:"nameEn"`
+	BasePricePerHour   float64      `json:"basePricePerHour"`
+	MinHours           float64      `json:"minHours"`
+	HoursPerRoom       float64      `json:"hoursPerRoom"`
+	HoursPerBathroom   float64      `json:"hoursPerBathroom"`
+	HoursPer100Sqm     float64      `json:"hoursPer100Sqm"`
+	HouseMultiplier    float64      `json:"houseMultiplier"`
+	PetDurationMinutes int          `json:"petDurationMinutes"`
+	IsActive           bool         `json:"isActive"`
+	IncludedItems      []string     `json:"includedItems,omitempty"`
+	CategoryID         *string      `json:"categoryId,omitempty"`
+	PricingModel       PricingModel `json:"pricingModel"`
+	PricePerSqm        *float64     `json:"pricePerSqm,omitempty"`
 }
 
 type UpdateServiceExtraInput struct {
@@ -1624,6 +1697,61 @@ func (e *PayoutStatus) UnmarshalJSON(b []byte) error {
 }
 
 func (e PayoutStatus) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+type PricingModel string
+
+const (
+	PricingModelHourly PricingModel = "HOURLY"
+	PricingModelPerSqm PricingModel = "PER_SQM"
+)
+
+var AllPricingModel = []PricingModel{
+	PricingModelHourly,
+	PricingModelPerSqm,
+}
+
+func (e PricingModel) IsValid() bool {
+	switch e {
+	case PricingModelHourly, PricingModelPerSqm:
+		return true
+	}
+	return false
+}
+
+func (e PricingModel) String() string {
+	return string(e)
+}
+
+func (e *PricingModel) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = PricingModel(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid PricingModel", str)
+	}
+	return nil
+}
+
+func (e PricingModel) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *PricingModel) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e PricingModel) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil

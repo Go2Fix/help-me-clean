@@ -22,8 +22,8 @@ import (
 	db "go2fix-backend/internal/db/generated"
 )
 
-// vatRatePct is the standard Romanian VAT rate (21%).
-const vatRatePct = 21
+// defaultVATRatePct is the fallback Romanian VAT rate if not configured.
+const defaultVATRatePct = 21
 
 // PlatformConfig holds the platform's legal entity details for commission invoices.
 type PlatformConfig struct {
@@ -45,6 +45,7 @@ type Service struct {
 	apiKey         string
 	httpClient     *http.Client
 	platformConfig PlatformConfig
+	vatRatePct     int // cached VAT rate; 0 means not yet loaded
 }
 
 // NewService creates a new invoice service, reading configuration from environment variables.
@@ -97,6 +98,25 @@ func (s *Service) loadPlatformConfig(ctx context.Context) (PlatformConfig, error
 	// Cache the config
 	s.platformConfig = config
 	return config, nil
+}
+
+// loadVATRate returns the configured VAT rate from platform_settings, caching the result.
+// Falls back to defaultVATRatePct (21) if not configured.
+func (s *Service) loadVATRate(ctx context.Context) int {
+	if s.vatRatePct > 0 {
+		return s.vatRatePct
+	}
+	setting, err := s.queries.GetPlatformSetting(ctx, "vat_rate_pct")
+	if err == nil {
+		// Parse "21.00" → 21
+		var f float64
+		if _, parseErr := fmt.Sscanf(setting.Value, "%f", &f); parseErr == nil && f > 0 {
+			s.vatRatePct = int(math.Round(f))
+			return s.vatRatePct
+		}
+	}
+	s.vatRatePct = defaultVATRatePct
+	return s.vatRatePct
 }
 
 // Ping is a health-check method for the invoice service.
@@ -163,8 +183,9 @@ func (s *Service) GenerateClientServiceInvoice(
 		return db.Invoice{}, errors.New("invoice: booking has no total amount")
 	}
 
-	// Treat booking total as VAT-inclusive (21%): net = total * 100 / 121, vat = total - net.
-	subtotalNet := totalBani * 100 / 121
+	// Treat booking total as VAT-inclusive: net = total * 100 / (100 + vat%), vat = total - net.
+	vatRate := int32(s.loadVATRate(ctx))
+	subtotalNet := totalBani * 100 / (100 + vatRate)
 	vatAmount := totalBani - subtotalNet
 
 	// Build a prefix from the company name (first 3 uppercase characters).
@@ -204,7 +225,7 @@ func (s *Service) GenerateClientServiceInvoice(
 		BuyerIsVatPayer:      buyerIsVATPayer,
 		BuyerEmail:           buyerEmail,
 		SubtotalAmount:       subtotalNet,
-		VatRate:              numericFromInt(vatRatePct),
+		VatRate:              numericFromInt(int(vatRate)),
 		VatAmount:            vatAmount,
 		TotalAmount:          totalBani,
 		Currency:             "RON",
@@ -227,7 +248,7 @@ func (s *Service) GenerateClientServiceInvoice(
 		DescriptionEn:    pgText(fmt.Sprintf("Cleaning services - %s", booking.ReferenceCode)),
 		Quantity:         numericFromInt(1),
 		UnitPrice:        subtotalNet,
-		VatRate:          numericFromInt(vatRatePct),
+		VatRate:          numericFromInt(int(vatRate)),
 		VatAmount:        vatAmount,
 		LineTotal:        subtotalNet,
 		LineTotalWithVat: totalBani,
@@ -300,8 +321,9 @@ func (s *Service) GenerateCommissionInvoice(
 	}
 
 	// Commission amount is the net (without VAT). Calculate VAT on top.
+	vatRate := int32(s.loadVATRate(ctx))
 	subtotalNet := amount
-	vatAmount := subtotalNet * vatRatePct / 100
+	vatAmount := subtotalNet * vatRate / 100
 	totalAmount := subtotalNet + vatAmount
 
 	invoiceNumber, err := s.NewInvoiceNumber(ctx, pgtype.UUID{}, "G2F")
@@ -338,7 +360,7 @@ func (s *Service) GenerateCommissionInvoice(
 		BuyerIsVatPayer:      pgtype.Bool{Bool: true, Valid: true},
 		BuyerEmail:           pgText(company.ContactEmail),
 		SubtotalAmount:       subtotalNet,
-		VatRate:              numericFromInt(vatRatePct),
+		VatRate:              numericFromInt(int(vatRate)),
 		VatAmount:            vatAmount,
 		TotalAmount:          totalAmount,
 		Currency:             "RON",
@@ -363,7 +385,7 @@ func (s *Service) GenerateCommissionInvoice(
 		DescriptionEn:    pgText(descEn),
 		Quantity:         numericFromInt(1),
 		UnitPrice:        subtotalNet,
-		VatRate:          numericFromInt(vatRatePct),
+		VatRate:          numericFromInt(int(vatRate)),
 		VatAmount:        vatAmount,
 		LineTotal:        subtotalNet,
 		LineTotalWithVat: totalAmount,
@@ -423,9 +445,10 @@ func (s *Service) GenerateSubscriptionMonthlyInvoice(
 		return errors.New("invoice: subscription has no monthly amount")
 	}
 
-	// Treat the monthly amount as VAT-inclusive (21%): net = total * 100 / 121, vat = total - net.
+	// Treat the monthly amount as VAT-inclusive: net = total * 100 / (100 + vat%), vat = total - net.
+	vatRate := int32(s.loadVATRate(ctx))
 	totalBani := sub.MonthlyAmountBani
-	subtotalNet := totalBani * 100 / 121
+	subtotalNet := totalBani * 100 / (100 + vatRate)
 	vatAmount := totalBani - subtotalNet
 
 	// Build invoice number with company-derived prefix.
@@ -480,7 +503,7 @@ func (s *Service) GenerateSubscriptionMonthlyInvoice(
 		BuyerIsVatPayer:      buyerIsVATPayer,
 		BuyerEmail:           buyerEmail,
 		SubtotalAmount:       subtotalNet,
-		VatRate:              numericFromInt(vatRatePct),
+		VatRate:              numericFromInt(int(vatRate)),
 		VatAmount:            vatAmount,
 		TotalAmount:          totalBani,
 		Currency:             "RON",
@@ -514,7 +537,7 @@ func (s *Service) GenerateSubscriptionMonthlyInvoice(
 		DescriptionEn:    pgText(descEn),
 		Quantity:         numericFromInt(1),
 		UnitPrice:        subtotalNet,
-		VatRate:          numericFromInt(vatRatePct),
+		VatRate:          numericFromInt(int(vatRate)),
 		VatAmount:        vatAmount,
 		LineTotal:        subtotalNet,
 		LineTotalWithVat: totalBani,
@@ -692,8 +715,9 @@ func (s *Service) GenerateCreditNote(ctx context.Context, invoiceID pgtype.UUID,
 	}
 
 	// Compute net and VAT from the credited total (VAT-inclusive).
+	vatRate := int32(s.loadVATRate(ctx))
 	creditTotal := amount
-	creditNet := creditTotal * 100 / 121
+	creditNet := creditTotal * 100 / (100 + vatRate)
 	creditVAT := creditTotal - creditNet
 
 	// Use negative amounts to represent the credit.
@@ -731,7 +755,7 @@ func (s *Service) GenerateCreditNote(ctx context.Context, invoiceID pgtype.UUID,
 		BuyerIsVatPayer:      original.BuyerIsVatPayer,
 		BuyerEmail:           original.BuyerEmail,
 		SubtotalAmount:       negNet,
-		VatRate:              numericFromInt(vatRatePct),
+		VatRate:              numericFromInt(int(vatRate)),
 		VatAmount:            negVAT,
 		TotalAmount:          negTotal,
 		Currency:             original.Currency,
@@ -753,7 +777,7 @@ func (s *Service) GenerateCreditNote(ctx context.Context, invoiceID pgtype.UUID,
 		DescriptionEn:    pgText(fmt.Sprintf("Credit note - %s", reason)),
 		Quantity:         numericFromInt(1),
 		UnitPrice:        negNet,
-		VatRate:          numericFromInt(vatRatePct),
+		VatRate:          numericFromInt(int(vatRate)),
 		VatAmount:        negVAT,
 		LineTotal:        negNet,
 		LineTotalWithVat: negTotal,
@@ -869,7 +893,7 @@ func (s *Service) createInvoiceOnFactureaza(ctx context.Context, inv db.Invoice,
 			Unit:        "buc",
 			UnitCount:   numericToFloat64(li.Quantity),
 			Price:       baniToRON(li.UnitPrice),
-			VAT:         vatRatePct,
+			VAT:         s.loadVATRate(ctx),
 		})
 	}
 
@@ -880,7 +904,7 @@ func (s *Service) createInvoiceOnFactureaza(ctx context.Context, inv db.Invoice,
 			Unit:        "buc",
 			UnitCount:   1,
 			Price:       baniToRON(inv.SubtotalAmount),
-			VAT:         vatRatePct,
+			VAT:         s.loadVATRate(ctx),
 		})
 	}
 

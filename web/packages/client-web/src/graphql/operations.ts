@@ -156,6 +156,9 @@ export const ESTIMATE_PRICE = gql`
         lineTotal
       }
       total
+      cityPricingMultiplier
+      pricingModel
+      areaTotal
     }
   }
 `;
@@ -2016,6 +2019,9 @@ export const ALL_SERVICES = gql`
       icon
       isActive
       includedItems
+      categoryId
+      pricingModel
+      pricePerSqm
     }
   }
 `;
@@ -2051,6 +2057,9 @@ export const UPDATE_SERVICE_DEFINITION = gql`
       petDurationMinutes
       isActive
       includedItems
+      categoryId
+      pricingModel
+      pricePerSqm
     }
   }
 `;
@@ -2071,6 +2080,9 @@ export const CREATE_SERVICE_DEFINITION = gql`
       petDurationMinutes
       isActive
       includedItems
+      categoryId
+      pricingModel
+      pricePerSqm
     }
   }
 `;
@@ -2885,6 +2897,7 @@ export const ALL_CITIES = gql`
       name
       county
       isActive
+      pricingMultiplier
       areas {
         id
         name
@@ -4040,5 +4053,89 @@ export const JOIN_WAITLIST = gql`
 export const GET_DOCUMENT_URL = gql`
   query GetDocumentUrl($documentId: ID!) {
     getDocumentUrl(documentId: $documentId)
+  }
+`;
+
+// ─── Service Categories ─────────────────────────────────────────────────────
+
+export const ALL_SERVICE_CATEGORIES = gql`
+  query AllServiceCategories {
+    allServiceCategories {
+      id
+      slug
+      nameRo
+      nameEn
+      descriptionRo
+      descriptionEn
+      icon
+      imageUrl
+      commissionPct
+      sortOrder
+      isActive
+      services {
+        id
+        nameRo
+      }
+    }
+  }
+`;
+
+export const CREATE_SERVICE_CATEGORY = gql`
+  mutation CreateServiceCategory($input: CreateServiceCategoryInput!) {
+    createServiceCategory(input: $input) {
+      id
+      slug
+      nameRo
+      nameEn
+      commissionPct
+      sortOrder
+      isActive
+    }
+  }
+`;
+
+export const UPDATE_SERVICE_CATEGORY = gql`
+  mutation UpdateServiceCategory($input: UpdateServiceCategoryInput!) {
+    updateServiceCategory(input: $input) {
+      id
+      slug
+      nameRo
+      nameEn
+      commissionPct
+      sortOrder
+      isActive
+    }
+  }
+`;
+
+// ─── Price Audit Log ────────────────────────────────────────────────────────
+
+export const PRICE_AUDIT_LOG = gql`
+  query PriceAuditLog($entityType: String, $limit: Int, $offset: Int) {
+    priceAuditLog(entityType: $entityType, limit: $limit, offset: $offset) {
+      entries {
+        id
+        entityType
+        entityId
+        fieldName
+        oldValue
+        newValue
+        changedByName
+        changedByEmail
+        changedAt
+      }
+      totalCount
+    }
+  }
+`;
+
+// ─── City Pricing ───────────────────────────────────────────────────────────
+
+export const UPDATE_CITY_PRICING_MULTIPLIER = gql`
+  mutation UpdateCityPricingMultiplier($id: ID!, $pricingMultiplier: Float!) {
+    updateCityPricingMultiplier(id: $id, pricingMultiplier: $pricingMultiplier) {
+      id
+      pricingMultiplier
+    }
   }
 `;

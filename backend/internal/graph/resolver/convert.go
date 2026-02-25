@@ -284,6 +284,12 @@ func dbUserToGQL(u db.User) *model.User {
 }
 
 func dbServiceDefToGQL(s db.ServiceDefinition) *model.ServiceDefinition {
+	var categoryID *string
+	if s.CategoryID.Valid {
+		cid := uuidToString(s.CategoryID)
+		categoryID = &cid
+	}
+
 	return &model.ServiceDefinition{
 		ID:                 uuidToString(s.ID),
 		ServiceType:        dbServiceTypeToGQL(s.ServiceType),
@@ -301,6 +307,44 @@ func dbServiceDefToGQL(s db.ServiceDefinition) *model.ServiceDefinition {
 		Icon:               textPtr(s.Icon),
 		IsActive:           boolVal(s.IsActive),
 		IncludedItems:      s.IncludedItems,
+		CategoryID:         categoryID,
+		PricingModel:       dbPricingModelToGQL(s.PricingModel),
+		PricePerSqm:        numericToFloatPtr(s.PricePerSqm),
+	}
+}
+
+func dbServiceCatToGQL(c db.ServiceCategory) *model.ServiceCategory {
+	return &model.ServiceCategory{
+		ID:            uuidToString(c.ID),
+		Slug:          c.Slug,
+		NameRo:        c.NameRo,
+		NameEn:        c.NameEn,
+		DescriptionRo: textPtr(c.DescriptionRo),
+		DescriptionEn: textPtr(c.DescriptionEn),
+		Icon:          textPtr(c.Icon),
+		ImageURL:      textPtr(c.ImageUrl),
+		CommissionPct: numericToFloatPtr(c.CommissionPct),
+		SortOrder:     int(c.SortOrder),
+		IsActive:      c.IsActive,
+		Services:      []*model.ServiceDefinition{},
+	}
+}
+
+func dbPricingModelToGQL(pm db.PricingModel) model.PricingModel {
+	switch pm {
+	case db.PricingModelPerSqm:
+		return model.PricingModelPerSqm
+	default:
+		return model.PricingModelHourly
+	}
+}
+
+func gqlPricingModelToDb(pm model.PricingModel) db.PricingModel {
+	switch pm {
+	case model.PricingModelPerSqm:
+		return db.PricingModelPerSqm
+	default:
+		return db.PricingModelHourly
 	}
 }
 

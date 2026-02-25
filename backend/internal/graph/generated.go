@@ -323,11 +323,12 @@ type ComplexityRoot struct {
 	}
 
 	EnabledCity struct {
-		Areas    func(childComplexity int) int
-		County   func(childComplexity int) int
-		ID       func(childComplexity int) int
-		IsActive func(childComplexity int) int
-		Name     func(childComplexity int) int
+		Areas             func(childComplexity int) int
+		County            func(childComplexity int) int
+		ID                func(childComplexity int) int
+		IsActive          func(childComplexity int) int
+		Name              func(childComplexity int) int
+		PricingMultiplier func(childComplexity int) int
 	}
 
 	ExtraLineItem struct {
@@ -426,6 +427,7 @@ type ComplexityRoot struct {
 		CreateCity                                func(childComplexity int, name string, county string) int
 		CreateCityArea                            func(childComplexity int, cityID string, name string) int
 		CreateMonthlyPayout                       func(childComplexity int, companyID string, periodFrom string, periodTo string) int
+		CreateServiceCategory                     func(childComplexity int, input model.CreateServiceCategoryInput) int
 		CreateServiceDefinition                   func(childComplexity int, input model.CreateServiceDefinitionInput) int
 		CreateServiceExtra                        func(childComplexity int, input model.CreateServiceExtraInput) int
 		CreateSetupIntent                         func(childComplexity int) int
@@ -486,12 +488,14 @@ type ComplexityRoot struct {
 		TransmitInvoiceToEFactura                 func(childComplexity int, id string) int
 		UpdateAddress                             func(childComplexity int, id string, input model.UpdateAddressInput) int
 		UpdateAvailability                        func(childComplexity int, slots []*model.AvailabilitySlotInput) int
+		UpdateCityPricingMultiplier               func(childComplexity int, id string, pricingMultiplier float64) int
 		UpdateCompanyProfile                      func(childComplexity int, input model.UpdateCompanyInput) int
 		UpdateCompanyServiceAreas                 func(childComplexity int, areaIds []string) int
 		UpdatePayoutStatus                        func(childComplexity int, payoutID string, status model.PayoutStatus, notes *string) int
 		UpdatePlatformSetting                     func(childComplexity int, key string, value string) int
 		UpdateProfile                             func(childComplexity int, input model.UpdateProfileInput) int
 		UpdateRecurringDiscount                   func(childComplexity int, recurrenceType model.RecurrenceType, discountPct float64) int
+		UpdateServiceCategory                     func(childComplexity int, input model.UpdateServiceCategoryInput) int
 		UpdateServiceDefinition                   func(childComplexity int, input model.UpdateServiceDefinitionInput) int
 		UpdateServiceExtra                        func(childComplexity int, input model.UpdateServiceExtraInput) int
 		UpdateUserRole                            func(childComplexity int, userID string, role model.UserRole) int
@@ -664,14 +668,35 @@ type ComplexityRoot struct {
 		UniqueClients   func(childComplexity int) int
 	}
 
+	PriceAuditConnection struct {
+		Entries    func(childComplexity int) int
+		TotalCount func(childComplexity int) int
+	}
+
+	PriceAuditEntry struct {
+		ChangedAt      func(childComplexity int) int
+		ChangedByEmail func(childComplexity int) int
+		ChangedByName  func(childComplexity int) int
+		EntityID       func(childComplexity int) int
+		EntityType     func(childComplexity int) int
+		FieldName      func(childComplexity int) int
+		ID             func(childComplexity int) int
+		NewValue       func(childComplexity int) int
+		OldValue       func(childComplexity int) int
+		Reason         func(childComplexity int) int
+	}
+
 	PriceEstimate struct {
-		EstimatedHours     func(childComplexity int) int
-		Extras             func(childComplexity int) int
-		HourlyRate         func(childComplexity int) int
-		PetsSurcharge      func(childComplexity int) int
-		PropertyMultiplier func(childComplexity int) int
-		Subtotal           func(childComplexity int) int
-		Total              func(childComplexity int) int
+		AreaTotal             func(childComplexity int) int
+		CityPricingMultiplier func(childComplexity int) int
+		EstimatedHours        func(childComplexity int) int
+		Extras                func(childComplexity int) int
+		HourlyRate            func(childComplexity int) int
+		PetsSurcharge         func(childComplexity int) int
+		PricingModel          func(childComplexity int) int
+		PropertyMultiplier    func(childComplexity int) int
+		Subtotal              func(childComplexity int) int
+		Total                 func(childComplexity int) int
 	}
 
 	Query struct {
@@ -685,6 +710,7 @@ type ComplexityRoot struct {
 		AllPayouts                         func(childComplexity int, companyID *string, status *model.PayoutStatus, first *int, after *string) int
 		AllRefundRequests                  func(childComplexity int, status *model.RefundStatus, first *int, after *string) int
 		AllReviews                         func(childComplexity int, limit *int, offset *int, rating *int, reviewType *string) int
+		AllServiceCategories               func(childComplexity int) int
 		AllServices                        func(childComplexity int) int
 		AllSubscriptions                   func(childComplexity int, status *model.SubscriptionStatus, limit *int, offset *int) int
 		AllUsers                           func(childComplexity int) int
@@ -756,6 +782,7 @@ type ComplexityRoot struct {
 		PlatformSettings                   func(childComplexity int) int
 		PlatformStats                      func(childComplexity int, dateFrom *string, dateTo *string) int
 		PlatformTotals                     func(childComplexity int) int
+		PriceAuditLog                      func(childComplexity int, entityType *string, limit *int, offset *int) int
 		RecurringDiscounts                 func(childComplexity int) int
 		RevenueByDateRange                 func(childComplexity int, from string, to string) int
 		RevenueByMonth                     func(childComplexity int, months *int) int
@@ -765,6 +792,8 @@ type ComplexityRoot struct {
 		SearchCompanyBookings              func(childComplexity int, query *string, status *string, dateFrom *string, dateTo *string, limit *int, offset *int) int
 		SearchUsers                        func(childComplexity int, query *string, role *model.UserRole, status *model.UserStatus, limit *int, offset *int) int
 		SearchWorkerBookings               func(childComplexity int, query *string, status *string, dateFrom *string, dateTo *string, limit *int, offset *int) int
+		ServiceCategories                  func(childComplexity int) int
+		ServiceCategoryBySlug              func(childComplexity int, slug string) int
 		ServiceSubscription                func(childComplexity int, id string) int
 		SubscriptionPricingPreview         func(childComplexity int, serviceType model.ServiceType, recurrenceType model.RecurrenceType, numRooms int, numBathrooms int, areaSqm *int, propertyType *string, hasPets *bool, extras []*model.ExtraInput) int
 		SubscriptionStats                  func(childComplexity int) int
@@ -829,8 +858,24 @@ type ComplexityRoot struct {
 		TotalCount func(childComplexity int) int
 	}
 
+	ServiceCategory struct {
+		CommissionPct func(childComplexity int) int
+		DescriptionEn func(childComplexity int) int
+		DescriptionRo func(childComplexity int) int
+		ID            func(childComplexity int) int
+		Icon          func(childComplexity int) int
+		ImageURL      func(childComplexity int) int
+		IsActive      func(childComplexity int) int
+		NameEn        func(childComplexity int) int
+		NameRo        func(childComplexity int) int
+		Services      func(childComplexity int) int
+		Slug          func(childComplexity int) int
+		SortOrder     func(childComplexity int) int
+	}
+
 	ServiceDefinition struct {
 		BasePricePerHour   func(childComplexity int) int
+		CategoryID         func(childComplexity int) int
 		DescriptionEn      func(childComplexity int) int
 		DescriptionRo      func(childComplexity int) int
 		HoursPer100Sqm     func(childComplexity int) int
@@ -845,6 +890,8 @@ type ComplexityRoot struct {
 		NameEn             func(childComplexity int) int
 		NameRo             func(childComplexity int) int
 		PetDurationMinutes func(childComplexity int) int
+		PricePerSqm        func(childComplexity int) int
+		PricingModel       func(childComplexity int) int
 		ServiceType        func(childComplexity int) int
 	}
 
@@ -1145,6 +1192,7 @@ type MutationResolver interface {
 	RefreshEFacturaStatus(ctx context.Context, id string) (*model.Invoice, error)
 	CreateCity(ctx context.Context, name string, county string) (*model.EnabledCity, error)
 	ToggleCityActive(ctx context.Context, id string, isActive bool) (*model.EnabledCity, error)
+	UpdateCityPricingMultiplier(ctx context.Context, id string, pricingMultiplier float64) (*model.EnabledCity, error)
 	CreateCityArea(ctx context.Context, cityID string, name string) (*model.CityArea, error)
 	DeleteCityArea(ctx context.Context, id string) (bool, error)
 	UpdateCompanyServiceAreas(ctx context.Context, areaIds []string) ([]*model.CityArea, error)
@@ -1170,6 +1218,8 @@ type MutationResolver interface {
 	CreateServiceDefinition(ctx context.Context, input model.CreateServiceDefinitionInput) (*model.ServiceDefinition, error)
 	UpdateServiceExtra(ctx context.Context, input model.UpdateServiceExtraInput) (*model.ServiceExtra, error)
 	CreateServiceExtra(ctx context.Context, input model.CreateServiceExtraInput) (*model.ServiceExtra, error)
+	CreateServiceCategory(ctx context.Context, input model.CreateServiceCategoryInput) (*model.ServiceCategory, error)
+	UpdateServiceCategory(ctx context.Context, input model.UpdateServiceCategoryInput) (*model.ServiceCategory, error)
 	UpdatePlatformSetting(ctx context.Context, key string, value string) (*model.PlatformSetting, error)
 	CreateSubscription(ctx context.Context, input model.CreateSubscriptionInput) (*model.ServiceSubscription, error)
 	PauseSubscription(ctx context.Context, id string) (*model.ServiceSubscription, error)
@@ -1222,6 +1272,7 @@ type QueryResolver interface {
 	TopCompaniesByRevenue(ctx context.Context, from string, to string, limit *int) ([]*model.TopCompany, error)
 	PlatformTotals(ctx context.Context) (*model.PlatformTotals, error)
 	CompanyRevenueByDateRange(ctx context.Context, from string, to string) ([]*model.DailyRevenue, error)
+	PriceAuditLog(ctx context.Context, entityType *string, limit *int, offset *int) (*model.PriceAuditConnection, error)
 	MyBookings(ctx context.Context, status *model.BookingStatus, first *int, after *string) (*model.BookingConnection, error)
 	Booking(ctx context.Context, id string) (*model.Booking, error)
 	CompanyBookings(ctx context.Context, status *model.BookingStatus, first *int, after *string) (*model.BookingConnection, error)
@@ -1280,6 +1331,9 @@ type QueryResolver interface {
 	AvailableServices(ctx context.Context) ([]*model.ServiceDefinition, error)
 	AvailableExtras(ctx context.Context) ([]*model.ServiceExtra, error)
 	EstimatePrice(ctx context.Context, input model.PriceEstimateInput) (*model.PriceEstimate, error)
+	ServiceCategories(ctx context.Context) ([]*model.ServiceCategory, error)
+	ServiceCategoryBySlug(ctx context.Context, slug string) (*model.ServiceCategory, error)
+	AllServiceCategories(ctx context.Context) ([]*model.ServiceCategory, error)
 	AllServices(ctx context.Context) ([]*model.ServiceDefinition, error)
 	AllExtras(ctx context.Context) ([]*model.ServiceExtra, error)
 	PlatformSettings(ctx context.Context) ([]*model.PlatformSetting, error)
@@ -2530,6 +2584,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.EnabledCity.Name(childComplexity), true
+	case "EnabledCity.pricingMultiplier":
+		if e.complexity.EnabledCity.PricingMultiplier == nil {
+			break
+		}
+
+		return e.complexity.EnabledCity.PricingMultiplier(childComplexity), true
 
 	case "ExtraLineItem.extra":
 		if e.complexity.ExtraLineItem.Extra == nil {
@@ -3112,6 +3172,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.CreateMonthlyPayout(childComplexity, args["companyId"].(string), args["periodFrom"].(string), args["periodTo"].(string)), true
+	case "Mutation.createServiceCategory":
+		if e.complexity.Mutation.CreateServiceCategory == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createServiceCategory_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateServiceCategory(childComplexity, args["input"].(model.CreateServiceCategoryInput)), true
 	case "Mutation.createServiceDefinition":
 		if e.complexity.Mutation.CreateServiceDefinition == nil {
 			break
@@ -3732,6 +3803,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.UpdateAvailability(childComplexity, args["slots"].([]*model.AvailabilitySlotInput)), true
+	case "Mutation.updateCityPricingMultiplier":
+		if e.complexity.Mutation.UpdateCityPricingMultiplier == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateCityPricingMultiplier_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateCityPricingMultiplier(childComplexity, args["id"].(string), args["pricingMultiplier"].(float64)), true
 	case "Mutation.updateCompanyProfile":
 		if e.complexity.Mutation.UpdateCompanyProfile == nil {
 			break
@@ -3798,6 +3880,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.UpdateRecurringDiscount(childComplexity, args["recurrenceType"].(model.RecurrenceType), args["discountPct"].(float64)), true
+	case "Mutation.updateServiceCategory":
+		if e.complexity.Mutation.UpdateServiceCategory == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateServiceCategory_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateServiceCategory(childComplexity, args["input"].(model.UpdateServiceCategoryInput)), true
 	case "Mutation.updateServiceDefinition":
 		if e.complexity.Mutation.UpdateServiceDefinition == nil {
 			break
@@ -4605,6 +4698,92 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.PlatformTotals.UniqueClients(childComplexity), true
 
+	case "PriceAuditConnection.entries":
+		if e.complexity.PriceAuditConnection.Entries == nil {
+			break
+		}
+
+		return e.complexity.PriceAuditConnection.Entries(childComplexity), true
+	case "PriceAuditConnection.totalCount":
+		if e.complexity.PriceAuditConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.PriceAuditConnection.TotalCount(childComplexity), true
+
+	case "PriceAuditEntry.changedAt":
+		if e.complexity.PriceAuditEntry.ChangedAt == nil {
+			break
+		}
+
+		return e.complexity.PriceAuditEntry.ChangedAt(childComplexity), true
+	case "PriceAuditEntry.changedByEmail":
+		if e.complexity.PriceAuditEntry.ChangedByEmail == nil {
+			break
+		}
+
+		return e.complexity.PriceAuditEntry.ChangedByEmail(childComplexity), true
+	case "PriceAuditEntry.changedByName":
+		if e.complexity.PriceAuditEntry.ChangedByName == nil {
+			break
+		}
+
+		return e.complexity.PriceAuditEntry.ChangedByName(childComplexity), true
+	case "PriceAuditEntry.entityId":
+		if e.complexity.PriceAuditEntry.EntityID == nil {
+			break
+		}
+
+		return e.complexity.PriceAuditEntry.EntityID(childComplexity), true
+	case "PriceAuditEntry.entityType":
+		if e.complexity.PriceAuditEntry.EntityType == nil {
+			break
+		}
+
+		return e.complexity.PriceAuditEntry.EntityType(childComplexity), true
+	case "PriceAuditEntry.fieldName":
+		if e.complexity.PriceAuditEntry.FieldName == nil {
+			break
+		}
+
+		return e.complexity.PriceAuditEntry.FieldName(childComplexity), true
+	case "PriceAuditEntry.id":
+		if e.complexity.PriceAuditEntry.ID == nil {
+			break
+		}
+
+		return e.complexity.PriceAuditEntry.ID(childComplexity), true
+	case "PriceAuditEntry.newValue":
+		if e.complexity.PriceAuditEntry.NewValue == nil {
+			break
+		}
+
+		return e.complexity.PriceAuditEntry.NewValue(childComplexity), true
+	case "PriceAuditEntry.oldValue":
+		if e.complexity.PriceAuditEntry.OldValue == nil {
+			break
+		}
+
+		return e.complexity.PriceAuditEntry.OldValue(childComplexity), true
+	case "PriceAuditEntry.reason":
+		if e.complexity.PriceAuditEntry.Reason == nil {
+			break
+		}
+
+		return e.complexity.PriceAuditEntry.Reason(childComplexity), true
+
+	case "PriceEstimate.areaTotal":
+		if e.complexity.PriceEstimate.AreaTotal == nil {
+			break
+		}
+
+		return e.complexity.PriceEstimate.AreaTotal(childComplexity), true
+	case "PriceEstimate.cityPricingMultiplier":
+		if e.complexity.PriceEstimate.CityPricingMultiplier == nil {
+			break
+		}
+
+		return e.complexity.PriceEstimate.CityPricingMultiplier(childComplexity), true
 	case "PriceEstimate.estimatedHours":
 		if e.complexity.PriceEstimate.EstimatedHours == nil {
 			break
@@ -4629,6 +4808,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.PriceEstimate.PetsSurcharge(childComplexity), true
+	case "PriceEstimate.pricingModel":
+		if e.complexity.PriceEstimate.PricingModel == nil {
+			break
+		}
+
+		return e.complexity.PriceEstimate.PricingModel(childComplexity), true
 	case "PriceEstimate.propertyMultiplier":
 		if e.complexity.PriceEstimate.PropertyMultiplier == nil {
 			break
@@ -4738,6 +4923,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.AllReviews(childComplexity, args["limit"].(*int), args["offset"].(*int), args["rating"].(*int), args["reviewType"].(*string)), true
+	case "Query.allServiceCategories":
+		if e.complexity.Query.AllServiceCategories == nil {
+			break
+		}
+
+		return e.complexity.Query.AllServiceCategories(childComplexity), true
 	case "Query.allServices":
 		if e.complexity.Query.AllServices == nil {
 			break
@@ -5349,6 +5540,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.PlatformTotals(childComplexity), true
+	case "Query.priceAuditLog":
+		if e.complexity.Query.PriceAuditLog == nil {
+			break
+		}
+
+		args, err := ec.field_Query_priceAuditLog_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.PriceAuditLog(childComplexity, args["entityType"].(*string), args["limit"].(*int), args["offset"].(*int)), true
 	case "Query.recurringDiscounts":
 		if e.complexity.Query.RecurringDiscounts == nil {
 			break
@@ -5443,6 +5645,23 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.SearchWorkerBookings(childComplexity, args["query"].(*string), args["status"].(*string), args["dateFrom"].(*string), args["dateTo"].(*string), args["limit"].(*int), args["offset"].(*int)), true
+	case "Query.serviceCategories":
+		if e.complexity.Query.ServiceCategories == nil {
+			break
+		}
+
+		return e.complexity.Query.ServiceCategories(childComplexity), true
+	case "Query.serviceCategoryBySlug":
+		if e.complexity.Query.ServiceCategoryBySlug == nil {
+			break
+		}
+
+		args, err := ec.field_Query_serviceCategoryBySlug_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ServiceCategoryBySlug(childComplexity, args["slug"].(string)), true
 	case "Query.serviceSubscription":
 		if e.complexity.Query.ServiceSubscription == nil {
 			break
@@ -5779,12 +5998,91 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.ReviewConnection.TotalCount(childComplexity), true
 
+	case "ServiceCategory.commissionPct":
+		if e.complexity.ServiceCategory.CommissionPct == nil {
+			break
+		}
+
+		return e.complexity.ServiceCategory.CommissionPct(childComplexity), true
+	case "ServiceCategory.descriptionEn":
+		if e.complexity.ServiceCategory.DescriptionEn == nil {
+			break
+		}
+
+		return e.complexity.ServiceCategory.DescriptionEn(childComplexity), true
+	case "ServiceCategory.descriptionRo":
+		if e.complexity.ServiceCategory.DescriptionRo == nil {
+			break
+		}
+
+		return e.complexity.ServiceCategory.DescriptionRo(childComplexity), true
+	case "ServiceCategory.id":
+		if e.complexity.ServiceCategory.ID == nil {
+			break
+		}
+
+		return e.complexity.ServiceCategory.ID(childComplexity), true
+	case "ServiceCategory.icon":
+		if e.complexity.ServiceCategory.Icon == nil {
+			break
+		}
+
+		return e.complexity.ServiceCategory.Icon(childComplexity), true
+	case "ServiceCategory.imageUrl":
+		if e.complexity.ServiceCategory.ImageURL == nil {
+			break
+		}
+
+		return e.complexity.ServiceCategory.ImageURL(childComplexity), true
+	case "ServiceCategory.isActive":
+		if e.complexity.ServiceCategory.IsActive == nil {
+			break
+		}
+
+		return e.complexity.ServiceCategory.IsActive(childComplexity), true
+	case "ServiceCategory.nameEn":
+		if e.complexity.ServiceCategory.NameEn == nil {
+			break
+		}
+
+		return e.complexity.ServiceCategory.NameEn(childComplexity), true
+	case "ServiceCategory.nameRo":
+		if e.complexity.ServiceCategory.NameRo == nil {
+			break
+		}
+
+		return e.complexity.ServiceCategory.NameRo(childComplexity), true
+	case "ServiceCategory.services":
+		if e.complexity.ServiceCategory.Services == nil {
+			break
+		}
+
+		return e.complexity.ServiceCategory.Services(childComplexity), true
+	case "ServiceCategory.slug":
+		if e.complexity.ServiceCategory.Slug == nil {
+			break
+		}
+
+		return e.complexity.ServiceCategory.Slug(childComplexity), true
+	case "ServiceCategory.sortOrder":
+		if e.complexity.ServiceCategory.SortOrder == nil {
+			break
+		}
+
+		return e.complexity.ServiceCategory.SortOrder(childComplexity), true
+
 	case "ServiceDefinition.basePricePerHour":
 		if e.complexity.ServiceDefinition.BasePricePerHour == nil {
 			break
 		}
 
 		return e.complexity.ServiceDefinition.BasePricePerHour(childComplexity), true
+	case "ServiceDefinition.categoryId":
+		if e.complexity.ServiceDefinition.CategoryID == nil {
+			break
+		}
+
+		return e.complexity.ServiceDefinition.CategoryID(childComplexity), true
 	case "ServiceDefinition.descriptionEn":
 		if e.complexity.ServiceDefinition.DescriptionEn == nil {
 			break
@@ -5869,6 +6167,18 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.ServiceDefinition.PetDurationMinutes(childComplexity), true
+	case "ServiceDefinition.pricePerSqm":
+		if e.complexity.ServiceDefinition.PricePerSqm == nil {
+			break
+		}
+
+		return e.complexity.ServiceDefinition.PricePerSqm(childComplexity), true
+	case "ServiceDefinition.pricingModel":
+		if e.complexity.ServiceDefinition.PricingModel == nil {
+			break
+		}
+
+		return e.complexity.ServiceDefinition.PricingModel(childComplexity), true
 	case "ServiceDefinition.serviceType":
 		if e.complexity.ServiceDefinition.ServiceType == nil {
 			break
@@ -6941,6 +7251,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputBookingWorkerAssignment,
 		ec.unmarshalInputCompanyApplicationInput,
 		ec.unmarshalInputCreateBookingInput,
+		ec.unmarshalInputCreateServiceCategoryInput,
 		ec.unmarshalInputCreateServiceDefinitionInput,
 		ec.unmarshalInputCreateServiceExtraInput,
 		ec.unmarshalInputCreateSubscriptionInput,
@@ -6955,6 +7266,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputUpdateAddressInput,
 		ec.unmarshalInputUpdateCompanyInput,
 		ec.unmarshalInputUpdateProfileInput,
+		ec.unmarshalInputUpdateServiceCategoryInput,
 		ec.unmarshalInputUpdateServiceDefinitionInput,
 		ec.unmarshalInputUpdateServiceExtraInput,
 		ec.unmarshalInputUpdateWorkerProfileInput,
@@ -7055,7 +7367,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
-//go:embed "schema/admin.graphql" "schema/analytics.graphql" "schema/auth.graphql" "schema/booking.graphql" "schema/chat.graphql" "schema/client.graphql" "schema/company.graphql" "schema/invoice.graphql" "schema/location.graphql" "schema/notification.graphql" "schema/payment.graphql" "schema/personality.graphql" "schema/recurring.graphql" "schema/review.graphql" "schema/schema.graphql" "schema/service.graphql" "schema/settings.graphql" "schema/subscription.graphql" "schema/user.graphql" "schema/waitlist.graphql" "schema/worker.graphql"
+//go:embed "schema/admin.graphql" "schema/analytics.graphql" "schema/audit.graphql" "schema/auth.graphql" "schema/booking.graphql" "schema/chat.graphql" "schema/client.graphql" "schema/company.graphql" "schema/invoice.graphql" "schema/location.graphql" "schema/notification.graphql" "schema/payment.graphql" "schema/personality.graphql" "schema/recurring.graphql" "schema/review.graphql" "schema/schema.graphql" "schema/service.graphql" "schema/settings.graphql" "schema/subscription.graphql" "schema/user.graphql" "schema/waitlist.graphql" "schema/worker.graphql"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -7069,6 +7381,7 @@ func sourceData(filename string) string {
 var sources = []*ast.Source{
 	{Name: "schema/admin.graphql", Input: sourceData("schema/admin.graphql"), BuiltIn: false},
 	{Name: "schema/analytics.graphql", Input: sourceData("schema/analytics.graphql"), BuiltIn: false},
+	{Name: "schema/audit.graphql", Input: sourceData("schema/audit.graphql"), BuiltIn: false},
 	{Name: "schema/auth.graphql", Input: sourceData("schema/auth.graphql"), BuiltIn: false},
 	{Name: "schema/booking.graphql", Input: sourceData("schema/booking.graphql"), BuiltIn: false},
 	{Name: "schema/chat.graphql", Input: sourceData("schema/chat.graphql"), BuiltIn: false},
@@ -7479,6 +7792,17 @@ func (ec *executionContext) field_Mutation_createMonthlyPayout_args(ctx context.
 		return nil, err
 	}
 	args["periodTo"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createServiceCategory_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNCreateServiceCategoryInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCreateServiceCategoryInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -8219,6 +8543,22 @@ func (ec *executionContext) field_Mutation_updateAvailability_args(ctx context.C
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_updateCityPricingMultiplier_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "pricingMultiplier", ec.unmarshalNFloat2float64)
+	if err != nil {
+		return nil, err
+	}
+	args["pricingMultiplier"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_updateCompanyProfile_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -8302,6 +8642,17 @@ func (ec *executionContext) field_Mutation_updateRecurringDiscount_args(ctx cont
 		return nil, err
 	}
 	args["discountPct"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateServiceCategory_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNUpdateServiceCategoryInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUpdateServiceCategoryInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -9254,6 +9605,27 @@ func (ec *executionContext) field_Query_platformStats_args(ctx context.Context, 
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_priceAuditLog_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "entityType", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["entityType"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "limit", ec.unmarshalOInt2ᚖint)
+	if err != nil {
+		return nil, err
+	}
+	args["limit"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "offset", ec.unmarshalOInt2ᚖint)
+	if err != nil {
+		return nil, err
+	}
+	args["offset"] = arg2
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_revenueByDateRange_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -9449,6 +9821,17 @@ func (ec *executionContext) field_Query_searchWorkerBookings_args(ctx context.Co
 		return nil, err
 	}
 	args["offset"] = arg5
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_serviceCategoryBySlug_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "slug", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["slug"] = arg0
 	return args, nil
 }
 
@@ -16134,6 +16517,35 @@ func (ec *executionContext) fieldContext_EnabledCity_isActive(_ context.Context,
 	return fc, nil
 }
 
+func (ec *executionContext) _EnabledCity_pricingMultiplier(ctx context.Context, field graphql.CollectedField, obj *model.EnabledCity) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_EnabledCity_pricingMultiplier,
+		func(ctx context.Context) (any, error) {
+			return obj.PricingMultiplier, nil
+		},
+		nil,
+		ec.marshalNFloat2float64,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_EnabledCity_pricingMultiplier(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EnabledCity",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _EnabledCity_areas(ctx context.Context, field graphql.CollectedField, obj *model.EnabledCity) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -21636,6 +22048,8 @@ func (ec *executionContext) fieldContext_Mutation_createCity(ctx context.Context
 				return ec.fieldContext_EnabledCity_county(ctx, field)
 			case "isActive":
 				return ec.fieldContext_EnabledCity_isActive(ctx, field)
+			case "pricingMultiplier":
+				return ec.fieldContext_EnabledCity_pricingMultiplier(ctx, field)
 			case "areas":
 				return ec.fieldContext_EnabledCity_areas(ctx, field)
 			}
@@ -21689,6 +22103,8 @@ func (ec *executionContext) fieldContext_Mutation_toggleCityActive(ctx context.C
 				return ec.fieldContext_EnabledCity_county(ctx, field)
 			case "isActive":
 				return ec.fieldContext_EnabledCity_isActive(ctx, field)
+			case "pricingMultiplier":
+				return ec.fieldContext_EnabledCity_pricingMultiplier(ctx, field)
 			case "areas":
 				return ec.fieldContext_EnabledCity_areas(ctx, field)
 			}
@@ -21703,6 +22119,61 @@ func (ec *executionContext) fieldContext_Mutation_toggleCityActive(ctx context.C
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_toggleCityActive_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateCityPricingMultiplier(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_updateCityPricingMultiplier,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().UpdateCityPricingMultiplier(ctx, fc.Args["id"].(string), fc.Args["pricingMultiplier"].(float64))
+		},
+		nil,
+		ec.marshalNEnabledCity2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐEnabledCity,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateCityPricingMultiplier(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_EnabledCity_id(ctx, field)
+			case "name":
+				return ec.fieldContext_EnabledCity_name(ctx, field)
+			case "county":
+				return ec.fieldContext_EnabledCity_county(ctx, field)
+			case "isActive":
+				return ec.fieldContext_EnabledCity_isActive(ctx, field)
+			case "pricingMultiplier":
+				return ec.fieldContext_EnabledCity_pricingMultiplier(ctx, field)
+			case "areas":
+				return ec.fieldContext_EnabledCity_areas(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type EnabledCity", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateCityPricingMultiplier_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -22923,6 +23394,12 @@ func (ec *executionContext) fieldContext_Mutation_updateServiceDefinition(ctx co
 				return ec.fieldContext_ServiceDefinition_isActive(ctx, field)
 			case "includedItems":
 				return ec.fieldContext_ServiceDefinition_includedItems(ctx, field)
+			case "categoryId":
+				return ec.fieldContext_ServiceDefinition_categoryId(ctx, field)
+			case "pricingModel":
+				return ec.fieldContext_ServiceDefinition_pricingModel(ctx, field)
+			case "pricePerSqm":
+				return ec.fieldContext_ServiceDefinition_pricePerSqm(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ServiceDefinition", field.Name)
 		},
@@ -22998,6 +23475,12 @@ func (ec *executionContext) fieldContext_Mutation_createServiceDefinition(ctx co
 				return ec.fieldContext_ServiceDefinition_isActive(ctx, field)
 			case "includedItems":
 				return ec.fieldContext_ServiceDefinition_includedItems(ctx, field)
+			case "categoryId":
+				return ec.fieldContext_ServiceDefinition_categoryId(ctx, field)
+			case "pricingModel":
+				return ec.fieldContext_ServiceDefinition_pricingModel(ctx, field)
+			case "pricePerSqm":
+				return ec.fieldContext_ServiceDefinition_pricePerSqm(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ServiceDefinition", field.Name)
 		},
@@ -23132,6 +23615,140 @@ func (ec *executionContext) fieldContext_Mutation_createServiceExtra(ctx context
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_createServiceExtra_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createServiceCategory(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_createServiceCategory,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().CreateServiceCategory(ctx, fc.Args["input"].(model.CreateServiceCategoryInput))
+		},
+		nil,
+		ec.marshalNServiceCategory2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceCategory,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createServiceCategory(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ServiceCategory_id(ctx, field)
+			case "slug":
+				return ec.fieldContext_ServiceCategory_slug(ctx, field)
+			case "nameRo":
+				return ec.fieldContext_ServiceCategory_nameRo(ctx, field)
+			case "nameEn":
+				return ec.fieldContext_ServiceCategory_nameEn(ctx, field)
+			case "descriptionRo":
+				return ec.fieldContext_ServiceCategory_descriptionRo(ctx, field)
+			case "descriptionEn":
+				return ec.fieldContext_ServiceCategory_descriptionEn(ctx, field)
+			case "icon":
+				return ec.fieldContext_ServiceCategory_icon(ctx, field)
+			case "imageUrl":
+				return ec.fieldContext_ServiceCategory_imageUrl(ctx, field)
+			case "commissionPct":
+				return ec.fieldContext_ServiceCategory_commissionPct(ctx, field)
+			case "sortOrder":
+				return ec.fieldContext_ServiceCategory_sortOrder(ctx, field)
+			case "isActive":
+				return ec.fieldContext_ServiceCategory_isActive(ctx, field)
+			case "services":
+				return ec.fieldContext_ServiceCategory_services(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ServiceCategory", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createServiceCategory_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateServiceCategory(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_updateServiceCategory,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().UpdateServiceCategory(ctx, fc.Args["input"].(model.UpdateServiceCategoryInput))
+		},
+		nil,
+		ec.marshalNServiceCategory2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceCategory,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateServiceCategory(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ServiceCategory_id(ctx, field)
+			case "slug":
+				return ec.fieldContext_ServiceCategory_slug(ctx, field)
+			case "nameRo":
+				return ec.fieldContext_ServiceCategory_nameRo(ctx, field)
+			case "nameEn":
+				return ec.fieldContext_ServiceCategory_nameEn(ctx, field)
+			case "descriptionRo":
+				return ec.fieldContext_ServiceCategory_descriptionRo(ctx, field)
+			case "descriptionEn":
+				return ec.fieldContext_ServiceCategory_descriptionEn(ctx, field)
+			case "icon":
+				return ec.fieldContext_ServiceCategory_icon(ctx, field)
+			case "imageUrl":
+				return ec.fieldContext_ServiceCategory_imageUrl(ctx, field)
+			case "commissionPct":
+				return ec.fieldContext_ServiceCategory_commissionPct(ctx, field)
+			case "sortOrder":
+				return ec.fieldContext_ServiceCategory_sortOrder(ctx, field)
+			case "isActive":
+				return ec.fieldContext_ServiceCategory_isActive(ctx, field)
+			case "services":
+				return ec.fieldContext_ServiceCategory_services(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ServiceCategory", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateServiceCategory_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -28778,6 +29395,376 @@ func (ec *executionContext) fieldContext_PlatformTotals_activeCompanies(_ contex
 	return fc, nil
 }
 
+func (ec *executionContext) _PriceAuditConnection_entries(ctx context.Context, field graphql.CollectedField, obj *model.PriceAuditConnection) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PriceAuditConnection_entries,
+		func(ctx context.Context) (any, error) {
+			return obj.Entries, nil
+		},
+		nil,
+		ec.marshalNPriceAuditEntry2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPriceAuditEntryᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PriceAuditConnection_entries(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PriceAuditConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_PriceAuditEntry_id(ctx, field)
+			case "entityType":
+				return ec.fieldContext_PriceAuditEntry_entityType(ctx, field)
+			case "entityId":
+				return ec.fieldContext_PriceAuditEntry_entityId(ctx, field)
+			case "fieldName":
+				return ec.fieldContext_PriceAuditEntry_fieldName(ctx, field)
+			case "oldValue":
+				return ec.fieldContext_PriceAuditEntry_oldValue(ctx, field)
+			case "newValue":
+				return ec.fieldContext_PriceAuditEntry_newValue(ctx, field)
+			case "changedByName":
+				return ec.fieldContext_PriceAuditEntry_changedByName(ctx, field)
+			case "changedByEmail":
+				return ec.fieldContext_PriceAuditEntry_changedByEmail(ctx, field)
+			case "changedAt":
+				return ec.fieldContext_PriceAuditEntry_changedAt(ctx, field)
+			case "reason":
+				return ec.fieldContext_PriceAuditEntry_reason(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PriceAuditEntry", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PriceAuditConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *model.PriceAuditConnection) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PriceAuditConnection_totalCount,
+		func(ctx context.Context) (any, error) {
+			return obj.TotalCount, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PriceAuditConnection_totalCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PriceAuditConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PriceAuditEntry_id(ctx context.Context, field graphql.CollectedField, obj *model.PriceAuditEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PriceAuditEntry_id,
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PriceAuditEntry_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PriceAuditEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PriceAuditEntry_entityType(ctx context.Context, field graphql.CollectedField, obj *model.PriceAuditEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PriceAuditEntry_entityType,
+		func(ctx context.Context) (any, error) {
+			return obj.EntityType, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PriceAuditEntry_entityType(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PriceAuditEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PriceAuditEntry_entityId(ctx context.Context, field graphql.CollectedField, obj *model.PriceAuditEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PriceAuditEntry_entityId,
+		func(ctx context.Context) (any, error) {
+			return obj.EntityID, nil
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PriceAuditEntry_entityId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PriceAuditEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PriceAuditEntry_fieldName(ctx context.Context, field graphql.CollectedField, obj *model.PriceAuditEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PriceAuditEntry_fieldName,
+		func(ctx context.Context) (any, error) {
+			return obj.FieldName, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PriceAuditEntry_fieldName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PriceAuditEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PriceAuditEntry_oldValue(ctx context.Context, field graphql.CollectedField, obj *model.PriceAuditEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PriceAuditEntry_oldValue,
+		func(ctx context.Context) (any, error) {
+			return obj.OldValue, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_PriceAuditEntry_oldValue(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PriceAuditEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PriceAuditEntry_newValue(ctx context.Context, field graphql.CollectedField, obj *model.PriceAuditEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PriceAuditEntry_newValue,
+		func(ctx context.Context) (any, error) {
+			return obj.NewValue, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_PriceAuditEntry_newValue(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PriceAuditEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PriceAuditEntry_changedByName(ctx context.Context, field graphql.CollectedField, obj *model.PriceAuditEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PriceAuditEntry_changedByName,
+		func(ctx context.Context) (any, error) {
+			return obj.ChangedByName, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_PriceAuditEntry_changedByName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PriceAuditEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PriceAuditEntry_changedByEmail(ctx context.Context, field graphql.CollectedField, obj *model.PriceAuditEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PriceAuditEntry_changedByEmail,
+		func(ctx context.Context) (any, error) {
+			return obj.ChangedByEmail, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_PriceAuditEntry_changedByEmail(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PriceAuditEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PriceAuditEntry_changedAt(ctx context.Context, field graphql.CollectedField, obj *model.PriceAuditEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PriceAuditEntry_changedAt,
+		func(ctx context.Context) (any, error) {
+			return obj.ChangedAt, nil
+		},
+		nil,
+		ec.marshalNDateTime2timeᚐTime,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PriceAuditEntry_changedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PriceAuditEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type DateTime does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PriceAuditEntry_reason(ctx context.Context, field graphql.CollectedField, obj *model.PriceAuditEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PriceAuditEntry_reason,
+		func(ctx context.Context) (any, error) {
+			return obj.Reason, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_PriceAuditEntry_reason(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PriceAuditEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _PriceEstimate_hourlyRate(ctx context.Context, field graphql.CollectedField, obj *model.PriceEstimate) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -28853,6 +29840,35 @@ func (ec *executionContext) _PriceEstimate_propertyMultiplier(ctx context.Contex
 }
 
 func (ec *executionContext) fieldContext_PriceEstimate_propertyMultiplier(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PriceEstimate",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PriceEstimate_cityPricingMultiplier(ctx context.Context, field graphql.CollectedField, obj *model.PriceEstimate) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PriceEstimate_cityPricingMultiplier,
+		func(ctx context.Context) (any, error) {
+			return obj.CityPricingMultiplier, nil
+		},
+		nil,
+		ec.marshalNFloat2float64,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PriceEstimate_cityPricingMultiplier(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "PriceEstimate",
 		Field:      field,
@@ -28977,6 +29993,64 @@ func (ec *executionContext) _PriceEstimate_total(ctx context.Context, field grap
 }
 
 func (ec *executionContext) fieldContext_PriceEstimate_total(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PriceEstimate",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PriceEstimate_pricingModel(ctx context.Context, field graphql.CollectedField, obj *model.PriceEstimate) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PriceEstimate_pricingModel,
+		func(ctx context.Context) (any, error) {
+			return obj.PricingModel, nil
+		},
+		nil,
+		ec.marshalNPricingModel2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPricingModel,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PriceEstimate_pricingModel(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PriceEstimate",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type PricingModel does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PriceEstimate_areaTotal(ctx context.Context, field graphql.CollectedField, obj *model.PriceEstimate) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PriceEstimate_areaTotal,
+		func(ctx context.Context) (any, error) {
+			return obj.AreaTotal, nil
+		},
+		nil,
+		ec.marshalOFloat2ᚖfloat64,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_PriceEstimate_areaTotal(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "PriceEstimate",
 		Field:      field,
@@ -29866,6 +30940,53 @@ func (ec *executionContext) fieldContext_Query_companyRevenueByDateRange(ctx con
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_companyRevenueByDateRange_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_priceAuditLog(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_priceAuditLog,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Query().PriceAuditLog(ctx, fc.Args["entityType"].(*string), fc.Args["limit"].(*int), fc.Args["offset"].(*int))
+		},
+		nil,
+		ec.marshalNPriceAuditConnection2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPriceAuditConnection,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_priceAuditLog(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "entries":
+				return ec.fieldContext_PriceAuditConnection_entries(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_PriceAuditConnection_totalCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PriceAuditConnection", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_priceAuditLog_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -31851,6 +32972,8 @@ func (ec *executionContext) fieldContext_Query_activeCities(_ context.Context, f
 				return ec.fieldContext_EnabledCity_county(ctx, field)
 			case "isActive":
 				return ec.fieldContext_EnabledCity_isActive(ctx, field)
+			case "pricingMultiplier":
+				return ec.fieldContext_EnabledCity_pricingMultiplier(ctx, field)
 			case "areas":
 				return ec.fieldContext_EnabledCity_areas(ctx, field)
 			}
@@ -31943,6 +33066,8 @@ func (ec *executionContext) fieldContext_Query_allCities(_ context.Context, fiel
 				return ec.fieldContext_EnabledCity_county(ctx, field)
 			case "isActive":
 				return ec.fieldContext_EnabledCity_isActive(ctx, field)
+			case "pricingMultiplier":
+				return ec.fieldContext_EnabledCity_pricingMultiplier(ctx, field)
 			case "areas":
 				return ec.fieldContext_EnabledCity_areas(ctx, field)
 			}
@@ -33103,6 +34228,12 @@ func (ec *executionContext) fieldContext_Query_availableServices(_ context.Conte
 				return ec.fieldContext_ServiceDefinition_isActive(ctx, field)
 			case "includedItems":
 				return ec.fieldContext_ServiceDefinition_includedItems(ctx, field)
+			case "categoryId":
+				return ec.fieldContext_ServiceDefinition_categoryId(ctx, field)
+			case "pricingModel":
+				return ec.fieldContext_ServiceDefinition_pricingModel(ctx, field)
+			case "pricePerSqm":
+				return ec.fieldContext_ServiceDefinition_pricePerSqm(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ServiceDefinition", field.Name)
 		},
@@ -33190,6 +34321,8 @@ func (ec *executionContext) fieldContext_Query_estimatePrice(ctx context.Context
 				return ec.fieldContext_PriceEstimate_estimatedHours(ctx, field)
 			case "propertyMultiplier":
 				return ec.fieldContext_PriceEstimate_propertyMultiplier(ctx, field)
+			case "cityPricingMultiplier":
+				return ec.fieldContext_PriceEstimate_cityPricingMultiplier(ctx, field)
 			case "petsSurcharge":
 				return ec.fieldContext_PriceEstimate_petsSurcharge(ctx, field)
 			case "subtotal":
@@ -33198,6 +34331,10 @@ func (ec *executionContext) fieldContext_Query_estimatePrice(ctx context.Context
 				return ec.fieldContext_PriceEstimate_extras(ctx, field)
 			case "total":
 				return ec.fieldContext_PriceEstimate_total(ctx, field)
+			case "pricingModel":
+				return ec.fieldContext_PriceEstimate_pricingModel(ctx, field)
+			case "areaTotal":
+				return ec.fieldContext_PriceEstimate_areaTotal(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type PriceEstimate", field.Name)
 		},
@@ -33212,6 +34349,183 @@ func (ec *executionContext) fieldContext_Query_estimatePrice(ctx context.Context
 	if fc.Args, err = ec.field_Query_estimatePrice_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_serviceCategories(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_serviceCategories,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.Query().ServiceCategories(ctx)
+		},
+		nil,
+		ec.marshalNServiceCategory2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceCategoryᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_serviceCategories(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ServiceCategory_id(ctx, field)
+			case "slug":
+				return ec.fieldContext_ServiceCategory_slug(ctx, field)
+			case "nameRo":
+				return ec.fieldContext_ServiceCategory_nameRo(ctx, field)
+			case "nameEn":
+				return ec.fieldContext_ServiceCategory_nameEn(ctx, field)
+			case "descriptionRo":
+				return ec.fieldContext_ServiceCategory_descriptionRo(ctx, field)
+			case "descriptionEn":
+				return ec.fieldContext_ServiceCategory_descriptionEn(ctx, field)
+			case "icon":
+				return ec.fieldContext_ServiceCategory_icon(ctx, field)
+			case "imageUrl":
+				return ec.fieldContext_ServiceCategory_imageUrl(ctx, field)
+			case "commissionPct":
+				return ec.fieldContext_ServiceCategory_commissionPct(ctx, field)
+			case "sortOrder":
+				return ec.fieldContext_ServiceCategory_sortOrder(ctx, field)
+			case "isActive":
+				return ec.fieldContext_ServiceCategory_isActive(ctx, field)
+			case "services":
+				return ec.fieldContext_ServiceCategory_services(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ServiceCategory", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_serviceCategoryBySlug(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_serviceCategoryBySlug,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Query().ServiceCategoryBySlug(ctx, fc.Args["slug"].(string))
+		},
+		nil,
+		ec.marshalOServiceCategory2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceCategory,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_serviceCategoryBySlug(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ServiceCategory_id(ctx, field)
+			case "slug":
+				return ec.fieldContext_ServiceCategory_slug(ctx, field)
+			case "nameRo":
+				return ec.fieldContext_ServiceCategory_nameRo(ctx, field)
+			case "nameEn":
+				return ec.fieldContext_ServiceCategory_nameEn(ctx, field)
+			case "descriptionRo":
+				return ec.fieldContext_ServiceCategory_descriptionRo(ctx, field)
+			case "descriptionEn":
+				return ec.fieldContext_ServiceCategory_descriptionEn(ctx, field)
+			case "icon":
+				return ec.fieldContext_ServiceCategory_icon(ctx, field)
+			case "imageUrl":
+				return ec.fieldContext_ServiceCategory_imageUrl(ctx, field)
+			case "commissionPct":
+				return ec.fieldContext_ServiceCategory_commissionPct(ctx, field)
+			case "sortOrder":
+				return ec.fieldContext_ServiceCategory_sortOrder(ctx, field)
+			case "isActive":
+				return ec.fieldContext_ServiceCategory_isActive(ctx, field)
+			case "services":
+				return ec.fieldContext_ServiceCategory_services(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ServiceCategory", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_serviceCategoryBySlug_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_allServiceCategories(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_allServiceCategories,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.Query().AllServiceCategories(ctx)
+		},
+		nil,
+		ec.marshalNServiceCategory2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceCategoryᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_allServiceCategories(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ServiceCategory_id(ctx, field)
+			case "slug":
+				return ec.fieldContext_ServiceCategory_slug(ctx, field)
+			case "nameRo":
+				return ec.fieldContext_ServiceCategory_nameRo(ctx, field)
+			case "nameEn":
+				return ec.fieldContext_ServiceCategory_nameEn(ctx, field)
+			case "descriptionRo":
+				return ec.fieldContext_ServiceCategory_descriptionRo(ctx, field)
+			case "descriptionEn":
+				return ec.fieldContext_ServiceCategory_descriptionEn(ctx, field)
+			case "icon":
+				return ec.fieldContext_ServiceCategory_icon(ctx, field)
+			case "imageUrl":
+				return ec.fieldContext_ServiceCategory_imageUrl(ctx, field)
+			case "commissionPct":
+				return ec.fieldContext_ServiceCategory_commissionPct(ctx, field)
+			case "sortOrder":
+				return ec.fieldContext_ServiceCategory_sortOrder(ctx, field)
+			case "isActive":
+				return ec.fieldContext_ServiceCategory_isActive(ctx, field)
+			case "services":
+				return ec.fieldContext_ServiceCategory_services(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ServiceCategory", field.Name)
+		},
 	}
 	return fc, nil
 }
@@ -33272,6 +34586,12 @@ func (ec *executionContext) fieldContext_Query_allServices(_ context.Context, fi
 				return ec.fieldContext_ServiceDefinition_isActive(ctx, field)
 			case "includedItems":
 				return ec.fieldContext_ServiceDefinition_includedItems(ctx, field)
+			case "categoryId":
+				return ec.fieldContext_ServiceDefinition_categoryId(ctx, field)
+			case "pricingModel":
+				return ec.fieldContext_ServiceDefinition_pricingModel(ctx, field)
+			case "pricePerSqm":
+				return ec.fieldContext_ServiceDefinition_pricePerSqm(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ServiceDefinition", field.Name)
 		},
@@ -36147,6 +37467,394 @@ func (ec *executionContext) fieldContext_ReviewConnection_totalCount(_ context.C
 	return fc, nil
 }
 
+func (ec *executionContext) _ServiceCategory_id(ctx context.Context, field graphql.CollectedField, obj *model.ServiceCategory) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ServiceCategory_id,
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ServiceCategory_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceCategory",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceCategory_slug(ctx context.Context, field graphql.CollectedField, obj *model.ServiceCategory) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ServiceCategory_slug,
+		func(ctx context.Context) (any, error) {
+			return obj.Slug, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ServiceCategory_slug(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceCategory",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceCategory_nameRo(ctx context.Context, field graphql.CollectedField, obj *model.ServiceCategory) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ServiceCategory_nameRo,
+		func(ctx context.Context) (any, error) {
+			return obj.NameRo, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ServiceCategory_nameRo(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceCategory",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceCategory_nameEn(ctx context.Context, field graphql.CollectedField, obj *model.ServiceCategory) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ServiceCategory_nameEn,
+		func(ctx context.Context) (any, error) {
+			return obj.NameEn, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ServiceCategory_nameEn(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceCategory",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceCategory_descriptionRo(ctx context.Context, field graphql.CollectedField, obj *model.ServiceCategory) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ServiceCategory_descriptionRo,
+		func(ctx context.Context) (any, error) {
+			return obj.DescriptionRo, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ServiceCategory_descriptionRo(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceCategory",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceCategory_descriptionEn(ctx context.Context, field graphql.CollectedField, obj *model.ServiceCategory) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ServiceCategory_descriptionEn,
+		func(ctx context.Context) (any, error) {
+			return obj.DescriptionEn, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ServiceCategory_descriptionEn(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceCategory",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceCategory_icon(ctx context.Context, field graphql.CollectedField, obj *model.ServiceCategory) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ServiceCategory_icon,
+		func(ctx context.Context) (any, error) {
+			return obj.Icon, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ServiceCategory_icon(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceCategory",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceCategory_imageUrl(ctx context.Context, field graphql.CollectedField, obj *model.ServiceCategory) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ServiceCategory_imageUrl,
+		func(ctx context.Context) (any, error) {
+			return obj.ImageURL, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ServiceCategory_imageUrl(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceCategory",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceCategory_commissionPct(ctx context.Context, field graphql.CollectedField, obj *model.ServiceCategory) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ServiceCategory_commissionPct,
+		func(ctx context.Context) (any, error) {
+			return obj.CommissionPct, nil
+		},
+		nil,
+		ec.marshalOFloat2ᚖfloat64,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ServiceCategory_commissionPct(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceCategory",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceCategory_sortOrder(ctx context.Context, field graphql.CollectedField, obj *model.ServiceCategory) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ServiceCategory_sortOrder,
+		func(ctx context.Context) (any, error) {
+			return obj.SortOrder, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ServiceCategory_sortOrder(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceCategory",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceCategory_isActive(ctx context.Context, field graphql.CollectedField, obj *model.ServiceCategory) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ServiceCategory_isActive,
+		func(ctx context.Context) (any, error) {
+			return obj.IsActive, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ServiceCategory_isActive(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceCategory",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceCategory_services(ctx context.Context, field graphql.CollectedField, obj *model.ServiceCategory) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ServiceCategory_services,
+		func(ctx context.Context) (any, error) {
+			return obj.Services, nil
+		},
+		nil,
+		ec.marshalNServiceDefinition2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceDefinitionᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ServiceCategory_services(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceCategory",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ServiceDefinition_id(ctx, field)
+			case "serviceType":
+				return ec.fieldContext_ServiceDefinition_serviceType(ctx, field)
+			case "nameRo":
+				return ec.fieldContext_ServiceDefinition_nameRo(ctx, field)
+			case "nameEn":
+				return ec.fieldContext_ServiceDefinition_nameEn(ctx, field)
+			case "descriptionRo":
+				return ec.fieldContext_ServiceDefinition_descriptionRo(ctx, field)
+			case "descriptionEn":
+				return ec.fieldContext_ServiceDefinition_descriptionEn(ctx, field)
+			case "basePricePerHour":
+				return ec.fieldContext_ServiceDefinition_basePricePerHour(ctx, field)
+			case "minHours":
+				return ec.fieldContext_ServiceDefinition_minHours(ctx, field)
+			case "hoursPerRoom":
+				return ec.fieldContext_ServiceDefinition_hoursPerRoom(ctx, field)
+			case "hoursPerBathroom":
+				return ec.fieldContext_ServiceDefinition_hoursPerBathroom(ctx, field)
+			case "hoursPer100Sqm":
+				return ec.fieldContext_ServiceDefinition_hoursPer100Sqm(ctx, field)
+			case "houseMultiplier":
+				return ec.fieldContext_ServiceDefinition_houseMultiplier(ctx, field)
+			case "petDurationMinutes":
+				return ec.fieldContext_ServiceDefinition_petDurationMinutes(ctx, field)
+			case "icon":
+				return ec.fieldContext_ServiceDefinition_icon(ctx, field)
+			case "isActive":
+				return ec.fieldContext_ServiceDefinition_isActive(ctx, field)
+			case "includedItems":
+				return ec.fieldContext_ServiceDefinition_includedItems(ctx, field)
+			case "categoryId":
+				return ec.fieldContext_ServiceDefinition_categoryId(ctx, field)
+			case "pricingModel":
+				return ec.fieldContext_ServiceDefinition_pricingModel(ctx, field)
+			case "pricePerSqm":
+				return ec.fieldContext_ServiceDefinition_pricePerSqm(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ServiceDefinition", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ServiceDefinition_id(ctx context.Context, field graphql.CollectedField, obj *model.ServiceDefinition) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -36606,6 +38314,93 @@ func (ec *executionContext) fieldContext_ServiceDefinition_includedItems(_ conte
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceDefinition_categoryId(ctx context.Context, field graphql.CollectedField, obj *model.ServiceDefinition) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ServiceDefinition_categoryId,
+		func(ctx context.Context) (any, error) {
+			return obj.CategoryID, nil
+		},
+		nil,
+		ec.marshalOID2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ServiceDefinition_categoryId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceDefinition",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceDefinition_pricingModel(ctx context.Context, field graphql.CollectedField, obj *model.ServiceDefinition) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ServiceDefinition_pricingModel,
+		func(ctx context.Context) (any, error) {
+			return obj.PricingModel, nil
+		},
+		nil,
+		ec.marshalNPricingModel2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPricingModel,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ServiceDefinition_pricingModel(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceDefinition",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type PricingModel does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceDefinition_pricePerSqm(ctx context.Context, field graphql.CollectedField, obj *model.ServiceDefinition) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ServiceDefinition_pricePerSqm,
+		func(ctx context.Context) (any, error) {
+			return obj.PricePerSqm, nil
+		},
+		nil,
+		ec.marshalOFloat2ᚖfloat64,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ServiceDefinition_pricePerSqm(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceDefinition",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
 		},
 	}
 	return fc, nil
@@ -44326,6 +46121,96 @@ func (ec *executionContext) unmarshalInputCreateBookingInput(ctx context.Context
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputCreateServiceCategoryInput(ctx context.Context, obj any) (model.CreateServiceCategoryInput, error) {
+	var it model.CreateServiceCategoryInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"slug", "nameRo", "nameEn", "descriptionRo", "descriptionEn", "icon", "imageUrl", "commissionPct", "sortOrder", "isActive"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "slug":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("slug"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Slug = data
+		case "nameRo":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameRo"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NameRo = data
+		case "nameEn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameEn"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NameEn = data
+		case "descriptionRo":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("descriptionRo"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DescriptionRo = data
+		case "descriptionEn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("descriptionEn"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DescriptionEn = data
+		case "icon":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("icon"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Icon = data
+		case "imageUrl":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("imageUrl"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ImageURL = data
+		case "commissionPct":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("commissionPct"))
+			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CommissionPct = data
+		case "sortOrder":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sortOrder"))
+			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.SortOrder = data
+		case "isActive":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isActive"))
+			data, err := ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IsActive = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCreateServiceDefinitionInput(ctx context.Context, obj any) (model.CreateServiceDefinitionInput, error) {
 	var it model.CreateServiceDefinitionInput
 	asMap := map[string]any{}
@@ -44333,7 +46218,7 @@ func (ec *executionContext) unmarshalInputCreateServiceDefinitionInput(ctx conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"serviceType", "nameRo", "nameEn", "basePricePerHour", "minHours", "hoursPerRoom", "hoursPerBathroom", "hoursPer100Sqm", "houseMultiplier", "petDurationMinutes", "isActive", "includedItems"}
+	fieldsInOrder := [...]string{"serviceType", "nameRo", "nameEn", "basePricePerHour", "minHours", "hoursPerRoom", "hoursPerBathroom", "hoursPer100Sqm", "houseMultiplier", "petDurationMinutes", "isActive", "includedItems", "categoryId", "pricingModel", "pricePerSqm"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -44424,6 +46309,27 @@ func (ec *executionContext) unmarshalInputCreateServiceDefinitionInput(ctx conte
 				return it, err
 			}
 			it.IncludedItems = data
+		case "categoryId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoryId"))
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CategoryID = data
+		case "pricingModel":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pricingModel"))
+			data, err := ec.unmarshalNPricingModel2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPricingModel(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PricingModel = data
+		case "pricePerSqm":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pricePerSqm"))
+			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PricePerSqm = data
 		}
 	}
 
@@ -44809,7 +46715,7 @@ func (ec *executionContext) unmarshalInputPriceEstimateInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"serviceType", "numRooms", "numBathrooms", "areaSqm", "propertyType", "hasPets", "extras"}
+	fieldsInOrder := [...]string{"serviceType", "numRooms", "numBathrooms", "areaSqm", "propertyType", "hasPets", "extras", "city"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -44865,6 +46771,13 @@ func (ec *executionContext) unmarshalInputPriceEstimateInput(ctx context.Context
 				return it, err
 			}
 			it.Extras = data
+		case "city":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("city"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.City = data
 		}
 	}
 
@@ -45187,6 +47100,96 @@ func (ec *executionContext) unmarshalInputUpdateProfileInput(ctx context.Context
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUpdateServiceCategoryInput(ctx context.Context, obj any) (model.UpdateServiceCategoryInput, error) {
+	var it model.UpdateServiceCategoryInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"id", "nameRo", "nameEn", "descriptionRo", "descriptionEn", "icon", "imageUrl", "commissionPct", "sortOrder", "isActive"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ID = data
+		case "nameRo":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameRo"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NameRo = data
+		case "nameEn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameEn"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NameEn = data
+		case "descriptionRo":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("descriptionRo"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DescriptionRo = data
+		case "descriptionEn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("descriptionEn"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DescriptionEn = data
+		case "icon":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("icon"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Icon = data
+		case "imageUrl":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("imageUrl"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ImageURL = data
+		case "commissionPct":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("commissionPct"))
+			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CommissionPct = data
+		case "sortOrder":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sortOrder"))
+			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.SortOrder = data
+		case "isActive":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isActive"))
+			data, err := ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IsActive = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputUpdateServiceDefinitionInput(ctx context.Context, obj any) (model.UpdateServiceDefinitionInput, error) {
 	var it model.UpdateServiceDefinitionInput
 	asMap := map[string]any{}
@@ -45194,7 +47197,7 @@ func (ec *executionContext) unmarshalInputUpdateServiceDefinitionInput(ctx conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "nameRo", "nameEn", "basePricePerHour", "minHours", "hoursPerRoom", "hoursPerBathroom", "hoursPer100Sqm", "houseMultiplier", "petDurationMinutes", "isActive", "includedItems"}
+	fieldsInOrder := [...]string{"id", "nameRo", "nameEn", "basePricePerHour", "minHours", "hoursPerRoom", "hoursPerBathroom", "hoursPer100Sqm", "houseMultiplier", "petDurationMinutes", "isActive", "includedItems", "categoryId", "pricingModel", "pricePerSqm"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -45285,6 +47288,27 @@ func (ec *executionContext) unmarshalInputUpdateServiceDefinitionInput(ctx conte
 				return it, err
 			}
 			it.IncludedItems = data
+		case "categoryId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoryId"))
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CategoryID = data
+		case "pricingModel":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pricingModel"))
+			data, err := ec.unmarshalNPricingModel2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPricingModel(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PricingModel = data
+		case "pricePerSqm":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pricePerSqm"))
+			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PricePerSqm = data
 		}
 	}
 
@@ -47235,6 +49259,11 @@ func (ec *executionContext) _EnabledCity(ctx context.Context, sel ast.SelectionS
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "pricingMultiplier":
+			out.Values[i] = ec._EnabledCity_pricingMultiplier(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "areas":
 			out.Values[i] = ec._EnabledCity_areas(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -48094,6 +50123,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "updateCityPricingMultiplier":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateCityPricingMultiplier(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "createCityArea":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createCityArea(ctx, field)
@@ -48265,6 +50301,20 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "createServiceExtra":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createServiceExtra(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createServiceCategory":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createServiceCategory(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updateServiceCategory":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateServiceCategory(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -49595,6 +51645,119 @@ func (ec *executionContext) _PlatformTotals(ctx context.Context, sel ast.Selecti
 	return out
 }
 
+var priceAuditConnectionImplementors = []string{"PriceAuditConnection"}
+
+func (ec *executionContext) _PriceAuditConnection(ctx context.Context, sel ast.SelectionSet, obj *model.PriceAuditConnection) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, priceAuditConnectionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PriceAuditConnection")
+		case "entries":
+			out.Values[i] = ec._PriceAuditConnection_entries(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "totalCount":
+			out.Values[i] = ec._PriceAuditConnection_totalCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var priceAuditEntryImplementors = []string{"PriceAuditEntry"}
+
+func (ec *executionContext) _PriceAuditEntry(ctx context.Context, sel ast.SelectionSet, obj *model.PriceAuditEntry) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, priceAuditEntryImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PriceAuditEntry")
+		case "id":
+			out.Values[i] = ec._PriceAuditEntry_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "entityType":
+			out.Values[i] = ec._PriceAuditEntry_entityType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "entityId":
+			out.Values[i] = ec._PriceAuditEntry_entityId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "fieldName":
+			out.Values[i] = ec._PriceAuditEntry_fieldName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "oldValue":
+			out.Values[i] = ec._PriceAuditEntry_oldValue(ctx, field, obj)
+		case "newValue":
+			out.Values[i] = ec._PriceAuditEntry_newValue(ctx, field, obj)
+		case "changedByName":
+			out.Values[i] = ec._PriceAuditEntry_changedByName(ctx, field, obj)
+		case "changedByEmail":
+			out.Values[i] = ec._PriceAuditEntry_changedByEmail(ctx, field, obj)
+		case "changedAt":
+			out.Values[i] = ec._PriceAuditEntry_changedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "reason":
+			out.Values[i] = ec._PriceAuditEntry_reason(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var priceEstimateImplementors = []string{"PriceEstimate"}
 
 func (ec *executionContext) _PriceEstimate(ctx context.Context, sel ast.SelectionSet, obj *model.PriceEstimate) graphql.Marshaler {
@@ -49621,6 +51784,11 @@ func (ec *executionContext) _PriceEstimate(ctx context.Context, sel ast.Selectio
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "cityPricingMultiplier":
+			out.Values[i] = ec._PriceEstimate_cityPricingMultiplier(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "petsSurcharge":
 			out.Values[i] = ec._PriceEstimate_petsSurcharge(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -49641,6 +51809,13 @@ func (ec *executionContext) _PriceEstimate(ctx context.Context, sel ast.Selectio
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "pricingModel":
+			out.Values[i] = ec._PriceEstimate_pricingModel(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "areaTotal":
+			out.Values[i] = ec._PriceEstimate_areaTotal(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -50045,6 +52220,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_companyRevenueByDateRange(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "priceAuditLog":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_priceAuditLog(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -51315,6 +53512,69 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "serviceCategories":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_serviceCategories(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "serviceCategoryBySlug":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_serviceCategoryBySlug(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "allServiceCategories":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_allServiceCategories(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "allServices":
 			field := field
 
@@ -52362,6 +54622,85 @@ func (ec *executionContext) _ReviewConnection(ctx context.Context, sel ast.Selec
 	return out
 }
 
+var serviceCategoryImplementors = []string{"ServiceCategory"}
+
+func (ec *executionContext) _ServiceCategory(ctx context.Context, sel ast.SelectionSet, obj *model.ServiceCategory) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, serviceCategoryImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ServiceCategory")
+		case "id":
+			out.Values[i] = ec._ServiceCategory_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "slug":
+			out.Values[i] = ec._ServiceCategory_slug(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "nameRo":
+			out.Values[i] = ec._ServiceCategory_nameRo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "nameEn":
+			out.Values[i] = ec._ServiceCategory_nameEn(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "descriptionRo":
+			out.Values[i] = ec._ServiceCategory_descriptionRo(ctx, field, obj)
+		case "descriptionEn":
+			out.Values[i] = ec._ServiceCategory_descriptionEn(ctx, field, obj)
+		case "icon":
+			out.Values[i] = ec._ServiceCategory_icon(ctx, field, obj)
+		case "imageUrl":
+			out.Values[i] = ec._ServiceCategory_imageUrl(ctx, field, obj)
+		case "commissionPct":
+			out.Values[i] = ec._ServiceCategory_commissionPct(ctx, field, obj)
+		case "sortOrder":
+			out.Values[i] = ec._ServiceCategory_sortOrder(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "isActive":
+			out.Values[i] = ec._ServiceCategory_isActive(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "services":
+			out.Values[i] = ec._ServiceCategory_services(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var serviceDefinitionImplementors = []string{"ServiceDefinition"}
 
 func (ec *executionContext) _ServiceDefinition(ctx context.Context, sel ast.SelectionSet, obj *model.ServiceDefinition) graphql.Marshaler {
@@ -52444,6 +54783,15 @@ func (ec *executionContext) _ServiceDefinition(ctx context.Context, sel ast.Sele
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "categoryId":
+			out.Values[i] = ec._ServiceDefinition_categoryId(ctx, field, obj)
+		case "pricingModel":
+			out.Values[i] = ec._ServiceDefinition_pricingModel(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "pricePerSqm":
+			out.Values[i] = ec._ServiceDefinition_pricePerSqm(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -55482,6 +57830,11 @@ func (ec *executionContext) unmarshalNCreateBookingInput2go2fixᚑbackendᚋinte
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNCreateServiceCategoryInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCreateServiceCategoryInput(ctx context.Context, v any) (model.CreateServiceCategoryInput, error) {
+	res, err := ec.unmarshalInputCreateServiceCategoryInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNCreateServiceDefinitionInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCreateServiceDefinitionInput(ctx context.Context, v any) (model.CreateServiceDefinitionInput, error) {
 	res, err := ec.unmarshalInputCreateServiceDefinitionInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -56656,6 +59009,74 @@ func (ec *executionContext) marshalNPlatformTotals2ᚖgo2fixᚑbackendᚋinterna
 	return ec._PlatformTotals(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNPriceAuditConnection2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPriceAuditConnection(ctx context.Context, sel ast.SelectionSet, v model.PriceAuditConnection) graphql.Marshaler {
+	return ec._PriceAuditConnection(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNPriceAuditConnection2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPriceAuditConnection(ctx context.Context, sel ast.SelectionSet, v *model.PriceAuditConnection) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._PriceAuditConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNPriceAuditEntry2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPriceAuditEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PriceAuditEntry) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNPriceAuditEntry2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPriceAuditEntry(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNPriceAuditEntry2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPriceAuditEntry(ctx context.Context, sel ast.SelectionSet, v *model.PriceAuditEntry) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._PriceAuditEntry(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNPriceEstimate2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPriceEstimate(ctx context.Context, sel ast.SelectionSet, v model.PriceEstimate) graphql.Marshaler {
 	return ec._PriceEstimate(ctx, sel, &v)
 }
@@ -56673,6 +59094,16 @@ func (ec *executionContext) marshalNPriceEstimate2ᚖgo2fixᚑbackendᚋinternal
 func (ec *executionContext) unmarshalNPriceEstimateInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPriceEstimateInput(ctx context.Context, v any) (model.PriceEstimateInput, error) {
 	res, err := ec.unmarshalInputPriceEstimateInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNPricingModel2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPricingModel(ctx context.Context, v any) (model.PricingModel, error) {
+	var res model.PricingModel
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNPricingModel2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPricingModel(ctx context.Context, sel ast.SelectionSet, v model.PricingModel) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalNRecurrenceType2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐRecurrenceType(ctx context.Context, v any) (model.RecurrenceType, error) {
@@ -56949,6 +59380,64 @@ func (ec *executionContext) marshalNReviewConnection2ᚖgo2fixᚑbackendᚋinter
 		return graphql.Null
 	}
 	return ec._ReviewConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNServiceCategory2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceCategory(ctx context.Context, sel ast.SelectionSet, v model.ServiceCategory) graphql.Marshaler {
+	return ec._ServiceCategory(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNServiceCategory2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceCategoryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ServiceCategory) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNServiceCategory2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceCategory(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNServiceCategory2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceCategory(ctx context.Context, sel ast.SelectionSet, v *model.ServiceCategory) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ServiceCategory(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNServiceDefinition2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceDefinition(ctx context.Context, sel ast.SelectionSet, v model.ServiceDefinition) graphql.Marshaler {
@@ -57474,6 +59963,11 @@ func (ec *executionContext) unmarshalNUpdateCompanyInput2go2fixᚑbackendᚋinte
 
 func (ec *executionContext) unmarshalNUpdateProfileInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUpdateProfileInput(ctx context.Context, v any) (model.UpdateProfileInput, error) {
 	res, err := ec.unmarshalInputUpdateProfileInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNUpdateServiceCategoryInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUpdateServiceCategoryInput(ctx context.Context, v any) (model.UpdateServiceCategoryInput, error) {
+	res, err := ec.unmarshalInputUpdateServiceCategoryInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -58635,6 +61129,13 @@ func (ec *executionContext) marshalOReview2ᚖgo2fixᚑbackendᚋinternalᚋgrap
 		return graphql.Null
 	}
 	return ec._Review(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOServiceCategory2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceCategory(ctx context.Context, sel ast.SelectionSet, v *model.ServiceCategory) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ServiceCategory(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOString2ᚕstringᚄ(ctx context.Context, v any) ([]string, error) {
