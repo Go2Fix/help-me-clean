@@ -40,6 +40,25 @@ func (q *Queries) CountAllReviewsFiltered(ctx context.Context, arg CountAllRevie
 	return count, err
 }
 
+const countReviewsByCompanyWorkers = `-- name: CountReviewsByCompanyWorkers :one
+SELECT COUNT(*) FROM reviews r
+JOIN workers w ON r.reviewed_worker_id = w.id
+WHERE w.company_id = $1
+  AND ($2::int IS NULL OR r.rating = $2)
+`
+
+type CountReviewsByCompanyWorkersParams struct {
+	CompanyID pgtype.UUID `json:"company_id"`
+	Rating    pgtype.Int4 `json:"rating"`
+}
+
+func (q *Queries) CountReviewsByCompanyWorkers(ctx context.Context, arg CountReviewsByCompanyWorkersParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countReviewsByCompanyWorkers, arg.CompanyID, arg.Rating)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const countReviewsByWorkerID = `-- name: CountReviewsByWorkerID :one
 SELECT COUNT(*) FROM reviews WHERE reviewed_worker_id = $1
 `
@@ -193,6 +212,57 @@ func (q *Queries) ListAllReviewsFiltered(ctx context.Context, arg ListAllReviews
 		arg.Offset,
 		arg.Rating,
 		arg.ReviewType,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Review
+	for rows.Next() {
+		var i Review
+		if err := rows.Scan(
+			&i.ID,
+			&i.BookingID,
+			&i.ReviewerUserID,
+			&i.ReviewedUserID,
+			&i.ReviewedWorkerID,
+			&i.Rating,
+			&i.Comment,
+			&i.ReviewType,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listReviewsByCompanyWorkers = `-- name: ListReviewsByCompanyWorkers :many
+SELECT r.id, r.booking_id, r.reviewer_user_id, r.reviewed_user_id, r.reviewed_worker_id, r.rating, r.comment, r.review_type, r.created_at FROM reviews r
+JOIN workers w ON r.reviewed_worker_id = w.id
+WHERE w.company_id = $1
+  AND ($4::int IS NULL OR r.rating = $4)
+ORDER BY r.created_at DESC
+LIMIT $2 OFFSET $3
+`
+
+type ListReviewsByCompanyWorkersParams struct {
+	CompanyID pgtype.UUID `json:"company_id"`
+	Limit     int32       `json:"limit"`
+	Offset    int32       `json:"offset"`
+	Rating    pgtype.Int4 `json:"rating"`
+}
+
+func (q *Queries) ListReviewsByCompanyWorkers(ctx context.Context, arg ListReviewsByCompanyWorkersParams) ([]Review, error) {
+	rows, err := q.db.Query(ctx, listReviewsByCompanyWorkers,
+		arg.CompanyID,
+		arg.Limit,
+		arg.Offset,
+		arg.Rating,
 	)
 	if err != nil {
 		return nil, err

@@ -11,6 +11,8 @@ import (
 	"go2fix-backend/internal/auth"
 	db "go2fix-backend/internal/db/generated"
 	"go2fix-backend/internal/graph/model"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 // SubmitReview is the resolver for the submitReview field.
@@ -42,4 +44,91 @@ func (r *mutationResolver) SubmitReview(ctx context.Context, input model.SubmitR
 	}
 
 	return dbReviewToGQL(review), nil
+}
+
+// CompanyWorkerReviews is the resolver for the companyWorkerReviews field.
+func (r *queryResolver) CompanyWorkerReviews(ctx context.Context, limit *int, offset *int, rating *int) (*model.ReviewConnection, error) {
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil {
+		return nil, fmt.Errorf("not authenticated")
+	}
+	if claims.Role != "company_admin" {
+		return nil, fmt.Errorf("not authorized: company_admin role required")
+	}
+
+	company, err := r.Queries.GetCompanyByAdminUserID(ctx, stringToUUID(claims.UserID))
+	if err != nil {
+		return nil, fmt.Errorf("company not found for user: %w", err)
+	}
+
+	l := int32(20)
+	if limit != nil {
+		l = int32(*limit)
+	}
+	o := int32(0)
+	if offset != nil {
+		o = int32(*offset)
+	}
+
+	var ratingParam pgtype.Int4
+	if rating != nil {
+		ratingParam = pgtype.Int4{Int32: int32(*rating), Valid: true}
+	}
+
+	dbReviews, err := r.Queries.ListReviewsByCompanyWorkers(ctx, db.ListReviewsByCompanyWorkersParams{
+		CompanyID: company.ID,
+		Limit:     l,
+		Offset:    o,
+		Rating:    ratingParam,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to list company worker reviews: %w", err)
+	}
+
+	count, err := r.Queries.CountReviewsByCompanyWorkers(ctx, db.CountReviewsByCompanyWorkersParams{
+		CompanyID: company.ID,
+		Rating:    ratingParam,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to count company worker reviews: %w", err)
+	}
+
+	reviews := make([]*model.Review, len(dbReviews))
+	for i, rv := range dbReviews {
+		review := dbReviewToGQL(rv)
+
+		// Populate the associated booking.
+		if rv.BookingID.Valid {
+			if booking, bErr := r.Queries.GetBookingByID(ctx, rv.BookingID); bErr == nil {
+				review.Booking = dbBookingToGQL(booking)
+			}
+		}
+
+		// Populate the reviewer user.
+		if rv.ReviewerUserID.Valid {
+			if user, uErr := r.Queries.GetUserByID(ctx, rv.ReviewerUserID); uErr == nil {
+				review.Reviewer = dbUserToGQL(user)
+			}
+		}
+
+		// Populate the reviewed worker profile.
+		if rv.ReviewedWorkerID.Valid {
+			if worker, wErr := r.Queries.GetWorkerByID(ctx, rv.ReviewedWorkerID); wErr == nil {
+				var userPtr *db.User
+				if worker.UserID.Valid {
+					if u, uErr := r.Queries.GetUserByID(ctx, worker.UserID); uErr == nil {
+						userPtr = &u
+					}
+				}
+				review.Worker = dbWorkerToGQL(worker, userPtr)
+			}
+		}
+
+		reviews[i] = review
+	}
+
+	return &model.ReviewConnection{
+		Reviews:    reviews,
+		TotalCount: int(count),
+	}, nil
 }

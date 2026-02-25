@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import { useMutation } from '@apollo/client';
+import { useMutation, useQuery } from '@apollo/client';
 import RegisterCompanyPage from '@/pages/RegisterCompanyPage';
 import { useAuth } from '@/context/AuthContext';
 
@@ -38,6 +38,7 @@ vi.mock('@apollo/client', async () => {
   return {
     ...actual,
     useMutation: vi.fn(),
+    useQuery: vi.fn(),
   };
 });
 
@@ -62,6 +63,7 @@ describe('RegisterCompanyPage', () => {
     mockApplyFn = vi.fn();
     mockClaimFn = vi.fn();
     vi.mocked(useAuth).mockReturnValue({ ...defaultAuth });
+    vi.mocked(useQuery).mockReturnValue({ data: { serviceCategories: [] }, loading: false } as any);
 
     // The component calls useMutation twice per render: first APPLY_AS_COMPANY, then CLAIM_COMPANY.
     // We use a counter that resets every 2 calls to handle re-renders correctly.

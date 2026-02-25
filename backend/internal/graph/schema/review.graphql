@@ -2,6 +2,7 @@ type Review {
   id: ID!
   booking: Booking
   reviewer: User
+  worker: WorkerProfile
   rating: Int!
   comment: String
   reviewType: String!
@@ -11,6 +12,10 @@ type Review {
 type ReviewConnection {
   reviews: [Review!]!
   totalCount: Int!
+}
+
+extend type Query {
+  companyWorkerReviews(limit: Int, offset: Int, rating: Int): ReviewConnection!
 }
 
 extend type Mutation {

@@ -81,6 +81,27 @@ func (r *mutationResolver) ApplyAsCompany(ctx context.Context, input model.Compa
 		return nil, fmt.Errorf("failed to create company application: %w", err)
 	}
 
+	// Assign service categories to the new company.
+	if len(input.CategoryIds) > 0 {
+		for _, catID := range input.CategoryIds {
+			if err := r.Queries.InsertCompanyServiceCategory(ctx, db.InsertCompanyServiceCategoryParams{
+				CompanyID:  company.ID,
+				CategoryID: stringToUUID(catID),
+			}); err != nil {
+				log.Printf("failed to assign category %s to company %s: %v", catID, uuidToString(company.ID), err)
+			}
+		}
+	} else {
+		// Default to "curatenie" category when no categories specified.
+		curatenie, err := r.Queries.GetServiceCategoryBySlug(ctx, "curatenie")
+		if err == nil {
+			_ = r.Queries.InsertCompanyServiceCategory(ctx, db.InsertCompanyServiceCategoryParams{
+				CompanyID:  company.ID,
+				CategoryID: curatenie.ID,
+			})
+		}
+	}
+
 	// For authenticated users, upgrade their role to COMPANY_ADMIN immediately.
 	// (Unauthenticated users get upgraded later via ClaimCompany.)
 	if claims != nil {

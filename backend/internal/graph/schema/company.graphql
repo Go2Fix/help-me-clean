@@ -110,6 +110,7 @@ input CompanyApplicationInput {
   city: String!
   county: String!
   description: String
+  categoryIds: [ID!]
 }
 
 input UpdateCompanyInput {

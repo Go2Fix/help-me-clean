@@ -748,6 +748,7 @@ type ComplexityRoot struct {
 		CompanyReceivedInvoices            func(childComplexity int, first *int, after *string) int
 		CompanyRevenueByDateRange          func(childComplexity int, from string, to string) int
 		CompanySubscriptions               func(childComplexity int, limit *int, offset *int) int
+		CompanyWorkerReviews               func(childComplexity int, limit *int, offset *int, rating *int) int
 		EstimatePrice                      func(childComplexity int, input model.PriceEstimateInput) int
 		GetDocumentURL                     func(childComplexity int, documentID string) int
 		InvoiceAnalytics                   func(childComplexity int, from string, to string) int
@@ -861,6 +862,7 @@ type ComplexityRoot struct {
 		Rating     func(childComplexity int) int
 		ReviewType func(childComplexity int) int
 		Reviewer   func(childComplexity int) int
+		Worker     func(childComplexity int) int
 	}
 
 	ReviewConnection struct {
@@ -1349,6 +1351,7 @@ type QueryResolver interface {
 	PersonalityQuestions(ctx context.Context) ([]*model.PersonalityQuestion, error)
 	MyPersonalityAssessment(ctx context.Context) (*model.PersonalityAssessment, error)
 	WorkerPersonalityAssessment(ctx context.Context, workerID string) (*model.PersonalityAssessment, error)
+	CompanyWorkerReviews(ctx context.Context, limit *int, offset *int, rating *int) (*model.ReviewConnection, error)
 	AvailableServices(ctx context.Context) ([]*model.ServiceDefinition, error)
 	AvailableExtras(ctx context.Context) ([]*model.ServiceExtra, error)
 	AvailableExtrasByCategory(ctx context.Context, categoryID string) ([]*model.ServiceExtra, error)
@@ -5268,6 +5271,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.CompanySubscriptions(childComplexity, args["limit"].(*int), args["offset"].(*int)), true
+	case "Query.companyWorkerReviews":
+		if e.complexity.Query.CompanyWorkerReviews == nil {
+			break
+		}
+
+		args, err := ec.field_Query_companyWorkerReviews_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.CompanyWorkerReviews(childComplexity, args["limit"].(*int), args["offset"].(*int), args["rating"].(*int)), true
 	case "Query.estimatePrice":
 		if e.complexity.Query.EstimatePrice == nil {
 			break
@@ -6066,6 +6080,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Review.Reviewer(childComplexity), true
+	case "Review.worker":
+		if e.complexity.Review.Worker == nil {
+			break
+		}
+
+		return e.complexity.Review.Worker(childComplexity), true
 
 	case "ReviewConnection.reviews":
 		if e.complexity.ReviewConnection.Reviews == nil {
@@ -9464,6 +9484,27 @@ func (ec *executionContext) field_Query_companySubscriptions_args(ctx context.Co
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_companyWorkerReviews_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "limit", ec.unmarshalOInt2ᚖint)
+	if err != nil {
+		return nil, err
+	}
+	args["limit"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "offset", ec.unmarshalOInt2ᚖint)
+	if err != nil {
+		return nil, err
+	}
+	args["offset"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "rating", ec.unmarshalOInt2ᚖint)
+	if err != nil {
+		return nil, err
+	}
+	args["rating"] = arg2
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_company_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -12129,6 +12170,8 @@ func (ec *executionContext) fieldContext_Booking_review(_ context.Context, field
 				return ec.fieldContext_Review_booking(ctx, field)
 			case "reviewer":
 				return ec.fieldContext_Review_reviewer(ctx, field)
+			case "worker":
+				return ec.fieldContext_Review_worker(ctx, field)
 			case "rating":
 				return ec.fieldContext_Review_rating(ctx, field)
 			case "comment":
@@ -23822,6 +23865,8 @@ func (ec *executionContext) fieldContext_Mutation_submitReview(ctx context.Conte
 				return ec.fieldContext_Review_booking(ctx, field)
 			case "reviewer":
 				return ec.fieldContext_Review_reviewer(ctx, field)
+			case "worker":
+				return ec.fieldContext_Review_worker(ctx, field)
 			case "rating":
 				return ec.fieldContext_Review_rating(ctx, field)
 			case "comment":
@@ -34824,6 +34869,53 @@ func (ec *executionContext) fieldContext_Query_workerPersonalityAssessment(ctx c
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_companyWorkerReviews(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_companyWorkerReviews,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Query().CompanyWorkerReviews(ctx, fc.Args["limit"].(*int), fc.Args["offset"].(*int), fc.Args["rating"].(*int))
+		},
+		nil,
+		ec.marshalNReviewConnection2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐReviewConnection,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_companyWorkerReviews(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "reviews":
+				return ec.fieldContext_ReviewConnection_reviews(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_ReviewConnection_totalCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ReviewConnection", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_companyWorkerReviews_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_availableServices(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -38024,6 +38116,73 @@ func (ec *executionContext) fieldContext_Review_reviewer(_ context.Context, fiel
 	return fc, nil
 }
 
+func (ec *executionContext) _Review_worker(ctx context.Context, field graphql.CollectedField, obj *model.Review) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Review_worker,
+		func(ctx context.Context) (any, error) {
+			return obj.Worker, nil
+		},
+		nil,
+		ec.marshalOWorkerProfile2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐWorkerProfile,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Review_worker(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Review",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_WorkerProfile_id(ctx, field)
+			case "userId":
+				return ec.fieldContext_WorkerProfile_userId(ctx, field)
+			case "user":
+				return ec.fieldContext_WorkerProfile_user(ctx, field)
+			case "company":
+				return ec.fieldContext_WorkerProfile_company(ctx, field)
+			case "fullName":
+				return ec.fieldContext_WorkerProfile_fullName(ctx, field)
+			case "phone":
+				return ec.fieldContext_WorkerProfile_phone(ctx, field)
+			case "email":
+				return ec.fieldContext_WorkerProfile_email(ctx, field)
+			case "bio":
+				return ec.fieldContext_WorkerProfile_bio(ctx, field)
+			case "status":
+				return ec.fieldContext_WorkerProfile_status(ctx, field)
+			case "isCompanyAdmin":
+				return ec.fieldContext_WorkerProfile_isCompanyAdmin(ctx, field)
+			case "inviteToken":
+				return ec.fieldContext_WorkerProfile_inviteToken(ctx, field)
+			case "ratingAvg":
+				return ec.fieldContext_WorkerProfile_ratingAvg(ctx, field)
+			case "totalJobsCompleted":
+				return ec.fieldContext_WorkerProfile_totalJobsCompleted(ctx, field)
+			case "documents":
+				return ec.fieldContext_WorkerProfile_documents(ctx, field)
+			case "personalityAssessment":
+				return ec.fieldContext_WorkerProfile_personalityAssessment(ctx, field)
+			case "availability":
+				return ec.fieldContext_WorkerProfile_availability(ctx, field)
+			case "serviceCategories":
+				return ec.fieldContext_WorkerProfile_serviceCategories(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_WorkerProfile_createdAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type WorkerProfile", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Review_rating(ctx context.Context, field graphql.CollectedField, obj *model.Review) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -38170,6 +38329,8 @@ func (ec *executionContext) fieldContext_ReviewConnection_reviews(_ context.Cont
 				return ec.fieldContext_Review_booking(ctx, field)
 			case "reviewer":
 				return ec.fieldContext_Review_reviewer(ctx, field)
+			case "worker":
+				return ec.fieldContext_Review_worker(ctx, field)
 			case "rating":
 				return ec.fieldContext_Review_rating(ctx, field)
 			case "comment":
@@ -46775,7 +46936,7 @@ func (ec *executionContext) unmarshalInputCompanyApplicationInput(ctx context.Co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"companyName", "cui", "companyType", "legalRepresentative", "contactEmail", "contactPhone", "address", "city", "county", "description"}
+	fieldsInOrder := [...]string{"companyName", "cui", "companyType", "legalRepresentative", "contactEmail", "contactPhone", "address", "city", "county", "description", "categoryIds"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -46852,6 +47013,13 @@ func (ec *executionContext) unmarshalInputCompanyApplicationInput(ctx context.Co
 				return it, err
 			}
 			it.Description = data
+		case "categoryIds":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoryIds"))
+			data, err := ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CategoryIds = data
 		}
 	}
 
@@ -54465,6 +54633,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "companyWorkerReviews":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_companyWorkerReviews(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "availableServices":
 			field := field
 
@@ -55579,6 +55769,8 @@ func (ec *executionContext) _Review(ctx context.Context, sel ast.SelectionSet, o
 			out.Values[i] = ec._Review_booking(ctx, field, obj)
 		case "reviewer":
 			out.Values[i] = ec._Review_reviewer(ctx, field, obj)
+		case "worker":
+			out.Values[i] = ec._Review_worker(ctx, field, obj)
 		case "rating":
 			out.Values[i] = ec._Review_rating(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -62033,6 +62225,42 @@ func (ec *executionContext) marshalOFloat2ᚖfloat64(ctx context.Context, sel as
 	_ = sel
 	res := graphql.MarshalFloatContext(*v)
 	return graphql.WrapContextMarshaler(ctx, res)
+}
+
+func (ec *executionContext) unmarshalOID2ᚕstringᚄ(ctx context.Context, v any) ([]string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNID2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOID2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNID2string(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOID2ᚖstring(ctx context.Context, v any) (*string, error) {

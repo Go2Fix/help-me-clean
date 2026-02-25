@@ -263,6 +263,7 @@ type CompanyApplicationInput struct {
 	City                string      `json:"city"`
 	County              string      `json:"county"`
 	Description         *string     `json:"description,omitempty"`
+	CategoryIds         []string    `json:"categoryIds,omitempty"`
 }
 
 type CompanyApplicationResult struct {
@@ -776,13 +777,14 @@ type RevenueByMonth struct {
 }
 
 type Review struct {
-	ID         string    `json:"id"`
-	Booking    *Booking  `json:"booking,omitempty"`
-	Reviewer   *User     `json:"reviewer,omitempty"`
-	Rating     int       `json:"rating"`
-	Comment    *string   `json:"comment,omitempty"`
-	ReviewType string    `json:"reviewType"`
-	CreatedAt  time.Time `json:"createdAt"`
+	ID         string         `json:"id"`
+	Booking    *Booking       `json:"booking,omitempty"`
+	Reviewer   *User          `json:"reviewer,omitempty"`
+	Worker     *WorkerProfile `json:"worker,omitempty"`
+	Rating     int            `json:"rating"`
+	Comment    *string        `json:"comment,omitempty"`
+	ReviewType string         `json:"reviewType"`
+	CreatedAt  time.Time      `json:"createdAt"`
 }
 
 type ReviewConnection struct {

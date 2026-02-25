@@ -61,12 +61,13 @@ import CompanyPayoutsPage from '@/pages/company/PayoutsPage';
 import CompanyInvoicesPage from '@/pages/company/CompanyInvoicesPage';
 import CompanySubscriptionsPage from '@/pages/company/SubscriptionsPage';
 import CompanySubscriptionDetailPage from '@/pages/company/SubscriptionDetailPage';
+import CompanyReviewsPage from '@/pages/company/ReviewsPage';
 
 // Worker pages
 import AcceptInvitePage from '@/pages/worker/AcceptInvitePage';
 import WorkerDashboardPage from '@/pages/worker/DashboardPage';
 import WorkerOrdersPage from '@/pages/worker/OrdersPage';
-import WorkerCalendarPage from '@/pages/worker/CalendarPage';
+import WorkerSchedulePage from '@/pages/worker/SchedulePage';
 import WorkerJobDetailPage from '@/pages/worker/JobDetailPage';
 import WorkerSettingsPage from '@/pages/worker/SettingsPage';
 import PersonalityTestPage from '@/pages/worker/PersonalityTestPage';
@@ -248,6 +249,7 @@ function AppRoutes() {
         <Route path="mesaje/:roomId" element={<CompanyMessagesPage />} />
         <Route path="echipa" element={<TeamPage />} />
         <Route path="echipa/:id" element={<WorkerDetailPage />} />
+        <Route path="recenzii" element={<CompanyReviewsPage />} />
         <Route path="plati" element={<CompanyPayoutsPage />} />
         <Route path="abonamente" element={<CompanySubscriptionsPage />} />
         <Route path="abonamente/:id" element={<CompanySubscriptionDetailPage />} />
@@ -271,7 +273,7 @@ function AppRoutes() {
         <Route path="documente-obligatorii" element={<WorkerDocumentUploadPage />} />
         <Route path="comenzi" element={<WorkerOrdersPage />} />
         <Route path="comenzi/:id" element={<WorkerJobDetailPage />} />
-        <Route path="program" element={<WorkerCalendarPage />} />
+        <Route path="program" element={<WorkerSchedulePage />} />
         <Route path="mesaje" element={<ChatPage />} />
         <Route path="mesaje/:roomId" element={<ChatPage />} />
         <Route path="profil" element={<WorkerSettingsPage />} />

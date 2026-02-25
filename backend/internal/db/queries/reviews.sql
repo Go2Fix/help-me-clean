@@ -35,3 +35,17 @@ WHERE (sqlc.narg('rating')::int IS NULL OR rating = sqlc.narg('rating'))
 
 -- name: CountReviewsByWorkerID :one
 SELECT COUNT(*) FROM reviews WHERE reviewed_worker_id = $1;
+
+-- name: ListReviewsByCompanyWorkers :many
+SELECT r.* FROM reviews r
+JOIN workers w ON r.reviewed_worker_id = w.id
+WHERE w.company_id = $1
+  AND (sqlc.narg('rating')::int IS NULL OR r.rating = sqlc.narg('rating'))
+ORDER BY r.created_at DESC
+LIMIT $2 OFFSET $3;
+
+-- name: CountReviewsByCompanyWorkers :one
+SELECT COUNT(*) FROM reviews r
+JOIN workers w ON r.reviewed_worker_id = w.id
+WHERE w.company_id = $1
+  AND (sqlc.narg('rating')::int IS NULL OR r.rating = sqlc.narg('rating'));

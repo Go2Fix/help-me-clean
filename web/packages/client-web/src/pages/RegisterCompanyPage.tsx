@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useMutation } from '@apollo/client';
+import { useMutation, useQuery } from '@apollo/client';
 import { CheckCircle, Copy, Check, CheckCheck, Loader2, Search } from 'lucide-react';
 import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
 import { cn } from '@go2fix/shared';
 import { useAuth } from '@/context/AuthContext';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
-import { APPLY_AS_COMPANY, CLAIM_COMPANY, MY_COMPANY } from '@/graphql/operations';
+import { APPLY_AS_COMPANY, CLAIM_COMPANY, MY_COMPANY, SERVICE_CATEGORIES } from '@/graphql/operations';
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
@@ -18,6 +18,12 @@ export default function RegisterCompanyPage() {
   const [claimCompany] = useMutation(CLAIM_COMPANY, {
     refetchQueries: [{ query: MY_COMPANY }],
   });
+
+  const { data: catData } = useQuery(SERVICE_CATEGORIES);
+  const categories = (catData?.serviceCategories ?? []).filter(
+    (c: { isActive: boolean }) => c.isActive,
+  );
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
 
   const [cuiLoading, setCuiLoading] = useState(false);
   const [cuiStatus, setCuiStatus] = useState<'idle' | 'found' | 'not-found'>('idle');
@@ -89,7 +95,12 @@ export default function RegisterCompanyPage() {
 
     try {
       const { data } = await applyAsCompany({
-        variables: { input: form },
+        variables: {
+          input: {
+            ...form,
+            ...(selectedCategoryIds.length > 0 ? { categoryIds: selectedCategoryIds } : {}),
+          },
+        },
       });
       const token = data?.applyAsCompany?.claimToken ?? null;
       setClaimToken(token);
@@ -498,6 +509,51 @@ export default function RegisterCompanyPage() {
                   />
                 </div>
               </div>
+
+              {/* ── Service Categories ────────────────────────────────────── */}
+              {categories.length > 0 && (
+                <div className="space-y-4">
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Servicii</p>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Categorii de servicii oferite
+                    </label>
+                    <p className="text-xs text-gray-500 mb-3">
+                      Selecteaza categoriile de servicii pe care le ofera firma ta.
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {categories.map((cat: { id: string; nameRo: string }) => {
+                        const selected = selectedCategoryIds.includes(cat.id);
+                        return (
+                          <label
+                            key={cat.id}
+                            className={cn(
+                              'flex items-center gap-3 rounded-xl border px-4 py-3 cursor-pointer transition',
+                              selected
+                                ? 'border-primary/30 bg-primary/5 text-primary'
+                                : 'border-gray-200 hover:border-gray-300 text-gray-700',
+                            )}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selected}
+                              onChange={() => {
+                                setSelectedCategoryIds((prev) =>
+                                  selected
+                                    ? prev.filter((id) => id !== cat.id)
+                                    : [...prev, cat.id],
+                                );
+                              }}
+                              className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary/30"
+                            />
+                            <span className="text-sm font-medium">{cat.nameRo}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {error && (
                 <div className="p-3 rounded-xl bg-red-50 text-sm text-red-700">

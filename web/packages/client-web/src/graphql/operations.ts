@@ -2571,6 +2571,35 @@ export const DELETE_REVIEW = gql`
   }
 `;
 
+// ─── Company: Worker Reviews ────────────────────────────────────────────────
+
+export const COMPANY_WORKER_REVIEWS = gql`
+  query CompanyWorkerReviews($limit: Int, $offset: Int, $rating: Int) {
+    companyWorkerReviews(limit: $limit, offset: $offset, rating: $rating) {
+      reviews {
+        id
+        rating
+        comment
+        reviewType
+        createdAt
+        booking {
+          id
+          referenceCode
+        }
+        reviewer {
+          id
+          fullName
+        }
+        worker {
+          id
+          fullName
+        }
+      }
+      totalCount
+    }
+  }
+`;
+
 // ─── Company CMS ────────────────────────────────────────────────────────────
 
 export const MY_COMPANY_FINANCIAL_SUMMARY = gql`
