@@ -173,6 +173,11 @@ func (r *mutationResolver) CreateServiceCategory(ctx context.Context, input mode
 		commissionPct = float64ToNumeric(*input.CommissionPct)
 	}
 
+	var formFieldsBytes []byte
+	if input.FormFields != nil {
+		formFieldsBytes = []byte(*input.FormFields)
+	}
+
 	created, err := r.Queries.CreateServiceCategory(ctx, db.CreateServiceCategoryParams{
 		Slug:          input.Slug,
 		NameRo:        input.NameRo,
@@ -184,6 +189,7 @@ func (r *mutationResolver) CreateServiceCategory(ctx context.Context, input mode
 		CommissionPct: commissionPct,
 		SortOrder:     int32(input.SortOrder),
 		IsActive:      input.IsActive,
+		FormFields:    formFieldsBytes,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create service category: %w", err)
@@ -204,6 +210,11 @@ func (r *mutationResolver) UpdateServiceCategory(ctx context.Context, input mode
 		commissionPct = float64ToNumeric(*input.CommissionPct)
 	}
 
+	var formFieldsBytes []byte
+	if input.FormFields != nil {
+		formFieldsBytes = []byte(*input.FormFields)
+	}
+
 	updated, err := r.Queries.UpdateServiceCategory(ctx, db.UpdateServiceCategoryParams{
 		ID:            stringToUUID(input.ID),
 		NameRo:        input.NameRo,
@@ -215,6 +226,7 @@ func (r *mutationResolver) UpdateServiceCategory(ctx context.Context, input mode
 		CommissionPct: commissionPct,
 		SortOrder:     int32(input.SortOrder),
 		IsActive:      input.IsActive,
+		FormFields:    formFieldsBytes,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to update service category: %w", err)

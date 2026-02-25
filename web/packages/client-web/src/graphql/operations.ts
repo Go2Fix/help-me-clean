@@ -4315,6 +4315,7 @@ export const ALL_SERVICE_CATEGORIES = gql`
       commissionPct
       sortOrder
       isActive
+      formFields
       services {
         id
         nameRo
@@ -4335,6 +4336,7 @@ export const SERVICE_CATEGORY_BY_SLUG = gql`
       icon
       imageUrl
       isActive
+      formFields
       services {
         id
         serviceType
@@ -4363,6 +4365,7 @@ export const CREATE_SERVICE_CATEGORY = gql`
       commissionPct
       sortOrder
       isActive
+      formFields
     }
   }
 `;
@@ -4377,6 +4380,7 @@ export const UPDATE_SERVICE_CATEGORY = gql`
       commissionPct
       sortOrder
       isActive
+      formFields
     }
   }
 `;

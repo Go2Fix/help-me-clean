@@ -41,6 +41,10 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@go2fix/shared';
+import { parseFormFields } from '@/types/formFields';
+import type { FormFieldDefinition } from '@/types/formFields';
+import DynamicFormFields from '@/components/booking/DynamicFormFields';
+import { useLanguage } from '@/context/LanguageContext';
 import { useAuth } from '@/context/AuthContext';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
@@ -243,6 +247,7 @@ interface BookingFormState {
   recurrenceDayOfWeek: number;
   preferredTimeStart: string;
   preferredTimeEnd: string;
+  customFields: Record<string, unknown>;
 }
 
 // ---- Constants --------------------------------------------------------------
@@ -350,6 +355,7 @@ export default function BookingPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { isAuthenticated, user, loginWithGoogle } = useAuth();
+  const { lang } = useLanguage();
 
   const preselectedService = searchParams.get('service') || '';
   const categorySlug = searchParams.get('category') || '';
@@ -406,6 +412,7 @@ export default function BookingPage() {
     recurrenceDayOfWeek: 1,
     preferredTimeStart: '09:00',
     preferredTimeEnd: '13:00',
+    customFields: {},
   });
 
   // ---- Data fetching --------------------------------------------------------
@@ -419,7 +426,10 @@ export default function BookingPage() {
     skip: !categorySlug,
     fetchPolicy: 'cache-first',
   });
-  const urlCategory = (categoryData as { serviceCategoryBySlug?: { id: string; nameRo: string; slug: string } })?.serviceCategoryBySlug;
+  const urlCategory = (categoryData as { serviceCategoryBySlug?: { id: string; nameRo: string; slug: string; formFields?: string | null } })?.serviceCategoryBySlug;
+
+  const categoryFormFields: FormFieldDefinition[] = parseFormFields(urlCategory?.formFields);
+  const isCleaning = !urlCategory || urlCategory.slug === 'curatenie';
 
   // Use category-specific extras when a category is known, otherwise global
   const { data: categoryExtrasData } = useQuery(AVAILABLE_EXTRAS_BY_CATEGORY, {
@@ -576,6 +586,25 @@ export default function BookingPage() {
       case 'service':
         return !!form.serviceType;
       case 'details': {
+        // Dynamic validation for non-cleaning categories
+        if (!isCleaning && categoryFormFields.length > 0) {
+          const context = { pricingModel: selectedService?.pricingModel };
+          return categoryFormFields
+            .filter(f => f.required)
+            .filter(f => {
+              if (!f.showWhen) return true;
+              for (const [key, expected] of Object.entries(f.showWhen)) {
+                if (String((context as Record<string, unknown>)[key]).toUpperCase() !== expected.toUpperCase()) return false;
+              }
+              return true;
+            })
+            .every(f => {
+              const val = form.customFields[f.key];
+              if (f.type === 'number' || f.type === 'stepper') return val != null && Number(val) > 0;
+              return val != null && val !== '';
+            });
+        }
+        // Existing cleaning validation
         const areaOk = !!form.areaSqm && parseInt(form.areaSqm, 10) > 0;
         if (selectedService?.pricingModel === 'PER_SQM') return areaOk;
         return form.numRooms >= 1 && form.numBathrooms >= 1 && areaOk;
@@ -600,7 +629,7 @@ export default function BookingPage() {
       default:
         return false;
     }
-  }, [currentStep, STEPS, form, isAuthenticated, selectedPaymentMethodId]);
+  }, [currentStep, STEPS, form, isAuthenticated, selectedPaymentMethodId, isCleaning, categoryFormFields, selectedService]);
 
   const handleNext = useCallback(() => {
     if (currentStep < STEPS.length - 1) {
@@ -674,6 +703,9 @@ export default function BookingPage() {
         extras: form.extras.filter((e) => e.quantity > 0),
         preferredWorkerId: form.preferredWorkerId || undefined,
         suggestedStartTime: form.suggestedStartTime || undefined,
+        customFields: Object.keys(form.customFields).length > 0
+          ? JSON.stringify(form.customFields)
+          : undefined,
         ...(form.isRecurring && form.recurrenceType ? {
           recurrence: {
             type: form.recurrenceType,
@@ -727,6 +759,9 @@ export default function BookingPage() {
       extras: form.extras.filter((e) => e.quantity > 0),
       preferredWorkerId: form.preferredWorkerId || undefined,
       suggestedStartTime: form.suggestedStartTime || undefined,
+      customFields: Object.keys(form.customFields).length > 0
+        ? JSON.stringify(form.customFields)
+        : undefined,
       ...(form.isRecurring && form.recurrenceType ? {
         recurrence: {
           type: form.recurrenceType,
@@ -1046,6 +1081,9 @@ export default function BookingPage() {
                 onToggleExtra={handleToggleExtra}
                 selectedService={selectedService}
                 estimatedHours={estimate?.estimatedHours}
+                isCleaning={isCleaning}
+                categoryFormFields={categoryFormFields}
+                lang={lang}
               />
             )}
 
@@ -1561,6 +1599,9 @@ function StepDetails({
   onToggleExtra,
   selectedService,
   estimatedHours,
+  isCleaning,
+  categoryFormFields,
+  lang,
 }: {
   form: BookingFormState;
   updateForm: (updates: Partial<BookingFormState>) => void;
@@ -1569,8 +1610,175 @@ function StepDetails({
   onToggleExtra: (extraId: string, delta: number, allowMultiple: boolean) => void;
   selectedService?: ServiceDefinition;
   estimatedHours?: number;
+  isCleaning: boolean;
+  categoryFormFields: FormFieldDefinition[];
+  lang: string;
 }) {
   const isPerSqm = selectedService?.pricingModel === 'PER_SQM';
+
+  if (!isCleaning && categoryFormFields.length > 0) {
+    return (
+      <div>
+        <h2 className="text-xl font-semibold text-gray-900 mb-2">
+          {lang === 'en' ? 'Service details' : 'Detalii serviciu'}
+        </h2>
+        <p className="text-sm text-gray-500 mb-6">
+          {lang === 'en' ? 'Tell us more about what you need.' : 'Spune-ne mai multe despre ce ai nevoie.'}
+        </p>
+
+        <Card className="space-y-6">
+          <DynamicFormFields
+            fields={categoryFormFields}
+            values={form.customFields}
+            onChange={(key, value) => updateForm({ customFields: { ...form.customFields, [key]: value } })}
+            pricingModel={selectedService?.pricingModel}
+            lang={lang}
+          />
+        </Card>
+
+        {/* Extras section -- same for all categories */}
+        {extras.length > 0 && (
+          <div className="mt-8">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              {lang === 'en' ? 'Extra services' : 'Servicii extra'}
+            </h3>
+            <p className="text-sm text-gray-500 mb-4">
+              {lang === 'en' ? 'Add extra services to your booking.' : 'Adauga servicii suplimentare la rezervarea ta.'}
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {extras.map((extra) => {
+                const sel = selectedExtras.find((e) => e.extraId === extra.id);
+                const qty = sel?.quantity ?? 0;
+                const ExtraIcon = getExtraIcon(extra.icon);
+
+                if (!extra.allowMultiple) {
+                  return (
+                    <Card
+                      key={extra.id}
+                      className={cn(
+                        'transition-all cursor-pointer',
+                        qty > 0
+                          ? 'ring-2 ring-blue-600/30 border-blue-600/40 shadow-sm shadow-blue-600/5'
+                          : 'hover:border-gray-300',
+                      )}
+                      onClick={() => onToggleExtra(extra.id, 1, false)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div
+                            className={cn(
+                              'w-10 h-10 rounded-xl flex items-center justify-center shrink-0',
+                              qty > 0 ? 'bg-blue-50' : 'bg-gray-50',
+                            )}
+                          >
+                            <ExtraIcon
+                              className={cn(
+                                'h-5 w-5',
+                                qty > 0 ? 'text-blue-600' : 'text-gray-400',
+                              )}
+                            />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="text-sm font-medium text-gray-900 truncate">
+                              {extra.nameRo}
+                            </div>
+                            <div className="text-sm text-blue-600 font-semibold">
+                              +{extra.price} lei
+                            </div>
+                          </div>
+                        </div>
+                        <div
+                          className={cn(
+                            'w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0',
+                            qty > 0
+                              ? 'bg-blue-600 border-blue-600'
+                              : 'border-gray-300',
+                          )}
+                        >
+                          {qty > 0 && <Check className="h-3.5 w-3.5 text-white" />}
+                        </div>
+                      </div>
+                    </Card>
+                  );
+                }
+
+                return (
+                  <Card
+                    key={extra.id}
+                    className={cn(
+                      'transition-all',
+                      qty > 0 && 'ring-2 ring-blue-600/30 border-blue-600/40 shadow-sm shadow-blue-600/5',
+                    )}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div
+                          className={cn(
+                            'w-10 h-10 rounded-xl flex items-center justify-center shrink-0',
+                            qty > 0 ? 'bg-blue-50' : 'bg-gray-50',
+                          )}
+                        >
+                          <ExtraIcon
+                            className={cn(
+                              'h-5 w-5',
+                              qty > 0 ? 'text-blue-600' : 'text-gray-400',
+                            )}
+                          />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-sm font-medium text-gray-900 truncate">
+                            {extra.nameRo}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {extra.unitLabel
+                              ? `${extra.price} lei / ${extra.unitLabel}`
+                              : `+${extra.price} lei`}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        {qty > 0 && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => onToggleExtra(extra.id, -1, true)}
+                              className="w-8 h-8 rounded-lg border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition cursor-pointer"
+                            >
+                              <Minus className="h-3 w-3" />
+                            </button>
+                            <span className="text-sm font-bold text-blue-600 w-5 text-center">
+                              {qty}
+                            </span>
+                          </>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => onToggleExtra(extra.id, 1, true)}
+                          className={cn(
+                            'w-8 h-8 rounded-lg border flex items-center justify-center transition cursor-pointer',
+                            qty > 0
+                              ? 'border-blue-600 bg-blue-600 text-white hover:bg-blue-700'
+                              : 'border-gray-300 hover:bg-gray-50',
+                          )}
+                        >
+                          <Plus className="h-3 w-3" />
+                        </button>
+                      </div>
+                    </div>
+                    {qty > 0 && extra.unitLabel && (
+                      <p className="text-xs text-blue-600 font-medium mt-2">
+                        {qty} {extra.unitLabel}{qty > 1 ? 'uri' : ''}
+                      </p>
+                    )}
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div>

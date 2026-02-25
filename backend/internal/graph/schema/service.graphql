@@ -16,6 +16,7 @@ type ServiceCategory {
   sortOrder: Int!
   isActive: Boolean!
   services: [ServiceDefinition!]!
+  formFields: String
 }
 
 type ServiceDefinition {
@@ -177,6 +178,7 @@ input CreateServiceCategoryInput {
   commissionPct: Float
   sortOrder: Int!
   isActive: Boolean!
+  formFields: String
 }
 
 input UpdateServiceCategoryInput {
@@ -190,4 +192,5 @@ input UpdateServiceCategoryInput {
   commissionPct: Float
   sortOrder: Int!
   isActive: Boolean!
+  formFields: String
 }

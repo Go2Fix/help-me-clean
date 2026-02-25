@@ -14,15 +14,15 @@ SELECT * FROM service_categories WHERE id = $1;
 SELECT * FROM service_categories WHERE slug = $1;
 
 -- name: CreateServiceCategory :one
-INSERT INTO service_categories (slug, name_ro, name_en, description_ro, description_en, icon, image_url, commission_pct, sort_order, is_active)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+INSERT INTO service_categories (slug, name_ro, name_en, description_ro, description_en, icon, image_url, commission_pct, sort_order, is_active, form_fields)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 RETURNING *;
 
 -- name: UpdateServiceCategory :one
 UPDATE service_categories SET
     name_ro = $2, name_en = $3, description_ro = $4, description_en = $5,
     icon = $6, image_url = $7, commission_pct = $8, sort_order = $9,
-    is_active = $10, updated_at = NOW()
+    is_active = $10, form_fields = $11, updated_at = NOW()
 WHERE id = $1 RETURNING *;
 
 -- name: ListServicesByCategory :many

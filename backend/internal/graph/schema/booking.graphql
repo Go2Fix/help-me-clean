@@ -58,6 +58,7 @@ type Booking {
   chatRoom: ChatRoom
   categoryId: ID
   category: ServiceCategory
+  customFields: String
   createdAt: DateTime!
 }
 
@@ -145,6 +146,7 @@ input CreateBookingInput {
   preferredWorkerId: ID
   suggestedStartTime: String
   recurrence: RecurrenceInput
+  customFields: String
 }
 
 input ExtraInput {

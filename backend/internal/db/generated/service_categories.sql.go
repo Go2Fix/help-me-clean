@@ -12,9 +12,9 @@ import (
 )
 
 const createServiceCategory = `-- name: CreateServiceCategory :one
-INSERT INTO service_categories (slug, name_ro, name_en, description_ro, description_en, icon, image_url, commission_pct, sort_order, is_active)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-RETURNING id, slug, name_ro, name_en, description_ro, description_en, icon, image_url, commission_pct, sort_order, is_active, created_at, updated_at
+INSERT INTO service_categories (slug, name_ro, name_en, description_ro, description_en, icon, image_url, commission_pct, sort_order, is_active, form_fields)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+RETURNING id, slug, name_ro, name_en, description_ro, description_en, icon, image_url, commission_pct, sort_order, is_active, created_at, updated_at, form_fields
 `
 
 type CreateServiceCategoryParams struct {
@@ -28,6 +28,7 @@ type CreateServiceCategoryParams struct {
 	CommissionPct pgtype.Numeric `json:"commission_pct"`
 	SortOrder     int32          `json:"sort_order"`
 	IsActive      bool           `json:"is_active"`
+	FormFields    []byte         `json:"form_fields"`
 }
 
 func (q *Queries) CreateServiceCategory(ctx context.Context, arg CreateServiceCategoryParams) (ServiceCategory, error) {
@@ -42,6 +43,7 @@ func (q *Queries) CreateServiceCategory(ctx context.Context, arg CreateServiceCa
 		arg.CommissionPct,
 		arg.SortOrder,
 		arg.IsActive,
+		arg.FormFields,
 	)
 	var i ServiceCategory
 	err := row.Scan(
@@ -58,12 +60,13 @@ func (q *Queries) CreateServiceCategory(ctx context.Context, arg CreateServiceCa
 		&i.IsActive,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.FormFields,
 	)
 	return i, err
 }
 
 const getServiceCategoryByID = `-- name: GetServiceCategoryByID :one
-SELECT id, slug, name_ro, name_en, description_ro, description_en, icon, image_url, commission_pct, sort_order, is_active, created_at, updated_at FROM service_categories WHERE id = $1
+SELECT id, slug, name_ro, name_en, description_ro, description_en, icon, image_url, commission_pct, sort_order, is_active, created_at, updated_at, form_fields FROM service_categories WHERE id = $1
 `
 
 func (q *Queries) GetServiceCategoryByID(ctx context.Context, id pgtype.UUID) (ServiceCategory, error) {
@@ -83,12 +86,13 @@ func (q *Queries) GetServiceCategoryByID(ctx context.Context, id pgtype.UUID) (S
 		&i.IsActive,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.FormFields,
 	)
 	return i, err
 }
 
 const getServiceCategoryBySlug = `-- name: GetServiceCategoryBySlug :one
-SELECT id, slug, name_ro, name_en, description_ro, description_en, icon, image_url, commission_pct, sort_order, is_active, created_at, updated_at FROM service_categories WHERE slug = $1
+SELECT id, slug, name_ro, name_en, description_ro, description_en, icon, image_url, commission_pct, sort_order, is_active, created_at, updated_at, form_fields FROM service_categories WHERE slug = $1
 `
 
 func (q *Queries) GetServiceCategoryBySlug(ctx context.Context, slug string) (ServiceCategory, error) {
@@ -108,12 +112,13 @@ func (q *Queries) GetServiceCategoryBySlug(ctx context.Context, slug string) (Se
 		&i.IsActive,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.FormFields,
 	)
 	return i, err
 }
 
 const listActiveServiceCategories = `-- name: ListActiveServiceCategories :many
-SELECT id, slug, name_ro, name_en, description_ro, description_en, icon, image_url, commission_pct, sort_order, is_active, created_at, updated_at FROM service_categories
+SELECT id, slug, name_ro, name_en, description_ro, description_en, icon, image_url, commission_pct, sort_order, is_active, created_at, updated_at, form_fields FROM service_categories
 WHERE is_active = TRUE
 ORDER BY sort_order, name_ro
 `
@@ -141,6 +146,7 @@ func (q *Queries) ListActiveServiceCategories(ctx context.Context) ([]ServiceCat
 			&i.IsActive,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.FormFields,
 		); err != nil {
 			return nil, err
 		}
@@ -153,7 +159,7 @@ func (q *Queries) ListActiveServiceCategories(ctx context.Context) ([]ServiceCat
 }
 
 const listAllServiceCategories = `-- name: ListAllServiceCategories :many
-SELECT id, slug, name_ro, name_en, description_ro, description_en, icon, image_url, commission_pct, sort_order, is_active, created_at, updated_at FROM service_categories
+SELECT id, slug, name_ro, name_en, description_ro, description_en, icon, image_url, commission_pct, sort_order, is_active, created_at, updated_at, form_fields FROM service_categories
 ORDER BY sort_order, name_ro
 `
 
@@ -180,6 +186,7 @@ func (q *Queries) ListAllServiceCategories(ctx context.Context) ([]ServiceCatego
 			&i.IsActive,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.FormFields,
 		); err != nil {
 			return nil, err
 		}
@@ -242,8 +249,8 @@ const updateServiceCategory = `-- name: UpdateServiceCategory :one
 UPDATE service_categories SET
     name_ro = $2, name_en = $3, description_ro = $4, description_en = $5,
     icon = $6, image_url = $7, commission_pct = $8, sort_order = $9,
-    is_active = $10, updated_at = NOW()
-WHERE id = $1 RETURNING id, slug, name_ro, name_en, description_ro, description_en, icon, image_url, commission_pct, sort_order, is_active, created_at, updated_at
+    is_active = $10, form_fields = $11, updated_at = NOW()
+WHERE id = $1 RETURNING id, slug, name_ro, name_en, description_ro, description_en, icon, image_url, commission_pct, sort_order, is_active, created_at, updated_at, form_fields
 `
 
 type UpdateServiceCategoryParams struct {
@@ -257,6 +264,7 @@ type UpdateServiceCategoryParams struct {
 	CommissionPct pgtype.Numeric `json:"commission_pct"`
 	SortOrder     int32          `json:"sort_order"`
 	IsActive      bool           `json:"is_active"`
+	FormFields    []byte         `json:"form_fields"`
 }
 
 func (q *Queries) UpdateServiceCategory(ctx context.Context, arg UpdateServiceCategoryParams) (ServiceCategory, error) {
@@ -271,6 +279,7 @@ func (q *Queries) UpdateServiceCategory(ctx context.Context, arg UpdateServiceCa
 		arg.CommissionPct,
 		arg.SortOrder,
 		arg.IsActive,
+		arg.FormFields,
 	)
 	var i ServiceCategory
 	err := row.Scan(
@@ -287,6 +296,7 @@ func (q *Queries) UpdateServiceCategory(ctx context.Context, arg UpdateServiceCa
 		&i.IsActive,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.FormFields,
 	)
 	return i, err
 }

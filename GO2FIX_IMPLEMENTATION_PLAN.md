@@ -1,6 +1,6 @@
 # Go2Fix.ro — Implementation Plan
 
-**Date:** 2026-02-23 (last updated: 2026-02-24)
+**Date:** 2026-02-23 (last updated: 2026-02-25)
 **Platform:** Go2Fix.ro — Romania's Home Services Marketplace
 **Goal:** Shape the MVP into a professional, scalable two-sided marketplace
 
@@ -314,11 +314,11 @@ Fully covered in P2-3 above. Admin UI for discount percentages per frequency exi
 
 > Architectural changes to support services beyond cleaning.
 
-### P4-1: Service Categories System — PARTIALLY DONE
+### P4-1: Service Categories System ✅ COMPLETED
 
 **Problem:** Currently hardcoded for cleaning (rooms, bathrooms, sqm). Must support any service.
 
-**What's done (migrations 000041–000042):**
+**What's done (migrations 000041–000046):**
 - [x] `service_categories` table: id, slug, name_ro, name_en, description, icon, image_url, commission_pct, sort_order, is_active
 - [x] `category_id` FK on `service_definitions` — all existing services assigned to "curatenie" category
 - [x] Full CRUD via GraphQL + admin "Categorii" tab
@@ -326,47 +326,46 @@ Fully covered in P2-3 above. Admin UI for discount percentages per frequency exi
 - [x] Per-sqm pricing model — `pricing_model` enum (hourly/per_sqm) on `service_definitions` + `bookings`
 - [x] Pricing engine branches on model: hourly vs per_sqm calculation
 - [x] Admin UI: pricing model dropdown + conditional price/sqm field in Services tab
-
-**What's remaining:**
-- [ ] Dynamic booking form based on service type (P4-2)
-- [ ] Category-aware booking flow (category selection as first booking step)
-- [ ] `service_types` sub-table for more granular categorization (if needed)
-
-**Effort:** 6-8 hours (remaining items)
+- [x] Dynamic booking form based on service type (P4-2)
+- [x] Category-aware booking flow with category landing pages (`/servicii/:slug`)
+- [x] Homepage redesigned as multi-service marketplace hub with category cards + "coming soon" placeholders
+- [ ] `service_types` sub-table for more granular categorization (if needed post-MVP)
 
 ---
 
-### P4-2: Dynamic Booking Form
+### P4-2: Dynamic Booking Form ✅ COMPLETED
 
 **Problem:** Booking form has hardcoded cleaning fields (rooms, bathrooms, sqm).
 
-**Implementation:**
-- [ ] Booking form reads `pricing_fields` from service type
-- [ ] Render dynamic form fields based on service type:
-  - Cleaning: rooms, bathrooms, sqm, extras (oven, fridge, etc.)
-  - Plumbing: issue description, photo upload, urgency level
-  - Painting: sqm, number of rooms, ceiling (yes/no)
-- [ ] Price calculation adapts to service type pricing model
-- [ ] Validation rules per service type
-
-**Effort:** 6-8 hours
+**Implementation (migration 000046):**
+- [x] `form_fields JSONB` on `service_categories` — defines which fields the booking form renders per category
+- [x] `custom_fields JSONB` on `bookings` — stores dynamic field values for non-cleaning categories
+- [x] Curatenie category seeded with existing form field definitions (propertyType, numRooms, numBathrooms, areaSqm, hasPets)
+- [x] `DynamicFormFields` component — renders stepper, number, text, textarea, select, toggle, radio, file fields dynamically based on JSON definition
+- [x] `BookingPage.tsx` branches on `isCleaning` — cleaning uses existing hardcoded JSX (zero regression), other categories use `DynamicFormFields`
+- [x] Dynamic validation: all required fields must have truthy values before proceeding
+- [x] `customFields` serialized as JSON in `CreateBookingInput` for non-cleaning bookings
+- [x] Form field JSON schema supports: `showWhen` conditions, `surchargeLabel`, icons, min/max, defaultValue, options with labels in RO/EN
+- [x] Admin "Categorii" tab: form fields JSON textarea in both create modal and inline edit row
+- [x] All backend resolvers updated (convert.go, service.resolvers.go, booking.resolvers.go)
+- [x] All 414 frontend tests pass, all Go tests pass, TypeScript clean
 
 ---
 
-### P4-3: Worker Skill/Service Assignment
+### P4-3: Worker Skill/Service Assignment ✅ COMPLETED
 
 **Problem:** All workers are "cleaners." Need workers assigned to specific services.
 
-**Implementation:**
-- [ ] Create `worker_services` junction table:
-  ```
-  worker_id, service_type_id, is_primary, years_experience, created_at
-  ```
-- [ ] Company dashboard: Assign workers to services they can perform
-- [ ] Scheduling engine: Only assign workers qualified for the booked service
-- [ ] Worker profile (internal): Shows all services they perform
-
-**Effort:** 3-4 hours
+**Already implemented in migration 000044 (Phase 4A multi-service work):**
+- [x] `worker_service_categories` junction table with `worker_id`, `category_id`, UNIQUE constraint, proper indexes
+- [x] `company_service_categories` junction table (same pattern for companies)
+- [x] All existing workers/companies seeded to "curatenie" category
+- [x] Company dashboard: WorkerDetailPage checkbox grid for assigning categories to workers
+- [x] TeamPage: shows assigned categories as badge pills per worker
+- [x] Scheduling engine: `FindMatchingWorkersByCategory` + `FindAvailableWorkersByCategory` queries filter by category
+- [x] `assignWorkerToBooking` resolver validates `WorkerHasCategory` before assignment (booking.resolvers.go:398-414)
+- [x] Worker profile: SettingsPage "Categoriile mele de servicii" read-only section with info note
+- [x] Full GraphQL mutations: `updateWorkerServiceCategories`, `updateCompanyServiceCategories`
 
 ---
 
@@ -565,6 +564,15 @@ Full internationalization support added:
 - 9 namespaces × 2 languages = 18 JSON files in `public/locales/`
 - SEOHead: hreflang tags, og:locale, canonical URLs per language
 
+### Homepage Multi-Service Redesign ✅
+
+Transformed the homepage from a cleaning-only layout to a multi-service marketplace hub:
+- Categories section fetches live `SERVICE_CATEGORIES` from API instead of hardcoded services
+- Active categories link to `/servicii/:slug` landing pages
+- Coming-soon categories (dezinfectare, instalatii sanitare, electrician) shown as placeholders with "In curand" badges
+- Updated i18n strings (RO + EN) to be marketplace-generic instead of cleaning-specific
+- All 16 homepage tests updated and passing
+
 ### Admin Subscription Detail Page ✅
 
 Full admin subscription detail page at `/admin/abonamente/:id`:
@@ -585,23 +593,22 @@ Full admin subscription detail page at `/admin/abonamente/:id`:
 | **Phase 1** — Platform Corrections | 4 tasks | ✅ ALL N/A | — |
 | **Phase 2** — Smart Booking | 4 tasks | 3/4 done | P2-4 UI (2-3h) |
 | **Phase 3** — Admin Controls | 5 tasks | ✅ ALL DONE | — |
-| **Phase 4** — Multi-Service | 3 tasks | 1/3 partially done | P4-1 partial (6-8h), P4-2 (6-8h), P4-3 (3-4h) |
+| **Phase 4** — Multi-Service | 3 tasks | ✅ ALL DONE | — |
 | **Phase 5** — Company Mgmt | 3 tasks | NOT STARTED | 9-12h |
 | **Phase 6** — Client Polish | 3 tasks | 2/3 partially done | ~7-10h remaining |
 | **Phase 7** — Admin Analytics | 4 tasks | NOT STARTED | 12-16h |
 
-**Completed:** Phase 0-3 fully done. Phase 4 partially started (~30%). Phase 5-7 not started.
+**Completed:** Phase 0-4 fully done. Phase 5-7 not started.
 
-**Remaining estimated effort: ~45-60 hours**
+**Remaining estimated effort: ~30-43 hours**
 
 ### Recommended Next Steps
 
 ```
 1. P2-4: Preferred worker UI toggle in booking flow        (2-3h)
-2. P4-1: Category-aware booking flow + dynamic forms       (6-8h)
-3. P6-2: Remaining client dashboard items                   (2-3h)
-4. Phase 5: Company & worker management                     (9-12h)
-5. Phase 7: Admin analytics                                 (12-16h)
+2. P6-1/P6-2: Remaining client experience polish           (5-8h)
+3. Phase 5: Company & worker management                     (9-12h)
+4. Phase 7: Admin analytics                                 (12-16h)
 ```
 
 ### Key Dependencies
@@ -618,11 +625,11 @@ Phase 4 (P4-1 service categories) → Phase 6 (P6-1 service category selection i
 ## Technical Notes
 
 ### Database Migration Strategy
-All schema changes should be backward-compatible migrations with both up and down scripts. The worker rename (P0-3) is the largest migration and was done first to unblock multi-service work. Current latest migration: **000042** (pricing features: VAT config, city pricing multiplier, audit log, service categories, per-sqm pricing model).
+All schema changes should be backward-compatible migrations with both up and down scripts. The worker rename (P0-3) is the largest migration and was done first to unblock multi-service work. Current latest migration: **000046** (dynamic form fields: `form_fields` JSONB on service_categories, `custom_fields` JSONB on bookings).
 
 ### Testing Requirements
 - Every new feature needs unit tests (backend Go + frontend Vitest)
-- Current coverage: ~628 tests (66 Go + 397+ frontend)
+- Current coverage: ~480 tests (66 Go + 414 frontend)
 - Target: Maintain 100% pass rate on all existing tests after each phase
 
 ### Deployment

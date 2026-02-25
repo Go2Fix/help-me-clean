@@ -240,6 +240,11 @@ func (r *mutationResolver) CreateBookingRequest(ctx context.Context, input model
 		bookingCategoryID = serviceDef.CategoryID
 	}
 
+	var customFieldsBytes []byte
+	if input.CustomFields != nil {
+		customFieldsBytes = []byte(*input.CustomFields)
+	}
+
 	booking, err := r.Queries.CreateBooking(ctx, db.CreateBookingParams{
 		ReferenceCode: referenceCode,
 		ClientUserID:  userID,
@@ -268,6 +273,7 @@ func (r *mutationResolver) CreateBookingRequest(ctx context.Context, input model
 		CityPricingMultiplier:  float64ToNumeric(cityMultiplier),
 		PricingModel:           db.NullPricingModel{PricingModel: serviceDef.PricingModel, Valid: true},
 		CategoryID:             bookingCategoryID,
+		CustomFields:           customFieldsBytes,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create booking: %w", err)

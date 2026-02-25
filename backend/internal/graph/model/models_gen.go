@@ -123,6 +123,7 @@ type Booking struct {
 	ChatRoom               *ChatRoom          `json:"chatRoom,omitempty"`
 	CategoryID             *string            `json:"categoryId,omitempty"`
 	Category               *ServiceCategory   `json:"category,omitempty"`
+	CustomFields           *string            `json:"customFields,omitempty"`
 	CreatedAt              time.Time          `json:"createdAt"`
 }
 
@@ -361,6 +362,7 @@ type CreateBookingInput struct {
 	PreferredWorkerID   *string          `json:"preferredWorkerId,omitempty"`
 	SuggestedStartTime  *string          `json:"suggestedStartTime,omitempty"`
 	Recurrence          *RecurrenceInput `json:"recurrence,omitempty"`
+	CustomFields        *string          `json:"customFields,omitempty"`
 }
 
 type CreateServiceCategoryInput struct {
@@ -374,6 +376,7 @@ type CreateServiceCategoryInput struct {
 	CommissionPct *float64 `json:"commissionPct,omitempty"`
 	SortOrder     int      `json:"sortOrder"`
 	IsActive      bool     `json:"isActive"`
+	FormFields    *string  `json:"formFields,omitempty"`
 }
 
 type CreateServiceDefinitionInput struct {
@@ -800,6 +803,7 @@ type ServiceCategory struct {
 	SortOrder     int                  `json:"sortOrder"`
 	IsActive      bool                 `json:"isActive"`
 	Services      []*ServiceDefinition `json:"services"`
+	FormFields    *string              `json:"formFields,omitempty"`
 }
 
 type ServiceDefinition struct {
@@ -998,6 +1002,7 @@ type UpdateServiceCategoryInput struct {
 	CommissionPct *float64 `json:"commissionPct,omitempty"`
 	SortOrder     int      `json:"sortOrder"`
 	IsActive      bool     `json:"isActive"`
+	FormFields    *string  `json:"formFields,omitempty"`
 }
 
 type UpdateServiceDefinitionInput struct {

@@ -93,6 +93,7 @@ type ComplexityRoot struct {
 		Company                func(childComplexity int) int
 		CompletedAt            func(childComplexity int) int
 		CreatedAt              func(childComplexity int) int
+		CustomFields           func(childComplexity int) int
 		EstimatedDurationHours func(childComplexity int) int
 		EstimatedTotal         func(childComplexity int) int
 		Extras                 func(childComplexity int) int
@@ -871,6 +872,7 @@ type ComplexityRoot struct {
 		CommissionPct func(childComplexity int) int
 		DescriptionEn func(childComplexity int) int
 		DescriptionRo func(childComplexity int) int
+		FormFields    func(childComplexity int) int
 		ID            func(childComplexity int) int
 		Icon          func(childComplexity int) int
 		ImageURL      func(childComplexity int) int
@@ -1599,6 +1601,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Booking.CreatedAt(childComplexity), true
+	case "Booking.customFields":
+		if e.complexity.Booking.CustomFields == nil {
+			break
+		}
+
+		return e.complexity.Booking.CustomFields(childComplexity), true
 	case "Booking.estimatedDurationHours":
 		if e.complexity.Booking.EstimatedDurationHours == nil {
 			break
@@ -6090,6 +6098,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.ServiceCategory.DescriptionRo(childComplexity), true
+	case "ServiceCategory.formFields":
+		if e.complexity.ServiceCategory.FormFields == nil {
+			break
+		}
+
+		return e.complexity.ServiceCategory.FormFields(childComplexity), true
 	case "ServiceCategory.id":
 		if e.complexity.ServiceCategory.ID == nil {
 			break
@@ -12252,8 +12266,39 @@ func (ec *executionContext) fieldContext_Booking_category(_ context.Context, fie
 				return ec.fieldContext_ServiceCategory_isActive(ctx, field)
 			case "services":
 				return ec.fieldContext_ServiceCategory_services(ctx, field)
+			case "formFields":
+				return ec.fieldContext_ServiceCategory_formFields(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ServiceCategory", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Booking_customFields(ctx context.Context, field graphql.CollectedField, obj *model.Booking) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Booking_customFields,
+		func(ctx context.Context) (any, error) {
+			return obj.CustomFields, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Booking_customFields(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Booking",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -12624,6 +12669,8 @@ func (ec *executionContext) fieldContext_BookingConnection_edges(_ context.Conte
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
 				return ec.fieldContext_Booking_category(ctx, field)
+			case "customFields":
+				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -13612,6 +13659,8 @@ func (ec *executionContext) fieldContext_ChatRoom_booking(_ context.Context, fie
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
 				return ec.fieldContext_Booking_category(ctx, field)
+			case "customFields":
+				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -14951,6 +15000,8 @@ func (ec *executionContext) fieldContext_Company_serviceCategories(_ context.Con
 				return ec.fieldContext_ServiceCategory_isActive(ctx, field)
 			case "services":
 				return ec.fieldContext_ServiceCategory_services(ctx, field)
+			case "formFields":
+				return ec.fieldContext_ServiceCategory_formFields(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ServiceCategory", field.Name)
 		},
@@ -17472,6 +17523,8 @@ func (ec *executionContext) fieldContext_Invoice_booking(_ context.Context, fiel
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
 				return ec.fieldContext_Booking_category(ctx, field)
+			case "customFields":
+				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -18621,6 +18674,8 @@ func (ec *executionContext) fieldContext_Mutation_adminCancelBooking(ctx context
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
 				return ec.fieldContext_Booking_category(ctx, field)
+			case "customFields":
+				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -18746,6 +18801,8 @@ func (ec *executionContext) fieldContext_Mutation_adminRescheduleBooking(ctx con
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
 				return ec.fieldContext_Booking_category(ctx, field)
+			case "customFields":
+				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -19515,6 +19572,8 @@ func (ec *executionContext) fieldContext_Mutation_createBookingRequest(ctx conte
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
 				return ec.fieldContext_Booking_category(ctx, field)
+			case "customFields":
+				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -19640,6 +19699,8 @@ func (ec *executionContext) fieldContext_Mutation_cancelBooking(ctx context.Cont
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
 				return ec.fieldContext_Booking_category(ctx, field)
+			case "customFields":
+				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -19765,6 +19826,8 @@ func (ec *executionContext) fieldContext_Mutation_assignWorkerToBooking(ctx cont
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
 				return ec.fieldContext_Booking_category(ctx, field)
+			case "customFields":
+				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -19890,6 +19953,8 @@ func (ec *executionContext) fieldContext_Mutation_confirmBooking(ctx context.Con
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
 				return ec.fieldContext_Booking_category(ctx, field)
+			case "customFields":
+				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -20015,6 +20080,8 @@ func (ec *executionContext) fieldContext_Mutation_startJob(ctx context.Context, 
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
 				return ec.fieldContext_Booking_category(ctx, field)
+			case "customFields":
+				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -20140,6 +20207,8 @@ func (ec *executionContext) fieldContext_Mutation_completeJob(ctx context.Contex
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
 				return ec.fieldContext_Booking_category(ctx, field)
+			case "customFields":
+				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -20265,6 +20334,8 @@ func (ec *executionContext) fieldContext_Mutation_selectBookingTimeSlot(ctx cont
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
 				return ec.fieldContext_Booking_category(ctx, field)
+			case "customFields":
+				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -20390,6 +20461,8 @@ func (ec *executionContext) fieldContext_Mutation_rescheduleBooking(ctx context.
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
 				return ec.fieldContext_Booking_category(ctx, field)
+			case "customFields":
+				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -21838,6 +21911,8 @@ func (ec *executionContext) fieldContext_Mutation_updateCompanyServiceCategories
 				return ec.fieldContext_ServiceCategory_isActive(ctx, field)
 			case "services":
 				return ec.fieldContext_ServiceCategory_services(ctx, field)
+			case "formFields":
+				return ec.fieldContext_ServiceCategory_formFields(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ServiceCategory", field.Name)
 		},
@@ -23515,6 +23590,8 @@ func (ec *executionContext) fieldContext_Mutation_markBookingPaid(ctx context.Co
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
 				return ec.fieldContext_Booking_category(ctx, field)
+			case "customFields":
+				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -24108,6 +24185,8 @@ func (ec *executionContext) fieldContext_Mutation_createServiceCategory(ctx cont
 				return ec.fieldContext_ServiceCategory_isActive(ctx, field)
 			case "services":
 				return ec.fieldContext_ServiceCategory_services(ctx, field)
+			case "formFields":
+				return ec.fieldContext_ServiceCategory_formFields(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ServiceCategory", field.Name)
 		},
@@ -24175,6 +24254,8 @@ func (ec *executionContext) fieldContext_Mutation_updateServiceCategory(ctx cont
 				return ec.fieldContext_ServiceCategory_isActive(ctx, field)
 			case "services":
 				return ec.fieldContext_ServiceCategory_services(ctx, field)
+			case "formFields":
+				return ec.fieldContext_ServiceCategory_formFields(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ServiceCategory", field.Name)
 		},
@@ -26566,6 +26647,8 @@ func (ec *executionContext) fieldContext_Mutation_updateWorkerServiceCategories(
 				return ec.fieldContext_ServiceCategory_isActive(ctx, field)
 			case "services":
 				return ec.fieldContext_ServiceCategory_services(ctx, field)
+			case "formFields":
+				return ec.fieldContext_ServiceCategory_formFields(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ServiceCategory", field.Name)
 		},
@@ -27196,6 +27279,8 @@ func (ec *executionContext) fieldContext_PaymentHistoryEntry_booking(_ context.C
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
 				return ec.fieldContext_Booking_category(ctx, field)
+			case "customFields":
+				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -27831,6 +27916,8 @@ func (ec *executionContext) fieldContext_PaymentTransaction_booking(_ context.Co
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
 				return ec.fieldContext_Booking_category(ctx, field)
+			case "customFields":
+				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -28234,6 +28321,8 @@ func (ec *executionContext) fieldContext_PayoutLineItem_booking(_ context.Contex
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
 				return ec.fieldContext_Booking_category(ctx, field)
+			case "customFields":
+				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -31682,6 +31771,8 @@ func (ec *executionContext) fieldContext_Query_booking(ctx context.Context, fiel
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
 				return ec.fieldContext_Booking_category(ctx, field)
+			case "customFields":
+				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -31856,6 +31947,8 @@ func (ec *executionContext) fieldContext_Query_myAssignedJobs(ctx context.Contex
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
 				return ec.fieldContext_Booking_category(ctx, field)
+			case "customFields":
+				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -31980,6 +32073,8 @@ func (ec *executionContext) fieldContext_Query_todaysJobs(_ context.Context, fie
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
 				return ec.fieldContext_Booking_category(ctx, field)
+			case "customFields":
+				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -32143,6 +32238,8 @@ func (ec *executionContext) fieldContext_Query_companyBookingsByDateRange(ctx co
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
 				return ec.fieldContext_Booking_category(ctx, field)
+			case "customFields":
+				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -35021,6 +35118,8 @@ func (ec *executionContext) fieldContext_Query_serviceCategories(_ context.Conte
 				return ec.fieldContext_ServiceCategory_isActive(ctx, field)
 			case "services":
 				return ec.fieldContext_ServiceCategory_services(ctx, field)
+			case "formFields":
+				return ec.fieldContext_ServiceCategory_formFields(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ServiceCategory", field.Name)
 		},
@@ -35077,6 +35176,8 @@ func (ec *executionContext) fieldContext_Query_serviceCategoryBySlug(ctx context
 				return ec.fieldContext_ServiceCategory_isActive(ctx, field)
 			case "services":
 				return ec.fieldContext_ServiceCategory_services(ctx, field)
+			case "formFields":
+				return ec.fieldContext_ServiceCategory_formFields(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ServiceCategory", field.Name)
 		},
@@ -35143,6 +35244,8 @@ func (ec *executionContext) fieldContext_Query_allServiceCategories(_ context.Co
 				return ec.fieldContext_ServiceCategory_isActive(ctx, field)
 			case "services":
 				return ec.fieldContext_ServiceCategory_services(ctx, field)
+			case "formFields":
+				return ec.fieldContext_ServiceCategory_formFields(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ServiceCategory", field.Name)
 		},
@@ -36548,6 +36651,8 @@ func (ec *executionContext) fieldContext_Query_myWorkerBookingsByDateRange(ctx c
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
 				return ec.fieldContext_Booking_category(ctx, field)
+			case "customFields":
+				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -37292,6 +37397,8 @@ func (ec *executionContext) fieldContext_RefundRequest_booking(_ context.Context
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
 				return ec.fieldContext_Booking_category(ctx, field)
+			case "customFields":
+				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -37855,6 +37962,8 @@ func (ec *executionContext) fieldContext_Review_booking(_ context.Context, field
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
 				return ec.fieldContext_Booking_category(ctx, field)
+			case "customFields":
+				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -38488,6 +38597,35 @@ func (ec *executionContext) fieldContext_ServiceCategory_services(_ context.Cont
 				return ec.fieldContext_ServiceDefinition_pricePerSqm(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ServiceDefinition", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceCategory_formFields(ctx context.Context, field graphql.CollectedField, obj *model.ServiceCategory) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ServiceCategory_formFields,
+		func(ctx context.Context) (any, error) {
+			return obj.FormFields, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ServiceCategory_formFields(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceCategory",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -40645,6 +40783,8 @@ func (ec *executionContext) fieldContext_ServiceSubscription_bookings(_ context.
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
 				return ec.fieldContext_Booking_category(ctx, field)
+			case "customFields":
+				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -40758,6 +40898,8 @@ func (ec *executionContext) fieldContext_ServiceSubscription_upcomingBookings(_ 
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
 				return ec.fieldContext_Booking_category(ctx, field)
+			case "customFields":
+				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -44290,6 +44432,8 @@ func (ec *executionContext) fieldContext_WorkerProfile_serviceCategories(_ conte
 				return ec.fieldContext_ServiceCategory_isActive(ctx, field)
 			case "services":
 				return ec.fieldContext_ServiceCategory_services(ctx, field)
+			case "formFields":
+				return ec.fieldContext_ServiceCategory_formFields(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ServiceCategory", field.Name)
 		},
@@ -46721,7 +46865,7 @@ func (ec *executionContext) unmarshalInputCreateBookingInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"addressId", "address", "serviceType", "categoryId", "scheduledDate", "scheduledStartTime", "timeSlots", "propertyType", "numRooms", "numBathrooms", "areaSqm", "hasPets", "specialInstructions", "extras", "guestEmail", "guestName", "guestPhone", "preferredWorkerId", "suggestedStartTime", "recurrence"}
+	fieldsInOrder := [...]string{"addressId", "address", "serviceType", "categoryId", "scheduledDate", "scheduledStartTime", "timeSlots", "propertyType", "numRooms", "numBathrooms", "areaSqm", "hasPets", "specialInstructions", "extras", "guestEmail", "guestName", "guestPhone", "preferredWorkerId", "suggestedStartTime", "recurrence", "customFields"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -46868,6 +47012,13 @@ func (ec *executionContext) unmarshalInputCreateBookingInput(ctx context.Context
 				return it, err
 			}
 			it.Recurrence = data
+		case "customFields":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("customFields"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CustomFields = data
 		}
 	}
 
@@ -46881,7 +47032,7 @@ func (ec *executionContext) unmarshalInputCreateServiceCategoryInput(ctx context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"slug", "nameRo", "nameEn", "descriptionRo", "descriptionEn", "icon", "imageUrl", "commissionPct", "sortOrder", "isActive"}
+	fieldsInOrder := [...]string{"slug", "nameRo", "nameEn", "descriptionRo", "descriptionEn", "icon", "imageUrl", "commissionPct", "sortOrder", "isActive", "formFields"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -46958,6 +47109,13 @@ func (ec *executionContext) unmarshalInputCreateServiceCategoryInput(ctx context
 				return it, err
 			}
 			it.IsActive = data
+		case "formFields":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("formFields"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FormFields = data
 		}
 	}
 
@@ -47867,7 +48025,7 @@ func (ec *executionContext) unmarshalInputUpdateServiceCategoryInput(ctx context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "nameRo", "nameEn", "descriptionRo", "descriptionEn", "icon", "imageUrl", "commissionPct", "sortOrder", "isActive"}
+	fieldsInOrder := [...]string{"id", "nameRo", "nameEn", "descriptionRo", "descriptionEn", "icon", "imageUrl", "commissionPct", "sortOrder", "isActive", "formFields"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -47944,6 +48102,13 @@ func (ec *executionContext) unmarshalInputUpdateServiceCategoryInput(ctx context
 				return it, err
 			}
 			it.IsActive = data
+		case "formFields":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("formFields"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FormFields = data
 		}
 	}
 
@@ -48599,6 +48764,8 @@ func (ec *executionContext) _Booking(ctx context.Context, sel ast.SelectionSet, 
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "customFields":
+			out.Values[i] = ec._Booking_customFields(ctx, field, obj)
 		case "createdAt":
 			out.Values[i] = ec._Booking_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -55552,6 +55719,8 @@ func (ec *executionContext) _ServiceCategory(ctx context.Context, sel ast.Select
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "formFields":
+			out.Values[i] = ec._ServiceCategory_formFields(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

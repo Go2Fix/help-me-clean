@@ -314,6 +314,12 @@ func dbServiceDefToGQL(s db.ServiceDefinition) *model.ServiceDefinition {
 }
 
 func dbServiceCatToGQL(c db.ServiceCategory) *model.ServiceCategory {
+	var formFields *string
+	if len(c.FormFields) > 0 {
+		s := string(c.FormFields)
+		formFields = &s
+	}
+
 	return &model.ServiceCategory{
 		ID:            uuidToString(c.ID),
 		Slug:          c.Slug,
@@ -326,6 +332,7 @@ func dbServiceCatToGQL(c db.ServiceCategory) *model.ServiceCategory {
 		CommissionPct: numericToFloatPtr(c.CommissionPct),
 		SortOrder:     int(c.SortOrder),
 		IsActive:      c.IsActive,
+		FormFields:    formFields,
 		Services:      []*model.ServiceDefinition{},
 	}
 }
@@ -390,6 +397,12 @@ func dbBookingToGQL(b db.Booking) *model.Booking {
 		categoryID = &s
 	}
 
+	var customFields *string
+	if len(b.CustomFields) > 0 {
+		s := string(b.CustomFields)
+		customFields = &s
+	}
+
 	return &model.Booking{
 		ID:                     uuidToString(b.ID),
 		ReferenceCode:          b.ReferenceCode,
@@ -429,6 +442,7 @@ func dbBookingToGQL(b db.Booking) *model.Booking {
 		PaymentStatus:         paymentStatus,
 		PaidAt:                timestamptzToTimePtr(b.PaidAt),
 		CategoryID:            categoryID,
+		CustomFields:          customFields,
 		CreatedAt:             timestamptzToTime(b.CreatedAt),
 	}
 }
@@ -454,6 +468,12 @@ func dbSearchBookingRowToGQL(row db.SearchBookingsWithDetailsRow) *model.Booking
 	serviceName := textVal(row.ServiceNameRo)
 	if serviceName == "" {
 		serviceName = string(row.ServiceType)
+	}
+
+	var customFields *string
+	if len(row.CustomFields) > 0 {
+		s := string(row.CustomFields)
+		customFields = &s
 	}
 
 	booking := &model.Booking{
@@ -495,6 +515,7 @@ func dbSearchBookingRowToGQL(row db.SearchBookingsWithDetailsRow) *model.Booking
 		IncludedItems:         []string{},
 		PaymentStatus:         paymentStatus,
 		PaidAt:                timestamptzToTimePtr(row.PaidAt),
+		CustomFields:          customFields,
 		CreatedAt:             timestamptzToTime(row.CreatedAt),
 	}
 

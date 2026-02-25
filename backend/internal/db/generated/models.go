@@ -819,6 +819,7 @@ type Booking struct {
 	CityPricingMultiplier    pgtype.Numeric     `json:"city_pricing_multiplier"`
 	PricingModel             NullPricingModel   `json:"pricing_model"`
 	CategoryID               pgtype.UUID        `json:"category_id"`
+	CustomFields             []byte             `json:"custom_fields"`
 }
 
 type BookingExtra struct {
@@ -1297,6 +1298,7 @@ type ServiceCategory struct {
 	IsActive      bool               `json:"is_active"`
 	CreatedAt     pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+	FormFields    []byte             `json:"form_fields"`
 }
 
 type ServiceDefinition struct {

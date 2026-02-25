@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { Pencil, Check, X, Plus, ChevronDown, ChevronRight } from 'lucide-react';
 import { cn } from '@go2fix/shared';
@@ -113,6 +113,7 @@ interface ServiceCategory {
   commissionPct?: number | null;
   sortOrder: number;
   isActive: boolean;
+  formFields?: string | null;
   services: { id: string; nameRo: string }[];
 }
 
@@ -1442,9 +1443,9 @@ function CategoriesTab() {
   });
 
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editFields, setEditFields] = useState({ nameRo: '', nameEn: '', descriptionRo: '', descriptionEn: '', icon: '', imageUrl: '', commissionPct: 0, sortOrder: 0, isActive: true });
+  const [editFields, setEditFields] = useState({ nameRo: '', nameEn: '', descriptionRo: '', descriptionEn: '', icon: '', imageUrl: '', commissionPct: 0, sortOrder: 0, isActive: true, formFields: '' });
   const [showModal, setShowModal] = useState(false);
-  const [newCategory, setNewCategory] = useState({ slug: '', nameRo: '', nameEn: '', descriptionRo: '', descriptionEn: '', icon: '', imageUrl: '', commissionPct: 0, sortOrder: 0, isActive: true });
+  const [newCategory, setNewCategory] = useState({ slug: '', nameRo: '', nameEn: '', descriptionRo: '', descriptionEn: '', icon: '', imageUrl: '', commissionPct: 0, sortOrder: 0, isActive: true, formFields: '' });
   const [creating, setCreating] = useState(false);
 
   const categories = data?.allServiceCategories ?? [];
@@ -1461,6 +1462,7 @@ function CategoriesTab() {
       commissionPct: c.commissionPct ?? 0,
       sortOrder: c.sortOrder,
       isActive: c.isActive,
+      formFields: c.formFields ?? '',
     });
   };
 
@@ -1478,6 +1480,7 @@ function CategoriesTab() {
           commissionPct: editFields.commissionPct || null,
           sortOrder: editFields.sortOrder,
           isActive: editFields.isActive,
+          formFields: editFields.formFields || null,
         },
       },
     });
@@ -1498,6 +1501,7 @@ function CategoriesTab() {
           commissionPct: c.commissionPct ?? null,
           sortOrder: c.sortOrder,
           isActive: !c.isActive,
+          formFields: c.formFields ?? null,
         },
       },
     });
@@ -1519,11 +1523,12 @@ function CategoriesTab() {
             commissionPct: newCategory.commissionPct || null,
             sortOrder: newCategory.sortOrder,
             isActive: newCategory.isActive,
+            formFields: newCategory.formFields || null,
           },
         },
       });
       setShowModal(false);
-      setNewCategory({ slug: '', nameRo: '', nameEn: '', descriptionRo: '', descriptionEn: '', icon: '', imageUrl: '', commissionPct: 0, sortOrder: 0, isActive: true });
+      setNewCategory({ slug: '', nameRo: '', nameEn: '', descriptionRo: '', descriptionEn: '', icon: '', imageUrl: '', commissionPct: 0, sortOrder: 0, isActive: true, formFields: '' });
     } finally {
       setCreating(false);
     }
@@ -1563,7 +1568,8 @@ function CategoriesTab() {
                 {categories.map((cat) => {
                   const isEditing = editingId === cat.id;
                   return (
-                    <tr key={cat.id} className="hover:bg-gray-50/50 transition-colors">
+                    <React.Fragment key={cat.id}>
+                    <tr className="hover:bg-gray-50/50 transition-colors">
                       <td className="px-4 py-3">
                         <span className="text-xs font-mono text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">{cat.slug}</span>
                       </td>
@@ -1644,6 +1650,21 @@ function CategoriesTab() {
                         )}
                       </td>
                     </tr>
+                    {isEditing && (
+                      <tr className="bg-blue-50/30">
+                        <td colSpan={8} className="px-4 py-3">
+                          <label className="block text-xs font-medium text-gray-500 mb-1">Câmpuri formular (JSON)</label>
+                          <textarea
+                            value={editFields.formFields}
+                            onChange={(e) => setEditFields((f) => ({ ...f, formFields: e.target.value }))}
+                            placeholder='[{"key":"areaSqm","type":"number","labelRo":"Suprafata","labelEn":"Area","required":true}]'
+                            rows={3}
+                            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-xs font-mono resize-y focus:outline-none focus:ring-2 focus:ring-primary/30"
+                          />
+                        </td>
+                      </tr>
+                    )}
+                    </React.Fragment>
                   );
                 })}
               </tbody>
@@ -1710,6 +1731,16 @@ function CategoriesTab() {
               type="number"
               value={newCategory.sortOrder}
               onChange={(e) => setNewCategory((s) => ({ ...s, sortOrder: Number(e.target.value) }))}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Câmpuri formular (JSON)</label>
+            <textarea
+              value={newCategory.formFields}
+              onChange={(e) => setNewCategory((s) => ({ ...s, formFields: e.target.value }))}
+              placeholder='[{"key":"areaSqm","type":"number","labelRo":"Suprafata","labelEn":"Area","required":true}]'
+              rows={4}
+              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-xs font-mono resize-y focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
           </div>
           <label className="flex items-center gap-2 cursor-pointer">
