@@ -197,3 +197,39 @@ func (r *queryResolver) CompanyRevenueByDateRange(ctx context.Context, from stri
 
 	return result, nil
 }
+
+// BookingDemandHeatmap is the resolver for the bookingDemandHeatmap field.
+func (r *queryResolver) BookingDemandHeatmap(ctx context.Context, from string, to string) ([]*model.DemandSlot, error) {
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil || claims.Role != "global_admin" {
+		return nil, fmt.Errorf("not authorized")
+	}
+
+	fromTime, err := time.Parse("2006-01-02", from)
+	if err != nil {
+		return nil, fmt.Errorf("invalid 'from' date format: %w", err)
+	}
+	toTime, err := time.Parse("2006-01-02", to)
+	if err != nil {
+		return nil, fmt.Errorf("invalid 'to' date format: %w", err)
+	}
+
+	rows, err := r.Queries.GetBookingDemandHeatmap(ctx, db.GetBookingDemandHeatmapParams{
+		DateFrom: pgtype.Date{Time: fromTime, Valid: true},
+		DateTo:   pgtype.Date{Time: toTime, Valid: true},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get booking demand heatmap: %w", err)
+	}
+
+	result := make([]*model.DemandSlot, len(rows))
+	for i, row := range rows {
+		result[i] = &model.DemandSlot{
+			DayOfWeek: int(row.DayOfWeek),
+			Hour:      int(row.Hour),
+			Count:     int(row.BookingCount),
+		}
+	}
+
+	return result, nil
+}

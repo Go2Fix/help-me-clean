@@ -325,6 +325,20 @@ type CompanyPerformance struct {
 	CompletionRate float64  `json:"completionRate"`
 }
 
+type CompanyScorecard struct {
+	ID               string  `json:"id"`
+	CompanyName      string  `json:"companyName"`
+	Status           string  `json:"status"`
+	CompletedCount   int     `json:"completedCount"`
+	CancelledCount   int     `json:"cancelledCount"`
+	TotalBookings    int     `json:"totalBookings"`
+	TotalRevenue     float64 `json:"totalRevenue"`
+	CompletionRate   float64 `json:"completionRate"`
+	CancellationRate float64 `json:"cancellationRate"`
+	AvgRating        float64 `json:"avgRating"`
+	ReviewCount      int     `json:"reviewCount"`
+}
+
 type CompanyWorkSchedule struct {
 	ID        string `json:"id"`
 	DayOfWeek int    `json:"dayOfWeek"`
@@ -432,6 +446,12 @@ type DailyRevenue struct {
 	BookingCount int     `json:"bookingCount"`
 	Revenue      float64 `json:"revenue"`
 	Commission   float64 `json:"commission"`
+}
+
+type DemandSlot struct {
+	DayOfWeek int `json:"dayOfWeek"`
+	Hour      int `json:"hour"`
+	Count     int `json:"count"`
 }
 
 type EnabledCity struct {
@@ -685,6 +705,10 @@ type PlatformStats struct {
 	RevenueThisMonth        float64 `json:"revenueThisMonth"`
 	NewClientsThisMonth     int     `json:"newClientsThisMonth"`
 	NewCompaniesThisMonth   int     `json:"newCompaniesThisMonth"`
+	BookingsLastMonth       int     `json:"bookingsLastMonth"`
+	RevenueLastMonth        float64 `json:"revenueLastMonth"`
+	NewClientsLastMonth     int     `json:"newClientsLastMonth"`
+	NewCompaniesLastMonth   int     `json:"newCompaniesLastMonth"`
 }
 
 type PlatformTotals struct {

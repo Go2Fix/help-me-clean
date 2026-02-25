@@ -54,6 +54,23 @@ const statusDotColor: Record<string, string> = {
   CANCELLED: 'bg-red-400',
 };
 
+// ─── Trend Badge ────────────────────────────────────────────────────────────
+
+function TrendBadge({ current, previous }: { current: number; previous: number }) {
+  if (previous === 0) return null;
+  const pct = ((current - previous) / previous) * 100;
+  const up = pct >= 0;
+  return (
+    <span
+      className={`inline-flex items-center gap-0.5 text-xs font-medium px-1.5 py-0.5 rounded-md ${
+        up ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-600'
+      }`}
+    >
+      {up ? '↑' : '↓'} {Math.abs(pct).toFixed(0)}%
+    </span>
+  );
+}
+
 // ─── Metric Item ────────────────────────────────────────────────────────────
 
 function Metric({
@@ -64,7 +81,7 @@ function Metric({
 }: {
   icon: React.ElementType;
   label: string;
-  value: string | number;
+  value: React.ReactNode;
   onClick?: () => void;
 }) {
   const Wrapper = onClick ? 'button' : 'div';
@@ -139,19 +156,59 @@ export default function DashboardPage() {
           <div className="grid grid-cols-2 md:grid-cols-5 gap-x-6 gap-y-1 divide-y md:divide-y-0 md:divide-x divide-gray-100">
             <div className="space-y-1">
               <Metric icon={Users} label="Clienti" value={stats.totalClients} />
-              <Metric icon={UserPlus} label="Noi luna aceasta" value={stats.newClientsThisMonth} />
+              <Metric
+                icon={UserPlus}
+                label="Noi luna aceasta"
+                value={
+                  <span className="flex items-center gap-1.5">
+                    {stats.newClientsThisMonth}
+                    <TrendBadge
+                      current={stats.newClientsThisMonth}
+                      previous={stats.newClientsLastMonth ?? 0}
+                    />
+                  </span>
+                }
+              />
             </div>
             <div className="space-y-1 pt-3 md:pt-0 md:pl-6">
               <Metric icon={Building2} label="Companii" value={stats.totalCompanies} />
-              <Metric icon={Star} label="Rating mediu" value={stats.averageRating ? Number(stats.averageRating).toFixed(1) : '--'} />
+              <Metric
+                icon={Star}
+                label="Rating mediu"
+                value={stats.averageRating ? Number(stats.averageRating).toFixed(1) : '--'}
+              />
             </div>
             <div className="space-y-1 pt-3 md:pt-0 md:pl-6">
               <Metric icon={CalendarDays} label="Rezervari" value={stats.totalBookings} />
-              <Metric icon={CalendarDays} label="Luna aceasta" value={stats.bookingsThisMonth} />
+              <Metric
+                icon={CalendarDays}
+                label="Luna aceasta"
+                value={
+                  <span className="flex items-center gap-1.5">
+                    {stats.bookingsThisMonth}
+                    <TrendBadge
+                      current={stats.bookingsThisMonth}
+                      previous={stats.bookingsLastMonth ?? 0}
+                    />
+                  </span>
+                }
+              />
             </div>
             <div className="space-y-1 pt-3 md:pt-0 md:pl-6">
               <Metric icon={Banknote} label="Venit total" value={formatCurrency(stats.totalRevenue)} />
-              <Metric icon={TrendingUp} label="Comision platforma" value={formatCurrency(stats.platformCommissionTotal)} />
+              <Metric
+                icon={TrendingUp}
+                label="Venit luna aceasta"
+                value={
+                  <span className="flex items-center gap-1.5">
+                    {formatCurrency(stats.revenueThisMonth ?? 0)}
+                    <TrendBadge
+                      current={stats.revenueThisMonth ?? 0}
+                      previous={stats.revenueLastMonth ?? 0}
+                    />
+                  </span>
+                }
+              />
             </div>
             <div className="space-y-1 pt-3 md:pt-0 md:pl-6">
               <Metric icon={Repeat} label="Abonamente active" value={subStats?.activeCount ?? 0} />

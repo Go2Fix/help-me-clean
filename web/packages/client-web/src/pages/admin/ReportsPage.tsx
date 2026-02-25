@@ -9,6 +9,7 @@ import {
   ClipboardList,
   Percent,
   BarChart3,
+  Download,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -24,12 +25,13 @@ import {
 } from 'recharts';
 import Card from '@/components/ui/Card';
 import Select from '@/components/ui/Select';
-import { formatCurrency } from '@/utils/format';
+import { formatCurrency, exportToCSV } from '@/utils/format';
 import {
   PLATFORM_TOTALS,
   REVENUE_BY_DATE_RANGE,
   REVENUE_BY_SERVICE_TYPE,
   TOP_COMPANIES_BY_REVENUE,
+  BOOKING_DEMAND_HEATMAP,
 } from '@/graphql/operations';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -76,6 +78,16 @@ interface TopCompanyEntry {
 
 interface TopCompaniesByRevenueData {
   topCompaniesByRevenue: TopCompanyEntry[];
+}
+
+interface HeatmapSlot {
+  dayOfWeek: number;
+  hour: number;
+  count: number;
+}
+
+interface BookingDemandHeatmapData {
+  bookingDemandHeatmap: HeatmapSlot[];
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -199,6 +211,72 @@ function RevenueTooltip({
   );
 }
 
+// ─── Demand Heatmap ─────────────────────────────────────────────────────────
+
+function DemandHeatmap({ slots }: { slots: HeatmapSlot[] }) {
+  const days = ['Dum', 'Lun', 'Mar', 'Mie', 'Joi', 'Vin', 'Sam'];
+  const hours = Array.from({ length: 15 }, (_, i) => i + 7); // 7:00 - 21:00
+
+  const lookup = new Map<string, number>();
+  let maxCount = 0;
+  slots.forEach((s) => {
+    lookup.set(`${s.dayOfWeek}-${s.hour}`, s.count);
+    if (s.count > maxCount) maxCount = s.count;
+  });
+
+  function getColor(count: number): string {
+    if (count === 0 || maxCount === 0) return 'bg-gray-100';
+    const intensity = count / maxCount;
+    if (intensity < 0.2) return 'bg-blue-100';
+    if (intensity < 0.4) return 'bg-blue-200';
+    if (intensity < 0.6) return 'bg-blue-400';
+    if (intensity < 0.8) return 'bg-blue-600';
+    return 'bg-blue-800';
+  }
+
+  return (
+    <div className="overflow-x-auto">
+      <div className="min-w-[560px]">
+        {/* Column headers — days */}
+        <div className="flex ml-10 mb-1">
+          {days.map((d) => (
+            <div key={d} className="flex-1 text-center text-xs text-gray-500 font-medium">
+              {d}
+            </div>
+          ))}
+        </div>
+        {/* Rows — hours */}
+        {hours.map((hour) => (
+          <div key={hour} className="flex items-center mb-0.5">
+            <div className="w-9 text-right text-xs text-gray-400 pr-1.5">{hour}:00</div>
+            {days.map((_, dayIdx) => {
+              const count = lookup.get(`${dayIdx}-${hour}`) ?? 0;
+              return (
+                <div key={dayIdx} className="flex-1 mx-0.5">
+                  <div
+                    className={`h-5 rounded-sm ${getColor(count)} transition-colors`}
+                    title={`${days[dayIdx]} ${hour}:00 — ${count} rez.`}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        ))}
+        {/* Legend */}
+        <div className="flex items-center gap-1 mt-3 justify-end">
+          <span className="text-xs text-gray-400 mr-1">Mai putin</span>
+          {['bg-gray-100', 'bg-blue-100', 'bg-blue-200', 'bg-blue-400', 'bg-blue-600', 'bg-blue-800'].map(
+            (c) => (
+              <div key={c} className={`w-4 h-4 rounded-sm ${c}`} />
+            ),
+          )}
+          <span className="text-xs text-gray-400 ml-1">Mai mult</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Component ─────────────────────────────────────────────────────────
 
 export default function ReportsPage() {
@@ -230,6 +308,12 @@ export default function ReportsPage() {
       variables: { from, to, limit: 10 },
     });
 
+  // Demand heatmap
+  const { data: heatmapData, loading: heatmapLoading } = useQuery<BookingDemandHeatmapData>(
+    BOOKING_DEMAND_HEATMAP,
+    { variables: { from, to } },
+  );
+
   const totals = totalsData?.platformTotals;
   const revenueByDate = revenueData?.revenueByDateRange ?? [];
   const revenueByService = serviceData?.revenueByServiceType ?? [];
@@ -257,6 +341,21 @@ export default function ReportsPage() {
             onChange={(e) => setActivePreset(e.target.value as DatePreset)}
           />
         </div>
+        <button
+          onClick={() => {
+            const rows = revenueByDate.map((d) => ({
+              'Data': d.date,
+              'Rezervari': d.bookingCount,
+              'Venit (RON)': (d.revenue / 100).toFixed(2),
+              'Comision (RON)': (d.commission / 100).toFixed(2),
+            }));
+            exportToCSV(rows, `raport-${from}-${to}.csv`);
+          }}
+          className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:border-gray-300 hover:text-gray-900 transition-colors"
+        >
+          <Download className="h-4 w-4" />
+          Exporta CSV
+        </button>
       </div>
 
       {/* Platform Totals — compact metrics */}
@@ -445,6 +544,24 @@ export default function ReportsPage() {
           </>
         )}
       </div>
+
+      {/* Demand Heatmap */}
+      <Card className="mt-6">
+        <div className="flex items-center gap-2 mb-4">
+          <BarChart3 className="h-5 w-5 text-primary" />
+          <h3 className="text-lg font-semibold text-gray-900">Cerere dupa Zi si Ora</h3>
+          <span className="text-sm text-gray-400 ml-1">(toate rezervarile din perioada)</span>
+        </div>
+        {heatmapLoading ? (
+          <div className="h-[300px] bg-gray-100 animate-pulse rounded-xl" />
+        ) : (heatmapData?.bookingDemandHeatmap?.length ?? 0) > 0 ? (
+          <DemandHeatmap slots={heatmapData!.bookingDemandHeatmap} />
+        ) : (
+          <div className="flex items-center justify-center h-[200px] text-gray-400">
+            Nu exista date pentru perioada selectata
+          </div>
+        )}
+      </Card>
     </div>
   );
 }

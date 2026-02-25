@@ -1657,6 +1657,10 @@ export const PLATFORM_STATS = gql`
       revenueThisMonth
       newClientsThisMonth
       newCompaniesThisMonth
+      bookingsLastMonth
+      revenueLastMonth
+      newClientsLastMonth
+      newCompaniesLastMonth
     }
   }
 `;
@@ -2518,11 +2522,39 @@ export const PLATFORM_TOTALS = gql`
   }
 `;
 
+export const BOOKING_DEMAND_HEATMAP = gql`
+  query BookingDemandHeatmap($from: String!, $to: String!) {
+    bookingDemandHeatmap(from: $from, to: $to) {
+      dayOfWeek
+      hour
+      count
+    }
+  }
+`;
+
+export const COMPANY_SCORECARDS = gql`
+  query CompanyScorecards($limit: Int, $offset: Int) {
+    companyScorecards(limit: $limit, offset: $offset) {
+      id
+      companyName
+      status
+      completedCount
+      cancelledCount
+      totalBookings
+      totalRevenue
+      completionRate
+      cancellationRate
+      avgRating
+      reviewCount
+    }
+  }
+`;
+
 // ─── Admin CMS: Bookings Search ─────────────────────────────────────────────
 
 export const SEARCH_BOOKINGS = gql`
-  query SearchBookings($query: String, $status: BookingStatus, $limit: Int, $offset: Int) {
-    searchBookings(query: $query, status: $status, limit: $limit, offset: $offset) {
+  query SearchBookings($query: String, $status: BookingStatus, $dateFrom: String, $dateTo: String, $companyId: ID, $serviceType: String, $limit: Int, $offset: Int) {
+    searchBookings(query: $query, status: $status, dateFrom: $dateFrom, dateTo: $dateTo, companyId: $companyId, serviceType: $serviceType, limit: $limit, offset: $offset) {
       edges {
         id
         referenceCode
@@ -2542,7 +2574,7 @@ export const SEARCH_BOOKINGS = gql`
           icon
         }
         recurringGroupId
-      subscriptionId
+        subscriptionId
         occurrenceNumber
         createdAt
         client {
@@ -2556,6 +2588,9 @@ export const SEARCH_BOOKINGS = gql`
         }
       }
       totalCount
+      pageInfo {
+        hasNextPage
+      }
     }
   }
 `;

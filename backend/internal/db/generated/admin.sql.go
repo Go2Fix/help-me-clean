@@ -126,7 +126,11 @@ SELECT
     (SELECT COALESCE(SUM(platform_commission_amount), 0) FROM bookings WHERE status = 'completed' AND completed_at >= DATE_TRUNC('month', CURRENT_DATE)) AS commission_this_month,
     (SELECT COUNT(*) FROM users WHERE created_at >= DATE_TRUNC('month', CURRENT_DATE)) AS new_clients_this_month,
     (SELECT COUNT(*) FROM companies WHERE created_at >= DATE_TRUNC('month', CURRENT_DATE)) AS new_companies_this_month,
-    (SELECT COALESCE(AVG(rating), 0) FROM reviews) AS average_rating
+    (SELECT COALESCE(AVG(rating), 0) FROM reviews) AS average_rating,
+    (SELECT COUNT(*) FROM bookings WHERE created_at >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 month' AND created_at < DATE_TRUNC('month', CURRENT_DATE)) AS bookings_last_month,
+    (SELECT COALESCE(SUM(COALESCE(final_total, estimated_total)), 0) FROM bookings WHERE status = 'completed' AND completed_at >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 month' AND completed_at < DATE_TRUNC('month', CURRENT_DATE)) AS revenue_last_month,
+    (SELECT COUNT(*) FROM users WHERE created_at >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 month' AND created_at < DATE_TRUNC('month', CURRENT_DATE)) AS new_clients_last_month,
+    (SELECT COUNT(*) FROM companies WHERE created_at >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 month' AND created_at < DATE_TRUNC('month', CURRENT_DATE)) AS new_companies_last_month
 `
 
 type GetPlatformStatsRow struct {
@@ -143,6 +147,10 @@ type GetPlatformStatsRow struct {
 	NewClientsThisMonth   int64       `json:"new_clients_this_month"`
 	NewCompaniesThisMonth int64       `json:"new_companies_this_month"`
 	AverageRating         interface{} `json:"average_rating"`
+	BookingsLastMonth     int64       `json:"bookings_last_month"`
+	RevenueLastMonth      interface{} `json:"revenue_last_month"`
+	NewClientsLastMonth   int64       `json:"new_clients_last_month"`
+	NewCompaniesLastMonth int64       `json:"new_companies_last_month"`
 }
 
 func (q *Queries) GetPlatformStats(ctx context.Context) (GetPlatformStatsRow, error) {
@@ -162,6 +170,10 @@ func (q *Queries) GetPlatformStats(ctx context.Context) (GetPlatformStatsRow, er
 		&i.NewClientsThisMonth,
 		&i.NewCompaniesThisMonth,
 		&i.AverageRating,
+		&i.BookingsLastMonth,
+		&i.RevenueLastMonth,
+		&i.NewClientsLastMonth,
+		&i.NewCompaniesLastMonth,
 	)
 	return i, err
 }

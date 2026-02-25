@@ -138,6 +138,10 @@ WHERE
      OR u.full_name ILIKE '%' || @query::text || '%'
      OR c.company_name ILIKE '%' || @query::text || '%')
     AND (@status_filter::text = '' OR b.status::text = @status_filter::text)
+    AND (sqlc.narg('date_from')::date IS NULL OR b.scheduled_date >= sqlc.narg('date_from')::date)
+    AND (sqlc.narg('date_to')::date IS NULL OR b.scheduled_date <= sqlc.narg('date_to')::date)
+    AND (sqlc.narg('company_id')::uuid IS NULL OR b.company_id = sqlc.narg('company_id')::uuid)
+    AND (sqlc.narg('service_type')::text IS NULL OR b.service_type::text = sqlc.narg('service_type')::text)
 ORDER BY b.created_at DESC LIMIT $1 OFFSET $2;
 
 -- name: CountSearchBookingsWithDetails :one
@@ -148,7 +152,11 @@ WHERE
     (@query::text = '' OR b.reference_code ILIKE '%' || @query::text || '%'
      OR u.full_name ILIKE '%' || @query::text || '%'
      OR c.company_name ILIKE '%' || @query::text || '%')
-    AND (@status_filter::text = '' OR b.status::text = @status_filter::text);
+    AND (@status_filter::text = '' OR b.status::text = @status_filter::text)
+    AND (sqlc.narg('date_from')::date IS NULL OR b.scheduled_date >= sqlc.narg('date_from')::date)
+    AND (sqlc.narg('date_to')::date IS NULL OR b.scheduled_date <= sqlc.narg('date_to')::date)
+    AND (sqlc.narg('company_id')::uuid IS NULL OR b.company_id = sqlc.narg('company_id')::uuid)
+    AND (sqlc.narg('service_type')::text IS NULL OR b.service_type::text = sqlc.narg('service_type')::text);
 
 -- name: ListBookingsByCompanyAndDateRange :many
 SELECT * FROM bookings

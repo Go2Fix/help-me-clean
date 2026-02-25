@@ -15,11 +15,12 @@ import {
   SEARCH_COMPANIES,
   APPROVE_COMPANY,
   REJECT_COMPANY,
+  COMPANY_SCORECARDS,
 } from '@/graphql/operations';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
-type Tab = 'pending' | 'approved' | 'all';
+type Tab = 'pending' | 'approved' | 'all' | 'performance';
 
 const PAGE_SIZE = 20;
 
@@ -27,6 +28,7 @@ const tabOptions = [
   { value: 'pending', label: 'In asteptare' },
   { value: 'approved', label: 'Aprobate' },
   { value: 'all', label: 'Toate' },
+  { value: 'performance', label: 'Performanta' },
 ];
 
 const statusDotColor: Record<string, string> = {
@@ -84,6 +86,20 @@ interface CompanyEdge {
   createdAt: string;
 }
 
+interface Scorecard {
+  id: string;
+  companyName: string;
+  status: string;
+  completedCount: number;
+  cancelledCount: number;
+  totalBookings: number;
+  totalRevenue: number;
+  completionRate: number;
+  cancellationRate: number;
+  avgRating: number;
+  reviewCount: number;
+}
+
 interface PendingApp {
   id: string;
   companyName: string;
@@ -115,6 +131,7 @@ export default function CompaniesPage() {
   const [statusFilter, setStatusFilter] = useState('');
   const [approvedPage, setApprovedPage] = useState(0);
   const [allPage, setAllPage] = useState(0);
+  const [sortBy, setSortBy] = useState<'revenue' | 'rating' | 'completion'>('revenue');
 
   const debouncedSearch = useDebounce(searchQuery, 300);
 
@@ -151,6 +168,12 @@ export default function CompaniesPage() {
       limit: PAGE_SIZE,
       offset: allPage * PAGE_SIZE,
     },
+  });
+
+  // Company scorecards (performance tab)
+  const { data: scorecardsData, loading: scorecardsLoading } = useQuery(COMPANY_SCORECARDS, {
+    variables: { limit: 50 },
+    skip: activeTab !== 'performance',
   });
 
   const [approveCompany, { loading: approving }] = useMutation(APPROVE_COMPANY, {
@@ -220,7 +243,9 @@ export default function CompaniesPage() {
       ? pendingLoading
       : activeTab === 'approved'
         ? approvedLoading
-        : allLoading;
+        : activeTab === 'performance'
+          ? scorecardsLoading
+          : allLoading;
 
   return (
     <div>
@@ -390,6 +415,113 @@ export default function CompaniesPage() {
             />
           )}
         </>
+      )}
+
+      {/* Performance Tab */}
+      {activeTab === 'performance' && (
+        <div>
+          {/* Sort controls */}
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-sm text-gray-500">Sortare:</span>
+            {([
+              { value: 'revenue', label: 'Venit' },
+              { value: 'rating', label: 'Rating' },
+              { value: 'completion', label: 'Finalizare' },
+            ] as const).map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setSortBy(opt.value)}
+                className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                  sortBy === opt.value
+                    ? 'bg-primary text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+
+          {scorecardsLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="h-48 bg-gray-100 animate-pulse rounded-xl" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[...(scorecardsData?.companyScorecards ?? [] as Scorecard[])]
+                .sort((a: Scorecard, b: Scorecard) => {
+                  if (sortBy === 'revenue') return b.totalRevenue - a.totalRevenue;
+                  if (sortBy === 'rating') return b.avgRating - a.avgRating;
+                  return b.completionRate - a.completionRate;
+                })
+                .map((sc: Scorecard) => (
+                  <div
+                    key={sc.id}
+                    onClick={() => navigate(`/admin/companii/${sc.id}`)}
+                    className="bg-white border border-gray-200 rounded-xl p-4 hover:border-blue-300 hover:shadow-sm cursor-pointer transition-all"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900 truncate max-w-[180px]">
+                          {sc.companyName}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-0.5">{sc.totalBookings} rezervari total</p>
+                      </div>
+                      {/* Rating badge */}
+                      <div className="flex items-center gap-1 bg-amber-50 px-2 py-1 rounded-lg">
+                        <Star className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
+                        <span className="text-sm font-semibold text-amber-700">
+                          {sc.avgRating.toFixed(1)}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Completion rate bar */}
+                    <div className="mb-2">
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="text-gray-500">Finalizare</span>
+                        <span className="font-medium text-gray-700">{sc.completionRate.toFixed(0)}%</span>
+                      </div>
+                      <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-emerald-500 rounded-full transition-all"
+                          style={{ width: `${Math.min(sc.completionRate, 100)}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Cancellation rate */}
+                    <div className="mb-3">
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="text-gray-500">Anulare</span>
+                        <span
+                          className={`font-medium ${sc.cancellationRate > 10 ? 'text-red-600' : 'text-gray-700'}`}
+                        >
+                          {sc.cancellationRate.toFixed(0)}%
+                          {sc.cancellationRate > 10 && ' ⚠'}
+                        </span>
+                      </div>
+                      <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all ${sc.cancellationRate > 10 ? 'bg-red-400' : 'bg-gray-300'}`}
+                          style={{ width: `${Math.min(sc.cancellationRate, 100)}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center pt-2 border-t border-gray-100">
+                      <span className="text-xs text-gray-400">{sc.reviewCount} recenzii</span>
+                      <span className="text-sm font-semibold text-gray-900">
+                        {(sc.totalRevenue / 100).toFixed(0)} RON
+                      </span>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          )}
+        </div>
       )}
 
       {/* Reject Modal */}

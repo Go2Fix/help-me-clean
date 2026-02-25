@@ -437,15 +437,30 @@ WHERE
      OR u.full_name ILIKE '%' || $1::text || '%'
      OR c.company_name ILIKE '%' || $1::text || '%')
     AND ($2::text = '' OR b.status::text = $2::text)
+    AND ($3::date IS NULL OR b.scheduled_date >= $3::date)
+    AND ($4::date IS NULL OR b.scheduled_date <= $4::date)
+    AND ($5::uuid IS NULL OR b.company_id = $5::uuid)
+    AND ($6::text IS NULL OR b.service_type::text = $6::text)
 `
 
 type CountSearchBookingsWithDetailsParams struct {
-	Query        string `json:"query"`
-	StatusFilter string `json:"status_filter"`
+	Query        string      `json:"query"`
+	StatusFilter string      `json:"status_filter"`
+	DateFrom     pgtype.Date `json:"date_from"`
+	DateTo       pgtype.Date `json:"date_to"`
+	CompanyID    pgtype.UUID `json:"company_id"`
+	ServiceType  pgtype.Text `json:"service_type"`
 }
 
 func (q *Queries) CountSearchBookingsWithDetails(ctx context.Context, arg CountSearchBookingsWithDetailsParams) (int64, error) {
-	row := q.db.QueryRow(ctx, countSearchBookingsWithDetails, arg.Query, arg.StatusFilter)
+	row := q.db.QueryRow(ctx, countSearchBookingsWithDetails,
+		arg.Query,
+		arg.StatusFilter,
+		arg.DateFrom,
+		arg.DateTo,
+		arg.CompanyID,
+		arg.ServiceType,
+	)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -1619,14 +1634,22 @@ WHERE
      OR u.full_name ILIKE '%' || $3::text || '%'
      OR c.company_name ILIKE '%' || $3::text || '%')
     AND ($4::text = '' OR b.status::text = $4::text)
+    AND ($5::date IS NULL OR b.scheduled_date >= $5::date)
+    AND ($6::date IS NULL OR b.scheduled_date <= $6::date)
+    AND ($7::uuid IS NULL OR b.company_id = $7::uuid)
+    AND ($8::text IS NULL OR b.service_type::text = $8::text)
 ORDER BY b.created_at DESC LIMIT $1 OFFSET $2
 `
 
 type SearchBookingsWithDetailsParams struct {
-	Limit        int32  `json:"limit"`
-	Offset       int32  `json:"offset"`
-	Query        string `json:"query"`
-	StatusFilter string `json:"status_filter"`
+	Limit        int32       `json:"limit"`
+	Offset       int32       `json:"offset"`
+	Query        string      `json:"query"`
+	StatusFilter string      `json:"status_filter"`
+	DateFrom     pgtype.Date `json:"date_from"`
+	DateTo       pgtype.Date `json:"date_to"`
+	CompanyID    pgtype.UUID `json:"company_id"`
+	ServiceType  pgtype.Text `json:"service_type"`
 }
 
 type SearchBookingsWithDetailsRow struct {
@@ -1682,6 +1705,10 @@ func (q *Queries) SearchBookingsWithDetails(ctx context.Context, arg SearchBooki
 		arg.Offset,
 		arg.Query,
 		arg.StatusFilter,
+		arg.DateFrom,
+		arg.DateTo,
+		arg.CompanyID,
+		arg.ServiceType,
 	)
 	if err != nil {
 		return nil, err

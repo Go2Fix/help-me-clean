@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useQuery } from '@apollo/client';
 import { useNavigate } from 'react-router-dom';
-import { Search, Repeat, Calendar, User, Building2 } from 'lucide-react';
+import { Search, Repeat, Calendar, User, Building2, Download } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Select from '@/components/ui/Select';
 import AdminPagination from '@/components/admin/AdminPagination';
 import { useDebounce } from '@/hooks/useDebounce';
-import { formatCurrency, formatDate } from '@/utils/format';
-import { SEARCH_BOOKINGS } from '@/graphql/operations';
+import { formatCurrency, formatDate, exportToCSV } from '@/utils/format';
+import { SEARCH_BOOKINGS, ALL_SERVICES, SEARCH_COMPANIES } from '@/graphql/operations';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -76,6 +76,10 @@ export default function BookingsPage() {
   const [filter, setFilter] = useState<StatusFilter>('ALL');
   const [searchInput, setSearchInput] = useState('');
   const [page, setPage] = useState(0);
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [companyFilter, setCompanyFilter] = useState('');
+  const [serviceTypeFilter, setServiceTypeFilter] = useState('');
 
   const debouncedQuery = useDebounce(searchInput, 300);
 
@@ -85,14 +89,24 @@ export default function BookingsPage() {
     setPage(0);
   };
 
-  const variables = {
-    query: debouncedQuery || undefined,
-    status: filter === 'ALL' ? undefined : filter,
-    limit: PAGE_SIZE,
-    offset: page * PAGE_SIZE,
-  };
+  // Filter dropdown data
+  const { data: servicesData } = useQuery(ALL_SERVICES);
+  const { data: companiesFilterData } = useQuery(SEARCH_COMPANIES, {
+    variables: { limit: 200 },
+  });
 
-  const { data, loading } = useQuery(SEARCH_BOOKINGS, { variables });
+  const { data, loading } = useQuery(SEARCH_BOOKINGS, {
+    variables: {
+      query: debouncedQuery || undefined,
+      status: filter !== 'ALL' ? filter : undefined,
+      dateFrom: dateFrom || undefined,
+      dateTo: dateTo || undefined,
+      companyId: companyFilter || undefined,
+      serviceType: serviceTypeFilter || undefined,
+      limit: PAGE_SIZE,
+      offset: page * PAGE_SIZE,
+    },
+  });
 
   const bookings: BookingEdge[] = data?.searchBookings?.edges ?? [];
   const totalCount: number = data?.searchBookings?.totalCount ?? 0;
@@ -100,13 +114,36 @@ export default function BookingsPage() {
   return (
     <div>
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Comenzi</h1>
-        <p className="text-gray-500 mt-1">Gestioneaza toate comenzile de pe platforma.</p>
+      <div className="mb-6 flex flex-wrap items-end gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Comenzi</h1>
+          <p className="text-gray-500 mt-1">Gestioneaza toate comenzile de pe platforma.</p>
+        </div>
+        <div className="flex-1" />
+        <button
+          onClick={() => {
+            const rows = (data?.searchBookings?.edges ?? []).map((b: BookingEdge) => ({
+              'Cod': b.referenceCode,
+              'Serviciu': b.serviceName,
+              'Data': b.scheduledDate,
+              'Ora': b.scheduledStartTime,
+              'Client': b.client?.fullName ?? '',
+              'Companie': b.company?.companyName ?? '',
+              'Pret (RON)': (b.estimatedTotal / 100).toFixed(2),
+              'Status': statusLabel[b.status] ?? b.status,
+              'Plata': b.paymentStatus,
+            }));
+            exportToCSV(rows, `comenzi-${new Date().toISOString().slice(0, 10)}.csv`);
+          }}
+          className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:border-gray-300 hover:text-gray-900 transition-colors"
+        >
+          <Download className="h-4 w-4" />
+          Exporta CSV
+        </button>
       </div>
 
       {/* Filter Bar */}
-      <div className="mb-6 grid grid-cols-1 md:grid-cols-[1fr_200px] gap-3">
+      <div className="mb-4 grid grid-cols-1 md:grid-cols-[1fr_200px] gap-3">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
           <input
@@ -125,6 +162,64 @@ export default function BookingsPage() {
           value={filter}
           onChange={(e) => handleFilterChange(e.target.value as StatusFilter)}
         />
+      </div>
+
+      {/* Advanced Filters Row */}
+      <div className="flex flex-wrap gap-2 mb-6">
+        <input
+          type="date"
+          value={dateFrom}
+          onChange={(e) => { setDateFrom(e.target.value); setPage(0); }}
+          className="px-3 py-2 text-sm border border-gray-200 rounded-xl bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/20"
+        />
+        <input
+          type="date"
+          value={dateTo}
+          onChange={(e) => { setDateTo(e.target.value); setPage(0); }}
+          className="px-3 py-2 text-sm border border-gray-200 rounded-xl bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/20"
+        />
+        <Select
+          options={[
+            { value: '', label: 'Toate companiile' },
+            ...(companiesFilterData?.searchCompanies?.edges ?? []).map(
+              (c: { id: string; companyName: string }) => ({
+                value: c.id,
+                label: c.companyName,
+              }),
+            ),
+          ]}
+          value={companyFilter}
+          onChange={(e) => { setCompanyFilter(e.target.value); setPage(0); }}
+          className="w-48"
+        />
+        <Select
+          options={[
+            { value: '', label: 'Toate serviciile' },
+            ...(servicesData?.allServices ?? []).map(
+              (s: { serviceType: string; nameRo: string }) => ({
+                value: s.serviceType,
+                label: s.nameRo,
+              }),
+            ),
+          ]}
+          value={serviceTypeFilter}
+          onChange={(e) => { setServiceTypeFilter(e.target.value); setPage(0); }}
+          className="w-44"
+        />
+        {(dateFrom || dateTo || companyFilter || serviceTypeFilter) && (
+          <button
+            onClick={() => {
+              setDateFrom('');
+              setDateTo('');
+              setCompanyFilter('');
+              setServiceTypeFilter('');
+              setPage(0);
+            }}
+            className="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 border border-gray-200 rounded-xl hover:border-gray-300 transition-colors"
+          >
+            Reseteaza filtre
+          </button>
+        )}
       </div>
 
       {/* List */}

@@ -445,50 +445,43 @@ Fully covered in P2-3 above. Admin UI for discount percentages per frequency exi
 
 ---
 
-## 9. Phase 7 — Admin Dashboard Enhancements
+## 9. Phase 7 — Admin Dashboard Enhancements ✅ COMPLETE
 
-### P7-1: Demand & Capacity Analytics
+### P7-1: Demand Analytics ✅
 
-- [ ] Heat map: Most requested time slots vs available capacity
-- [ ] Per-city booking demand trends
-- [ ] Unserved demand (bookings abandoned due to no availability)
-- [ ] Worker utilization rate per company
+- [x] Booking demand heatmap (day-of-week × hour, 7–21h) — `GetBookingDemandHeatmap` SQL, `bookingDemandHeatmap` GQL, `DemandHeatmap` component in ReportsPage with 6-level blue intensity + legend
+- [ ] ~~Per-city booking demand trends~~ — Skipped for MVP
+- [ ] ~~Unserved demand~~ — Skipped (requires new tracking infrastructure)
+- [ ] ~~Worker utilization rate~~ — Skipped for MVP
 
-**Effort:** 4-5 hours
+### P7-2: Financial Reports ✅
 
----
+- [x] CSV export for revenue reports — `exportToCSV` utility, "Exporta CSV" button in ReportsPage header
+- [x] Per-company revenue breakdown — already existed (top companies table)
+- [x] Per-service-type breakdown — already existed (bar chart)
+- [ ] ~~PDF export~~ — Skipped (low ROI vs effort)
+- [ ] ~~ANAF tax report~~ — Post-MVP
 
-### P7-2: Financial Reports Enhancement
+### P7-3: Company Performance Dashboard ✅
 
-- [ ] Monthly P&L report (revenue, commission, payouts, refunds)
-- [ ] Per-company revenue breakdown
-- [ ] Per-service-type revenue breakdown
-- [ ] Export to PDF/CSV
-- [ ] Tax report for ANAF compliance
+- [x] Company scorecards tab "Performanta" in CompaniesPage — `GetAllCompanyScorecards` + `GetCompanyAvgRating` SQL, `companyScorecards` GQL, 3-column card grid with completion/cancellation progress bars, rating badge, sort by Revenue/Rating/Completion
+- [x] Flag underperforming companies — cancellation rate > 10% shown with ⚠ warning in red
+- [ ] ~~Company comparison view~~ — Skipped for MVP
+- [ ] ~~Auto-pause~~ — Post-MVP
 
-**Effort:** 3-4 hours
+### P7-4: Booking Management ✅
 
----
+- [x] Advanced filters — date range, company dropdown, service type dropdown added to BookingsPage; `SearchBookingsWithDetails` SQL updated with optional filters via `sqlc.narg()`
+- [x] Export booking data — "Exporta CSV" button exports currently filtered bookings
+- [x] Booking timeline audit log — already existed in BookingDetailPage
+- [ ] ~~Bulk actions~~ — Skipped for MVP
 
-### P7-3: Company Performance Dashboard
+### Bonus: Dashboard Trends ✅
 
-- [ ] Company scorecard: Rating, completion rate, punctuality, cancellation rate
-- [ ] Flag underperforming companies
-- [ ] Company comparison view
-- [ ] Auto-pause company if rating drops below threshold (configurable)
+- [x] Month-over-month trend badges (↑/↓ %) on bookings, revenue, new clients metrics in DashboardPage
+- [x] `GetPlatformStats` SQL extended with last-month counters
 
-**Effort:** 3-4 hours
-
----
-
-### P7-4: Booking Management Improvements
-
-- [ ] Bulk actions (assign, cancel, reschedule)
-- [ ] Advanced filters (date range, status, company, service type, city)
-- [ ] Export booking data
-- [ ] Booking timeline audit log
-
-**Effort:** 2-3 hours
+**What was done:** 5 new SQL queries, 3 new GQL types (`DemandSlot`, `CompanyScorecard`, extended `PlatformStats`), 3 new resolvers, `exportToCSV` utility, DemandHeatmap component, Performanta tab, advanced filters row, trend badges.
 
 ---
 

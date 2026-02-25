@@ -12,7 +12,11 @@ SELECT
     (SELECT COALESCE(SUM(platform_commission_amount), 0) FROM bookings WHERE status = 'completed' AND completed_at >= DATE_TRUNC('month', CURRENT_DATE)) AS commission_this_month,
     (SELECT COUNT(*) FROM users WHERE created_at >= DATE_TRUNC('month', CURRENT_DATE)) AS new_clients_this_month,
     (SELECT COUNT(*) FROM companies WHERE created_at >= DATE_TRUNC('month', CURRENT_DATE)) AS new_companies_this_month,
-    (SELECT COALESCE(AVG(rating), 0) FROM reviews) AS average_rating;
+    (SELECT COALESCE(AVG(rating), 0) FROM reviews) AS average_rating,
+    (SELECT COUNT(*) FROM bookings WHERE created_at >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 month' AND created_at < DATE_TRUNC('month', CURRENT_DATE)) AS bookings_last_month,
+    (SELECT COALESCE(SUM(COALESCE(final_total, estimated_total)), 0) FROM bookings WHERE status = 'completed' AND completed_at >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 month' AND completed_at < DATE_TRUNC('month', CURRENT_DATE)) AS revenue_last_month,
+    (SELECT COUNT(*) FROM users WHERE created_at >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 month' AND created_at < DATE_TRUNC('month', CURRENT_DATE)) AS new_clients_last_month,
+    (SELECT COUNT(*) FROM companies WHERE created_at >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 month' AND created_at < DATE_TRUNC('month', CURRENT_DATE)) AS new_companies_last_month;
 
 -- name: GetBookingCountByStatus :many
 SELECT status, COUNT(*) AS count FROM bookings GROUP BY status;

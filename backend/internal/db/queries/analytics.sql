@@ -49,3 +49,31 @@ SELECT
     COUNT(DISTINCT client_user_id)::bigint AS unique_clients,
     COUNT(DISTINCT company_id) FILTER (WHERE company_id IS NOT NULL)::bigint AS active_companies
 FROM bookings;
+
+-- name: GetBookingDemandHeatmap :many
+SELECT
+  EXTRACT(DOW FROM scheduled_date)::int AS day_of_week,
+  CAST(SPLIT_PART(scheduled_start_time, ':', 1) AS int) AS hour,
+  COUNT(*)::bigint AS booking_count
+FROM bookings
+WHERE scheduled_date >= @date_from::date AND scheduled_date <= @date_to::date
+GROUP BY day_of_week, hour
+ORDER BY day_of_week, hour;
+
+-- name: GetAllCompanyScorecards :many
+SELECT c.id, c.company_name, c.status::text AS company_status,
+  COUNT(b.id) FILTER (WHERE b.status = 'completed')::bigint AS completed_count,
+  COUNT(b.id) FILTER (WHERE b.status::text LIKE 'cancelled%')::bigint AS cancelled_count,
+  COUNT(b.id)::bigint AS total_count,
+  COALESCE(SUM(COALESCE(b.final_total, b.estimated_total)) FILTER (WHERE b.status = 'completed'), 0)::numeric AS total_revenue
+FROM companies c
+LEFT JOIN bookings b ON b.company_id = c.id
+WHERE c.status = 'approved'
+GROUP BY c.id, c.company_name, c.status
+ORDER BY total_revenue DESC
+LIMIT $1 OFFSET $2;
+
+-- name: GetCompanyAvgRating :one
+SELECT COALESCE(AVG(r.rating), 0)::numeric AS avg_rating, COUNT(r.id)::bigint AS review_count
+FROM reviews r JOIN workers w ON r.reviewed_worker_id = w.id
+WHERE w.company_id = $1;

@@ -267,6 +267,10 @@ func (r *queryResolver) PlatformStats(ctx context.Context, dateFrom *string, dat
 		RevenueThisMonth:        interfaceToFloat(stats.RevenueThisMonth),
 		NewClientsThisMonth:     int(stats.NewClientsThisMonth),
 		NewCompaniesThisMonth:   int(stats.NewCompaniesThisMonth),
+		BookingsLastMonth:       int(stats.BookingsLastMonth),
+		RevenueLastMonth:        interfaceToFloat(stats.RevenueLastMonth),
+		NewClientsLastMonth:     int(stats.NewClientsLastMonth),
+		NewCompaniesLastMonth:   int(stats.NewCompaniesLastMonth),
 	}, nil
 }
 
@@ -576,7 +580,7 @@ func (r *queryResolver) CompanyFinancialSummary(ctx context.Context, companyID s
 }
 
 // SearchBookings is the resolver for the searchBookings field.
-func (r *queryResolver) SearchBookings(ctx context.Context, query *string, status *model.BookingStatus, limit *int, offset *int) (*model.BookingConnection, error) {
+func (r *queryResolver) SearchBookings(ctx context.Context, query *string, status *model.BookingStatus, dateFrom *string, dateTo *string, companyID *string, serviceType *string, limit *int, offset *int) (*model.BookingConnection, error) {
 	claims := auth.GetUserFromContext(ctx)
 	if claims == nil {
 		return nil, fmt.Errorf("not authenticated")
@@ -599,11 +603,39 @@ func (r *queryResolver) SearchBookings(ctx context.Context, query *string, statu
 		statusFilter = strings.ToLower(string(*status))
 	}
 
+	var dateFromPg, dateToPg pgtype.Date
+	if dateFrom != nil && *dateFrom != "" {
+		t, err := time.Parse("2006-01-02", *dateFrom)
+		if err == nil {
+			dateFromPg = pgtype.Date{Time: t, Valid: true}
+		}
+	}
+	if dateTo != nil && *dateTo != "" {
+		t, err := time.Parse("2006-01-02", *dateTo)
+		if err == nil {
+			dateToPg = pgtype.Date{Time: t, Valid: true}
+		}
+	}
+
+	var companyIDPg pgtype.UUID
+	if companyID != nil && *companyID != "" {
+		companyIDPg = stringToUUID(*companyID)
+	}
+
+	var serviceTypePg pgtype.Text
+	if serviceType != nil && *serviceType != "" {
+		serviceTypePg = pgtype.Text{String: *serviceType, Valid: true}
+	}
+
 	rows, err := r.Queries.SearchBookingsWithDetails(ctx, db.SearchBookingsWithDetailsParams{
 		Limit:        l,
 		Offset:       o,
 		Query:        q,
 		StatusFilter: statusFilter,
+		DateFrom:     dateFromPg,
+		DateTo:       dateToPg,
+		CompanyID:    companyIDPg,
+		ServiceType:  serviceTypePg,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to search bookings: %w", err)
@@ -612,6 +644,10 @@ func (r *queryResolver) SearchBookings(ctx context.Context, query *string, statu
 	count, err := r.Queries.CountSearchBookingsWithDetails(ctx, db.CountSearchBookingsWithDetailsParams{
 		Query:        q,
 		StatusFilter: statusFilter,
+		DateFrom:     dateFromPg,
+		DateTo:       dateToPg,
+		CompanyID:    companyIDPg,
+		ServiceType:  serviceTypePg,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to count bookings: %w", err)
@@ -698,4 +734,64 @@ func (r *queryResolver) AllReviews(ctx context.Context, limit *int, offset *int,
 		Reviews:    reviews,
 		TotalCount: int(count),
 	}, nil
+}
+
+// CompanyScorecards is the resolver for the companyScorecards field.
+func (r *queryResolver) CompanyScorecards(ctx context.Context, limit *int, offset *int) ([]*model.CompanyScorecard, error) {
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil || claims.Role != "global_admin" {
+		return nil, fmt.Errorf("not authorized")
+	}
+
+	l := int32(50)
+	if limit != nil {
+		l = int32(*limit)
+	}
+	o := int32(0)
+	if offset != nil {
+		o = int32(*offset)
+	}
+
+	rows, err := r.Queries.GetAllCompanyScorecards(ctx, db.GetAllCompanyScorecardsParams{
+		Limit:  l,
+		Offset: o,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get company scorecards: %w", err)
+	}
+
+	result := make([]*model.CompanyScorecard, len(rows))
+	for i, row := range rows {
+		ratingRow, err := r.Queries.GetCompanyAvgRating(ctx, row.ID)
+		avgRating := 0.0
+		reviewCount := 0
+		if err == nil {
+			avgRating = numericToFloat(ratingRow.AvgRating)
+			reviewCount = int(ratingRow.ReviewCount)
+		}
+
+		total := row.TotalCount
+		completionRate := 0.0
+		cancellationRate := 0.0
+		if total > 0 {
+			completionRate = float64(row.CompletedCount) / float64(total) * 100
+			cancellationRate = float64(row.CancelledCount) / float64(total) * 100
+		}
+
+		result[i] = &model.CompanyScorecard{
+			ID:               uuidToString(row.ID),
+			CompanyName:      row.CompanyName,
+			Status:           row.CompanyStatus,
+			CompletedCount:   int(row.CompletedCount),
+			CancelledCount:   int(row.CancelledCount),
+			TotalBookings:    int(total),
+			TotalRevenue:     numericToFloat(row.TotalRevenue),
+			CompletionRate:   completionRate,
+			CancellationRate: cancellationRate,
+			AvgRating:        avgRating,
+			ReviewCount:      reviewCount,
+		}
+	}
+
+	return result, nil
 }

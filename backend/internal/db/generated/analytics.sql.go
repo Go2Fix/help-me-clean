@@ -11,6 +11,123 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const getAllCompanyScorecards = `-- name: GetAllCompanyScorecards :many
+SELECT c.id, c.company_name, c.status::text AS company_status,
+  COUNT(b.id) FILTER (WHERE b.status = 'completed')::bigint AS completed_count,
+  COUNT(b.id) FILTER (WHERE b.status::text LIKE 'cancelled%')::bigint AS cancelled_count,
+  COUNT(b.id)::bigint AS total_count,
+  COALESCE(SUM(COALESCE(b.final_total, b.estimated_total)) FILTER (WHERE b.status = 'completed'), 0)::numeric AS total_revenue
+FROM companies c
+LEFT JOIN bookings b ON b.company_id = c.id
+WHERE c.status = 'approved'
+GROUP BY c.id, c.company_name, c.status
+ORDER BY total_revenue DESC
+LIMIT $1 OFFSET $2
+`
+
+type GetAllCompanyScorecardsParams struct {
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
+
+type GetAllCompanyScorecardsRow struct {
+	ID             pgtype.UUID    `json:"id"`
+	CompanyName    string         `json:"company_name"`
+	CompanyStatus  string         `json:"company_status"`
+	CompletedCount int64          `json:"completed_count"`
+	CancelledCount int64          `json:"cancelled_count"`
+	TotalCount     int64          `json:"total_count"`
+	TotalRevenue   pgtype.Numeric `json:"total_revenue"`
+}
+
+func (q *Queries) GetAllCompanyScorecards(ctx context.Context, arg GetAllCompanyScorecardsParams) ([]GetAllCompanyScorecardsRow, error) {
+	rows, err := q.db.Query(ctx, getAllCompanyScorecards, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetAllCompanyScorecardsRow
+	for rows.Next() {
+		var i GetAllCompanyScorecardsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CompanyName,
+			&i.CompanyStatus,
+			&i.CompletedCount,
+			&i.CancelledCount,
+			&i.TotalCount,
+			&i.TotalRevenue,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getBookingDemandHeatmap = `-- name: GetBookingDemandHeatmap :many
+SELECT
+  EXTRACT(DOW FROM scheduled_date)::int AS day_of_week,
+  CAST(SPLIT_PART(scheduled_start_time, ':', 1) AS int) AS hour,
+  COUNT(*)::bigint AS booking_count
+FROM bookings
+WHERE scheduled_date >= $1::date AND scheduled_date <= $2::date
+GROUP BY day_of_week, hour
+ORDER BY day_of_week, hour
+`
+
+type GetBookingDemandHeatmapParams struct {
+	DateFrom pgtype.Date `json:"date_from"`
+	DateTo   pgtype.Date `json:"date_to"`
+}
+
+type GetBookingDemandHeatmapRow struct {
+	DayOfWeek    int32 `json:"day_of_week"`
+	Hour         int32 `json:"hour"`
+	BookingCount int64 `json:"booking_count"`
+}
+
+func (q *Queries) GetBookingDemandHeatmap(ctx context.Context, arg GetBookingDemandHeatmapParams) ([]GetBookingDemandHeatmapRow, error) {
+	rows, err := q.db.Query(ctx, getBookingDemandHeatmap, arg.DateFrom, arg.DateTo)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetBookingDemandHeatmapRow
+	for rows.Next() {
+		var i GetBookingDemandHeatmapRow
+		if err := rows.Scan(&i.DayOfWeek, &i.Hour, &i.BookingCount); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getCompanyAvgRating = `-- name: GetCompanyAvgRating :one
+SELECT COALESCE(AVG(r.rating), 0)::numeric AS avg_rating, COUNT(r.id)::bigint AS review_count
+FROM reviews r JOIN workers w ON r.reviewed_worker_id = w.id
+WHERE w.company_id = $1
+`
+
+type GetCompanyAvgRatingRow struct {
+	AvgRating   pgtype.Numeric `json:"avg_rating"`
+	ReviewCount int64          `json:"review_count"`
+}
+
+func (q *Queries) GetCompanyAvgRating(ctx context.Context, companyID pgtype.UUID) (GetCompanyAvgRatingRow, error) {
+	row := q.db.QueryRow(ctx, getCompanyAvgRating, companyID)
+	var i GetCompanyAvgRatingRow
+	err := row.Scan(&i.AvgRating, &i.ReviewCount)
+	return i, err
+}
+
 const getCompanyRevenueByDateRange = `-- name: GetCompanyRevenueByDateRange :many
 SELECT DATE(completed_at) AS date,
     COUNT(*)::bigint AS booking_count,

@@ -163,6 +163,7 @@ type Querier interface {
 	// Area + category filtering: only returns workers (and their companies) qualified for the given category.
 	FindMatchingWorkersByCategory(ctx context.Context, arg FindMatchingWorkersByCategoryParams) ([]FindMatchingWorkersByCategoryRow, error)
 	GetAddressByID(ctx context.Context, id pgtype.UUID) (ClientAddress, error)
+	GetAllCompanyScorecards(ctx context.Context, arg GetAllCompanyScorecardsParams) ([]GetAllCompanyScorecardsRow, error)
 	GetAreaByID(ctx context.Context, id pgtype.UUID) (GetAreaByIDRow, error)
 	GetAverageWorkerRating(ctx context.Context, reviewedWorkerID pgtype.UUID) (pgtype.Numeric, error)
 	// ============================================
@@ -172,6 +173,7 @@ type Querier interface {
 	GetBookingByID(ctx context.Context, id pgtype.UUID) (Booking, error)
 	GetBookingByReferenceCode(ctx context.Context, referenceCode string) (Booking, error)
 	GetBookingCountByStatus(ctx context.Context) ([]GetBookingCountByStatusRow, error)
+	GetBookingDemandHeatmap(ctx context.Context, arg GetBookingDemandHeatmapParams) ([]GetBookingDemandHeatmapRow, error)
 	GetBookingsByRecurringGroup(ctx context.Context, recurringGroupID pgtype.UUID) ([]Booking, error)
 	// ─── SUBSCRIPTION BOOKINGS ───────────────────────────────────────────────
 	GetBookingsBySubscription(ctx context.Context, subscriptionID pgtype.UUID) ([]Booking, error)
@@ -182,6 +184,7 @@ type Querier interface {
 	// Check for existing commission invoice to prevent duplicates
 	GetCommissionInvoiceByPeriod(ctx context.Context, arg GetCommissionInvoiceByPeriodParams) (Invoice, error)
 	GetCompanyAverageRating(ctx context.Context, companyID pgtype.UUID) (pgtype.Numeric, error)
+	GetCompanyAvgRating(ctx context.Context, companyID pgtype.UUID) (GetCompanyAvgRatingRow, error)
 	GetCompanyByAdminUserID(ctx context.Context, adminUserID pgtype.UUID) (Company, error)
 	GetCompanyByCUI(ctx context.Context, cui string) (Company, error)
 	GetCompanyByClaimToken(ctx context.Context, claimToken pgtype.Text) (Company, error)

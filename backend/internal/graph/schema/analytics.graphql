@@ -28,10 +28,17 @@ type PlatformTotals {
   activeCompanies: Int!
 }
 
+type DemandSlot {
+  dayOfWeek: Int!
+  hour: Int!
+  count: Int!
+}
+
 extend type Query {
   revenueByDateRange(from: String!, to: String!): [DailyRevenue!]!
   revenueByServiceType(from: String!, to: String!): [ServiceRevenue!]!
   topCompaniesByRevenue(from: String!, to: String!, limit: Int): [TopCompany!]!
   platformTotals: PlatformTotals!
   companyRevenueByDateRange(from: String!, to: String!): [DailyRevenue!]!
+  bookingDemandHeatmap(from: String!, to: String!): [DemandSlot!]!
 }

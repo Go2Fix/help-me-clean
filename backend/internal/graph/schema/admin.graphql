@@ -10,6 +10,10 @@ type PlatformStats {
   revenueThisMonth: Float!
   newClientsThisMonth: Int!
   newCompaniesThisMonth: Int!
+  bookingsLastMonth: Int!
+  revenueLastMonth: Float!
+  newClientsLastMonth: Int!
+  newCompaniesLastMonth: Int!
 }
 
 type BookingsByStatus {
@@ -44,6 +48,20 @@ type CompanyFinancialSummary {
   netPayout: Float!
 }
 
+type CompanyScorecard {
+  id: ID!
+  companyName: String!
+  status: String!
+  completedCount: Int!
+  cancelledCount: Int!
+  totalBookings: Int!
+  totalRevenue: Float!
+  completionRate: Float!
+  cancellationRate: Float!
+  avgRating: Float!
+  reviewCount: Int!
+}
+
 extend type Query {
   platformStats(dateFrom: String, dateTo: String): PlatformStats!
   bookingsByStatus: [BookingsByStatus!]!
@@ -55,8 +73,9 @@ extend type Query {
   allUsers: [User!]!
   searchCompanies(query: String, status: CompanyStatus, limit: Int, offset: Int): CompanyConnection!
   companyFinancialSummary(companyId: ID!): CompanyFinancialSummary!
-  searchBookings(query: String, status: BookingStatus, limit: Int, offset: Int): BookingConnection!
+  searchBookings(query: String, status: BookingStatus, dateFrom: String, dateTo: String, companyId: ID, serviceType: String, limit: Int, offset: Int): BookingConnection!
   allReviews(limit: Int, offset: Int, rating: Int, reviewType: String): ReviewConnection!
+  companyScorecards(limit: Int, offset: Int): [CompanyScorecard!]!
 }
 
 extend type Mutation {
