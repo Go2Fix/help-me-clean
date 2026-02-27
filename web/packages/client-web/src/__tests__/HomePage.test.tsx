@@ -140,8 +140,8 @@ describe('HomePage', () => {
     renderHomePage();
     expect(screen.getAllByText('Firme verificate').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('Plăți sigure')).toBeInTheDocument();
-    expect(screen.getByText('Prețuri transparente')).toBeInTheDocument();
-    expect(screen.getByText('Suport rapid')).toBeInTheDocument();
+    expect(screen.getAllByText('Prețuri transparente').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Suport rapid').length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows categories section heading', () => {
