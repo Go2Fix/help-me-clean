@@ -406,6 +406,8 @@ type Querier interface {
 	ResolveSubscriptionWorkerChange(ctx context.Context, arg ResolveSubscriptionWorkerChangeParams) (Subscription, error)
 	ResumeRecurringGroup(ctx context.Context, id pgtype.UUID) (RecurringBookingGroup, error)
 	ResumeSubscription(ctx context.Context, id pgtype.UUID) (Subscription, error)
+	SaveANAFError(ctx context.Context, arg SaveANAFErrorParams) (Company, error)
+	SaveANAFVerification(ctx context.Context, arg SaveANAFVerificationParams) (Company, error)
 	SearchBookings(ctx context.Context, arg SearchBookingsParams) ([]Booking, error)
 	SearchBookingsWithDetails(ctx context.Context, arg SearchBookingsWithDetailsParams) ([]SearchBookingsWithDetailsRow, error)
 	SearchCompanies(ctx context.Context, arg SearchCompaniesParams) ([]Company, error)

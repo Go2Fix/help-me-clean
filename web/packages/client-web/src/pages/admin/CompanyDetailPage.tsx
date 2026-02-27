@@ -33,11 +33,13 @@ import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import DocumentCard from '@/components/ui/DocumentCard';
 import PersonalityScoreCard from '@/components/PersonalityScoreCard';
+import ANAFVerificationCard from '@/components/ANAFVerificationCard';
 import {
   COMPANY,
   APPROVE_COMPANY,
   REJECT_COMPANY,
   SUSPEND_COMPANY,
+  VERIFY_COMPANY_WITH_ANAF,
   PENDING_COMPANY_APPLICATIONS,
   ALL_BOOKINGS,
   COMPANY_FINANCIAL_SUMMARY,
@@ -251,6 +253,10 @@ export default function CompanyDetailPage() {
   const [approveCompany, { loading: approving }] = useMutation(APPROVE_COMPANY, { refetchQueries });
   const [rejectCompany, { loading: rejecting }] = useMutation(REJECT_COMPANY, { refetchQueries });
   const [suspendCompany, { loading: suspending }] = useMutation(SUSPEND_COMPANY, { refetchQueries });
+
+  const [verifyWithANAF, { loading: verifyingANAF }] = useMutation(VERIFY_COMPANY_WITH_ANAF, {
+    refetchQueries: [{ query: COMPANY, variables: { id } }],
+  });
 
   const [updateProfile, { loading: updatingProfile }] = useMutation(ADMIN_UPDATE_COMPANY_PROFILE, {
     refetchQueries: [{ query: COMPANY, variables: { id } }],
@@ -475,6 +481,14 @@ export default function CompanyDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Company Info */}
           <div className="lg:col-span-2 space-y-6">
+            <ANAFVerificationCard
+              anafData={company.anafVerification}
+              submittedName={company.companyName}
+              submittedAddress={company.address}
+              onReVerify={() => verifyWithANAF({ variables: { id } })}
+              reVerifyLoading={verifyingANAF}
+            />
+
             <Card>
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Informatii companie</h3>
               <div className="grid grid-cols-2 gap-4">

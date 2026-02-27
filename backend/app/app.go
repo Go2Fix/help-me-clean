@@ -1,17 +1,14 @@
 package app
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
-	"time"
-	"unicode"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
@@ -30,6 +27,7 @@ import (
 	"go2fix-backend/internal/graph/resolver"
 	dochandler "go2fix-backend/internal/handler"
 	custommiddleware "go2fix-backend/internal/middleware"
+	"go2fix-backend/internal/service/anaf"
 	"go2fix-backend/internal/service/email"
 	"go2fix-backend/internal/service/invoice"
 	"go2fix-backend/internal/service/payment"
@@ -211,110 +209,57 @@ func NewHandler(ctx context.Context) (http.Handler, func(), error) {
 }
 
 // anafCompanyLookupHandler returns the ANAF company lookup proxy handler.
+// All ANAF communication is delegated to the anaf service package; this
+// handler is only responsible for HTTP concerns (parsing the query param,
+// mapping results to the JSON shape expected by the registration form, and
+// returning appropriate HTTP status codes).
+//
+// GET /api/company-lookup?cui=<CUI>
+//
+// Response shapes:
+//
+//	200 {"found":true,  "companyName":..., "streetAddress":..., "city":..., "county":..., "contactPhone":..., "nrRegCom":..., "codCaen":...}
+//	200 {"found":false}
+//	400 {"error":"invalid cui"}     — CUI param is missing or non-numeric
+//	503 {"error":"anaf unreachable"} — ANAF API is down / timed out
 func anafCompanyLookupHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		cuiStr := strings.TrimSpace(req.URL.Query().Get("cui"))
-		cuiStr = strings.TrimPrefix(strings.ToUpper(cuiStr), "RO")
-		cuiNum, err := strconv.Atoi(strings.TrimSpace(cuiStr))
-		if err != nil || cuiNum <= 0 {
+		if cuiStr == "" {
 			w.Header().Set("Content-Type", "application/json")
 			http.Error(w, `{"error":"invalid cui"}`, http.StatusBadRequest)
 			return
 		}
-		today := time.Now().Format("2006-01-02")
-		payload, _ := json.Marshal([]map[string]interface{}{{"cui": cuiNum, "data": today}})
-		resp, err := http.Post(
-			"https://webservicesp.anaf.ro/api/PlatitorTvaRest/v9/tva",
-			"application/json",
-			bytes.NewReader(payload),
-		)
+
+		result, err := anaf.Lookup(req.Context(), cuiStr)
 		if err != nil {
+			if errors.Is(err, anaf.ErrUnavailable) {
+				w.Header().Set("Content-Type", "application/json")
+				http.Error(w, `{"error":"anaf unreachable"}`, http.StatusServiceUnavailable)
+				return
+			}
+			// Unexpected error — treat as service unavailable.
+			log.Printf("anaf: unexpected error for cui=%s: %v", cuiStr, err)
 			w.Header().Set("Content-Type", "application/json")
 			http.Error(w, `{"error":"anaf unreachable"}`, http.StatusServiceUnavailable)
 			return
 		}
-		defer resp.Body.Close()
-		var anafResp struct {
-			Found []struct {
-				DateGenerale struct {
-					Denumire string `json:"denumire"`
-					Adresa   string `json:"adresa"`
-					Telefon  string `json:"telefon"`
-					NrRegCom string `json:"nrRegCom"`
-					CodCAEN  string `json:"cod_CAEN"`
-				} `json:"date_generale"`
-			} `json:"found"`
-		}
-		if err := json.NewDecoder(resp.Body).Decode(&anafResp); err != nil || len(anafResp.Found) == 0 {
-			w.Header().Set("Content-Type", "application/json")
+
+		w.Header().Set("Content-Type", "application/json")
+		if !result.Found {
 			w.Write([]byte(`{"found":false}`)) //nolint:errcheck
 			return
 		}
-		dg := anafResp.Found[0].DateGenerale
-		city, county, streetAddr := parseANAFAddress(dg.Adresa)
-		w.Header().Set("Content-Type", "application/json")
+
 		json.NewEncoder(w).Encode(map[string]interface{}{ //nolint:errcheck
 			"found":         true,
-			"companyName":   titleCaseRO(strings.TrimSpace(dg.Denumire)),
-			"streetAddress": streetAddr,
-			"city":          city,
-			"county":        county,
-			"contactPhone":  strings.TrimSpace(dg.Telefon),
-			"nrRegCom":      strings.TrimSpace(dg.NrRegCom),
-			"codCaen":       strings.TrimSpace(dg.CodCAEN),
+			"companyName":   result.DenumireTitled,
+			"streetAddress": result.StreetAddr,
+			"city":          result.City,
+			"county":        result.County,
+			"contactPhone":  result.Telefon,
+			"nrRegCom":      result.NrRegCom,
+			"codCaen":       result.CodCAEN,
 		})
 	}
-}
-
-// titleCaseRO converts an ALL-CAPS Romanian string to Title Case using unicode-safe rune ops.
-func titleCaseRO(s string) string {
-	words := strings.Fields(strings.ToLower(s))
-	for i, w := range words {
-		runes := []rune(w)
-		if len(runes) > 0 {
-			runes[0] = unicode.ToUpper(runes[0])
-			words[i] = string(runes)
-		}
-	}
-	return strings.Join(words, " ")
-}
-
-// parseANAFAddress splits the ANAF flat address string into city, county and street.
-// ANAF format: "MUNICIPIUL BUCUREȘTI, SECTOR 1, STR. XYZ, NR. 1, ..."
-//
-//	"MUNICIPIUL CLUJ-NAPOCA, JUD. CLUJ, STR. XYZ, NR. 5"
-func parseANAFAddress(adresa string) (city, county, street string) {
-	parts := strings.SplitN(adresa, ", ", 3)
-	if len(parts) == 0 {
-		return "", "", adresa
-	}
-
-	cityRaw := strings.TrimSpace(parts[0])
-	for _, pfx := range []string{"MUNICIPIUL ", "ORAȘ ", "ORAŞ ", "COMUNĂ ", "COMUNA ", "SAT ", "SECTOR "} {
-		if strings.HasPrefix(cityRaw, pfx) {
-			cityRaw = strings.TrimPrefix(cityRaw, pfx)
-			break
-		}
-	}
-	city = titleCaseRO(cityRaw)
-
-	if len(parts) < 2 {
-		return city, "", ""
-	}
-
-	countyRaw := strings.TrimSpace(parts[1])
-	for _, pfx := range []string{"JUDEȚ ", "JUDET ", "JUDEȚUL ", "JUDETUL ", "JUD. ", "JUD "} {
-		if strings.HasPrefix(countyRaw, pfx) {
-			countyRaw = strings.TrimPrefix(countyRaw, pfx)
-			break
-		}
-	}
-	county = titleCaseRO(countyRaw)
-
-	if len(parts) < 3 {
-		return city, county, ""
-	}
-
-	street = titleCaseRO(strings.TrimSpace(parts[2]))
-	return city, county, street
 }

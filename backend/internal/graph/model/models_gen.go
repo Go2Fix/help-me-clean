@@ -10,6 +10,19 @@ import (
 	"time"
 )
 
+type ANAFVerification struct {
+	Status         string     `json:"status"`
+	Denumire       *string    `json:"denumire,omitempty"`
+	Adresa         *string    `json:"adresa,omitempty"`
+	DataInfiintare *string    `json:"dataInfiintare,omitempty"`
+	ScpTva         *bool      `json:"scpTva,omitempty"`
+	Inactive       *bool      `json:"inactive,omitempty"`
+	VerifiedAt     *time.Time `json:"verifiedAt,omitempty"`
+	RawError       *string    `json:"rawError,omitempty"`
+	NameMatchScore *float64   `json:"nameMatchScore,omitempty"`
+	IsActive       *bool      `json:"isActive,omitempty"`
+}
+
 type AddAddressInput struct {
 	Label         *string  `json:"label,omitempty"`
 	StreetAddress string   `json:"streetAddress"`
@@ -250,6 +263,7 @@ type Company struct {
 	ServiceCategories     []*ServiceCategory `json:"serviceCategories"`
 	Admin                 *User              `json:"admin,omitempty"`
 	CreatedAt             time.Time          `json:"createdAt"`
+	AnafVerification      *ANAFVerification  `json:"anafVerification,omitempty"`
 }
 
 type CompanyApplicationInput struct {

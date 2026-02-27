@@ -114,6 +114,9 @@ func (r *mutationResolver) ApplyAsCompany(ctx context.Context, input model.Compa
 		}
 	}
 
+	// Trigger ANAF verification asynchronously — never blocks the mutation response.
+	go r.triggerANAFVerification(company.ID, input.Cui)
+
 	result := &model.CompanyApplicationResult{
 		Company: dbCompanyToGQL(company),
 	}
@@ -504,6 +507,34 @@ func (r *mutationResolver) UpdateCompanyServiceCategories(ctx context.Context, c
 			Icon:   textPtr(row.Icon),
 		}
 	}
+	return result, nil
+}
+
+// VerifyCompanyWithAnaf is the resolver for the verifyCompanyWithANAF field.
+// It triggers a synchronous ANAF lookup and returns the updated company.
+// Only global admins may call this.
+func (r *mutationResolver) VerifyCompanyWithAnaf(ctx context.Context, id string) (*model.Company, error) {
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil || claims.Role != "global_admin" {
+		return nil, fmt.Errorf("not authorized")
+	}
+
+	company, err := r.Queries.GetCompanyByID(ctx, stringToUUID(id))
+	if err != nil {
+		return nil, fmt.Errorf("company not found: %w", err)
+	}
+
+	// Run synchronously so the admin immediately sees the refreshed result.
+	r.triggerANAFVerification(company.ID, company.Cui)
+
+	updated, err := r.Queries.GetCompanyByID(ctx, company.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to reload company: %w", err)
+	}
+
+	result := dbCompanyToGQL(updated)
+	r.enrichCompanyStats(ctx, updated.ID, result)
+	r.populateCompanyDocuments(ctx, result, updated.ID)
 	return result, nil
 }
 

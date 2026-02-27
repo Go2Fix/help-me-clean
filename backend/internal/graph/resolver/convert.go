@@ -541,26 +541,69 @@ func dbSearchBookingRowToGQL(row db.SearchBookingsWithDetailsRow) *model.Booking
 
 func dbCompanyToGQL(c db.Company) *model.Company {
 	return &model.Company{
-		ID:                   uuidToString(c.ID),
-		CompanyName:          c.CompanyName,
-		Cui:                  c.Cui,
-		CompanyType:          dbCompanyTypeToGQL(c.CompanyType),
-		LegalRepresentative:  c.LegalRepresentative,
-		ContactEmail:         c.ContactEmail,
-		ContactPhone:         c.ContactPhone,
-		Address:              c.Address,
-		City:                 c.City,
-		County:               c.County,
-		Description:          textPtr(c.Description),
-		LogoURL:              textPtr(c.LogoUrl),
-		Status:               dbCompanyStatusToGQL(c.Status),
-		RejectionReason:      textPtr(c.RejectionReason),
-		MaxServiceRadiusKm:   int4Val(c.MaxServiceRadiusKm),
-		RatingAvg:            numericToFloat(c.RatingAvg),
-		TotalJobsCompleted:   int4Val(c.TotalJobsCompleted),
+		ID:                    uuidToString(c.ID),
+		CompanyName:           c.CompanyName,
+		Cui:                   c.Cui,
+		CompanyType:           dbCompanyTypeToGQL(c.CompanyType),
+		LegalRepresentative:   c.LegalRepresentative,
+		ContactEmail:          c.ContactEmail,
+		ContactPhone:          c.ContactPhone,
+		Address:               c.Address,
+		City:                  c.City,
+		County:                c.County,
+		Description:           textPtr(c.Description),
+		LogoURL:               textPtr(c.LogoUrl),
+		Status:                dbCompanyStatusToGQL(c.Status),
+		RejectionReason:       textPtr(c.RejectionReason),
+		MaxServiceRadiusKm:    int4Val(c.MaxServiceRadiusKm),
+		RatingAvg:             numericToFloat(c.RatingAvg),
+		TotalJobsCompleted:    int4Val(c.TotalJobsCompleted),
 		CommissionOverridePct: numericToFloatPtr(c.CommissionOverridePct),
-		CreatedAt:            timestamptzToTime(c.CreatedAt),
+		CreatedAt:             timestamptzToTime(c.CreatedAt),
+		AnafVerification:      dbANAFVerificationToGQL(c),
 	}
+}
+
+// dbANAFVerificationToGQL converts the anaf_* columns from a Company row into
+// an ANAFVerification model, computing the derived nameMatchScore and isActive fields.
+func dbANAFVerificationToGQL(c db.Company) *model.ANAFVerification {
+	status := "unknown"
+	if c.AnafStatus.Valid {
+		status = c.AnafStatus.String
+	} else {
+		return &model.ANAFVerification{Status: status}
+	}
+
+	v := &model.ANAFVerification{Status: status}
+
+	if c.AnafDenumire.Valid {
+		v.Denumire = &c.AnafDenumire.String
+		score := nameMatchScore(c.CompanyName, c.AnafDenumire.String)
+		v.NameMatchScore = &score
+	}
+	if c.AnafAdresa.Valid {
+		v.Adresa = &c.AnafAdresa.String
+	}
+	if c.AnafDataInfiintare.Valid {
+		v.DataInfiintare = &c.AnafDataInfiintare.String
+	}
+	if c.AnafScpTva.Valid {
+		v.ScpTva = &c.AnafScpTva.Bool
+	}
+	if c.AnafInactive.Valid {
+		v.Inactive = &c.AnafInactive.Bool
+		isActive := !c.AnafInactive.Bool && status == "verified"
+		v.IsActive = &isActive
+	}
+	if c.AnafVerifiedAt.Valid {
+		t := c.AnafVerifiedAt.Time
+		v.VerifiedAt = &t
+	}
+	if c.AnafRawError.Valid {
+		v.RawError = &c.AnafRawError.String
+	}
+
+	return v
 }
 
 func dbWorkerToGQL(c db.Worker, u *db.User) *model.WorkerProfile {

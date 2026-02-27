@@ -114,3 +114,26 @@ SELECT
   COUNT(CASE WHEN document_type = 'cui_document' AND status = 'approved' THEN 1 END) = 1 AS all_ready
 FROM company_documents
 WHERE company_id = $1;
+
+-- name: SaveANAFVerification :one
+UPDATE companies SET
+    anaf_status          = $2,
+    anaf_denumire        = $3,
+    anaf_adresa          = $4,
+    anaf_data_infiintare = $5,
+    anaf_scp_tva         = $6,
+    anaf_inactive        = $7,
+    anaf_verified_at     = NOW(),
+    anaf_raw_error       = NULL,
+    updated_at           = NOW()
+WHERE id = $1
+RETURNING *;
+
+-- name: SaveANAFError :one
+UPDATE companies SET
+    anaf_status      = 'error',
+    anaf_raw_error   = $2,
+    anaf_verified_at = NOW(),
+    updated_at       = NOW()
+WHERE id = $1
+RETURNING *;

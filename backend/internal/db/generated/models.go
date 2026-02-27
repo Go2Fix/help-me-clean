@@ -947,7 +947,15 @@ type Company struct {
 	StripeConnectChargesEnabled     pgtype.Bool        `json:"stripe_connect_charges_enabled"`
 	StripeConnectPayoutsEnabled     pgtype.Bool        `json:"stripe_connect_payouts_enabled"`
 	// Per-company commission override. NULL means use platform default.
-	CommissionOverridePct pgtype.Numeric `json:"commission_override_pct"`
+	CommissionOverridePct pgtype.Numeric     `json:"commission_override_pct"`
+	AnafStatus            pgtype.Text        `json:"anaf_status"`
+	AnafDenumire          pgtype.Text        `json:"anaf_denumire"`
+	AnafAdresa            pgtype.Text        `json:"anaf_adresa"`
+	AnafDataInfiintare    pgtype.Text        `json:"anaf_data_infiintare"`
+	AnafScpTva            pgtype.Bool        `json:"anaf_scp_tva"`
+	AnafInactive          pgtype.Bool        `json:"anaf_inactive"`
+	AnafVerifiedAt        pgtype.Timestamptz `json:"anaf_verified_at"`
+	AnafRawError          pgtype.Text        `json:"anaf_raw_error"`
 }
 
 type CompanyDocument struct {

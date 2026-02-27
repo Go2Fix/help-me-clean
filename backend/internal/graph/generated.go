@@ -52,6 +52,19 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	ANAFVerification struct {
+		Adresa         func(childComplexity int) int
+		DataInfiintare func(childComplexity int) int
+		Denumire       func(childComplexity int) int
+		Inactive       func(childComplexity int) int
+		IsActive       func(childComplexity int) int
+		NameMatchScore func(childComplexity int) int
+		RawError       func(childComplexity int) int
+		ScpTva         func(childComplexity int) int
+		Status         func(childComplexity int) int
+		VerifiedAt     func(childComplexity int) int
+	}
+
 	Address struct {
 		Apartment     func(childComplexity int) int
 		City          func(childComplexity int) int
@@ -223,6 +236,7 @@ type ComplexityRoot struct {
 	Company struct {
 		Address               func(childComplexity int) int
 		Admin                 func(childComplexity int) int
+		AnafVerification      func(childComplexity int) int
 		City                  func(childComplexity int) int
 		CommissionOverridePct func(childComplexity int) int
 		CompanyName           func(childComplexity int) int
@@ -542,6 +556,7 @@ type ComplexityRoot struct {
 		UploadWorkerAvatar                        func(childComplexity int, workerID string, file graphql.Upload) int
 		UploadWorkerDocument                      func(childComplexity int, workerID string, documentType string, file graphql.Upload) int
 		UpsertBillingProfile                      func(childComplexity int, input model.BillingProfileInput) int
+		VerifyCompanyWithAnaf                     func(childComplexity int, id string) int
 		VerifyEmailOtp                            func(childComplexity int, email string, code string, role model.UserRole) int
 	}
 
@@ -1248,6 +1263,7 @@ type MutationResolver interface {
 	ReviewCompanyDocument(ctx context.Context, id string, approved bool, rejectionReason *string) (*model.CompanyDocument, error)
 	SetCompanyCommissionOverride(ctx context.Context, id string, pct *float64) (*model.Company, error)
 	UpdateCompanyServiceCategories(ctx context.Context, categoryIds []string) ([]*model.ServiceCategory, error)
+	VerifyCompanyWithAnaf(ctx context.Context, id string) (*model.Company, error)
 	UpsertBillingProfile(ctx context.Context, input model.BillingProfileInput) (*model.ClientBillingProfile, error)
 	GenerateBookingInvoice(ctx context.Context, bookingID string) (*model.Invoice, error)
 	CancelInvoice(ctx context.Context, id string) (*model.Invoice, error)
@@ -1460,6 +1476,67 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 	ec := executionContext{nil, e, 0, 0, nil}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "ANAFVerification.adresa":
+		if e.complexity.ANAFVerification.Adresa == nil {
+			break
+		}
+
+		return e.complexity.ANAFVerification.Adresa(childComplexity), true
+	case "ANAFVerification.dataInfiintare":
+		if e.complexity.ANAFVerification.DataInfiintare == nil {
+			break
+		}
+
+		return e.complexity.ANAFVerification.DataInfiintare(childComplexity), true
+	case "ANAFVerification.denumire":
+		if e.complexity.ANAFVerification.Denumire == nil {
+			break
+		}
+
+		return e.complexity.ANAFVerification.Denumire(childComplexity), true
+	case "ANAFVerification.inactive":
+		if e.complexity.ANAFVerification.Inactive == nil {
+			break
+		}
+
+		return e.complexity.ANAFVerification.Inactive(childComplexity), true
+	case "ANAFVerification.isActive":
+		if e.complexity.ANAFVerification.IsActive == nil {
+			break
+		}
+
+		return e.complexity.ANAFVerification.IsActive(childComplexity), true
+	case "ANAFVerification.nameMatchScore":
+		if e.complexity.ANAFVerification.NameMatchScore == nil {
+			break
+		}
+
+		return e.complexity.ANAFVerification.NameMatchScore(childComplexity), true
+	case "ANAFVerification.rawError":
+		if e.complexity.ANAFVerification.RawError == nil {
+			break
+		}
+
+		return e.complexity.ANAFVerification.RawError(childComplexity), true
+	case "ANAFVerification.scpTva":
+		if e.complexity.ANAFVerification.ScpTva == nil {
+			break
+		}
+
+		return e.complexity.ANAFVerification.ScpTva(childComplexity), true
+	case "ANAFVerification.status":
+		if e.complexity.ANAFVerification.Status == nil {
+			break
+		}
+
+		return e.complexity.ANAFVerification.Status(childComplexity), true
+	case "ANAFVerification.verifiedAt":
+		if e.complexity.ANAFVerification.VerifiedAt == nil {
+			break
+		}
+
+		return e.complexity.ANAFVerification.VerifiedAt(childComplexity), true
 
 	case "Address.apartment":
 		if e.complexity.Address.Apartment == nil {
@@ -2214,6 +2291,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Company.Admin(childComplexity), true
+	case "Company.anafVerification":
+		if e.complexity.Company.AnafVerification == nil {
+			break
+		}
+
+		return e.complexity.Company.AnafVerification(childComplexity), true
 	case "Company.city":
 		if e.complexity.Company.City == nil {
 			break
@@ -4284,6 +4367,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.UpsertBillingProfile(childComplexity, args["input"].(model.BillingProfileInput)), true
+	case "Mutation.verifyCompanyWithANAF":
+		if e.complexity.Mutation.VerifyCompanyWithAnaf == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_verifyCompanyWithANAF_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.VerifyCompanyWithAnaf(childComplexity, args["id"].(string)), true
 	case "Mutation.verifyEmailOtp":
 		if e.complexity.Mutation.VerifyEmailOtp == nil {
 			break
@@ -9311,6 +9405,17 @@ func (ec *executionContext) field_Mutation_upsertBillingProfile_args(ctx context
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_verifyCompanyWithANAF_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_verifyEmailOtp_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -10690,6 +10795,296 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 
 // region    **************************** field.gotpl *****************************
 
+func (ec *executionContext) _ANAFVerification_status(ctx context.Context, field graphql.CollectedField, obj *model.ANAFVerification) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ANAFVerification_status,
+		func(ctx context.Context) (any, error) {
+			return obj.Status, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ANAFVerification_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ANAFVerification",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ANAFVerification_denumire(ctx context.Context, field graphql.CollectedField, obj *model.ANAFVerification) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ANAFVerification_denumire,
+		func(ctx context.Context) (any, error) {
+			return obj.Denumire, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ANAFVerification_denumire(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ANAFVerification",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ANAFVerification_adresa(ctx context.Context, field graphql.CollectedField, obj *model.ANAFVerification) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ANAFVerification_adresa,
+		func(ctx context.Context) (any, error) {
+			return obj.Adresa, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ANAFVerification_adresa(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ANAFVerification",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ANAFVerification_dataInfiintare(ctx context.Context, field graphql.CollectedField, obj *model.ANAFVerification) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ANAFVerification_dataInfiintare,
+		func(ctx context.Context) (any, error) {
+			return obj.DataInfiintare, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ANAFVerification_dataInfiintare(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ANAFVerification",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ANAFVerification_scpTva(ctx context.Context, field graphql.CollectedField, obj *model.ANAFVerification) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ANAFVerification_scpTva,
+		func(ctx context.Context) (any, error) {
+			return obj.ScpTva, nil
+		},
+		nil,
+		ec.marshalOBoolean2ᚖbool,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ANAFVerification_scpTva(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ANAFVerification",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ANAFVerification_inactive(ctx context.Context, field graphql.CollectedField, obj *model.ANAFVerification) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ANAFVerification_inactive,
+		func(ctx context.Context) (any, error) {
+			return obj.Inactive, nil
+		},
+		nil,
+		ec.marshalOBoolean2ᚖbool,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ANAFVerification_inactive(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ANAFVerification",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ANAFVerification_verifiedAt(ctx context.Context, field graphql.CollectedField, obj *model.ANAFVerification) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ANAFVerification_verifiedAt,
+		func(ctx context.Context) (any, error) {
+			return obj.VerifiedAt, nil
+		},
+		nil,
+		ec.marshalODateTime2ᚖtimeᚐTime,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ANAFVerification_verifiedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ANAFVerification",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type DateTime does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ANAFVerification_rawError(ctx context.Context, field graphql.CollectedField, obj *model.ANAFVerification) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ANAFVerification_rawError,
+		func(ctx context.Context) (any, error) {
+			return obj.RawError, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ANAFVerification_rawError(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ANAFVerification",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ANAFVerification_nameMatchScore(ctx context.Context, field graphql.CollectedField, obj *model.ANAFVerification) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ANAFVerification_nameMatchScore,
+		func(ctx context.Context) (any, error) {
+			return obj.NameMatchScore, nil
+		},
+		nil,
+		ec.marshalOFloat2ᚖfloat64,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ANAFVerification_nameMatchScore(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ANAFVerification",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ANAFVerification_isActive(ctx context.Context, field graphql.CollectedField, obj *model.ANAFVerification) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ANAFVerification_isActive,
+		func(ctx context.Context) (any, error) {
+			return obj.IsActive, nil
+		},
+		nil,
+		ec.marshalOBoolean2ᚖbool,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ANAFVerification_isActive(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ANAFVerification",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Address_id(ctx context.Context, field graphql.CollectedField, obj *model.Address) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -11477,6 +11872,8 @@ func (ec *executionContext) fieldContext_Booking_company(_ context.Context, fiel
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Company_createdAt(ctx, field)
+			case "anafVerification":
+				return ec.fieldContext_Company_anafVerification(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -15500,6 +15897,57 @@ func (ec *executionContext) fieldContext_Company_createdAt(_ context.Context, fi
 	return fc, nil
 }
 
+func (ec *executionContext) _Company_anafVerification(ctx context.Context, field graphql.CollectedField, obj *model.Company) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Company_anafVerification,
+		func(ctx context.Context) (any, error) {
+			return obj.AnafVerification, nil
+		},
+		nil,
+		ec.marshalOANAFVerification2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐANAFVerification,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Company_anafVerification(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Company",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "status":
+				return ec.fieldContext_ANAFVerification_status(ctx, field)
+			case "denumire":
+				return ec.fieldContext_ANAFVerification_denumire(ctx, field)
+			case "adresa":
+				return ec.fieldContext_ANAFVerification_adresa(ctx, field)
+			case "dataInfiintare":
+				return ec.fieldContext_ANAFVerification_dataInfiintare(ctx, field)
+			case "scpTva":
+				return ec.fieldContext_ANAFVerification_scpTva(ctx, field)
+			case "inactive":
+				return ec.fieldContext_ANAFVerification_inactive(ctx, field)
+			case "verifiedAt":
+				return ec.fieldContext_ANAFVerification_verifiedAt(ctx, field)
+			case "rawError":
+				return ec.fieldContext_ANAFVerification_rawError(ctx, field)
+			case "nameMatchScore":
+				return ec.fieldContext_ANAFVerification_nameMatchScore(ctx, field)
+			case "isActive":
+				return ec.fieldContext_ANAFVerification_isActive(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ANAFVerification", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _CompanyApplicationResult_company(ctx context.Context, field graphql.CollectedField, obj *model.CompanyApplicationResult) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -15570,6 +16018,8 @@ func (ec *executionContext) fieldContext_CompanyApplicationResult_company(_ cont
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Company_createdAt(ctx, field)
+			case "anafVerification":
+				return ec.fieldContext_Company_anafVerification(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -15676,6 +16126,8 @@ func (ec *executionContext) fieldContext_CompanyConnection_edges(_ context.Conte
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Company_createdAt(ctx, field)
+			case "anafVerification":
+				return ec.fieldContext_Company_anafVerification(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -16339,6 +16791,8 @@ func (ec *executionContext) fieldContext_CompanyPayout_company(_ context.Context
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Company_createdAt(ctx, field)
+			case "anafVerification":
+				return ec.fieldContext_Company_anafVerification(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -16689,6 +17143,8 @@ func (ec *executionContext) fieldContext_CompanyPerformance_company(_ context.Co
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Company_createdAt(ctx, field)
+			case "anafVerification":
+				return ec.fieldContext_Company_anafVerification(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -18421,6 +18877,8 @@ func (ec *executionContext) fieldContext_Invoice_company(_ context.Context, fiel
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Company_createdAt(ctx, field)
+			case "anafVerification":
+				return ec.fieldContext_Company_anafVerification(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -19884,6 +20342,8 @@ func (ec *executionContext) fieldContext_Mutation_adminUpdateCompanyProfile(ctx 
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Company_createdAt(ctx, field)
+			case "anafVerification":
+				return ec.fieldContext_Company_anafVerification(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -19973,6 +20433,8 @@ func (ec *executionContext) fieldContext_Mutation_adminUpdateCompanyStatus(ctx c
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Company_createdAt(ctx, field)
+			case "anafVerification":
+				return ec.fieldContext_Company_anafVerification(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -22110,6 +22572,8 @@ func (ec *executionContext) fieldContext_Mutation_claimCompany(ctx context.Conte
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Company_createdAt(ctx, field)
+			case "anafVerification":
+				return ec.fieldContext_Company_anafVerification(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -22199,6 +22663,8 @@ func (ec *executionContext) fieldContext_Mutation_updateCompanyProfile(ctx conte
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Company_createdAt(ctx, field)
+			case "anafVerification":
+				return ec.fieldContext_Company_anafVerification(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -22288,6 +22754,8 @@ func (ec *executionContext) fieldContext_Mutation_uploadCompanyLogo(ctx context.
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Company_createdAt(ctx, field)
+			case "anafVerification":
+				return ec.fieldContext_Company_anafVerification(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -22477,6 +22945,8 @@ func (ec *executionContext) fieldContext_Mutation_approveCompany(ctx context.Con
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Company_createdAt(ctx, field)
+			case "anafVerification":
+				return ec.fieldContext_Company_anafVerification(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -22566,6 +23036,8 @@ func (ec *executionContext) fieldContext_Mutation_rejectCompany(ctx context.Cont
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Company_createdAt(ctx, field)
+			case "anafVerification":
+				return ec.fieldContext_Company_anafVerification(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -22655,6 +23127,8 @@ func (ec *executionContext) fieldContext_Mutation_suspendCompany(ctx context.Con
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Company_createdAt(ctx, field)
+			case "anafVerification":
+				return ec.fieldContext_Company_anafVerification(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -22803,6 +23277,8 @@ func (ec *executionContext) fieldContext_Mutation_setCompanyCommissionOverride(c
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Company_createdAt(ctx, field)
+			case "anafVerification":
+				return ec.fieldContext_Company_anafVerification(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -22884,6 +23360,97 @@ func (ec *executionContext) fieldContext_Mutation_updateCompanyServiceCategories
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_updateCompanyServiceCategories_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_verifyCompanyWithANAF(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_verifyCompanyWithANAF,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().VerifyCompanyWithAnaf(ctx, fc.Args["id"].(string))
+		},
+		nil,
+		ec.marshalNCompany2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_verifyCompanyWithANAF(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Company_id(ctx, field)
+			case "companyName":
+				return ec.fieldContext_Company_companyName(ctx, field)
+			case "cui":
+				return ec.fieldContext_Company_cui(ctx, field)
+			case "companyType":
+				return ec.fieldContext_Company_companyType(ctx, field)
+			case "legalRepresentative":
+				return ec.fieldContext_Company_legalRepresentative(ctx, field)
+			case "contactEmail":
+				return ec.fieldContext_Company_contactEmail(ctx, field)
+			case "contactPhone":
+				return ec.fieldContext_Company_contactPhone(ctx, field)
+			case "address":
+				return ec.fieldContext_Company_address(ctx, field)
+			case "city":
+				return ec.fieldContext_Company_city(ctx, field)
+			case "county":
+				return ec.fieldContext_Company_county(ctx, field)
+			case "description":
+				return ec.fieldContext_Company_description(ctx, field)
+			case "logoUrl":
+				return ec.fieldContext_Company_logoUrl(ctx, field)
+			case "status":
+				return ec.fieldContext_Company_status(ctx, field)
+			case "rejectionReason":
+				return ec.fieldContext_Company_rejectionReason(ctx, field)
+			case "maxServiceRadiusKm":
+				return ec.fieldContext_Company_maxServiceRadiusKm(ctx, field)
+			case "ratingAvg":
+				return ec.fieldContext_Company_ratingAvg(ctx, field)
+			case "totalJobsCompleted":
+				return ec.fieldContext_Company_totalJobsCompleted(ctx, field)
+			case "documents":
+				return ec.fieldContext_Company_documents(ctx, field)
+			case "workers":
+				return ec.fieldContext_Company_workers(ctx, field)
+			case "commissionOverridePct":
+				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
+			case "serviceCategories":
+				return ec.fieldContext_Company_serviceCategories(ctx, field)
+			case "admin":
+				return ec.fieldContext_Company_admin(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Company_createdAt(ctx, field)
+			case "anafVerification":
+				return ec.fieldContext_Company_anafVerification(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_verifyCompanyWithANAF_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -32103,6 +32670,8 @@ func (ec *executionContext) fieldContext_Query_pendingCompanyApplications(_ cont
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Company_createdAt(ctx, field)
+			case "anafVerification":
+				return ec.fieldContext_Company_anafVerification(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -33929,6 +34498,8 @@ func (ec *executionContext) fieldContext_Query_myCompany(_ context.Context, fiel
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Company_createdAt(ctx, field)
+			case "anafVerification":
+				return ec.fieldContext_Company_anafVerification(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -34136,6 +34707,8 @@ func (ec *executionContext) fieldContext_Query_company(ctx context.Context, fiel
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Company_createdAt(ctx, field)
+			case "anafVerification":
+				return ec.fieldContext_Company_anafVerification(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -41366,6 +41939,8 @@ func (ec *executionContext) fieldContext_ServiceSubscription_company(_ context.C
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Company_createdAt(ctx, field)
+			case "anafVerification":
+				return ec.fieldContext_Company_anafVerification(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -43592,6 +44167,8 @@ func (ec *executionContext) fieldContext_SubscriptionWorkerSuggestion_company(_ 
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Company_createdAt(ctx, field)
+			case "anafVerification":
+				return ec.fieldContext_Company_anafVerification(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -45636,6 +46213,8 @@ func (ec *executionContext) fieldContext_WorkerProfile_company(_ context.Context
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Company_createdAt(ctx, field)
+			case "anafVerification":
+				return ec.fieldContext_Company_anafVerification(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -46409,6 +46988,8 @@ func (ec *executionContext) fieldContext_WorkerSuggestion_company(_ context.Cont
 				return ec.fieldContext_Company_admin(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Company_createdAt(ctx, field)
+			case "anafVerification":
+				return ec.fieldContext_Company_anafVerification(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -50105,6 +50686,63 @@ func (ec *executionContext) unmarshalInputWorkScheduleDayInput(ctx context.Conte
 
 // region    **************************** object.gotpl ****************************
 
+var aNAFVerificationImplementors = []string{"ANAFVerification"}
+
+func (ec *executionContext) _ANAFVerification(ctx context.Context, sel ast.SelectionSet, obj *model.ANAFVerification) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, aNAFVerificationImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ANAFVerification")
+		case "status":
+			out.Values[i] = ec._ANAFVerification_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "denumire":
+			out.Values[i] = ec._ANAFVerification_denumire(ctx, field, obj)
+		case "adresa":
+			out.Values[i] = ec._ANAFVerification_adresa(ctx, field, obj)
+		case "dataInfiintare":
+			out.Values[i] = ec._ANAFVerification_dataInfiintare(ctx, field, obj)
+		case "scpTva":
+			out.Values[i] = ec._ANAFVerification_scpTva(ctx, field, obj)
+		case "inactive":
+			out.Values[i] = ec._ANAFVerification_inactive(ctx, field, obj)
+		case "verifiedAt":
+			out.Values[i] = ec._ANAFVerification_verifiedAt(ctx, field, obj)
+		case "rawError":
+			out.Values[i] = ec._ANAFVerification_rawError(ctx, field, obj)
+		case "nameMatchScore":
+			out.Values[i] = ec._ANAFVerification_nameMatchScore(ctx, field, obj)
+		case "isActive":
+			out.Values[i] = ec._ANAFVerification_isActive(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var addressImplementors = []string{"Address"}
 
 func (ec *executionContext) _Address(ctx context.Context, sel ast.SelectionSet, obj *model.Address) graphql.Marshaler {
@@ -51293,6 +51931,8 @@ func (ec *executionContext) _Company(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "anafVerification":
+			out.Values[i] = ec._Company_anafVerification(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -52912,6 +53552,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "updateCompanyServiceCategories":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_updateCompanyServiceCategories(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "verifyCompanyWithANAF":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_verifyCompanyWithANAF(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -64081,6 +64728,13 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalOANAFVerification2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐANAFVerification(ctx context.Context, sel ast.SelectionSet, v *model.ANAFVerification) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ANAFVerification(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOAddAddressInput2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐAddAddressInput(ctx context.Context, v any) (*model.AddAddressInput, error) {

@@ -1808,6 +1808,18 @@ export const COMPANY = gql`
         reviewedAt
         rejectionReason
       }
+      anafVerification {
+        status
+        denumire
+        adresa
+        dataInfiintare
+        scpTva
+        inactive
+        verifiedAt
+        rawError
+        nameMatchScore
+        isActive
+      }
       workers {
         id
         fullName
@@ -2052,6 +2064,26 @@ export const SUSPEND_COMPANY = gql`
     suspendCompany(id: $id, reason: $reason) {
       id
       status
+    }
+  }
+`;
+
+export const VERIFY_COMPANY_WITH_ANAF = gql`
+  mutation VerifyCompanyWithANAF($id: ID!) {
+    verifyCompanyWithANAF(id: $id) {
+      id
+      anafVerification {
+        status
+        denumire
+        adresa
+        dataInfiintare
+        scpTva
+        inactive
+        verifiedAt
+        rawError
+        nameMatchScore
+        isActive
+      }
     }
   }
 `;
