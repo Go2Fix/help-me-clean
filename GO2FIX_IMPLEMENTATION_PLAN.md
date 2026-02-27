@@ -232,16 +232,15 @@ All indexes already existed from prior migrations. No new migration needed.
 
 ---
 
-### P2-4: Request Same Worker for Recurring — PARTIALLY DONE
+### P2-4: Request Same Worker for Recurring ✅ COMPLETED
 
-**Problem:** No way to request the same worker for recurring bookings.
-
-**What exists:**
-- [x] `preferred_worker_id` field exists in DB (`recurring_booking_groups` table, migration 000032)
-- [x] `preferredWorkerId` field in GraphQL schema (`booking.graphql` + `subscription.graphql`)
-- [x] Subscription matching engine (`subscription_matching.go`) scores worker consistency
-
-**Effort:** 2-3 hours (backend schema ready, mostly frontend + scheduling logic)
+**What was done:**
+- [x] `preferred_worker_id` field in DB (`recurring_booking_groups` table, migration 000032)
+- [x] `preferredWorkerId` in GraphQL schema (`booking.graphql` + `subscription.graphql`) and `CreateBookingInput` / `CreateSubscriptionInput`
+- [x] Booking flow UI: worker selection cards, auto-selects best match, client can pick preferred worker
+- [x] `preferredWorkerId` sent in `createBookingRequest` and `createSubscription` mutations
+- [x] `recurring_helpers.go`: `findAvailableWorkerForDate` tries preferred worker first, falls back to team mates
+- [x] `subscription_matching.go`: scores worker consistency across 8 future weeks
 
 ---
 
@@ -556,6 +555,14 @@ Transformed the homepage from a cleaning-only layout to a multi-service marketpl
 - Updated i18n strings (RO + EN) to be marketplace-generic instead of cleaning-specific
 - All 16 homepage tests updated and passing
 
+### Codebase Audit & Cleanup ✅
+
+Post-Phase-7 audit identified and fixed several issues:
+- **AdminPayoutsPage + RefundsPage wired:** Both pages existed but had no routes or nav links. Added `/admin/viramente` (Viramente) and `/admin/rambursari` (Rambursari) to both App.tsx routing and AdminLayout nav
+- **Orphaned files deleted:** `worker/CalendarPage.tsx` (superseded by SchedulePage), `worker/TodayPage.tsx` (unrouted), `ServicesPage.tsx` (route redirected to homepage) — plus their associated tests
+- **React ErrorBoundary added:** `components/ErrorBoundary.tsx` class component wraps `AppRoutes` — prevents blank white screen on runtime render crashes; shows Romanian error UI with reload button
+- **SEOHead on BookingPage:** Added `<SEOHead>` with title, description, and `noIndex` (booking is a transactional page, should not be indexed)
+
 ### Admin Subscription Detail Page ✅
 
 Full admin subscription detail page at `/admin/abonamente/:id`:
@@ -574,23 +581,14 @@ Full admin subscription detail page at `/admin/abonamente/:id`:
 |-------|-------|--------|-----------|
 | **Phase 0** — Critical Bugs | 4 tasks | ✅ ALL DONE | — |
 | **Phase 1** — Platform Corrections | 4 tasks | ✅ ALL N/A | — |
-| **Phase 2** — Smart Booking | 4 tasks | 3/4 done | P2-4 UI (2-3h) |
+| **Phase 2** — Smart Booking | 4 tasks | ✅ ALL DONE | — |
 | **Phase 3** — Admin Controls | 5 tasks | ✅ ALL DONE | — |
 | **Phase 4** — Multi-Service | 3 tasks | ✅ ALL DONE | — |
 | **Phase 5** — Company Mgmt | 3 tasks | ✅ ALL DONE | — |
 | **Phase 6** — Client Polish | 3 tasks | ✅ ALL DONE | — |
-| **Phase 7** — Admin Analytics | 4 tasks | NOT STARTED | 12-16h |
+| **Phase 7** — Admin Analytics | 4 tasks | ✅ ALL DONE | — |
 
-**Completed:** Phase 0-6 fully done. Phase 7 not started.
-
-**Remaining estimated effort: ~14-19 hours**
-
-### Recommended Next Steps
-
-```
-1. P2-4: Preferred worker UI toggle in booking flow        (2-3h)
-2. Phase 7: Admin analytics                                 (12-16h)
-```
+**All phases complete. Platform is investor-demo ready.**
 
 ### Key Dependencies
 
@@ -598,7 +596,7 @@ Full admin subscription detail page at `/admin/abonamente/:id`:
 Phase 0 (P0-3 worker rename) → Phase 4 (multi-service)  ✅ DONE
 Phase 1 (P1-3 remove company pricing) → Phase 3 (P3-1 admin pricing)  ✅ N/A
 Phase 4 (P4-1 service categories) → Phase 5 (P5-1 company service selection)  ✅ DONE
-Phase 4 (P4-1 service categories) → Phase 6 (P6-1 service category selection in booking)
+Phase 4 (P4-1 service categories) → Phase 6 (P6-1 service category selection in booking)  ✅ DONE
 ```
 
 ---
@@ -606,11 +604,11 @@ Phase 4 (P4-1 service categories) → Phase 6 (P6-1 service category selection i
 ## Technical Notes
 
 ### Database Migration Strategy
-All schema changes should be backward-compatible migrations with both up and down scripts. The worker rename (P0-3) is the largest migration and was done first to unblock multi-service work. Current latest migration: **000046** (dynamic form fields: `form_fields` JSONB on service_categories, `custom_fields` JSONB on bookings).
+All schema changes should be backward-compatible migrations with both up and down scripts. The worker rename (P0-3) is the largest migration and was done first to unblock multi-service work. Current latest migration: **000047** (review enhancements: rating categories, status column, review photos).
 
 ### Testing Requirements
 - Every new feature needs unit tests (backend Go + frontend Vitest)
-- Current coverage: ~480 tests (66 Go + 414 frontend) — all passing after Phase 6
+- Current coverage: ~480 tests (66 Go + 414 frontend) — all passing after Phase 7
 - Latest migration: **000047** (review enhancements: rating categories, status, photos)
 - Target: Maintain 100% pass rate on all existing tests after each phase
 

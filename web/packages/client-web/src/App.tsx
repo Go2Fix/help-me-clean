@@ -7,6 +7,7 @@ import { PlatformProvider, usePlatform } from '@/context/PlatformContext';
 import { LanguageProvider, useLanguage } from '@/context/LanguageContext';
 import { PageAlternateProvider } from '@/context/PageAlternateContext';
 import { ROUTE_MAP } from '@/i18n/routes';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 // Layouts
 import PublicLayout from '@/components/layout/PublicLayout';
@@ -90,6 +91,8 @@ import AdminPaymentsPage from '@/pages/admin/PaymentsPage';
 import AdminInvoicesPage from '@/pages/admin/AdminInvoicesPage';
 import AdminSubscriptionsPage from '@/pages/admin/SubscriptionsPage';
 import AdminSubscriptionDetailPage from '@/pages/admin/AdminSubscriptionDetailPage';
+import AdminPayoutsPage from '@/pages/admin/AdminPayoutsPage';
+import AdminRefundsPage from '@/pages/admin/RefundsPage';
 
 // ─── Apollo Client ───────────────────────────────────────────────────────────
 
@@ -304,6 +307,8 @@ function AppRoutes() {
         <Route path="utilizatori" element={<UsersPage />} />
         <Route path="utilizatori/:id" element={<UserDetailPage />} />
         <Route path="plati" element={<AdminPaymentsPage />} />
+        <Route path="viramente" element={<AdminPayoutsPage />} />
+        <Route path="rambursari" element={<AdminRefundsPage />} />
         <Route path="facturi" element={<AdminInvoicesPage />} />
         <Route path="rapoarte" element={<ReportsPage />} />
         <Route path="recenzii" element={<ReviewsPage />} />
@@ -327,7 +332,9 @@ function App() {
         <AuthProvider>
           <PageAlternateProvider>
             <LanguageProvider>
-              <AppRoutes />
+              <ErrorBoundary>
+                <AppRoutes />
+              </ErrorBoundary>
             </LanguageProvider>
           </PageAlternateProvider>
         </AuthProvider>

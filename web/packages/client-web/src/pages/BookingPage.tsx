@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import SEOHead from '@/components/seo/SEOHead';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useLazyQuery, useMutation } from '@apollo/client';
 import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
@@ -1031,6 +1032,12 @@ export default function BookingPage() {
   // ---- Main Render ----------------------------------------------------------
 
   return (
+    <>
+      <SEOHead
+        title="Rezerva serviciu de curatenie"
+        description="Rezerva online un serviciu de curatenie profesionala. Alege data, ora si adresa — confirmam rapid."
+        noIndex
+      />
     <div className="py-8 sm:py-12 pb-28 lg:pb-12">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         {/* Page header */}
@@ -1417,6 +1424,7 @@ export default function BookingPage() {
         />
       </div>
     </div>
+    </>
   );
 }
 
