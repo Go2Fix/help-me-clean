@@ -1,4 +1,4 @@
-// Package invoice implements invoice generation, Factureaza.ro API integration,
+// Package invoice implements invoice generation, Oblio.eu API integration,
 // and e-factura transmission for the Go2Fix platform.
 package invoice
 
@@ -38,31 +38,35 @@ type PlatformConfig struct {
 	IBAN        string
 }
 
-// Service handles invoice generation, storage, and Factureaza.ro API integration.
+// Service handles invoice generation, storage, and Oblio.eu API integration.
 type Service struct {
-	queries        *db.Queries
-	apiBaseURL     string
-	apiKey         string
-	httpClient     *http.Client
-	platformConfig PlatformConfig
-	vatRatePct     int // cached VAT rate; 0 means not yet loaded
+	queries           *db.Queries
+	oblioClientID     string
+	oblioClientSecret string
+	oblioCIF          string
+	oblioSeriesName   string
+	httpClient        *http.Client
+	oblioToken        string
+	oblioTokenExpiry  time.Time
+	platformConfig    PlatformConfig
+	vatRatePct        int // cached VAT rate; 0 means not yet loaded
 }
 
 // NewService creates a new invoice service, reading configuration from environment variables.
 func NewService(queries *db.Queries) *Service {
-	apiBaseURL := os.Getenv("FACTUREAZA_API_URL")
-	if apiBaseURL == "" {
-		apiBaseURL = "https://sandbox.factureaza.ro/api/v1"
+	seriesName := os.Getenv("OBLIO_SERIES_NAME")
+	if seriesName == "" {
+		seriesName = "FCT"
 	}
-	// Ensure the base URL does not have a trailing slash.
-	apiBaseURL = strings.TrimRight(apiBaseURL, "/")
 
 	svc := &Service{
-		queries:        queries,
-		apiBaseURL:     apiBaseURL,
-		apiKey:         os.Getenv("FACTUREAZA_API_KEY"),
-		httpClient:     &http.Client{Timeout: 30 * time.Second},
-		platformConfig: PlatformConfig{}, // Will be loaded from DB on first use
+		queries:           queries,
+		oblioClientID:     os.Getenv("OBLIO_CLIENT_ID"),
+		oblioClientSecret: os.Getenv("OBLIO_CLIENT_SECRET"),
+		oblioCIF:          os.Getenv("OBLIO_CIF"),
+		oblioSeriesName:   seriesName,
+		httpClient:        &http.Client{Timeout: 30 * time.Second},
+		platformConfig:    PlatformConfig{}, // Will be loaded from DB on first use
 	}
 
 	log.Println("Invoice service initialized")
@@ -117,6 +121,63 @@ func (s *Service) loadVATRate(ctx context.Context) int {
 	}
 	s.vatRatePct = defaultVATRatePct
 	return s.vatRatePct
+}
+
+// oblioGetToken returns a valid OAuth2 Bearer token for the Oblio.eu API,
+// refreshing it automatically when it is about to expire.
+func (s *Service) oblioGetToken(ctx context.Context) (string, error) {
+	if s.oblioClientID == "" || s.oblioClientSecret == "" {
+		return "", errors.New("invoice: OBLIO_CLIENT_ID or OBLIO_CLIENT_SECRET not configured")
+	}
+	// Return cached token if still valid (with 60-second safety margin).
+	if s.oblioToken != "" && time.Now().Before(s.oblioTokenExpiry.Add(-60*time.Second)) {
+		return s.oblioToken, nil
+	}
+
+	form := "client_id=" + s.oblioClientID + "&client_secret=" + s.oblioClientSecret
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost,
+		"https://www.oblio.eu/api/authorize/token",
+		strings.NewReader(form),
+	)
+	if err != nil {
+		return "", fmt.Errorf("invoice: build oblio token request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	resp, err := s.httpClient.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("invoice: oblio token request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("invoice: read oblio token response: %w", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("invoice: oblio token endpoint returned %d: %s", resp.StatusCode, string(body))
+	}
+
+	var tokenResp struct {
+		AccessToken string `json:"access_token"`
+		ExpiresIn   string `json:"expires_in"`
+		TokenType   string `json:"token_type"`
+	}
+	if err := json.Unmarshal(body, &tokenResp); err != nil {
+		return "", fmt.Errorf("invoice: parse oblio token response: %w", err)
+	}
+	if tokenResp.AccessToken == "" {
+		return "", errors.New("invoice: oblio returned empty access_token")
+	}
+
+	var expiresInSec int64 = 3600
+	if _, parseErr := fmt.Sscanf(tokenResp.ExpiresIn, "%d", &expiresInSec); parseErr != nil || expiresInSec <= 0 {
+		expiresInSec = 3600
+	}
+
+	s.oblioToken = tokenResp.AccessToken
+	s.oblioTokenExpiry = time.Now().Add(time.Duration(expiresInSec) * time.Second)
+	return s.oblioToken, nil
 }
 
 // Ping is a health-check method for the invoice service.
@@ -258,27 +319,29 @@ func (s *Service) GenerateClientServiceInvoice(
 		return db.Invoice{}, fmt.Errorf("invoice: create line item: %w", err)
 	}
 
-	// Sync to Factureaza.ro (best-effort for MVP; do not fail the whole operation).
+	// Sync to Oblio.eu (best-effort for MVP; do not fail the whole operation).
 	lineItems, _ := s.queries.ListInvoiceLineItems(ctx, inv.ID)
-	factureazaID, downloadURL, apiErr := s.createInvoiceOnFactureaza(ctx, inv, lineItems)
+	oblioSeries, oblioNum, oblioURL, apiErr := s.createInvoiceOnOblio(ctx, inv, lineItems)
 	if apiErr != nil {
-		log.Printf("invoice: factureaza.ro API error (non-fatal): %v", apiErr)
-	} else if factureazaID != "" {
-		updateErr := s.queries.UpdateInvoiceFactureaza(ctx, db.UpdateInvoiceFactureazaParams{
-			ID:                    inv.ID,
-			FactureazaID:          pgText(factureazaID),
-			FactureazaDownloadUrl: pgText(downloadURL),
+		log.Printf("invoice: oblio.eu API error (non-fatal): %v", apiErr)
+	} else if oblioNum != "" {
+		updateErr := s.queries.UpdateInvoiceOblio(ctx, db.UpdateInvoiceOblioParams{
+			ID:               inv.ID,
+			OblioSeriesName:  pgText(oblioSeries),
+			OblioNumber:      pgText(oblioNum),
+			OblioDownloadUrl: pgText(oblioURL),
 		})
 		if updateErr != nil {
-			log.Printf("invoice: failed to persist factureaza metadata: %v", updateErr)
+			log.Printf("invoice: failed to persist oblio metadata: %v", updateErr)
 		} else {
-			inv.FactureazaID = pgText(factureazaID)
-			inv.FactureazaDownloadUrl = pgText(downloadURL)
+			inv.OblioSeriesName = pgText(oblioSeries)
+			inv.OblioNumber = pgText(oblioNum)
+			inv.OblioDownloadUrl = pgText(oblioURL)
 		}
 	}
 
 	// Auto-transmit to e-factura (best-effort, non-blocking).
-	if inv.FactureazaID.Valid && inv.FactureazaID.String != "" {
+	if inv.OblioNumber.Valid && inv.OblioNumber.String != "" {
 		go func() {
 			bgCtx := context.Background()
 			if transmitErr := s.TransmitToEFactura(bgCtx, inv.ID); transmitErr != nil {
@@ -395,27 +458,29 @@ func (s *Service) GenerateCommissionInvoice(
 		return db.Invoice{}, fmt.Errorf("invoice: create commission line item: %w", err)
 	}
 
-	// Sync to Factureaza.ro (best-effort).
+	// Sync to Oblio.eu (best-effort).
 	lineItems, _ := s.queries.ListInvoiceLineItems(ctx, inv.ID)
-	factureazaID, downloadURL, apiErr := s.createInvoiceOnFactureaza(ctx, inv, lineItems)
+	oblioSeries, oblioNum, oblioURL, apiErr := s.createInvoiceOnOblio(ctx, inv, lineItems)
 	if apiErr != nil {
-		log.Printf("invoice: factureaza.ro API error (non-fatal): %v", apiErr)
-	} else if factureazaID != "" {
-		updateErr := s.queries.UpdateInvoiceFactureaza(ctx, db.UpdateInvoiceFactureazaParams{
-			ID:                    inv.ID,
-			FactureazaID:          pgText(factureazaID),
-			FactureazaDownloadUrl: pgText(downloadURL),
+		log.Printf("invoice: oblio.eu API error for commission invoice (non-fatal): %v", apiErr)
+	} else if oblioNum != "" {
+		updateErr := s.queries.UpdateInvoiceOblio(ctx, db.UpdateInvoiceOblioParams{
+			ID:               inv.ID,
+			OblioSeriesName:  pgText(oblioSeries),
+			OblioNumber:      pgText(oblioNum),
+			OblioDownloadUrl: pgText(oblioURL),
 		})
 		if updateErr != nil {
-			log.Printf("invoice: failed to persist factureaza metadata: %v", updateErr)
+			log.Printf("invoice: failed to persist oblio metadata: %v", updateErr)
 		} else {
-			inv.FactureazaID = pgText(factureazaID)
-			inv.FactureazaDownloadUrl = pgText(downloadURL)
+			inv.OblioSeriesName = pgText(oblioSeries)
+			inv.OblioNumber = pgText(oblioNum)
+			inv.OblioDownloadUrl = pgText(oblioURL)
 		}
 	}
 
 	// Auto-transmit to e-factura (best-effort, non-blocking).
-	if inv.FactureazaID.Valid && inv.FactureazaID.String != "" {
+	if inv.OblioNumber.Valid && inv.OblioNumber.String != "" {
 		go func() {
 			bgCtx := context.Background()
 			if transmitErr := s.TransmitToEFactura(bgCtx, inv.ID); transmitErr != nil {
@@ -547,27 +612,29 @@ func (s *Service) GenerateSubscriptionMonthlyInvoice(
 		return fmt.Errorf("invoice: create subscription line item: %w", err)
 	}
 
-	// Sync to Factureaza.ro (best-effort for MVP; do not fail the whole operation).
+	// Sync to Oblio.eu (best-effort for MVP; do not fail the whole operation).
 	lineItems, _ := s.queries.ListInvoiceLineItems(ctx, inv.ID)
-	factureazaID, downloadURL, apiErr := s.createInvoiceOnFactureaza(ctx, inv, lineItems)
+	oblioSeries, oblioNum, oblioURL, apiErr := s.createInvoiceOnOblio(ctx, inv, lineItems)
 	if apiErr != nil {
-		log.Printf("invoice: factureaza.ro API error for subscription invoice (non-fatal): %v", apiErr)
-	} else if factureazaID != "" {
-		updateErr := s.queries.UpdateInvoiceFactureaza(ctx, db.UpdateInvoiceFactureazaParams{
-			ID:                    inv.ID,
-			FactureazaID:          pgText(factureazaID),
-			FactureazaDownloadUrl: pgText(downloadURL),
+		log.Printf("invoice: oblio.eu API error for subscription invoice (non-fatal): %v", apiErr)
+	} else if oblioNum != "" {
+		updateErr := s.queries.UpdateInvoiceOblio(ctx, db.UpdateInvoiceOblioParams{
+			ID:               inv.ID,
+			OblioSeriesName:  pgText(oblioSeries),
+			OblioNumber:      pgText(oblioNum),
+			OblioDownloadUrl: pgText(oblioURL),
 		})
 		if updateErr != nil {
-			log.Printf("invoice: failed to persist factureaza metadata for subscription invoice: %v", updateErr)
+			log.Printf("invoice: failed to persist oblio metadata for subscription invoice: %v", updateErr)
 		} else {
-			inv.FactureazaID = pgText(factureazaID)
-			inv.FactureazaDownloadUrl = pgText(downloadURL)
+			inv.OblioSeriesName = pgText(oblioSeries)
+			inv.OblioNumber = pgText(oblioNum)
+			inv.OblioDownloadUrl = pgText(oblioURL)
 		}
 	}
 
 	// Auto-transmit to e-factura (best-effort, non-blocking).
-	if inv.FactureazaID.Valid && inv.FactureazaID.String != "" {
+	if inv.OblioNumber.Valid && inv.OblioNumber.String != "" {
 		go func() {
 			bgCtx := context.Background()
 			if transmitErr := s.TransmitToEFactura(bgCtx, inv.ID); transmitErr != nil {
@@ -583,7 +650,7 @@ func (s *Service) GenerateSubscriptionMonthlyInvoice(
 	return nil
 }
 
-// CancelInvoice marks an invoice as cancelled, both locally and on Factureaza.ro.
+// CancelInvoice marks an invoice as cancelled, both locally and on Oblio.eu.
 func (s *Service) CancelInvoice(ctx context.Context, invoiceID pgtype.UUID) (db.Invoice, error) {
 	inv, err := s.queries.GetInvoiceByID(ctx, invoiceID)
 	if err != nil {
@@ -594,11 +661,16 @@ func (s *Service) CancelInvoice(ctx context.Context, invoiceID pgtype.UUID) (db.
 		return inv, nil
 	}
 
-	// Cancel on Factureaza.ro if the invoice was synced.
-	if inv.FactureazaID.Valid && inv.FactureazaID.String != "" {
-		_, apiErr := s.callFactureazaAPI(ctx, http.MethodDelete, "/invoices/"+inv.FactureazaID.String+".json", nil)
+	// Cancel on Oblio.eu if the invoice was synced.
+	if inv.OblioNumber.Valid && inv.OblioNumber.String != "" {
+		cancelPayload := map[string]string{
+			"cif":        s.oblioCIF,
+			"seriesName": textVal(inv.OblioSeriesName),
+			"number":     inv.OblioNumber.String,
+		}
+		_, apiErr := s.callOblioAPI(ctx, http.MethodPut, "/docs/invoice/cancel", cancelPayload)
 		if apiErr != nil {
-			log.Printf("invoice: factureaza.ro cancel error (non-fatal): %v", apiErr)
+			log.Printf("invoice: oblio.eu cancel error (non-fatal): %v", apiErr)
 		}
 	}
 
@@ -614,33 +686,37 @@ func (s *Service) CancelInvoice(ctx context.Context, invoiceID pgtype.UUID) (db.
 	return updated, nil
 }
 
-// TransmitToEFactura triggers e-factura transmission via the Factureaza.ro API.
+// TransmitToEFactura triggers e-factura transmission via the Oblio.eu API.
 func (s *Service) TransmitToEFactura(ctx context.Context, invoiceID pgtype.UUID) error {
 	inv, err := s.queries.GetInvoiceByID(ctx, invoiceID)
 	if err != nil {
 		return fmt.Errorf("invoice: get invoice for e-factura: %w", err)
 	}
 
-	if !inv.FactureazaID.Valid || inv.FactureazaID.String == "" {
-		return errors.New("invoice: cannot transmit to e-factura without a factureaza.ro ID")
+	if !inv.OblioNumber.Valid || inv.OblioNumber.String == "" {
+		return errors.New("invoice: cannot transmit to e-factura: invoice not synced to oblio.eu")
 	}
 
-	respBody, err := s.callFactureazaAPI(ctx, http.MethodPost, "/invoices/"+inv.FactureazaID.String+"/efactura.json", nil)
+	eInvPayload := map[string]string{
+		"cif":        s.oblioCIF,
+		"seriesName": textVal(inv.OblioSeriesName),
+		"number":     inv.OblioNumber.String,
+	}
+
+	respBody, err := s.callOblioAPI(ctx, http.MethodPost, "/docs/einvoice", eInvPayload)
 	if err != nil {
-		return fmt.Errorf("invoice: e-factura transmission: %w", err)
+		return fmt.Errorf("invoice: e-factura transmission via oblio: %w", err)
 	}
 
-	// Parse the response to extract the e-factura index.
-	var efResp efacturaResponse
+	var efResp oblioEInvoiceResponse
 	if jsonErr := json.Unmarshal(respBody, &efResp); jsonErr != nil {
-		log.Printf("invoice: failed to parse e-factura response: %v", jsonErr)
+		log.Printf("invoice: failed to parse oblio e-factura response: %v", jsonErr)
 	}
 
-	efStatus := "transmitted"
-	efIndex := efResp.EfacturaIndex
-	if efResp.Error != "" {
-		efStatus = "error"
-		log.Printf("invoice: e-factura API returned error: %s", efResp.Error)
+	efStatus := oblioCodeToStatus(efResp.Data.Code)
+	efIndex := efResp.Data.Text
+	if efResp.Data.Code == -1 {
+		log.Printf("invoice: oblio e-factura returned error code -1: %s", efResp.Data.Text)
 	}
 
 	err = s.queries.UpdateInvoiceEFactura(ctx, db.UpdateInvoiceEFacturaParams{
@@ -656,7 +732,7 @@ func (s *Service) TransmitToEFactura(ctx context.Context, invoiceID pgtype.UUID)
 	return nil
 }
 
-// CheckEFacturaStatus polls Factureaza.ro for the current e-factura status
+// CheckEFacturaStatus polls Oblio.eu for the current e-factura status
 // of an invoice and updates the local database accordingly.
 func (s *Service) CheckEFacturaStatus(ctx context.Context, invoiceID pgtype.UUID) (db.Invoice, error) {
 	inv, err := s.queries.GetInvoiceByID(ctx, invoiceID)
@@ -664,32 +740,31 @@ func (s *Service) CheckEFacturaStatus(ctx context.Context, invoiceID pgtype.UUID
 		return db.Invoice{}, fmt.Errorf("invoice: get invoice: %w", err)
 	}
 
-	if !inv.FactureazaID.Valid || inv.FactureazaID.String == "" {
-		return db.Invoice{}, errors.New("invoice: no factureaza.ro ID to check status for")
+	if !inv.OblioNumber.Valid || inv.OblioNumber.String == "" {
+		return db.Invoice{}, errors.New("invoice: no oblio.eu number to check e-factura status for")
 	}
 
-	respBody, err := s.callFactureazaAPI(ctx, http.MethodGet, "/invoices/"+inv.FactureazaID.String+".json", nil)
+	path := fmt.Sprintf("/docs/einvoice?cif=%s&seriesName=%s&number=%s",
+		s.oblioCIF, textVal(inv.OblioSeriesName), inv.OblioNumber.String)
+
+	respBody, err := s.callOblioAPI(ctx, http.MethodGet, path, nil)
 	if err != nil {
-		return db.Invoice{}, fmt.Errorf("invoice: check e-factura status: %w", err)
+		return db.Invoice{}, fmt.Errorf("invoice: check e-factura status via oblio: %w", err)
 	}
 
-	var statusResp struct {
-		EfacturaStatus string `json:"efactura_status"`
-		EfacturaIndex  string `json:"efactura_index"`
-	}
+	var statusResp oblioEInvoiceResponse
 	if jsonErr := json.Unmarshal(respBody, &statusResp); jsonErr != nil {
-		return db.Invoice{}, fmt.Errorf("invoice: parse status response: %w", jsonErr)
+		return db.Invoice{}, fmt.Errorf("invoice: parse oblio status response: %w", jsonErr)
 	}
 
-	if statusResp.EfacturaStatus != "" {
-		updateErr := s.queries.UpdateInvoiceEFactura(ctx, db.UpdateInvoiceEFacturaParams{
-			ID:             invoiceID,
-			EfacturaStatus: pgText(statusResp.EfacturaStatus),
-			EfacturaIndex:  pgText(statusResp.EfacturaIndex),
-		})
-		if updateErr != nil {
-			return db.Invoice{}, fmt.Errorf("invoice: update e-factura status: %w", updateErr)
-		}
+	newStatus := oblioCodeToStatus(statusResp.Data.Code)
+	updateErr := s.queries.UpdateInvoiceEFactura(ctx, db.UpdateInvoiceEFacturaParams{
+		ID:             invoiceID,
+		EfacturaStatus: pgText(newStatus),
+		EfacturaIndex:  pgText(statusResp.Data.Text),
+	})
+	if updateErr != nil {
+		return db.Invoice{}, fmt.Errorf("invoice: update e-factura status: %w", updateErr)
 	}
 
 	// Re-read to return updated record.
@@ -698,7 +773,7 @@ func (s *Service) CheckEFacturaStatus(ctx context.Context, invoiceID pgtype.UUID
 		return db.Invoice{}, fmt.Errorf("invoice: re-read invoice: %w", err)
 	}
 
-	log.Printf("invoice: checked e-factura status for %s: %s", textVal(inv.InvoiceNumber), statusResp.EfacturaStatus)
+	log.Printf("invoice: checked e-factura status for %s: %s", textVal(inv.InvoiceNumber), newStatus)
 	return updated, nil
 }
 
@@ -792,152 +867,196 @@ func (s *Service) GenerateCreditNote(ctx context.Context, invoiceID pgtype.UUID,
 }
 
 // ---------------------------------------------------------------------------
-// Factureaza.ro API helpers
+// Oblio.eu API helpers
 // ---------------------------------------------------------------------------
 
-// callFactureazaAPI performs an authenticated HTTP request to the Factureaza.ro API.
-func (s *Service) callFactureazaAPI(ctx context.Context, method string, path string, body interface{}) ([]byte, error) {
-	if s.apiKey == "" {
-		return nil, errors.New("invoice: FACTUREAZA_API_KEY is not configured")
+// callOblioAPI performs an authenticated HTTP request to the Oblio.eu REST API.
+// body must be JSON-serialisable or nil (for GET/DELETE without a body).
+func (s *Service) callOblioAPI(ctx context.Context, method, path string, body interface{}) ([]byte, error) {
+	token, err := s.oblioGetToken(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("invoice: oblio auth: %w", err)
 	}
-
-	url := s.apiBaseURL + path + "?api_key=" + s.apiKey
 
 	var reqBody io.Reader
 	if body != nil {
 		jsonBytes, err := json.Marshal(body)
 		if err != nil {
-			return nil, fmt.Errorf("invoice: marshal request body: %w", err)
+			return nil, fmt.Errorf("invoice: marshal oblio request body: %w", err)
 		}
 		reqBody = bytes.NewReader(jsonBytes)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, method, url, reqBody)
+	req, err := http.NewRequestWithContext(ctx, method, "https://www.oblio.eu/api"+path, reqBody)
 	if err != nil {
-		return nil, fmt.Errorf("invoice: create HTTP request: %w", err)
+		return nil, fmt.Errorf("invoice: create oblio HTTP request: %w", err)
 	}
+	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
 
 	resp, err := s.httpClient.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("invoice: HTTP request failed: %w", err)
+		return nil, fmt.Errorf("invoice: oblio HTTP request failed: %w", err)
 	}
 	defer resp.Body.Close()
 
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("invoice: read response body: %w", err)
+		return nil, fmt.Errorf("invoice: read oblio response body: %w", err)
 	}
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		log.Printf("invoice: factureaza.ro API returned %d: %s", resp.StatusCode, string(respBody))
-		return respBody, fmt.Errorf("invoice: factureaza.ro returned status %d", resp.StatusCode)
+		log.Printf("invoice: oblio API returned %d: %s", resp.StatusCode, string(respBody))
+		return respBody, fmt.Errorf("invoice: oblio returned status %d", resp.StatusCode)
 	}
 
 	return respBody, nil
 }
 
-// factureazaInvoiceRequest represents the JSON payload for creating an invoice
-// on Factureaza.ro.
-type factureazaInvoiceRequest struct {
-	Invoice factureazaInvoiceBody `json:"invoice"`
+// oblioInvoiceRequest is the JSON payload for POST /docs/invoice.
+type oblioInvoiceRequest struct {
+	CIF        string         `json:"cif"`
+	SeriesName string         `json:"seriesName"`
+	Client     oblioClient    `json:"client"`
+	IssueDate  string         `json:"issueDate"`
+	DueDate    string         `json:"dueDate"`
+	Currency   string         `json:"currency"`
+	Language   string         `json:"language"`
+	Products   []oblioProduct `json:"products"`
 }
 
-type factureazaInvoiceBody struct {
-	ClientName      string                  `json:"client_name"`
-	ClientCUI       string                  `json:"client_cui,omitempty"`
-	ClientAddress   string                  `json:"client_address,omitempty"`
-	ClientCity      string                  `json:"client_city,omitempty"`
-	ClientCounty    string                  `json:"client_county,omitempty"`
-	Currency        string                  `json:"currency"`
-	DocumentDate    string                  `json:"document_date"`
-	DueDays         int                     `json:"due_days,omitempty"`
-	UpperAnnotation string                  `json:"upper_annotation,omitempty"`
-	Positions       []factureazaInvoiceItem `json:"document_positions"`
+type oblioClient struct {
+	Name     string `json:"name"`
+	CIF      string `json:"cif,omitempty"`
+	RC       string `json:"rc,omitempty"`
+	Address  string `json:"address,omitempty"`
+	State    string `json:"state,omitempty"`
+	City     string `json:"city,omitempty"`
+	VATpayer int    `json:"vatPayer"`
 }
 
-type factureazaInvoiceItem struct {
-	Description string  `json:"description"`
-	Unit        string  `json:"unit"`
-	UnitCount   float64 `json:"unit_count"`
-	Price       float64 `json:"price"`
-	VAT         int     `json:"vat"`
+type oblioProduct struct {
+	Name          string  `json:"name"`
+	MeasuringUnit string  `json:"measuringUnit"`
+	Quantity      float64 `json:"quantity"`
+	Price         float64 `json:"price"`
+	VATPercentage float64 `json:"vatPercentage"`
+	VATIncluded   int     `json:"vatIncluded"`
 }
 
-// factureazaInvoiceResponse represents the JSON response from Factureaza.ro
-// after creating an invoice.
-type factureazaInvoiceResponse struct {
-	ID          string `json:"id"`
-	DownloadURL string `json:"download_url"`
-	Error       string `json:"error,omitempty"`
+// oblioInvoiceResponse is the standard Oblio API response envelope for invoice creation.
+type oblioInvoiceResponse struct {
+	Status        int    `json:"status"`
+	StatusMessage string `json:"statusMessage"`
+	Data          struct {
+		SeriesName string `json:"seriesName"`
+		Number     string `json:"number"`
+		Link       string `json:"link"`
+	} `json:"data"`
 }
 
-// efacturaResponse represents the JSON response from the e-factura endpoint.
-type efacturaResponse struct {
-	EfacturaIndex string `json:"efactura_index"`
-	Error         string `json:"error,omitempty"`
+// oblioEInvoiceResponse is the response for e-invoice endpoints (POST/GET /docs/einvoice).
+type oblioEInvoiceResponse struct {
+	Status        int    `json:"status"`
+	StatusMessage string `json:"statusMessage"`
+	Data          struct {
+		Text string `json:"text"`
+		Sent bool   `json:"sent"`
+		// Code: -1=error, 0=pending/processing, 1=uploaded, 2=accepted by SPV
+		Code int `json:"code"`
+	} `json:"data"`
 }
 
-// createInvoiceOnFactureaza syncs an invoice and its line items to Factureaza.ro.
-// Returns the Factureaza ID and download URL on success.
-func (s *Service) createInvoiceOnFactureaza(ctx context.Context, inv db.Invoice, lineItems []db.InvoiceLineItem) (string, string, error) {
-	if s.apiKey == "" {
-		return "", "", nil // No API key configured; skip silently.
+// createInvoiceOnOblio syncs a local invoice to Oblio.eu and returns the
+// (seriesName, number, downloadURL) assigned by Oblio.
+func (s *Service) createInvoiceOnOblio(ctx context.Context, inv db.Invoice, lineItems []db.InvoiceLineItem) (string, string, string, error) {
+	if s.oblioClientID == "" {
+		return "", "", "", nil // Not configured; skip silently.
 	}
 
-	positions := make([]factureazaInvoiceItem, 0, len(lineItems))
+	vatRate := float64(s.loadVATRate(ctx))
+
+	products := make([]oblioProduct, 0, len(lineItems))
 	for _, li := range lineItems {
-		positions = append(positions, factureazaInvoiceItem{
-			Description: li.DescriptionRo,
-			Unit:        "buc",
-			UnitCount:   numericToFloat64(li.Quantity),
-			Price:       baniToRON(li.UnitPrice),
-			VAT:         s.loadVATRate(ctx),
+		products = append(products, oblioProduct{
+			Name:          li.DescriptionRo,
+			MeasuringUnit: "buc",
+			Quantity:      numericToFloat64(li.Quantity),
+			Price:         baniToRON(li.UnitPrice), // net price in RON
+			VATPercentage: vatRate,
+			VATIncluded:   0, // price is net; Oblio calculates VAT on top
 		})
 	}
 
-	// If no line items were provided (edge case), build a single item from the invoice totals.
-	if len(positions) == 0 {
-		positions = append(positions, factureazaInvoiceItem{
-			Description: "Servicii curatenie",
-			Unit:        "buc",
-			UnitCount:   1,
-			Price:       baniToRON(inv.SubtotalAmount),
-			VAT:         s.loadVATRate(ctx),
+	// Fallback: single synthetic line item when no line items are present.
+	if len(products) == 0 {
+		products = append(products, oblioProduct{
+			Name:          "Servicii curatenie",
+			MeasuringUnit: "buc",
+			Quantity:      1,
+			Price:         baniToRON(inv.SubtotalAmount),
+			VATPercentage: vatRate,
+			VATIncluded:   0,
 		})
 	}
 
-	reqPayload := factureazaInvoiceRequest{
-		Invoice: factureazaInvoiceBody{
-			ClientName:      inv.BuyerName,
-			ClientCUI:       textVal(inv.BuyerCui),
-			ClientAddress:   textVal(inv.BuyerAddress),
-			ClientCity:      textVal(inv.BuyerCity),
-			ClientCounty:    textVal(inv.BuyerCounty),
-			Currency:        inv.Currency,
-			DocumentDate:    time.Now().Format("2006-01-02"),
-			DueDays:         30,
-			UpperAnnotation: textVal(inv.Notes),
-			Positions:       positions,
+	vatPayer := 0
+	if inv.BuyerIsVatPayer.Valid && inv.BuyerIsVatPayer.Bool {
+		vatPayer = 1
+	}
+
+	issueDate := time.Now().Format("2006-01-02")
+	dueDate := time.Now().AddDate(0, 0, 30).Format("2006-01-02")
+
+	payload := oblioInvoiceRequest{
+		CIF:        s.oblioCIF,
+		SeriesName: s.oblioSeriesName,
+		Client: oblioClient{
+			Name:     inv.BuyerName,
+			CIF:      textVal(inv.BuyerCui),
+			RC:       textVal(inv.BuyerRegNumber),
+			Address:  textVal(inv.BuyerAddress),
+			State:    textVal(inv.BuyerCounty),
+			City:     textVal(inv.BuyerCity),
+			VATpayer: vatPayer,
 		},
+		IssueDate: issueDate,
+		DueDate:   dueDate,
+		Currency:  inv.Currency,
+		Language:  "RO",
+		Products:  products,
 	}
 
-	respBody, err := s.callFactureazaAPI(ctx, http.MethodPost, "/invoices.json", reqPayload)
+	respBody, err := s.callOblioAPI(ctx, http.MethodPost, "/docs/invoice", payload)
 	if err != nil {
-		return "", "", fmt.Errorf("create invoice on factureaza.ro: %w", err)
+		return "", "", "", fmt.Errorf("create invoice on oblio.eu: %w", err)
 	}
 
-	var apiResp factureazaInvoiceResponse
+	var apiResp oblioInvoiceResponse
 	if jsonErr := json.Unmarshal(respBody, &apiResp); jsonErr != nil {
-		return "", "", fmt.Errorf("parse factureaza.ro response: %w", jsonErr)
+		return "", "", "", fmt.Errorf("parse oblio invoice response: %w", jsonErr)
+	}
+	if apiResp.Status != 200 {
+		return "", "", "", fmt.Errorf("oblio invoice error: %s", apiResp.StatusMessage)
 	}
 
-	if apiResp.Error != "" {
-		return "", "", fmt.Errorf("factureaza.ro error: %s", apiResp.Error)
-	}
+	return apiResp.Data.SeriesName, apiResp.Data.Number, apiResp.Data.Link, nil
+}
 
-	return apiResp.ID, apiResp.DownloadURL, nil
+// oblioCodeToStatus converts the Oblio e-invoice status code to a string status.
+// Code: -1=error, 0=pending, 1=uploaded, 2=accepted by SPV.
+func oblioCodeToStatus(code int) string {
+	switch code {
+	case 2:
+		return "transmitted"
+	case 1:
+		return "uploaded"
+	case 0:
+		return "pending"
+	default:
+		return "error"
+	}
 }
 
 // ---------------------------------------------------------------------------

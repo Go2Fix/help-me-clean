@@ -737,7 +737,7 @@ func dbInvoiceToGQL(inv db.Invoice) *model.Invoice {
 		TotalAmount:       int(inv.TotalAmount),
 		Currency:          inv.Currency,
 		EfacturaStatus:    textPtr(inv.EfacturaStatus),
-		DownloadURL:       textPtr(inv.FactureazaDownloadUrl),
+		DownloadURL:       textPtr(inv.OblioDownloadUrl),
 		IssuedAt:          timestamptzToTimePtr(inv.IssuedAt),
 		DueDate: func() *string {
 			s := dateToString(inv.DueDate)

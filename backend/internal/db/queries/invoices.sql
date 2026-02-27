@@ -55,8 +55,8 @@ SELECT * FROM invoices WHERE booking_id = $1 AND invoice_type = $2 ORDER BY crea
 UPDATE invoices SET status = $2, issued_at = CASE WHEN $2 = 'issued' THEN NOW() ELSE issued_at END, updated_at = NOW()
 WHERE id = $1 RETURNING *;
 
--- name: UpdateInvoiceFactureaza :exec
-UPDATE invoices SET factureaza_id = $2, factureaza_download_url = $3, updated_at = NOW()
+-- name: UpdateInvoiceOblio :exec
+UPDATE invoices SET oblio_series_name = $2, oblio_number = $3, oblio_download_url = $4, updated_at = NOW()
 WHERE id = $1;
 
 -- name: UpdateInvoiceEFactura :exec

@@ -13,6 +13,7 @@ import (
 	"go2fix-backend/internal/graph"
 	"go2fix-backend/internal/graph/model"
 	"log"
+	"math"
 	"strings"
 	"time"
 
@@ -548,6 +549,44 @@ func (r *mutationResolver) CompleteJob(ctx context.Context, id string) (*model.B
 	if err != nil {
 		return nil, fmt.Errorf("failed to set final total: %w", err)
 	}
+
+	// Auto-generate invoices after job completion (non-blocking, best-effort).
+	// Both final_total and platform_commission_amount are now set on the booking.
+	completedBooking := booking
+	go func() {
+		bgCtx := context.Background()
+
+		if !completedBooking.CompanyID.Valid {
+			log.Printf("invoice: booking %s has no company, skipping invoice generation", completedBooking.ReferenceCode)
+			return
+		}
+
+		company, compErr := r.Queries.GetCompanyByID(bgCtx, completedBooking.CompanyID)
+		if compErr != nil {
+			log.Printf("invoice: failed to load company for completed booking %s: %v", completedBooking.ReferenceCode, compErr)
+			return
+		}
+
+		// ① Client service invoice: company → client, for the full service amount.
+		if _, invErr := r.InvoiceService.GenerateClientServiceInvoice(bgCtx, completedBooking, company, completedBooking.ClientUserID); invErr != nil {
+			log.Printf("invoice: client service invoice failed for booking %s: %v", completedBooking.ReferenceCode, invErr)
+		}
+
+		// ② Platform commission invoice: platform → company, for the commission amount.
+		commissionBani := int32(math.Round(numericToFloat(completedBooking.PlatformCommissionAmount) * 100))
+		if commissionBani > 0 {
+			if _, invErr := r.InvoiceService.GenerateCommissionInvoice(
+				bgCtx,
+				completedBooking.CompanyID,
+				commissionBani,
+				1,
+				completedBooking.ReferenceCode,
+				completedBooking.ReferenceCode,
+			); invErr != nil {
+				log.Printf("invoice: commission invoice failed for booking %s: %v", completedBooking.ReferenceCode, invErr)
+			}
+		}
+	}()
 
 	return dbBookingToGQL(booking), nil
 }

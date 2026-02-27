@@ -133,23 +133,6 @@ func NewHandler(ctx context.Context) (http.Handler, func(), error) {
 		res.CreateBookingChatFromPayment(ctx, booking)
 	}
 
-	// Wire auto-invoice callback: when payment succeeds, generate client service invoice.
-	paymentSvc.OnPaymentSucceeded = func(ctx context.Context, booking db.Booking, txn db.PaymentTransaction) {
-		if !booking.CompanyID.Valid {
-			log.Printf("invoice: booking %s has no company, skipping auto-invoice", booking.ReferenceCode)
-			return
-		}
-		company, err := queries.GetCompanyByID(ctx, booking.CompanyID)
-		if err != nil {
-			log.Printf("invoice: failed to load company for booking %s: %v", booking.ReferenceCode, err)
-			return
-		}
-		_, err = invoiceSvc.GenerateClientServiceInvoice(ctx, booking, company, booking.ClientUserID)
-		if err != nil {
-			log.Printf("invoice: auto-generation failed for booking %s: %v", booking.ReferenceCode, err)
-		}
-	}
-
 	// Wire subscription webhook callbacks.
 	paymentSvc.OnSubscriptionInvoicePaid = func(ctx context.Context, stripeSubID string, periodStart, periodEnd int64) {
 		if err := subscriptionSvc.HandleInvoicePaid(ctx, stripeSubID, periodStart, periodEnd); err != nil {
