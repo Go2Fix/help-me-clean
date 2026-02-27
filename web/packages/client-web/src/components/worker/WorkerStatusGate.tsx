@@ -140,7 +140,7 @@ export default function WorkerStatusGate({ children }: WorkerStatusGateProps) {
   const requiredDocTypes = ['cazier_judiciar', 'contract_munca'];
   const uploadedDocs = profile?.documents || [];
   const allDocsUploaded = requiredDocTypes.every((type) =>
-    uploadedDocs.some((d: any) => d.documentType === type),
+    uploadedDocs.some((d: { documentType: string }) => d.documentType === type),
   );
 
   // Check profile image

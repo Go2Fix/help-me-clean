@@ -148,8 +148,8 @@ function ProfileImageUpload({ avatarUrl, workerId, onUploadComplete }: ProfileIm
       });
       onUploadComplete();
       if (inputRef.current) inputRef.current.value = '';
-    } catch (err: any) {
-      setError(err.message || 'Eroare la încărcarea imaginii');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Eroare la încărcarea imaginii');
     }
   };
 
@@ -265,8 +265,8 @@ function DocumentCard({ index, doc, uploaded, workerId, onUploadComplete }: Docu
       });
       onUploadComplete();
       if (inputRef.current) inputRef.current.value = '';
-    } catch (err: any) {
-      setError(err.message || 'Eroare la încărcarea documentului');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Eroare la încărcarea documentului');
     }
   };
 
@@ -278,8 +278,8 @@ function DocumentCard({ index, doc, uploaded, workerId, onUploadComplete }: Docu
         refetchQueries: [{ query: MY_WORKER_PROFILE }],
       });
       onUploadComplete();
-    } catch (err: any) {
-      setError(err.message || 'Eroare la ștergere');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Eroare la ștergere');
     }
   };
 

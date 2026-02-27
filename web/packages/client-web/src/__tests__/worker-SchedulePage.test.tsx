@@ -46,8 +46,10 @@ function setupMocks(overrides?: {
           : undefined,
         loading: overrides?.jobsLoading ?? false,
         refetch: vi.fn(),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any;
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return { data: undefined, loading: false, refetch: vi.fn() } as any;
   });
 

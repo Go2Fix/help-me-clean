@@ -346,7 +346,7 @@ export default function PaymentsPage() {
             variant="outline"
             size="sm"
             onClick={() => exportToCSV(
-              allTransactions.map((t: any) => ({
+              allTransactions.map((t) => ({
                 'ID Tranzactie': t.id,
                 'Cod Rezervare': t.booking?.referenceCode ?? '',
                 'Serviciu': t.booking?.serviceName ?? '',

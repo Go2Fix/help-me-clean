@@ -189,7 +189,7 @@ export default function CompanyStatusGate({ children }: { children: ReactNode })
   // Check if all required documents uploaded
   const allDocsUploaded = company?.documents &&
     REQUIRED_DOCS.every(type =>
-      company.documents?.some((doc: any) => doc.documentType === type)
+      company.documents?.some((doc: { documentType: string }) => doc.documentType === type)
     );
 
   // Redirect to document upload if pending and documents incomplete

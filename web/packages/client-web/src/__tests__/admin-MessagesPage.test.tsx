@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { useQuery, useMutation, useSubscription } from '@apollo/client';
 import AdminMessagesPage from '@/pages/admin/MessagesPage';
-import { ALL_CHAT_ROOMS, CHAT_ROOM_DETAIL } from '@/graphql/operations';
+import { ALL_CHAT_ROOMS } from '@/graphql/operations';
 
 vi.mock('@go2fix/shared', () => ({
   cn: (...args: unknown[]) =>

@@ -129,6 +129,17 @@ interface PriceAuditEntry {
   changedAt: string;
 }
 
+interface WaitlistLead {
+  id: string;
+  leadType: string;
+  name: string;
+  email: string;
+  phone?: string | null;
+  companyName?: string | null;
+  city?: string | null;
+  createdAt: string;
+}
+
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const tabs: { key: TabKey; label: string }[] = [
@@ -2023,7 +2034,7 @@ function AuditLogTab() {
 function PlatformTab() {
   const { data: modeData, loading: modeLoading, refetch: refetchMode } = useQuery(PLATFORM_MODE);
   const { data: statsData } = useQuery(WAITLIST_STATS);
-  const { data: leadsData, loading: leadsLoading } = useQuery(WAITLIST_LEADS, {
+  const { data: leadsData, loading: leadsLoading } = useQuery<{ waitlistLeads: WaitlistLead[] }>(WAITLIST_LEADS, {
     variables: { limit: 100, offset: 0 },
   });
   const [updateSetting, { loading: saving }] = useMutation(UPDATE_PLATFORM_SETTING, {
@@ -2120,7 +2131,7 @@ function PlatformTab() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {leadsData.waitlistLeads.map((lead: any) => (
+                {leadsData.waitlistLeads.map((lead) => (
                   <tr key={lead.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3">
                       <span

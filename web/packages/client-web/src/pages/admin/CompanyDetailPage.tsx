@@ -1121,7 +1121,7 @@ export default function CompanyDetailPage() {
                     <div className="mb-4">
                       <h5 className="text-sm font-semibold text-gray-700 mb-2">Test de personalitate</h5>
                       <PersonalityScoreCard
-                        assessment={worker.personalityAssessment as any}
+                        assessment={worker.personalityAssessment}
                         compact={false}
                         onGenerateInsights={() => handleGenerateInsights(worker.id)}
                         generatingInsights={generatingInsights}

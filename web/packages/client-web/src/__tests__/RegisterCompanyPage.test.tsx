@@ -63,6 +63,7 @@ describe('RegisterCompanyPage', () => {
     mockApplyFn = vi.fn();
     mockClaimFn = vi.fn();
     vi.mocked(useAuth).mockReturnValue({ ...defaultAuth });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     vi.mocked(useQuery).mockReturnValue({ data: { serviceCategories: [] }, loading: false } as any);
 
     // The component calls useMutation twice per render: first APPLY_AS_COMPANY, then CLAIM_COMPANY.
