@@ -492,7 +492,7 @@ These items are explicitly deferred and should NOT be worked on now:
 |------|--------|
 | **Notifications (email, push, in-app)** | Separate big task — will be its own project |
 | **E-factura ANAF direct integration** | Using Factureaza.ro as intermediary for now |
-| **ANAF company verification API** | Manual verification by admin sufficient for MVP |
+| ~~**ANAF company verification API**~~ | ✅ **DONE** — Auto-verifies CUI on company application submission; admin sees ANAF card (name/address comparison, fiscal status, VAT status) in CompanyDetailPage with manual re-verify button. Shared `anaf` service package also powers the registration form lookup. |
 | **In-app maps** | Not needed for MVP |
 | **Advanced matching algorithm** | Simple availability-based matching sufficient |
 | **Multi-payment methods** | Stripe card payments only for MVP |
