@@ -275,6 +275,145 @@ func (q *Queries) FindMatchingWorkersByCategory(ctx context.Context, arg FindMat
 	return items, nil
 }
 
+const getCityAreaCoordinates = `-- name: GetCityAreaCoordinates :one
+SELECT latitude, longitude FROM city_areas WHERE id = $1
+`
+
+type GetCityAreaCoordinatesRow struct {
+	Latitude  pgtype.Float8 `json:"latitude"`
+	Longitude pgtype.Float8 `json:"longitude"`
+}
+
+// Returns the centroid coordinates for a city area (set during migration seed or by admin).
+func (q *Queries) GetCityAreaCoordinates(ctx context.Context, id pgtype.UUID) (GetCityAreaCoordinatesRow, error) {
+	row := q.db.QueryRow(ctx, getCityAreaCoordinates, id)
+	var i GetCityAreaCoordinatesRow
+	err := row.Scan(&i.Latitude, &i.Longitude)
+	return i, err
+}
+
+const getClientWorkerHistory = `-- name: GetClientWorkerHistory :one
+SELECT
+    COUNT(b.id)::INT                              AS total_jobs,
+    COALESCE(AVG(r.rating), 0.0)::DOUBLE PRECISION AS avg_rating
+FROM bookings b
+LEFT JOIN reviews r ON r.booking_id = b.id AND r.reviewed_worker_id = b.worker_id
+WHERE b.client_user_id = $1
+  AND b.worker_id      = $2
+  AND b.status         = 'completed'
+`
+
+type GetClientWorkerHistoryParams struct {
+	ClientUserID pgtype.UUID `json:"client_user_id"`
+	WorkerID     pgtype.UUID `json:"worker_id"`
+}
+
+type GetClientWorkerHistoryRow struct {
+	TotalJobs int32   `json:"total_jobs"`
+	AvgRating float64 `json:"avg_rating"`
+}
+
+// Returns how many completed jobs a worker has done for a specific client, and the avg rating.
+func (q *Queries) GetClientWorkerHistory(ctx context.Context, arg GetClientWorkerHistoryParams) (GetClientWorkerHistoryRow, error) {
+	row := q.db.QueryRow(ctx, getClientWorkerHistory, arg.ClientUserID, arg.WorkerID)
+	var i GetClientWorkerHistoryRow
+	err := row.Scan(&i.TotalJobs, &i.AvgRating)
+	return i, err
+}
+
+const getWorkerDailyJobLocations = `-- name: GetWorkerDailyJobLocations :many
+SELECT
+    b.id,
+    b.scheduled_start_time,
+    b.estimated_duration_hours,
+    COALESCE(a.latitude,  ca.latitude,  0.0) AS lat,
+    COALESCE(a.longitude, ca.longitude, 0.0) AS lng,
+    (a.latitude IS NOT NULL OR ca.latitude IS NOT NULL) AS has_location
+FROM bookings b
+JOIN client_addresses a  ON b.address_id   = a.id
+LEFT JOIN city_areas  ca ON b.city_area_id = ca.id
+WHERE b.worker_id      = $1
+  AND b.scheduled_date = $2
+  AND b.status NOT IN ('cancelled_by_client', 'cancelled_by_company', 'cancelled_by_admin')
+ORDER BY b.scheduled_start_time
+`
+
+type GetWorkerDailyJobLocationsParams struct {
+	WorkerID      pgtype.UUID `json:"worker_id"`
+	ScheduledDate pgtype.Date `json:"scheduled_date"`
+}
+
+type GetWorkerDailyJobLocationsRow struct {
+	ID                     pgtype.UUID    `json:"id"`
+	ScheduledStartTime     pgtype.Time    `json:"scheduled_start_time"`
+	EstimatedDurationHours pgtype.Numeric `json:"estimated_duration_hours"`
+	Lat                    float64        `json:"lat"`
+	Lng                    float64        `json:"lng"`
+	HasLocation            pgtype.Bool    `json:"has_location"`
+}
+
+// Returns scheduled bookings for a worker on a date with best-available coordinates.
+// Priority: client_address lat/lng → booking's city_area centroid → zero (sentinel for no location).
+func (q *Queries) GetWorkerDailyJobLocations(ctx context.Context, arg GetWorkerDailyJobLocationsParams) ([]GetWorkerDailyJobLocationsRow, error) {
+	rows, err := q.db.Query(ctx, getWorkerDailyJobLocations, arg.WorkerID, arg.ScheduledDate)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetWorkerDailyJobLocationsRow
+	for rows.Next() {
+		var i GetWorkerDailyJobLocationsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.ScheduledStartTime,
+			&i.EstimatedDurationHours,
+			&i.Lat,
+			&i.Lng,
+			&i.HasLocation,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getWorkerSubRatings = `-- name: GetWorkerSubRatings :one
+SELECT
+    COALESCE(AVG(rating_punctuality),   0.0)::DOUBLE PRECISION AS avg_punctuality,
+    COALESCE(AVG(rating_quality),       0.0)::DOUBLE PRECISION AS avg_quality,
+    COALESCE(AVG(rating_communication), 0.0)::DOUBLE PRECISION AS avg_communication,
+    COALESCE(AVG(rating_value),         0.0)::DOUBLE PRECISION AS avg_value,
+    COUNT(*) FILTER (WHERE rating_punctuality IS NOT NULL)::INT  AS rated_count
+FROM reviews
+WHERE reviewed_worker_id = $1 AND status = 'published'
+`
+
+type GetWorkerSubRatingsRow struct {
+	AvgPunctuality   float64 `json:"avg_punctuality"`
+	AvgQuality       float64 `json:"avg_quality"`
+	AvgCommunication float64 `json:"avg_communication"`
+	AvgValue         float64 `json:"avg_value"`
+	RatedCount       int32   `json:"rated_count"`
+}
+
+// Per-dimension rating averages for a worker (from reviews with sub-ratings since migration 000047).
+func (q *Queries) GetWorkerSubRatings(ctx context.Context, reviewedWorkerID pgtype.UUID) (GetWorkerSubRatingsRow, error) {
+	row := q.db.QueryRow(ctx, getWorkerSubRatings, reviewedWorkerID)
+	var i GetWorkerSubRatingsRow
+	err := row.Scan(
+		&i.AvgPunctuality,
+		&i.AvgQuality,
+		&i.AvgCommunication,
+		&i.AvgValue,
+		&i.RatedCount,
+	)
+	return i, err
+}
+
 const listWorkerBookingsForDate = `-- name: ListWorkerBookingsForDate :many
 SELECT id, scheduled_start_time, estimated_duration_hours
 FROM bookings

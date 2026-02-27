@@ -1,5 +1,31 @@
 import '@testing-library/jest-dom/vitest';
 import i18n from 'i18next';
+
+// Mock IntersectionObserver (used by framer-motion's whileInView / useInView)
+class MockIntersectionObserver {
+  private callback: IntersectionObserverCallback;
+  readonly root = null;
+  readonly rootMargin = '0px';
+  readonly thresholds = [0];
+  constructor(callback: IntersectionObserverCallback) {
+    this.callback = callback;
+  }
+  observe(target: Element) {
+    // Fire immediately with isIntersecting: true so animations complete synchronously
+    this.callback(
+      [{ isIntersecting: true, target, intersectionRatio: 1, boundingClientRect: target.getBoundingClientRect(), intersectionRect: target.getBoundingClientRect(), rootBounds: null, time: 0 }],
+      this as unknown as IntersectionObserver,
+    );
+  }
+  unobserve() {}
+  disconnect() {}
+  takeRecords(): IntersectionObserverEntry[] { return []; }
+}
+Object.defineProperty(global, 'IntersectionObserver', {
+  writable: true,
+  configurable: true,
+  value: MockIntersectionObserver,
+});
 import { initReactI18next } from 'react-i18next';
 
 // Import all RO translation namespaces so tests get real Romanian strings

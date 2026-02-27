@@ -2,6 +2,7 @@ package matching
 
 import (
 	"fmt"
+	"math"
 )
 
 const (
@@ -29,6 +30,15 @@ type FreeInterval struct {
 type BookingSlot struct {
 	StartMicros int64
 	EndMicros   int64
+}
+
+// JobLocation extends BookingSlot with geographic coordinates for route-aware scheduling.
+type JobLocation struct {
+	StartMicros int64
+	EndMicros   int64
+	Lat         float64
+	Lng         float64
+	HasLocation bool
 }
 
 // PlacementResult represents the system-decided optimal job placement.
@@ -93,6 +103,118 @@ func ComputeFreeIntervals(availStart, availEnd int64, bookings []BookingSlot, bu
 		intervals = append(intervals, FreeInterval{Start: cursor, End: availEnd})
 	}
 
+	return intervals
+}
+
+// ---------------------------------------------------------------------------
+// Geographic utilities
+// ---------------------------------------------------------------------------
+
+// HaversineKm returns the great-circle distance in kilometres between two
+// latitude/longitude coordinates.
+func HaversineKm(lat1, lng1, lat2, lng2 float64) float64 {
+	const earthRadiusKm = 6371.0
+	dLat := (lat2 - lat1) * math.Pi / 180.0
+	dLng := (lng2 - lng1) * math.Pi / 180.0
+	a := math.Sin(dLat/2)*math.Sin(dLat/2) +
+		math.Cos(lat1*math.Pi/180.0)*math.Cos(lat2*math.Pi/180.0)*
+			math.Sin(dLng/2)*math.Sin(dLng/2)
+	return earthRadiusKm * 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
+}
+
+// EstimateTravelMins returns an urban travel-time estimate assuming a 25 km/h
+// average speed (realistic for Romanian cities with traffic). Clamped to
+// [5, 45] minutes so the buffer stays sensible.
+func EstimateTravelMins(distKm float64) int {
+	mins := int(math.Ceil(distKm / 25.0 * 60.0))
+	if mins < 5 {
+		return 5
+	}
+	if mins > 45 {
+		return 45
+	}
+	return mins
+}
+
+// DistanceAwareBufferMicros returns the buffer (in microseconds) between two
+// consecutive jobs. When both locations are valid it uses a travel-time
+// estimate; otherwise it falls back to minBufferMicros.
+func DistanceAwareBufferMicros(fromLat, fromLng, toLat, toLng float64, hasLocation bool, minBufferMicros int64) int64 {
+	if !hasLocation {
+		return minBufferMicros
+	}
+	distKm := HaversineKm(fromLat, fromLng, toLat, toLng)
+	travelMicros := int64(EstimateTravelMins(distKm)) * MinuteMicros
+	if travelMicros < minBufferMicros {
+		return minBufferMicros
+	}
+	return travelMicros
+}
+
+// ComputeFreeIntervalsWithRouting works like ComputeFreeIntervals but uses
+// per-gap distance-aware buffers when coordinates are available.
+// candidateLat/Lng represents the location of the job being scheduled; it is
+// used to compute the buffer between the last existing booking and the
+// candidate, and between the candidate and the next booking.
+// Bookings must be sorted by start time.
+func ComputeFreeIntervalsWithRouting(
+	availStart, availEnd int64,
+	bookings []JobLocation,
+	minBufferMicros int64,
+	candidateLat, candidateLng float64,
+	hasCandidateLocation bool,
+) []FreeInterval {
+	if availStart >= availEnd {
+		return nil
+	}
+
+	var intervals []FreeInterval
+	cursor := availStart
+
+	for i, b := range bookings {
+		// Buffer before this booking: distance from the previous job (or start of day).
+		var bufBefore int64
+		if i == 0 {
+			// First booking — buffer is from wherever the worker starts the day.
+			// Use the candidate location if available so we model arrival travel.
+			bufBefore = DistanceAwareBufferMicros(candidateLat, candidateLng, b.Lat, b.Lng,
+				hasCandidateLocation && b.HasLocation, minBufferMicros)
+		} else {
+			prev := bookings[i-1]
+			bufBefore = DistanceAwareBufferMicros(prev.Lat, prev.Lng, b.Lat, b.Lng,
+				prev.HasLocation && b.HasLocation, minBufferMicros)
+		}
+
+		busyStart := b.StartMicros - bufBefore
+		busyEnd := b.EndMicros + minBufferMicros // conservative fixed buffer after
+
+		// For the gap after: if we know the next booking's location, use travel time.
+		if i+1 < len(bookings) {
+			next := bookings[i+1]
+			bufAfter := DistanceAwareBufferMicros(b.Lat, b.Lng, next.Lat, next.Lng,
+				b.HasLocation && next.HasLocation, minBufferMicros)
+			busyEnd = b.EndMicros + bufAfter
+		}
+
+		// Clamp to availability window.
+		if busyStart < availStart {
+			busyStart = availStart
+		}
+		if busyEnd > availEnd {
+			busyEnd = availEnd
+		}
+
+		if cursor < busyStart {
+			intervals = append(intervals, FreeInterval{Start: cursor, End: busyStart})
+		}
+		if busyEnd > cursor {
+			cursor = busyEnd
+		}
+	}
+
+	if cursor < availEnd {
+		intervals = append(intervals, FreeInterval{Start: cursor, End: availEnd})
+	}
 	return intervals
 }
 
@@ -208,16 +330,26 @@ type MatchConfig struct {
 	LoadBalanceWeight float64 // weight for workload penalty, 0=disabled (default 10)
 	MaxResults        int     // max suggestions to return (default 5)
 	MinAvailableCount int     // min available workers before showing unavailable (default 5)
+
+	// Smart-matching additions
+	WeeklyTargetJobs      int     // target jobs/week for hunger fairness calc (default 20)
+	HungerWeight          float64 // max bonus for under-scheduled workers (default 10)
+	RouteEfficiencyWeight float64 // multiplier for route efficiency score (default 1.0)
+	AffinityBonus         float64 // max bonus for repeat-client affinity (default 15)
 }
 
 // DefaultMatchConfig returns the default matchmaking configuration.
 func DefaultMatchConfig() MatchConfig {
 	return MatchConfig{
-		BufferMinutes:     15,
-		MaxJobsPerDay:     6,
-		LoadBalanceWeight: 10.0,
-		MaxResults:        5,
-		MinAvailableCount: 5,
+		BufferMinutes:         15,
+		MaxJobsPerDay:         6,
+		LoadBalanceWeight:     10.0,
+		MaxResults:            5,
+		MinAvailableCount:     5,
+		WeeklyTargetJobs:      20,
+		HungerWeight:          10.0,
+		RouteEfficiencyWeight: 1.0,
+		AffinityBonus:         15.0,
 	}
 }
 
@@ -314,9 +446,31 @@ type ScoreInput struct {
 	DayBookingCount  int // bookings on the matched date
 	WeekBookingCount int // bookings this week
 	Config           MatchConfig
+
+	// Smart-matching additions
+	RouteEfficiencyScore float64 // 0–20: geo-proximity to worker's other daily jobs
+	ClientAffinityScore  float64 // 0–15: repeat-client bonus
+	SubRatingBonus       float64 // 0–8:  punctuality + quality sub-ratings bonus
+	PersonalityBonus     float64 // 0–5:  integrity from personality assessment
+	WorkerHungerBonus    float64 // 0–10: fairness for under-scheduled workers
 }
 
 // ComputeMatchScore returns a 0-100 score for a worker suggestion.
+//
+// Scoring breakdown (max raw ≈ 138, clamped to 100):
+//
+//	Base:               +50
+//	Rating (×5):        +0–25
+//	Experience:         +0–15
+//	Area match:         +10
+//	Route efficiency:   +0–20
+//	Client affinity:    +0–15
+//	Sub-ratings:        +0–8
+//	Personality:        +0–5
+//	Worker hunger:      +0–10
+//	Tight packing:      +5
+//	No placement:       -40
+//	Load penalties:     variable
 func ComputeMatchScore(input ScoreInput) float64 {
 	score := 50.0
 
@@ -339,6 +493,13 @@ func ComputeMatchScore(input ScoreInput) float64 {
 	if input.PlacementFound && input.GapScoreH == 0 {
 		score += 5.0
 	}
+
+	// Smart-matching bonuses.
+	score += input.RouteEfficiencyScore * input.Config.RouteEfficiencyWeight
+	score += input.ClientAffinityScore
+	score += input.SubRatingBonus
+	score += input.PersonalityBonus
+	score += input.WorkerHungerBonus
 
 	// Unavailability penalty.
 	if !input.PlacementFound {

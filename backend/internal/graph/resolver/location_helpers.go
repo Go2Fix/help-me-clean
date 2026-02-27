@@ -10,6 +10,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 
+	"go2fix-backend/internal/auth"
 	db "go2fix-backend/internal/db/generated"
 	"go2fix-backend/internal/graph/model"
 	"go2fix-backend/internal/service/matching"
@@ -129,7 +130,7 @@ func (r *Resolver) suggestWorkersForSlots(
 	timeSlots []*model.TimeSlotInput,
 	estimatedDurationHours float64,
 ) ([]*model.WorkerSuggestion, error) {
-	config := matching.DefaultMatchConfig()
+	config := loadMatchConfig(ctx, r.Queries)
 	jobDurationMicros := int64(math.Ceil(estimatedDurationHours * float64(matching.HourMicros)))
 
 	// 1. Find all active workers in the area (optionally filtered by category).
@@ -209,6 +210,15 @@ func (r *Resolver) suggestWorkersForSlots(
 	weekStart := minDate.AddDate(0, 0, -int(minDate.Weekday()))
 	weekEnd := weekStart.AddDate(0, 0, 6)
 
+	// Resolve candidate job area coordinates once (used for all worker evaluations).
+	candidateLat, candidateLng, hasCandidateLocation := r.resolveCandidateCoords(ctx, areaID)
+
+	// Get client user ID for affinity computation (empty string if unauthenticated).
+	clientUserID := ""
+	if claims := auth.GetUserFromContext(ctx); claims != nil {
+		clientUserID = claims.UserID
+	}
+
 	// 2. Evaluate each worker candidate.
 	type scoredSuggestion struct {
 		suggestion *model.WorkerSuggestion
@@ -222,7 +232,7 @@ func (r *Resolver) suggestWorkersForSlots(
 	}
 
 	for _, w := range workers[:maxCandidates] {
-		suggestion := r.evaluateWorkerForSlots(ctx, w, slots, clientSlots, jobDurationMicros, weekStart, weekEnd, config)
+		suggestion := r.evaluateWorkerForSlots(ctx, w, slots, clientSlots, jobDurationMicros, weekStart, weekEnd, config, candidateLat, candidateLng, hasCandidateLocation, clientUserID)
 		if suggestion != nil {
 			results = append(results, scoredSuggestion{suggestion: suggestion, score: suggestion.MatchScore})
 		}
@@ -258,6 +268,9 @@ func (r *Resolver) evaluateWorkerForSlots(
 	jobDurationMicros int64,
 	weekStart, weekEnd time.Time,
 	config matching.MatchConfig,
+	candidateLat, candidateLng float64,
+	hasCandidateLocation bool,
+	clientUserID string,
 ) *model.WorkerSuggestion {
 	// Load weekly availability.
 	avail, err := r.Queries.ListWorkerAvailability(ctx, w.ID)
@@ -322,6 +335,7 @@ func (r *Resolver) evaluateWorkerForSlots(
 	var bestDayCount int
 	var bestAvailStart, bestAvailEnd int64
 	var bestSlotIdx int
+	var bestJobLocs []matching.JobLocation
 
 	for _, s := range slots {
 		var availStart, availEnd int64
@@ -344,7 +358,7 @@ func (r *Resolver) evaluateWorkerForSlots(
 			continue
 		}
 
-		bookings, err := r.Queries.ListWorkerBookingsForDate(ctx, db.ListWorkerBookingsForDateParams{
+		dailyRows, err := r.Queries.GetWorkerDailyJobLocations(ctx, db.GetWorkerDailyJobLocationsParams{
 			WorkerID:      w.ID,
 			ScheduledDate: pgtype.Date{Time: s.DateObj, Valid: true},
 		})
@@ -352,23 +366,26 @@ func (r *Resolver) evaluateWorkerForSlots(
 			continue
 		}
 
-		dayCount := len(bookings)
+		dayCount := len(dailyRows)
 		if config.MaxJobsPerDay > 0 && dayCount >= config.MaxJobsPerDay {
 			continue
 		}
 
-		var existingBookings []matching.BookingSlot
-		for _, b := range bookings {
-			startMicros := b.ScheduledStartTime.Microseconds
-			durationHours := numericToFloat(b.EstimatedDurationHours)
+		var jobLocs []matching.JobLocation
+		for _, row := range dailyRows {
+			startMicros := row.ScheduledStartTime.Microseconds
+			durationHours := numericToFloat(row.EstimatedDurationHours)
 			endMicros := startMicros + int64(durationHours*float64(matching.HourMicros))
-			existingBookings = append(existingBookings, matching.BookingSlot{
+			jobLocs = append(jobLocs, matching.JobLocation{
 				StartMicros: startMicros,
 				EndMicros:   endMicros,
+				Lat:         row.Lat,
+				Lng:         row.Lng,
+				HasLocation: row.HasLocation.Bool,
 			})
 		}
 
-		freeIntervals := matching.ComputeFreeIntervals(availStart, availEnd, existingBookings, config.BufferMicros())
+		freeIntervals := matching.ComputeFreeIntervalsWithRouting(availStart, availEnd, jobLocs, config.BufferMicros(), candidateLat, candidateLng, hasCandidateLocation)
 
 		// Try placement within the client's requested time window first.
 		thisSlot := []matching.TimeSlot{clientSlots[s.Index]}
@@ -387,6 +404,7 @@ func (r *Resolver) evaluateWorkerForSlots(
 			bestAvailStart = availStart
 			bestAvailEnd = availEnd
 			bestSlotIdx = s.Index
+			bestJobLocs = jobLocs
 		}
 	}
 
@@ -394,6 +412,35 @@ func (r *Resolver) evaluateWorkerForSlots(
 	if bestPlacement == nil || !bestPlacement.Found {
 		return nil
 	}
+
+	// Route efficiency: how geographically close is the new job to existing daily jobs?
+	routeScore := computeRouteEfficiencyScore(candidateLat, candidateLng, bestJobLocs)
+
+	// Client affinity: has this worker served this client before?
+	var affinityScore float64
+	if clientUserID != "" {
+		if history, err := r.Queries.GetClientWorkerHistory(ctx, db.GetClientWorkerHistoryParams{
+			ClientUserID: stringToUUID(clientUserID),
+			WorkerID:     w.ID,
+		}); err == nil {
+			affinityScore = computeClientAffinityScore(history.TotalJobs, history.AvgRating, config.AffinityBonus)
+		}
+	}
+
+	// Sub-ratings: punctuality + quality dimension bonuses.
+	var subRatingBonus float64
+	if subs, err := r.Queries.GetWorkerSubRatings(ctx, w.ID); err == nil {
+		subRatingBonus = computeSubRatingBonus(subs.AvgPunctuality, subs.AvgQuality, subs.RatedCount)
+	}
+
+	// Personality integrity bonus.
+	var personalityBonus float64
+	if pa, err := r.Queries.GetPersonalityAssessmentByWorkerID(ctx, w.ID); err == nil {
+		personalityBonus = computePersonalityBonus(numericToFloat(pa.IntegrityAvg), true)
+	}
+
+	// Worker hunger: fairness bonus for under-scheduled workers.
+	hungerBonus := computeWorkerHungerBonus(int(weekCount), config)
 
 	// Determine availability status.
 	startHHMM := matching.MicrosToHHMM(bestPlacement.StartMicros)
@@ -430,14 +477,19 @@ func (r *Resolver) evaluateWorkerForSlots(
 	}
 
 	score := matching.ComputeMatchScore(matching.ScoreInput{
-		RatingAvg:        dynamicRating,
-		TotalJobsDone:    dynamicCompleted,
-		IsAreaMatch:      true,
-		PlacementFound:   true,
-		GapScoreH:        gapScore,
-		DayBookingCount:  bestDayCount,
-		WeekBookingCount: int(weekCount),
-		Config:           config,
+		RatingAvg:            dynamicRating,
+		TotalJobsDone:        dynamicCompleted,
+		IsAreaMatch:          true,
+		PlacementFound:       true,
+		GapScoreH:            gapScore,
+		DayBookingCount:      bestDayCount,
+		WeekBookingCount:     int(weekCount),
+		Config:               config,
+		RouteEfficiencyScore: routeScore,
+		ClientAffinityScore:  affinityScore,
+		SubRatingBonus:       subRatingBonus,
+		PersonalityBonus:     personalityBonus,
+		WorkerHungerBonus:    hungerBonus,
 	})
 
 	workerID := uuidToString(w.ID)
@@ -468,4 +520,17 @@ func (r *Resolver) evaluateWorkerForSlots(
 		SuggestedDate:      suggestedDate,
 		MatchScore:         score,
 	}
+}
+
+// resolveCandidateCoords returns the coordinates of a city area (candidate job location).
+// Returns (0, 0, false) if no coordinates are available.
+func (r *Resolver) resolveCandidateCoords(ctx context.Context, areaID pgtype.UUID) (lat, lng float64, hasLocation bool) {
+	if !areaID.Valid {
+		return 0, 0, false
+	}
+	coords, err := r.Queries.GetCityAreaCoordinates(ctx, areaID)
+	if err != nil || !coords.Latitude.Valid || !coords.Longitude.Valid {
+		return 0, 0, false
+	}
+	return coords.Latitude.Float64, coords.Longitude.Float64, true
 }

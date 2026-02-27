@@ -820,6 +820,7 @@ type Booking struct {
 	PricingModel             NullPricingModel   `json:"pricing_model"`
 	CategoryID               pgtype.UUID        `json:"category_id"`
 	CustomFields             []byte             `json:"custom_fields"`
+	CityAreaID               pgtype.UUID        `json:"city_area_id"`
 }
 
 type BookingExtra struct {
@@ -869,6 +870,8 @@ type CityArea struct {
 	CityID    pgtype.UUID        `json:"city_id"`
 	Name      string             `json:"name"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	Latitude  pgtype.Float8      `json:"latitude"`
+	Longitude pgtype.Float8      `json:"longitude"`
 }
 
 type ClientAddress struct {
@@ -1449,6 +1452,8 @@ type Worker struct {
 	CreatedAt          pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt          pgtype.Timestamptz `json:"updated_at"`
 	Bio                pgtype.Text        `json:"bio"`
+	HomeLatitude       pgtype.Float8      `json:"home_latitude"`
+	HomeLongitude      pgtype.Float8      `json:"home_longitude"`
 }
 
 type WorkerAvailability struct {

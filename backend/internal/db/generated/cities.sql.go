@@ -22,9 +22,16 @@ type CreateAreaParams struct {
 	Name   string      `json:"name"`
 }
 
-func (q *Queries) CreateArea(ctx context.Context, arg CreateAreaParams) (CityArea, error) {
+type CreateAreaRow struct {
+	ID        pgtype.UUID        `json:"id"`
+	CityID    pgtype.UUID        `json:"city_id"`
+	Name      string             `json:"name"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
+func (q *Queries) CreateArea(ctx context.Context, arg CreateAreaParams) (CreateAreaRow, error) {
 	row := q.db.QueryRow(ctx, createArea, arg.CityID, arg.Name)
-	var i CityArea
+	var i CreateAreaRow
 	err := row.Scan(
 		&i.ID,
 		&i.CityID,

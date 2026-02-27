@@ -49110,7 +49110,7 @@ func (ec *executionContext) unmarshalInputCreateBookingInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"addressId", "address", "serviceType", "categoryId", "scheduledDate", "scheduledStartTime", "timeSlots", "propertyType", "numRooms", "numBathrooms", "areaSqm", "hasPets", "specialInstructions", "extras", "guestEmail", "guestName", "guestPhone", "preferredWorkerId", "suggestedStartTime", "recurrence", "customFields"}
+	fieldsInOrder := [...]string{"addressId", "address", "serviceType", "categoryId", "scheduledDate", "scheduledStartTime", "timeSlots", "propertyType", "numRooms", "numBathrooms", "areaSqm", "hasPets", "specialInstructions", "extras", "guestEmail", "guestName", "guestPhone", "preferredWorkerId", "suggestedStartTime", "recurrence", "customFields", "cityAreaId"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -49264,6 +49264,13 @@ func (ec *executionContext) unmarshalInputCreateBookingInput(ctx context.Context
 				return it, err
 			}
 			it.CustomFields = data
+		case "cityAreaId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cityAreaId"))
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CityAreaID = data
 		}
 	}
 

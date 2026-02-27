@@ -274,6 +274,12 @@ func (r *mutationResolver) CreateBookingRequest(ctx context.Context, input model
 		PricingModel:           db.NullPricingModel{PricingModel: serviceDef.PricingModel, Valid: true},
 		CategoryID:             bookingCategoryID,
 		CustomFields:           customFieldsBytes,
+		CityAreaID: func() pgtype.UUID {
+			if input.CityAreaID == nil {
+				return pgtype.UUID{}
+			}
+			return stringToUUID(*input.CityAreaID)
+		}(),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create booking: %w", err)

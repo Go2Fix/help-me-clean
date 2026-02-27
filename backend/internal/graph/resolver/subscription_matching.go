@@ -9,6 +9,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 
+	"go2fix-backend/internal/auth"
 	db "go2fix-backend/internal/db/generated"
 	"go2fix-backend/internal/graph/model"
 	"go2fix-backend/internal/service/matching"
@@ -27,10 +28,16 @@ func (r *Resolver) suggestWorkersForSubscription(
 	preferredTimeEnd string,
 	estimatedDurationHours float64,
 ) ([]*model.SubscriptionWorkerSuggestion, error) {
-	config := matching.DefaultMatchConfig()
+	config := loadMatchConfig(ctx, r.Queries)
 	jobDurationMicros := int64(math.Ceil(estimatedDurationHours * float64(matching.HourMicros)))
 	clientStart := matching.HHMMToMicros(preferredTimeStart)
 	clientEnd := matching.HHMMToMicros(preferredTimeEnd)
+
+	// Get client user ID for affinity computation (empty string if unauthenticated).
+	clientUserID := ""
+	if claims := auth.GetUserFromContext(ctx); claims != nil {
+		clientUserID = claims.UserID
+	}
 
 	// 1. Find all active workers in the area (optionally filtered by category).
 	var workers []db.FindMatchingWorkersRow
@@ -86,7 +93,7 @@ func (r *Resolver) suggestWorkersForSubscription(
 
 	for _, w := range workers[:maxCandidates] {
 		suggestion := r.evaluateWorkerForSubscription(
-			ctx, w, occurrences, clientStart, clientEnd, jobDurationMicros, config,
+			ctx, w, occurrences, clientStart, clientEnd, jobDurationMicros, config, clientUserID,
 		)
 		if suggestion != nil {
 			results = append(results, scored{suggestion: suggestion, score: suggestion.MatchScore})
@@ -153,6 +160,7 @@ func (r *Resolver) evaluateWorkerForSubscription(
 	clientStartMicros, clientEndMicros int64,
 	jobDurationMicros int64,
 	config matching.MatchConfig,
+	clientUserID string,
 ) *model.SubscriptionWorkerSuggestion {
 	// Load weekly availability.
 	avail, err := r.Queries.ListWorkerAvailability(ctx, w.ID)
@@ -275,14 +283,56 @@ func (r *Resolver) evaluateWorkerForSubscription(
 		dynamicCompleted = int(count)
 	}
 
+	// Compute weekly booking count for hunger bonus.
+	weekStart := time.Now().AddDate(0, 0, -int(time.Now().Weekday()))
+	weekEnd := weekStart.AddDate(0, 0, 6)
+	weekCount := 0
+	if cnt, err := r.Queries.CountWorkerBookingsInDateRange(ctx, db.CountWorkerBookingsInDateRangeParams{
+		WorkerID:      w.ID,
+		ScheduledDate: pgtype.Date{Time: weekStart, Valid: true},
+		ScheduledDate_2: pgtype.Date{Time: weekEnd, Valid: true},
+	}); err == nil {
+		weekCount = int(cnt)
+	}
+
+	// Compute sub-rating bonus (punctuality + quality).
+	var subRatingBonus float64
+	if subs, err := r.Queries.GetWorkerSubRatings(ctx, w.ID); err == nil {
+		subRatingBonus = computeSubRatingBonus(subs.AvgPunctuality, subs.AvgQuality, subs.RatedCount)
+	}
+
+	// Compute personality bonus from integrity score.
+	var personalityBonus float64
+	if pa, err := r.Queries.GetPersonalityAssessmentByWorkerID(ctx, w.ID); err == nil {
+		personalityBonus = computePersonalityBonus(numericToFloat(pa.IntegrityAvg), true)
+	}
+
+	// Compute client affinity bonus.
+	var affinityScore float64
+	if clientUserID != "" {
+		if history, err := r.Queries.GetClientWorkerHistory(ctx, db.GetClientWorkerHistoryParams{
+			ClientUserID: stringToUUID(clientUserID),
+			WorkerID:     w.ID,
+		}); err == nil {
+			affinityScore = computeClientAffinityScore(history.TotalJobs, history.AvgRating, config.AffinityBonus)
+		}
+	}
+
+	hungerBonus := computeWorkerHungerBonus(weekCount, config)
+
 	// Score = standard match score + consistency bonus (up to +30 points).
 	baseScore := matching.ComputeMatchScore(matching.ScoreInput{
-		RatingAvg:      dynamicRating,
-		TotalJobsDone:  dynamicCompleted,
-		IsAreaMatch:    true,
-		PlacementFound: true,
-		GapScoreH:      0,
-		Config:         config,
+		RatingAvg:           dynamicRating,
+		TotalJobsDone:       dynamicCompleted,
+		IsAreaMatch:         true,
+		PlacementFound:      true,
+		GapScoreH:           0,
+		WeekBookingCount:    weekCount,
+		SubRatingBonus:      subRatingBonus,
+		PersonalityBonus:    personalityBonus,
+		ClientAffinityScore: affinityScore,
+		WorkerHungerBonus:   hungerBonus,
+		Config:              config,
 	})
 
 	consistencyBonus := consistencyPct / 100.0 * 30.0

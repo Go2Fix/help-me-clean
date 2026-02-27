@@ -97,40 +97,38 @@ describe('HomePage', () => {
 
   it('shows hero title', () => {
     renderHomePage();
-    expect(screen.getByText(/Servicii pentru casă/)).toBeInTheDocument();
+    expect(screen.getByText(/Casa ta/)).toBeInTheDocument();
   });
 
   it('shows hero subtitle text', () => {
     renderHomePage();
     expect(
-      screen.getByText(/firme verificate de servicii/),
+      screen.getByText(/firma verificată/),
     ).toBeInTheDocument();
   });
 
-  it('shows "Rezervă un serviciu" button', () => {
+  it('shows "Rezervă acum" button in hero', () => {
     renderHomePage();
-    expect(
-      screen.getByRole('button', { name: /Rezervă un serviciu/ }),
-    ).toBeInTheDocument();
+    const buttons = screen.getAllByRole('button', { name: /Rezervă acum/ });
+    expect(buttons.length).toBeGreaterThanOrEqual(1);
   });
 
-  it('shows "Vezi serviciile" button', () => {
+  it('shows "Descoperă serviciile" button', () => {
     renderHomePage();
-    expect(
-      screen.getByRole('button', { name: /Vezi serviciile/ }),
-    ).toBeInTheDocument();
+    const buttons = screen.getAllByRole('button', { name: /Descoperă serviciile/ });
+    expect(buttons.length).toBeGreaterThanOrEqual(1);
   });
 
-  it('shows "Cum funcționează?" section', () => {
+  it('shows "Gata în 3 pași" section', () => {
     renderHomePage();
-    expect(screen.getByText('Cum funcționează?')).toBeInTheDocument();
+    expect(screen.getByText('Gata în 3 pași')).toBeInTheDocument();
   });
 
   it('shows all three steps in how-it-works section', () => {
     renderHomePage();
-    expect(screen.getByText('Alege serviciul')).toBeInTheDocument();
-    expect(screen.getByText('Programează')).toBeInTheDocument();
-    expect(screen.getByText('Bucură-te de rezultat')).toBeInTheDocument();
+    expect(screen.getByText('Alegi serviciul')).toBeInTheDocument();
+    expect(screen.getByText('Firma confirmă')).toBeInTheDocument();
+    expect(screen.getByText('Te bucuri de rezultat')).toBeInTheDocument();
   });
 
   it('shows "De ce Go2Fix?" section', () => {
@@ -186,8 +184,8 @@ describe('HomePage', () => {
 
   it('shows stats section', () => {
     renderHomePage();
-    expect(screen.getAllByText('500+').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('Rezervări efectuate')).toBeInTheDocument();
+    expect(screen.getByText('Firme partenere')).toBeInTheDocument();
   });
 
   it('shows testimonials section', () => {

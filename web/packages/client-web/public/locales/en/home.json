@@ -6,19 +6,19 @@
   "preReleaseBanner": "Platform launching soon!",
   "preReleaseBannerLink": "Join the waitlist →",
   "hero": {
-    "badge": "Romania's #1 home services platform",
-    "headline1": "Home services,",
-    "headline2": "no hassle.",
-    "headline3": "",
-    "subheadline": "We connect clients with verified home service companies in Romania. Book in 2 minutes, pay online, enjoy the result.",
+    "badge": "500+ happy clients · CUI-verified companies",
+    "headline1": "Your home,",
+    "headline2": "spotless",
+    "headline3": "in a few hours.",
+    "subheadline": "Find a verified company, pay securely online, enjoy the result. No phone calls, no stress, no surprises.",
     "ctaDashboard": "Go to your account",
     "ctaAdmin": "Admin panel",
-    "ctaServices": "View services",
+    "ctaServices": "Discover services",
     "ctaWaitlist": "Join the waitlist",
-    "ctaBook": "Book a service",
+    "ctaBook": "Book now",
     "ctaMyAccount": "My account",
     "ctaDiscover": "Discover services",
-    "socialProof": "bookings made"
+    "socialProof": "bookings made across Romania"
   },
   "bookingCard": {
     "confirmed": "Booking confirmed",
@@ -33,14 +33,20 @@
     "total": "180 RON",
     "securePayment": "Secure payment · Free cancellation",
     "reviews": "500+ reviews",
-    "verifiedFirm": "Verified company"
+    "verifiedFirm": "Verified company",
+    "teamArrival": "Team arrives in ~2h"
   },
   "trustBadges": {
     "verified": "Verified & insured companies",
     "securePay": "Secure payment",
     "invoice": "Invoice included",
     "noSubscription": "No subscription",
-    "freeCancellation": "Free cancellation"
+    "freeCancellation": "Free cancellation",
+    "rating": "4.9★ Client reviews",
+    "support": "Fast support",
+    "guarantee": "Quality guarantee",
+    "transparent": "Transparent pricing",
+    "partners": "50+ partner companies"
   },
   "categories": {
     "sectionLabel": "Services",
@@ -48,21 +54,22 @@
     "subtitle": "Choose the right service category and discover available options.",
     "viewCategory": "View services",
     "comingSoon": "Coming soon",
+    "priceFrom": "from",
     "cleaningDesc": "Standard, deep, post-construction cleaning and more.",
     "disinfectionDesc": "Professional disinfection for homes and commercial spaces.",
     "plumbingDesc": "Plumbing installation, repairs and fitting.",
     "electricalDesc": "Electrical installation, repairs and inspections."
   },
   "howItWorks": {
-    "sectionLabel": "Process",
-    "title": "How does it work?",
-    "subtitle": "Three simple steps to the service you need.",
+    "sectionLabel": "Simple process",
+    "title": "Done in 3 steps",
+    "subtitle": "From request to clean home — in just a few minutes.",
     "step1Title": "Choose your service",
-    "step1Desc": "Select the service category, type and preferred date.",
-    "step2Title": "Schedule",
-    "step2Desc": "Confirm the details and place your order. A company will accept quickly.",
+    "step1Desc": "Select the service type, area size and preferred date. Takes 2 minutes.",
+    "step2Title": "Company confirms",
+    "step2Desc": "A verified company accepts your request and confirms quickly. You pay online, securely.",
     "step3Title": "Enjoy the result",
-    "step3Desc": "The team comes to you. You relax, we handle the rest.",
+    "step3Desc": "The team comes to you at the agreed time. You relax — we handle the rest.",
     "cta": "Book now",
     "ctaWaitlist": "Join the waitlist"
   },
@@ -76,6 +83,10 @@
     "sectionLabel": "Why us",
     "title": "Why Go2Fix?",
     "subtitle": "Safety, transparency and quality in every service.",
+    "guarantee": {
+      "title": "We guarantee quality",
+      "desc": "If you're not satisfied with the result, the team comes back and redoes the job for free. No questions, no bureaucracy."
+    },
     "verified": {
       "title": "Verified companies",
       "desc": "All partner companies go through a strict verification and accreditation process."
@@ -98,35 +109,35 @@
     }
   },
   "testimonials": {
-    "sectionLabel": "Reviews",
+    "sectionLabel": "Real reviews",
     "title": "What our clients say",
     "t1": {
       "name": "Maria Ionescu",
       "city": "Bucharest",
-      "text": "I found an excellent company in less than 5 minutes. Impeccable service, I highly recommend!"
+      "text": "I found an excellent company in under 5 minutes. The apartment looks better than ever. Highly recommend!"
     },
     "t2": {
       "name": "Andrei Popescu",
-      "city": "Bucharest",
-      "text": "The platform is simple and intuitive. I've booked 3 times and each time it was perfect."
+      "city": "Cluj-Napoca",
+      "text": "Simple and fast platform. I've booked 3 times — every time the team arrived on time and did a perfect job."
     },
     "t3": {
       "name": "Elena Dumitrescu",
-      "city": "Bucharest",
-      "text": "Transparent pricing, no unpleasant surprises. The team was punctual and professional."
+      "city": "Timișoara",
+      "text": "Transparent pricing, no unpleasant surprises. I knew exactly what I was paying before confirming. Punctual and attentive team."
     }
   },
   "partners": {
     "sectionLabel": "Partners",
     "title": "Are you a service company?",
-    "subtitle": "Join Go2Fix and receive orders from clients across Romania.",
+    "subtitle": "Join Go2Fix and receive new orders every day, with zero marketing effort.",
     "step1Title": "Apply online",
     "step1Desc": "Submit your company documents in 5 minutes, directly from the platform.",
     "step2Title": "Get approved",
     "step2Desc": "Our team verifies and activates your account within 24–48 hours.",
     "step3Title": "Receive orders",
     "step3Desc": "Clients find you and book directly — you focus on the service.",
-    "b1Title": "New clients",
+    "b1Title": "New clients daily",
     "b1Desc": "Receive orders from verified clients in your service area.",
     "b2Title": "Digital payments",
     "b2Desc": "Collect online, no hassle with cash or invoices.",

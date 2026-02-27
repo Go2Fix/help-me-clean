@@ -76,3 +76,47 @@ WHERE w.status = 'active'
   )
 ORDER BY (CASE WHEN w.company_id = @preferred_company_id THEN 0 ELSE 1 END), w.rating_avg DESC
 LIMIT 5;
+
+-- name: GetWorkerDailyJobLocations :many
+-- Returns scheduled bookings for a worker on a date with best-available coordinates.
+-- Priority: client_address lat/lng → booking's city_area centroid → zero (sentinel for no location).
+SELECT
+    b.id,
+    b.scheduled_start_time,
+    b.estimated_duration_hours,
+    COALESCE(a.latitude,  ca.latitude,  0.0) AS lat,
+    COALESCE(a.longitude, ca.longitude, 0.0) AS lng,
+    (a.latitude IS NOT NULL OR ca.latitude IS NOT NULL) AS has_location
+FROM bookings b
+JOIN client_addresses a  ON b.address_id   = a.id
+LEFT JOIN city_areas  ca ON b.city_area_id = ca.id
+WHERE b.worker_id      = $1
+  AND b.scheduled_date = $2
+  AND b.status NOT IN ('cancelled_by_client', 'cancelled_by_company', 'cancelled_by_admin')
+ORDER BY b.scheduled_start_time;
+
+-- name: GetCityAreaCoordinates :one
+-- Returns the centroid coordinates for a city area (set during migration seed or by admin).
+SELECT latitude, longitude FROM city_areas WHERE id = $1;
+
+-- name: GetClientWorkerHistory :one
+-- Returns how many completed jobs a worker has done for a specific client, and the avg rating.
+SELECT
+    COUNT(b.id)::INT                              AS total_jobs,
+    COALESCE(AVG(r.rating), 0.0)::DOUBLE PRECISION AS avg_rating
+FROM bookings b
+LEFT JOIN reviews r ON r.booking_id = b.id AND r.reviewed_worker_id = b.worker_id
+WHERE b.client_user_id = $1
+  AND b.worker_id      = $2
+  AND b.status         = 'completed';
+
+-- name: GetWorkerSubRatings :one
+-- Per-dimension rating averages for a worker (from reviews with sub-ratings since migration 000047).
+SELECT
+    COALESCE(AVG(rating_punctuality),   0.0)::DOUBLE PRECISION AS avg_punctuality,
+    COALESCE(AVG(rating_quality),       0.0)::DOUBLE PRECISION AS avg_quality,
+    COALESCE(AVG(rating_communication), 0.0)::DOUBLE PRECISION AS avg_communication,
+    COALESCE(AVG(rating_value),         0.0)::DOUBLE PRECISION AS avg_value,
+    COUNT(*) FILTER (WHERE rating_punctuality IS NOT NULL)::INT  AS rated_count
+FROM reviews
+WHERE reviewed_worker_id = $1 AND status = 'published';

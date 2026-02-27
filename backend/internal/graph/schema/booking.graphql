@@ -147,6 +147,7 @@ input CreateBookingInput {
   suggestedStartTime: String
   recurrence: RecurrenceInput
   customFields: String
+  cityAreaId: ID
 }
 
 input ExtraInput {

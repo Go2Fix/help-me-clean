@@ -12,7 +12,7 @@ import (
 )
 
 const activateWorkerStatus = `-- name: ActivateWorkerStatus :one
-UPDATE workers SET status = 'active', updated_at = NOW() WHERE id = $1 RETURNING id, user_id, company_id, status, is_company_admin, invite_token, invite_expires_at, rating_avg, total_jobs_completed, created_at, updated_at, bio
+UPDATE workers SET status = 'active', updated_at = NOW() WHERE id = $1 RETURNING id, user_id, company_id, status, is_company_admin, invite_token, invite_expires_at, rating_avg, total_jobs_completed, created_at, updated_at, bio, home_latitude, home_longitude
 `
 
 func (q *Queries) ActivateWorkerStatus(ctx context.Context, id pgtype.UUID) (Worker, error) {
@@ -31,6 +31,8 @@ func (q *Queries) ActivateWorkerStatus(ctx context.Context, id pgtype.UUID) (Wor
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Bio,
+		&i.HomeLatitude,
+		&i.HomeLongitude,
 	)
 	return i, err
 }
@@ -38,7 +40,7 @@ func (q *Queries) ActivateWorkerStatus(ctx context.Context, id pgtype.UUID) (Wor
 const createWorkerProfile = `-- name: CreateWorkerProfile :one
 INSERT INTO workers (user_id, company_id, status, is_company_admin, invite_token, invite_expires_at)
 VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING id, user_id, company_id, status, is_company_admin, invite_token, invite_expires_at, rating_avg, total_jobs_completed, created_at, updated_at, bio
+RETURNING id, user_id, company_id, status, is_company_admin, invite_token, invite_expires_at, rating_avg, total_jobs_completed, created_at, updated_at, bio, home_latitude, home_longitude
 `
 
 type CreateWorkerProfileParams struct {
@@ -73,6 +75,8 @@ func (q *Queries) CreateWorkerProfile(ctx context.Context, arg CreateWorkerProfi
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Bio,
+		&i.HomeLatitude,
+		&i.HomeLongitude,
 	)
 	return i, err
 }
@@ -117,7 +121,7 @@ func (q *Queries) CreateWorkerUser(ctx context.Context, arg CreateWorkerUserPara
 }
 
 const getWorkerByID = `-- name: GetWorkerByID :one
-SELECT id, user_id, company_id, status, is_company_admin, invite_token, invite_expires_at, rating_avg, total_jobs_completed, created_at, updated_at, bio FROM workers WHERE id = $1
+SELECT id, user_id, company_id, status, is_company_admin, invite_token, invite_expires_at, rating_avg, total_jobs_completed, created_at, updated_at, bio, home_latitude, home_longitude FROM workers WHERE id = $1
 `
 
 func (q *Queries) GetWorkerByID(ctx context.Context, id pgtype.UUID) (Worker, error) {
@@ -136,12 +140,14 @@ func (q *Queries) GetWorkerByID(ctx context.Context, id pgtype.UUID) (Worker, er
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Bio,
+		&i.HomeLatitude,
+		&i.HomeLongitude,
 	)
 	return i, err
 }
 
 const getWorkerByInviteToken = `-- name: GetWorkerByInviteToken :one
-SELECT id, user_id, company_id, status, is_company_admin, invite_token, invite_expires_at, rating_avg, total_jobs_completed, created_at, updated_at, bio FROM workers WHERE invite_token = $1
+SELECT id, user_id, company_id, status, is_company_admin, invite_token, invite_expires_at, rating_avg, total_jobs_completed, created_at, updated_at, bio, home_latitude, home_longitude FROM workers WHERE invite_token = $1
 `
 
 func (q *Queries) GetWorkerByInviteToken(ctx context.Context, inviteToken pgtype.Text) (Worker, error) {
@@ -160,12 +166,14 @@ func (q *Queries) GetWorkerByInviteToken(ctx context.Context, inviteToken pgtype
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Bio,
+		&i.HomeLatitude,
+		&i.HomeLongitude,
 	)
 	return i, err
 }
 
 const getWorkerByUserID = `-- name: GetWorkerByUserID :one
-SELECT id, user_id, company_id, status, is_company_admin, invite_token, invite_expires_at, rating_avg, total_jobs_completed, created_at, updated_at, bio FROM workers WHERE user_id = $1
+SELECT id, user_id, company_id, status, is_company_admin, invite_token, invite_expires_at, rating_avg, total_jobs_completed, created_at, updated_at, bio, home_latitude, home_longitude FROM workers WHERE user_id = $1
 `
 
 func (q *Queries) GetWorkerByUserID(ctx context.Context, userID pgtype.UUID) (Worker, error) {
@@ -184,6 +192,8 @@ func (q *Queries) GetWorkerByUserID(ctx context.Context, userID pgtype.UUID) (Wo
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Bio,
+		&i.HomeLatitude,
+		&i.HomeLongitude,
 	)
 	return i, err
 }
@@ -230,7 +240,7 @@ func (q *Queries) GetWorkerPerformanceStats(ctx context.Context, id pgtype.UUID)
 }
 
 const linkWorkerToUser = `-- name: LinkWorkerToUser :one
-UPDATE workers SET user_id = $2, status = 'pending_review', updated_at = NOW() WHERE id = $1 RETURNING id, user_id, company_id, status, is_company_admin, invite_token, invite_expires_at, rating_avg, total_jobs_completed, created_at, updated_at, bio
+UPDATE workers SET user_id = $2, status = 'pending_review', updated_at = NOW() WHERE id = $1 RETURNING id, user_id, company_id, status, is_company_admin, invite_token, invite_expires_at, rating_avg, total_jobs_completed, created_at, updated_at, bio, home_latitude, home_longitude
 `
 
 type LinkWorkerToUserParams struct {
@@ -254,6 +264,8 @@ func (q *Queries) LinkWorkerToUser(ctx context.Context, arg LinkWorkerToUserPara
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Bio,
+		&i.HomeLatitude,
+		&i.HomeLongitude,
 	)
 	return i, err
 }
@@ -327,7 +339,7 @@ func (q *Queries) ListAllActiveWorkers(ctx context.Context) ([]ListAllActiveWork
 }
 
 const listWorkersByCompany = `-- name: ListWorkersByCompany :many
-SELECT id, user_id, company_id, status, is_company_admin, invite_token, invite_expires_at, rating_avg, total_jobs_completed, created_at, updated_at, bio FROM workers WHERE company_id = $1 ORDER BY created_at DESC
+SELECT id, user_id, company_id, status, is_company_admin, invite_token, invite_expires_at, rating_avg, total_jobs_completed, created_at, updated_at, bio, home_latitude, home_longitude FROM workers WHERE company_id = $1 ORDER BY created_at DESC
 `
 
 func (q *Queries) ListWorkersByCompany(ctx context.Context, companyID pgtype.UUID) ([]Worker, error) {
@@ -352,6 +364,8 @@ func (q *Queries) ListWorkersByCompany(ctx context.Context, companyID pgtype.UUI
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.Bio,
+			&i.HomeLatitude,
+			&i.HomeLongitude,
 		); err != nil {
 			return nil, err
 		}
@@ -387,7 +401,7 @@ const updateWorkerBio = `-- name: UpdateWorkerBio :one
 UPDATE workers SET
     bio = $2,
     updated_at = NOW()
-WHERE id = $1 RETURNING id, user_id, company_id, status, is_company_admin, invite_token, invite_expires_at, rating_avg, total_jobs_completed, created_at, updated_at, bio
+WHERE id = $1 RETURNING id, user_id, company_id, status, is_company_admin, invite_token, invite_expires_at, rating_avg, total_jobs_completed, created_at, updated_at, bio, home_latitude, home_longitude
 `
 
 type UpdateWorkerBioParams struct {
@@ -411,12 +425,14 @@ func (q *Queries) UpdateWorkerBio(ctx context.Context, arg UpdateWorkerBioParams
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Bio,
+		&i.HomeLatitude,
+		&i.HomeLongitude,
 	)
 	return i, err
 }
 
 const updateWorkerStatus = `-- name: UpdateWorkerStatus :one
-UPDATE workers SET status = $2, updated_at = NOW() WHERE id = $1 RETURNING id, user_id, company_id, status, is_company_admin, invite_token, invite_expires_at, rating_avg, total_jobs_completed, created_at, updated_at, bio
+UPDATE workers SET status = $2, updated_at = NOW() WHERE id = $1 RETURNING id, user_id, company_id, status, is_company_admin, invite_token, invite_expires_at, rating_avg, total_jobs_completed, created_at, updated_at, bio, home_latitude, home_longitude
 `
 
 type UpdateWorkerStatusParams struct {
@@ -440,6 +456,8 @@ func (q *Queries) UpdateWorkerStatus(ctx context.Context, arg UpdateWorkerStatus
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Bio,
+		&i.HomeLatitude,
+		&i.HomeLongitude,
 	)
 	return i, err
 }

@@ -74,7 +74,7 @@ type Querier interface {
 	CountWaitlistLeads(ctx context.Context) (CountWaitlistLeadsRow, error)
 	CountWorkerBookingsInDateRange(ctx context.Context, arg CountWorkerBookingsInDateRangeParams) (int64, error)
 	CreateAddress(ctx context.Context, arg CreateAddressParams) (ClientAddress, error)
-	CreateArea(ctx context.Context, arg CreateAreaParams) (CityArea, error)
+	CreateArea(ctx context.Context, arg CreateAreaParams) (CreateAreaRow, error)
 	CreateBillingProfile(ctx context.Context, arg CreateBillingProfileParams) (ClientBillingProfile, error)
 	CreateBooking(ctx context.Context, arg CreateBookingParams) (Booking, error)
 	CreateBookingTimeSlot(ctx context.Context, arg CreateBookingTimeSlotParams) (BookingTimeSlot, error)
@@ -179,8 +179,12 @@ type Querier interface {
 	GetBookingsBySubscription(ctx context.Context, subscriptionID pgtype.UUID) ([]Booking, error)
 	GetChatRoomByBookingID(ctx context.Context, bookingID pgtype.UUID) (ChatRoom, error)
 	GetChatRoomByID(ctx context.Context, id pgtype.UUID) (ChatRoom, error)
+	// Returns the centroid coordinates for a city area (set during migration seed or by admin).
+	GetCityAreaCoordinates(ctx context.Context, id pgtype.UUID) (GetCityAreaCoordinatesRow, error)
 	GetCityByID(ctx context.Context, id pgtype.UUID) (GetCityByIDRow, error)
 	GetCityByName(ctx context.Context, lower string) (GetCityByNameRow, error)
+	// Returns how many completed jobs a worker has done for a specific client, and the avg rating.
+	GetClientWorkerHistory(ctx context.Context, arg GetClientWorkerHistoryParams) (GetClientWorkerHistoryRow, error)
 	// Check for existing commission invoice to prevent duplicates
 	GetCommissionInvoiceByPeriod(ctx context.Context, arg GetCommissionInvoiceByPeriodParams) (Invoice, error)
 	GetCompanyAverageRating(ctx context.Context, companyID pgtype.UUID) (pgtype.Numeric, error)
@@ -266,10 +270,15 @@ type Querier interface {
 	GetWorkerByID(ctx context.Context, id pgtype.UUID) (Worker, error)
 	GetWorkerByInviteToken(ctx context.Context, inviteToken pgtype.Text) (Worker, error)
 	GetWorkerByUserID(ctx context.Context, userID pgtype.UUID) (Worker, error)
+	// Returns scheduled bookings for a worker on a date with best-available coordinates.
+	// Priority: client_address lat/lng → booking's city_area centroid → zero (sentinel for no location).
+	GetWorkerDailyJobLocations(ctx context.Context, arg GetWorkerDailyJobLocationsParams) ([]GetWorkerDailyJobLocationsRow, error)
 	GetWorkerDateOverride(ctx context.Context, arg GetWorkerDateOverrideParams) (WorkerDateOverride, error)
 	GetWorkerDocument(ctx context.Context, id pgtype.UUID) (WorkerDocument, error)
 	GetWorkerEarningsByDateRange(ctx context.Context, arg GetWorkerEarningsByDateRangeParams) ([]GetWorkerEarningsByDateRangeRow, error)
 	GetWorkerPerformanceStats(ctx context.Context, id pgtype.UUID) (GetWorkerPerformanceStatsRow, error)
+	// Per-dimension rating averages for a worker (from reviews with sub-ratings since migration 000047).
+	GetWorkerSubRatings(ctx context.Context, reviewedWorkerID pgtype.UUID) (GetWorkerSubRatingsRow, error)
 	HasPersonalityAssessment(ctx context.Context, workerID pgtype.UUID) (bool, error)
 	InsertBookingExtra(ctx context.Context, arg InsertBookingExtraParams) error
 	InsertCompanyServiceArea(ctx context.Context, arg InsertCompanyServiceAreaParams) (CompanyServiceArea, error)

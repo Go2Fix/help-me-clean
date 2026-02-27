@@ -392,6 +392,7 @@ type CreateBookingInput struct {
 	SuggestedStartTime  *string          `json:"suggestedStartTime,omitempty"`
 	Recurrence          *RecurrenceInput `json:"recurrence,omitempty"`
 	CustomFields        *string          `json:"customFields,omitempty"`
+	CityAreaID          *string          `json:"cityAreaId,omitempty"`
 }
 
 type CreateServiceCategoryInput struct {
