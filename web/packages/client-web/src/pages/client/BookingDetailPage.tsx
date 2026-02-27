@@ -223,7 +223,6 @@ export default function BookingDetailPage() {
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [rescheduleModalOpen, setRescheduleModalOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
-  const [reviewRating, setReviewRating] = useState(0);
   const [reviewComment, setReviewComment] = useState('');
   const [ratingPunctuality, setRatingPunctuality] = useState(0);
   const [ratingQuality, setRatingQuality] = useState(0);
@@ -299,7 +298,6 @@ export default function BookingDetailPage() {
           // Photo upload failed but review was created successfully
         }
       }
-      setReviewRating(0);
       setReviewComment('');
       setRatingPunctuality(0);
       setRatingQuality(0);
