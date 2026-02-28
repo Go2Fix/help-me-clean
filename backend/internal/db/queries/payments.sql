@@ -60,8 +60,8 @@ UPDATE users SET stripe_customer_id = $2, updated_at = NOW() WHERE id = $1;
 -- name: CreatePaymentTransaction :one
 INSERT INTO payment_transactions (
   booking_id, stripe_payment_intent_id, amount_total, amount_company,
-  amount_platform_fee, currency, status, metadata
-) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+  amount_platform_fee, currency, status
+) VALUES ($1, $2, $3, $4, $5, $6, $7)
 RETURNING *;
 
 -- name: GetPaymentTransactionByStripePI :one

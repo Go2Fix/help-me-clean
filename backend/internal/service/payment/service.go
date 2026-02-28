@@ -294,11 +294,6 @@ func (s *Service) CreatePaymentIntentForBooking(ctx context.Context, booking db.
 
 	// Create the payment transaction audit record.
 	amountCompany := int32(amountBani - applicationFee)
-	metadata, _ := json.Marshal(map[string]string{
-		"booking_id":     uuidToString(booking.ID),
-		"reference_code": booking.ReferenceCode,
-	})
-
 	_, err = s.queries.CreatePaymentTransaction(ctx, db.CreatePaymentTransactionParams{
 		BookingID:             booking.ID,
 		StripePaymentIntentID: pi.ID,
@@ -307,7 +302,6 @@ func (s *Service) CreatePaymentIntentForBooking(ctx context.Context, booking db.
 		AmountPlatformFee:     int32(applicationFee),
 		Currency:              "ron",
 		Status:                db.PaymentTransactionStatusPending,
-		Metadata:              metadata,
 	})
 	if err != nil {
 		return "", "", 0, fmt.Errorf("payment: failed to create payment transaction record: %w", err)

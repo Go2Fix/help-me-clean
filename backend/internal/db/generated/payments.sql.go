@@ -137,8 +137,8 @@ const createPaymentTransaction = `-- name: CreatePaymentTransaction :one
 
 INSERT INTO payment_transactions (
   booking_id, stripe_payment_intent_id, amount_total, amount_company,
-  amount_platform_fee, currency, status, metadata
-) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+  amount_platform_fee, currency, status
+) VALUES ($1, $2, $3, $4, $5, $6, $7)
 RETURNING id, booking_id, stripe_payment_intent_id, stripe_charge_id, amount_total, amount_company, amount_platform_fee, currency, status, failure_reason, refund_amount, stripe_refund_id, metadata, created_at, updated_at, stripe_dispute_id
 `
 
@@ -150,7 +150,6 @@ type CreatePaymentTransactionParams struct {
 	AmountPlatformFee     int32                    `json:"amount_platform_fee"`
 	Currency              string                   `json:"currency"`
 	Status                PaymentTransactionStatus `json:"status"`
-	Metadata              []byte                   `json:"metadata"`
 }
 
 // ============================================
@@ -165,7 +164,6 @@ func (q *Queries) CreatePaymentTransaction(ctx context.Context, arg CreatePaymen
 		arg.AmountPlatformFee,
 		arg.Currency,
 		arg.Status,
-		arg.Metadata,
 	)
 	var i PaymentTransaction
 	err := row.Scan(

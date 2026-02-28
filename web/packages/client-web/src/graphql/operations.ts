@@ -193,17 +193,7 @@ export const MY_BOOKINGS = gql`
         scheduledStartTime
         estimatedTotal
         status
-        categoryId
-        category {
-          id
-          slug
-          nameRo
-          nameEn
-          icon
-        }
         recurringGroupId
-      subscriptionId
-        occurrenceNumber
         createdAt
       }
       pageInfo {
