@@ -387,6 +387,7 @@ func (r *queryResolver) PendingCompanyApplications(ctx context.Context) ([]*mode
 	for i, c := range companies {
 		gqlCompany := dbCompanyToGQL(c)
 		r.enrichCompanyStats(ctx, c.ID, gqlCompany)
+		r.populateCompanyDocuments(ctx, gqlCompany, c.ID)
 		result[i] = gqlCompany
 	}
 
