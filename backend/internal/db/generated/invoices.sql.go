@@ -1408,12 +1408,13 @@ func (q *Queries) UpdateInvoiceEFactura(ctx context.Context, arg UpdateInvoiceEF
 }
 
 const updateInvoiceOblio = `-- name: UpdateInvoiceOblio :exec
-UPDATE invoices SET oblio_series_name = $2, oblio_number = $3, oblio_download_url = $4, updated_at = NOW()
+UPDATE invoices SET invoice_number = $2, oblio_series_name = $3, oblio_number = $4, oblio_download_url = $5, updated_at = NOW()
 WHERE id = $1
 `
 
 type UpdateInvoiceOblioParams struct {
 	ID               pgtype.UUID `json:"id"`
+	InvoiceNumber    pgtype.Text `json:"invoice_number"`
 	OblioSeriesName  pgtype.Text `json:"oblio_series_name"`
 	OblioNumber      pgtype.Text `json:"oblio_number"`
 	OblioDownloadUrl pgtype.Text `json:"oblio_download_url"`
@@ -1422,6 +1423,7 @@ type UpdateInvoiceOblioParams struct {
 func (q *Queries) UpdateInvoiceOblio(ctx context.Context, arg UpdateInvoiceOblioParams) error {
 	_, err := q.db.Exec(ctx, updateInvoiceOblio,
 		arg.ID,
+		arg.InvoiceNumber,
 		arg.OblioSeriesName,
 		arg.OblioNumber,
 		arg.OblioDownloadUrl,

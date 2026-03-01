@@ -61,7 +61,7 @@ UPDATE invoices SET status = 'paid', updated_at = NOW()
 WHERE id = $1 RETURNING *;
 
 -- name: UpdateInvoiceOblio :exec
-UPDATE invoices SET oblio_series_name = $2, oblio_number = $3, oblio_download_url = $4, updated_at = NOW()
+UPDATE invoices SET invoice_number = $2, oblio_series_name = $3, oblio_number = $4, oblio_download_url = $5, updated_at = NOW()
 WHERE id = $1;
 
 -- name: UpdateInvoiceEFactura :exec

@@ -249,13 +249,6 @@ func (s *Service) GenerateClientServiceInvoice(
 	subtotalNet := totalBani * 100 / (100 + vatRate)
 	vatAmount := totalBani - subtotalNet
 
-	// Build a prefix from the company name (first 3 uppercase characters).
-	prefix := companyPrefix(company.CompanyName)
-	invoiceNumber, err := s.NewInvoiceNumber(ctx, company.ID, prefix)
-	if err != nil {
-		return db.Invoice{}, fmt.Errorf("invoice: generate number: %w", err)
-	}
-
 	// Attempt to load the client's billing profile for B2B details.
 	billingProfile, profileErr := s.queries.GetBillingProfileByUser(ctx, clientUserID)
 
@@ -265,9 +258,10 @@ func (s *Service) GenerateClientServiceInvoice(
 
 	dueDate := pgtype.Date{Time: time.Now().AddDate(0, 0, 30), Valid: true}
 
+	// Invoice number is assigned by Oblio; we leave it null until Oblio responds.
 	inv, err := s.queries.CreateInvoice(ctx, db.CreateInvoiceParams{
 		InvoiceType:          db.InvoiceTypeClientService,
-		InvoiceNumber:        pgText(invoiceNumber),
+		InvoiceNumber:        pgtype.Text{},
 		SellerCompanyName:    company.CompanyName,
 		SellerCui:            company.Cui,
 		SellerRegNumber:      pgtype.Text{},
@@ -319,14 +313,17 @@ func (s *Service) GenerateClientServiceInvoice(
 		return db.Invoice{}, fmt.Errorf("invoice: create line item: %w", err)
 	}
 
-	// Sync to Oblio.eu (best-effort for MVP; do not fail the whole operation).
+	// Push to Oblio — they are the source of truth for the invoice number and PDF.
 	lineItems, _ := s.queries.ListInvoiceLineItems(ctx, inv.ID)
 	oblioSeries, oblioNum, oblioURL, apiErr := s.createInvoiceOnOblio(ctx, inv, lineItems)
 	if apiErr != nil {
 		log.Printf("invoice: oblio.eu API error (non-fatal): %v", apiErr)
 	} else if oblioNum != "" {
+		// Use Oblio's series+number as the official invoice number.
+		assignedNumber := oblioSeries + " " + oblioNum
 		updateErr := s.queries.UpdateInvoiceOblio(ctx, db.UpdateInvoiceOblioParams{
 			ID:               inv.ID,
+			InvoiceNumber:    pgText(assignedNumber),
 			OblioSeriesName:  pgText(oblioSeries),
 			OblioNumber:      pgText(oblioNum),
 			OblioDownloadUrl: pgText(oblioURL),
@@ -334,6 +331,7 @@ func (s *Service) GenerateClientServiceInvoice(
 		if updateErr != nil {
 			log.Printf("invoice: failed to persist oblio metadata: %v", updateErr)
 		} else {
+			inv.InvoiceNumber = pgText(assignedNumber)
 			inv.OblioSeriesName = pgText(oblioSeries)
 			inv.OblioNumber = pgText(oblioNum)
 			inv.OblioDownloadUrl = pgText(oblioURL)
@@ -347,12 +345,12 @@ func (s *Service) GenerateClientServiceInvoice(
 			if transmitErr := s.TransmitToEFactura(bgCtx, inv.ID); transmitErr != nil {
 				log.Printf("invoice: auto e-factura transmission failed (non-fatal): %v", transmitErr)
 			} else {
-				log.Printf("invoice: auto-transmitted invoice %s to e-factura", invoiceNumber)
+				log.Printf("invoice: auto-transmitted invoice %s to e-factura", textVal(inv.InvoiceNumber))
 			}
 		}()
 	}
 
-	log.Printf("invoice: created client service invoice %s for booking %s", invoiceNumber, booking.ReferenceCode)
+	log.Printf("invoice: created client service invoice %s for booking %s", textVal(inv.InvoiceNumber), booking.ReferenceCode)
 	return inv, nil
 }
 
@@ -389,11 +387,6 @@ func (s *Service) GenerateCommissionInvoice(
 	vatAmount := subtotalNet * vatRate / 100
 	totalAmount := subtotalNet + vatAmount
 
-	invoiceNumber, err := s.NewInvoiceNumber(ctx, pgtype.UUID{}, "G2F")
-	if err != nil {
-		return db.Invoice{}, fmt.Errorf("invoice: generate number: %w", err)
-	}
-
 	dueDate := pgtype.Date{Time: time.Now().AddDate(0, 0, 30), Valid: true}
 
 	// Load platform config from database
@@ -402,9 +395,10 @@ func (s *Service) GenerateCommissionInvoice(
 		return db.Invoice{}, fmt.Errorf("invoice: load platform config: %w", err)
 	}
 
+	// Invoice number is assigned by Oblio; we leave it null until Oblio responds.
 	inv, err := s.queries.CreateInvoice(ctx, db.CreateInvoiceParams{
 		InvoiceType:          db.InvoiceTypePlatformCommission,
-		InvoiceNumber:        pgText(invoiceNumber),
+		InvoiceNumber:        pgtype.Text{},
 		SellerCompanyName:    pc.CompanyName,
 		SellerCui:            pc.CUI,
 		SellerRegNumber:      pgText(pc.RegNumber),
@@ -458,14 +452,16 @@ func (s *Service) GenerateCommissionInvoice(
 		return db.Invoice{}, fmt.Errorf("invoice: create commission line item: %w", err)
 	}
 
-	// Sync to Oblio.eu (best-effort).
+	// Push to Oblio — they are the source of truth for the invoice number and PDF.
 	lineItems, _ := s.queries.ListInvoiceLineItems(ctx, inv.ID)
 	oblioSeries, oblioNum, oblioURL, apiErr := s.createInvoiceOnOblio(ctx, inv, lineItems)
 	if apiErr != nil {
 		log.Printf("invoice: oblio.eu API error for commission invoice (non-fatal): %v", apiErr)
 	} else if oblioNum != "" {
+		assignedNumber := oblioSeries + " " + oblioNum
 		updateErr := s.queries.UpdateInvoiceOblio(ctx, db.UpdateInvoiceOblioParams{
 			ID:               inv.ID,
+			InvoiceNumber:    pgText(assignedNumber),
 			OblioSeriesName:  pgText(oblioSeries),
 			OblioNumber:      pgText(oblioNum),
 			OblioDownloadUrl: pgText(oblioURL),
@@ -473,6 +469,7 @@ func (s *Service) GenerateCommissionInvoice(
 		if updateErr != nil {
 			log.Printf("invoice: failed to persist oblio metadata: %v", updateErr)
 		} else {
+			inv.InvoiceNumber = pgText(assignedNumber)
 			inv.OblioSeriesName = pgText(oblioSeries)
 			inv.OblioNumber = pgText(oblioNum)
 			inv.OblioDownloadUrl = pgText(oblioURL)
@@ -486,12 +483,12 @@ func (s *Service) GenerateCommissionInvoice(
 			if transmitErr := s.TransmitToEFactura(bgCtx, inv.ID); transmitErr != nil {
 				log.Printf("invoice: auto e-factura transmission failed (non-fatal): %v", transmitErr)
 			} else {
-				log.Printf("invoice: auto-transmitted commission invoice %s to e-factura", invoiceNumber)
+				log.Printf("invoice: auto-transmitted commission invoice %s to e-factura", textVal(inv.InvoiceNumber))
 			}
 		}()
 	}
 
-	log.Printf("invoice: created commission invoice %s for company %s", invoiceNumber, company.CompanyName)
+	log.Printf("invoice: created commission invoice %s for company %s", textVal(inv.InvoiceNumber), company.CompanyName)
 	return inv, nil
 }
 
@@ -515,13 +512,6 @@ func (s *Service) GenerateSubscriptionMonthlyInvoice(
 	totalBani := sub.MonthlyAmountBani
 	subtotalNet := totalBani * 100 / (100 + vatRate)
 	vatAmount := totalBani - subtotalNet
-
-	// Build invoice number with company-derived prefix.
-	prefix := companyPrefix(company.CompanyName)
-	invoiceNumber, err := s.NewInvoiceNumber(ctx, company.ID, prefix)
-	if err != nil {
-		return fmt.Errorf("invoice: generate number for subscription: %w", err)
-	}
 
 	// Resolve buyer info from the subscription's client user.
 	billingProfile, profileErr := s.queries.GetBillingProfileByUser(ctx, sub.ClientUserID)
@@ -547,9 +537,10 @@ func (s *Service) GenerateSubscriptionMonthlyInvoice(
 		periodEnd.Format("02.01.2006"),
 	)
 
+	// Invoice number is assigned by Oblio; we leave it null until Oblio responds.
 	inv, err := s.queries.CreateInvoice(ctx, db.CreateInvoiceParams{
 		InvoiceType:          db.InvoiceTypeSubscriptionMonthly,
-		InvoiceNumber:        pgText(invoiceNumber),
+		InvoiceNumber:        pgtype.Text{},
 		SellerCompanyName:    company.CompanyName,
 		SellerCui:            company.Cui,
 		SellerRegNumber:      pgtype.Text{},
@@ -612,14 +603,16 @@ func (s *Service) GenerateSubscriptionMonthlyInvoice(
 		return fmt.Errorf("invoice: create subscription line item: %w", err)
 	}
 
-	// Sync to Oblio.eu (best-effort for MVP; do not fail the whole operation).
+	// Push to Oblio — they are the source of truth for the invoice number and PDF.
 	lineItems, _ := s.queries.ListInvoiceLineItems(ctx, inv.ID)
 	oblioSeries, oblioNum, oblioURL, apiErr := s.createInvoiceOnOblio(ctx, inv, lineItems)
 	if apiErr != nil {
 		log.Printf("invoice: oblio.eu API error for subscription invoice (non-fatal): %v", apiErr)
 	} else if oblioNum != "" {
+		assignedNumber := oblioSeries + " " + oblioNum
 		updateErr := s.queries.UpdateInvoiceOblio(ctx, db.UpdateInvoiceOblioParams{
 			ID:               inv.ID,
+			InvoiceNumber:    pgText(assignedNumber),
 			OblioSeriesName:  pgText(oblioSeries),
 			OblioNumber:      pgText(oblioNum),
 			OblioDownloadUrl: pgText(oblioURL),
@@ -627,6 +620,7 @@ func (s *Service) GenerateSubscriptionMonthlyInvoice(
 		if updateErr != nil {
 			log.Printf("invoice: failed to persist oblio metadata for subscription invoice: %v", updateErr)
 		} else {
+			inv.InvoiceNumber = pgText(assignedNumber)
 			inv.OblioSeriesName = pgText(oblioSeries)
 			inv.OblioNumber = pgText(oblioNum)
 			inv.OblioDownloadUrl = pgText(oblioURL)
@@ -640,13 +634,13 @@ func (s *Service) GenerateSubscriptionMonthlyInvoice(
 			if transmitErr := s.TransmitToEFactura(bgCtx, inv.ID); transmitErr != nil {
 				log.Printf("invoice: auto e-factura transmission failed for subscription invoice (non-fatal): %v", transmitErr)
 			} else {
-				log.Printf("invoice: auto-transmitted subscription invoice %s to e-factura", invoiceNumber)
+				log.Printf("invoice: auto-transmitted subscription invoice %s to e-factura", textVal(inv.InvoiceNumber))
 			}
 		}()
 	}
 
 	log.Printf("invoice: created subscription monthly invoice %s for subscription %s, amount=%d bani",
-		invoiceNumber, uuidToString(sub.ID), totalBani)
+		textVal(inv.InvoiceNumber), uuidToString(sub.ID), totalBani)
 	return nil
 }
 
