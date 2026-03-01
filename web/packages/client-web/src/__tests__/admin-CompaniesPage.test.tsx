@@ -103,7 +103,7 @@ describe('CompaniesPage', () => {
                 city: 'Bucuresti',
                 county: 'Bucuresti',
                 description: 'Test company',
-                status: 'PENDING_APPROVAL',
+                status: 'PENDING_REVIEW',
                 createdAt: '2024-01-01T00:00:00Z',
                 documents: [],
               },

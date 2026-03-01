@@ -65,6 +65,184 @@
       "p1": "For any questions regarding these Terms and Conditions, you can contact us at contact@go2fix.ro or at Go2Fix SRL's registered office, Bucharest, Romania."
     }
   },
+  "gdpr": {
+    "meta": {
+      "title": "GDPR Privacy Notice | Go2Fix.ro",
+      "description": "GDPR information notice on personal data processing on the Go2Fix.ro platform, pursuant to Regulation (EU) 2016/679."
+    },
+    "title": "GDPR Privacy Notice",
+    "lastUpdated": "Last updated: March 1, 2026",
+    "intro": "This notice describes in detail what personal data we collect, from whom, for what purpose, on what legal basis, and for how long — for each category of user of the Go2Fix.ro platform. Please read it carefully before using our services.",
+    "s1": {
+      "title": "1. Data Controller",
+      "p1": "The data controller is Go2Fix SRL, headquartered in Bucharest, Romania, registered at the Trade Registry. Our Data Protection Officer (DPO) can be reached at: contact@go2fix.ro. Any request regarding your data will receive a response within 30 calendar days."
+    },
+    "s2": {
+      "title": "2. Data Collected by User Category",
+      "intro": "We collect only the data necessary for the platform to function, depending on each user's role:",
+      "clientTitle": "Clients",
+      "clientSubtitle": "Individuals booking services",
+      "clientItems": [
+        "Full name",
+        "Email address",
+        "Phone number (optional)",
+        "Profile photo (optional)",
+        "Service address (street, number, floor, apartment, city, county, postal code)",
+        "GPS coordinates of the address (for route optimization)",
+        "Booking history (service type, area, rooms, bathrooms, pets, special instructions)",
+        "B2B billing data: company name, tax ID (CUI), fiscal address, IBAN (optional)",
+        "Last 4 digits and card type (stored by Stripe, not directly by us)",
+        "Stripe Customer ID (reference token for payments)",
+        "Reviews and ratings given",
+        "Platform chat messages",
+        "Firebase FCM push token for notifications (optional)",
+        "IP address and browser information at authentication"
+      ],
+      "companyTitle": "Partner Companies",
+      "companySubtitle": "Companies providing services",
+      "companyItems": [
+        "Company name",
+        "Unique Registration Code (CUI)",
+        "Legal entity type (SRL, PFA, II)",
+        "Legal representative name",
+        "Contact email",
+        "Contact phone number",
+        "Registered office address (street, city, county)",
+        "Company description (optional)",
+        "Uploaded documents: Constatator Certificate, RCA Insurance, CUI Document",
+        "ANAF verification data: official name, address, founding date, VAT status",
+        "Stripe Connect Account ID (for receiving payments)",
+        "Work schedule (available days and hours)",
+        "Offered service categories",
+        "Payout and payment history",
+        "IP address and browser information of the administrator at authentication"
+      ],
+      "workerTitle": "Employees / Contractors",
+      "workerSubtitle": "Individuals executing the services",
+      "workerItems": [
+        "Full name",
+        "Phone number",
+        "Email address",
+        "Profile photo (optional)",
+        "Uploaded documents: Criminal Record Certificate, Employment Contract",
+        "Home GPS coordinates (latitude/longitude, for route optimization)",
+        "Service areas (cities/zones where they work)",
+        "Availability schedule (days and time slots)",
+        "Personality test results (28 questions, 7 psychometric facets)",
+        "Automatically generated analysis summary based on the test",
+        "Executed order history",
+        "Earnings history",
+        "Reviews and ratings received from clients",
+        "Firebase FCM push token for notifications (optional)"
+      ]
+    },
+    "s3": {
+      "title": "3. Legal Bases for Processing",
+      "intro": "We process personal data based on one or more legal bases provided by the GDPR:",
+      "bases": [
+        "Art. 6(1)(b) — Contract performance: processing necessary to manage bookings, allocate contractors, process payments and issue invoices.",
+        "Art. 6(1)(a) — Consent: marketing communications (if opted in), personality test by employees, push token storage.",
+        "Art. 6(1)(c) — Legal obligation: retention of tax documents for 10 years (Romanian Accounting Law no. 82/1991), ANAF reporting.",
+        "Art. 6(1)(f) — Legitimate interest: fraud prevention, account security, anonymised statistical analysis of platform usage.",
+        "Note: the personality test generates psychometric scores that do NOT constitute special category data under Art. 9 GDPR (they do not reveal health status, political or religious affiliation)."
+      ]
+    },
+    "s4": {
+      "title": "4. Third-Party Processors and Recipients",
+      "intro": "Your data may be shared with the following authorised processors, with whom we have Data Processing Agreements (DPA):",
+      "processors": [
+        {
+          "name": "Stripe Inc. (USA)",
+          "role": "Payment processor",
+          "details": "Processes and stores card data and executes financial transfers. EU-US Data Privacy Framework certified. Safeguard: Standard Contractual Clauses (SCC) adopted by the European Commission."
+        },
+        {
+          "name": "Google LLC (USA)",
+          "role": "Authentication, notifications, addresses",
+          "details": "Google OAuth (authentication), Firebase Cloud Messaging (push notifications), Google Maps/Places (address autocomplete). Safeguard: EU-US Data Privacy Framework."
+        },
+        {
+          "name": "Google Cloud Platform / Firebase (USA)",
+          "role": "File storage",
+          "details": "Uploaded documents (criminal records, contracts, certificates) are securely stored in Google Cloud Storage. Safeguard: EU-US Data Privacy Framework."
+        },
+        {
+          "name": "Neon Inc. (USA)",
+          "role": "PostgreSQL database",
+          "details": "Stores platform data in cloud databases. Safeguard: Standard Contractual Clauses. EU regions can be configured upon request."
+        }
+      ],
+      "noSale": "We do not sell or transfer your personal data to third parties for their own commercial purposes."
+    },
+    "s5": {
+      "title": "5. Data Retention Periods",
+      "intro": "We retain your data only as long as necessary:",
+      "periods": [
+        {
+          "category": "Account data (profile, addresses, preferences)",
+          "duration": "For the duration of the account + 30 days after deletion (anonymisation)"
+        },
+        {
+          "category": "Tax documents (invoices, transactions)",
+          "duration": "10 years (legal obligation — Law no. 82/1991)"
+        },
+        {
+          "category": "Chat messages",
+          "duration": "2 years from the completion of the associated booking"
+        },
+        {
+          "category": "Uploaded documents (criminal record, contracts, certificates)",
+          "duration": "3 years after termination of collaboration (commercial/labour law)"
+        },
+        {
+          "category": "Push token (FCM)",
+          "duration": "Until log-out or app uninstall"
+        },
+        {
+          "category": "Personality test scores",
+          "duration": "During collaboration; deleted with the employee account"
+        },
+        {
+          "category": "OTP codes (authentication)",
+          "duration": "10 minutes (auto-expire)"
+        }
+      ]
+    },
+    "s6": {
+      "title": "6. Your Rights",
+      "intro": "Under the GDPR, you have the following rights regarding your personal data:",
+      "r1": "Right of access (Art. 15)",
+      "r1Desc": "You may request a copy of all data we hold about you.",
+      "r2": "Right to rectification (Art. 16)",
+      "r2Desc": "You may correct inaccurate or incomplete data at any time via account settings or by email.",
+      "r3": "Right to erasure / 'right to be forgotten' (Art. 17)",
+      "r3Desc": "You may request deletion of your data, except where retention is required by law (e.g. invoices).",
+      "r4": "Right to data portability (Art. 20)",
+      "r4Desc": "You may receive your data in a structured, commonly used and machine-readable format.",
+      "r5": "Right to object (Art. 21)",
+      "r5Desc": "You may object to processing based on legitimate interest or for direct marketing purposes.",
+      "r6": "Right to restriction of processing (Art. 18)",
+      "r6Desc": "You may request temporary limitation of processing in certain circumstances (e.g. contesting data accuracy).",
+      "contact": "To exercise any right, contact us at contact@go2fix.ro. You will receive a response within 30 days. You also have the right to lodge a complaint with the National Supervisory Authority for Personal Data Processing (ANSPDCP) — www.dataprotection.ro."
+    },
+    "s7": {
+      "title": "7. Transfers Outside the European Union",
+      "p1": "Some processors (Stripe, Google, Neon) are based in the USA. Data transfers are carried out with appropriate safeguards under Art. 46 GDPR:",
+      "safeguards": [
+        "Standard Contractual Clauses (SCC) adopted by the European Commission",
+        "Certification under the EU-US Data Privacy Framework",
+        "Binding Corporate Rules, where applicable"
+      ],
+      "p2": "You may request additional information about the specific safeguards applicable to transfers by writing to contact@go2fix.ro."
+    },
+    "s8": {
+      "title": "8. Contact and Complaints",
+      "p1": "Data Protection Officer (DPO): contact@go2fix.ro. You will receive a response within 30 calendar days.",
+      "p2": "If you believe that the processing of your data violates the GDPR, you have the right to lodge a complaint with:",
+      "authority": "National Supervisory Authority for Personal Data Processing (ANSPDCP)",
+      "authorityDetails": "28-30 G-ral. Gheorghe Magheru Blvd., Sector 1, Bucharest | www.dataprotection.ro | anspdcp@dataprotection.ro"
+    }
+  },
   "privacy": {
     "meta": {
       "title": "Privacy Policy | Go2Fix.ro",
@@ -75,7 +253,7 @@
     "intro": "Go2Fix SRL respects users' right to privacy and is committed to protecting personal data in accordance with Regulation (EU) 2016/679 (GDPR) and applicable national legislation. This policy describes the types of data collected, the purpose of processing, and your rights.",
     "s1": {
       "title": "1. Data controller",
-      "p1": "The personal data controller is Go2Fix SRL, registered in Bucharest, Romania. You can contact us for any aspect related to data processing at: dpo@go2fix.ro."
+      "p1": "The personal data controller is Go2Fix SRL, registered in Bucharest, Romania. You can contact us for any aspect related to data processing at: contact@go2fix.ro."
     },
     "s2": {
       "title": "2. Data collected",
@@ -128,7 +306,7 @@
       "r5Desc": "You may object to processing based on legitimate interest.",
       "r6": "Right to restriction",
       "r6Desc": "You may request restriction of processing in certain circumstances.",
-      "contact": "To exercise your rights, contact us at dpo@go2fix.ro. You will receive a response within 30 days. You also have the right to lodge a complaint with the National Supervisory Authority for Personal Data Processing (ANSPDCP)."
+      "contact": "To exercise your rights, contact us at contact@go2fix.ro. You will receive a response within 30 days. You also have the right to lodge a complaint with the National Supervisory Authority for Personal Data Processing (ANSPDCP)."
     },
     "s6": {
       "title": "6. Cookies",
@@ -146,7 +324,7 @@
     },
     "s8": {
       "title": "8. DPO contact",
-      "p1": "Our Data Protection Officer can be contacted at: dpo@go2fix.ro. Any question, request or complaint relating to the processing of personal data can be addressed to this address."
+      "p1": "Our Data Protection Officer can be contacted at: contact@go2fix.ro. Any question, request or complaint relating to the processing of personal data can be addressed to this address."
     }
   }
 }

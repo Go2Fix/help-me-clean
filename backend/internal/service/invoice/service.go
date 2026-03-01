@@ -1120,6 +1120,15 @@ func (s *Service) resolveBuyerInfo(
 	return
 }
 
+// MarkInvoiceAsPaid marks an invoice as paid. Admin only.
+func (s *Service) MarkInvoiceAsPaid(ctx context.Context, id pgtype.UUID) (db.Invoice, error) {
+	inv, err := s.queries.MarkInvoiceAsPaid(ctx, id)
+	if err != nil {
+		return db.Invoice{}, fmt.Errorf("invoice: mark as paid: %w", err)
+	}
+	return inv, nil
+}
+
 // ---------------------------------------------------------------------------
 // Type conversion helpers
 // ---------------------------------------------------------------------------

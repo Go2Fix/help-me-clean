@@ -228,6 +228,23 @@ func (r *mutationResolver) RefreshEFacturaStatus(ctx context.Context, id string)
 	return gqlInvoice, nil
 }
 
+// MarkInvoiceAsPaid is the resolver for the markInvoiceAsPaid field.
+func (r *mutationResolver) MarkInvoiceAsPaid(ctx context.Context, id string) (*model.Invoice, error) {
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil {
+		return nil, fmt.Errorf("not authenticated")
+	}
+	if claims.Role != "global_admin" {
+		return nil, fmt.Errorf("only global admins can mark invoices as paid")
+	}
+
+	inv, err := r.InvoiceService.MarkInvoiceAsPaid(ctx, stringToUUID(id))
+	if err != nil {
+		return nil, fmt.Errorf("markInvoiceAsPaid: %w", err)
+	}
+	return dbInvoiceToGQL(inv), nil
+}
+
 // MyBillingProfile is the resolver for the myBillingProfile field.
 func (r *queryResolver) MyBillingProfile(ctx context.Context) (*model.ClientBillingProfile, error) {
 	claims := auth.GetUserFromContext(ctx)

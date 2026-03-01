@@ -110,13 +110,14 @@ INSERT INTO invoices (
   buyer_is_vat_payer, buyer_email,
   subtotal_amount, vat_rate, vat_amount, total_amount, currency,
   booking_id, payment_transaction_id, company_id, client_user_id,
-  status, due_date, notes
+  status, due_date, notes, issued_at
 ) VALUES (
   $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11,
   $12, $13, $14, $15, $16, $17, $18, $19,
   $20, $21, $22, $23, $24,
   $25, $26, $27, $28,
-  $29, $30, $31
+  $29, $30, $31,
+  CASE WHEN $29::text = 'issued' THEN NOW() ELSE NULL END
 )
 RETURNING id, invoice_type, invoice_number, oblio_number, oblio_download_url, seller_company_name, seller_cui, seller_reg_number, seller_address, seller_city, seller_county, seller_is_vat_payer, seller_bank_name, seller_iban, buyer_name, buyer_cui, buyer_reg_number, buyer_address, buyer_city, buyer_county, buyer_is_vat_payer, buyer_email, subtotal_amount, vat_rate, vat_amount, total_amount, currency, booking_id, payment_transaction_id, company_id, client_user_id, efactura_status, efactura_index, status, issued_at, due_date, notes, created_at, updated_at, oblio_series_name
 `
@@ -1277,6 +1278,59 @@ func (q *Queries) ListReceivedInvoicesByCompany(ctx context.Context, arg ListRec
 		return nil, err
 	}
 	return items, nil
+}
+
+const markInvoiceAsPaid = `-- name: MarkInvoiceAsPaid :one
+UPDATE invoices SET status = 'paid', updated_at = NOW()
+WHERE id = $1 RETURNING id, invoice_type, invoice_number, oblio_number, oblio_download_url, seller_company_name, seller_cui, seller_reg_number, seller_address, seller_city, seller_county, seller_is_vat_payer, seller_bank_name, seller_iban, buyer_name, buyer_cui, buyer_reg_number, buyer_address, buyer_city, buyer_county, buyer_is_vat_payer, buyer_email, subtotal_amount, vat_rate, vat_amount, total_amount, currency, booking_id, payment_transaction_id, company_id, client_user_id, efactura_status, efactura_index, status, issued_at, due_date, notes, created_at, updated_at, oblio_series_name
+`
+
+func (q *Queries) MarkInvoiceAsPaid(ctx context.Context, id pgtype.UUID) (Invoice, error) {
+	row := q.db.QueryRow(ctx, markInvoiceAsPaid, id)
+	var i Invoice
+	err := row.Scan(
+		&i.ID,
+		&i.InvoiceType,
+		&i.InvoiceNumber,
+		&i.OblioNumber,
+		&i.OblioDownloadUrl,
+		&i.SellerCompanyName,
+		&i.SellerCui,
+		&i.SellerRegNumber,
+		&i.SellerAddress,
+		&i.SellerCity,
+		&i.SellerCounty,
+		&i.SellerIsVatPayer,
+		&i.SellerBankName,
+		&i.SellerIban,
+		&i.BuyerName,
+		&i.BuyerCui,
+		&i.BuyerRegNumber,
+		&i.BuyerAddress,
+		&i.BuyerCity,
+		&i.BuyerCounty,
+		&i.BuyerIsVatPayer,
+		&i.BuyerEmail,
+		&i.SubtotalAmount,
+		&i.VatRate,
+		&i.VatAmount,
+		&i.TotalAmount,
+		&i.Currency,
+		&i.BookingID,
+		&i.PaymentTransactionID,
+		&i.CompanyID,
+		&i.ClientUserID,
+		&i.EfacturaStatus,
+		&i.EfacturaIndex,
+		&i.Status,
+		&i.IssuedAt,
+		&i.DueDate,
+		&i.Notes,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.OblioSeriesName,
+	)
+	return i, err
 }
 
 const updateBillingProfile = `-- name: UpdateBillingProfile :one

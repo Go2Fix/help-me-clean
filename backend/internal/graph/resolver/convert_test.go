@@ -1441,7 +1441,7 @@ func TestDbWorkerToGQL(t *testing.T) {
 			ID:        makeUUID(0xE2),
 			FullName:  "Maria Popescu",
 			Email:     "maria@clean.com",
-			Phone:     makeText("+40700000000"),
+			Phone:     makeText("+40726433942"),
 			AvatarUrl: makeText("https://example.com/maria.jpg"),
 		}
 
@@ -1458,8 +1458,8 @@ func TestDbWorkerToGQL(t *testing.T) {
 		if result.FullName != "Maria Popescu" {
 			t.Errorf("expected FullName 'Maria Popescu', got %q", result.FullName)
 		}
-		if result.Phone == nil || *result.Phone != "+40700000000" {
-			t.Errorf("expected Phone '+40700000000', got %v", result.Phone)
+		if result.Phone == nil || *result.Phone != "+40726433942" {
+			t.Errorf("expected Phone '+40726433942', got %v", result.Phone)
 		}
 		if result.Email == nil || *result.Email != "maria@clean.com" {
 			t.Errorf("expected Email 'maria@clean.com', got %v", result.Email)

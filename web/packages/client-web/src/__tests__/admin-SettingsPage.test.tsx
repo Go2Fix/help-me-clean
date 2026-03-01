@@ -36,7 +36,7 @@ function renderSettingsPage() {
 
 const mockSettings = [
   { key: 'platform_commission_pct', value: '15', description: 'Procentul comisionului platformei' },
-  { key: 'support_email', value: 'support@go2fix.ro', description: 'Adresa email pentru suport' },
+  { key: 'support_email', value: 'contact@go2fix.ro', description: 'Adresa email pentru suport' },
   { key: 'support_phone', value: '0800123456', description: 'Numarul de telefon suport' },
   { key: 'min_booking_hours', value: '2', description: 'Numarul minim de ore' },
   { key: 'max_booking_hours', value: '12', description: 'Numarul maxim de ore' },
@@ -101,7 +101,7 @@ describe('Admin SettingsPage', () => {
   it('shows settings values from API on General tab', () => {
     renderSettingsPage();
     expect(screen.getByText('15')).toBeInTheDocument();
-    expect(screen.getByText('support@go2fix.ro')).toBeInTheDocument();
+    expect(screen.getByText('contact@go2fix.ro')).toBeInTheDocument();
     expect(screen.getByText('Comision platforma (%)')).toBeInTheDocument();
     expect(screen.getByText('Email suport')).toBeInTheDocument();
   });

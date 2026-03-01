@@ -402,6 +402,7 @@ type Querier interface {
 	// Idempotent: if booking is already confirmed or later, status is left unchanged.
 	MarkBookingPaidAndConfirmed(ctx context.Context, id pgtype.UUID) (Booking, error)
 	MarkEmailOTPUsed(ctx context.Context, id pgtype.UUID) error
+	MarkInvoiceAsPaid(ctx context.Context, id pgtype.UUID) (Invoice, error)
 	MarkMessagesRead(ctx context.Context, arg MarkMessagesReadParams) error
 	MarkNotificationRead(ctx context.Context, id pgtype.UUID) error
 	PauseRecurringGroup(ctx context.Context, id pgtype.UUID) (RecurringBookingGroup, error)

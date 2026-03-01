@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useMutation, useQuery } from '@apollo/client';
-import { CheckCircle, Copy, Check, CheckCheck, Loader2, Search } from 'lucide-react';
+import { CheckCircle, Copy, Check, CheckCheck, Loader2, Search, Mail } from 'lucide-react';
 import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
 import { cn } from '@go2fix/shared';
 import { useAuth } from '@/context/AuthContext';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import EmailOtpModal from '@/components/auth/EmailOtpModal';
 import { APPLY_AS_COMPANY, CLAIM_COMPANY, MY_COMPANY, SERVICE_CATEGORIES } from '@/graphql/operations';
+import { ROUTE_MAP } from '@/i18n/routes';
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
@@ -35,6 +37,7 @@ export default function RegisterCompanyPage() {
   const [claimLoading, setClaimLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState('');
+  const [emailOtpOpen, setEmailOtpOpen] = useState(false);
 
   const [form, setForm] = useState({
     companyName: '',
@@ -225,8 +228,29 @@ export default function RegisterCompanyPage() {
                   shape="rectangular"
                   width="320"
                 />
+                <div className="flex items-center gap-3 w-full max-w-[320px]">
+                  <div className="flex-1 h-px bg-gray-200" />
+                  <span className="text-xs text-gray-400">sau</span>
+                  <div className="flex-1 h-px bg-gray-200" />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setEmailOtpOpen(true)}
+                  className="flex items-center justify-center gap-2 w-full max-w-[320px] rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  <Mail className="h-4 w-4" />
+                  Continuă cu email
+                </button>
               </div>
             )}
+
+            <EmailOtpModal
+              open={emailOtpOpen}
+              onClose={() => setEmailOtpOpen(false)}
+              onSuccess={handleClaimAfterAuth}
+              role="COMPANY_ADMIN"
+              title="Autentificare prin email"
+            />
 
             {claimError && (
               <div className="mt-4 p-3 rounded-xl bg-red-50 text-sm text-red-700">
@@ -560,6 +584,14 @@ export default function RegisterCompanyPage() {
                   {error}
                 </div>
               )}
+
+              <p className="text-xs text-gray-500 text-center">
+                Prin trimiterea acestei cereri, confirmi că ai citit și ești de acord cu{' '}
+                <Link to={ROUTE_MAP.gdpr.ro} target="_blank" rel="noopener noreferrer" className="underline text-gray-600 hover:text-gray-800">
+                  Nota de Informare GDPR
+                </Link>
+                {' '}privind prelucrarea datelor firmei tale.
+              </p>
 
               <Button type="submit" loading={loading} className="w-full" size="lg">
                 Trimite cererea →

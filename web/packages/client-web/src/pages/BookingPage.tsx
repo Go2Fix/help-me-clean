@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import SEOHead from '@/components/seo/SEOHead';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { ROUTE_MAP } from '@/i18n/routes';
 import { useQuery, useLazyQuery, useMutation } from '@apollo/client';
 import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
 import { loadStripe } from '@stripe/stripe-js';
@@ -1190,6 +1191,14 @@ export default function BookingPage() {
                       </div>
                     )}
 
+                    <p className="text-xs text-gray-400 text-center mt-3">
+                      Prin continuare, confirmi că ai citit{' '}
+                      <Link to={ROUTE_MAP.gdpr.ro} target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600">
+                        Nota GDPR
+                      </Link>
+                      {' '}și ești de acord cu prelucrarea datelor tale.
+                    </p>
+
                     {authError && (
                       <div className="mt-4 p-3 rounded-xl bg-red-50 text-sm text-red-700">
                         {authError}
@@ -1360,30 +1369,38 @@ export default function BookingPage() {
                   )}
                 </div>
               ) : STEPS[currentStep]?.key === 'payment' ? (
-                <Button
-                  onClick={handlePayAndBook}
-                  loading={paymentProcessing}
-                  disabled={!canProceed || paymentProcessing}
-                  size="lg"
-                  className="w-full sm:w-auto"
-                >
-                  {paymentProcessing ? (
-                    <>
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                      Se procesează...
-                    </>
-                  ) : form.isRecurring && form.recurrenceType ? (
-                    <>
-                      Activează abonamentul
-                      <Repeat className="h-5 w-5" />
-                    </>
-                  ) : (
-                    <>
-                      Confirmă și plătește
-                      <CreditCard className="h-5 w-5" />
-                    </>
-                  )}
-                </Button>
+                <div className="flex flex-col items-stretch sm:items-end gap-1">
+                  <Button
+                    onClick={handlePayAndBook}
+                    loading={paymentProcessing}
+                    disabled={!canProceed || paymentProcessing}
+                    size="lg"
+                    className="w-full sm:w-auto"
+                  >
+                    {paymentProcessing ? (
+                      <>
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        Se procesează...
+                      </>
+                    ) : form.isRecurring && form.recurrenceType ? (
+                      <>
+                        Activează abonamentul
+                        <Repeat className="h-5 w-5" />
+                      </>
+                    ) : (
+                      <>
+                        Confirmă și plătește
+                        <CreditCard className="h-5 w-5" />
+                      </>
+                    )}
+                  </Button>
+                  <p className="text-xs text-gray-400 text-center sm:text-right">
+                    Plată securizată prin Stripe.{' '}
+                    <Link to={ROUTE_MAP.gdpr.ro} target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600">
+                      Notă GDPR
+                    </Link>
+                  </p>
+                </div>
               ) : (
                 <Button
                   onClick={handleSubmitBooking}

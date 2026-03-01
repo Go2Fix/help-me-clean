@@ -3840,6 +3840,15 @@ export const CANCEL_INVOICE = gql`
   }
 `;
 
+export const MARK_INVOICE_AS_PAID = gql`
+  mutation MarkInvoiceAsPaid($id: ID!) {
+    markInvoiceAsPaid(id: $id) {
+      id
+      status
+    }
+  }
+`;
+
 export const TRANSMIT_TO_EFACTURA = gql`
   mutation TransmitInvoiceToEFactura($id: ID!) {
     transmitInvoiceToEFactura(id: $id) {

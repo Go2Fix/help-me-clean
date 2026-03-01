@@ -35,13 +35,14 @@ INSERT INTO invoices (
   buyer_is_vat_payer, buyer_email,
   subtotal_amount, vat_rate, vat_amount, total_amount, currency,
   booking_id, payment_transaction_id, company_id, client_user_id,
-  status, due_date, notes
+  status, due_date, notes, issued_at
 ) VALUES (
   $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11,
   $12, $13, $14, $15, $16, $17, $18, $19,
   $20, $21, $22, $23, $24,
   $25, $26, $27, $28,
-  $29, $30, $31
+  $29, $30, $31,
+  CASE WHEN $29::text = 'issued' THEN NOW() ELSE NULL END
 )
 RETURNING *;
 
@@ -53,6 +54,10 @@ SELECT * FROM invoices WHERE booking_id = $1 AND invoice_type = $2 ORDER BY crea
 
 -- name: UpdateInvoiceStatus :one
 UPDATE invoices SET status = $2, issued_at = CASE WHEN $2 = 'issued' THEN NOW() ELSE issued_at END, updated_at = NOW()
+WHERE id = $1 RETURNING *;
+
+-- name: MarkInvoiceAsPaid :one
+UPDATE invoices SET status = 'paid', updated_at = NOW()
 WHERE id = $1 RETURNING *;
 
 -- name: UpdateInvoiceOblio :exec

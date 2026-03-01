@@ -30,6 +30,7 @@ import ForCompaniesPage from '@/pages/ForCompaniesPage';
 import ContactPage from '@/pages/ContactPage';
 import TermsPage from '@/pages/TermsPage';
 import PrivacyPage from '@/pages/PrivacyPage';
+import GdprPage from '@/pages/GdprPage';
 import BlogListPage from '@/pages/blog/BlogListPage';
 import BlogPostPage from '@/pages/blog/BlogPostPage';
 import CategoryLandingPage from '@/pages/CategoryLandingPage';
@@ -187,6 +188,7 @@ function AppRoutes() {
         <Route path="/pentru-firme" element={<ForCompaniesPage />} />
         <Route path="/termeni" element={<TermsPage />} />
         <Route path="/confidentialitate" element={<PrivacyPage />} />
+        <Route path="/gdpr" element={<GdprPage />} />
         <Route path="/blog" element={<BlogListPage />} />
         <Route path="/blog/:slug" element={<BlogPostPage />} />
       </Route>
@@ -201,6 +203,7 @@ function AppRoutes() {
         <Route path="waitlist" element={<WaitlistPage />} />
         <Route path="terms" element={<TermsPage />} />
         <Route path="privacy" element={<PrivacyPage />} />
+        <Route path="gdpr" element={<GdprPage />} />
         <Route path="blog" element={<BlogListPage />} />
         <Route path="blog/:slug" element={<BlogPostPage />} />
       </Route>

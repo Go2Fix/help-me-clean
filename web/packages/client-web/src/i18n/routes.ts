@@ -15,6 +15,7 @@ export const ROUTE_MAP: Record<string, Record<SupportedLanguage, string>> = {
   blog:         { ro: '/blog',                en: '/en/blog' },
   terms:        { ro: '/termeni',             en: '/en/terms' },
   privacy:      { ro: '/confidentialitate',   en: '/en/privacy' },
+  gdpr:         { ro: '/gdpr',               en: '/en/gdpr' },
   booking:      { ro: '/rezervare',           en: '/en/booking' },
   // Auth stays RO-only
   login:        { ro: '/autentificare',       en: '/autentificare' },

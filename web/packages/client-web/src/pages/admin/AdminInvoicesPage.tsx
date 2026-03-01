@@ -8,6 +8,7 @@ import {
   Banknote,
   Send,
   XCircle,
+  CheckCircle,
   RefreshCw,
   AlertTriangle,
   Search,
@@ -29,6 +30,7 @@ import {
   GENERATE_CREDIT_NOTE,
   INVOICE_ANALYTICS,
   CANCEL_INVOICE,
+  MARK_INVOICE_AS_PAID,
   TRANSMIT_TO_EFACTURA,
   REFRESH_EFACTURA_STATUS,
   SEARCH_COMPANIES,
@@ -333,6 +335,10 @@ export default function AdminInvoicesPage() {
     onCompleted: () => refetch(),
   });
 
+  const [markAsPaid, { loading: markingPaid }] = useMutation(MARK_INVOICE_AS_PAID, {
+    refetchQueries: ['AllInvoices', 'InvoiceAnalytics'],
+  });
+
   const analytics: InvoiceAnalyticsData | null = analyticsData?.invoiceAnalytics ?? null;
   const allInvoices: Invoice[] = data?.allInvoices?.edges ?? [];
   const totalCount: number = data?.allInvoices?.totalCount ?? 0;
@@ -388,6 +394,14 @@ export default function AdminInvoicesPage() {
   const handleRefreshEfactura = async (invoiceId: string) => {
     try {
       await refreshEfacturaStatus({ variables: { id: invoiceId } });
+    } catch {
+      // Error handled by Apollo
+    }
+  };
+
+  const handleMarkAsPaid = async (invoiceId: string) => {
+    try {
+      await markAsPaid({ variables: { id: invoiceId } });
     } catch {
       // Error handled by Apollo
     }
@@ -581,6 +595,16 @@ export default function AdminInvoicesPage() {
                             <RefreshCw className="h-3.5 w-3.5" />
                           </button>
                         )}
+                      {(invoice.status === 'ISSUED' || invoice.status === 'TRANSMITTED') && (
+                        <button
+                          onClick={() => handleMarkAsPaid(invoice.id)}
+                          disabled={markingPaid}
+                          className="p-1.5 rounded-lg text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors cursor-pointer disabled:opacity-50"
+                          title="Marcheaza platita"
+                        >
+                          <CheckCircle className="h-3.5 w-3.5" />
+                        </button>
+                      )}
                       {invoice.status !== 'CANCELLED' &&
                         invoice.status !== 'PAID' &&
                         invoice.status !== 'CREDIT_NOTE' && (

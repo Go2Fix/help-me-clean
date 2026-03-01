@@ -32,14 +32,14 @@ const tabOptions = [
 ];
 
 const statusDotColor: Record<string, string> = {
-  PENDING_APPROVAL: 'bg-amber-400',
+  PENDING_REVIEW: 'bg-amber-400',
   APPROVED: 'bg-emerald-500',
   SUSPENDED: 'bg-red-400',
   REJECTED: 'bg-red-400',
 };
 
 const statusLabel: Record<string, string> = {
-  PENDING_APPROVAL: 'In asteptare',
+  PENDING_REVIEW: 'In asteptare',
   APPROVED: 'Aprobat',
   SUSPENDED: 'Suspendat',
   REJECTED: 'Respins',
@@ -47,7 +47,7 @@ const statusLabel: Record<string, string> = {
 
 const statusFilterOptions = [
   { value: '', label: 'Toate statusurile' },
-  { value: 'PENDING_APPROVAL', label: 'In asteptare' },
+  { value: 'PENDING_REVIEW', label: 'In asteptare' },
   { value: 'APPROVED', label: 'Aprobat' },
   { value: 'SUSPENDED', label: 'Suspendat' },
   { value: 'REJECTED', label: 'Respins' },
@@ -67,6 +67,20 @@ function areDocsReady(documents: { documentType: string; status: string }[]): bo
   return REQUIRED_DOCS.every((type) =>
     documents.some((d) => d.documentType === type && d.status === 'APPROVED'),
   );
+}
+
+function getDocHint(documents: { documentType: string; status: string }[]): string | null {
+  const missing = REQUIRED_DOCS.filter((type) => !documents.some((d) => d.documentType === type));
+  if (missing.length > 0) return 'Documente lipsă';
+  const pending = REQUIRED_DOCS.filter((type) =>
+    documents.some((d) => d.documentType === type && d.status === 'PENDING'),
+  );
+  if (pending.length > 0) return 'Documente în așteptare';
+  const rejected = REQUIRED_DOCS.filter((type) =>
+    documents.some((d) => d.documentType === type && d.status === 'REJECTED'),
+  );
+  if (rejected.length > 0) return 'Documente respinse';
+  return null;
 }
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -331,9 +345,15 @@ export default function CompaniesPage() {
                     {formatDate(app.createdAt)}
                   </span>
 
-                  {/* Docs missing hint */}
-                  {!areDocsReady(app.documents) && (
-                    <span className="text-xs text-amber-600 shrink-0 hidden lg:block">Documente lipsa</span>
+                  {/* Docs hint */}
+                  {getDocHint(app.documents) && (
+                    <span className={`text-xs shrink-0 hidden lg:block ${
+                      getDocHint(app.documents) === 'Documente lipsă' ? 'text-red-500' :
+                      getDocHint(app.documents) === 'Documente respinse' ? 'text-red-500' :
+                      'text-amber-500'
+                    }`}>
+                      {getDocHint(app.documents)}
+                    </span>
                   )}
 
                   {/* Actions */}

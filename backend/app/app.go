@@ -167,7 +167,7 @@ func NewHandler(ctx context.Context) (http.Handler, func(), error) {
 		srv.Use(extension.Introspection{})
 	}
 
-	srv.Use(extension.FixedComplexityLimit(100))
+	srv.Use(extension.FixedComplexityLimit(200))
 	srv.Use(custommiddleware.QueryDepthLimitExtension{
 		MaxDepth: custommiddleware.MaxQueryDepth(),
 	})

@@ -25,7 +25,7 @@ const defaultCompany = {
   companyType: 'SRL',
   legalRepresentative: 'Ion Popescu',
   contactEmail: 'contact@cleanpro.ro',
-  contactPhone: '+40700000000',
+  contactPhone: '+40726433942',
   address: 'Str. Principala 1',
   city: 'Bucuresti',
   county: 'Bucuresti',

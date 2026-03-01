@@ -65,6 +65,184 @@
       "p1": "Pentru orice întrebări referitoare la acești Termeni și Condiții, ne puteți contacta la adresa de email contact@go2fix.ro sau la sediul social al Go2Fix SRL, București, România."
     }
   },
+  "gdpr": {
+    "meta": {
+      "title": "Notă de Informare GDPR | Go2Fix.ro",
+      "description": "Nota de informare privind prelucrarea datelor cu caracter personal pe platforma Go2Fix.ro, conform Regulamentului (UE) 2016/679 (GDPR)."
+    },
+    "title": "Notă de Informare GDPR",
+    "lastUpdated": "Ultima actualizare: 1 martie 2026",
+    "intro": "Această notă de informare descrie în detaliu ce date cu caracter personal colectăm, de la cine, în ce scop, pe ce temei juridic și pentru cât timp — pentru fiecare categorie de utilizator al platformei Go2Fix.ro. Vă rugăm să o citiți cu atenție înainte de a utiliza serviciile noastre.",
+    "s1": {
+      "title": "1. Operatorul de date",
+      "p1": "Operatorul de date cu caracter personal este Go2Fix SRL, cu sediul în București, România, înregistrată la Registrul Comerțului. Responsabilul cu protecția datelor (DPO) poate fi contactat la: contact@go2fix.ro. Orice solicitare privind datele dumneavoastră va primi răspuns în termen de 30 de zile calendaristice."
+    },
+    "s2": {
+      "title": "2. Datele colectate pe categorie de utilizator",
+      "intro": "Colectăm exclusiv datele necesare funcționării platformei, în funcție de rolul fiecărui utilizator:",
+      "clientTitle": "Clienți",
+      "clientSubtitle": "Persoane care rezervă servicii",
+      "clientItems": [
+        "Nume și prenume",
+        "Adresă de email",
+        "Număr de telefon (opțional)",
+        "Fotografie de profil (opțional)",
+        "Adresa de prestare a serviciului (stradă, număr, etaj, apartament, city, județ, cod poștal)",
+        "Coordonate GPS ale adresei (pentru optimizarea rutelor)",
+        "Istoricul rezervărilor (tip serviciu, suprafață, camere, băi, animale de companie, instrucțiuni speciale)",
+        "Date de facturare B2B: denumire firmă, CUI, adresă fiscală, IBAN (opțional)",
+        "Ultimele 4 cifre și tipul cardului (stocate de Stripe, nu direct de noi)",
+        "ID client Stripe (token de referință pentru plăți)",
+        "Recenzii și evaluări acordate",
+        "Mesaje din chat-ul platformei",
+        "Token de push (Firebase FCM) pentru notificări (opțional)",
+        "Adresă IP și informații browser la autentificare"
+      ],
+      "companyTitle": "Firme partenere",
+      "companySubtitle": "Companii care prestează servicii",
+      "companyItems": [
+        "Denumire firmă",
+        "Cod Unic de Înregistrare (CUI)",
+        "Tip entitate juridică (SRL, PFA, II)",
+        "Nume reprezentant legal",
+        "Email de contact",
+        "Număr de telefon de contact",
+        "Adresa sediului social (stradă, city, județ)",
+        "Descriere firmă (opțional)",
+        "Documente încărcate: Certificat Constatator, Asigurare RCA, Document CUI",
+        "Date de verificare ANAF: denumire oficială, adresă, dată înființare, statut TVA",
+        "ID cont Stripe Connect (pentru primirea plăților)",
+        "Program de lucru (zile și ore disponibile)",
+        "Categorii de servicii oferite",
+        "Istoricul plăților și viramentelor",
+        "Adresă IP și informații browser ale administratorului la autentificare"
+      ],
+      "workerTitle": "Angajați / Prestatori",
+      "workerSubtitle": "Persoane care execută serviciile",
+      "workerItems": [
+        "Nume și prenume",
+        "Număr de telefon",
+        "Adresă de email",
+        "Fotografie de profil (opțional)",
+        "Documente încărcate: Cazier Judiciar, Contract de Muncă",
+        "Coordonate GPS ale domiciliului (latitudine/longitudine, pentru optimizarea rutelor)",
+        "Zonele de serviciu (cities/zone în care prestează)",
+        "Program de disponibilitate (zile și intervale orare)",
+        "Rezultatele testului de personalitate (28 întrebări, 7 fațete psihometrice)",
+        "Sumar de analiză generat automat pe baza testului",
+        "Istoricul comenzilor executate",
+        "Istoricul câștigurilor",
+        "Recenzii și evaluări primite de la clienți",
+        "Token de push (Firebase FCM) pentru notificări (opțional)"
+      ]
+    },
+    "s3": {
+      "title": "3. Temeiurile juridice ale prelucrării",
+      "intro": "Prelucrăm datele cu caracter personal pe baza unuia sau mai multor temeiuri juridice prevăzute de GDPR:",
+      "bases": [
+        "Art. 6 alin. (1) lit. b — Executarea contractului: prelucrarea necesară pentru gestionarea rezervărilor, alocarea prestatorilor, procesarea plăților și emiterea facturilor.",
+        "Art. 6 alin. (1) lit. a — Consimțământ: comunicări de marketing (dacă ați optat), efectuarea testului de personalitate de către angajați, stocarea token-ului de push.",
+        "Art. 6 alin. (1) lit. c — Obligație legală: păstrarea documentelor fiscale timp de 10 ani (conform Legii contabilității nr. 82/1991), raportări ANAF.",
+        "Art. 6 alin. (1) lit. f — Interes legitim: prevenirea fraudelor, securitatea conturilor, analiza statistică anonimizată a utilizării platformei.",
+        "Notă: testul de personalitate generează scoruri psihometrice care NU constituie date de categorie specială conform Art. 9 GDPR (nu relevă starea de sănătate, apartenența politică sau religioasă)."
+      ]
+    },
+    "s4": {
+      "title": "4. Procesatori terți și destinatari",
+      "intro": "Datele dumneavoastră pot fi transmise către următorii procesatori autorizați, cu care avem acorduri de prelucrare a datelor (DPA):",
+      "processors": [
+        {
+          "name": "Stripe Inc. (SUA)",
+          "role": "Procesator de plăți",
+          "details": "Procesează și stochează datele cardurilor și efectuează transferurile financiare. Certificat EU-US Data Privacy Framework. Garanție: Clauze Contractuale Standard (SCC) aprobate de Comisia Europeană."
+        },
+        {
+          "name": "Google LLC (SUA)",
+          "role": "Autentificare, notificări, adrese",
+          "details": "Google OAuth (autentificare), Firebase Cloud Messaging (notificări push), Google Maps/Places (autocompletare adrese). Garanție: EU-US Data Privacy Framework."
+        },
+        {
+          "name": "Google Cloud Platform / Firebase (SUA)",
+          "role": "Stocare fișiere",
+          "details": "Documentele încărcate (cazier, contracte, certificate) sunt stocate securizat în Google Cloud Storage. Garanție: EU-US Data Privacy Framework."
+        },
+        {
+          "name": "Neon Inc. (SUA)",
+          "role": "Bază de date PostgreSQL",
+          "details": "Stochează datele platformei în baze de date cloud. Garanție: Clauze Contractuale Standard. Pot fi configurate regiuni UE la cerere."
+        }
+      ],
+      "noSale": "Nu vindem și nu cedăm datele dumneavoastră personale către terți în scopuri comerciale proprii."
+    },
+    "s5": {
+      "title": "5. Durata retenției datelor",
+      "intro": "Păstrăm datele dumneavoastră numai atât timp cât este necesar:",
+      "periods": [
+        {
+          "category": "Date cont (profil, adrese, preferințe)",
+          "duration": "Pe durata existenței contului + 30 de zile după ștergere (anonimizare)"
+        },
+        {
+          "category": "Documente fiscale (facturi, tranzacții)",
+          "duration": "10 ani (obligație legală — Legea nr. 82/1991)"
+        },
+        {
+          "category": "Mesaje din chat",
+          "duration": "2 ani de la finalizarea rezervării asociate"
+        },
+        {
+          "category": "Documente încărcate (cazier, contracte, certificate)",
+          "duration": "3 ani de la încetarea colaborării (drept comercial/muncii)"
+        },
+        {
+          "category": "Token push (FCM)",
+          "duration": "Până la deconectare sau dezinstalarea aplicației"
+        },
+        {
+          "category": "Scoruri test personalitate",
+          "duration": "Pe durata colaborării; șterse odată cu contul angajatului"
+        },
+        {
+          "category": "Coduri OTP (autentificare)",
+          "duration": "10 minute (expiră automat)"
+        }
+      ]
+    },
+    "s6": {
+      "title": "6. Drepturile dumneavoastră",
+      "intro": "Conform GDPR, beneficiați de următoarele drepturi în legătură cu datele dumneavoastră cu caracter personal:",
+      "r1": "Dreptul de acces (Art. 15)",
+      "r1Desc": "Puteți solicita o copie a tuturor datelor pe care le deținem despre dumneavoastră.",
+      "r2": "Dreptul la rectificare (Art. 16)",
+      "r2Desc": "Puteți corecta datele inexacte sau incomplete în orice moment din setările contului sau prin email.",
+      "r3": "Dreptul la ștergere / dreptul de a fi uitat (Art. 17)",
+      "r3Desc": "Puteți solicita ștergerea datelor, cu excepția celor necesare îndeplinirii obligațiilor legale (ex. facturi).",
+      "r4": "Dreptul la portabilitate (Art. 20)",
+      "r4Desc": "Puteți primi datele dumneavoastră într-un format structurat, utilizat în mod curent și lizibil automat.",
+      "r5": "Dreptul la opoziție (Art. 21)",
+      "r5Desc": "Puteți obiecta la prelucrarea bazată pe interes legitim sau în scopuri de marketing direct.",
+      "r6": "Dreptul la restricționarea prelucrării (Art. 18)",
+      "r6Desc": "Puteți solicita limitarea temporară a prelucrării în anumite circumstanțe (ex. contestarea exactității datelor).",
+      "contact": "Pentru a vă exercita orice drept, contactați-ne la contact@go2fix.ro. Veți primi un răspuns în termen de 30 de zile. Aveți de asemenea dreptul de a depune o plângere la Autoritatea Națională de Supraveghere a Prelucrării Datelor cu Caracter Personal (ANSPDCP) — www.dataprotection.ro."
+    },
+    "s7": {
+      "title": "7. Transferuri în afara Uniunii Europene",
+      "p1": "Unii procesatori (Stripe, Google, Neon) au sediul în SUA. Transferurile de date se efectuează cu garanții adecvate conform Art. 46 GDPR:",
+      "safeguards": [
+        "Clauze Contractuale Standard (SCC) adoptate de Comisia Europeană",
+        "Certificarea în cadrul Cadrului UE-SUA pentru Protecția Datelor (EU-US Data Privacy Framework)",
+        "Politici corporative obligatorii (Binding Corporate Rules), acolo unde aplicabil"
+      ],
+      "p2": "Puteți solicita informații suplimentare privind garanțiile specifice aplicabile transferurilor, scriindu-ne la contact@go2fix.ro."
+    },
+    "s8": {
+      "title": "8. Contact și plângeri",
+      "p1": "Responsabilul cu protecția datelor (DPO): contact@go2fix.ro. Veți primi un răspuns în cel mult 30 de zile calendaristice.",
+      "p2": "Dacă considerați că prelucrarea datelor dumneavoastră încalcă GDPR, aveți dreptul de a depune o plângere la:",
+      "authority": "Autoritatea Națională de Supraveghere a Prelucrării Datelor cu Caracter Personal (ANSPDCP)",
+      "authorityDetails": "B-dul G-ral. Gheorghe Magheru 28-30, Sector 1, București | www.dataprotection.ro | anspdcp@dataprotection.ro"
+    }
+  },
   "privacy": {
     "meta": {
       "title": "Politica de Confidențialitate | Go2Fix.ro",
@@ -75,7 +253,7 @@
     "intro": "Go2Fix SRL respectă dreptul la confidențialitate al utilizatorilor și se angajează să protejeze datele cu caracter personal în conformitate cu Regulamentul (UE) 2016/679 (GDPR) și legislația națională aplicabilă. Această politică descrie tipurile de date colectate, scopul prelucrării și drepturile dumneavoastră.",
     "s1": {
       "title": "1. Operatorul de date",
-      "p1": "Operatorul de date cu caracter personal este Go2Fix SRL, cu sediul în București, România. Ne puteți contacta pentru orice aspect legat de prelucrarea datelor la adresa: dpo@go2fix.ro."
+      "p1": "Operatorul de date cu caracter personal este Go2Fix SRL, cu sediul în București, România. Ne puteți contacta pentru orice aspect legat de prelucrarea datelor la adresa: contact@go2fix.ro."
     },
     "s2": {
       "title": "2. Datele colectate",
@@ -128,7 +306,7 @@
       "r5Desc": "Puteți obiecta la prelucrarea datelor bazată pe interes legitim.",
       "r6": "Dreptul la restricție",
       "r6Desc": "Puteți solicita limitarea prelucrării în anumite circumstanțe.",
-      "contact": "Pentru a vă exercita drepturile, contactați-ne la dpo@go2fix.ro. Veți primi un răspuns în termen de 30 de zile. Aveți de asemenea dreptul de a depune o plângere la Autoritatea Națională de Supraveghere a Prelucrării Datelor cu Caracter Personal (ANSPDCP)."
+      "contact": "Pentru a vă exercita drepturile, contactați-ne la contact@go2fix.ro. Veți primi un răspuns în termen de 30 de zile. Aveți de asemenea dreptul de a depune o plângere la Autoritatea Națională de Supraveghere a Prelucrării Datelor cu Caracter Personal (ANSPDCP)."
     },
     "s6": {
       "title": "6. Cookies",
@@ -146,7 +324,7 @@
     },
     "s8": {
       "title": "8. Contact DPO",
-      "p1": "Responsabilul nostru cu protecția datelor (Data Protection Officer) poate fi contactat la adresa: dpo@go2fix.ro. Orice întrebare, solicitare sau plângere legată de prelucrarea datelor cu caracter personal poate fi adresată la această adresă."
+      "p1": "Responsabilul nostru cu protecția datelor (Data Protection Officer) poate fi contactat la adresa: contact@go2fix.ro. Orice întrebare, solicitare sau plângere legată de prelucrarea datelor cu caracter personal poate fi adresată la această adresă."
     }
   }
 }

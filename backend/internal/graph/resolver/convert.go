@@ -722,10 +722,17 @@ func dbRefundRequestToGQL(r db.RefundRequest) *model.RefundRequest {
 }
 
 func dbInvoiceToGQL(inv db.Invoice) *model.Invoice {
+	// Prefer Oblio's invoice number (e.g. "FCT-0053") when available.
+	// Fall back to local sequence number while Oblio sync is pending.
+	invoiceNumber := textPtr(inv.InvoiceNumber)
+	if inv.OblioSeriesName.Valid && inv.OblioNumber.Valid && inv.OblioNumber.String != "" {
+		s := inv.OblioSeriesName.String + "-" + inv.OblioNumber.String
+		invoiceNumber = &s
+	}
 	return &model.Invoice{
 		ID:                uuidToString(inv.ID),
 		InvoiceType:       model.InvoiceType(strings.ToUpper(string(inv.InvoiceType))),
-		InvoiceNumber:     textPtr(inv.InvoiceNumber),
+		InvoiceNumber:     invoiceNumber,
 		Status:            model.InvoiceStatus(strings.ToUpper(string(inv.Status))),
 		SellerCompanyName: inv.SellerCompanyName,
 		SellerCui:         inv.SellerCui,

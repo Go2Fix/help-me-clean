@@ -1,5 +1,6 @@
 import { useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import { ROUTE_MAP } from '@/i18n/routes';
 import { useMutation } from '@apollo/client';
 import {
   Upload,
@@ -359,6 +360,18 @@ export default function DocumentUploadPage() {
             Pentru aprobare, avem nevoie de urmatoarele documente in format PDF.
             Echipa noastra le va verifica in 1–2 zile lucratoare.
           </p>
+        </div>
+
+        {/* GDPR notice */}
+        <div className="flex items-start gap-2 p-3 rounded-xl bg-blue-50 border border-blue-100 text-xs text-blue-700 mb-6">
+          <Info className="w-4 h-4 shrink-0 mt-0.5" />
+          <span>
+            Documentele tale sunt stocate securizat și procesate conform{' '}
+            <Link to={ROUTE_MAP.gdpr.ro} target="_blank" rel="noopener noreferrer" className="underline font-medium">
+              Notei de Informare GDPR
+            </Link>
+            . Accesul este restricționat exclusiv echipei de verificare Go2Fix.
+          </span>
         </div>
 
         {/* Progress bar */}

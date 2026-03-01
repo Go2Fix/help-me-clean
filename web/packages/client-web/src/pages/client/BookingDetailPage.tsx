@@ -959,20 +959,17 @@ export default function BookingDetailPage() {
                       variant="outline"
                       size="sm"
                       className="flex-1"
-                      onClick={() => navigate(`/cont/facturi/${invoiceData.clientInvoiceForBooking.id}`)}
+                      onClick={() => {
+                        if (invoiceData.clientInvoiceForBooking.downloadUrl) {
+                          window.open(invoiceData.clientInvoiceForBooking.downloadUrl, '_blank');
+                        } else {
+                          navigate(`/cont/facturi/${invoiceData.clientInvoiceForBooking.id}`);
+                        }
+                      }}
                     >
-                      <FileText className="h-4 w-4" />
+                      <Download className="h-4 w-4" />
                       Vezi factura
                     </Button>
-                    {invoiceData.clientInvoiceForBooking.downloadUrl && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => window.open(invoiceData.clientInvoiceForBooking.downloadUrl, '_blank')}
-                      >
-                        <Download className="h-4 w-4" />
-                      </Button>
-                    )}
                   </div>
                 </div>
               </Card>

@@ -32,7 +32,7 @@ export default function ContactPage() {
 
   const CONTACT_INFO = [
     { icon: Mail,   label: t('info.email'),    value: 'contact@go2fix.ro',  href: 'mailto:contact@go2fix.ro' },
-    { icon: Phone,  label: t('info.phone'),    value: '+40 700 000 000',    href: 'tel:+40700000000' },
+    { icon: Phone,  label: t('info.phone'),    value: '+40 726 433 942',    href: 'tel:+40726433942' },
     { icon: MapPin, label: t('info.city'),     value: t('info.cityValue'),  href: undefined },
     { icon: Clock,  label: t('info.schedule'), value: t('info.scheduleValue'), href: undefined },
   ];

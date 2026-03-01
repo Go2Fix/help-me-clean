@@ -60,11 +60,11 @@ export default function SupportPage() {
           <h3 className="font-semibold text-gray-900">Email</h3>
           <p className="text-sm text-gray-500">Raspundem in maxim 24 de ore</p>
           <a
-            href="mailto:support@go2fix.ro"
+            href="mailto:contact@go2fix.ro"
             className="w-full inline-flex items-center justify-center gap-2 rounded-xl font-semibold px-5 py-2.5 text-sm transition-all border-2 border-blue-600 text-blue-600 hover:bg-blue-50"
           >
             <Mail className="h-4 w-4" />
-            support@go2fix.ro
+            contact@go2fix.ro
           </a>
         </Card>
       </div>

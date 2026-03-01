@@ -55,14 +55,14 @@ import {
 type DetailTab = 'detalii' | 'financiar' | 'comenzi' | 'documente' | 'echipa';
 
 const statusVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
-  PENDING_APPROVAL: 'warning',
+  PENDING_REVIEW: 'warning',
   APPROVED: 'success',
   SUSPENDED: 'danger',
   REJECTED: 'danger',
 };
 
 const statusLabel: Record<string, string> = {
-  PENDING_APPROVAL: 'In asteptare',
+  PENDING_REVIEW: 'In asteptare',
   APPROVED: 'Aprobat',
   SUSPENDED: 'Suspendat',
   REJECTED: 'Respins',
@@ -650,7 +650,7 @@ export default function CompanyDetailPage() {
           {/* Actions Sidebar */}
           <div className="space-y-6">
             {/* Document Status Summary (only for PENDING_APPROVAL) */}
-            {company.status === 'PENDING_APPROVAL' && (
+            {company.status === 'PENDING_REVIEW' && (
               <Card>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                   <FileCheck className="h-5 w-5" />
@@ -718,7 +718,7 @@ export default function CompanyDetailPage() {
             <Card>
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Actiuni</h3>
               <div className="space-y-3">
-                {company.status === 'PENDING_APPROVAL' && (
+                {company.status === 'PENDING_REVIEW' && (
                   <>
                     <Button
                       variant="secondary"

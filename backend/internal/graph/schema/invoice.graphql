@@ -144,4 +144,5 @@ extend type Mutation {
   generateCommissionInvoice(payoutId: ID!): Invoice!
   generateCreditNote(invoiceId: ID!, amount: Int!, reason: String!): Invoice!
   refreshEFacturaStatus(id: ID!): Invoice!
+  markInvoiceAsPaid(id: ID!): Invoice!
 }
