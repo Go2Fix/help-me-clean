@@ -11,6 +11,7 @@ import {
 import { cn } from '@go2fix/shared';
 import { useAuth } from '@/context/AuthContext';
 import { useSidebar } from '@/hooks/useSidebar';
+import NotificationBell from '@/components/notifications/NotificationBell';
 
 export interface NavItem {
   to: string;
@@ -191,18 +192,21 @@ export default function DashboardLayout({
 
       {/* Main content area */}
       <div className="flex-1 flex flex-col min-h-screen min-w-0 overflow-x-hidden">
-        {/* Mobile top bar */}
-        <header className="md:hidden flex items-center gap-3 px-4 py-3 bg-white border-b border-gray-200 sticky top-0 z-30">
+        {/* Top bar */}
+        <header className="flex items-center gap-3 px-4 py-3 bg-white border-b border-gray-200 sticky top-0 z-30">
           <button
             onClick={toggleMobile}
-            className="p-1.5 rounded-xl text-gray-600 hover:bg-gray-100 transition cursor-pointer"
+            className="md:hidden p-1.5 rounded-xl text-gray-600 hover:bg-gray-100 transition cursor-pointer"
           >
             <Menu className="h-5 w-5" />
           </button>
-          <NavLink to={homeRoute} className="flex items-center gap-2">
+          <NavLink to={homeRoute} className="md:hidden flex items-center gap-2">
             <LogoIcon className={cn('h-6 w-6', logoIconColor)} />
             <span className="text-lg font-bold text-primary">Go2Fix</span>
           </NavLink>
+          <div className="ml-auto">
+            <NotificationBell />
+          </div>
         </header>
 
         <main className="flex-1 px-3 py-4 md:p-8 overflow-y-auto overflow-x-hidden">

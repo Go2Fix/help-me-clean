@@ -1,0 +1,2 @@
+-- PostgreSQL does not support removing enum values; this migration is intentionally a no-op.
+-- To revert, drop and recreate the notification_type enum without these values.

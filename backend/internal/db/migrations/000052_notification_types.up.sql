@@ -1,0 +1,11 @@
+ALTER TYPE notification_type ADD VALUE IF NOT EXISTS 'company_application_received';
+ALTER TYPE notification_type ADD VALUE IF NOT EXISTS 'company_suspended';
+ALTER TYPE notification_type ADD VALUE IF NOT EXISTS 'document_approved';
+ALTER TYPE notification_type ADD VALUE IF NOT EXISTS 'document_rejected';
+ALTER TYPE notification_type ADD VALUE IF NOT EXISTS 'worker_accepted';
+ALTER TYPE notification_type ADD VALUE IF NOT EXISTS 'worker_activated';
+ALTER TYPE notification_type ADD VALUE IF NOT EXISTS 'invoice_ready';
+ALTER TYPE notification_type ADD VALUE IF NOT EXISTS 'subscription_confirmed';
+ALTER TYPE notification_type ADD VALUE IF NOT EXISTS 'subscription_cancelled';
+ALTER TYPE notification_type ADD VALUE IF NOT EXISTS 'account_suspended';
+ALTER TYPE notification_type ADD VALUE IF NOT EXISTS 'account_reactivated';

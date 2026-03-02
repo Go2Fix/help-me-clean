@@ -4608,3 +4608,47 @@ export const UPDATE_CITY_PRICING_MULTIPLIER = gql`
     }
   }
 `;
+
+// ─── Notifications ────────────────────────────────────────────────────────────
+
+export const UNREAD_NOTIFICATION_COUNT = gql`
+  query UnreadNotificationCount {
+    unreadNotificationCount
+  }
+`;
+
+export const MY_NOTIFICATIONS = gql`
+  query MyNotifications($first: Int, $after: String, $unreadOnly: Boolean) {
+    myNotifications(first: $first, after: $after, unreadOnly: $unreadOnly) {
+      edges {
+        id
+        type
+        title
+        body
+        data
+        isRead
+        createdAt
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+  }
+`;
+
+export const MARK_NOTIFICATION_READ = gql`
+  mutation MarkNotificationRead($id: ID!) {
+    markNotificationRead(id: $id) {
+      id
+      isRead
+    }
+  }
+`;
+
+export const MARK_ALL_NOTIFICATIONS_READ = gql`
+  mutation MarkAllNotificationsRead {
+    markAllNotificationsRead
+  }
+`;

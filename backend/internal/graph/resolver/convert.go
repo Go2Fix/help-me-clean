@@ -1,6 +1,7 @@
 package resolver
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -806,7 +807,7 @@ func dbBillingProfileToGQL(bp db.ClientBillingProfile) *model.ClientBillingProfi
 }
 
 func dbNotificationToGQL(n db.Notification) *model.Notification {
-	return &model.Notification{
+	notif := &model.Notification{
 		ID:        uuidToString(n.ID),
 		Type:      string(n.Type),
 		Title:     n.Title,
@@ -814,6 +815,13 @@ func dbNotificationToGQL(n db.Notification) *model.Notification {
 		IsRead:    boolVal(n.IsRead),
 		CreatedAt: timestamptzToTime(n.CreatedAt),
 	}
+	if len(n.Data) > 0 {
+		var d map[string]any
+		if err := json.Unmarshal(n.Data, &d); err == nil {
+			notif.Data = d
+		}
+	}
+	return notif
 }
 
 func dbChatRoomToGQL(r db.ChatRoom) *model.ChatRoom {

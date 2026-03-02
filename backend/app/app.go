@@ -92,6 +92,7 @@ func NewHandler(ctx context.Context) (http.Handler, func(), error) {
 	if slackCh := notification.NewSlackChannel(); slackCh != nil {
 		notifChannels = append(notifChannels, slackCh)
 	}
+	notifChannels = append(notifChannels, notification.NewInAppChannel(queries))
 	notifSvc := notification.NewService(notifChannels...)
 
 	subscriptionSvc := subscription.NewService(queries, pool, paymentSvc, invoiceSvc)

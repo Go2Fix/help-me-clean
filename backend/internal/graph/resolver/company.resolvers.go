@@ -395,10 +395,10 @@ func (r *mutationResolver) ApproveCompany(ctx context.Context, id string) (*mode
 		r.NotifSvc.Dispatch(notification.EventCompanyApproved, payload, targets)
 
 		// Also notify admin user (linked account) and upsert contact.
-		adminEmail, adminName := r.loadCompanyAdminEmail(bgCtx, company)
+		adminUserID, adminEmail, adminName := r.loadCompanyAdmin(bgCtx, company)
 		if adminEmail != "" && adminEmail != company.ContactEmail {
 			r.NotifSvc.Dispatch(notification.EventCompanyApproved, payload,
-				[]notification.Target{{Email: adminEmail, Name: adminName}},
+				[]notification.Target{{UserID: adminUserID, Email: adminEmail, Name: adminName}},
 			)
 		}
 		contactEmail := adminEmail
@@ -436,12 +436,14 @@ func (r *mutationResolver) RejectCompany(ctx context.Context, id string, reason 
 
 	// Notify applicant of rejection (non-blocking).
 	go func() {
+		bgCtx := context.Background()
+		adminUserID, _, _ := r.loadCompanyAdmin(bgCtx, company)
 		r.NotifSvc.Dispatch(notification.EventCompanyRejected,
 			notification.Payload{
 				"companyName": company.CompanyName,
 				"reason":      reason,
 			},
-			[]notification.Target{{Email: company.ContactEmail, Name: company.LegalRepresentative}},
+			[]notification.Target{{UserID: adminUserID, Email: company.ContactEmail, Name: company.LegalRepresentative}},
 		)
 	}()
 
@@ -483,15 +485,15 @@ func (r *mutationResolver) SuspendCompany(ctx context.Context, id string, reason
 	// Notify company contact and update contact record (non-blocking).
 	go func() {
 		bgCtx := context.Background()
+		adminUserID, adminEmail, adminName := r.loadCompanyAdmin(bgCtx, company)
 		r.NotifSvc.Dispatch(notification.EventCompanySuspended,
 			notification.Payload{
 				"companyName": company.CompanyName,
 				"reason":      reason,
 			},
-			[]notification.Target{{Email: company.ContactEmail, Name: company.LegalRepresentative}},
+			[]notification.Target{{UserID: adminUserID, Email: company.ContactEmail, Name: company.LegalRepresentative}},
 		)
 		// Update admin user contact status to suspended.
-		adminEmail, adminName := r.loadCompanyAdminEmail(bgCtx, company)
 		if adminEmail == "" {
 			adminEmail = company.ContactEmail
 			adminName = company.LegalRepresentative
@@ -543,12 +545,12 @@ func (r *mutationResolver) ReviewCompanyDocument(ctx context.Context, id string,
 			log.Printf("[notif] reviewDocument: could not load company %s: %v", uuidToString(doc.CompanyID), compErr)
 			return
 		}
-		adminEmail, adminName := r.loadCompanyAdminEmail(bgCtx, company)
+		adminUserID, adminEmail, adminName := r.loadCompanyAdmin(bgCtx, company)
 		if adminEmail == "" {
 			adminEmail = company.ContactEmail
 			adminName = company.LegalRepresentative
 		}
-		targets := []notification.Target{{Email: adminEmail, Name: adminName}}
+		targets := []notification.Target{{UserID: adminUserID, Email: adminEmail, Name: adminName}}
 		if approved {
 			r.NotifSvc.Dispatch(notification.EventDocumentApproved,
 				notification.Payload{

@@ -106,7 +106,7 @@ func (r *mutationResolver) SuspendUser(ctx context.Context, id string, reason st
 		suspendedUser := user
 		r.NotifSvc.Dispatch(notification.EventAccountSuspended,
 			notification.Payload{"reason": reason},
-			[]notification.Target{{Email: suspendedUser.Email, Name: suspendedUser.FullName}},
+			[]notification.Target{{UserID: uuidToString(suspendedUser.ID), Email: suspendedUser.Email, Name: suspendedUser.FullName}},
 		)
 		r.NotifSvc.UpsertContact(context.Background(), notification.ContactData{
 			Email:    suspendedUser.Email,
@@ -139,7 +139,7 @@ func (r *mutationResolver) ReactivateUser(ctx context.Context, id string) (*mode
 		reactivatedUser := user
 		r.NotifSvc.Dispatch(notification.EventAccountReactivated,
 			notification.Payload{"name": reactivatedUser.FullName},
-			[]notification.Target{{Email: reactivatedUser.Email, Name: reactivatedUser.FullName}},
+			[]notification.Target{{UserID: uuidToString(reactivatedUser.ID), Email: reactivatedUser.Email, Name: reactivatedUser.FullName}},
 		)
 		r.NotifSvc.UpsertContact(context.Background(), notification.ContactData{
 			Email:    reactivatedUser.Email,

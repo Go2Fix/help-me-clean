@@ -50,18 +50,25 @@ func (r *Resolver) dispatchWelcomeAndUpsert(user db.User) {
 	}()
 }
 
-// loadCompanyAdminEmail loads the admin user for a company and returns their email and name.
+// loadCompanyAdmin loads the admin user for a company and returns their userID, email, and name.
 // Returns empty strings if the admin cannot be loaded.
-func (r *Resolver) loadCompanyAdminEmail(ctx context.Context, company db.Company) (email, name string) {
+func (r *Resolver) loadCompanyAdmin(ctx context.Context, company db.Company) (userID, email, name string) {
 	if !company.AdminUserID.Valid {
-		return "", ""
+		return "", "", ""
 	}
 	adminUser, err := r.Queries.GetUserByID(ctx, company.AdminUserID)
 	if err != nil {
 		log.Printf("[notif] could not load admin user for company %s: %v", uuidToString(company.ID), err)
-		return "", ""
+		return "", "", ""
 	}
-	return adminUser.Email, adminUser.FullName
+	return uuidToString(adminUser.ID), adminUser.Email, adminUser.FullName
+}
+
+// loadCompanyAdminEmail loads the admin user for a company and returns their email and name.
+// Returns empty strings if the admin cannot be loaded.
+func (r *Resolver) loadCompanyAdminEmail(ctx context.Context, company db.Company) (email, name string) {
+	_, email, name = r.loadCompanyAdmin(ctx, company)
+	return email, name
 }
 
 // formatTotal formats a bani value (integer) into a "RON X.XX" string for display.
@@ -89,13 +96,16 @@ func (r *Resolver) dispatchBookingCreatedNotifications(booking db.Booking) {
 		// Determine client contact info.
 		clientEmail := ""
 		clientName := ""
+		clientUserID := ""
 		if booking.ClientUserID.Valid {
 			if clientUser, err := r.Queries.GetUserByID(ctx, booking.ClientUserID); err == nil {
 				clientEmail = clientUser.Email
 				clientName = clientUser.FullName
+				clientUserID = uuidToString(clientUser.ID)
 			}
 		}
 
+		bookingID := uuidToString(booking.ID)
 		scheduledDate := dateToString(booking.ScheduledDate)
 		scheduledTime := timeToString(booking.ScheduledStartTime)
 		estimatedTotal := fmt.Sprintf("RON %.2f", numericToFloat(booking.EstimatedTotal))
@@ -105,6 +115,7 @@ func (r *Resolver) dispatchBookingCreatedNotifications(booking db.Booking) {
 		if clientEmail != "" {
 			r.NotifSvc.Dispatch(notification.EventBookingConfirmedClient,
 				notification.Payload{
+					"bookingId":      bookingID,
 					"referenceCode":  booking.ReferenceCode,
 					"serviceName":    serviceName,
 					"scheduledDate":  scheduledDate,
@@ -112,7 +123,7 @@ func (r *Resolver) dispatchBookingCreatedNotifications(booking db.Booking) {
 					"estimatedTotal": estimatedTotal,
 					"clientName":     clientName,
 				},
-				[]notification.Target{{Email: clientEmail, Name: clientName}},
+				[]notification.Target{{UserID: clientUserID, Email: clientEmail, Name: clientName}},
 			)
 		}
 
@@ -120,10 +131,11 @@ func (r *Resolver) dispatchBookingCreatedNotifications(booking db.Booking) {
 		if booking.CompanyID.Valid {
 			company, err := r.Queries.GetCompanyByID(ctx, booking.CompanyID)
 			if err == nil {
-				adminEmail, adminName := r.loadCompanyAdminEmail(ctx, company)
+				adminUserID, adminEmail, adminName := r.loadCompanyAdmin(ctx, company)
 				if adminEmail != "" {
 					r.NotifSvc.Dispatch(notification.EventBookingNewRequestCompany,
 						notification.Payload{
+							"bookingId":      bookingID,
 							"referenceCode":  booking.ReferenceCode,
 							"serviceName":    serviceName,
 							"scheduledDate":  scheduledDate,
@@ -131,7 +143,7 @@ func (r *Resolver) dispatchBookingCreatedNotifications(booking db.Booking) {
 							"estimatedTotal": estimatedTotal,
 							"clientName":     clientName,
 						},
-						[]notification.Target{{Email: adminEmail, Name: adminName}},
+						[]notification.Target{{UserID: adminUserID, Email: adminEmail, Name: adminName}},
 					)
 				}
 			}
@@ -145,26 +157,31 @@ func (r *Resolver) dispatchWorkerAssignedNotifications(booking db.Booking) {
 	go func() {
 		ctx := context.Background()
 
+		bookingID := uuidToString(booking.ID)
 		scheduledDate := dateToString(booking.ScheduledDate)
 		serviceName := strings.Title(strings.ReplaceAll(string(booking.ServiceType), "_", " "))
 
 		clientEmail := ""
 		clientName := ""
+		clientUserID := ""
 		if booking.ClientUserID.Valid {
 			if clientUser, err := r.Queries.GetUserByID(ctx, booking.ClientUserID); err == nil {
 				clientEmail = clientUser.Email
 				clientName = clientUser.FullName
+				clientUserID = uuidToString(clientUser.ID)
 			}
 		}
 
 		workerEmail := ""
 		workerName := ""
+		workerUserID := ""
 		if booking.WorkerID.Valid {
 			if worker, err := r.Queries.GetWorkerByID(ctx, booking.WorkerID); err == nil {
 				if worker.UserID.Valid {
 					if workerUser, err := r.Queries.GetUserByID(ctx, worker.UserID); err == nil {
 						workerEmail = workerUser.Email
 						workerName = workerUser.FullName
+						workerUserID = uuidToString(workerUser.ID)
 					}
 				}
 			}
@@ -174,12 +191,13 @@ func (r *Resolver) dispatchWorkerAssignedNotifications(booking db.Booking) {
 		if clientEmail != "" {
 			r.NotifSvc.Dispatch(notification.EventBookingWorkerAssignedClient,
 				notification.Payload{
+					"bookingId":     bookingID,
 					"referenceCode": booking.ReferenceCode,
 					"workerName":    workerName,
 					"scheduledDate": scheduledDate,
 					"serviceName":   serviceName,
 				},
-				[]notification.Target{{Email: clientEmail, Name: clientName}},
+				[]notification.Target{{UserID: clientUserID, Email: clientEmail, Name: clientName}},
 			)
 		}
 
@@ -187,12 +205,13 @@ func (r *Resolver) dispatchWorkerAssignedNotifications(booking db.Booking) {
 		if workerEmail != "" {
 			r.NotifSvc.Dispatch(notification.EventJobAssignedWorker,
 				notification.Payload{
+					"bookingId":     bookingID,
 					"referenceCode": booking.ReferenceCode,
 					"clientName":    clientName,
 					"scheduledDate": scheduledDate,
 					"serviceName":   serviceName,
 				},
-				[]notification.Target{{Email: workerEmail, Name: workerName}},
+				[]notification.Target{{UserID: workerUserID, Email: workerEmail, Name: workerName}},
 			)
 		}
 	}()
@@ -213,11 +232,12 @@ func (r *Resolver) dispatchBookingCompletedNotification(booking db.Booking) {
 		serviceName := strings.Title(strings.ReplaceAll(string(booking.ServiceType), "_", " "))
 		r.NotifSvc.Dispatch(notification.EventBookingCompleted,
 			notification.Payload{
+				"bookingId":     uuidToString(booking.ID),
 				"referenceCode": booking.ReferenceCode,
 				"serviceName":   serviceName,
 				"clientName":    clientUser.FullName,
 			},
-			[]notification.Target{{Email: clientUser.Email, Name: clientUser.FullName}},
+			[]notification.Target{{UserID: uuidToString(clientUser.ID), Email: clientUser.Email, Name: clientUser.FullName}},
 		)
 	}()
 }
@@ -235,6 +255,7 @@ func (r *Resolver) dispatchBookingCancelledByClient(booking db.Booking, reason s
 		}
 
 		payload := notification.Payload{
+			"bookingId":     uuidToString(booking.ID),
 			"referenceCode": booking.ReferenceCode,
 			"clientName":    clientName,
 			"reason":        reason,
@@ -245,9 +266,9 @@ func (r *Resolver) dispatchBookingCancelledByClient(booking db.Booking, reason s
 		// Company admin.
 		if booking.CompanyID.Valid {
 			if company, err := r.Queries.GetCompanyByID(ctx, booking.CompanyID); err == nil {
-				adminEmail, adminName := r.loadCompanyAdminEmail(ctx, company)
+				adminUserID, adminEmail, adminName := r.loadCompanyAdmin(ctx, company)
 				if adminEmail != "" {
-					targets = append(targets, notification.Target{Email: adminEmail, Name: adminName})
+					targets = append(targets, notification.Target{UserID: adminUserID, Email: adminEmail, Name: adminName})
 				}
 			}
 		}
@@ -257,7 +278,7 @@ func (r *Resolver) dispatchBookingCancelledByClient(booking db.Booking, reason s
 			if worker, err := r.Queries.GetWorkerByID(ctx, booking.WorkerID); err == nil {
 				if worker.UserID.Valid {
 					if wu, err := r.Queries.GetUserByID(ctx, worker.UserID); err == nil {
-						targets = append(targets, notification.Target{Email: wu.Email, Name: wu.FullName})
+						targets = append(targets, notification.Target{UserID: uuidToString(wu.ID), Email: wu.Email, Name: wu.FullName})
 					}
 				}
 			}
@@ -274,6 +295,7 @@ func (r *Resolver) dispatchBookingCancelledByAdmin(booking db.Booking, reason st
 	go func() {
 		ctx := context.Background()
 		payload := notification.Payload{
+			"bookingId":     uuidToString(booking.ID),
 			"referenceCode": booking.ReferenceCode,
 			"reason":        reason,
 		}
@@ -283,16 +305,16 @@ func (r *Resolver) dispatchBookingCancelledByAdmin(booking db.Booking, reason st
 		// Client.
 		if booking.ClientUserID.Valid {
 			if cu, err := r.Queries.GetUserByID(ctx, booking.ClientUserID); err == nil {
-				targets = append(targets, notification.Target{Email: cu.Email, Name: cu.FullName})
+				targets = append(targets, notification.Target{UserID: uuidToString(cu.ID), Email: cu.Email, Name: cu.FullName})
 			}
 		}
 
 		// Company admin.
 		if booking.CompanyID.Valid {
 			if company, err := r.Queries.GetCompanyByID(ctx, booking.CompanyID); err == nil {
-				adminEmail, adminName := r.loadCompanyAdminEmail(ctx, company)
+				adminUserID, adminEmail, adminName := r.loadCompanyAdmin(ctx, company)
 				if adminEmail != "" {
-					targets = append(targets, notification.Target{Email: adminEmail, Name: adminName})
+					targets = append(targets, notification.Target{UserID: adminUserID, Email: adminEmail, Name: adminName})
 				}
 			}
 		}
@@ -302,7 +324,7 @@ func (r *Resolver) dispatchBookingCancelledByAdmin(booking db.Booking, reason st
 			if worker, err := r.Queries.GetWorkerByID(ctx, booking.WorkerID); err == nil {
 				if worker.UserID.Valid {
 					if wu, err := r.Queries.GetUserByID(ctx, worker.UserID); err == nil {
-						targets = append(targets, notification.Target{Email: wu.Email, Name: wu.FullName})
+						targets = append(targets, notification.Target{UserID: uuidToString(wu.ID), Email: wu.Email, Name: wu.FullName})
 					}
 				}
 			}
@@ -323,12 +345,14 @@ func (r *Resolver) dispatchInvoiceReady(inv db.Invoice) {
 		}
 		invoiceNumber := inv.InvoiceNumber.String
 		total := fmt.Sprintf("%.2f RON", float64(inv.TotalAmount)/100.0)
+		buyerUserID := uuidToString(inv.ClientUserID)
 		r.NotifSvc.Dispatch(notification.EventInvoiceReady,
 			notification.Payload{
+				"invoiceId":     uuidToString(inv.ID),
 				"invoiceNumber": invoiceNumber,
 				"total":         total,
 			},
-			[]notification.Target{{Email: inv.BuyerEmail.String, Name: inv.BuyerName}},
+			[]notification.Target{{UserID: buyerUserID, Email: inv.BuyerEmail.String, Name: inv.BuyerName}},
 		)
 	}()
 }
@@ -345,7 +369,7 @@ func (r *Resolver) dispatchInvoicePaid(inv db.Invoice) {
 			log.Printf("[notif] invoice_paid: could not load company for invoice %s: %v", inv.InvoiceNumber.String, err)
 			return
 		}
-		adminEmail, adminName := r.loadCompanyAdminEmail(ctx, company)
+		adminUserID, adminEmail, adminName := r.loadCompanyAdmin(ctx, company)
 		if adminEmail == "" {
 			return
 		}
@@ -353,11 +377,12 @@ func (r *Resolver) dispatchInvoicePaid(inv db.Invoice) {
 		total := fmt.Sprintf("%.2f RON", float64(inv.TotalAmount)/100.0)
 		r.NotifSvc.Dispatch(notification.EventInvoicePaid,
 			notification.Payload{
+				"invoiceId":     uuidToString(inv.ID),
 				"invoiceNumber": invoiceNumber,
 				"total":         total,
 				"companyName":   company.CompanyName,
 			},
-			[]notification.Target{{Email: adminEmail, Name: adminName}},
+			[]notification.Target{{UserID: adminUserID, Email: adminEmail, Name: adminName}},
 		)
 	}()
 }
@@ -403,7 +428,7 @@ func (r *Resolver) dispatchSubscriptionConfirmed(sub db.Subscription) {
 				"recurrenceType": string(sub.RecurrenceType),
 				"name":           user.FullName,
 			},
-			[]notification.Target{{Email: user.Email, Name: user.FullName}},
+			[]notification.Target{{UserID: uuidToString(user.ID), Email: user.Email, Name: user.FullName}},
 		)
 	}()
 }
@@ -426,7 +451,7 @@ func (r *Resolver) dispatchSubscriptionCancelled(sub db.Subscription, reason str
 				"reason":      reason,
 				"name":        user.FullName,
 			},
-			[]notification.Target{{Email: user.Email, Name: user.FullName}},
+			[]notification.Target{{UserID: uuidToString(user.ID), Email: user.Email, Name: user.FullName}},
 		)
 	}()
 }
@@ -438,6 +463,7 @@ func (r *Resolver) dispatchBookingRescheduledEmail(booking db.Booking, newDate, 
 		ctx := context.Background()
 
 		payload := notification.Payload{
+			"bookingId":     uuidToString(booking.ID),
 			"referenceCode": booking.ReferenceCode,
 			"newDate":       newDate,
 			"newTime":       newTime,
@@ -448,16 +474,16 @@ func (r *Resolver) dispatchBookingRescheduledEmail(booking db.Booking, newDate, 
 		// Client.
 		if booking.ClientUserID.Valid {
 			if cu, err := r.Queries.GetUserByID(ctx, booking.ClientUserID); err == nil {
-				targets = append(targets, notification.Target{Email: cu.Email, Name: cu.FullName})
+				targets = append(targets, notification.Target{UserID: uuidToString(cu.ID), Email: cu.Email, Name: cu.FullName})
 			}
 		}
 
 		// Company admin.
 		if booking.CompanyID.Valid {
 			if company, err := r.Queries.GetCompanyByID(ctx, booking.CompanyID); err == nil {
-				adminEmail, adminName := r.loadCompanyAdminEmail(ctx, company)
+				adminUserID, adminEmail, adminName := r.loadCompanyAdmin(ctx, company)
 				if adminEmail != "" {
-					targets = append(targets, notification.Target{Email: adminEmail, Name: adminName})
+					targets = append(targets, notification.Target{UserID: adminUserID, Email: adminEmail, Name: adminName})
 				}
 			}
 		}
@@ -467,7 +493,7 @@ func (r *Resolver) dispatchBookingRescheduledEmail(booking db.Booking, newDate, 
 			if worker, err := r.Queries.GetWorkerByID(ctx, booking.WorkerID); err == nil {
 				if worker.UserID.Valid {
 					if wu, err := r.Queries.GetUserByID(ctx, worker.UserID); err == nil {
-						targets = append(targets, notification.Target{Email: wu.Email, Name: wu.FullName})
+						targets = append(targets, notification.Target{UserID: uuidToString(wu.ID), Email: wu.Email, Name: wu.FullName})
 					}
 				}
 			}
