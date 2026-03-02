@@ -83,6 +83,12 @@ func ErrorPresenter() graphql.ErrorPresenterFunc {
 			}
 		}
 
+		// Skip logging for client-cancelled requests (context.Canceled means the
+		// browser navigated away or unmounted a component mid-flight — not a real error).
+		if errors.Is(err, context.Canceled) {
+			return gqlErr
+		}
+
 		// Log all errors server-side for monitoring
 		if gqlErr.Path != nil {
 			log.Printf("[GraphQL Error] path=%v message=%s", gqlErr.Path, err.Error())
