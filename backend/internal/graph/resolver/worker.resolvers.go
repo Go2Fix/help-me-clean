@@ -14,6 +14,7 @@ import (
 	db "go2fix-backend/internal/db/generated"
 	"go2fix-backend/internal/graph"
 	"go2fix-backend/internal/graph/model"
+	"go2fix-backend/internal/service/notification"
 	"go2fix-backend/internal/storage"
 	"strings"
 	"time"
@@ -76,6 +77,28 @@ func (r *mutationResolver) InviteWorker(ctx context.Context, input model.InviteW
 
 	// Auto-assign all company service areas to the new worker
 	r.copyCompanyAreasToWorkerHelper(ctx, company.ID, worker.ID)
+
+	// Notify the invited worker by email and upsert contact (non-blocking).
+	workerInviteToken := textVal(worker.InviteToken)
+	go func() {
+		inviteToken := workerInviteToken
+		acceptURL := buildInviteURL(inviteToken)
+		r.NotifSvc.Dispatch(notification.EventWorkerInvited,
+			notification.Payload{
+				"companyName": company.CompanyName,
+				"workerName":  input.FullName,
+				"inviteToken": inviteToken,
+				"acceptUrl":   acceptURL,
+			},
+			[]notification.Target{{Email: input.Email, Name: input.FullName}},
+		)
+		r.NotifSvc.UpsertContact(context.Background(), notification.ContactData{
+			Email:    input.Email,
+			Name:     input.FullName,
+			UserType: "worker",
+			Status:   "active",
+		})
+	}()
 
 	return r.workerWithCompany(ctx, worker)
 }

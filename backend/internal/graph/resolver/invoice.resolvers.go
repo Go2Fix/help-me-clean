@@ -100,6 +100,9 @@ func (r *mutationResolver) GenerateBookingInvoice(ctx context.Context, bookingID
 		return nil, fmt.Errorf("failed to generate booking invoice: %w", err)
 	}
 
+	// Notify buyer that invoice is ready (non-blocking).
+	r.dispatchInvoiceReady(inv)
+
 	gqlInvoice := dbInvoiceToGQL(inv)
 	r.enrichInvoice(ctx, inv, gqlInvoice)
 	return gqlInvoice, nil
@@ -242,6 +245,10 @@ func (r *mutationResolver) MarkInvoiceAsPaid(ctx context.Context, id string) (*m
 	if err != nil {
 		return nil, fmt.Errorf("markInvoiceAsPaid: %w", err)
 	}
+
+	// Notify company admin that invoice has been paid (non-blocking).
+	r.dispatchInvoicePaid(inv)
+
 	return dbInvoiceToGQL(inv), nil
 }
 

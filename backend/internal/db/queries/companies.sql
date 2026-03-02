@@ -10,8 +10,9 @@ SELECT * FROM companies WHERE cui = $1;
 -- name: CreateCompany :one
 INSERT INTO companies (
     admin_user_id, company_name, cui, company_type, legal_representative,
-    contact_email, contact_phone, address, city, county, description, claim_token
-) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+    contact_email, contact_phone, address, city, county, description, claim_token,
+    reg_number, is_vat_payer, bank_name, iban
+) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
 RETURNING *;
 
 -- name: UpdateCompanyStatus :one
@@ -75,6 +76,10 @@ UPDATE companies SET
     contact_phone = COALESCE(NULLIF(@contact_phone::text, ''), contact_phone),
     contact_email = COALESCE(NULLIF(@contact_email::text, ''), contact_email),
     max_service_radius_km = CASE WHEN @max_radius::int > 0 THEN @max_radius::int ELSE max_service_radius_km END,
+    reg_number = COALESCE(NULLIF(@reg_number::text, ''), reg_number),
+    is_vat_payer = @is_vat_payer::boolean,
+    bank_name = COALESCE(NULLIF(@bank_name::text, ''), bank_name),
+    iban = COALESCE(NULLIF(@iban::text, ''), iban),
     updated_at = NOW()
 WHERE id = $1 RETURNING *;
 

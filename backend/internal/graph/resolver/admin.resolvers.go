@@ -11,6 +11,7 @@ import (
 	"go2fix-backend/internal/auth"
 	db "go2fix-backend/internal/db/generated"
 	"go2fix-backend/internal/graph/model"
+	"go2fix-backend/internal/service/notification"
 	"go2fix-backend/internal/storage"
 	"strings"
 	"time"
@@ -33,6 +34,9 @@ func (r *mutationResolver) AdminCancelBooking(ctx context.Context, id string, re
 	if err != nil {
 		return nil, fmt.Errorf("failed to cancel booking: %w", err)
 	}
+
+	// Notify client (and company/worker if assigned) about admin cancellation (non-blocking).
+	r.dispatchBookingCancelledByAdmin(booking, reason)
 
 	return dbBookingToGQL(booking), nil
 }
@@ -97,6 +101,21 @@ func (r *mutationResolver) SuspendUser(ctx context.Context, id string, reason st
 		return nil, fmt.Errorf("failed to suspend user: %w", err)
 	}
 
+	// Notify the suspended user and update their contact record (non-blocking).
+	go func() {
+		suspendedUser := user
+		r.NotifSvc.Dispatch(notification.EventAccountSuspended,
+			notification.Payload{"reason": reason},
+			[]notification.Target{{Email: suspendedUser.Email, Name: suspendedUser.FullName}},
+		)
+		r.NotifSvc.UpsertContact(context.Background(), notification.ContactData{
+			Email:    suspendedUser.Email,
+			Name:     suspendedUser.FullName,
+			UserType: string(suspendedUser.Role),
+			Status:   "suspended",
+		})
+	}()
+
 	return dbUserToGQL(user), nil
 }
 
@@ -114,6 +133,21 @@ func (r *mutationResolver) ReactivateUser(ctx context.Context, id string) (*mode
 	if err != nil {
 		return nil, fmt.Errorf("failed to reactivate user: %w", err)
 	}
+
+	// Notify the reactivated user and update their contact record (non-blocking).
+	go func() {
+		reactivatedUser := user
+		r.NotifSvc.Dispatch(notification.EventAccountReactivated,
+			notification.Payload{"name": reactivatedUser.FullName},
+			[]notification.Target{{Email: reactivatedUser.Email, Name: reactivatedUser.FullName}},
+		)
+		r.NotifSvc.UpsertContact(context.Background(), notification.ContactData{
+			Email:    reactivatedUser.Email,
+			Name:     reactivatedUser.FullName,
+			UserType: string(reactivatedUser.Role),
+			Status:   "active",
+		})
+	}()
 
 	return dbUserToGQL(user), nil
 }

@@ -959,6 +959,10 @@ type Company struct {
 	AnafInactive          pgtype.Bool        `json:"anaf_inactive"`
 	AnafVerifiedAt        pgtype.Timestamptz `json:"anaf_verified_at"`
 	AnafRawError          pgtype.Text        `json:"anaf_raw_error"`
+	RegNumber             pgtype.Text        `json:"reg_number"`
+	IsVatPayer            bool               `json:"is_vat_payer"`
+	BankName              pgtype.Text        `json:"bank_name"`
+	Iban                  pgtype.Text        `json:"iban"`
 }
 
 type CompanyDocument struct {

@@ -264,6 +264,10 @@ type Company struct {
 	Admin                 *User              `json:"admin,omitempty"`
 	CreatedAt             time.Time          `json:"createdAt"`
 	AnafVerification      *ANAFVerification  `json:"anafVerification,omitempty"`
+	RegNumber             *string            `json:"regNumber,omitempty"`
+	IsVatPayer            bool               `json:"isVatPayer"`
+	BankName              *string            `json:"bankName,omitempty"`
+	Iban                  *string            `json:"iban,omitempty"`
 }
 
 type CompanyApplicationInput struct {
@@ -278,6 +282,10 @@ type CompanyApplicationInput struct {
 	County              string      `json:"county"`
 	Description         *string     `json:"description,omitempty"`
 	CategoryIds         []string    `json:"categoryIds,omitempty"`
+	RegNumber           *string     `json:"regNumber,omitempty"`
+	IsVatPayer          *bool       `json:"isVatPayer,omitempty"`
+	BankName            *string     `json:"bankName,omitempty"`
+	Iban                *string     `json:"iban,omitempty"`
 }
 
 type CompanyApplicationResult struct {
@@ -363,6 +371,13 @@ type CompanyWorkSchedule struct {
 
 type ConnectOnboardingLink struct {
 	URL string `json:"url"`
+}
+
+type ContactMessageInput struct {
+	Name    string `json:"name"`
+	Email   string `json:"email"`
+	Subject string `json:"subject"`
+	Message string `json:"message"`
 }
 
 type Coordinates struct {
@@ -502,8 +517,19 @@ type Invoice struct {
 	Status            InvoiceStatus      `json:"status"`
 	SellerCompanyName string             `json:"sellerCompanyName"`
 	SellerCui         string             `json:"sellerCui"`
+	SellerRegNumber   *string            `json:"sellerRegNumber,omitempty"`
+	SellerAddress     string             `json:"sellerAddress"`
+	SellerCity        string             `json:"sellerCity"`
+	SellerCounty      string             `json:"sellerCounty"`
+	SellerIsVatPayer  bool               `json:"sellerIsVatPayer"`
+	SellerBankName    *string            `json:"sellerBankName,omitempty"`
+	SellerIban        *string            `json:"sellerIban,omitempty"`
 	BuyerName         string             `json:"buyerName"`
 	BuyerCui          *string            `json:"buyerCui,omitempty"`
+	BuyerAddress      *string            `json:"buyerAddress,omitempty"`
+	BuyerCity         *string            `json:"buyerCity,omitempty"`
+	BuyerCounty       *string            `json:"buyerCounty,omitempty"`
+	BuyerIsVatPayer   *bool              `json:"buyerIsVatPayer,omitempty"`
 	SubtotalAmount    int                `json:"subtotalAmount"`
 	VatRate           float64            `json:"vatRate"`
 	VatAmount         int                `json:"vatAmount"`
@@ -1039,6 +1065,10 @@ type UpdateCompanyInput struct {
 	ContactEmail       *string                 `json:"contactEmail,omitempty"`
 	MaxServiceRadiusKm *int                    `json:"maxServiceRadiusKm,omitempty"`
 	WorkSchedule       []*WorkScheduleDayInput `json:"workSchedule,omitempty"`
+	RegNumber          *string                 `json:"regNumber,omitempty"`
+	IsVatPayer         *bool                   `json:"isVatPayer,omitempty"`
+	BankName           *string                 `json:"bankName,omitempty"`
+	Iban               *string                 `json:"iban,omitempty"`
 }
 
 type UpdateProfileInput struct {

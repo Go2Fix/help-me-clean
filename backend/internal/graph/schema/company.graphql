@@ -36,6 +36,11 @@ type Company {
   admin: User
   createdAt: DateTime!
   anafVerification: ANAFVerification
+  # Fiscal details (required for invoice generation)
+  regNumber: String
+  isVatPayer: Boolean!
+  bankName: String
+  iban: String
 }
 
 enum DocumentStatus {
@@ -126,6 +131,11 @@ input CompanyApplicationInput {
   county: String!
   description: String
   categoryIds: [ID!]
+  # Fiscal details — required for invoice generation
+  regNumber: String
+  isVatPayer: Boolean
+  bankName: String
+  iban: String
 }
 
 input UpdateCompanyInput {
@@ -134,6 +144,11 @@ input UpdateCompanyInput {
   contactEmail: String
   maxServiceRadiusKm: Int
   workSchedule: [WorkScheduleDayInput!]
+  # Fiscal details
+  regNumber: String
+  isVatPayer: Boolean
+  bankName: String
+  iban: String
 }
 
 input WorkScheduleDayInput {

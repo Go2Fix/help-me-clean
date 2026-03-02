@@ -28,8 +28,8 @@ import (
 	dochandler "go2fix-backend/internal/handler"
 	custommiddleware "go2fix-backend/internal/middleware"
 	"go2fix-backend/internal/service/anaf"
-	"go2fix-backend/internal/service/email"
 	"go2fix-backend/internal/service/invoice"
+	"go2fix-backend/internal/service/notification"
 	"go2fix-backend/internal/service/payment"
 	"go2fix-backend/internal/service/subscription"
 	"go2fix-backend/internal/storage"
@@ -83,7 +83,14 @@ func NewHandler(ctx context.Context) (http.Handler, func(), error) {
 
 	paymentSvc := payment.NewService(queries)
 	invoiceSvc := invoice.NewService(queries)
-	emailSvc := email.NewService()
+
+	// Notification service — email channel via Resend, more channels (Slack, push) added here later.
+	var notifChannels []notification.Channel
+	if emailCh := notification.NewEmailChannel(); emailCh != nil {
+		notifChannels = append(notifChannels, emailCh)
+	}
+	notifSvc := notification.NewService(notifChannels...)
+
 	subscriptionSvc := subscription.NewService(queries, pool, paymentSvc, invoiceSvc)
 
 	// File storage — always GCS.
@@ -122,7 +129,7 @@ func NewHandler(ctx context.Context) (http.Handler, func(), error) {
 		Queries:             queries,
 		PaymentService:      paymentSvc,
 		InvoiceService:      invoiceSvc,
-		EmailService:        emailSvc,
+		NotifSvc:            notifSvc,
 		SubscriptionService: subscriptionSvc,
 		Storage:             store,
 		AuthzHelper:         authzHelper,

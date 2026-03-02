@@ -22,10 +22,23 @@ type Invoice {
   invoiceType: InvoiceType!
   invoiceNumber: String
   status: InvoiceStatus!
+  # Seller (company for CLIENT_SERVICE, Go2Fix SRL for PLATFORM_COMMISSION)
   sellerCompanyName: String!
   sellerCui: String!
+  sellerRegNumber: String
+  sellerAddress: String!
+  sellerCity: String!
+  sellerCounty: String!
+  sellerIsVatPayer: Boolean!
+  sellerBankName: String
+  sellerIban: String
+  # Buyer
   buyerName: String!
   buyerCui: String
+  buyerAddress: String
+  buyerCity: String
+  buyerCounty: String
+  buyerIsVatPayer: Boolean
   subtotalAmount: Int!
   vatRate: Float!
   vatAmount: Int!

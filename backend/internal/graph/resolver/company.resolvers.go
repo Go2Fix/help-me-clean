@@ -14,6 +14,7 @@ import (
 	db "go2fix-backend/internal/db/generated"
 	"go2fix-backend/internal/graph"
 	"go2fix-backend/internal/graph/model"
+	"go2fix-backend/internal/service/notification"
 	"go2fix-backend/internal/storage"
 	"log"
 
@@ -63,6 +64,11 @@ func (r *mutationResolver) ApplyAsCompany(ctx context.Context, input model.Compa
 		claimTokenText = pgtype.Text{String: hex.EncodeToString(tokenBytes), Valid: true}
 	}
 
+	var isVatPayerOnboarding bool
+	if input.IsVatPayer != nil {
+		isVatPayerOnboarding = *input.IsVatPayer
+	}
+
 	company, err := r.Queries.CreateCompany(ctx, db.CreateCompanyParams{
 		AdminUserID:         adminUserID,
 		CompanyName:         input.CompanyName,
@@ -76,6 +82,10 @@ func (r *mutationResolver) ApplyAsCompany(ctx context.Context, input model.Compa
 		County:              input.County,
 		Description:         stringToText(input.Description),
 		ClaimToken:          claimTokenText,
+		RegNumber:           stringToText(input.RegNumber),
+		IsVatPayer:          isVatPayerOnboarding,
+		BankName:            stringToText(input.BankName),
+		Iban:                stringToText(input.Iban),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create company application: %w", err)
@@ -116,6 +126,17 @@ func (r *mutationResolver) ApplyAsCompany(ctx context.Context, input model.Compa
 
 	// Trigger ANAF verification asynchronously — never blocks the mutation response.
 	go r.triggerANAFVerification(company.ID, input.Cui)
+
+	// Notify applicant that their application was received (non-blocking).
+	go func() {
+		r.NotifSvc.Dispatch(notification.EventCompanyApplicationReceived,
+			notification.Payload{
+				"companyName":         company.CompanyName,
+				"legalRepresentative": company.LegalRepresentative,
+			},
+			[]notification.Target{{Email: company.ContactEmail, Name: company.LegalRepresentative}},
+		)
+	}()
 
 	result := &model.CompanyApplicationResult{
 		Company: dbCompanyToGQL(company),
@@ -180,12 +201,31 @@ func (r *mutationResolver) UpdateCompanyProfile(ctx context.Context, input model
 		radius = int32(*input.MaxServiceRadiusKm)
 	}
 
+	var regNumber, bankName, iban string
+	var isVatPayer bool
+	if input.RegNumber != nil {
+		regNumber = *input.RegNumber
+	}
+	if input.IsVatPayer != nil {
+		isVatPayer = *input.IsVatPayer
+	}
+	if input.BankName != nil {
+		bankName = *input.BankName
+	}
+	if input.Iban != nil {
+		iban = *input.Iban
+	}
+
 	updated, err := r.Queries.UpdateCompanyOwnProfile(ctx, db.UpdateCompanyOwnProfileParams{
 		ID:           company.ID,
 		Description:  desc,
 		ContactPhone: phone,
 		ContactEmail: email,
 		MaxRadius:    radius,
+		RegNumber:    regNumber,
+		IsVatPayer:   isVatPayer,
+		BankName:     bankName,
+		Iban:         iban,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to update company profile: %w", err)
@@ -344,6 +384,38 @@ func (r *mutationResolver) ApproveCompany(ctx context.Context, id string) (*mode
 	// Reactivate workers that were suspended when the company was suspended
 	_ = r.Queries.ReactivateWorkersByCompany(ctx, companyUUID)
 
+	// Notify company admin and upsert contact (non-blocking).
+	go func() {
+		bgCtx := context.Background()
+		targets := []notification.Target{{Email: company.ContactEmail, Name: company.LegalRepresentative}}
+		payload := notification.Payload{
+			"companyName":         company.CompanyName,
+			"legalRepresentative": company.LegalRepresentative,
+		}
+		r.NotifSvc.Dispatch(notification.EventCompanyApproved, payload, targets)
+
+		// Also notify admin user (linked account) and upsert contact.
+		adminEmail, adminName := r.loadCompanyAdminEmail(bgCtx, company)
+		if adminEmail != "" && adminEmail != company.ContactEmail {
+			r.NotifSvc.Dispatch(notification.EventCompanyApproved, payload,
+				[]notification.Target{{Email: adminEmail, Name: adminName}},
+			)
+		}
+		contactEmail := adminEmail
+		contactName := adminName
+		if contactEmail == "" {
+			contactEmail = company.ContactEmail
+			contactName = company.LegalRepresentative
+		}
+		r.NotifSvc.UpsertContact(bgCtx, notification.ContactData{
+			Email:    contactEmail,
+			Name:     contactName,
+			UserType: "company_admin",
+			City:     company.City,
+			Status:   "active",
+		})
+	}()
+
 	return dbCompanyToGQL(company), nil
 }
 
@@ -361,6 +433,17 @@ func (r *mutationResolver) RejectCompany(ctx context.Context, id string, reason 
 	if err != nil {
 		return nil, fmt.Errorf("failed to reject company: %w", err)
 	}
+
+	// Notify applicant of rejection (non-blocking).
+	go func() {
+		r.NotifSvc.Dispatch(notification.EventCompanyRejected,
+			notification.Payload{
+				"companyName": company.CompanyName,
+				"reason":      reason,
+			},
+			[]notification.Target{{Email: company.ContactEmail, Name: company.LegalRepresentative}},
+		)
+	}()
 
 	return dbCompanyToGQL(company), nil
 }
@@ -397,6 +480,31 @@ func (r *mutationResolver) SuspendCompany(ctx context.Context, id string, reason
 		CancellationReason: pgtype.Text{String: "Compania a fost suspendată", Valid: true},
 	})
 
+	// Notify company contact and update contact record (non-blocking).
+	go func() {
+		bgCtx := context.Background()
+		r.NotifSvc.Dispatch(notification.EventCompanySuspended,
+			notification.Payload{
+				"companyName": company.CompanyName,
+				"reason":      reason,
+			},
+			[]notification.Target{{Email: company.ContactEmail, Name: company.LegalRepresentative}},
+		)
+		// Update admin user contact status to suspended.
+		adminEmail, adminName := r.loadCompanyAdminEmail(bgCtx, company)
+		if adminEmail == "" {
+			adminEmail = company.ContactEmail
+			adminName = company.LegalRepresentative
+		}
+		r.NotifSvc.UpsertContact(bgCtx, notification.ContactData{
+			Email:    adminEmail,
+			Name:     adminName,
+			UserType: "company_admin",
+			City:     company.City,
+			Status:   "suspended",
+		})
+	}()
+
 	return dbCompanyToGQL(company), nil
 }
 
@@ -426,6 +534,44 @@ func (r *mutationResolver) ReviewCompanyDocument(ctx context.Context, id string,
 	if err != nil {
 		return nil, fmt.Errorf("failed to review document: %w", err)
 	}
+
+	// Notify the company admin about the document review result (non-blocking).
+	go func() {
+		bgCtx := context.Background()
+		company, compErr := r.Queries.GetCompanyByID(bgCtx, doc.CompanyID)
+		if compErr != nil {
+			log.Printf("[notif] reviewDocument: could not load company %s: %v", uuidToString(doc.CompanyID), compErr)
+			return
+		}
+		adminEmail, adminName := r.loadCompanyAdminEmail(bgCtx, company)
+		if adminEmail == "" {
+			adminEmail = company.ContactEmail
+			adminName = company.LegalRepresentative
+		}
+		targets := []notification.Target{{Email: adminEmail, Name: adminName}}
+		if approved {
+			r.NotifSvc.Dispatch(notification.EventDocumentApproved,
+				notification.Payload{
+					"documentType": doc.DocumentType,
+					"companyName":  company.CompanyName,
+				},
+				targets,
+			)
+		} else {
+			rejectionStr := ""
+			if rejectionReason != nil {
+				rejectionStr = *rejectionReason
+			}
+			r.NotifSvc.Dispatch(notification.EventDocumentRejected,
+				notification.Payload{
+					"documentType": doc.DocumentType,
+					"reason":       rejectionStr,
+					"companyName":  company.CompanyName,
+				},
+				targets,
+			)
+		}
+	}()
 
 	return dbCompanyDocToGQL(doc), nil
 }

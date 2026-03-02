@@ -258,19 +258,25 @@ func (s *Service) GenerateClientServiceInvoice(
 
 	dueDate := pgtype.Date{Time: time.Now().AddDate(0, 0, 30), Valid: true}
 
-	// Invoice number is assigned by Oblio; we leave it null until Oblio responds.
+	// Generate a per-company sequential invoice number (e.g. "FCT-2026-0001").
+	// The cleaning company is the seller — this is their fiscal invoice to the client.
+	invoiceNumber, err := s.NewInvoiceNumber(ctx, company.ID, "FCT")
+	if err != nil {
+		return db.Invoice{}, fmt.Errorf("invoice: generate invoice number: %w", err)
+	}
+
 	inv, err := s.queries.CreateInvoice(ctx, db.CreateInvoiceParams{
 		InvoiceType:          db.InvoiceTypeClientService,
-		InvoiceNumber:        pgtype.Text{},
+		InvoiceNumber:        pgText(invoiceNumber),
 		SellerCompanyName:    company.CompanyName,
 		SellerCui:            company.Cui,
-		SellerRegNumber:      pgtype.Text{},
+		SellerRegNumber:      company.RegNumber,
 		SellerAddress:        company.Address,
 		SellerCity:           company.City,
 		SellerCounty:         company.County,
-		SellerIsVatPayer:     true,
-		SellerBankName:       pgtype.Text{},
-		SellerIban:           pgtype.Text{},
+		SellerIsVatPayer:     company.IsVatPayer,
+		SellerBankName:       company.BankName,
+		SellerIban:           company.Iban,
 		BuyerName:            buyerName,
 		BuyerCui:             buyerCUI,
 		BuyerRegNumber:       buyerRegNumber,
@@ -313,44 +319,7 @@ func (s *Service) GenerateClientServiceInvoice(
 		return db.Invoice{}, fmt.Errorf("invoice: create line item: %w", err)
 	}
 
-	// Push to Oblio — they are the source of truth for the invoice number and PDF.
-	lineItems, _ := s.queries.ListInvoiceLineItems(ctx, inv.ID)
-	oblioSeries, oblioNum, oblioURL, apiErr := s.createInvoiceOnOblio(ctx, inv, lineItems)
-	if apiErr != nil {
-		log.Printf("invoice: oblio.eu API error (non-fatal): %v", apiErr)
-	} else if oblioNum != "" {
-		// Use Oblio's series+number as the official invoice number.
-		assignedNumber := oblioSeries + " " + oblioNum
-		updateErr := s.queries.UpdateInvoiceOblio(ctx, db.UpdateInvoiceOblioParams{
-			ID:               inv.ID,
-			InvoiceNumber:    pgText(assignedNumber),
-			OblioSeriesName:  pgText(oblioSeries),
-			OblioNumber:      pgText(oblioNum),
-			OblioDownloadUrl: pgText(oblioURL),
-		})
-		if updateErr != nil {
-			log.Printf("invoice: failed to persist oblio metadata: %v", updateErr)
-		} else {
-			inv.InvoiceNumber = pgText(assignedNumber)
-			inv.OblioSeriesName = pgText(oblioSeries)
-			inv.OblioNumber = pgText(oblioNum)
-			inv.OblioDownloadUrl = pgText(oblioURL)
-		}
-	}
-
-	// Auto-transmit to e-factura (best-effort, non-blocking).
-	if inv.OblioNumber.Valid && inv.OblioNumber.String != "" {
-		go func() {
-			bgCtx := context.Background()
-			if transmitErr := s.TransmitToEFactura(bgCtx, inv.ID); transmitErr != nil {
-				log.Printf("invoice: auto e-factura transmission failed (non-fatal): %v", transmitErr)
-			} else {
-				log.Printf("invoice: auto-transmitted invoice %s to e-factura", textVal(inv.InvoiceNumber))
-			}
-		}()
-	}
-
-	log.Printf("invoice: created client service invoice %s for booking %s", textVal(inv.InvoiceNumber), booking.ReferenceCode)
+	log.Printf("invoice: created client service invoice %s for booking %s", invoiceNumber, booking.ReferenceCode)
 	return inv, nil
 }
 

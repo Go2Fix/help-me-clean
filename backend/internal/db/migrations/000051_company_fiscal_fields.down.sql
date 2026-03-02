@@ -1,0 +1,5 @@
+ALTER TABLE companies
+  DROP COLUMN IF EXISTS reg_number,
+  DROP COLUMN IF EXISTS is_vat_payer,
+  DROP COLUMN IF EXISTS bank_name,
+  DROP COLUMN IF EXISTS iban;

@@ -67,6 +67,7 @@ func hoursUntilBooking(scheduledDate pgtype.Date, scheduledStartTime pgtype.Time
 
 // sendRescheduleNotifications sends booking_rescheduled notifications to
 // client, company admin, and worker (if assigned).
+// Dispatches both in-app DB notifications and email via the notification service.
 func (r *Resolver) sendRescheduleNotifications(ctx context.Context, booking db.Booking, newDate, newTime string) {
 	title := "Programare modificata"
 	body := fmt.Sprintf("Comanda %s a fost reprogramata pentru %s ora %s.", booking.ReferenceCode, newDate, newTime)
@@ -119,4 +120,7 @@ func (r *Resolver) sendRescheduleNotifications(ctx context.Context, booking db.B
 			}
 		}
 	}
+
+	// Send email notifications to all parties via notification service (non-blocking).
+	r.dispatchBookingRescheduledEmail(booking, newDate, newTime)
 }

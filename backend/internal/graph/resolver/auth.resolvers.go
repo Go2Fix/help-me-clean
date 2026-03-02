@@ -13,6 +13,7 @@ import (
 	db "go2fix-backend/internal/db/generated"
 	"go2fix-backend/internal/graph/model"
 	"go2fix-backend/internal/middleware"
+	"go2fix-backend/internal/service/notification"
 	"os"
 	"strings"
 
@@ -109,6 +110,9 @@ func (r *mutationResolver) SignInWithGoogle(ctx context.Context, idToken string,
 	if w := middleware.GetResponseWriter(ctx); w != nil {
 		auth.SetAuthCookie(w, token)
 	}
+
+	// Send welcome email and upsert contact (non-blocking).
+	r.dispatchWelcomeAndUpsert(newUser)
 
 	return &model.AuthPayload{
 		Token:     token, // Still return token for backward compatibility (will be removed after migration)
@@ -208,15 +212,15 @@ func (r *mutationResolver) RequestEmailOtp(ctx context.Context, email string, ro
 		return nil, fmt.Errorf("failed to save OTP: %w", err)
 	}
 
-	skipped, err := r.EmailService.SendOTP(email, code)
-	if err != nil {
+	// Send OTP via notification service (automatically skipped in non-production).
+	otpTargets := []notification.Target{{Email: email}}
+	if err := r.NotifSvc.DispatchSync(ctx, notification.EventOTPCode, notification.Payload{"code": code}, otpTargets); err != nil {
 		return nil, fmt.Errorf("failed to send OTP email: %w", err)
 	}
 
-	// In non-production (or when SMTP is unconfigured), expose the code so developers
-	// can test without a real mail server.
+	// In non-production, expose the code so developers can test without a real mail server.
 	var devCode *string
-	if skipped || os.Getenv("ENVIRONMENT") != "production" {
+	if os.Getenv("ENVIRONMENT") != "production" {
 		devCode = &code
 	}
 
@@ -283,6 +287,11 @@ func (r *mutationResolver) VerifyEmailOtp(ctx context.Context, email string, cod
 
 	if w := middleware.GetResponseWriter(ctx); w != nil {
 		auth.SetAuthCookie(w, token)
+	}
+
+	// Send welcome email for newly created users (non-blocking).
+	if isNewUser {
+		r.dispatchWelcomeAndUpsert(dbUser)
 	}
 
 	return &model.AuthPayload{

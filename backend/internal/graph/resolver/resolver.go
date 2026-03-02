@@ -11,8 +11,8 @@ import (
 	db "go2fix-backend/internal/db/generated"
 	"go2fix-backend/internal/graph/model"
 	"go2fix-backend/internal/middleware"
-	"go2fix-backend/internal/service/email"
 	"go2fix-backend/internal/service/invoice"
+	"go2fix-backend/internal/service/notification"
 	"go2fix-backend/internal/service/payment"
 	"go2fix-backend/internal/service/subscription"
 	"go2fix-backend/internal/storage"
@@ -24,7 +24,7 @@ type Resolver struct {
 	Queries             *db.Queries
 	PaymentService      *payment.Service
 	InvoiceService      *invoice.Service
-	EmailService        *email.Service
+	NotifSvc            *notification.Service
 	SubscriptionService *subscription.Service
 	Storage             storage.Storage
 	AuthzHelper         *middleware.AuthzHelper

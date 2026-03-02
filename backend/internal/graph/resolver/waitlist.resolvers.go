@@ -56,6 +56,13 @@ func (r *mutationResolver) JoinWaitlist(ctx context.Context, input model.JoinWai
 		return nil, fmt.Errorf("failed to join waitlist: %w", err)
 	}
 
+	// Notify the lead and upsert contact in audience (non-blocking).
+	city := ""
+	if input.City != nil {
+		city = *input.City
+	}
+	r.dispatchWaitlistJoined(input.Name, input.Email, city, leadType)
+
 	return dbWaitlistLeadToGQL(row), nil
 }
 

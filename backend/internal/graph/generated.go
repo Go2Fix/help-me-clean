@@ -237,6 +237,7 @@ type ComplexityRoot struct {
 		Address               func(childComplexity int) int
 		Admin                 func(childComplexity int) int
 		AnafVerification      func(childComplexity int) int
+		BankName              func(childComplexity int) int
 		City                  func(childComplexity int) int
 		CommissionOverridePct func(childComplexity int) int
 		CompanyName           func(childComplexity int) int
@@ -249,10 +250,13 @@ type ComplexityRoot struct {
 		Description           func(childComplexity int) int
 		Documents             func(childComplexity int) int
 		ID                    func(childComplexity int) int
+		Iban                  func(childComplexity int) int
+		IsVatPayer            func(childComplexity int) int
 		LegalRepresentative   func(childComplexity int) int
 		LogoURL               func(childComplexity int) int
 		MaxServiceRadiusKm    func(childComplexity int) int
 		RatingAvg             func(childComplexity int) int
+		RegNumber             func(childComplexity int) int
 		RejectionReason       func(childComplexity int) int
 		ServiceCategories     func(childComplexity int) int
 		Status                func(childComplexity int) int
@@ -380,7 +384,11 @@ type ComplexityRoot struct {
 
 	Invoice struct {
 		Booking           func(childComplexity int) int
+		BuyerAddress      func(childComplexity int) int
+		BuyerCity         func(childComplexity int) int
+		BuyerCounty       func(childComplexity int) int
 		BuyerCui          func(childComplexity int) int
+		BuyerIsVatPayer   func(childComplexity int) int
 		BuyerName         func(childComplexity int) int
 		Company           func(childComplexity int) int
 		CreatedAt         func(childComplexity int) int
@@ -394,8 +402,15 @@ type ComplexityRoot struct {
 		IssuedAt          func(childComplexity int) int
 		LineItems         func(childComplexity int) int
 		Notes             func(childComplexity int) int
+		SellerAddress     func(childComplexity int) int
+		SellerBankName    func(childComplexity int) int
+		SellerCity        func(childComplexity int) int
 		SellerCompanyName func(childComplexity int) int
+		SellerCounty      func(childComplexity int) int
 		SellerCui         func(childComplexity int) int
+		SellerIban        func(childComplexity int) int
+		SellerIsVatPayer  func(childComplexity int) int
+		SellerRegNumber   func(childComplexity int) int
 		Status            func(childComplexity int) int
 		SubtotalAmount    func(childComplexity int) int
 		TotalAmount       func(childComplexity int) int
@@ -516,6 +531,7 @@ type ComplexityRoot struct {
 		ReviewCompanyDocument                     func(childComplexity int, id string, approved bool, rejectionReason *string) int
 		ReviewWorkerDocument                      func(childComplexity int, id string, approved bool, rejectionReason *string) int
 		SelectBookingTimeSlot                     func(childComplexity int, bookingID string, timeSlotID string) int
+		SendContactMessage                        func(childComplexity int, input model.ContactMessageInput) int
 		SendMessage                               func(childComplexity int, roomID string, content string, messageType *string) int
 		SetCompanyCommissionOverride              func(childComplexity int, id string, pct *float64) int
 		SetDefaultAddress                         func(childComplexity int, id string) int
@@ -1265,6 +1281,7 @@ type MutationResolver interface {
 	SetCompanyCommissionOverride(ctx context.Context, id string, pct *float64) (*model.Company, error)
 	UpdateCompanyServiceCategories(ctx context.Context, categoryIds []string) ([]*model.ServiceCategory, error)
 	VerifyCompanyWithAnaf(ctx context.Context, id string) (*model.Company, error)
+	SendContactMessage(ctx context.Context, input model.ContactMessageInput) (bool, error)
 	UpsertBillingProfile(ctx context.Context, input model.BillingProfileInput) (*model.ClientBillingProfile, error)
 	GenerateBookingInvoice(ctx context.Context, bookingID string) (*model.Invoice, error)
 	CancelInvoice(ctx context.Context, id string) (*model.Invoice, error)
@@ -2299,6 +2316,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Company.AnafVerification(childComplexity), true
+	case "Company.bankName":
+		if e.complexity.Company.BankName == nil {
+			break
+		}
+
+		return e.complexity.Company.BankName(childComplexity), true
 	case "Company.city":
 		if e.complexity.Company.City == nil {
 			break
@@ -2371,6 +2394,18 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Company.ID(childComplexity), true
+	case "Company.iban":
+		if e.complexity.Company.Iban == nil {
+			break
+		}
+
+		return e.complexity.Company.Iban(childComplexity), true
+	case "Company.isVatPayer":
+		if e.complexity.Company.IsVatPayer == nil {
+			break
+		}
+
+		return e.complexity.Company.IsVatPayer(childComplexity), true
 	case "Company.legalRepresentative":
 		if e.complexity.Company.LegalRepresentative == nil {
 			break
@@ -2395,6 +2430,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Company.RatingAvg(childComplexity), true
+	case "Company.regNumber":
+		if e.complexity.Company.RegNumber == nil {
+			break
+		}
+
+		return e.complexity.Company.RegNumber(childComplexity), true
 	case "Company.rejectionReason":
 		if e.complexity.Company.RejectionReason == nil {
 			break
@@ -2885,12 +2926,36 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Invoice.Booking(childComplexity), true
+	case "Invoice.buyerAddress":
+		if e.complexity.Invoice.BuyerAddress == nil {
+			break
+		}
+
+		return e.complexity.Invoice.BuyerAddress(childComplexity), true
+	case "Invoice.buyerCity":
+		if e.complexity.Invoice.BuyerCity == nil {
+			break
+		}
+
+		return e.complexity.Invoice.BuyerCity(childComplexity), true
+	case "Invoice.buyerCounty":
+		if e.complexity.Invoice.BuyerCounty == nil {
+			break
+		}
+
+		return e.complexity.Invoice.BuyerCounty(childComplexity), true
 	case "Invoice.buyerCui":
 		if e.complexity.Invoice.BuyerCui == nil {
 			break
 		}
 
 		return e.complexity.Invoice.BuyerCui(childComplexity), true
+	case "Invoice.buyerIsVatPayer":
+		if e.complexity.Invoice.BuyerIsVatPayer == nil {
+			break
+		}
+
+		return e.complexity.Invoice.BuyerIsVatPayer(childComplexity), true
 	case "Invoice.buyerName":
 		if e.complexity.Invoice.BuyerName == nil {
 			break
@@ -2969,18 +3034,60 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Invoice.Notes(childComplexity), true
+	case "Invoice.sellerAddress":
+		if e.complexity.Invoice.SellerAddress == nil {
+			break
+		}
+
+		return e.complexity.Invoice.SellerAddress(childComplexity), true
+	case "Invoice.sellerBankName":
+		if e.complexity.Invoice.SellerBankName == nil {
+			break
+		}
+
+		return e.complexity.Invoice.SellerBankName(childComplexity), true
+	case "Invoice.sellerCity":
+		if e.complexity.Invoice.SellerCity == nil {
+			break
+		}
+
+		return e.complexity.Invoice.SellerCity(childComplexity), true
 	case "Invoice.sellerCompanyName":
 		if e.complexity.Invoice.SellerCompanyName == nil {
 			break
 		}
 
 		return e.complexity.Invoice.SellerCompanyName(childComplexity), true
+	case "Invoice.sellerCounty":
+		if e.complexity.Invoice.SellerCounty == nil {
+			break
+		}
+
+		return e.complexity.Invoice.SellerCounty(childComplexity), true
 	case "Invoice.sellerCui":
 		if e.complexity.Invoice.SellerCui == nil {
 			break
 		}
 
 		return e.complexity.Invoice.SellerCui(childComplexity), true
+	case "Invoice.sellerIban":
+		if e.complexity.Invoice.SellerIban == nil {
+			break
+		}
+
+		return e.complexity.Invoice.SellerIban(childComplexity), true
+	case "Invoice.sellerIsVatPayer":
+		if e.complexity.Invoice.SellerIsVatPayer == nil {
+			break
+		}
+
+		return e.complexity.Invoice.SellerIsVatPayer(childComplexity), true
+	case "Invoice.sellerRegNumber":
+		if e.complexity.Invoice.SellerRegNumber == nil {
+			break
+		}
+
+		return e.complexity.Invoice.SellerRegNumber(childComplexity), true
 	case "Invoice.status":
 		if e.complexity.Invoice.Status == nil {
 			break
@@ -3929,6 +4036,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.SelectBookingTimeSlot(childComplexity, args["bookingId"].(string), args["timeSlotId"].(string)), true
+	case "Mutation.sendContactMessage":
+		if e.complexity.Mutation.SendContactMessage == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_sendContactMessage_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SendContactMessage(childComplexity, args["input"].(model.ContactMessageInput)), true
 	case "Mutation.sendMessage":
 		if e.complexity.Mutation.SendMessage == nil {
 			break
@@ -7743,6 +7861,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputBillingProfileInput,
 		ec.unmarshalInputBookingWorkerAssignment,
 		ec.unmarshalInputCompanyApplicationInput,
+		ec.unmarshalInputContactMessageInput,
 		ec.unmarshalInputCreateBookingInput,
 		ec.unmarshalInputCreateServiceCategoryInput,
 		ec.unmarshalInputCreateServiceDefinitionInput,
@@ -7860,7 +7979,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
-//go:embed "schema/admin.graphql" "schema/analytics.graphql" "schema/audit.graphql" "schema/auth.graphql" "schema/booking.graphql" "schema/chat.graphql" "schema/client.graphql" "schema/company.graphql" "schema/invoice.graphql" "schema/location.graphql" "schema/notification.graphql" "schema/payment.graphql" "schema/personality.graphql" "schema/recurring.graphql" "schema/review.graphql" "schema/schema.graphql" "schema/service.graphql" "schema/settings.graphql" "schema/subscription.graphql" "schema/user.graphql" "schema/waitlist.graphql" "schema/worker.graphql"
+//go:embed "schema/admin.graphql" "schema/analytics.graphql" "schema/audit.graphql" "schema/auth.graphql" "schema/booking.graphql" "schema/chat.graphql" "schema/client.graphql" "schema/company.graphql" "schema/contact.graphql" "schema/invoice.graphql" "schema/location.graphql" "schema/notification.graphql" "schema/payment.graphql" "schema/personality.graphql" "schema/recurring.graphql" "schema/review.graphql" "schema/schema.graphql" "schema/service.graphql" "schema/settings.graphql" "schema/subscription.graphql" "schema/user.graphql" "schema/waitlist.graphql" "schema/worker.graphql"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -7880,6 +7999,7 @@ var sources = []*ast.Source{
 	{Name: "schema/chat.graphql", Input: sourceData("schema/chat.graphql"), BuiltIn: false},
 	{Name: "schema/client.graphql", Input: sourceData("schema/client.graphql"), BuiltIn: false},
 	{Name: "schema/company.graphql", Input: sourceData("schema/company.graphql"), BuiltIn: false},
+	{Name: "schema/contact.graphql", Input: sourceData("schema/contact.graphql"), BuiltIn: false},
 	{Name: "schema/invoice.graphql", Input: sourceData("schema/invoice.graphql"), BuiltIn: false},
 	{Name: "schema/location.graphql", Input: sourceData("schema/location.graphql"), BuiltIn: false},
 	{Name: "schema/notification.graphql", Input: sourceData("schema/notification.graphql"), BuiltIn: false},
@@ -8815,6 +8935,17 @@ func (ec *executionContext) field_Mutation_selectBookingTimeSlot_args(ctx contex
 		return nil, err
 	}
 	args["timeSlotId"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_sendContactMessage_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNContactMessageInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐContactMessageInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -11898,6 +12029,14 @@ func (ec *executionContext) fieldContext_Booking_company(_ context.Context, fiel
 				return ec.fieldContext_Company_createdAt(ctx, field)
 			case "anafVerification":
 				return ec.fieldContext_Company_anafVerification(ctx, field)
+			case "regNumber":
+				return ec.fieldContext_Company_regNumber(ctx, field)
+			case "isVatPayer":
+				return ec.fieldContext_Company_isVatPayer(ctx, field)
+			case "bankName":
+				return ec.fieldContext_Company_bankName(ctx, field)
+			case "iban":
+				return ec.fieldContext_Company_iban(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -15972,6 +16111,122 @@ func (ec *executionContext) fieldContext_Company_anafVerification(_ context.Cont
 	return fc, nil
 }
 
+func (ec *executionContext) _Company_regNumber(ctx context.Context, field graphql.CollectedField, obj *model.Company) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Company_regNumber,
+		func(ctx context.Context) (any, error) {
+			return obj.RegNumber, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Company_regNumber(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Company",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Company_isVatPayer(ctx context.Context, field graphql.CollectedField, obj *model.Company) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Company_isVatPayer,
+		func(ctx context.Context) (any, error) {
+			return obj.IsVatPayer, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Company_isVatPayer(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Company",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Company_bankName(ctx context.Context, field graphql.CollectedField, obj *model.Company) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Company_bankName,
+		func(ctx context.Context) (any, error) {
+			return obj.BankName, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Company_bankName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Company",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Company_iban(ctx context.Context, field graphql.CollectedField, obj *model.Company) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Company_iban,
+		func(ctx context.Context) (any, error) {
+			return obj.Iban, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Company_iban(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Company",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _CompanyApplicationResult_company(ctx context.Context, field graphql.CollectedField, obj *model.CompanyApplicationResult) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -16044,6 +16299,14 @@ func (ec *executionContext) fieldContext_CompanyApplicationResult_company(_ cont
 				return ec.fieldContext_Company_createdAt(ctx, field)
 			case "anafVerification":
 				return ec.fieldContext_Company_anafVerification(ctx, field)
+			case "regNumber":
+				return ec.fieldContext_Company_regNumber(ctx, field)
+			case "isVatPayer":
+				return ec.fieldContext_Company_isVatPayer(ctx, field)
+			case "bankName":
+				return ec.fieldContext_Company_bankName(ctx, field)
+			case "iban":
+				return ec.fieldContext_Company_iban(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -16152,6 +16415,14 @@ func (ec *executionContext) fieldContext_CompanyConnection_edges(_ context.Conte
 				return ec.fieldContext_Company_createdAt(ctx, field)
 			case "anafVerification":
 				return ec.fieldContext_Company_anafVerification(ctx, field)
+			case "regNumber":
+				return ec.fieldContext_Company_regNumber(ctx, field)
+			case "isVatPayer":
+				return ec.fieldContext_Company_isVatPayer(ctx, field)
+			case "bankName":
+				return ec.fieldContext_Company_bankName(ctx, field)
+			case "iban":
+				return ec.fieldContext_Company_iban(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -16817,6 +17088,14 @@ func (ec *executionContext) fieldContext_CompanyPayout_company(_ context.Context
 				return ec.fieldContext_Company_createdAt(ctx, field)
 			case "anafVerification":
 				return ec.fieldContext_Company_anafVerification(ctx, field)
+			case "regNumber":
+				return ec.fieldContext_Company_regNumber(ctx, field)
+			case "isVatPayer":
+				return ec.fieldContext_Company_isVatPayer(ctx, field)
+			case "bankName":
+				return ec.fieldContext_Company_bankName(ctx, field)
+			case "iban":
+				return ec.fieldContext_Company_iban(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -17169,6 +17448,14 @@ func (ec *executionContext) fieldContext_CompanyPerformance_company(_ context.Co
 				return ec.fieldContext_Company_createdAt(ctx, field)
 			case "anafVerification":
 				return ec.fieldContext_Company_anafVerification(ctx, field)
+			case "regNumber":
+				return ec.fieldContext_Company_regNumber(ctx, field)
+			case "isVatPayer":
+				return ec.fieldContext_Company_isVatPayer(ctx, field)
+			case "bankName":
+				return ec.fieldContext_Company_bankName(ctx, field)
+			case "iban":
+				return ec.fieldContext_Company_iban(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -18513,6 +18800,209 @@ func (ec *executionContext) fieldContext_Invoice_sellerCui(_ context.Context, fi
 	return fc, nil
 }
 
+func (ec *executionContext) _Invoice_sellerRegNumber(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Invoice_sellerRegNumber,
+		func(ctx context.Context) (any, error) {
+			return obj.SellerRegNumber, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Invoice_sellerRegNumber(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Invoice",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Invoice_sellerAddress(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Invoice_sellerAddress,
+		func(ctx context.Context) (any, error) {
+			return obj.SellerAddress, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Invoice_sellerAddress(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Invoice",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Invoice_sellerCity(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Invoice_sellerCity,
+		func(ctx context.Context) (any, error) {
+			return obj.SellerCity, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Invoice_sellerCity(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Invoice",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Invoice_sellerCounty(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Invoice_sellerCounty,
+		func(ctx context.Context) (any, error) {
+			return obj.SellerCounty, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Invoice_sellerCounty(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Invoice",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Invoice_sellerIsVatPayer(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Invoice_sellerIsVatPayer,
+		func(ctx context.Context) (any, error) {
+			return obj.SellerIsVatPayer, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Invoice_sellerIsVatPayer(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Invoice",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Invoice_sellerBankName(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Invoice_sellerBankName,
+		func(ctx context.Context) (any, error) {
+			return obj.SellerBankName, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Invoice_sellerBankName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Invoice",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Invoice_sellerIban(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Invoice_sellerIban,
+		func(ctx context.Context) (any, error) {
+			return obj.SellerIban, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Invoice_sellerIban(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Invoice",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Invoice_buyerName(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -18566,6 +19056,122 @@ func (ec *executionContext) fieldContext_Invoice_buyerCui(_ context.Context, fie
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Invoice_buyerAddress(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Invoice_buyerAddress,
+		func(ctx context.Context) (any, error) {
+			return obj.BuyerAddress, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Invoice_buyerAddress(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Invoice",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Invoice_buyerCity(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Invoice_buyerCity,
+		func(ctx context.Context) (any, error) {
+			return obj.BuyerCity, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Invoice_buyerCity(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Invoice",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Invoice_buyerCounty(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Invoice_buyerCounty,
+		func(ctx context.Context) (any, error) {
+			return obj.BuyerCounty, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Invoice_buyerCounty(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Invoice",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Invoice_buyerIsVatPayer(ctx context.Context, field graphql.CollectedField, obj *model.Invoice) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Invoice_buyerIsVatPayer,
+		func(ctx context.Context) (any, error) {
+			return obj.BuyerIsVatPayer, nil
+		},
+		nil,
+		ec.marshalOBoolean2ᚖbool,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Invoice_buyerIsVatPayer(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Invoice",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -18903,6 +19509,14 @@ func (ec *executionContext) fieldContext_Invoice_company(_ context.Context, fiel
 				return ec.fieldContext_Company_createdAt(ctx, field)
 			case "anafVerification":
 				return ec.fieldContext_Company_anafVerification(ctx, field)
+			case "regNumber":
+				return ec.fieldContext_Company_regNumber(ctx, field)
+			case "isVatPayer":
+				return ec.fieldContext_Company_isVatPayer(ctx, field)
+			case "bankName":
+				return ec.fieldContext_Company_bankName(ctx, field)
+			case "iban":
+				return ec.fieldContext_Company_iban(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -19330,10 +19944,32 @@ func (ec *executionContext) fieldContext_InvoiceConnection_edges(_ context.Conte
 				return ec.fieldContext_Invoice_sellerCompanyName(ctx, field)
 			case "sellerCui":
 				return ec.fieldContext_Invoice_sellerCui(ctx, field)
+			case "sellerRegNumber":
+				return ec.fieldContext_Invoice_sellerRegNumber(ctx, field)
+			case "sellerAddress":
+				return ec.fieldContext_Invoice_sellerAddress(ctx, field)
+			case "sellerCity":
+				return ec.fieldContext_Invoice_sellerCity(ctx, field)
+			case "sellerCounty":
+				return ec.fieldContext_Invoice_sellerCounty(ctx, field)
+			case "sellerIsVatPayer":
+				return ec.fieldContext_Invoice_sellerIsVatPayer(ctx, field)
+			case "sellerBankName":
+				return ec.fieldContext_Invoice_sellerBankName(ctx, field)
+			case "sellerIban":
+				return ec.fieldContext_Invoice_sellerIban(ctx, field)
 			case "buyerName":
 				return ec.fieldContext_Invoice_buyerName(ctx, field)
 			case "buyerCui":
 				return ec.fieldContext_Invoice_buyerCui(ctx, field)
+			case "buyerAddress":
+				return ec.fieldContext_Invoice_buyerAddress(ctx, field)
+			case "buyerCity":
+				return ec.fieldContext_Invoice_buyerCity(ctx, field)
+			case "buyerCounty":
+				return ec.fieldContext_Invoice_buyerCounty(ctx, field)
+			case "buyerIsVatPayer":
+				return ec.fieldContext_Invoice_buyerIsVatPayer(ctx, field)
 			case "subtotalAmount":
 				return ec.fieldContext_Invoice_subtotalAmount(ctx, field)
 			case "vatRate":
@@ -20368,6 +21004,14 @@ func (ec *executionContext) fieldContext_Mutation_adminUpdateCompanyProfile(ctx 
 				return ec.fieldContext_Company_createdAt(ctx, field)
 			case "anafVerification":
 				return ec.fieldContext_Company_anafVerification(ctx, field)
+			case "regNumber":
+				return ec.fieldContext_Company_regNumber(ctx, field)
+			case "isVatPayer":
+				return ec.fieldContext_Company_isVatPayer(ctx, field)
+			case "bankName":
+				return ec.fieldContext_Company_bankName(ctx, field)
+			case "iban":
+				return ec.fieldContext_Company_iban(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -20459,6 +21103,14 @@ func (ec *executionContext) fieldContext_Mutation_adminUpdateCompanyStatus(ctx c
 				return ec.fieldContext_Company_createdAt(ctx, field)
 			case "anafVerification":
 				return ec.fieldContext_Company_anafVerification(ctx, field)
+			case "regNumber":
+				return ec.fieldContext_Company_regNumber(ctx, field)
+			case "isVatPayer":
+				return ec.fieldContext_Company_isVatPayer(ctx, field)
+			case "bankName":
+				return ec.fieldContext_Company_bankName(ctx, field)
+			case "iban":
+				return ec.fieldContext_Company_iban(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -22598,6 +23250,14 @@ func (ec *executionContext) fieldContext_Mutation_claimCompany(ctx context.Conte
 				return ec.fieldContext_Company_createdAt(ctx, field)
 			case "anafVerification":
 				return ec.fieldContext_Company_anafVerification(ctx, field)
+			case "regNumber":
+				return ec.fieldContext_Company_regNumber(ctx, field)
+			case "isVatPayer":
+				return ec.fieldContext_Company_isVatPayer(ctx, field)
+			case "bankName":
+				return ec.fieldContext_Company_bankName(ctx, field)
+			case "iban":
+				return ec.fieldContext_Company_iban(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -22689,6 +23349,14 @@ func (ec *executionContext) fieldContext_Mutation_updateCompanyProfile(ctx conte
 				return ec.fieldContext_Company_createdAt(ctx, field)
 			case "anafVerification":
 				return ec.fieldContext_Company_anafVerification(ctx, field)
+			case "regNumber":
+				return ec.fieldContext_Company_regNumber(ctx, field)
+			case "isVatPayer":
+				return ec.fieldContext_Company_isVatPayer(ctx, field)
+			case "bankName":
+				return ec.fieldContext_Company_bankName(ctx, field)
+			case "iban":
+				return ec.fieldContext_Company_iban(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -22780,6 +23448,14 @@ func (ec *executionContext) fieldContext_Mutation_uploadCompanyLogo(ctx context.
 				return ec.fieldContext_Company_createdAt(ctx, field)
 			case "anafVerification":
 				return ec.fieldContext_Company_anafVerification(ctx, field)
+			case "regNumber":
+				return ec.fieldContext_Company_regNumber(ctx, field)
+			case "isVatPayer":
+				return ec.fieldContext_Company_isVatPayer(ctx, field)
+			case "bankName":
+				return ec.fieldContext_Company_bankName(ctx, field)
+			case "iban":
+				return ec.fieldContext_Company_iban(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -22971,6 +23647,14 @@ func (ec *executionContext) fieldContext_Mutation_approveCompany(ctx context.Con
 				return ec.fieldContext_Company_createdAt(ctx, field)
 			case "anafVerification":
 				return ec.fieldContext_Company_anafVerification(ctx, field)
+			case "regNumber":
+				return ec.fieldContext_Company_regNumber(ctx, field)
+			case "isVatPayer":
+				return ec.fieldContext_Company_isVatPayer(ctx, field)
+			case "bankName":
+				return ec.fieldContext_Company_bankName(ctx, field)
+			case "iban":
+				return ec.fieldContext_Company_iban(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -23062,6 +23746,14 @@ func (ec *executionContext) fieldContext_Mutation_rejectCompany(ctx context.Cont
 				return ec.fieldContext_Company_createdAt(ctx, field)
 			case "anafVerification":
 				return ec.fieldContext_Company_anafVerification(ctx, field)
+			case "regNumber":
+				return ec.fieldContext_Company_regNumber(ctx, field)
+			case "isVatPayer":
+				return ec.fieldContext_Company_isVatPayer(ctx, field)
+			case "bankName":
+				return ec.fieldContext_Company_bankName(ctx, field)
+			case "iban":
+				return ec.fieldContext_Company_iban(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -23153,6 +23845,14 @@ func (ec *executionContext) fieldContext_Mutation_suspendCompany(ctx context.Con
 				return ec.fieldContext_Company_createdAt(ctx, field)
 			case "anafVerification":
 				return ec.fieldContext_Company_anafVerification(ctx, field)
+			case "regNumber":
+				return ec.fieldContext_Company_regNumber(ctx, field)
+			case "isVatPayer":
+				return ec.fieldContext_Company_isVatPayer(ctx, field)
+			case "bankName":
+				return ec.fieldContext_Company_bankName(ctx, field)
+			case "iban":
+				return ec.fieldContext_Company_iban(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -23303,6 +24003,14 @@ func (ec *executionContext) fieldContext_Mutation_setCompanyCommissionOverride(c
 				return ec.fieldContext_Company_createdAt(ctx, field)
 			case "anafVerification":
 				return ec.fieldContext_Company_anafVerification(ctx, field)
+			case "regNumber":
+				return ec.fieldContext_Company_regNumber(ctx, field)
+			case "isVatPayer":
+				return ec.fieldContext_Company_isVatPayer(ctx, field)
+			case "bankName":
+				return ec.fieldContext_Company_bankName(ctx, field)
+			case "iban":
+				return ec.fieldContext_Company_iban(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -23463,6 +24171,14 @@ func (ec *executionContext) fieldContext_Mutation_verifyCompanyWithANAF(ctx cont
 				return ec.fieldContext_Company_createdAt(ctx, field)
 			case "anafVerification":
 				return ec.fieldContext_Company_anafVerification(ctx, field)
+			case "regNumber":
+				return ec.fieldContext_Company_regNumber(ctx, field)
+			case "isVatPayer":
+				return ec.fieldContext_Company_isVatPayer(ctx, field)
+			case "bankName":
+				return ec.fieldContext_Company_bankName(ctx, field)
+			case "iban":
+				return ec.fieldContext_Company_iban(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -23475,6 +24191,47 @@ func (ec *executionContext) fieldContext_Mutation_verifyCompanyWithANAF(ctx cont
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_verifyCompanyWithANAF_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_sendContactMessage(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_sendContactMessage,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().SendContactMessage(ctx, fc.Args["input"].(model.ContactMessageInput))
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_sendContactMessage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_sendContactMessage_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -23585,10 +24342,32 @@ func (ec *executionContext) fieldContext_Mutation_generateBookingInvoice(ctx con
 				return ec.fieldContext_Invoice_sellerCompanyName(ctx, field)
 			case "sellerCui":
 				return ec.fieldContext_Invoice_sellerCui(ctx, field)
+			case "sellerRegNumber":
+				return ec.fieldContext_Invoice_sellerRegNumber(ctx, field)
+			case "sellerAddress":
+				return ec.fieldContext_Invoice_sellerAddress(ctx, field)
+			case "sellerCity":
+				return ec.fieldContext_Invoice_sellerCity(ctx, field)
+			case "sellerCounty":
+				return ec.fieldContext_Invoice_sellerCounty(ctx, field)
+			case "sellerIsVatPayer":
+				return ec.fieldContext_Invoice_sellerIsVatPayer(ctx, field)
+			case "sellerBankName":
+				return ec.fieldContext_Invoice_sellerBankName(ctx, field)
+			case "sellerIban":
+				return ec.fieldContext_Invoice_sellerIban(ctx, field)
 			case "buyerName":
 				return ec.fieldContext_Invoice_buyerName(ctx, field)
 			case "buyerCui":
 				return ec.fieldContext_Invoice_buyerCui(ctx, field)
+			case "buyerAddress":
+				return ec.fieldContext_Invoice_buyerAddress(ctx, field)
+			case "buyerCity":
+				return ec.fieldContext_Invoice_buyerCity(ctx, field)
+			case "buyerCounty":
+				return ec.fieldContext_Invoice_buyerCounty(ctx, field)
+			case "buyerIsVatPayer":
+				return ec.fieldContext_Invoice_buyerIsVatPayer(ctx, field)
 			case "subtotalAmount":
 				return ec.fieldContext_Invoice_subtotalAmount(ctx, field)
 			case "vatRate":
@@ -23672,10 +24451,32 @@ func (ec *executionContext) fieldContext_Mutation_cancelInvoice(ctx context.Cont
 				return ec.fieldContext_Invoice_sellerCompanyName(ctx, field)
 			case "sellerCui":
 				return ec.fieldContext_Invoice_sellerCui(ctx, field)
+			case "sellerRegNumber":
+				return ec.fieldContext_Invoice_sellerRegNumber(ctx, field)
+			case "sellerAddress":
+				return ec.fieldContext_Invoice_sellerAddress(ctx, field)
+			case "sellerCity":
+				return ec.fieldContext_Invoice_sellerCity(ctx, field)
+			case "sellerCounty":
+				return ec.fieldContext_Invoice_sellerCounty(ctx, field)
+			case "sellerIsVatPayer":
+				return ec.fieldContext_Invoice_sellerIsVatPayer(ctx, field)
+			case "sellerBankName":
+				return ec.fieldContext_Invoice_sellerBankName(ctx, field)
+			case "sellerIban":
+				return ec.fieldContext_Invoice_sellerIban(ctx, field)
 			case "buyerName":
 				return ec.fieldContext_Invoice_buyerName(ctx, field)
 			case "buyerCui":
 				return ec.fieldContext_Invoice_buyerCui(ctx, field)
+			case "buyerAddress":
+				return ec.fieldContext_Invoice_buyerAddress(ctx, field)
+			case "buyerCity":
+				return ec.fieldContext_Invoice_buyerCity(ctx, field)
+			case "buyerCounty":
+				return ec.fieldContext_Invoice_buyerCounty(ctx, field)
+			case "buyerIsVatPayer":
+				return ec.fieldContext_Invoice_buyerIsVatPayer(ctx, field)
 			case "subtotalAmount":
 				return ec.fieldContext_Invoice_subtotalAmount(ctx, field)
 			case "vatRate":
@@ -23759,10 +24560,32 @@ func (ec *executionContext) fieldContext_Mutation_transmitInvoiceToEFactura(ctx 
 				return ec.fieldContext_Invoice_sellerCompanyName(ctx, field)
 			case "sellerCui":
 				return ec.fieldContext_Invoice_sellerCui(ctx, field)
+			case "sellerRegNumber":
+				return ec.fieldContext_Invoice_sellerRegNumber(ctx, field)
+			case "sellerAddress":
+				return ec.fieldContext_Invoice_sellerAddress(ctx, field)
+			case "sellerCity":
+				return ec.fieldContext_Invoice_sellerCity(ctx, field)
+			case "sellerCounty":
+				return ec.fieldContext_Invoice_sellerCounty(ctx, field)
+			case "sellerIsVatPayer":
+				return ec.fieldContext_Invoice_sellerIsVatPayer(ctx, field)
+			case "sellerBankName":
+				return ec.fieldContext_Invoice_sellerBankName(ctx, field)
+			case "sellerIban":
+				return ec.fieldContext_Invoice_sellerIban(ctx, field)
 			case "buyerName":
 				return ec.fieldContext_Invoice_buyerName(ctx, field)
 			case "buyerCui":
 				return ec.fieldContext_Invoice_buyerCui(ctx, field)
+			case "buyerAddress":
+				return ec.fieldContext_Invoice_buyerAddress(ctx, field)
+			case "buyerCity":
+				return ec.fieldContext_Invoice_buyerCity(ctx, field)
+			case "buyerCounty":
+				return ec.fieldContext_Invoice_buyerCounty(ctx, field)
+			case "buyerIsVatPayer":
+				return ec.fieldContext_Invoice_buyerIsVatPayer(ctx, field)
 			case "subtotalAmount":
 				return ec.fieldContext_Invoice_subtotalAmount(ctx, field)
 			case "vatRate":
@@ -23846,10 +24669,32 @@ func (ec *executionContext) fieldContext_Mutation_generateCommissionInvoice(ctx 
 				return ec.fieldContext_Invoice_sellerCompanyName(ctx, field)
 			case "sellerCui":
 				return ec.fieldContext_Invoice_sellerCui(ctx, field)
+			case "sellerRegNumber":
+				return ec.fieldContext_Invoice_sellerRegNumber(ctx, field)
+			case "sellerAddress":
+				return ec.fieldContext_Invoice_sellerAddress(ctx, field)
+			case "sellerCity":
+				return ec.fieldContext_Invoice_sellerCity(ctx, field)
+			case "sellerCounty":
+				return ec.fieldContext_Invoice_sellerCounty(ctx, field)
+			case "sellerIsVatPayer":
+				return ec.fieldContext_Invoice_sellerIsVatPayer(ctx, field)
+			case "sellerBankName":
+				return ec.fieldContext_Invoice_sellerBankName(ctx, field)
+			case "sellerIban":
+				return ec.fieldContext_Invoice_sellerIban(ctx, field)
 			case "buyerName":
 				return ec.fieldContext_Invoice_buyerName(ctx, field)
 			case "buyerCui":
 				return ec.fieldContext_Invoice_buyerCui(ctx, field)
+			case "buyerAddress":
+				return ec.fieldContext_Invoice_buyerAddress(ctx, field)
+			case "buyerCity":
+				return ec.fieldContext_Invoice_buyerCity(ctx, field)
+			case "buyerCounty":
+				return ec.fieldContext_Invoice_buyerCounty(ctx, field)
+			case "buyerIsVatPayer":
+				return ec.fieldContext_Invoice_buyerIsVatPayer(ctx, field)
 			case "subtotalAmount":
 				return ec.fieldContext_Invoice_subtotalAmount(ctx, field)
 			case "vatRate":
@@ -23933,10 +24778,32 @@ func (ec *executionContext) fieldContext_Mutation_generateCreditNote(ctx context
 				return ec.fieldContext_Invoice_sellerCompanyName(ctx, field)
 			case "sellerCui":
 				return ec.fieldContext_Invoice_sellerCui(ctx, field)
+			case "sellerRegNumber":
+				return ec.fieldContext_Invoice_sellerRegNumber(ctx, field)
+			case "sellerAddress":
+				return ec.fieldContext_Invoice_sellerAddress(ctx, field)
+			case "sellerCity":
+				return ec.fieldContext_Invoice_sellerCity(ctx, field)
+			case "sellerCounty":
+				return ec.fieldContext_Invoice_sellerCounty(ctx, field)
+			case "sellerIsVatPayer":
+				return ec.fieldContext_Invoice_sellerIsVatPayer(ctx, field)
+			case "sellerBankName":
+				return ec.fieldContext_Invoice_sellerBankName(ctx, field)
+			case "sellerIban":
+				return ec.fieldContext_Invoice_sellerIban(ctx, field)
 			case "buyerName":
 				return ec.fieldContext_Invoice_buyerName(ctx, field)
 			case "buyerCui":
 				return ec.fieldContext_Invoice_buyerCui(ctx, field)
+			case "buyerAddress":
+				return ec.fieldContext_Invoice_buyerAddress(ctx, field)
+			case "buyerCity":
+				return ec.fieldContext_Invoice_buyerCity(ctx, field)
+			case "buyerCounty":
+				return ec.fieldContext_Invoice_buyerCounty(ctx, field)
+			case "buyerIsVatPayer":
+				return ec.fieldContext_Invoice_buyerIsVatPayer(ctx, field)
 			case "subtotalAmount":
 				return ec.fieldContext_Invoice_subtotalAmount(ctx, field)
 			case "vatRate":
@@ -24020,10 +24887,32 @@ func (ec *executionContext) fieldContext_Mutation_refreshEFacturaStatus(ctx cont
 				return ec.fieldContext_Invoice_sellerCompanyName(ctx, field)
 			case "sellerCui":
 				return ec.fieldContext_Invoice_sellerCui(ctx, field)
+			case "sellerRegNumber":
+				return ec.fieldContext_Invoice_sellerRegNumber(ctx, field)
+			case "sellerAddress":
+				return ec.fieldContext_Invoice_sellerAddress(ctx, field)
+			case "sellerCity":
+				return ec.fieldContext_Invoice_sellerCity(ctx, field)
+			case "sellerCounty":
+				return ec.fieldContext_Invoice_sellerCounty(ctx, field)
+			case "sellerIsVatPayer":
+				return ec.fieldContext_Invoice_sellerIsVatPayer(ctx, field)
+			case "sellerBankName":
+				return ec.fieldContext_Invoice_sellerBankName(ctx, field)
+			case "sellerIban":
+				return ec.fieldContext_Invoice_sellerIban(ctx, field)
 			case "buyerName":
 				return ec.fieldContext_Invoice_buyerName(ctx, field)
 			case "buyerCui":
 				return ec.fieldContext_Invoice_buyerCui(ctx, field)
+			case "buyerAddress":
+				return ec.fieldContext_Invoice_buyerAddress(ctx, field)
+			case "buyerCity":
+				return ec.fieldContext_Invoice_buyerCity(ctx, field)
+			case "buyerCounty":
+				return ec.fieldContext_Invoice_buyerCounty(ctx, field)
+			case "buyerIsVatPayer":
+				return ec.fieldContext_Invoice_buyerIsVatPayer(ctx, field)
 			case "subtotalAmount":
 				return ec.fieldContext_Invoice_subtotalAmount(ctx, field)
 			case "vatRate":
@@ -24107,10 +24996,32 @@ func (ec *executionContext) fieldContext_Mutation_markInvoiceAsPaid(ctx context.
 				return ec.fieldContext_Invoice_sellerCompanyName(ctx, field)
 			case "sellerCui":
 				return ec.fieldContext_Invoice_sellerCui(ctx, field)
+			case "sellerRegNumber":
+				return ec.fieldContext_Invoice_sellerRegNumber(ctx, field)
+			case "sellerAddress":
+				return ec.fieldContext_Invoice_sellerAddress(ctx, field)
+			case "sellerCity":
+				return ec.fieldContext_Invoice_sellerCity(ctx, field)
+			case "sellerCounty":
+				return ec.fieldContext_Invoice_sellerCounty(ctx, field)
+			case "sellerIsVatPayer":
+				return ec.fieldContext_Invoice_sellerIsVatPayer(ctx, field)
+			case "sellerBankName":
+				return ec.fieldContext_Invoice_sellerBankName(ctx, field)
+			case "sellerIban":
+				return ec.fieldContext_Invoice_sellerIban(ctx, field)
 			case "buyerName":
 				return ec.fieldContext_Invoice_buyerName(ctx, field)
 			case "buyerCui":
 				return ec.fieldContext_Invoice_buyerCui(ctx, field)
+			case "buyerAddress":
+				return ec.fieldContext_Invoice_buyerAddress(ctx, field)
+			case "buyerCity":
+				return ec.fieldContext_Invoice_buyerCity(ctx, field)
+			case "buyerCounty":
+				return ec.fieldContext_Invoice_buyerCounty(ctx, field)
+			case "buyerIsVatPayer":
+				return ec.fieldContext_Invoice_buyerIsVatPayer(ctx, field)
 			case "subtotalAmount":
 				return ec.fieldContext_Invoice_subtotalAmount(ctx, field)
 			case "vatRate":
@@ -32783,6 +33694,14 @@ func (ec *executionContext) fieldContext_Query_pendingCompanyApplications(_ cont
 				return ec.fieldContext_Company_createdAt(ctx, field)
 			case "anafVerification":
 				return ec.fieldContext_Company_anafVerification(ctx, field)
+			case "regNumber":
+				return ec.fieldContext_Company_regNumber(ctx, field)
+			case "isVatPayer":
+				return ec.fieldContext_Company_isVatPayer(ctx, field)
+			case "bankName":
+				return ec.fieldContext_Company_bankName(ctx, field)
+			case "iban":
+				return ec.fieldContext_Company_iban(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -34611,6 +35530,14 @@ func (ec *executionContext) fieldContext_Query_myCompany(_ context.Context, fiel
 				return ec.fieldContext_Company_createdAt(ctx, field)
 			case "anafVerification":
 				return ec.fieldContext_Company_anafVerification(ctx, field)
+			case "regNumber":
+				return ec.fieldContext_Company_regNumber(ctx, field)
+			case "isVatPayer":
+				return ec.fieldContext_Company_isVatPayer(ctx, field)
+			case "bankName":
+				return ec.fieldContext_Company_bankName(ctx, field)
+			case "iban":
+				return ec.fieldContext_Company_iban(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -34820,6 +35747,14 @@ func (ec *executionContext) fieldContext_Query_company(ctx context.Context, fiel
 				return ec.fieldContext_Company_createdAt(ctx, field)
 			case "anafVerification":
 				return ec.fieldContext_Company_anafVerification(ctx, field)
+			case "regNumber":
+				return ec.fieldContext_Company_regNumber(ctx, field)
+			case "isVatPayer":
+				return ec.fieldContext_Company_isVatPayer(ctx, field)
+			case "bankName":
+				return ec.fieldContext_Company_bankName(ctx, field)
+			case "iban":
+				return ec.fieldContext_Company_iban(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -35112,10 +36047,32 @@ func (ec *executionContext) fieldContext_Query_invoiceDetail(ctx context.Context
 				return ec.fieldContext_Invoice_sellerCompanyName(ctx, field)
 			case "sellerCui":
 				return ec.fieldContext_Invoice_sellerCui(ctx, field)
+			case "sellerRegNumber":
+				return ec.fieldContext_Invoice_sellerRegNumber(ctx, field)
+			case "sellerAddress":
+				return ec.fieldContext_Invoice_sellerAddress(ctx, field)
+			case "sellerCity":
+				return ec.fieldContext_Invoice_sellerCity(ctx, field)
+			case "sellerCounty":
+				return ec.fieldContext_Invoice_sellerCounty(ctx, field)
+			case "sellerIsVatPayer":
+				return ec.fieldContext_Invoice_sellerIsVatPayer(ctx, field)
+			case "sellerBankName":
+				return ec.fieldContext_Invoice_sellerBankName(ctx, field)
+			case "sellerIban":
+				return ec.fieldContext_Invoice_sellerIban(ctx, field)
 			case "buyerName":
 				return ec.fieldContext_Invoice_buyerName(ctx, field)
 			case "buyerCui":
 				return ec.fieldContext_Invoice_buyerCui(ctx, field)
+			case "buyerAddress":
+				return ec.fieldContext_Invoice_buyerAddress(ctx, field)
+			case "buyerCity":
+				return ec.fieldContext_Invoice_buyerCity(ctx, field)
+			case "buyerCounty":
+				return ec.fieldContext_Invoice_buyerCounty(ctx, field)
+			case "buyerIsVatPayer":
+				return ec.fieldContext_Invoice_buyerIsVatPayer(ctx, field)
 			case "subtotalAmount":
 				return ec.fieldContext_Invoice_subtotalAmount(ctx, field)
 			case "vatRate":
@@ -35199,10 +36156,32 @@ func (ec *executionContext) fieldContext_Query_clientInvoiceForBooking(ctx conte
 				return ec.fieldContext_Invoice_sellerCompanyName(ctx, field)
 			case "sellerCui":
 				return ec.fieldContext_Invoice_sellerCui(ctx, field)
+			case "sellerRegNumber":
+				return ec.fieldContext_Invoice_sellerRegNumber(ctx, field)
+			case "sellerAddress":
+				return ec.fieldContext_Invoice_sellerAddress(ctx, field)
+			case "sellerCity":
+				return ec.fieldContext_Invoice_sellerCity(ctx, field)
+			case "sellerCounty":
+				return ec.fieldContext_Invoice_sellerCounty(ctx, field)
+			case "sellerIsVatPayer":
+				return ec.fieldContext_Invoice_sellerIsVatPayer(ctx, field)
+			case "sellerBankName":
+				return ec.fieldContext_Invoice_sellerBankName(ctx, field)
+			case "sellerIban":
+				return ec.fieldContext_Invoice_sellerIban(ctx, field)
 			case "buyerName":
 				return ec.fieldContext_Invoice_buyerName(ctx, field)
 			case "buyerCui":
 				return ec.fieldContext_Invoice_buyerCui(ctx, field)
+			case "buyerAddress":
+				return ec.fieldContext_Invoice_buyerAddress(ctx, field)
+			case "buyerCity":
+				return ec.fieldContext_Invoice_buyerCity(ctx, field)
+			case "buyerCounty":
+				return ec.fieldContext_Invoice_buyerCounty(ctx, field)
+			case "buyerIsVatPayer":
+				return ec.fieldContext_Invoice_buyerIsVatPayer(ctx, field)
 			case "subtotalAmount":
 				return ec.fieldContext_Invoice_subtotalAmount(ctx, field)
 			case "vatRate":
@@ -35384,10 +36363,32 @@ func (ec *executionContext) fieldContext_Query_companyInvoiceForBooking(ctx cont
 				return ec.fieldContext_Invoice_sellerCompanyName(ctx, field)
 			case "sellerCui":
 				return ec.fieldContext_Invoice_sellerCui(ctx, field)
+			case "sellerRegNumber":
+				return ec.fieldContext_Invoice_sellerRegNumber(ctx, field)
+			case "sellerAddress":
+				return ec.fieldContext_Invoice_sellerAddress(ctx, field)
+			case "sellerCity":
+				return ec.fieldContext_Invoice_sellerCity(ctx, field)
+			case "sellerCounty":
+				return ec.fieldContext_Invoice_sellerCounty(ctx, field)
+			case "sellerIsVatPayer":
+				return ec.fieldContext_Invoice_sellerIsVatPayer(ctx, field)
+			case "sellerBankName":
+				return ec.fieldContext_Invoice_sellerBankName(ctx, field)
+			case "sellerIban":
+				return ec.fieldContext_Invoice_sellerIban(ctx, field)
 			case "buyerName":
 				return ec.fieldContext_Invoice_buyerName(ctx, field)
 			case "buyerCui":
 				return ec.fieldContext_Invoice_buyerCui(ctx, field)
+			case "buyerAddress":
+				return ec.fieldContext_Invoice_buyerAddress(ctx, field)
+			case "buyerCity":
+				return ec.fieldContext_Invoice_buyerCity(ctx, field)
+			case "buyerCounty":
+				return ec.fieldContext_Invoice_buyerCounty(ctx, field)
+			case "buyerIsVatPayer":
+				return ec.fieldContext_Invoice_buyerIsVatPayer(ctx, field)
 			case "subtotalAmount":
 				return ec.fieldContext_Invoice_subtotalAmount(ctx, field)
 			case "vatRate":
@@ -42052,6 +43053,14 @@ func (ec *executionContext) fieldContext_ServiceSubscription_company(_ context.C
 				return ec.fieldContext_Company_createdAt(ctx, field)
 			case "anafVerification":
 				return ec.fieldContext_Company_anafVerification(ctx, field)
+			case "regNumber":
+				return ec.fieldContext_Company_regNumber(ctx, field)
+			case "isVatPayer":
+				return ec.fieldContext_Company_isVatPayer(ctx, field)
+			case "bankName":
+				return ec.fieldContext_Company_bankName(ctx, field)
+			case "iban":
+				return ec.fieldContext_Company_iban(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -44280,6 +45289,14 @@ func (ec *executionContext) fieldContext_SubscriptionWorkerSuggestion_company(_ 
 				return ec.fieldContext_Company_createdAt(ctx, field)
 			case "anafVerification":
 				return ec.fieldContext_Company_anafVerification(ctx, field)
+			case "regNumber":
+				return ec.fieldContext_Company_regNumber(ctx, field)
+			case "isVatPayer":
+				return ec.fieldContext_Company_isVatPayer(ctx, field)
+			case "bankName":
+				return ec.fieldContext_Company_bankName(ctx, field)
+			case "iban":
+				return ec.fieldContext_Company_iban(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -46326,6 +47343,14 @@ func (ec *executionContext) fieldContext_WorkerProfile_company(_ context.Context
 				return ec.fieldContext_Company_createdAt(ctx, field)
 			case "anafVerification":
 				return ec.fieldContext_Company_anafVerification(ctx, field)
+			case "regNumber":
+				return ec.fieldContext_Company_regNumber(ctx, field)
+			case "isVatPayer":
+				return ec.fieldContext_Company_isVatPayer(ctx, field)
+			case "bankName":
+				return ec.fieldContext_Company_bankName(ctx, field)
+			case "iban":
+				return ec.fieldContext_Company_iban(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -47101,6 +48126,14 @@ func (ec *executionContext) fieldContext_WorkerSuggestion_company(_ context.Cont
 				return ec.fieldContext_Company_createdAt(ctx, field)
 			case "anafVerification":
 				return ec.fieldContext_Company_anafVerification(ctx, field)
+			case "regNumber":
+				return ec.fieldContext_Company_regNumber(ctx, field)
+			case "isVatPayer":
+				return ec.fieldContext_Company_isVatPayer(ctx, field)
+			case "bankName":
+				return ec.fieldContext_Company_bankName(ctx, field)
+			case "iban":
+				return ec.fieldContext_Company_iban(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
 		},
@@ -49124,7 +50157,7 @@ func (ec *executionContext) unmarshalInputCompanyApplicationInput(ctx context.Co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"companyName", "cui", "companyType", "legalRepresentative", "contactEmail", "contactPhone", "address", "city", "county", "description", "categoryIds"}
+	fieldsInOrder := [...]string{"companyName", "cui", "companyType", "legalRepresentative", "contactEmail", "contactPhone", "address", "city", "county", "description", "categoryIds", "regNumber", "isVatPayer", "bankName", "iban"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -49208,6 +50241,82 @@ func (ec *executionContext) unmarshalInputCompanyApplicationInput(ctx context.Co
 				return it, err
 			}
 			it.CategoryIds = data
+		case "regNumber":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("regNumber"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RegNumber = data
+		case "isVatPayer":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isVatPayer"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IsVatPayer = data
+		case "bankName":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bankName"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.BankName = data
+		case "iban":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("iban"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Iban = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputContactMessageInput(ctx context.Context, obj any) (model.ContactMessageInput, error) {
+	var it model.ContactMessageInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "email", "subject", "message"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "email":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Email = data
+		case "subject":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("subject"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Subject = data
+		case "message":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("message"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Message = data
 		}
 	}
 
@@ -50313,7 +51422,7 @@ func (ec *executionContext) unmarshalInputUpdateCompanyInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"description", "contactPhone", "contactEmail", "maxServiceRadiusKm", "workSchedule"}
+	fieldsInOrder := [...]string{"description", "contactPhone", "contactEmail", "maxServiceRadiusKm", "workSchedule", "regNumber", "isVatPayer", "bankName", "iban"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -50355,6 +51464,34 @@ func (ec *executionContext) unmarshalInputUpdateCompanyInput(ctx context.Context
 				return it, err
 			}
 			it.WorkSchedule = data
+		case "regNumber":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("regNumber"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RegNumber = data
+		case "isVatPayer":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isVatPayer"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IsVatPayer = data
+		case "bankName":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bankName"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.BankName = data
+		case "iban":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("iban"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Iban = data
 		}
 	}
 
@@ -52051,6 +53188,17 @@ func (ec *executionContext) _Company(ctx context.Context, sel ast.SelectionSet, 
 			}
 		case "anafVerification":
 			out.Values[i] = ec._Company_anafVerification(ctx, field, obj)
+		case "regNumber":
+			out.Values[i] = ec._Company_regNumber(ctx, field, obj)
+		case "isVatPayer":
+			out.Values[i] = ec._Company_isVatPayer(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "bankName":
+			out.Values[i] = ec._Company_bankName(ctx, field, obj)
+		case "iban":
+			out.Values[i] = ec._Company_iban(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -52972,6 +54120,32 @@ func (ec *executionContext) _Invoice(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "sellerRegNumber":
+			out.Values[i] = ec._Invoice_sellerRegNumber(ctx, field, obj)
+		case "sellerAddress":
+			out.Values[i] = ec._Invoice_sellerAddress(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "sellerCity":
+			out.Values[i] = ec._Invoice_sellerCity(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "sellerCounty":
+			out.Values[i] = ec._Invoice_sellerCounty(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "sellerIsVatPayer":
+			out.Values[i] = ec._Invoice_sellerIsVatPayer(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "sellerBankName":
+			out.Values[i] = ec._Invoice_sellerBankName(ctx, field, obj)
+		case "sellerIban":
+			out.Values[i] = ec._Invoice_sellerIban(ctx, field, obj)
 		case "buyerName":
 			out.Values[i] = ec._Invoice_buyerName(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -52979,6 +54153,14 @@ func (ec *executionContext) _Invoice(ctx context.Context, sel ast.SelectionSet, 
 			}
 		case "buyerCui":
 			out.Values[i] = ec._Invoice_buyerCui(ctx, field, obj)
+		case "buyerAddress":
+			out.Values[i] = ec._Invoice_buyerAddress(ctx, field, obj)
+		case "buyerCity":
+			out.Values[i] = ec._Invoice_buyerCity(ctx, field, obj)
+		case "buyerCounty":
+			out.Values[i] = ec._Invoice_buyerCounty(ctx, field, obj)
+		case "buyerIsVatPayer":
+			out.Values[i] = ec._Invoice_buyerIsVatPayer(ctx, field, obj)
 		case "subtotalAmount":
 			out.Values[i] = ec._Invoice_subtotalAmount(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -53677,6 +54859,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "verifyCompanyWithANAF":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_verifyCompanyWithANAF(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "sendContactMessage":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_sendContactMessage(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -61736,6 +62925,11 @@ func (ec *executionContext) unmarshalNConnectOnboardingStatus2go2fixᚑbackend�
 
 func (ec *executionContext) marshalNConnectOnboardingStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐConnectOnboardingStatus(ctx context.Context, sel ast.SelectionSet, v model.ConnectOnboardingStatus) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) unmarshalNContactMessageInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐContactMessageInput(ctx context.Context, v any) (model.ContactMessageInput, error) {
+	res, err := ec.unmarshalInputContactMessageInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNCreateBookingInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCreateBookingInput(ctx context.Context, v any) (model.CreateBookingInput, error) {

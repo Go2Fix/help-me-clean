@@ -154,6 +154,9 @@ func (r *mutationResolver) CreateSubscription(ctx context.Context, input model.C
 		return nil, fmt.Errorf("failed to create subscription: %w", err)
 	}
 
+	// Notify client that subscription is confirmed (non-blocking).
+	r.dispatchSubscriptionConfirmed(sub)
+
 	return r.fullSubscription(ctx, sub)
 }
 
@@ -230,6 +233,9 @@ func (r *mutationResolver) CancelSubscription(ctx context.Context, id string, re
 	if err != nil {
 		return nil, err
 	}
+
+	// Notify client that subscription is cancelled (non-blocking).
+	r.dispatchSubscriptionCancelled(updated, reasonText)
 
 	return r.fullSubscription(ctx, updated)
 }
