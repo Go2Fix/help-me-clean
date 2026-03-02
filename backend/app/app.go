@@ -84,10 +84,13 @@ func NewHandler(ctx context.Context) (http.Handler, func(), error) {
 	paymentSvc := payment.NewService(queries)
 	invoiceSvc := invoice.NewService(queries)
 
-	// Notification service — email channel via Resend, more channels (Slack, push) added here later.
+	// Notification service — register all channels here; each returns nil if unconfigured.
 	var notifChannels []notification.Channel
 	if emailCh := notification.NewEmailChannel(); emailCh != nil {
 		notifChannels = append(notifChannels, emailCh)
+	}
+	if slackCh := notification.NewSlackChannel(); slackCh != nil {
+		notifChannels = append(notifChannels, slackCh)
 	}
 	notifSvc := notification.NewService(notifChannels...)
 
