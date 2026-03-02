@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { downloadClientInvoicePDF } from '@/components/invoice/ClientInvoicePDF';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation } from '@apollo/client';
 import {
@@ -1029,17 +1030,39 @@ export default function OrderDetailPage() {
                     {invoiceExpanded ? 'Ascunde detalii' : 'Vezi factura'}
                     <ChevronDown className={`h-3.5 w-3.5 transition-transform ${invoiceExpanded ? 'rotate-180' : ''}`} />
                   </button>
-                  {invoice.downloadUrl && (
-                    <a
-                      href={invoice.downloadUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700"
-                    >
-                      <Download className="h-3.5 w-3.5" />
-                      PDF
-                    </a>
-                  )}
+                  <button
+                    onClick={() => downloadClientInvoicePDF({
+                      invoiceNumber: invoice.invoiceNumber,
+                      issuedAt: invoice.issuedAt,
+                      dueDate: invoice.dueDate,
+                      sellerCompanyName: invoice.sellerCompanyName,
+                      sellerCui: invoice.sellerCui,
+                      sellerRegNumber: invoice.sellerRegNumber,
+                      sellerAddress: invoice.sellerAddress,
+                      sellerCity: invoice.sellerCity,
+                      sellerCounty: invoice.sellerCounty,
+                      sellerIsVatPayer: invoice.sellerIsVatPayer,
+                      sellerBankName: invoice.sellerBankName,
+                      sellerIban: invoice.sellerIban,
+                      buyerName: invoice.buyerName,
+                      buyerCui: invoice.buyerCui,
+                      buyerAddress: invoice.buyerAddress,
+                      buyerCity: invoice.buyerCity,
+                      buyerCounty: invoice.buyerCounty,
+                      buyerIsVatPayer: invoice.buyerIsVatPayer,
+                      subtotalAmount: invoice.subtotalAmount,
+                      vatRate: invoice.vatRate,
+                      vatAmount: invoice.vatAmount,
+                      totalAmount: invoice.totalAmount,
+                      currency: invoice.currency,
+                      notes: invoice.notes,
+                      lineItems: invoice.lineItems ?? [],
+                    })}
+                    className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 cursor-pointer"
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                    PDF
+                  </button>
                   <Link
                     to="/firma/facturi"
                     className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700"

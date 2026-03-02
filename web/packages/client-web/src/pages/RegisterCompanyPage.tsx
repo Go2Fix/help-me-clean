@@ -50,7 +50,12 @@ export default function RegisterCompanyPage() {
     city: '',
     county: '',
     description: '',
+    // Fiscal details for invoice generation
+    regNumber: '',
+    bankName: '',
+    iban: '',
   });
+  const [isVatPayer, setIsVatPayer] = useState(false);
 
   const updateField = (field: string, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -101,6 +106,7 @@ export default function RegisterCompanyPage() {
         variables: {
           input: {
             ...form,
+            isVatPayer,
             ...(selectedCategoryIds.length > 0 ? { categoryIds: selectedCategoryIds } : {}),
           },
         },
@@ -530,6 +536,51 @@ export default function RegisterCompanyPage() {
                     rows={3}
                     className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
                     placeholder="Descrierea firmei și a serviciilor oferite..."
+                  />
+                </div>
+              </div>
+
+              {/* ── Fiscal Details ────────────────────────────────────────── */}
+              <div className="space-y-4">
+                <div>
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Date fiscale</p>
+                  <p className="text-xs text-gray-500 mt-1">Necesare pentru emiterea facturilor către clienți. Pot fi completate și ulterior.</p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Input
+                    label="Nr. Registrul Comerțului (J)"
+                    placeholder="Ex: J40/1234/2020"
+                    value={form.regNumber}
+                    onChange={(e) => updateField('regNumber', e.target.value)}
+                  />
+                  <div className="space-y-1.5">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Plătitor TVA
+                    </label>
+                    <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-gray-200 bg-white">
+                      <input
+                        type="checkbox"
+                        id="isVatPayer"
+                        checked={isVatPayer}
+                        onChange={(e) => setIsVatPayer(e.target.checked)}
+                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary/30"
+                      />
+                      <label htmlFor="isVatPayer" className="text-sm text-gray-700 cursor-pointer select-none">
+                        Firma este plătitoare de TVA
+                      </label>
+                    </div>
+                  </div>
+                  <Input
+                    label="Bancă"
+                    placeholder="Ex: BCR, BRD, ING..."
+                    value={form.bankName}
+                    onChange={(e) => updateField('bankName', e.target.value)}
+                  />
+                  <Input
+                    label="IBAN"
+                    placeholder="RO49AAAA1B31007593840000"
+                    value={form.iban}
+                    onChange={(e) => updateField('iban', e.target.value)}
                   />
                 </div>
               </div>

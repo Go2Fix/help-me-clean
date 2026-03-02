@@ -1592,8 +1592,19 @@ export const COMPANY_INVOICE_FOR_BOOKING = gql`
       status
       sellerCompanyName
       sellerCui
+      sellerRegNumber
+      sellerAddress
+      sellerCity
+      sellerCounty
+      sellerIsVatPayer
+      sellerBankName
+      sellerIban
       buyerName
       buyerCui
+      buyerAddress
+      buyerCity
+      buyerCounty
+      buyerIsVatPayer
       subtotalAmount
       vatRate
       vatAmount
@@ -4576,6 +4587,14 @@ export const PRICE_AUDIT_LOG = gql`
       }
       totalCount
     }
+  }
+`;
+
+// ─── Contact ─────────────────────────────────────────────────────────────────
+
+export const SEND_CONTACT_MESSAGE = gql`
+  mutation SendContactMessage($input: ContactMessageInput!) {
+    sendContactMessage(input: $input)
   }
 `;
 

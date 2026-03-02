@@ -31,6 +31,7 @@ import {
 import { cn } from '@go2fix/shared';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
+import AppComingSoonSection from '@/components/common/AppComingSoonSection';
 import { SERVICE_CATEGORIES } from '@/graphql/operations';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -802,6 +803,9 @@ export default function HomePage() {
           </motion.div>
         </div>
       </section>
+
+      {/* ── App Coming Soon ───────────────────────────────────────────────── */}
+      <AppComingSoonSection />
 
       {/* ── For Companies ────────────────────────────────────────────────────── */}
       {(authLoading || (!isClient && !isCompanyOrWorker)) && (

@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useMutation } from '@apollo/client';
 import SEOHead from '@/components/seo/SEOHead';
-import { Mail, Phone, MapPin, Clock, ChevronDown } from 'lucide-react';
+import { Mail, Phone, MapPin, Clock, ChevronDown, CheckCircle, AlertCircle } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { ROUTE_MAP } from '@/i18n/routes';
+import { SEND_CONTACT_MESSAGE } from '@/graphql/operations';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const fadeUpItem = {
@@ -52,14 +54,30 @@ export default function ContactPage() {
     message: '',
   });
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  function handleSubmit(e: React.FormEvent) {
+  const [sendContactMessage, { loading: sending }] = useMutation(SEND_CONTACT_MESSAGE);
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const body = encodeURIComponent(
-      `Nume: ${formData.name}\nEmail: ${formData.email}\n\n${formData.message}`,
-    );
-    const subject = encodeURIComponent(`[Go2Fix] ${formData.subject}`);
-    window.location.href = `mailto:contact@go2fix.ro?subject=${subject}&body=${body}`;
+    setSubmitError(null);
+    try {
+      await sendContactMessage({
+        variables: {
+          input: {
+            name: formData.name,
+            email: formData.email,
+            subject: formData.subject,
+            message: formData.message,
+          },
+        },
+      });
+      setSubmitted(true);
+      setFormData({ name: '', email: '', subject: SUBJECTS[0] ?? '', message: '' });
+    } catch {
+      setSubmitError('A apărut o eroare. Te rugăm să încerci din nou.');
+    }
   }
 
   return (
@@ -164,75 +182,105 @@ export default function ContactPage() {
               transition={{ duration: 0.45, delay: 0.2 }}
             >
               <h2 className="text-2xl font-black text-gray-900 mb-7">{t('form.title')}</h2>
-              <form onSubmit={handleSubmit} className="space-y-5">
-                <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1.5">
-                    {t('form.name')}
-                  </label>
-                  <input
-                    id="name"
-                    type="text"
-                    required
-                    value={formData.name}
-                    onChange={(e) => setFormData((f) => ({ ...f, name: e.target.value }))}
-                    placeholder={t('form.placeholder_name')}
-                    className={INPUT_CLASS}
-                  />
-                </div>
 
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">
-                    {t('form.email')}
-                  </label>
-                  <input
-                    id="email"
-                    type="email"
-                    required
-                    value={formData.email}
-                    onChange={(e) => setFormData((f) => ({ ...f, email: e.target.value }))}
-                    placeholder={t('form.placeholder_email')}
-                    className={INPUT_CLASS}
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-1.5">
-                    {t('form.subject')}
-                  </label>
-                  <select
-                    id="subject"
-                    value={formData.subject}
-                    onChange={(e) => setFormData((f) => ({ ...f, subject: e.target.value }))}
-                    className={INPUT_CLASS}
+              {submitted ? (
+                <div className="flex flex-col items-center text-center py-10 px-4">
+                  <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center mb-5">
+                    <CheckCircle className="w-9 h-9 text-emerald-500" />
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">
+                    Mesaj trimis cu succes!
+                  </h3>
+                  <p className="text-gray-500 text-sm leading-relaxed max-w-xs">
+                    Mesajul tău a fost trimis cu succes! Te vom contacta în cel mai scurt timp.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setSubmitted(false)}
+                    className="mt-6 text-sm text-blue-600 font-semibold hover:underline"
                   >
-                    {SUBJECTS.map((s) => (
-                      <option key={s} value={s}>{s}</option>
-                    ))}
-                  </select>
+                    Trimite un alt mesaj
+                  </button>
                 </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  <div>
+                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1.5">
+                      {t('form.name')}
+                    </label>
+                    <input
+                      id="name"
+                      type="text"
+                      required
+                      value={formData.name}
+                      onChange={(e) => setFormData((f) => ({ ...f, name: e.target.value }))}
+                      placeholder={t('form.placeholder_name')}
+                      className={INPUT_CLASS}
+                    />
+                  </div>
 
-                <div>
-                  <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1.5">
-                    {t('form.message')}
-                  </label>
-                  <textarea
-                    id="message"
-                    required
-                    rows={5}
-                    value={formData.message}
-                    onChange={(e) => setFormData((f) => ({ ...f, message: e.target.value }))}
-                    placeholder={t('form.placeholder_message')}
-                    className={`${INPUT_CLASS} resize-none`}
-                  />
-                </div>
+                  <div>
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">
+                      {t('form.email')}
+                    </label>
+                    <input
+                      id="email"
+                      type="email"
+                      required
+                      value={formData.email}
+                      onChange={(e) => setFormData((f) => ({ ...f, email: e.target.value }))}
+                      placeholder={t('form.placeholder_email')}
+                      className={INPUT_CLASS}
+                    />
+                  </div>
 
-                <button
-                  type="submit"
-                  className="w-full bg-gradient-to-r from-blue-600 to-blue-500 text-white font-semibold py-3 rounded-xl hover:opacity-90 transition"
-                >
-                  {t('form.submit')}
-                </button>
-              </form>
+                  <div>
+                    <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-1.5">
+                      {t('form.subject')}
+                    </label>
+                    <select
+                      id="subject"
+                      value={formData.subject}
+                      onChange={(e) => setFormData((f) => ({ ...f, subject: e.target.value }))}
+                      className={INPUT_CLASS}
+                    >
+                      {SUBJECTS.map((s) => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1.5">
+                      {t('form.message')}
+                    </label>
+                    <textarea
+                      id="message"
+                      required
+                      rows={5}
+                      value={formData.message}
+                      onChange={(e) => setFormData((f) => ({ ...f, message: e.target.value }))}
+                      placeholder={t('form.placeholder_message')}
+                      className={`${INPUT_CLASS} resize-none`}
+                    />
+                  </div>
+
+                  {submitError && (
+                    <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 text-sm text-red-700">
+                      <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                      {submitError}
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={sending}
+                    className="w-full bg-gradient-to-r from-blue-600 to-blue-500 text-white font-semibold py-3 rounded-xl hover:opacity-90 transition disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {sending ? 'Se trimite...' : t('form.submit')}
+                  </button>
+                </form>
+              )}
             </motion.div>
           </div>
         </section>

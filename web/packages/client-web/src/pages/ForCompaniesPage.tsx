@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { Laptop, CreditCard, BarChart2, TrendingUp, FileCheck, CheckCircle, ArrowRight } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { ROUTE_MAP } from '@/i18n/routes';
+import AppComingSoonSection from '@/components/common/AppComingSoonSection';
 
 export default function ForCompaniesPage() {
   const { t } = useTranslation('companies');
@@ -134,6 +135,9 @@ export default function ForCompaniesPage() {
             </div>
           </div>
         </section>
+
+        {/* App Coming Soon */}
+        <AppComingSoonSection />
 
         {/* CTA */}
         <section className="bg-blue-600 text-white py-16 px-4">
