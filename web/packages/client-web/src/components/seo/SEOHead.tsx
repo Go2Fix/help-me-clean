@@ -18,7 +18,7 @@ interface SEOHeadProps {
   ogImage?: string;
   ogType?: 'website' | 'article';
   articleMeta?: ArticleMeta;
-  structuredData?: object;
+  structuredData?: object | object[];
   noIndex?: boolean;
   /** Current page language — drives og:locale */
   lang?: 'ro' | 'en';
@@ -28,6 +28,7 @@ interface SEOHeadProps {
 
 const BASE_URL = 'https://go2fix.ro';
 const DEFAULT_OG_IMAGE = `${BASE_URL}/og-image.jpg`;
+const TWITTER_HANDLE = '@go2fix';
 
 export default function SEOHead({
   title,
@@ -44,6 +45,9 @@ export default function SEOHead({
   const fullTitle = title.includes('Go2Fix') ? title : `${title} | Go2Fix`;
   const canonical = canonicalUrl ? `${BASE_URL}${canonicalUrl}` : undefined;
   const ogLocale = lang === 'en' ? 'en_US' : 'ro_RO';
+  const schemas = structuredData
+    ? Array.isArray(structuredData) ? structuredData : [structuredData]
+    : [];
 
   return (
     <Helmet>
@@ -70,6 +74,7 @@ export default function SEOHead({
       <meta property="og:site_name" content="Go2Fix" />
 
       <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:site" content={TWITTER_HANDLE} />
       <meta name="twitter:title" content={fullTitle} />
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={ogImage} />
@@ -84,11 +89,11 @@ export default function SEOHead({
         </>
       )}
 
-      {structuredData && (
-        <script type="application/ld+json">
-          {JSON.stringify(structuredData)}
+      {schemas.map((schema, i) => (
+        <script key={i} type="application/ld+json">
+          {JSON.stringify(schema)}
         </script>
-      )}
+      ))}
     </Helmet>
   );
 }

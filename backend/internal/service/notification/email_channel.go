@@ -234,70 +234,154 @@ func buildEventHTML(event Event, subject, name string, payload Payload) string {
 	return buildFallbackHTML(subject, name, payload)
 }
 
+// emailHeader is the shared top bar used in every email.
+const emailHeader = `
+<table width="100%%" cellpadding="0" cellspacing="0">
+  <tr>
+    <td style="background:#2563EB;padding:20px 40px;border-radius:16px 16px 0 0;">
+      <span style="font-size:22px;font-weight:800;color:#ffffff;letter-spacing:-0.5px;font-family:'Inter',Arial,sans-serif;">Go2Fix</span>
+    </td>
+  </tr>
+</table>`
+
+// emailFooter is the shared bottom bar used in every email.
+const emailFooter = `
+<table width="100%%" cellpadding="0" cellspacing="0">
+  <tr>
+    <td style="background:#F9FAFB;border-top:1px solid #E5E7EB;padding:20px 40px;border-radius:0 0 16px 16px;">
+      <p style="margin:0;font-size:12px;color:#9CA3AF;font-family:'Inter',Arial,sans-serif;">
+        &copy; 2026 Go2Fix SRL &nbsp;&middot;&nbsp;
+        <a href="https://go2fix.ro" style="color:#9CA3AF;text-decoration:none;">go2fix.ro</a>
+      </p>
+    </td>
+  </tr>
+</table>`
+
+// emailWrapper wraps header + body + footer inside a centered card on a gray background.
+// body is injected as-is between header and footer.
+func emailWrapper(body string) string {
+	return fmt.Sprintf(`<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+</head>
+<body style="margin:0;padding:0;background:#F3F4F6;font-family:'Inter',Arial,sans-serif;">
+<table width="100%%" cellpadding="0" cellspacing="0" style="background:#F3F4F6;padding:40px 16px;">
+  <tr>
+    <td align="center">
+      <table width="520" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;border:1px solid #E5E7EB;">
+        <tr><td>%s</td></tr>
+        <tr><td>%s</td></tr>
+        <tr><td>%s</td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>`, emailHeader, body, emailFooter)
+}
+
 // buildOTPHTML renders the OTP-specific branded email template.
 func buildOTPHTML(name, code string) string {
 	greeting := name
 	if greeting == "" {
 		greeting = "utilizator"
 	}
-	return fmt.Sprintf(`<!DOCTYPE html>
-<html lang="ro">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background:#FAFBFC;font-family:'Inter',Arial,sans-serif;">
-<div style="max-width:480px;margin:40px auto;background:#ffffff;border-radius:12px;padding:40px;border:1px solid #e5e7eb;">
-  <div style="margin-bottom:24px;">
-    <span style="font-size:24px;font-weight:800;color:#2563EB;">Go2Fix</span>
-  </div>
-  <h2 style="color:#111827;font-size:20px;font-weight:700;margin:0 0 8px 0;">
-    Codul tău de autentificare
-  </h2>
-  <p style="color:#6B7280;font-size:14px;margin:0 0 24px 0;">
-    Salut %s, folosește codul de mai jos pentru a te autentifica.<br>
-    Codul este valabil <strong>10 minute</strong>.
-  </p>
-  <div style="background:#EFF6FF;border:2px solid #2563EB;border-radius:12px;padding:28px 24px;text-align:center;margin-bottom:24px;">
-    <span style="font-size:40px;font-weight:900;letter-spacing:10px;color:#2563EB;font-family:'Courier New',monospace;">%s</span>
-  </div>
-  <p style="color:#9CA3AF;font-size:12px;margin:0;">
-    Dacă nu ai solicitat acest cod, poți ignora acest email în siguranță.
-  </p>
-</div>
-</body>
-</html>`, greeting, code)
+	body := fmt.Sprintf(`
+<table width="100%%" cellpadding="0" cellspacing="0">
+  <tr>
+    <td style="padding:40px 40px 36px 40px;">
+      <!-- Hidden preheader -->
+      <span style="display:none;max-height:0;overflow:hidden;mso-hide:all;">
+        Valabil 10 minute. Nu-l distribui nimănui.
+      </span>
+
+      <p style="margin:0 0 8px 0;font-size:11px;font-weight:700;color:#2563EB;text-transform:uppercase;letter-spacing:1.5px;">
+        Autentificare
+      </p>
+      <h1 style="margin:0 0 16px 0;font-size:22px;font-weight:700;color:#111827;line-height:1.3;">
+        Codul tău de verificare
+      </h1>
+      <p style="margin:0 0 32px 0;font-size:15px;color:#6B7280;line-height:1.7;">
+        Salut <strong style="color:#111827;">%s</strong>, folosește codul de mai jos
+        pentru a te autentifica în contul Go2Fix.<br>
+        Codul expiră în <strong style="color:#111827;">10 minute</strong>.
+      </p>
+
+      <!-- OTP code box -->
+      <table width="100%%" cellpadding="0" cellspacing="0" style="margin-bottom:32px;">
+        <tr>
+          <td style="background:#EFF6FF;border:2px solid #2563EB;border-radius:12px;padding:28px 24px;text-align:center;">
+            <span style="font-size:42px;font-weight:900;letter-spacing:14px;color:#2563EB;font-family:'Courier New',monospace;">%s</span>
+          </td>
+        </tr>
+      </table>
+
+      <!-- Timer hint -->
+      <table width="100%%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+        <tr>
+          <td style="background:#FFFBEB;border-left:3px solid #F59E0B;border-radius:0 8px 8px 0;padding:12px 16px;">
+            <p style="margin:0;font-size:13px;color:#92400E;">
+              &#9201;&nbsp; Codul este valabil doar <strong>10 minute</strong> de la primire.
+            </p>
+          </td>
+        </tr>
+      </table>
+
+      <p style="margin:0;font-size:13px;color:#9CA3AF;line-height:1.6;">
+        Dacă nu ai solicitat acest cod, cineva a introdus adresa ta de email din greșeală.
+        Poți ignora în siguranță acest mesaj — contul tău nu este afectat.
+      </p>
+    </td>
+  </tr>
+</table>`, greeting, code)
+
+	return emailWrapper(body)
 }
 
-// buildFallbackHTML creates a minimal branded email for any event that lacks a
-// dedicated template. The payload key-value pairs are rendered as a simple list.
+// buildFallbackHTML creates a professional branded email for any event that lacks a
+// dedicated template. The payload key-value pairs are rendered as a styled list.
 func buildFallbackHTML(subject, name string, payload Payload) string {
 	greeting := name
 	if greeting == "" {
 		greeting = "utilizator"
 	}
-	return fmt.Sprintf(`<!DOCTYPE html>
-<html lang="ro">
-<head><meta charset="UTF-8"></head>
-<body style="margin:0;padding:0;background:#FAFBFC;font-family:'Inter',Arial,sans-serif;">
-<div style="max-width:560px;margin:40px auto;background:#ffffff;border-radius:12px;padding:40px;border:1px solid #e5e7eb;">
-  <div style="margin-bottom:24px;">
-    <span style="font-size:24px;font-weight:800;color:#2563EB;">Go2Fix</span>
-  </div>
-  <h2 style="color:#111827;font-size:20px;font-weight:700;margin:0 0 16px 0;">%s</h2>
-  <p style="color:#6B7280;font-size:14px;">Salut %s,</p>
-  <div style="color:#6B7280;font-size:14px;">%s</div>
-  <p style="color:#9CA3AF;font-size:12px;margin-top:32px;">Echipa Go2Fix</p>
-</div>
-</body>
-</html>`, subject, greeting, buildPayloadLines(payload))
+	body := fmt.Sprintf(`
+<table width="100%%" cellpadding="0" cellspacing="0">
+  <tr>
+    <td style="padding:40px 40px 36px 40px;">
+      <h1 style="margin:0 0 16px 0;font-size:22px;font-weight:700;color:#111827;line-height:1.3;">%s</h1>
+      <p style="margin:0 0 24px 0;font-size:15px;color:#6B7280;line-height:1.7;">
+        Salut <strong style="color:#111827;">%s</strong>,
+      </p>
+      %s
+      <p style="margin:32px 0 0 0;font-size:14px;color:#6B7280;">
+        Cu drag,<br>
+        <strong style="color:#111827;">Echipa Go2Fix</strong>
+      </p>
+    </td>
+  </tr>
+</table>`, subject, greeting, buildPayloadLines(payload))
+
+	return emailWrapper(body)
 }
 
-// buildPayloadLines renders payload key-value pairs as HTML lines.
+// buildPayloadLines renders payload key-value pairs as styled HTML rows.
 func buildPayloadLines(payload Payload) string {
 	if len(payload) == 0 {
 		return ""
 	}
-	result := ""
+	result := `<table width="100%%" cellpadding="0" cellspacing="0" style="margin-bottom:8px;">`
 	for k, v := range payload {
-		result += fmt.Sprintf("<p><strong>%s:</strong> %v</p>", k, v)
+		result += fmt.Sprintf(`
+  <tr>
+    <td style="padding:10px 16px;background:#F9FAFB;border-radius:8px;margin-bottom:4px;font-size:14px;color:#374151;">
+      <span style="color:#6B7280;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;">%s</span><br>
+      <span style="color:#111827;font-weight:500;">%v</span>
+    </td>
+  </tr>`, k, v)
 	}
+	result += `</table>`
 	return result
 }

@@ -38,20 +38,43 @@ export default function BlogPostPage() {
   const dateLocale = lang === 'en' ? 'en-GB' : 'ro-RO';
   const canonicalPath = post.lang === 'en' ? `/en/blog/${post.slug}` : `/blog/${post.slug}`;
 
-  const structuredData = {
+  const blogPostingSchema = {
     '@context': 'https://schema.org',
-    '@type': 'Article',
+    '@type': 'BlogPosting',
     headline: post.title,
     description: post.excerpt,
-    author: { '@type': 'Organization', name: 'Go2Fix' },
+    image: `https://go2fix.ro/og-image.jpg`,
+    author: { '@type': 'Organization', name: 'Go2Fix', url: 'https://go2fix.ro' },
     publisher: {
       '@type': 'Organization',
       name: 'Go2Fix',
       url: 'https://go2fix.ro',
+      logo: { '@type': 'ImageObject', url: 'https://go2fix.ro/logo.png' },
     },
     datePublished: post.publishedAt,
+    dateModified: post.publishedAt,
     url: `https://go2fix.ro${canonicalPath}`,
+    mainEntityOfPage: { '@type': 'WebPage', '@id': `https://go2fix.ro${canonicalPath}` },
     keywords: post.tags.join(', '),
+  };
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Blog',
+        item: post.lang === 'en' ? 'https://go2fix.ro/en/blog' : 'https://go2fix.ro/blog',
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: post.title,
+        item: `https://go2fix.ro${canonicalPath}`,
+      },
+    ],
   };
 
   const handleShareClick = () => {
@@ -71,7 +94,7 @@ export default function BlogPostPage() {
           author: post.author,
           tags: post.tags,
         }}
-        structuredData={structuredData}
+        structuredData={[blogPostingSchema, breadcrumbSchema]}
       />
 
       <div className="bg-white">

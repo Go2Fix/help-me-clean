@@ -1,0 +1,21 @@
+{
+  "name": "Go2Fix",
+  "short_name": "Go2Fix",
+  "description": "Prima platformă de servicii profesionale la domiciliu din România",
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#ffffff",
+  "theme_color": "#2563EB",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "256x256",
+      "type": "image/png"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

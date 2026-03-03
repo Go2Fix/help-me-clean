@@ -5,6 +5,7 @@
   <!-- Home -->
   <url>
     <loc>https://go2fix.ro/</loc>
+    <lastmod>2026-03-03</lastmod>
     <priority>1.0</priority>
     <changefreq>weekly</changefreq>
     <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/"/>
@@ -13,6 +14,7 @@
   </url>
   <url>
     <loc>https://go2fix.ro/en/</loc>
+    <lastmod>2026-03-03</lastmod>
     <priority>1.0</priority>
     <changefreq>weekly</changefreq>
     <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/"/>
@@ -20,9 +22,30 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://go2fix.ro/"/>
   </url>
 
+  <!-- Service categories -->
+  <url>
+    <loc>https://go2fix.ro/servicii/curatenie</loc>
+    <lastmod>2026-03-03</lastmod>
+    <priority>0.9</priority>
+    <changefreq>weekly</changefreq>
+    <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/servicii/curatenie"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://go2fix.ro/en/services/curatenie"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://go2fix.ro/servicii/curatenie"/>
+  </url>
+  <url>
+    <loc>https://go2fix.ro/en/services/curatenie</loc>
+    <lastmod>2026-03-03</lastmod>
+    <priority>0.9</priority>
+    <changefreq>weekly</changefreq>
+    <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/servicii/curatenie"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://go2fix.ro/en/services/curatenie"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://go2fix.ro/servicii/curatenie"/>
+  </url>
+
   <!-- Waitlist -->
   <url>
     <loc>https://go2fix.ro/lista-asteptare</loc>
+    <lastmod>2026-03-03</lastmod>
     <priority>0.9</priority>
     <changefreq>monthly</changefreq>
     <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/lista-asteptare"/>
@@ -31,6 +54,7 @@
   </url>
   <url>
     <loc>https://go2fix.ro/en/waitlist</loc>
+    <lastmod>2026-03-03</lastmod>
     <priority>0.9</priority>
     <changefreq>monthly</changefreq>
     <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/lista-asteptare"/>
@@ -41,6 +65,7 @@
   <!-- About -->
   <url>
     <loc>https://go2fix.ro/despre-noi</loc>
+    <lastmod>2026-03-03</lastmod>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
     <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/despre-noi"/>
@@ -49,6 +74,7 @@
   </url>
   <url>
     <loc>https://go2fix.ro/en/about-us</loc>
+    <lastmod>2026-03-03</lastmod>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
     <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/despre-noi"/>
@@ -59,6 +85,7 @@
   <!-- For Companies -->
   <url>
     <loc>https://go2fix.ro/pentru-firme</loc>
+    <lastmod>2026-03-03</lastmod>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
     <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/pentru-firme"/>
@@ -67,6 +94,7 @@
   </url>
   <url>
     <loc>https://go2fix.ro/en/for-companies</loc>
+    <lastmod>2026-03-03</lastmod>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
     <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/pentru-firme"/>
@@ -77,6 +105,7 @@
   <!-- Contact -->
   <url>
     <loc>https://go2fix.ro/contact</loc>
+    <lastmod>2026-03-03</lastmod>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
     <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/contact"/>
@@ -85,6 +114,7 @@
   </url>
   <url>
     <loc>https://go2fix.ro/en/contact</loc>
+    <lastmod>2026-03-03</lastmod>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
     <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/contact"/>
@@ -95,6 +125,7 @@
   <!-- Blog list -->
   <url>
     <loc>https://go2fix.ro/blog</loc>
+    <lastmod>2026-03-03</lastmod>
     <priority>0.9</priority>
     <changefreq>weekly</changefreq>
     <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/blog"/>
@@ -103,6 +134,7 @@
   </url>
   <url>
     <loc>https://go2fix.ro/en/blog</loc>
+    <lastmod>2026-03-03</lastmod>
     <priority>0.9</priority>
     <changefreq>weekly</changefreq>
     <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/blog"/>
@@ -113,6 +145,7 @@
   <!-- Blog post: How to choose a cleaning company -->
   <url>
     <loc>https://go2fix.ro/blog/cum-sa-alegi-firma-curatenie-bucuresti</loc>
+    <lastmod>2026-03-03</lastmod>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
     <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/blog/cum-sa-alegi-firma-curatenie-bucuresti"/>
@@ -121,6 +154,7 @@
   </url>
   <url>
     <loc>https://go2fix.ro/en/blog/how-to-choose-a-cleaning-company-in-bucharest</loc>
+    <lastmod>2026-03-03</lastmod>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
     <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/blog/cum-sa-alegi-firma-curatenie-bucuresti"/>
@@ -131,6 +165,7 @@
   <!-- Blog post: Apartment cleaning guide -->
   <url>
     <loc>https://go2fix.ro/blog/curatenie-apartament-ghid-complet</loc>
+    <lastmod>2026-03-03</lastmod>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
     <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/blog/curatenie-apartament-ghid-complet"/>
@@ -139,6 +174,7 @@
   </url>
   <url>
     <loc>https://go2fix.ro/en/blog/apartment-cleaning-complete-guide</loc>
+    <lastmod>2026-03-03</lastmod>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
     <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/blog/curatenie-apartament-ghid-complet"/>
@@ -149,6 +185,7 @@
   <!-- Blog post: Benefits of professional office cleaning -->
   <url>
     <loc>https://go2fix.ro/blog/beneficiile-curatenie-profesionala-birou</loc>
+    <lastmod>2026-03-03</lastmod>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
     <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/blog/beneficiile-curatenie-profesionala-birou"/>
@@ -157,6 +194,7 @@
   </url>
   <url>
     <loc>https://go2fix.ro/en/blog/benefits-professional-office-cleaning</loc>
+    <lastmod>2026-03-03</lastmod>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
     <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/blog/beneficiile-curatenie-profesionala-birou"/>
@@ -167,6 +205,7 @@
   <!-- Terms -->
   <url>
     <loc>https://go2fix.ro/termeni</loc>
+    <lastmod>2026-03-03</lastmod>
     <priority>0.3</priority>
     <changefreq>yearly</changefreq>
     <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/termeni"/>
@@ -175,6 +214,7 @@
   </url>
   <url>
     <loc>https://go2fix.ro/en/terms</loc>
+    <lastmod>2026-03-03</lastmod>
     <priority>0.3</priority>
     <changefreq>yearly</changefreq>
     <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/termeni"/>
@@ -185,6 +225,7 @@
   <!-- Privacy -->
   <url>
     <loc>https://go2fix.ro/confidentialitate</loc>
+    <lastmod>2026-03-03</lastmod>
     <priority>0.3</priority>
     <changefreq>yearly</changefreq>
     <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/confidentialitate"/>
@@ -193,11 +234,32 @@
   </url>
   <url>
     <loc>https://go2fix.ro/en/privacy</loc>
+    <lastmod>2026-03-03</lastmod>
     <priority>0.3</priority>
     <changefreq>yearly</changefreq>
     <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/confidentialitate"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://go2fix.ro/en/privacy"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://go2fix.ro/confidentialitate"/>
+  </url>
+
+  <!-- GDPR -->
+  <url>
+    <loc>https://go2fix.ro/gdpr</loc>
+    <lastmod>2026-03-03</lastmod>
+    <priority>0.3</priority>
+    <changefreq>yearly</changefreq>
+    <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/gdpr"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://go2fix.ro/en/gdpr"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://go2fix.ro/gdpr"/>
+  </url>
+  <url>
+    <loc>https://go2fix.ro/en/gdpr</loc>
+    <lastmod>2026-03-03</lastmod>
+    <priority>0.3</priority>
+    <changefreq>yearly</changefreq>
+    <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/gdpr"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://go2fix.ro/en/gdpr"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://go2fix.ro/gdpr"/>
   </url>
 
 </urlset>

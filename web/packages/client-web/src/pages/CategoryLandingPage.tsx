@@ -136,6 +136,13 @@ export default function CategoryLandingPage() {
     ? ROUTE_MAP.waitlist[lang]
     : `${ROUTE_MAP.booking[lang]}?category=${category.slug}`;
 
+  const minPrice = activeServices.length > 0
+    ? Math.min(...activeServices.map((s) => s.basePricePerHour))
+    : null;
+  const maxPrice = activeServices.length > 0
+    ? Math.max(...activeServices.map((s) => s.basePricePerHour))
+    : null;
+
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'Service',
@@ -152,6 +159,29 @@ export default function CategoryLandingPage() {
       '@type': 'Country',
       name: 'Romania',
     },
+    ...(minPrice !== null && {
+      priceRange: minPrice === maxPrice ? `${minPrice} RON/h` : `${minPrice}-${maxPrice} RON/h`,
+    }),
+    ...(activeServices.length > 0 && {
+      hasOfferCatalog: {
+        '@type': 'OfferCatalog',
+        name: category.nameRo,
+        itemListElement: activeServices.map((service) => ({
+          '@type': 'Offer',
+          itemOffered: {
+            '@type': 'Service',
+            name: service.nameRo,
+            description: service.descriptionRo,
+          },
+          priceSpecification: {
+            '@type': 'UnitPriceSpecification',
+            price: service.basePricePerHour,
+            priceCurrency: 'RON',
+            unitText: 'HOUR',
+          },
+        })),
+      },
+    }),
   };
 
   return (

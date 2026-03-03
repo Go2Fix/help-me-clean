@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1200px;
+    height: 630px;
+    overflow: hidden;
+    font-family: -apple-system, 'Inter', 'Helvetica Neue', Arial, sans-serif;
+    background: linear-gradient(135deg, #f8fafc 0%, #eff6ff 45%, #f0fdf4 100%);
+    position: relative;
+  }
+
+  /* Dot grid overlay — same as landing hero */
+  .dot-grid {
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle, #bfdbfe 1px, transparent 1px);
+    background-size: 28px 28px;
+    opacity: 0.5;
+  }
+
+  /* Top-left blob */
+  .blob-tl {
+    position: absolute;
+    top: -120px;
+    left: -120px;
+    width: 500px;
+    height: 500px;
+    background: #bfdbfe;
+    border-radius: 50%;
+    filter: blur(90px);
+    opacity: 0.45;
+  }
+
+  /* Bottom-right emerald blob */
+  .blob-br {
+    position: absolute;
+    bottom: -80px;
+    right: 300px;
+    width: 320px;
+    height: 320px;
+    background: #d1fae5;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.7;
+  }
+
+  .content {
+    position: relative;
+    z-index: 10;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 80px;
+    max-width: 700px;
+  }
+
+  /* Badge */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: #2563EB;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    padding: 6px 16px;
+    border-radius: 100px;
+    width: fit-content;
+    margin-bottom: 26px;
+  }
+
+  .badge-dot {
+    width: 7px;
+    height: 7px;
+    background: #10B981;
+    border-radius: 50%;
+  }
+
+  /* Wordmark */
+  .wordmark {
+    font-size: 92px;
+    font-weight: 900;
+    color: #111827;
+    line-height: 1;
+    letter-spacing: -3px;
+    margin-bottom: 18px;
+  }
+
+  .wordmark span {
+    color: #2563EB;
+  }
+
+  /* Tagline */
+  .tagline {
+    font-size: 28px;
+    font-weight: 400;
+    color: #6B7280;
+    letter-spacing: -0.2px;
+    margin-bottom: 44px;
+  }
+
+  /* Trust row */
+  .trust-row {
+    display: flex;
+    align-items: center;
+  }
+
+  .trust-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: #374151;
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .trust-check {
+    width: 20px;
+    height: 20px;
+    background: #10B981;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .trust-check svg {
+    width: 11px;
+    height: 11px;
+  }
+
+  .trust-sep {
+    color: #D1D5DB;
+    margin: 0 18px;
+    font-size: 18px;
+  }
+
+  /* Right card */
+  .right-deco {
+    position: absolute;
+    right: 70px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+  }
+
+  .card {
+    background: white;
+    border: 1px solid #E5E7EB;
+    border-radius: 20px;
+    padding: 24px 26px;
+    width: 270px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.10), 0 4px 16px rgba(0,0,0,0.06);
+  }
+
+  .card-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #9CA3AF;
+    margin-bottom: 5px;
+  }
+
+  .card-service {
+    font-size: 17px;
+    font-weight: 800;
+    color: #111827;
+    margin-bottom: 18px;
+  }
+
+  .card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 9px;
+  }
+
+  .card-key {
+    font-size: 12px;
+    color: #9CA3AF;
+  }
+
+  .card-val {
+    font-size: 12px;
+    font-weight: 700;
+    color: #111827;
+  }
+
+  .card-divider {
+    height: 1px;
+    background: #F3F4F6;
+    margin: 12px 0;
+  }
+
+  .card-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .card-total-label {
+    font-size: 12px;
+    color: #9CA3AF;
+  }
+
+  .card-total-val {
+    font-size: 22px;
+    font-weight: 900;
+    color: #2563EB;
+  }
+
+  .card-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 10px;
+    padding: 8px 12px;
+    margin-top: 14px;
+  }
+
+  .card-badge-dot {
+    width: 7px;
+    height: 7px;
+    background: #10B981;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .card-badge-text {
+    font-size: 12px;
+    font-weight: 600;
+    color: #065f46;
+  }
+
+  /* Stars row */
+  .stars-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 14px;
+    justify-content: flex-end;
+  }
+
+  .stars {
+    display: flex;
+    gap: 1px;
+    color: #F59E0B;
+    font-size: 15px;
+  }
+
+  .stars-score {
+    font-size: 13px;
+    font-weight: 800;
+    color: #111827;
+  }
+
+  .stars-count {
+    font-size: 12px;
+    color: #9CA3AF;
+  }
+
+  /* Verified badge floating */
+  .verified-badge {
+    position: absolute;
+    top: -16px;
+    right: -12px;
+    background: white;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    padding: 8px 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .verified-icon {
+    width: 16px;
+    height: 16px;
+    background: #2563EB;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .verified-icon svg {
+    width: 9px;
+    height: 9px;
+  }
+
+  .verified-text {
+    font-size: 11px;
+    font-weight: 700;
+    color: #111827;
+  }
+</style>
+</head>
+<body>
+  <div class="dot-grid"></div>
+  <div class="blob-tl"></div>
+  <div class="blob-br"></div>
+
+  <!-- Left content -->
+  <div class="content">
+    <div class="badge">
+      <div class="badge-dot"></div>
+      Prima platformă de servicii din România
+    </div>
+
+    <div class="wordmark">Go2Fix<span>.</span></div>
+    <div class="tagline">Servicii profesionale la domiciliu</div>
+
+    <div class="trust-row">
+      <div class="trust-item">
+        <div class="trust-check">
+          <svg viewBox="0 0 11 11" fill="none">
+            <polyline points="1.5,5.5 4,8 9.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        Echipe verificate
+      </div>
+      <span class="trust-sep">·</span>
+      <div class="trust-item">
+        <div class="trust-check">
+          <svg viewBox="0 0 11 11" fill="none">
+            <polyline points="1.5,5.5 4,8 9.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        Prețuri transparente
+      </div>
+      <span class="trust-sep">·</span>
+      <div class="trust-item">
+        <div class="trust-check">
+          <svg viewBox="0 0 11 11" fill="none">
+            <polyline points="1.5,5.5 4,8 9.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        Plată sigură
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: booking card -->
+  <div class="right-deco">
+    <div style="position:relative;">
+      <!-- Verified badge floating top-right -->
+      <div class="verified-badge">
+        <div class="verified-icon">
+          <svg viewBox="0 0 9 9" fill="none">
+            <polyline points="1.5,4.5 3.5,6.5 7.5,2" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <span class="verified-text">Firmă verificată</span>
+      </div>
+
+      <div class="card">
+        <div class="card-label">Rezervare confirmată</div>
+        <div class="card-service">Curățenie apartament</div>
+
+        <div class="card-row">
+          <span class="card-key">Data</span>
+          <span class="card-val">Lun, 10 Mar · 09:00</span>
+        </div>
+        <div class="card-row">
+          <span class="card-key">Durată</span>
+          <span class="card-val">3 ore</span>
+        </div>
+        <div class="card-row">
+          <span class="card-key">Firmă</span>
+          <span class="card-val">CleanPro SRL</span>
+        </div>
+
+        <div class="card-divider"></div>
+
+        <div class="card-total">
+          <span class="card-total-label">Total</span>
+          <span class="card-total-val">180 lei</span>
+        </div>
+
+        <div class="card-badge">
+          <div class="card-badge-dot"></div>
+          <span class="card-badge-text">Plată securizată online</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stars row -->
+    <div class="stars-row">
+      <div class="stars">★★★★★</div>
+      <span class="stars-score">4.9</span>
+      <span class="stars-count">· 500+ recenzii</span>
+    </div>
+  </div>
+</body>
+</html>

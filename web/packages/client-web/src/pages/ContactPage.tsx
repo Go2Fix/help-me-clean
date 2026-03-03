@@ -88,6 +88,15 @@ export default function ContactPage() {
         canonicalUrl={ROUTE_MAP.contact[lang]}
         lang={lang}
         alternateUrl={{ ro: ROUTE_MAP.contact.ro, en: ROUTE_MAP.contact.en }}
+        structuredData={{
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          mainEntity: FAQS.map(({ question, answer }) => ({
+            '@type': 'Question',
+            name: question,
+            acceptedAnswer: { '@type': 'Answer', text: answer },
+          })),
+        }}
       />
 
       <div className="bg-white">

@@ -93,8 +93,9 @@ export default function Header() {
     <header className="bg-white border-b border-gray-100 sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16">
-          {/* Logo — wordmark style */}
-          <Link to="/" className="flex items-center group">
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-2 group">
+            <img src="/icon.png" alt="Go2Fix" className="w-7 h-7 rounded-lg group-hover:opacity-80 transition-opacity" />
             <span className="text-xl font-black tracking-tight text-gray-900 group-hover:opacity-80 transition-opacity">
               Go2<span className="text-primary">Fix</span>
             </span>

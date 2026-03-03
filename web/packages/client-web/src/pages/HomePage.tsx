@@ -197,19 +197,43 @@ export default function HomePage() {
         lang={lang}
         canonicalUrl={lang === 'en' ? '/en/' : '/'}
         alternateUrl={{ ro: '/', en: '/en/' }}
-        structuredData={{
-          '@context': 'https://schema.org',
-          '@type': 'Organization',
-          name: 'Go2Fix',
-          url: 'https://go2fix.ro',
-          description: 'Prima platformă marketplace de servicii de curățenie din România',
-          areaServed: 'Romania',
-          contactPoint: {
-            '@type': 'ContactPoint',
-            contactType: 'customer service',
+        structuredData={[
+          {
+            '@context': 'https://schema.org',
+            '@type': 'Organization',
+            name: 'Go2Fix',
+            url: 'https://go2fix.ro',
+            logo: 'https://go2fix.ro/logo.png',
             email: 'contact@go2fix.ro',
+            telephone: '+40726433942',
+            address: { '@type': 'PostalAddress', addressCountry: 'RO' },
+            description: 'Prima platformă marketplace de servicii de curățenie din România',
+            areaServed: 'Romania',
+            sameAs: [
+              'https://www.facebook.com/go2fix',
+              'https://www.instagram.com/go2fix',
+            ],
+            contactPoint: {
+              '@type': 'ContactPoint',
+              contactType: 'customer service',
+              email: 'contact@go2fix.ro',
+            },
           },
-        }}
+          {
+            '@context': 'https://schema.org',
+            '@type': 'WebSite',
+            name: 'Go2Fix',
+            url: 'https://go2fix.ro',
+            potentialAction: {
+              '@type': 'SearchAction',
+              target: {
+                '@type': 'EntryPoint',
+                urlTemplate: 'https://go2fix.ro/servicii/{search_term_string}',
+              },
+              'query-input': 'required name=search_term_string',
+            },
+          },
+        ]}
       />
 
       {!platformLoading && isPreRelease && (

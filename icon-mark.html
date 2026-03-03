@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 256px;
+    height: 256px;
+    overflow: hidden;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .icon-wrap {
+    width: 220px;
+    height: 220px;
+    background: linear-gradient(145deg, #3b82f6 0%, #2563EB 45%, #1d4ed8 100%);
+    border-radius: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow:
+      0 16px 48px rgba(37,99,235,0.35),
+      0 4px 12px rgba(37,99,235,0.20);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .icon-wrap::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 46%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.13) 0%, transparent 100%);
+    border-radius: 54px 54px 0 0;
+  }
+
+  .icon-wrap svg {
+    width: 126px;
+    height: 126px;
+    position: relative;
+    z-index: 1;
+  }
+</style>
+</head>
+<body>
+  <div class="icon-wrap">
+    <svg viewBox="0 0 126 126" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- House body -->
+      <path d="M14 56L63 17L112 56V108C112 109.7 110.7 111 109 111H77V82H49V111H17C15.3 111 14 109.7 14 108V56Z"
+            fill="white" fill-opacity="0.92"/>
+      <!-- Door -->
+      <rect x="51" y="84" width="24" height="27" rx="4" fill="#2563EB"/>
+      <!-- Checkmark badge -->
+      <circle cx="92" cy="40" r="20" fill="#10B981"/>
+      <polyline points="82,40 89,47 102,31"
+                stroke="white" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    </svg>
+  </div>
+</body>
+</html>
