@@ -566,11 +566,6 @@ export default function CompanyDetailPage() {
                 {company.county && (
                   <Badge variant="default">{company.county}</Badge>
                 )}
-                {company.maxServiceRadiusKm != null && (
-                  <Badge variant="success">
-                    Raza: {company.maxServiceRadiusKm} km
-                  </Badge>
-                )}
               </div>
               {!company.city && !company.county && (
                 <p className="text-sm text-gray-400 mb-3">
@@ -630,17 +625,6 @@ export default function CompanyDetailPage() {
                   <div>
                     <p className="text-sm text-gray-500">Lucrari</p>
                     <p className="text-xl font-bold text-gray-900">{company.totalJobsCompleted}</p>
-                  </div>
-                </div>
-              </Card>
-              <Card>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-accent/10">
-                    <MapPin className="h-5 w-5 text-accent" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Raza</p>
-                    <p className="text-xl font-bold text-gray-900">{company.maxServiceRadiusKm ?? '--'} km</p>
                   </div>
                 </div>
               </Card>

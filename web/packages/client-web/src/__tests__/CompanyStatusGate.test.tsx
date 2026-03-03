@@ -40,7 +40,6 @@ const mockCompany = (overrides = {}) => ({
   city: 'Bucuresti',
   county: 'Bucuresti',
   status: 'APPROVED',
-  maxServiceRadiusKm: 25,
   ratingAvg: 4.5,
   totalJobsCompleted: 10,
   createdAt: '2024-01-01',

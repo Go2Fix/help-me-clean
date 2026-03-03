@@ -13,12 +13,15 @@ import {
   CreditCard,
   Settings,
   Calendar,
+  UserCircle,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/ClientBadge';
-import { MY_BOOKINGS, MY_SUBSCRIPTIONS, MY_INVOICES } from '@/graphql/operations';
+import ProfileSetupChecklist from '@/components/ProfileSetupChecklist';
+import type { SetupItem } from '@/components/ProfileSetupChecklist';
+import { MY_BOOKINGS, MY_SUBSCRIPTIONS, MY_INVOICES, MY_PAYMENT_METHODS, MY_ADDRESSES } from '@/graphql/operations';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -128,6 +131,9 @@ export default function ClientDashboardPage() {
     variables: { first: 20 },
   });
 
+  const { data: paymentMethodsData } = useQuery(MY_PAYMENT_METHODS);
+  const { data: addressesData } = useQuery(MY_ADDRESSES);
+
   const isLoading = l1 || l2 || l3 || l4 || l5;
 
   // ─── Derived data ──────────────────────────────────────────────────────
@@ -208,6 +214,13 @@ export default function ClientDashboardPage() {
     { label: 'Profil & Setari', icon: Settings, path: '/cont/setari' },
   ];
 
+  const setupItems: SetupItem[] = [
+    { key: 'phone', label: 'Verifică numărul de telefon', description: 'Necesar pentru suport via WhatsApp', done: !!user?.phoneVerified, to: '/cont/setari', icon: MessageCircle },
+    { key: 'avatar', label: 'Adaugă o fotografie de profil', description: 'Ajută curățătorii să te recunoască', done: !!user?.avatarUrl, to: '/cont/setari', icon: UserCircle },
+    { key: 'address', label: 'Adaugă o adresă', description: 'Necesară pentru programarea serviciilor', done: (addressesData?.myAddresses?.length ?? 0) > 0, to: '/cont/adrese', icon: MapPin },
+    { key: 'payment', label: 'Adaugă o metodă de plată', description: 'Necesară pentru a plăti serviciile', done: (paymentMethodsData?.myPaymentMethods?.length ?? 0) > 0, to: '/cont/plati', icon: CreditCard },
+  ];
+
   // ─── Render ─────────────────────────────────────────────────────────────
 
   return (
@@ -226,6 +239,15 @@ export default function ClientDashboardPage() {
           <Sparkles className="h-4 w-4" />
           Rezervare noua
         </Button>
+      </div>
+
+      {/* Setup Checklist */}
+      <div className="mb-8">
+        <ProfileSetupChecklist
+          items={setupItems}
+          title="Completează-ți profilul"
+          subtitle="Câțiva pași pentru a folosi platforma din plin"
+        />
       </div>
 
       {/* KPI Cards */}

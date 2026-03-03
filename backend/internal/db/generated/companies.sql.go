@@ -13,7 +13,7 @@ import (
 
 const adminUpdateCompanyProfile = `-- name: AdminUpdateCompanyProfile :one
 UPDATE companies SET company_name = $2, cui = $3, address = $4, contact_phone = $5, contact_email = $6, updated_at = NOW()
-WHERE id = $1 RETURNING id, admin_user_id, company_name, cui, company_type, legal_representative, contact_email, contact_phone, address, city, county, description, logo_url, status, rejection_reason, max_service_radius_km, rating_avg, total_jobs_completed, approved_at, created_at, updated_at, claim_token, stripe_connect_account_id, stripe_connect_onboarding_complete, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, commission_override_pct, anaf_status, anaf_denumire, anaf_adresa, anaf_data_infiintare, anaf_scp_tva, anaf_inactive, anaf_verified_at, anaf_raw_error, reg_number, is_vat_payer, bank_name, iban
+WHERE id = $1 RETURNING id, admin_user_id, company_name, cui, company_type, legal_representative, contact_email, contact_phone, address, city, county, description, logo_url, status, rejection_reason, rating_avg, total_jobs_completed, approved_at, created_at, updated_at, claim_token, stripe_connect_account_id, stripe_connect_onboarding_complete, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, commission_override_pct, anaf_status, anaf_denumire, anaf_adresa, anaf_data_infiintare, anaf_scp_tva, anaf_inactive, anaf_verified_at, anaf_raw_error, reg_number, is_vat_payer, bank_name, iban
 `
 
 type AdminUpdateCompanyProfileParams struct {
@@ -51,7 +51,6 @@ func (q *Queries) AdminUpdateCompanyProfile(ctx context.Context, arg AdminUpdate
 		&i.LogoUrl,
 		&i.Status,
 		&i.RejectionReason,
-		&i.MaxServiceRadiusKm,
 		&i.RatingAvg,
 		&i.TotalJobsCompleted,
 		&i.ApprovedAt,
@@ -81,7 +80,7 @@ func (q *Queries) AdminUpdateCompanyProfile(ctx context.Context, arg AdminUpdate
 
 const approveCompany = `-- name: ApproveCompany :one
 UPDATE companies SET status = 'approved', approved_at = NOW(), updated_at = NOW()
-WHERE id = $1 RETURNING id, admin_user_id, company_name, cui, company_type, legal_representative, contact_email, contact_phone, address, city, county, description, logo_url, status, rejection_reason, max_service_radius_km, rating_avg, total_jobs_completed, approved_at, created_at, updated_at, claim_token, stripe_connect_account_id, stripe_connect_onboarding_complete, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, commission_override_pct, anaf_status, anaf_denumire, anaf_adresa, anaf_data_infiintare, anaf_scp_tva, anaf_inactive, anaf_verified_at, anaf_raw_error, reg_number, is_vat_payer, bank_name, iban
+WHERE id = $1 RETURNING id, admin_user_id, company_name, cui, company_type, legal_representative, contact_email, contact_phone, address, city, county, description, logo_url, status, rejection_reason, rating_avg, total_jobs_completed, approved_at, created_at, updated_at, claim_token, stripe_connect_account_id, stripe_connect_onboarding_complete, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, commission_override_pct, anaf_status, anaf_denumire, anaf_adresa, anaf_data_infiintare, anaf_scp_tva, anaf_inactive, anaf_verified_at, anaf_raw_error, reg_number, is_vat_payer, bank_name, iban
 `
 
 func (q *Queries) ApproveCompany(ctx context.Context, id pgtype.UUID) (Company, error) {
@@ -103,7 +102,6 @@ func (q *Queries) ApproveCompany(ctx context.Context, id pgtype.UUID) (Company, 
 		&i.LogoUrl,
 		&i.Status,
 		&i.RejectionReason,
-		&i.MaxServiceRadiusKm,
 		&i.RatingAvg,
 		&i.TotalJobsCompleted,
 		&i.ApprovedAt,
@@ -152,7 +150,7 @@ const claimCompanyByToken = `-- name: ClaimCompanyByToken :one
 UPDATE companies
 SET admin_user_id = $1, claim_token = NULL, updated_at = NOW()
 WHERE claim_token = $2 AND admin_user_id IS NULL
-RETURNING id, admin_user_id, company_name, cui, company_type, legal_representative, contact_email, contact_phone, address, city, county, description, logo_url, status, rejection_reason, max_service_radius_km, rating_avg, total_jobs_completed, approved_at, created_at, updated_at, claim_token, stripe_connect_account_id, stripe_connect_onboarding_complete, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, commission_override_pct, anaf_status, anaf_denumire, anaf_adresa, anaf_data_infiintare, anaf_scp_tva, anaf_inactive, anaf_verified_at, anaf_raw_error, reg_number, is_vat_payer, bank_name, iban
+RETURNING id, admin_user_id, company_name, cui, company_type, legal_representative, contact_email, contact_phone, address, city, county, description, logo_url, status, rejection_reason, rating_avg, total_jobs_completed, approved_at, created_at, updated_at, claim_token, stripe_connect_account_id, stripe_connect_onboarding_complete, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, commission_override_pct, anaf_status, anaf_denumire, anaf_adresa, anaf_data_infiintare, anaf_scp_tva, anaf_inactive, anaf_verified_at, anaf_raw_error, reg_number, is_vat_payer, bank_name, iban
 `
 
 type ClaimCompanyByTokenParams struct {
@@ -179,7 +177,6 @@ func (q *Queries) ClaimCompanyByToken(ctx context.Context, arg ClaimCompanyByTok
 		&i.LogoUrl,
 		&i.Status,
 		&i.RejectionReason,
-		&i.MaxServiceRadiusKm,
 		&i.RatingAvg,
 		&i.TotalJobsCompleted,
 		&i.ApprovedAt,
@@ -209,7 +206,7 @@ func (q *Queries) ClaimCompanyByToken(ctx context.Context, arg ClaimCompanyByTok
 
 const clearCompanyCommissionOverride = `-- name: ClearCompanyCommissionOverride :one
 UPDATE companies SET commission_override_pct = NULL, updated_at = NOW()
-WHERE id = $1 RETURNING id, admin_user_id, company_name, cui, company_type, legal_representative, contact_email, contact_phone, address, city, county, description, logo_url, status, rejection_reason, max_service_radius_km, rating_avg, total_jobs_completed, approved_at, created_at, updated_at, claim_token, stripe_connect_account_id, stripe_connect_onboarding_complete, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, commission_override_pct, anaf_status, anaf_denumire, anaf_adresa, anaf_data_infiintare, anaf_scp_tva, anaf_inactive, anaf_verified_at, anaf_raw_error, reg_number, is_vat_payer, bank_name, iban
+WHERE id = $1 RETURNING id, admin_user_id, company_name, cui, company_type, legal_representative, contact_email, contact_phone, address, city, county, description, logo_url, status, rejection_reason, rating_avg, total_jobs_completed, approved_at, created_at, updated_at, claim_token, stripe_connect_account_id, stripe_connect_onboarding_complete, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, commission_override_pct, anaf_status, anaf_denumire, anaf_adresa, anaf_data_infiintare, anaf_scp_tva, anaf_inactive, anaf_verified_at, anaf_raw_error, reg_number, is_vat_payer, bank_name, iban
 `
 
 func (q *Queries) ClearCompanyCommissionOverride(ctx context.Context, id pgtype.UUID) (Company, error) {
@@ -231,7 +228,6 @@ func (q *Queries) ClearCompanyCommissionOverride(ctx context.Context, id pgtype.
 		&i.LogoUrl,
 		&i.Status,
 		&i.RejectionReason,
-		&i.MaxServiceRadiusKm,
 		&i.RatingAvg,
 		&i.TotalJobsCompleted,
 		&i.ApprovedAt,
@@ -305,7 +301,7 @@ INSERT INTO companies (
     contact_email, contact_phone, address, city, county, description, claim_token,
     reg_number, is_vat_payer, bank_name, iban
 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
-RETURNING id, admin_user_id, company_name, cui, company_type, legal_representative, contact_email, contact_phone, address, city, county, description, logo_url, status, rejection_reason, max_service_radius_km, rating_avg, total_jobs_completed, approved_at, created_at, updated_at, claim_token, stripe_connect_account_id, stripe_connect_onboarding_complete, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, commission_override_pct, anaf_status, anaf_denumire, anaf_adresa, anaf_data_infiintare, anaf_scp_tva, anaf_inactive, anaf_verified_at, anaf_raw_error, reg_number, is_vat_payer, bank_name, iban
+RETURNING id, admin_user_id, company_name, cui, company_type, legal_representative, contact_email, contact_phone, address, city, county, description, logo_url, status, rejection_reason, rating_avg, total_jobs_completed, approved_at, created_at, updated_at, claim_token, stripe_connect_account_id, stripe_connect_onboarding_complete, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, commission_override_pct, anaf_status, anaf_denumire, anaf_adresa, anaf_data_infiintare, anaf_scp_tva, anaf_inactive, anaf_verified_at, anaf_raw_error, reg_number, is_vat_payer, bank_name, iban
 `
 
 type CreateCompanyParams struct {
@@ -363,7 +359,6 @@ func (q *Queries) CreateCompany(ctx context.Context, arg CreateCompanyParams) (C
 		&i.LogoUrl,
 		&i.Status,
 		&i.RejectionReason,
-		&i.MaxServiceRadiusKm,
 		&i.RatingAvg,
 		&i.TotalJobsCompleted,
 		&i.ApprovedAt,
@@ -406,7 +401,7 @@ func (q *Queries) GetCompanyAverageRating(ctx context.Context, companyID pgtype.
 }
 
 const getCompanyByAdminUserID = `-- name: GetCompanyByAdminUserID :one
-SELECT id, admin_user_id, company_name, cui, company_type, legal_representative, contact_email, contact_phone, address, city, county, description, logo_url, status, rejection_reason, max_service_radius_km, rating_avg, total_jobs_completed, approved_at, created_at, updated_at, claim_token, stripe_connect_account_id, stripe_connect_onboarding_complete, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, commission_override_pct, anaf_status, anaf_denumire, anaf_adresa, anaf_data_infiintare, anaf_scp_tva, anaf_inactive, anaf_verified_at, anaf_raw_error, reg_number, is_vat_payer, bank_name, iban FROM companies WHERE admin_user_id = $1
+SELECT id, admin_user_id, company_name, cui, company_type, legal_representative, contact_email, contact_phone, address, city, county, description, logo_url, status, rejection_reason, rating_avg, total_jobs_completed, approved_at, created_at, updated_at, claim_token, stripe_connect_account_id, stripe_connect_onboarding_complete, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, commission_override_pct, anaf_status, anaf_denumire, anaf_adresa, anaf_data_infiintare, anaf_scp_tva, anaf_inactive, anaf_verified_at, anaf_raw_error, reg_number, is_vat_payer, bank_name, iban FROM companies WHERE admin_user_id = $1
 `
 
 func (q *Queries) GetCompanyByAdminUserID(ctx context.Context, adminUserID pgtype.UUID) (Company, error) {
@@ -428,7 +423,6 @@ func (q *Queries) GetCompanyByAdminUserID(ctx context.Context, adminUserID pgtyp
 		&i.LogoUrl,
 		&i.Status,
 		&i.RejectionReason,
-		&i.MaxServiceRadiusKm,
 		&i.RatingAvg,
 		&i.TotalJobsCompleted,
 		&i.ApprovedAt,
@@ -457,7 +451,7 @@ func (q *Queries) GetCompanyByAdminUserID(ctx context.Context, adminUserID pgtyp
 }
 
 const getCompanyByCUI = `-- name: GetCompanyByCUI :one
-SELECT id, admin_user_id, company_name, cui, company_type, legal_representative, contact_email, contact_phone, address, city, county, description, logo_url, status, rejection_reason, max_service_radius_km, rating_avg, total_jobs_completed, approved_at, created_at, updated_at, claim_token, stripe_connect_account_id, stripe_connect_onboarding_complete, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, commission_override_pct, anaf_status, anaf_denumire, anaf_adresa, anaf_data_infiintare, anaf_scp_tva, anaf_inactive, anaf_verified_at, anaf_raw_error, reg_number, is_vat_payer, bank_name, iban FROM companies WHERE cui = $1
+SELECT id, admin_user_id, company_name, cui, company_type, legal_representative, contact_email, contact_phone, address, city, county, description, logo_url, status, rejection_reason, rating_avg, total_jobs_completed, approved_at, created_at, updated_at, claim_token, stripe_connect_account_id, stripe_connect_onboarding_complete, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, commission_override_pct, anaf_status, anaf_denumire, anaf_adresa, anaf_data_infiintare, anaf_scp_tva, anaf_inactive, anaf_verified_at, anaf_raw_error, reg_number, is_vat_payer, bank_name, iban FROM companies WHERE cui = $1
 `
 
 func (q *Queries) GetCompanyByCUI(ctx context.Context, cui string) (Company, error) {
@@ -479,7 +473,6 @@ func (q *Queries) GetCompanyByCUI(ctx context.Context, cui string) (Company, err
 		&i.LogoUrl,
 		&i.Status,
 		&i.RejectionReason,
-		&i.MaxServiceRadiusKm,
 		&i.RatingAvg,
 		&i.TotalJobsCompleted,
 		&i.ApprovedAt,
@@ -508,7 +501,7 @@ func (q *Queries) GetCompanyByCUI(ctx context.Context, cui string) (Company, err
 }
 
 const getCompanyByClaimToken = `-- name: GetCompanyByClaimToken :one
-SELECT id, admin_user_id, company_name, cui, company_type, legal_representative, contact_email, contact_phone, address, city, county, description, logo_url, status, rejection_reason, max_service_radius_km, rating_avg, total_jobs_completed, approved_at, created_at, updated_at, claim_token, stripe_connect_account_id, stripe_connect_onboarding_complete, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, commission_override_pct, anaf_status, anaf_denumire, anaf_adresa, anaf_data_infiintare, anaf_scp_tva, anaf_inactive, anaf_verified_at, anaf_raw_error, reg_number, is_vat_payer, bank_name, iban FROM companies
+SELECT id, admin_user_id, company_name, cui, company_type, legal_representative, contact_email, contact_phone, address, city, county, description, logo_url, status, rejection_reason, rating_avg, total_jobs_completed, approved_at, created_at, updated_at, claim_token, stripe_connect_account_id, stripe_connect_onboarding_complete, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, commission_override_pct, anaf_status, anaf_denumire, anaf_adresa, anaf_data_infiintare, anaf_scp_tva, anaf_inactive, anaf_verified_at, anaf_raw_error, reg_number, is_vat_payer, bank_name, iban FROM companies
 WHERE claim_token = $1 AND admin_user_id IS NULL
 `
 
@@ -531,7 +524,6 @@ func (q *Queries) GetCompanyByClaimToken(ctx context.Context, claimToken pgtype.
 		&i.LogoUrl,
 		&i.Status,
 		&i.RejectionReason,
-		&i.MaxServiceRadiusKm,
 		&i.RatingAvg,
 		&i.TotalJobsCompleted,
 		&i.ApprovedAt,
@@ -560,7 +552,7 @@ func (q *Queries) GetCompanyByClaimToken(ctx context.Context, claimToken pgtype.
 }
 
 const getCompanyByID = `-- name: GetCompanyByID :one
-SELECT id, admin_user_id, company_name, cui, company_type, legal_representative, contact_email, contact_phone, address, city, county, description, logo_url, status, rejection_reason, max_service_radius_km, rating_avg, total_jobs_completed, approved_at, created_at, updated_at, claim_token, stripe_connect_account_id, stripe_connect_onboarding_complete, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, commission_override_pct, anaf_status, anaf_denumire, anaf_adresa, anaf_data_infiintare, anaf_scp_tva, anaf_inactive, anaf_verified_at, anaf_raw_error, reg_number, is_vat_payer, bank_name, iban FROM companies WHERE id = $1
+SELECT id, admin_user_id, company_name, cui, company_type, legal_representative, contact_email, contact_phone, address, city, county, description, logo_url, status, rejection_reason, rating_avg, total_jobs_completed, approved_at, created_at, updated_at, claim_token, stripe_connect_account_id, stripe_connect_onboarding_complete, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, commission_override_pct, anaf_status, anaf_denumire, anaf_adresa, anaf_data_infiintare, anaf_scp_tva, anaf_inactive, anaf_verified_at, anaf_raw_error, reg_number, is_vat_payer, bank_name, iban FROM companies WHERE id = $1
 `
 
 func (q *Queries) GetCompanyByID(ctx context.Context, id pgtype.UUID) (Company, error) {
@@ -582,7 +574,6 @@ func (q *Queries) GetCompanyByID(ctx context.Context, id pgtype.UUID) (Company, 
 		&i.LogoUrl,
 		&i.Status,
 		&i.RejectionReason,
-		&i.MaxServiceRadiusKm,
 		&i.RatingAvg,
 		&i.TotalJobsCompleted,
 		&i.ApprovedAt,
@@ -639,7 +630,7 @@ func (q *Queries) GetCompanyFinancialSummary(ctx context.Context, companyID pgty
 }
 
 const getUnclaimedCompanyByContactEmail = `-- name: GetUnclaimedCompanyByContactEmail :one
-SELECT id, admin_user_id, company_name, cui, company_type, legal_representative, contact_email, contact_phone, address, city, county, description, logo_url, status, rejection_reason, max_service_radius_km, rating_avg, total_jobs_completed, approved_at, created_at, updated_at, claim_token, stripe_connect_account_id, stripe_connect_onboarding_complete, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, commission_override_pct, anaf_status, anaf_denumire, anaf_adresa, anaf_data_infiintare, anaf_scp_tva, anaf_inactive, anaf_verified_at, anaf_raw_error, reg_number, is_vat_payer, bank_name, iban FROM companies
+SELECT id, admin_user_id, company_name, cui, company_type, legal_representative, contact_email, contact_phone, address, city, county, description, logo_url, status, rejection_reason, rating_avg, total_jobs_completed, approved_at, created_at, updated_at, claim_token, stripe_connect_account_id, stripe_connect_onboarding_complete, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, commission_override_pct, anaf_status, anaf_denumire, anaf_adresa, anaf_data_infiintare, anaf_scp_tva, anaf_inactive, anaf_verified_at, anaf_raw_error, reg_number, is_vat_payer, bank_name, iban FROM companies
 WHERE contact_email = $1 AND admin_user_id IS NULL
 LIMIT 1
 `
@@ -663,7 +654,6 @@ func (q *Queries) GetUnclaimedCompanyByContactEmail(ctx context.Context, contact
 		&i.LogoUrl,
 		&i.Status,
 		&i.RejectionReason,
-		&i.MaxServiceRadiusKm,
 		&i.RatingAvg,
 		&i.TotalJobsCompleted,
 		&i.ApprovedAt,
@@ -692,7 +682,7 @@ func (q *Queries) GetUnclaimedCompanyByContactEmail(ctx context.Context, contact
 }
 
 const listAllCompanies = `-- name: ListAllCompanies :many
-SELECT id, admin_user_id, company_name, cui, company_type, legal_representative, contact_email, contact_phone, address, city, county, description, logo_url, status, rejection_reason, max_service_radius_km, rating_avg, total_jobs_completed, approved_at, created_at, updated_at, claim_token, stripe_connect_account_id, stripe_connect_onboarding_complete, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, commission_override_pct, anaf_status, anaf_denumire, anaf_adresa, anaf_data_infiintare, anaf_scp_tva, anaf_inactive, anaf_verified_at, anaf_raw_error, reg_number, is_vat_payer, bank_name, iban FROM companies ORDER BY created_at DESC LIMIT $1 OFFSET $2
+SELECT id, admin_user_id, company_name, cui, company_type, legal_representative, contact_email, contact_phone, address, city, county, description, logo_url, status, rejection_reason, rating_avg, total_jobs_completed, approved_at, created_at, updated_at, claim_token, stripe_connect_account_id, stripe_connect_onboarding_complete, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, commission_override_pct, anaf_status, anaf_denumire, anaf_adresa, anaf_data_infiintare, anaf_scp_tva, anaf_inactive, anaf_verified_at, anaf_raw_error, reg_number, is_vat_payer, bank_name, iban FROM companies ORDER BY created_at DESC LIMIT $1 OFFSET $2
 `
 
 type ListAllCompaniesParams struct {
@@ -725,7 +715,6 @@ func (q *Queries) ListAllCompanies(ctx context.Context, arg ListAllCompaniesPara
 			&i.LogoUrl,
 			&i.Status,
 			&i.RejectionReason,
-			&i.MaxServiceRadiusKm,
 			&i.RatingAvg,
 			&i.TotalJobsCompleted,
 			&i.ApprovedAt,
@@ -761,7 +750,7 @@ func (q *Queries) ListAllCompanies(ctx context.Context, arg ListAllCompaniesPara
 }
 
 const listCompaniesByStatus = `-- name: ListCompaniesByStatus :many
-SELECT id, admin_user_id, company_name, cui, company_type, legal_representative, contact_email, contact_phone, address, city, county, description, logo_url, status, rejection_reason, max_service_radius_km, rating_avg, total_jobs_completed, approved_at, created_at, updated_at, claim_token, stripe_connect_account_id, stripe_connect_onboarding_complete, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, commission_override_pct, anaf_status, anaf_denumire, anaf_adresa, anaf_data_infiintare, anaf_scp_tva, anaf_inactive, anaf_verified_at, anaf_raw_error, reg_number, is_vat_payer, bank_name, iban FROM companies WHERE status = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3
+SELECT id, admin_user_id, company_name, cui, company_type, legal_representative, contact_email, contact_phone, address, city, county, description, logo_url, status, rejection_reason, rating_avg, total_jobs_completed, approved_at, created_at, updated_at, claim_token, stripe_connect_account_id, stripe_connect_onboarding_complete, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, commission_override_pct, anaf_status, anaf_denumire, anaf_adresa, anaf_data_infiintare, anaf_scp_tva, anaf_inactive, anaf_verified_at, anaf_raw_error, reg_number, is_vat_payer, bank_name, iban FROM companies WHERE status = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3
 `
 
 type ListCompaniesByStatusParams struct {
@@ -795,7 +784,6 @@ func (q *Queries) ListCompaniesByStatus(ctx context.Context, arg ListCompaniesBy
 			&i.LogoUrl,
 			&i.Status,
 			&i.RejectionReason,
-			&i.MaxServiceRadiusKm,
 			&i.RatingAvg,
 			&i.TotalJobsCompleted,
 			&i.ApprovedAt,
@@ -832,7 +820,7 @@ func (q *Queries) ListCompaniesByStatus(ctx context.Context, arg ListCompaniesBy
 
 const rejectCompany = `-- name: RejectCompany :one
 UPDATE companies SET status = 'rejected', rejection_reason = $2, updated_at = NOW()
-WHERE id = $1 RETURNING id, admin_user_id, company_name, cui, company_type, legal_representative, contact_email, contact_phone, address, city, county, description, logo_url, status, rejection_reason, max_service_radius_km, rating_avg, total_jobs_completed, approved_at, created_at, updated_at, claim_token, stripe_connect_account_id, stripe_connect_onboarding_complete, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, commission_override_pct, anaf_status, anaf_denumire, anaf_adresa, anaf_data_infiintare, anaf_scp_tva, anaf_inactive, anaf_verified_at, anaf_raw_error, reg_number, is_vat_payer, bank_name, iban
+WHERE id = $1 RETURNING id, admin_user_id, company_name, cui, company_type, legal_representative, contact_email, contact_phone, address, city, county, description, logo_url, status, rejection_reason, rating_avg, total_jobs_completed, approved_at, created_at, updated_at, claim_token, stripe_connect_account_id, stripe_connect_onboarding_complete, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, commission_override_pct, anaf_status, anaf_denumire, anaf_adresa, anaf_data_infiintare, anaf_scp_tva, anaf_inactive, anaf_verified_at, anaf_raw_error, reg_number, is_vat_payer, bank_name, iban
 `
 
 type RejectCompanyParams struct {
@@ -859,7 +847,6 @@ func (q *Queries) RejectCompany(ctx context.Context, arg RejectCompanyParams) (C
 		&i.LogoUrl,
 		&i.Status,
 		&i.RejectionReason,
-		&i.MaxServiceRadiusKm,
 		&i.RatingAvg,
 		&i.TotalJobsCompleted,
 		&i.ApprovedAt,
@@ -894,7 +881,7 @@ UPDATE companies SET
     anaf_verified_at = NOW(),
     updated_at       = NOW()
 WHERE id = $1
-RETURNING id, admin_user_id, company_name, cui, company_type, legal_representative, contact_email, contact_phone, address, city, county, description, logo_url, status, rejection_reason, max_service_radius_km, rating_avg, total_jobs_completed, approved_at, created_at, updated_at, claim_token, stripe_connect_account_id, stripe_connect_onboarding_complete, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, commission_override_pct, anaf_status, anaf_denumire, anaf_adresa, anaf_data_infiintare, anaf_scp_tva, anaf_inactive, anaf_verified_at, anaf_raw_error, reg_number, is_vat_payer, bank_name, iban
+RETURNING id, admin_user_id, company_name, cui, company_type, legal_representative, contact_email, contact_phone, address, city, county, description, logo_url, status, rejection_reason, rating_avg, total_jobs_completed, approved_at, created_at, updated_at, claim_token, stripe_connect_account_id, stripe_connect_onboarding_complete, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, commission_override_pct, anaf_status, anaf_denumire, anaf_adresa, anaf_data_infiintare, anaf_scp_tva, anaf_inactive, anaf_verified_at, anaf_raw_error, reg_number, is_vat_payer, bank_name, iban
 `
 
 type SaveANAFErrorParams struct {
@@ -921,7 +908,6 @@ func (q *Queries) SaveANAFError(ctx context.Context, arg SaveANAFErrorParams) (C
 		&i.LogoUrl,
 		&i.Status,
 		&i.RejectionReason,
-		&i.MaxServiceRadiusKm,
 		&i.RatingAvg,
 		&i.TotalJobsCompleted,
 		&i.ApprovedAt,
@@ -961,7 +947,7 @@ UPDATE companies SET
     anaf_raw_error       = NULL,
     updated_at           = NOW()
 WHERE id = $1
-RETURNING id, admin_user_id, company_name, cui, company_type, legal_representative, contact_email, contact_phone, address, city, county, description, logo_url, status, rejection_reason, max_service_radius_km, rating_avg, total_jobs_completed, approved_at, created_at, updated_at, claim_token, stripe_connect_account_id, stripe_connect_onboarding_complete, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, commission_override_pct, anaf_status, anaf_denumire, anaf_adresa, anaf_data_infiintare, anaf_scp_tva, anaf_inactive, anaf_verified_at, anaf_raw_error, reg_number, is_vat_payer, bank_name, iban
+RETURNING id, admin_user_id, company_name, cui, company_type, legal_representative, contact_email, contact_phone, address, city, county, description, logo_url, status, rejection_reason, rating_avg, total_jobs_completed, approved_at, created_at, updated_at, claim_token, stripe_connect_account_id, stripe_connect_onboarding_complete, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, commission_override_pct, anaf_status, anaf_denumire, anaf_adresa, anaf_data_infiintare, anaf_scp_tva, anaf_inactive, anaf_verified_at, anaf_raw_error, reg_number, is_vat_payer, bank_name, iban
 `
 
 type SaveANAFVerificationParams struct {
@@ -1001,7 +987,6 @@ func (q *Queries) SaveANAFVerification(ctx context.Context, arg SaveANAFVerifica
 		&i.LogoUrl,
 		&i.Status,
 		&i.RejectionReason,
-		&i.MaxServiceRadiusKm,
 		&i.RatingAvg,
 		&i.TotalJobsCompleted,
 		&i.ApprovedAt,
@@ -1030,7 +1015,7 @@ func (q *Queries) SaveANAFVerification(ctx context.Context, arg SaveANAFVerifica
 }
 
 const searchCompanies = `-- name: SearchCompanies :many
-SELECT id, admin_user_id, company_name, cui, company_type, legal_representative, contact_email, contact_phone, address, city, county, description, logo_url, status, rejection_reason, max_service_radius_km, rating_avg, total_jobs_completed, approved_at, created_at, updated_at, claim_token, stripe_connect_account_id, stripe_connect_onboarding_complete, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, commission_override_pct, anaf_status, anaf_denumire, anaf_adresa, anaf_data_infiintare, anaf_scp_tva, anaf_inactive, anaf_verified_at, anaf_raw_error, reg_number, is_vat_payer, bank_name, iban FROM companies WHERE
+SELECT id, admin_user_id, company_name, cui, company_type, legal_representative, contact_email, contact_phone, address, city, county, description, logo_url, status, rejection_reason, rating_avg, total_jobs_completed, approved_at, created_at, updated_at, claim_token, stripe_connect_account_id, stripe_connect_onboarding_complete, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, commission_override_pct, anaf_status, anaf_denumire, anaf_adresa, anaf_data_infiintare, anaf_scp_tva, anaf_inactive, anaf_verified_at, anaf_raw_error, reg_number, is_vat_payer, bank_name, iban FROM companies WHERE
     (company_name ILIKE '%' || $3::text || '%' OR cui ILIKE '%' || $3::text || '%')
     AND ($4::text = '' OR status::text = $4::text)
 ORDER BY created_at DESC LIMIT $1 OFFSET $2
@@ -1073,7 +1058,6 @@ func (q *Queries) SearchCompanies(ctx context.Context, arg SearchCompaniesParams
 			&i.LogoUrl,
 			&i.Status,
 			&i.RejectionReason,
-			&i.MaxServiceRadiusKm,
 			&i.RatingAvg,
 			&i.TotalJobsCompleted,
 			&i.ApprovedAt,
@@ -1111,7 +1095,7 @@ func (q *Queries) SearchCompanies(ctx context.Context, arg SearchCompaniesParams
 const setCompanyAdminUser = `-- name: SetCompanyAdminUser :one
 UPDATE companies SET admin_user_id = $1, updated_at = NOW()
 WHERE id = $2
-RETURNING id, admin_user_id, company_name, cui, company_type, legal_representative, contact_email, contact_phone, address, city, county, description, logo_url, status, rejection_reason, max_service_radius_km, rating_avg, total_jobs_completed, approved_at, created_at, updated_at, claim_token, stripe_connect_account_id, stripe_connect_onboarding_complete, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, commission_override_pct, anaf_status, anaf_denumire, anaf_adresa, anaf_data_infiintare, anaf_scp_tva, anaf_inactive, anaf_verified_at, anaf_raw_error, reg_number, is_vat_payer, bank_name, iban
+RETURNING id, admin_user_id, company_name, cui, company_type, legal_representative, contact_email, contact_phone, address, city, county, description, logo_url, status, rejection_reason, rating_avg, total_jobs_completed, approved_at, created_at, updated_at, claim_token, stripe_connect_account_id, stripe_connect_onboarding_complete, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, commission_override_pct, anaf_status, anaf_denumire, anaf_adresa, anaf_data_infiintare, anaf_scp_tva, anaf_inactive, anaf_verified_at, anaf_raw_error, reg_number, is_vat_payer, bank_name, iban
 `
 
 type SetCompanyAdminUserParams struct {
@@ -1138,7 +1122,6 @@ func (q *Queries) SetCompanyAdminUser(ctx context.Context, arg SetCompanyAdminUs
 		&i.LogoUrl,
 		&i.Status,
 		&i.RejectionReason,
-		&i.MaxServiceRadiusKm,
 		&i.RatingAvg,
 		&i.TotalJobsCompleted,
 		&i.ApprovedAt,
@@ -1168,7 +1151,7 @@ func (q *Queries) SetCompanyAdminUser(ctx context.Context, arg SetCompanyAdminUs
 
 const setCompanyCommissionOverride = `-- name: SetCompanyCommissionOverride :one
 UPDATE companies SET commission_override_pct = $2, updated_at = NOW()
-WHERE id = $1 RETURNING id, admin_user_id, company_name, cui, company_type, legal_representative, contact_email, contact_phone, address, city, county, description, logo_url, status, rejection_reason, max_service_radius_km, rating_avg, total_jobs_completed, approved_at, created_at, updated_at, claim_token, stripe_connect_account_id, stripe_connect_onboarding_complete, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, commission_override_pct, anaf_status, anaf_denumire, anaf_adresa, anaf_data_infiintare, anaf_scp_tva, anaf_inactive, anaf_verified_at, anaf_raw_error, reg_number, is_vat_payer, bank_name, iban
+WHERE id = $1 RETURNING id, admin_user_id, company_name, cui, company_type, legal_representative, contact_email, contact_phone, address, city, county, description, logo_url, status, rejection_reason, rating_avg, total_jobs_completed, approved_at, created_at, updated_at, claim_token, stripe_connect_account_id, stripe_connect_onboarding_complete, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, commission_override_pct, anaf_status, anaf_denumire, anaf_adresa, anaf_data_infiintare, anaf_scp_tva, anaf_inactive, anaf_verified_at, anaf_raw_error, reg_number, is_vat_payer, bank_name, iban
 `
 
 type SetCompanyCommissionOverrideParams struct {
@@ -1195,7 +1178,6 @@ func (q *Queries) SetCompanyCommissionOverride(ctx context.Context, arg SetCompa
 		&i.LogoUrl,
 		&i.Status,
 		&i.RejectionReason,
-		&i.MaxServiceRadiusKm,
 		&i.RatingAvg,
 		&i.TotalJobsCompleted,
 		&i.ApprovedAt,
@@ -1224,7 +1206,7 @@ func (q *Queries) SetCompanyCommissionOverride(ctx context.Context, arg SetCompa
 }
 
 const updateCompanyLogo = `-- name: UpdateCompanyLogo :one
-UPDATE companies SET logo_url = $2, updated_at = NOW() WHERE id = $1 RETURNING id, admin_user_id, company_name, cui, company_type, legal_representative, contact_email, contact_phone, address, city, county, description, logo_url, status, rejection_reason, max_service_radius_km, rating_avg, total_jobs_completed, approved_at, created_at, updated_at, claim_token, stripe_connect_account_id, stripe_connect_onboarding_complete, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, commission_override_pct, anaf_status, anaf_denumire, anaf_adresa, anaf_data_infiintare, anaf_scp_tva, anaf_inactive, anaf_verified_at, anaf_raw_error, reg_number, is_vat_payer, bank_name, iban
+UPDATE companies SET logo_url = $2, updated_at = NOW() WHERE id = $1 RETURNING id, admin_user_id, company_name, cui, company_type, legal_representative, contact_email, contact_phone, address, city, county, description, logo_url, status, rejection_reason, rating_avg, total_jobs_completed, approved_at, created_at, updated_at, claim_token, stripe_connect_account_id, stripe_connect_onboarding_complete, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, commission_override_pct, anaf_status, anaf_denumire, anaf_adresa, anaf_data_infiintare, anaf_scp_tva, anaf_inactive, anaf_verified_at, anaf_raw_error, reg_number, is_vat_payer, bank_name, iban
 `
 
 type UpdateCompanyLogoParams struct {
@@ -1251,7 +1233,6 @@ func (q *Queries) UpdateCompanyLogo(ctx context.Context, arg UpdateCompanyLogoPa
 		&i.LogoUrl,
 		&i.Status,
 		&i.RejectionReason,
-		&i.MaxServiceRadiusKm,
 		&i.RatingAvg,
 		&i.TotalJobsCompleted,
 		&i.ApprovedAt,
@@ -1284,13 +1265,12 @@ UPDATE companies SET
     description = COALESCE(NULLIF($2::text, ''), description),
     contact_phone = COALESCE(NULLIF($3::text, ''), contact_phone),
     contact_email = COALESCE(NULLIF($4::text, ''), contact_email),
-    max_service_radius_km = CASE WHEN $5::int > 0 THEN $5::int ELSE max_service_radius_km END,
-    reg_number = COALESCE(NULLIF($6::text, ''), reg_number),
-    is_vat_payer = $7::boolean,
-    bank_name = COALESCE(NULLIF($8::text, ''), bank_name),
-    iban = COALESCE(NULLIF($9::text, ''), iban),
+    reg_number = COALESCE(NULLIF($5::text, ''), reg_number),
+    is_vat_payer = $6::boolean,
+    bank_name = COALESCE(NULLIF($7::text, ''), bank_name),
+    iban = COALESCE(NULLIF($8::text, ''), iban),
     updated_at = NOW()
-WHERE id = $1 RETURNING id, admin_user_id, company_name, cui, company_type, legal_representative, contact_email, contact_phone, address, city, county, description, logo_url, status, rejection_reason, max_service_radius_km, rating_avg, total_jobs_completed, approved_at, created_at, updated_at, claim_token, stripe_connect_account_id, stripe_connect_onboarding_complete, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, commission_override_pct, anaf_status, anaf_denumire, anaf_adresa, anaf_data_infiintare, anaf_scp_tva, anaf_inactive, anaf_verified_at, anaf_raw_error, reg_number, is_vat_payer, bank_name, iban
+WHERE id = $1 RETURNING id, admin_user_id, company_name, cui, company_type, legal_representative, contact_email, contact_phone, address, city, county, description, logo_url, status, rejection_reason, rating_avg, total_jobs_completed, approved_at, created_at, updated_at, claim_token, stripe_connect_account_id, stripe_connect_onboarding_complete, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, commission_override_pct, anaf_status, anaf_denumire, anaf_adresa, anaf_data_infiintare, anaf_scp_tva, anaf_inactive, anaf_verified_at, anaf_raw_error, reg_number, is_vat_payer, bank_name, iban
 `
 
 type UpdateCompanyOwnProfileParams struct {
@@ -1298,7 +1278,6 @@ type UpdateCompanyOwnProfileParams struct {
 	Description  string      `json:"description"`
 	ContactPhone string      `json:"contact_phone"`
 	ContactEmail string      `json:"contact_email"`
-	MaxRadius    int32       `json:"max_radius"`
 	RegNumber    string      `json:"reg_number"`
 	IsVatPayer   bool        `json:"is_vat_payer"`
 	BankName     string      `json:"bank_name"`
@@ -1311,7 +1290,6 @@ func (q *Queries) UpdateCompanyOwnProfile(ctx context.Context, arg UpdateCompany
 		arg.Description,
 		arg.ContactPhone,
 		arg.ContactEmail,
-		arg.MaxRadius,
 		arg.RegNumber,
 		arg.IsVatPayer,
 		arg.BankName,
@@ -1334,7 +1312,6 @@ func (q *Queries) UpdateCompanyOwnProfile(ctx context.Context, arg UpdateCompany
 		&i.LogoUrl,
 		&i.Status,
 		&i.RejectionReason,
-		&i.MaxServiceRadiusKm,
 		&i.RatingAvg,
 		&i.TotalJobsCompleted,
 		&i.ApprovedAt,
@@ -1363,7 +1340,7 @@ func (q *Queries) UpdateCompanyOwnProfile(ctx context.Context, arg UpdateCompany
 }
 
 const updateCompanyStatus = `-- name: UpdateCompanyStatus :one
-UPDATE companies SET status = $2, updated_at = NOW() WHERE id = $1 RETURNING id, admin_user_id, company_name, cui, company_type, legal_representative, contact_email, contact_phone, address, city, county, description, logo_url, status, rejection_reason, max_service_radius_km, rating_avg, total_jobs_completed, approved_at, created_at, updated_at, claim_token, stripe_connect_account_id, stripe_connect_onboarding_complete, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, commission_override_pct, anaf_status, anaf_denumire, anaf_adresa, anaf_data_infiintare, anaf_scp_tva, anaf_inactive, anaf_verified_at, anaf_raw_error, reg_number, is_vat_payer, bank_name, iban
+UPDATE companies SET status = $2, updated_at = NOW() WHERE id = $1 RETURNING id, admin_user_id, company_name, cui, company_type, legal_representative, contact_email, contact_phone, address, city, county, description, logo_url, status, rejection_reason, rating_avg, total_jobs_completed, approved_at, created_at, updated_at, claim_token, stripe_connect_account_id, stripe_connect_onboarding_complete, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, commission_override_pct, anaf_status, anaf_denumire, anaf_adresa, anaf_data_infiintare, anaf_scp_tva, anaf_inactive, anaf_verified_at, anaf_raw_error, reg_number, is_vat_payer, bank_name, iban
 `
 
 type UpdateCompanyStatusParams struct {
@@ -1390,7 +1367,6 @@ func (q *Queries) UpdateCompanyStatus(ctx context.Context, arg UpdateCompanyStat
 		&i.LogoUrl,
 		&i.Status,
 		&i.RejectionReason,
-		&i.MaxServiceRadiusKm,
 		&i.RatingAvg,
 		&i.TotalJobsCompleted,
 		&i.ApprovedAt,

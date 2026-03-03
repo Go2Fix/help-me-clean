@@ -925,7 +925,6 @@ type Company struct {
 	LogoUrl                         pgtype.Text        `json:"logo_url"`
 	Status                          CompanyStatus      `json:"status"`
 	RejectionReason                 pgtype.Text        `json:"rejection_reason"`
-	MaxServiceRadiusKm              pgtype.Int4        `json:"max_service_radius_km"`
 	RatingAvg                       pgtype.Numeric     `json:"rating_avg"`
 	TotalJobsCompleted              pgtype.Int4        `json:"total_jobs_completed"`
 	ApprovedAt                      pgtype.Timestamptz `json:"approved_at"`

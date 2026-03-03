@@ -1,0 +1,1 @@
+ALTER TABLE companies ADD COLUMN IF NOT EXISTS max_service_radius_km INTEGER DEFAULT 20;

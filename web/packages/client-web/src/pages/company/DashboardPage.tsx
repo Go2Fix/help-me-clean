@@ -10,6 +10,12 @@ import {
   MapPin,
   ChevronRight,
   Repeat,
+  Image,
+  AlignLeft,
+  Phone,
+  ShieldCheck,
+  CreditCard,
+  Briefcase,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -21,12 +27,16 @@ import {
 } from 'recharts';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
+import ProfileSetupChecklist from '@/components/ProfileSetupChecklist';
+import type { SetupItem } from '@/components/ProfileSetupChecklist';
 import {
   MY_COMPANY,
   MY_COMPANY_FINANCIAL_SUMMARY,
   COMPANY_REVENUE_BY_DATE_RANGE,
   COMPANY_BOOKINGS,
   COMPANY_SUBSCRIPTIONS,
+  MY_CONNECT_STATUS,
+  MY_COMPANY_SERVICE_AREAS,
 } from '@/graphql/operations';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -132,6 +142,8 @@ export default function DashboardPage() {
   const { data: subsData, loading: subsLoading } = useQuery(COMPANY_SUBSCRIPTIONS, {
     variables: { limit: 5 },
   });
+  const { data: connectData } = useQuery(MY_CONNECT_STATUS);
+  const { data: serviceAreasData } = useQuery(MY_COMPANY_SERVICE_AREAS);
 
   const company = companyData?.myCompany;
   const financial = financialData?.myCompanyFinancialSummary;
@@ -146,6 +158,22 @@ export default function DashboardPage() {
     .reduce((sum, s) => sum + (s.monthlyAmount ?? 0), 0);
 
   const isKpiLoading = companyLoading || financialLoading;
+
+  // Setup checklist
+  const REQUIRED_COMPANY_DOC_TYPES = ['certificat_constatator', 'asigurare_raspundere_civila', 'cui_document'];
+  const companyDocs: { documentType: string; status: string }[] = company?.documents ?? [];
+  const approvedCompanyDocTypes = new Set(companyDocs.filter((d) => d.status === 'APPROVED').map((d) => d.documentType));
+  const hasAllCompanyDocs = REQUIRED_COMPANY_DOC_TYPES.every((t) => approvedCompanyDocTypes.has(t));
+
+  const setupItems: SetupItem[] = [
+    { key: 'logo', label: 'Adaugă logo-ul firmei', description: 'Apare pe profil și pe facturi', done: !!company?.logoUrl, to: '/firma/setari', icon: Image },
+    { key: 'description', label: 'Completează descrierea firmei', description: 'Ajută clienții să înțeleagă oferta', done: !!company?.description?.trim(), to: '/firma/setari', icon: AlignLeft },
+    { key: 'phone', label: 'Adaugă telefon de contact', description: 'Necesar pentru comunicarea cu clienții', done: !!company?.contactPhone?.trim(), to: '/firma/setari', icon: Phone },
+    { key: 'docs', label: 'Încarcă documentele obligatorii', description: 'Certificat constatator, RCA, document CUI', done: hasAllCompanyDocs, to: '/firma/documente-obligatorii', icon: ShieldCheck },
+    { key: 'stripe', label: 'Configurează plățile Stripe', description: 'Necesare pentru a primi bani de la clienți', done: connectData?.myConnectStatus?.onboardingStatus === 'COMPLETE', to: '/firma/setari', icon: CreditCard },
+    { key: 'categories', label: 'Selectează categoriile de servicii', description: 'Definește ce servicii oferă firma ta', done: (company?.serviceCategories?.length ?? 0) > 0, to: '/firma/setari', icon: Briefcase },
+    { key: 'areas', label: 'Configurează zonele de lucru', description: 'Definește în ce zone poate lucra firma', done: (serviceAreasData?.myCompanyServiceAreas?.length ?? 0) > 0, to: '/firma/setari', icon: MapPin },
+  ];
 
   // Chart data formatted for display
   const chartData = useMemo(
@@ -169,6 +197,17 @@ export default function DashboardPage() {
           Iata o privire de ansamblu asupra activitatii tale.
         </p>
       </div>
+
+      {/* Setup Checklist */}
+      {company && (
+        <div className="mb-8">
+          <ProfileSetupChecklist
+            items={setupItems}
+            title="Configurare firmă"
+            subtitle="Completează toți pașii pentru a primi comenzi"
+          />
+        </div>
+      )}
 
       {/* Key Metrics */}
       {isKpiLoading ? (
@@ -198,7 +237,6 @@ export default function DashboardPage() {
             </div>
             <div className="space-y-1 pt-3 md:pt-0 md:pl-6">
               <Metric icon={Receipt} label="Comision platforma" value={`${Number(financial?.totalCommission ?? 0).toFixed(2)} RON`} />
-              <Metric icon={MapPin} label="Raza serviciu" value={`${company?.maxServiceRadiusKm ?? '--'} km`} />
             </div>
             <div className="space-y-1 pt-3 md:pt-0 md:pl-6">
               <Metric icon={Repeat} label="Abonamente active" value={activeSubsCount} />

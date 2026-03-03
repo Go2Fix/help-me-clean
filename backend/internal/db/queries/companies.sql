@@ -75,7 +75,6 @@ UPDATE companies SET
     description = COALESCE(NULLIF(@description::text, ''), description),
     contact_phone = COALESCE(NULLIF(@contact_phone::text, ''), contact_phone),
     contact_email = COALESCE(NULLIF(@contact_email::text, ''), contact_email),
-    max_service_radius_km = CASE WHEN @max_radius::int > 0 THEN @max_radius::int ELSE max_service_radius_km END,
     reg_number = COALESCE(NULLIF(@reg_number::text, ''), reg_number),
     is_vat_payer = @is_vat_payer::boolean,
     bank_name = COALESCE(NULLIF(@bank_name::text, ''), bank_name),

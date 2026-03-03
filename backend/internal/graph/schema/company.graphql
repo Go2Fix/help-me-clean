@@ -26,7 +26,6 @@ type Company {
   logoUrl: String
   status: CompanyStatus!
   rejectionReason: String
-  maxServiceRadiusKm: Int!
   ratingAvg: Float!
   totalJobsCompleted: Int!
   documents: [CompanyDocument!]!
@@ -141,7 +140,6 @@ input UpdateCompanyInput {
   description: String
   contactPhone: String
   contactEmail: String
-  maxServiceRadiusKm: Int
   workSchedule: [WorkScheduleDayInput!]
   # Fiscal details
   regNumber: String

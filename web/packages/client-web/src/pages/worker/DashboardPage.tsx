@@ -3,14 +3,17 @@ import { Link } from 'react-router-dom';
 import {
   Star, Briefcase, Clock, MapPin, Calendar,
   ChevronRight, Brain, FileText, CalendarDays, User,
-  MessageSquare, CheckCircle2, Circle, ClipboardList,
+  MessageSquare, ClipboardList, Camera, AlignLeft, MessageCircle,
 } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import { cn } from '@go2fix/shared';
+import { useAuth } from '@/context/AuthContext';
+import ProfileSetupChecklist from '@/components/ProfileSetupChecklist';
+import type { SetupItem } from '@/components/ProfileSetupChecklist';
 import {
   MY_WORKER_STATS, TODAYS_JOBS,
-  MY_WORKER_REVIEWS, MY_WORKER_PROFILE,
+  MY_WORKER_REVIEWS, MY_WORKER_PROFILE, MY_WORKER_AVAILABILITY,
 } from '@/graphql/operations';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -70,92 +73,29 @@ function Metric({ icon: Icon, label, value, sub }: { icon: React.ElementType; la
   );
 }
 
-interface ChecklistItem {
-  label: string;
-  done: boolean;
-  to: string;
-  icon: React.ElementType;
-}
-
-function OnboardingChecklist({ items }: { items: ChecklistItem[] }) {
-  const doneCount = items.filter((i) => i.done).length;
-  const total = items.length;
-  const pct = Math.round((doneCount / total) * 100);
-
-  if (doneCount === total) return null;
-
-  return (
-    <Card>
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h2 className="font-semibold text-gray-900">Primii pasi</h2>
-          <p className="text-xs text-gray-500 mt-0.5">Completeaza profilul pentru a primi comenzi</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-blue-600">{doneCount}/{total}</span>
-        </div>
-      </div>
-      {/* Progress bar */}
-      <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden mb-4">
-        <div
-          className="h-full bg-blue-600 rounded-full transition-all duration-500"
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-      <div className="space-y-1">
-        {items.map((item) => (
-          <Link
-            key={item.to}
-            to={item.to}
-            className={cn(
-              'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors group',
-              item.done ? 'opacity-60' : 'hover:bg-blue-50/50',
-            )}
-          >
-            {item.done ? (
-              <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />
-            ) : (
-              <Circle className="h-5 w-5 text-gray-300 group-hover:text-blue-400 shrink-0" />
-            )}
-            <div className="flex items-center gap-2 flex-1 min-w-0">
-              <item.icon className={cn('h-4 w-4 shrink-0', item.done ? 'text-gray-400' : 'text-gray-500')} />
-              <span className={cn(
-                'text-sm font-medium',
-                item.done ? 'text-gray-500 line-through' : 'text-gray-700 group-hover:text-gray-900',
-              )}>
-                {item.label}
-              </span>
-            </div>
-            {!item.done && (
-              <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-blue-400 shrink-0" />
-            )}
-          </Link>
-        ))}
-      </div>
-    </Card>
-  );
-}
-
 // ─── Component ──────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
+  const { user } = useAuth();
   const { data: profileData, loading: profileLoading } = useQuery(MY_WORKER_PROFILE);
   const { data: statsData, loading: statsLoading } = useQuery(MY_WORKER_STATS);
   const { data: jobsData, loading: jobsLoading } = useQuery(TODAYS_JOBS);
   const { data: reviewsData, loading: reviewsLoading } = useQuery(MY_WORKER_REVIEWS, {
     variables: { limit: 3, offset: 0 },
   });
+  const { data: availabilityData } = useQuery(MY_WORKER_AVAILABILITY);
 
   const profile = profileData?.myWorkerProfile;
   const stats = statsData?.myWorkerStats;
   const jobs: Job[] = jobsData?.todaysJobs ?? [];
   const reviews: Review[] = reviewsData?.myWorkerReviews?.reviews ?? [];
 
-  // Onboarding checks
+  // Setup checks
   const personalityDone = !!profile?.personalityAssessment?.completedAt;
   const docs: WorkerDoc[] = profile?.documents ?? [];
   const approvedDocTypes = new Set(docs.filter((d) => d.status === 'APPROVED').map((d) => d.documentType));
   const hasAllDocs = REQUIRED_DOC_TYPES.every((t) => approvedDocTypes.has(t));
+  const availabilitySet = availabilityData?.myWorkerAvailability?.some((d: { isAvailable: boolean }) => d.isAvailable) ?? false;
 
   const firstName = profile?.fullName?.split(' ')[0] ?? '';
   const todayStr = new Date().toLocaleDateString('ro-RO', {
@@ -167,12 +107,13 @@ export default function DashboardPage() {
 
   const isKpiLoading = statsLoading || profileLoading;
 
-  // Onboarding checklist items
-  const checklistItems: ChecklistItem[] = [
-    { label: 'Completeaza profilul', done: !!profile?.fullName, to: '/worker/profil', icon: User },
-    { label: 'Test de personalitate', done: personalityDone, to: '/worker/test-personalitate', icon: Brain },
-    { label: 'Incarca documentele', done: hasAllDocs, to: '/worker/profil', icon: FileText },
-    { label: 'Seteaza disponibilitatea', done: false, to: '/worker/program', icon: CalendarDays },
+  const checklistItems: SetupItem[] = [
+    { key: 'avatar', label: 'Adaugă o fotografie de profil', done: !!profile?.user?.avatarUrl, to: '/worker/profil', icon: Camera },
+    { key: 'bio', label: 'Completează bio-ul', description: 'Prezintă-te clienților', done: !!profile?.bio?.trim(), to: '/worker/profil', icon: AlignLeft },
+    { key: 'phone', label: 'Verifică numărul de telefon', description: 'Via WhatsApp', done: !!user?.phoneVerified, to: '/worker/profil', icon: MessageCircle },
+    { key: 'personality', label: 'Test de personalitate', done: personalityDone, to: '/worker/test-personalitate', icon: Brain },
+    { key: 'docs', label: 'Încarcă documentele obligatorii', description: 'Cazier judiciar și contract de muncă', done: hasAllDocs, to: '/worker/documente-obligatorii', icon: FileText },
+    { key: 'availability', label: 'Setează disponibilitatea', description: 'Zilele și orele în care poți lucra', done: availabilitySet, to: '/worker/program', icon: CalendarDays },
   ];
 
   // ─── Render ─────────────────────────────────────────────────────────────────
@@ -221,8 +162,14 @@ export default function DashboardPage() {
         </Card>
       )}
 
-      {/* Onboarding Checklist */}
-      {profile && <OnboardingChecklist items={checklistItems} />}
+      {/* Setup Checklist */}
+      {profile && (
+        <ProfileSetupChecklist
+          items={checklistItems}
+          title="Primii pași"
+          subtitle="Completează profilul pentru a primi comenzi"
+        />
+      )}
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">

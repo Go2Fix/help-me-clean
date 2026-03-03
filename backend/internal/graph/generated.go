@@ -224,7 +224,6 @@ type ComplexityRoot struct {
 		IsVatPayer            func(childComplexity int) int
 		LegalRepresentative   func(childComplexity int) int
 		LogoURL               func(childComplexity int) int
-		MaxServiceRadiusKm    func(childComplexity int) int
 		RatingAvg             func(childComplexity int) int
 		RegNumber             func(childComplexity int) int
 		RejectionReason       func(childComplexity int) int
@@ -2260,12 +2259,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Company.LogoURL(childComplexity), true
-	case "Company.maxServiceRadiusKm":
-		if e.complexity.Company.MaxServiceRadiusKm == nil {
-			break
-		}
-
-		return e.complexity.Company.MaxServiceRadiusKm(childComplexity), true
 	case "Company.ratingAvg":
 		if e.complexity.Company.RatingAvg == nil {
 			break
@@ -11755,8 +11748,6 @@ func (ec *executionContext) fieldContext_Booking_company(_ context.Context, fiel
 				return ec.fieldContext_Company_status(ctx, field)
 			case "rejectionReason":
 				return ec.fieldContext_Company_rejectionReason(ctx, field)
-			case "maxServiceRadiusKm":
-				return ec.fieldContext_Company_maxServiceRadiusKm(ctx, field)
 			case "ratingAvg":
 				return ec.fieldContext_Company_ratingAvg(ctx, field)
 			case "totalJobsCompleted":
@@ -14712,35 +14703,6 @@ func (ec *executionContext) fieldContext_Company_rejectionReason(_ context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _Company_maxServiceRadiusKm(ctx context.Context, field graphql.CollectedField, obj *model.Company) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Company_maxServiceRadiusKm,
-		func(ctx context.Context) (any, error) {
-			return obj.MaxServiceRadiusKm, nil
-		},
-		nil,
-		ec.marshalNInt2int,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Company_maxServiceRadiusKm(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Company",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Company_ratingAvg(ctx context.Context, field graphql.CollectedField, obj *model.Company) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -15300,8 +15262,6 @@ func (ec *executionContext) fieldContext_CompanyApplicationResult_company(_ cont
 				return ec.fieldContext_Company_status(ctx, field)
 			case "rejectionReason":
 				return ec.fieldContext_Company_rejectionReason(ctx, field)
-			case "maxServiceRadiusKm":
-				return ec.fieldContext_Company_maxServiceRadiusKm(ctx, field)
 			case "ratingAvg":
 				return ec.fieldContext_Company_ratingAvg(ctx, field)
 			case "totalJobsCompleted":
@@ -15416,8 +15376,6 @@ func (ec *executionContext) fieldContext_CompanyConnection_edges(_ context.Conte
 				return ec.fieldContext_Company_status(ctx, field)
 			case "rejectionReason":
 				return ec.fieldContext_Company_rejectionReason(ctx, field)
-			case "maxServiceRadiusKm":
-				return ec.fieldContext_Company_maxServiceRadiusKm(ctx, field)
 			case "ratingAvg":
 				return ec.fieldContext_Company_ratingAvg(ctx, field)
 			case "totalJobsCompleted":
@@ -16089,8 +16047,6 @@ func (ec *executionContext) fieldContext_CompanyPayout_company(_ context.Context
 				return ec.fieldContext_Company_status(ctx, field)
 			case "rejectionReason":
 				return ec.fieldContext_Company_rejectionReason(ctx, field)
-			case "maxServiceRadiusKm":
-				return ec.fieldContext_Company_maxServiceRadiusKm(ctx, field)
 			case "ratingAvg":
 				return ec.fieldContext_Company_ratingAvg(ctx, field)
 			case "totalJobsCompleted":
@@ -16449,8 +16405,6 @@ func (ec *executionContext) fieldContext_CompanyPerformance_company(_ context.Co
 				return ec.fieldContext_Company_status(ctx, field)
 			case "rejectionReason":
 				return ec.fieldContext_Company_rejectionReason(ctx, field)
-			case "maxServiceRadiusKm":
-				return ec.fieldContext_Company_maxServiceRadiusKm(ctx, field)
 			case "ratingAvg":
 				return ec.fieldContext_Company_ratingAvg(ctx, field)
 			case "totalJobsCompleted":
@@ -18508,8 +18462,6 @@ func (ec *executionContext) fieldContext_Invoice_company(_ context.Context, fiel
 				return ec.fieldContext_Company_status(ctx, field)
 			case "rejectionReason":
 				return ec.fieldContext_Company_rejectionReason(ctx, field)
-			case "maxServiceRadiusKm":
-				return ec.fieldContext_Company_maxServiceRadiusKm(ctx, field)
 			case "ratingAvg":
 				return ec.fieldContext_Company_ratingAvg(ctx, field)
 			case "totalJobsCompleted":
@@ -20003,8 +19955,6 @@ func (ec *executionContext) fieldContext_Mutation_adminUpdateCompanyProfile(ctx 
 				return ec.fieldContext_Company_status(ctx, field)
 			case "rejectionReason":
 				return ec.fieldContext_Company_rejectionReason(ctx, field)
-			case "maxServiceRadiusKm":
-				return ec.fieldContext_Company_maxServiceRadiusKm(ctx, field)
 			case "ratingAvg":
 				return ec.fieldContext_Company_ratingAvg(ctx, field)
 			case "totalJobsCompleted":
@@ -20102,8 +20052,6 @@ func (ec *executionContext) fieldContext_Mutation_adminUpdateCompanyStatus(ctx c
 				return ec.fieldContext_Company_status(ctx, field)
 			case "rejectionReason":
 				return ec.fieldContext_Company_rejectionReason(ctx, field)
-			case "maxServiceRadiusKm":
-				return ec.fieldContext_Company_maxServiceRadiusKm(ctx, field)
 			case "ratingAvg":
 				return ec.fieldContext_Company_ratingAvg(ctx, field)
 			case "totalJobsCompleted":
@@ -22023,8 +21971,6 @@ func (ec *executionContext) fieldContext_Mutation_claimCompany(ctx context.Conte
 				return ec.fieldContext_Company_status(ctx, field)
 			case "rejectionReason":
 				return ec.fieldContext_Company_rejectionReason(ctx, field)
-			case "maxServiceRadiusKm":
-				return ec.fieldContext_Company_maxServiceRadiusKm(ctx, field)
 			case "ratingAvg":
 				return ec.fieldContext_Company_ratingAvg(ctx, field)
 			case "totalJobsCompleted":
@@ -22122,8 +22068,6 @@ func (ec *executionContext) fieldContext_Mutation_updateCompanyProfile(ctx conte
 				return ec.fieldContext_Company_status(ctx, field)
 			case "rejectionReason":
 				return ec.fieldContext_Company_rejectionReason(ctx, field)
-			case "maxServiceRadiusKm":
-				return ec.fieldContext_Company_maxServiceRadiusKm(ctx, field)
 			case "ratingAvg":
 				return ec.fieldContext_Company_ratingAvg(ctx, field)
 			case "totalJobsCompleted":
@@ -22221,8 +22165,6 @@ func (ec *executionContext) fieldContext_Mutation_uploadCompanyLogo(ctx context.
 				return ec.fieldContext_Company_status(ctx, field)
 			case "rejectionReason":
 				return ec.fieldContext_Company_rejectionReason(ctx, field)
-			case "maxServiceRadiusKm":
-				return ec.fieldContext_Company_maxServiceRadiusKm(ctx, field)
 			case "ratingAvg":
 				return ec.fieldContext_Company_ratingAvg(ctx, field)
 			case "totalJobsCompleted":
@@ -22420,8 +22362,6 @@ func (ec *executionContext) fieldContext_Mutation_approveCompany(ctx context.Con
 				return ec.fieldContext_Company_status(ctx, field)
 			case "rejectionReason":
 				return ec.fieldContext_Company_rejectionReason(ctx, field)
-			case "maxServiceRadiusKm":
-				return ec.fieldContext_Company_maxServiceRadiusKm(ctx, field)
 			case "ratingAvg":
 				return ec.fieldContext_Company_ratingAvg(ctx, field)
 			case "totalJobsCompleted":
@@ -22519,8 +22459,6 @@ func (ec *executionContext) fieldContext_Mutation_rejectCompany(ctx context.Cont
 				return ec.fieldContext_Company_status(ctx, field)
 			case "rejectionReason":
 				return ec.fieldContext_Company_rejectionReason(ctx, field)
-			case "maxServiceRadiusKm":
-				return ec.fieldContext_Company_maxServiceRadiusKm(ctx, field)
 			case "ratingAvg":
 				return ec.fieldContext_Company_ratingAvg(ctx, field)
 			case "totalJobsCompleted":
@@ -22618,8 +22556,6 @@ func (ec *executionContext) fieldContext_Mutation_suspendCompany(ctx context.Con
 				return ec.fieldContext_Company_status(ctx, field)
 			case "rejectionReason":
 				return ec.fieldContext_Company_rejectionReason(ctx, field)
-			case "maxServiceRadiusKm":
-				return ec.fieldContext_Company_maxServiceRadiusKm(ctx, field)
 			case "ratingAvg":
 				return ec.fieldContext_Company_ratingAvg(ctx, field)
 			case "totalJobsCompleted":
@@ -22776,8 +22712,6 @@ func (ec *executionContext) fieldContext_Mutation_setCompanyCommissionOverride(c
 				return ec.fieldContext_Company_status(ctx, field)
 			case "rejectionReason":
 				return ec.fieldContext_Company_rejectionReason(ctx, field)
-			case "maxServiceRadiusKm":
-				return ec.fieldContext_Company_maxServiceRadiusKm(ctx, field)
 			case "ratingAvg":
 				return ec.fieldContext_Company_ratingAvg(ctx, field)
 			case "totalJobsCompleted":
@@ -22944,8 +22878,6 @@ func (ec *executionContext) fieldContext_Mutation_verifyCompanyWithANAF(ctx cont
 				return ec.fieldContext_Company_status(ctx, field)
 			case "rejectionReason":
 				return ec.fieldContext_Company_rejectionReason(ctx, field)
-			case "maxServiceRadiusKm":
-				return ec.fieldContext_Company_maxServiceRadiusKm(ctx, field)
 			case "ratingAvg":
 				return ec.fieldContext_Company_ratingAvg(ctx, field)
 			case "totalJobsCompleted":
@@ -32573,8 +32505,6 @@ func (ec *executionContext) fieldContext_Query_pendingCompanyApplications(_ cont
 				return ec.fieldContext_Company_status(ctx, field)
 			case "rejectionReason":
 				return ec.fieldContext_Company_rejectionReason(ctx, field)
-			case "maxServiceRadiusKm":
-				return ec.fieldContext_Company_maxServiceRadiusKm(ctx, field)
 			case "ratingAvg":
 				return ec.fieldContext_Company_ratingAvg(ctx, field)
 			case "totalJobsCompleted":
@@ -34256,8 +34186,6 @@ func (ec *executionContext) fieldContext_Query_myCompany(_ context.Context, fiel
 				return ec.fieldContext_Company_status(ctx, field)
 			case "rejectionReason":
 				return ec.fieldContext_Company_rejectionReason(ctx, field)
-			case "maxServiceRadiusKm":
-				return ec.fieldContext_Company_maxServiceRadiusKm(ctx, field)
 			case "ratingAvg":
 				return ec.fieldContext_Company_ratingAvg(ctx, field)
 			case "totalJobsCompleted":
@@ -34473,8 +34401,6 @@ func (ec *executionContext) fieldContext_Query_company(ctx context.Context, fiel
 				return ec.fieldContext_Company_status(ctx, field)
 			case "rejectionReason":
 				return ec.fieldContext_Company_rejectionReason(ctx, field)
-			case "maxServiceRadiusKm":
-				return ec.fieldContext_Company_maxServiceRadiusKm(ctx, field)
 			case "ratingAvg":
 				return ec.fieldContext_Company_ratingAvg(ctx, field)
 			case "totalJobsCompleted":
@@ -41740,8 +41666,6 @@ func (ec *executionContext) fieldContext_ServiceSubscription_company(_ context.C
 				return ec.fieldContext_Company_status(ctx, field)
 			case "rejectionReason":
 				return ec.fieldContext_Company_rejectionReason(ctx, field)
-			case "maxServiceRadiusKm":
-				return ec.fieldContext_Company_maxServiceRadiusKm(ctx, field)
 			case "ratingAvg":
 				return ec.fieldContext_Company_ratingAvg(ctx, field)
 			case "totalJobsCompleted":
@@ -43972,8 +43896,6 @@ func (ec *executionContext) fieldContext_SubscriptionWorkerSuggestion_company(_ 
 				return ec.fieldContext_Company_status(ctx, field)
 			case "rejectionReason":
 				return ec.fieldContext_Company_rejectionReason(ctx, field)
-			case "maxServiceRadiusKm":
-				return ec.fieldContext_Company_maxServiceRadiusKm(ctx, field)
 			case "ratingAvg":
 				return ec.fieldContext_Company_ratingAvg(ctx, field)
 			case "totalJobsCompleted":
@@ -46059,8 +45981,6 @@ func (ec *executionContext) fieldContext_WorkerProfile_company(_ context.Context
 				return ec.fieldContext_Company_status(ctx, field)
 			case "rejectionReason":
 				return ec.fieldContext_Company_rejectionReason(ctx, field)
-			case "maxServiceRadiusKm":
-				return ec.fieldContext_Company_maxServiceRadiusKm(ctx, field)
 			case "ratingAvg":
 				return ec.fieldContext_Company_ratingAvg(ctx, field)
 			case "totalJobsCompleted":
@@ -46842,8 +46762,6 @@ func (ec *executionContext) fieldContext_WorkerSuggestion_company(_ context.Cont
 				return ec.fieldContext_Company_status(ctx, field)
 			case "rejectionReason":
 				return ec.fieldContext_Company_rejectionReason(ctx, field)
-			case "maxServiceRadiusKm":
-				return ec.fieldContext_Company_maxServiceRadiusKm(ctx, field)
 			case "ratingAvg":
 				return ec.fieldContext_Company_ratingAvg(ctx, field)
 			case "totalJobsCompleted":
@@ -50158,7 +50076,7 @@ func (ec *executionContext) unmarshalInputUpdateCompanyInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"description", "contactPhone", "contactEmail", "maxServiceRadiusKm", "workSchedule", "regNumber", "isVatPayer", "bankName", "iban"}
+	fieldsInOrder := [...]string{"description", "contactPhone", "contactEmail", "workSchedule", "regNumber", "isVatPayer", "bankName", "iban"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -50186,13 +50104,6 @@ func (ec *executionContext) unmarshalInputUpdateCompanyInput(ctx context.Context
 				return it, err
 			}
 			it.ContactEmail = data
-		case "maxServiceRadiusKm":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("maxServiceRadiusKm"))
-			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.MaxServiceRadiusKm = data
 		case "workSchedule":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("workSchedule"))
 			data, err := ec.unmarshalOWorkScheduleDayInput2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐWorkScheduleDayInputᚄ(ctx, v)
@@ -51635,11 +51546,6 @@ func (ec *executionContext) _Company(ctx context.Context, sel ast.SelectionSet, 
 			}
 		case "rejectionReason":
 			out.Values[i] = ec._Company_rejectionReason(ctx, field, obj)
-		case "maxServiceRadiusKm":
-			out.Values[i] = ec._Company_maxServiceRadiusKm(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "ratingAvg":
 			out.Values[i] = ec._Company_ratingAvg(ctx, field, obj)
 			if out.Values[i] == graphql.Null {

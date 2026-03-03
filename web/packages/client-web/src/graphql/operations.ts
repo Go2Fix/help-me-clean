@@ -1105,7 +1105,6 @@ export const MY_COMPANY = gql`
       logoUrl
       status
       rejectionReason
-      maxServiceRadiusKm
       ratingAvg
       totalJobsCompleted
       serviceCategories {
@@ -1161,7 +1160,6 @@ export const UPDATE_COMPANY_PROFILE = gql`
       description
       contactPhone
       contactEmail
-      maxServiceRadiusKm
     }
   }
 `;
@@ -1649,7 +1647,6 @@ export const COMPANY = gql`
       logoUrl
       status
       rejectionReason
-      maxServiceRadiusKm
       ratingAvg
       totalJobsCompleted
       commissionOverridePct

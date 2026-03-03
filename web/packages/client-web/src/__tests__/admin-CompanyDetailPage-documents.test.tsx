@@ -53,7 +53,6 @@ const mockCompanyWithDocs = {
     logoUrl: null,
     status: 'APPROVED',
     rejectionReason: null,
-    maxServiceRadiusKm: 20,
     ratingAvg: 4.5,
     totalJobsCompleted: 50,
     createdAt: '2025-01-01T00:00:00Z',

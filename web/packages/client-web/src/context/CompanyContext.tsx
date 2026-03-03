@@ -22,7 +22,6 @@ interface Company {
   logoUrl?: string;
   status: string;
   rejectionReason?: string;
-  maxServiceRadiusKm: number;
   ratingAvg: number;
   totalJobsCompleted: number;
   createdAt: string;

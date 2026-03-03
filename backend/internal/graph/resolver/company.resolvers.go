@@ -196,11 +196,6 @@ func (r *mutationResolver) UpdateCompanyProfile(ctx context.Context, input model
 	if input.ContactEmail != nil {
 		email = *input.ContactEmail
 	}
-	var radius int32
-	if input.MaxServiceRadiusKm != nil {
-		radius = int32(*input.MaxServiceRadiusKm)
-	}
-
 	var regNumber, bankName, iban string
 	var isVatPayer bool
 	if input.RegNumber != nil {
@@ -221,7 +216,6 @@ func (r *mutationResolver) UpdateCompanyProfile(ctx context.Context, input model
 		Description:  desc,
 		ContactPhone: phone,
 		ContactEmail: email,
-		MaxRadius:    radius,
 		RegNumber:    regNumber,
 		IsVatPayer:   isVatPayer,
 		BankName:     bankName,

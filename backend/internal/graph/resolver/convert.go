@@ -557,7 +557,6 @@ func dbCompanyToGQL(c db.Company) *model.Company {
 		LogoURL:               textPtr(c.LogoUrl),
 		Status:                dbCompanyStatusToGQL(c.Status),
 		RejectionReason:       textPtr(c.RejectionReason),
-		MaxServiceRadiusKm:    int4Val(c.MaxServiceRadiusKm),
 		RatingAvg:             numericToFloat(c.RatingAvg),
 		TotalJobsCompleted:    int4Val(c.TotalJobsCompleted),
 		CommissionOverridePct: numericToFloatPtr(c.CommissionOverridePct),

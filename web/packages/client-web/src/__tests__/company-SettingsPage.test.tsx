@@ -33,7 +33,6 @@ const defaultCompany = {
   logoUrl: null,
   status: 'APPROVED',
   rejectionReason: null,
-  maxServiceRadiusKm: 25,
   ratingAvg: 4.5,
   totalJobsCompleted: 30,
   documents: [

@@ -224,7 +224,6 @@ type Company struct {
 	LogoURL               *string            `json:"logoUrl,omitempty"`
 	Status                CompanyStatus      `json:"status"`
 	RejectionReason       *string            `json:"rejectionReason,omitempty"`
-	MaxServiceRadiusKm    int                `json:"maxServiceRadiusKm"`
 	RatingAvg             float64            `json:"ratingAvg"`
 	TotalJobsCompleted    int                `json:"totalJobsCompleted"`
 	Documents             []*CompanyDocument `json:"documents"`
@@ -1030,15 +1029,14 @@ type UpdateAddressInput struct {
 }
 
 type UpdateCompanyInput struct {
-	Description        *string                 `json:"description,omitempty"`
-	ContactPhone       *string                 `json:"contactPhone,omitempty"`
-	ContactEmail       *string                 `json:"contactEmail,omitempty"`
-	MaxServiceRadiusKm *int                    `json:"maxServiceRadiusKm,omitempty"`
-	WorkSchedule       []*WorkScheduleDayInput `json:"workSchedule,omitempty"`
-	RegNumber          *string                 `json:"regNumber,omitempty"`
-	IsVatPayer         *bool                   `json:"isVatPayer,omitempty"`
-	BankName           *string                 `json:"bankName,omitempty"`
-	Iban               *string                 `json:"iban,omitempty"`
+	Description  *string                 `json:"description,omitempty"`
+	ContactPhone *string                 `json:"contactPhone,omitempty"`
+	ContactEmail *string                 `json:"contactEmail,omitempty"`
+	WorkSchedule []*WorkScheduleDayInput `json:"workSchedule,omitempty"`
+	RegNumber    *string                 `json:"regNumber,omitempty"`
+	IsVatPayer   *bool                   `json:"isVatPayer,omitempty"`
+	BankName     *string                 `json:"bankName,omitempty"`
+	Iban         *string                 `json:"iban,omitempty"`
 }
 
 type UpdateProfileInput struct {

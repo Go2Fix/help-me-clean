@@ -1312,7 +1312,6 @@ func TestDbCompanyToGQL(t *testing.T) {
 			LogoUrl:             pgtype.Text{String: logo, Valid: true},
 			Status:              db.CompanyStatusApproved,
 			RejectionReason:     pgtype.Text{Valid: false},
-			MaxServiceRadiusKm:  pgtype.Int4{Int32: 25, Valid: true},
 			RatingAvg:           makeNumeric("4.75"),
 			TotalJobsCompleted:  pgtype.Int4{Int32: 150, Valid: true},
 			CreatedAt:           makeTimestamptz(now),
@@ -1367,9 +1366,6 @@ func TestDbCompanyToGQL(t *testing.T) {
 		if result.RejectionReason != nil {
 			t.Errorf("expected nil RejectionReason, got %v", result.RejectionReason)
 		}
-		if result.MaxServiceRadiusKm != 25 {
-			t.Errorf("expected MaxServiceRadiusKm 25, got %d", result.MaxServiceRadiusKm)
-		}
 		if math.Abs(result.RatingAvg-4.75) > 0.01 {
 			t.Errorf("expected RatingAvg 4.75, got %f", result.RatingAvg)
 		}
@@ -1397,7 +1393,6 @@ func TestDbCompanyToGQL(t *testing.T) {
 			LogoUrl:             pgtype.Text{Valid: false},
 			Status:              db.CompanyStatusPendingReview,
 			RejectionReason:     pgtype.Text{Valid: false},
-			MaxServiceRadiusKm:  pgtype.Int4{Valid: false},
 			RatingAvg:           pgtype.Numeric{Valid: false},
 			TotalJobsCompleted:  pgtype.Int4{Valid: false},
 			CreatedAt:           pgtype.Timestamptz{Valid: false},
@@ -1410,9 +1405,6 @@ func TestDbCompanyToGQL(t *testing.T) {
 		}
 		if result.LogoURL != nil {
 			t.Errorf("expected nil LogoURL, got %v", result.LogoURL)
-		}
-		if result.MaxServiceRadiusKm != 0 {
-			t.Errorf("expected MaxServiceRadiusKm 0 for invalid, got %d", result.MaxServiceRadiusKm)
 		}
 		if result.RatingAvg != 0 {
 			t.Errorf("expected RatingAvg 0 for invalid, got %f", result.RatingAvg)

@@ -44,7 +44,6 @@ const defaultCompany = {
   companyName: 'CleanPro SRL',
   totalJobsCompleted: 42,
   ratingAvg: 4.8,
-  maxServiceRadiusKm: 25,
 };
 
 const defaultFinancial = {
@@ -146,7 +145,6 @@ describe('Company DashboardPage', () => {
     expect(screen.getByText('Venit net')).toBeInTheDocument();
     expect(screen.getByText('Comision platforma')).toBeInTheDocument();
     expect(screen.getByText('Rating mediu')).toBeInTheDocument();
-    expect(screen.getByText('Raza serviciu')).toBeInTheDocument();
   });
 
   it('shows loading skeleton when loading', () => {
