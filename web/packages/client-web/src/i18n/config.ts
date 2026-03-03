@@ -14,7 +14,7 @@ i18n
     supportedLngs: SUPPORTED_LANGUAGES,
     fallbackLng: 'ro',
     defaultNS: 'common',
-    ns: ['common', 'home', 'waitlist', 'about', 'contact', 'companies', 'blog', 'legal', 'auth'],
+    ns: ['common', 'home', 'waitlist', 'about', 'contact', 'companies', 'blog', 'legal', 'auth', 'vs'],
 
     detection: {
       // Detect language from URL path (/en/... → 'en', else 'ro')

@@ -1,0 +1,92 @@
+{
+  "homerun": {
+    "meta": {
+      "title": "Go2Fix vs Homerun.ro — Full Comparison | Go2Fix",
+      "description": "Compare Go2Fix with Homerun.ro. See why Go2Fix offers automatic invoicing, vetted companies, and transparent pricing for cleaning services."
+    },
+    "hero": {
+      "badge": "Comparison",
+      "title": "Go2Fix vs Homerun.ro",
+      "subtitle": "Choosing a home services platform? Here's an honest comparison between Go2Fix and Homerun.ro to help you make the right decision."
+    },
+    "tableTitle": "Feature Comparison",
+    "features": {
+      "col_feature": "Feature",
+      "col_go2fix": "Go2Fix",
+      "col_competitor": "Homerun.ro",
+      "rows": [
+        { "feature": "Cleaning specialization", "go2fix": true, "competitor": false },
+        { "feature": "Vetted & certified companies", "go2fix": true, "competitor": false },
+        { "feature": "Automatic invoicing", "go2fix": true, "competitor": false },
+        { "feature": "Fixed transparent pricing", "go2fix": true, "competitor": false },
+        { "feature": "Secure digital payments", "go2fix": true, "competitor": false },
+        { "feature": "Online order history", "go2fix": true, "competitor": false },
+        { "feature": "Dedicated customer support", "go2fix": true, "competitor": false }
+      ]
+    },
+    "whyTitle": "Why Go2Fix is the better choice",
+    "reasons": [
+      {
+        "title": "Vetted companies, not individuals",
+        "desc": "All companies on Go2Fix go through a rigorous verification process checking documents, licences, and experience. You know exactly who you're working with."
+      },
+      {
+        "title": "Automatic invoicing included",
+        "desc": "You receive a fiscal invoice for every service, hassle-free. Perfect for tenants, homeowners or businesses that need accounting documents."
+      },
+      {
+        "title": "Fixed prices, no surprises",
+        "desc": "The displayed price is the final price. No negotiations, no hidden costs. You pay exactly what you saw at booking."
+      }
+    ],
+    "ctaTitle": "Try Go2Fix for free",
+    "ctaSubtitle": "Book your first cleaning service and discover the difference.",
+    "ctaButton": "Book now",
+    "ctaButtonWaitlist": "Join the waitlist"
+  },
+  "necesit": {
+    "meta": {
+      "title": "Go2Fix vs Necesit.ro — Full Comparison | Go2Fix",
+      "description": "Compare Go2Fix with Necesit.ro. Find out why Go2Fix is the better solution for cleaning services: professional companies, fixed prices and automatic invoicing."
+    },
+    "hero": {
+      "badge": "Comparison",
+      "title": "Go2Fix vs Necesit.ro",
+      "subtitle": "Necesit.ro connects you with freelancers for various services. Go2Fix specialises exclusively in cleaning, with vetted companies and high professional standards."
+    },
+    "tableTitle": "Feature Comparison",
+    "features": {
+      "col_feature": "Feature",
+      "col_go2fix": "Go2Fix",
+      "col_competitor": "Necesit.ro",
+      "rows": [
+        { "feature": "Exclusive cleaning specialisation", "go2fix": true, "competitor": false },
+        { "feature": "Professional companies (not freelancers)", "go2fix": true, "competitor": false },
+        { "feature": "Professional equipment & products", "go2fix": true, "competitor": false },
+        { "feature": "Fixed transparent pricing", "go2fix": true, "competitor": false },
+        { "feature": "Automatic invoicing", "go2fix": true, "competitor": false },
+        { "feature": "Service quality guarantee", "go2fix": true, "competitor": false },
+        { "feature": "Secure digital payments", "go2fix": true, "competitor": false }
+      ]
+    },
+    "whyTitle": "Why Go2Fix is the better choice",
+    "reasons": [
+      {
+        "title": "Professional companies, not freelancers",
+        "desc": "On Go2Fix you work with authorised cleaning companies with insured employees and professional equipment — not unverified individuals."
+      },
+      {
+        "title": "Specialisation means quality",
+        "desc": "We focus 100% on cleaning. That means optimised processes, quality products and specialised staff who know exactly what they're doing."
+      },
+      {
+        "title": "Fully digital, from booking to invoice",
+        "desc": "Book online, track your order in real time and receive an automatic invoice. No negotiation, no ambiguity."
+      }
+    ],
+    "ctaTitle": "Try Go2Fix for free",
+    "ctaSubtitle": "Professional cleaning, booked in 2 minutes.",
+    "ctaButton": "Book now",
+    "ctaButtonWaitlist": "Join the waitlist"
+  }
+}

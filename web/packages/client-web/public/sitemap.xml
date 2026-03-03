@@ -202,6 +202,44 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://go2fix.ro/blog/beneficiile-curatenie-profesionala-birou"/>
   </url>
 
+  <!-- VS comparison pages -->
+  <url>
+    <loc>https://go2fix.ro/vs/homerun</loc>
+    <lastmod>2026-03-03</lastmod>
+    <priority>0.7</priority>
+    <changefreq>monthly</changefreq>
+    <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/vs/homerun"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://go2fix.ro/en/vs/homerun"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://go2fix.ro/vs/homerun"/>
+  </url>
+  <url>
+    <loc>https://go2fix.ro/en/vs/homerun</loc>
+    <lastmod>2026-03-03</lastmod>
+    <priority>0.7</priority>
+    <changefreq>monthly</changefreq>
+    <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/vs/homerun"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://go2fix.ro/en/vs/homerun"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://go2fix.ro/vs/homerun"/>
+  </url>
+  <url>
+    <loc>https://go2fix.ro/vs/necesit</loc>
+    <lastmod>2026-03-03</lastmod>
+    <priority>0.7</priority>
+    <changefreq>monthly</changefreq>
+    <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/vs/necesit"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://go2fix.ro/en/vs/necesit"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://go2fix.ro/vs/necesit"/>
+  </url>
+  <url>
+    <loc>https://go2fix.ro/en/vs/necesit</loc>
+    <lastmod>2026-03-03</lastmod>
+    <priority>0.7</priority>
+    <changefreq>monthly</changefreq>
+    <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/vs/necesit"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://go2fix.ro/en/vs/necesit"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://go2fix.ro/vs/necesit"/>
+  </url>
+
   <!-- Terms -->
   <url>
     <loc>https://go2fix.ro/termeni</loc>

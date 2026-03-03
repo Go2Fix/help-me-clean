@@ -20,6 +20,9 @@ export const ROUTE_MAP: Record<string, Record<SupportedLanguage, string>> = {
   // Auth stays RO-only
   login:        { ro: '/autentificare',       en: '/autentificare' },
   registerFirm: { ro: '/inregistrare-firma',  en: '/inregistrare-firma' },
+  // SEO comparison pages
+  vsHomerun:    { ro: '/vs/homerun',          en: '/en/vs/homerun' },
+  vsNecesit:    { ro: '/vs/necesit',          en: '/en/vs/necesit' },
 };
 
 /**

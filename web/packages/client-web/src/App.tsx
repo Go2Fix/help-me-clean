@@ -36,6 +36,8 @@ import GdprPage from '@/pages/GdprPage';
 import BlogListPage from '@/pages/blog/BlogListPage';
 import BlogPostPage from '@/pages/blog/BlogPostPage';
 import CategoryLandingPage from '@/pages/CategoryLandingPage';
+import VsHomerunPage from '@/pages/VsHomerunPage';
+import VsNecesitPage from '@/pages/VsNecesitPage';
 
 // Client pages
 import ClientDashboardPage from '@/pages/client/ClientDashboardPage';
@@ -194,6 +196,8 @@ function AppRoutes() {
         <Route path="/gdpr" element={<GdprPage />} />
         <Route path="/blog" element={<BlogListPage />} />
         <Route path="/blog/:slug" element={<BlogPostPage />} />
+        <Route path="/vs/homerun" element={<VsHomerunPage />} />
+        <Route path="/vs/necesit" element={<VsNecesitPage />} />
       </Route>
 
       {/* ── English public routes (/en/ prefix) ── */}
@@ -209,6 +213,8 @@ function AppRoutes() {
         <Route path="gdpr" element={<GdprPage />} />
         <Route path="blog" element={<BlogListPage />} />
         <Route path="blog/:slug" element={<BlogPostPage />} />
+        <Route path="vs/homerun" element={<VsHomerunPage />} />
+        <Route path="vs/necesit" element={<VsNecesitPage />} />
       </Route>
 
       {/* Client routes - Sidebar layout, auth + CLIENT role */}

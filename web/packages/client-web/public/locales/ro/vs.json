@@ -1,0 +1,92 @@
+{
+  "homerun": {
+    "meta": {
+      "title": "Go2Fix vs Homerun.ro — Comparație completă | Go2Fix",
+      "description": "Compară Go2Fix cu Homerun.ro. Descoperă de ce Go2Fix oferă facturare automată, firme verificate și prețuri transparente pentru servicii de curățenie."
+    },
+    "hero": {
+      "badge": "Comparație",
+      "title": "Go2Fix vs Homerun.ro",
+      "subtitle": "Alegi o platformă de servicii pentru casă? Iată o comparație sinceră între Go2Fix și Homerun.ro pentru a te ajuta să iei decizia corectă."
+    },
+    "tableTitle": "Comparație funcționalități",
+    "features": {
+      "col_feature": "Funcționalitate",
+      "col_go2fix": "Go2Fix",
+      "col_competitor": "Homerun.ro",
+      "rows": [
+        { "feature": "Specializare în curățenie", "go2fix": true, "competitor": false },
+        { "feature": "Firme verificate & atestate", "go2fix": true, "competitor": false },
+        { "feature": "Facturare automată", "go2fix": true, "competitor": false },
+        { "feature": "Prețuri fixe transparente", "go2fix": true, "competitor": false },
+        { "feature": "Plăți digitale securizate", "go2fix": true, "competitor": false },
+        { "feature": "Istoric comenzi online", "go2fix": true, "competitor": false },
+        { "feature": "Suport dedicat clienți", "go2fix": true, "competitor": false }
+      ]
+    },
+    "whyTitle": "De ce Go2Fix este alegerea mai bună",
+    "reasons": [
+      {
+        "title": "Firme verificate, nu persoane fizice",
+        "desc": "Toate firmele de pe Go2Fix trec printr-un proces riguros de verificare a documentelor, autorizațiilor și experienței. Știi exact cu cine lucrezi."
+      },
+      {
+        "title": "Facturare automată inclusă",
+        "desc": "Primești factură fiscală pentru fiecare serviciu, fără bătăi de cap. Ideal pentru chiriași, proprietari sau companii care au nevoie de documente contabile."
+      },
+      {
+        "title": "Prețuri fixe, fără surprize",
+        "desc": "Prețul afișat este prețul final. Fără negocieri, fără costuri ascunse. Plătești exact cât ai văzut la rezervare."
+      }
+    ],
+    "ctaTitle": "Încearcă Go2Fix gratuit",
+    "ctaSubtitle": "Rezervă primul tău serviciu de curățenie și descoperă diferența.",
+    "ctaButton": "Rezervă acum",
+    "ctaButtonWaitlist": "Înscrie-te pe lista de așteptare"
+  },
+  "necesit": {
+    "meta": {
+      "title": "Go2Fix vs Necesit.ro — Comparație completă | Go2Fix",
+      "description": "Compară Go2Fix cu Necesit.ro. Află de ce Go2Fix este soluția mai bună pentru servicii de curățenie: firme profesionale, prețuri fixe și facturare automată."
+    },
+    "hero": {
+      "badge": "Comparație",
+      "title": "Go2Fix vs Necesit.ro",
+      "subtitle": "Necesit.ro conectează cu freelanceri pentru diverse servicii. Go2Fix este specializat exclusiv în curățenie, cu firme verificate și standarde profesionale ridicate."
+    },
+    "tableTitle": "Comparație funcționalități",
+    "features": {
+      "col_feature": "Funcționalitate",
+      "col_go2fix": "Go2Fix",
+      "col_competitor": "Necesit.ro",
+      "rows": [
+        { "feature": "Specializare exclusivă curățenie", "go2fix": true, "competitor": false },
+        { "feature": "Firme profesionale (nu freelanceri)", "go2fix": true, "competitor": false },
+        { "feature": "Echipament & produse profesionale", "go2fix": true, "competitor": false },
+        { "feature": "Prețuri fixe transparente", "go2fix": true, "competitor": false },
+        { "feature": "Facturare automată", "go2fix": true, "competitor": false },
+        { "feature": "Garanție calitate serviciu", "go2fix": true, "competitor": false },
+        { "feature": "Plăți digitale securizate", "go2fix": true, "competitor": false }
+      ]
+    },
+    "whyTitle": "De ce Go2Fix este alegerea mai bună",
+    "reasons": [
+      {
+        "title": "Firme profesionale, nu freelanceri",
+        "desc": "Pe Go2Fix lucrezi cu firme de curățenie autorizate, cu angajați asigurați și echipamente profesionale — nu cu persoane fizice fără garanții."
+      },
+      {
+        "title": "Specializare înseamnă calitate",
+        "desc": "Ne concentrăm 100% pe curățenie. Asta înseamnă procese optimizate, produse de calitate și personal specializat care știe exact ce face."
+      },
+      {
+        "title": "Tot digital, de la rezervare la factură",
+        "desc": "Rezervi online, urmărești comanda în timp real și primești factură automată. Nicio negociere, nicio ambiguitate."
+      }
+    ],
+    "ctaTitle": "Încearcă Go2Fix gratuit",
+    "ctaSubtitle": "Curățenie profesională, rezervată în 2 minute.",
+    "ctaButton": "Rezervă acum",
+    "ctaButtonWaitlist": "Înscrie-te pe lista de așteptare"
+  }
+}
