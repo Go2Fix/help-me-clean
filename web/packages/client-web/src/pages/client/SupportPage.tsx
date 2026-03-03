@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { MessageCircle, Mail, Clock, ChevronDown, ChevronUp, Phone } from 'lucide-react';
 import Card from '@/components/ui/Card';
+import { usePlatform } from '@/context/PlatformContext';
 
 const FAQ_ITEMS = [
   {
@@ -23,9 +24,9 @@ const FAQ_ITEMS = [
 
 export default function SupportPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const { buildWhatsAppUrl, supportPhone } = usePlatform();
 
-  const whatsappUrl =
-    'https://wa.me/40700000000?text=Buna!%20Am%20nevoie%20de%20ajutor%20cu%20o%20comanda%20Go2Fix.';
+  const whatsappUrl = buildWhatsAppUrl('Buna! Am nevoie de ajutor cu o comanda Go2Fix.');
 
   return (
     <div>
@@ -70,18 +71,20 @@ export default function SupportPage() {
       </div>
 
       {/* Phone + Hours */}
-      <Card className="p-5 mb-8 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <div className="flex items-center gap-3">
-          <Phone className="h-5 w-5 text-gray-400" />
-          <div>
-            <p className="text-sm font-medium text-gray-900">Telefon: 0700 000 000</p>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <Clock className="h-3.5 w-3.5 text-gray-400" />
-              <p className="text-xs text-gray-500">Luni - Vineri, 09:00 - 18:00</p>
+      {supportPhone && (
+        <Card className="p-5 mb-8 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <div className="flex items-center gap-3">
+            <Phone className="h-5 w-5 text-gray-400" />
+            <div>
+              <p className="text-sm font-medium text-gray-900">Telefon: {supportPhone}</p>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <Clock className="h-3.5 w-3.5 text-gray-400" />
+                <p className="text-xs text-gray-500">Luni - Vineri, 09:00 - 18:00</p>
+              </div>
             </div>
           </div>
-        </div>
-      </Card>
+        </Card>
+      )}
 
       {/* FAQ */}
       <div>

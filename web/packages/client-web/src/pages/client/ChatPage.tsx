@@ -1,20 +1,14 @@
 import { MessageCircle, Phone, Clock, Shield } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-
-// WhatsApp support number — update when Meta Business Account is configured
-const WA_SUPPORT_NUMBER = '40700000000';
-const WA_DEFAULT_MESSAGE = 'Buna ziua, am nevoie de ajutor cu contul meu Go2Fix.';
-
-function buildWhatsAppUrl(message: string): string {
-  return `https://wa.me/${WA_SUPPORT_NUMBER}?text=${encodeURIComponent(message)}`;
-}
+import { usePlatform } from '@/context/PlatformContext';
 
 export default function SupportWhatsAppPage() {
   const { user } = useAuth();
+  const { buildWhatsAppUrl } = usePlatform();
 
   const personalizedMessage = user?.fullName
     ? `Buna ziua, sunt ${user.fullName} si am nevoie de ajutor cu contul meu Go2Fix.`
-    : WA_DEFAULT_MESSAGE;
+    : 'Buna ziua, am nevoie de ajutor cu contul meu Go2Fix.';
 
   return (
     <div>

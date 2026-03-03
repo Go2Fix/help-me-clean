@@ -1,14 +1,10 @@
 import { MessageCircle, Phone, Clock, Shield } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-
-const WA_SUPPORT_NUMBER = '40700000000';
-
-function buildWhatsAppUrl(message: string): string {
-  return `https://wa.me/${WA_SUPPORT_NUMBER}?text=${encodeURIComponent(message)}`;
-}
+import { usePlatform } from '@/context/PlatformContext';
 
 export default function CompanySupportPage() {
   const { user } = useAuth();
+  const { buildWhatsAppUrl } = usePlatform();
 
   const message = user?.fullName
     ? `Buna ziua, sunt ${user.fullName} (admin firma) si am nevoie de ajutor cu contul companiei mele pe Go2Fix.`
