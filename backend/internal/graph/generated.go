@@ -101,7 +101,6 @@ type ComplexityRoot struct {
 		CancelledAt            func(childComplexity int) int
 		Category               func(childComplexity int) int
 		CategoryID             func(childComplexity int) int
-		ChatRoom               func(childComplexity int) int
 		Client                 func(childComplexity int) int
 		Company                func(childComplexity int) int
 		CompletedAt            func(childComplexity int) int
@@ -180,35 +179,6 @@ type ComplexityRoot struct {
 	BookingsByStatus struct {
 		Count  func(childComplexity int) int
 		Status func(childComplexity int) int
-	}
-
-	ChatMessage struct {
-		Content     func(childComplexity int) int
-		CreatedAt   func(childComplexity int) int
-		ID          func(childComplexity int) int
-		IsRead      func(childComplexity int) int
-		MessageType func(childComplexity int) int
-		Sender      func(childComplexity int) int
-	}
-
-	ChatMessageConnection struct {
-		Edges    func(childComplexity int) int
-		PageInfo func(childComplexity int) int
-	}
-
-	ChatParticipant struct {
-		JoinedAt func(childComplexity int) int
-		User     func(childComplexity int) int
-	}
-
-	ChatRoom struct {
-		Booking      func(childComplexity int) int
-		CreatedAt    func(childComplexity int) int
-		ID           func(childComplexity int) int
-		LastMessage  func(childComplexity int) int
-		Messages     func(childComplexity int, first *int, after *string) int
-		Participants func(childComplexity int) int
-		RoomType     func(childComplexity int) int
 	}
 
 	CityArea struct {
@@ -478,7 +448,6 @@ type ComplexityRoot struct {
 		ClaimCompany                              func(childComplexity int, claimToken string) int
 		CompleteJob                               func(childComplexity int, id string) int
 		ConfirmBooking                            func(childComplexity int, id string) int
-		CreateAdminChatRoom                       func(childComplexity int, userIds []string) int
 		CreateBookingPaymentIntent                func(childComplexity int, bookingID string) int
 		CreateBookingRequest                      func(childComplexity int, input model.CreateBookingInput) int
 		CreateCity                                func(childComplexity int, name string, county string) int
@@ -508,9 +477,7 @@ type ComplexityRoot struct {
 		MarkAllNotificationsRead                  func(childComplexity int) int
 		MarkBookingPaid                           func(childComplexity int, id string) int
 		MarkInvoiceAsPaid                         func(childComplexity int, id string) int
-		MarkMessagesAsRead                        func(childComplexity int, roomID string) int
 		MarkNotificationRead                      func(childComplexity int, id string) int
-		OpenBookingChat                           func(childComplexity int, bookingID string) int
 		PauseSubscription                         func(childComplexity int, id string) int
 		ProcessRefund                             func(childComplexity int, refundRequestID string, approved bool) int
 		ReactivateUser                            func(childComplexity int, id string) int
@@ -532,7 +499,6 @@ type ComplexityRoot struct {
 		ReviewWorkerDocument                      func(childComplexity int, id string, approved bool, rejectionReason *string) int
 		SelectBookingTimeSlot                     func(childComplexity int, bookingID string, timeSlotID string) int
 		SendContactMessage                        func(childComplexity int, input model.ContactMessageInput) int
-		SendMessage                               func(childComplexity int, roomID string, content string, messageType *string) int
 		SetCompanyCommissionOverride              func(childComplexity int, id string, pct *float64) int
 		SetDefaultAddress                         func(childComplexity int, id string) int
 		SetDefaultPaymentMethod                   func(childComplexity int, id string) int
@@ -770,7 +736,6 @@ type ComplexityRoot struct {
 	Query struct {
 		ActiveCities                       func(childComplexity int) int
 		AllBookings                        func(childComplexity int, status *model.BookingStatus, companyID *string, dateFrom *string, dateTo *string, first *int, after *string) int
-		AllChatRooms                       func(childComplexity int) int
 		AllCities                          func(childComplexity int) int
 		AllExtras                          func(childComplexity int) int
 		AllInvoices                        func(childComplexity int, typeArg *model.InvoiceType, status *model.InvoiceStatus, companyID *string, first *int, after *string) int
@@ -791,7 +756,6 @@ type ComplexityRoot struct {
 		BookingPaymentDetails              func(childComplexity int, bookingID string) int
 		BookingPolicy                      func(childComplexity int) int
 		BookingsByStatus                   func(childComplexity int) int
-		ChatRoom                           func(childComplexity int, id string) int
 		CheckWorkerAvailability            func(childComplexity int, bookingID string, date string, startTime string) int
 		CheckWorkerForSubscriptionBookings func(childComplexity int, subscriptionID string, workerID string) int
 		CityAreas                          func(childComplexity int, cityID string) int
@@ -800,7 +764,6 @@ type ComplexityRoot struct {
 		Company                            func(childComplexity int, id string) int
 		CompanyBookings                    func(childComplexity int, status *model.BookingStatus, first *int, after *string) int
 		CompanyBookingsByDateRange         func(childComplexity int, from string, to string) int
-		CompanyChatRooms                   func(childComplexity int) int
 		CompanyFinancialSummary            func(childComplexity int, companyID string) int
 		CompanyInvoiceForBooking           func(childComplexity int, bookingID string) int
 		CompanyInvoices                    func(childComplexity int, status *model.InvoiceStatus, first *int, after *string) int
@@ -820,7 +783,6 @@ type ComplexityRoot struct {
 		MyAssignedJobs                     func(childComplexity int, status *model.BookingStatus) int
 		MyBillingProfile                   func(childComplexity int) int
 		MyBookings                         func(childComplexity int, status *model.BookingStatus, first *int, after *string) int
-		MyChatRooms                        func(childComplexity int) int
 		MyCompany                          func(childComplexity int) int
 		MyCompanyEarnings                  func(childComplexity int, from string, to string) int
 		MyCompanyFinancialSummary          func(childComplexity int) int
@@ -1258,10 +1220,6 @@ type MutationResolver interface {
 	CompleteJob(ctx context.Context, id string) (*model.Booking, error)
 	SelectBookingTimeSlot(ctx context.Context, bookingID string, timeSlotID string) (*model.Booking, error)
 	RescheduleBooking(ctx context.Context, id string, scheduledDate string, scheduledStartTime string, reason *string) (*model.Booking, error)
-	SendMessage(ctx context.Context, roomID string, content string, messageType *string) (*model.ChatMessage, error)
-	MarkMessagesAsRead(ctx context.Context, roomID string) (bool, error)
-	CreateAdminChatRoom(ctx context.Context, userIds []string) (*model.ChatRoom, error)
-	OpenBookingChat(ctx context.Context, bookingID string) (*model.ChatRoom, error)
 	AddAddress(ctx context.Context, input model.AddAddressInput) (*model.Address, error)
 	UpdateAddress(ctx context.Context, id string, input model.UpdateAddressInput) (*model.Address, error)
 	DeleteAddress(ctx context.Context, id string) (bool, error)
@@ -1363,7 +1321,6 @@ type QueryResolver interface {
 	CompanyPerformance(ctx context.Context, first *int) ([]*model.CompanyPerformance, error)
 	PendingCompanyApplications(ctx context.Context) ([]*model.Company, error)
 	AllWorkers(ctx context.Context) ([]*model.WorkerProfile, error)
-	AllChatRooms(ctx context.Context) ([]*model.ChatRoom, error)
 	AllUsers(ctx context.Context) ([]*model.User, error)
 	SearchCompanies(ctx context.Context, query *string, status *model.CompanyStatus, limit *int, offset *int) (*model.CompanyConnection, error)
 	CompanyFinancialSummary(ctx context.Context, companyID string) (*model.CompanyFinancialSummary, error)
@@ -1387,8 +1344,6 @@ type QueryResolver interface {
 	SearchCompanyBookings(ctx context.Context, query *string, status *string, dateFrom *string, dateTo *string, limit *int, offset *int) (*model.BookingConnection, error)
 	BookingPolicy(ctx context.Context) (*model.BookingPolicy, error)
 	CheckWorkerAvailability(ctx context.Context, bookingID string, date string, startTime string) (*model.WorkerAvailabilityCheck, error)
-	MyChatRooms(ctx context.Context) ([]*model.ChatRoom, error)
-	ChatRoom(ctx context.Context, id string) (*model.ChatRoom, error)
 	MyAddresses(ctx context.Context) ([]*model.Address, error)
 	MyPaymentMethods(ctx context.Context) ([]*model.PaymentMethod, error)
 	MyCompany(ctx context.Context) (*model.Company, error)
@@ -1396,7 +1351,6 @@ type QueryResolver interface {
 	MyCompanyWorkSchedule(ctx context.Context) ([]*model.CompanyWorkSchedule, error)
 	Companies(ctx context.Context, status *model.CompanyStatus, first *int, after *string) (*model.CompanyConnection, error)
 	Company(ctx context.Context, id string) (*model.Company, error)
-	CompanyChatRooms(ctx context.Context) ([]*model.ChatRoom, error)
 	PendingCompanyDocuments(ctx context.Context) ([]*model.CompanyDocument, error)
 	GetDocumentURL(ctx context.Context, documentID string) (string, error)
 	MyBillingProfile(ctx context.Context) (*model.ClientBillingProfile, error)
@@ -1716,12 +1670,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Booking.CategoryID(childComplexity), true
-	case "Booking.chatRoom":
-		if e.complexity.Booking.ChatRoom == nil {
-			break
-		}
-
-		return e.complexity.Booking.ChatRoom(childComplexity), true
 	case "Booking.client":
 		if e.complexity.Booking.Client == nil {
 			break
@@ -2088,117 +2036,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.BookingsByStatus.Status(childComplexity), true
-
-	case "ChatMessage.content":
-		if e.complexity.ChatMessage.Content == nil {
-			break
-		}
-
-		return e.complexity.ChatMessage.Content(childComplexity), true
-	case "ChatMessage.createdAt":
-		if e.complexity.ChatMessage.CreatedAt == nil {
-			break
-		}
-
-		return e.complexity.ChatMessage.CreatedAt(childComplexity), true
-	case "ChatMessage.id":
-		if e.complexity.ChatMessage.ID == nil {
-			break
-		}
-
-		return e.complexity.ChatMessage.ID(childComplexity), true
-	case "ChatMessage.isRead":
-		if e.complexity.ChatMessage.IsRead == nil {
-			break
-		}
-
-		return e.complexity.ChatMessage.IsRead(childComplexity), true
-	case "ChatMessage.messageType":
-		if e.complexity.ChatMessage.MessageType == nil {
-			break
-		}
-
-		return e.complexity.ChatMessage.MessageType(childComplexity), true
-	case "ChatMessage.sender":
-		if e.complexity.ChatMessage.Sender == nil {
-			break
-		}
-
-		return e.complexity.ChatMessage.Sender(childComplexity), true
-
-	case "ChatMessageConnection.edges":
-		if e.complexity.ChatMessageConnection.Edges == nil {
-			break
-		}
-
-		return e.complexity.ChatMessageConnection.Edges(childComplexity), true
-	case "ChatMessageConnection.pageInfo":
-		if e.complexity.ChatMessageConnection.PageInfo == nil {
-			break
-		}
-
-		return e.complexity.ChatMessageConnection.PageInfo(childComplexity), true
-
-	case "ChatParticipant.joinedAt":
-		if e.complexity.ChatParticipant.JoinedAt == nil {
-			break
-		}
-
-		return e.complexity.ChatParticipant.JoinedAt(childComplexity), true
-	case "ChatParticipant.user":
-		if e.complexity.ChatParticipant.User == nil {
-			break
-		}
-
-		return e.complexity.ChatParticipant.User(childComplexity), true
-
-	case "ChatRoom.booking":
-		if e.complexity.ChatRoom.Booking == nil {
-			break
-		}
-
-		return e.complexity.ChatRoom.Booking(childComplexity), true
-	case "ChatRoom.createdAt":
-		if e.complexity.ChatRoom.CreatedAt == nil {
-			break
-		}
-
-		return e.complexity.ChatRoom.CreatedAt(childComplexity), true
-	case "ChatRoom.id":
-		if e.complexity.ChatRoom.ID == nil {
-			break
-		}
-
-		return e.complexity.ChatRoom.ID(childComplexity), true
-	case "ChatRoom.lastMessage":
-		if e.complexity.ChatRoom.LastMessage == nil {
-			break
-		}
-
-		return e.complexity.ChatRoom.LastMessage(childComplexity), true
-	case "ChatRoom.messages":
-		if e.complexity.ChatRoom.Messages == nil {
-			break
-		}
-
-		args, err := ec.field_ChatRoom_messages_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.ChatRoom.Messages(childComplexity, args["first"].(*int), args["after"].(*string)), true
-	case "ChatRoom.participants":
-		if e.complexity.ChatRoom.Participants == nil {
-			break
-		}
-
-		return e.complexity.ChatRoom.Participants(childComplexity), true
-	case "ChatRoom.roomType":
-		if e.complexity.ChatRoom.RoomType == nil {
-			break
-		}
-
-		return e.complexity.ChatRoom.RoomType(childComplexity), true
 
 	case "CityArea.cityId":
 		if e.complexity.CityArea.CityID == nil {
@@ -3493,17 +3330,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.ConfirmBooking(childComplexity, args["id"].(string)), true
-	case "Mutation.createAdminChatRoom":
-		if e.complexity.Mutation.CreateAdminChatRoom == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_createAdminChatRoom_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.CreateAdminChatRoom(childComplexity, args["userIds"].([]string)), true
 	case "Mutation.createBookingPaymentIntent":
 		if e.complexity.Mutation.CreateBookingPaymentIntent == nil {
 			break
@@ -3793,17 +3619,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.MarkInvoiceAsPaid(childComplexity, args["id"].(string)), true
-	case "Mutation.markMessagesAsRead":
-		if e.complexity.Mutation.MarkMessagesAsRead == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_markMessagesAsRead_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.MarkMessagesAsRead(childComplexity, args["roomId"].(string)), true
 	case "Mutation.markNotificationRead":
 		if e.complexity.Mutation.MarkNotificationRead == nil {
 			break
@@ -3815,17 +3630,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.MarkNotificationRead(childComplexity, args["id"].(string)), true
-	case "Mutation.openBookingChat":
-		if e.complexity.Mutation.OpenBookingChat == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_openBookingChat_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.OpenBookingChat(childComplexity, args["bookingId"].(string)), true
 	case "Mutation.pauseSubscription":
 		if e.complexity.Mutation.PauseSubscription == nil {
 			break
@@ -4047,17 +3851,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.SendContactMessage(childComplexity, args["input"].(model.ContactMessageInput)), true
-	case "Mutation.sendMessage":
-		if e.complexity.Mutation.SendMessage == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_sendMessage_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.SendMessage(childComplexity, args["roomId"].(string), args["content"].(string), args["messageType"].(*string)), true
 	case "Mutation.setCompanyCommissionOverride":
 		if e.complexity.Mutation.SetCompanyCommissionOverride == nil {
 			break
@@ -5338,12 +5131,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.AllBookings(childComplexity, args["status"].(*model.BookingStatus), args["companyId"].(*string), args["dateFrom"].(*string), args["dateTo"].(*string), args["first"].(*int), args["after"].(*string)), true
-	case "Query.allChatRooms":
-		if e.complexity.Query.AllChatRooms == nil {
-			break
-		}
-
-		return e.complexity.Query.AllChatRooms(childComplexity), true
 	case "Query.allCities":
 		if e.complexity.Query.AllCities == nil {
 			break
@@ -5514,17 +5301,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.BookingsByStatus(childComplexity), true
-	case "Query.chatRoom":
-		if e.complexity.Query.ChatRoom == nil {
-			break
-		}
-
-		args, err := ec.field_Query_chatRoom_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.ChatRoom(childComplexity, args["id"].(string)), true
 	case "Query.checkWorkerAvailability":
 		if e.complexity.Query.CheckWorkerAvailability == nil {
 			break
@@ -5613,12 +5389,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.CompanyBookingsByDateRange(childComplexity, args["from"].(string), args["to"].(string)), true
-	case "Query.companyChatRooms":
-		if e.complexity.Query.CompanyChatRooms == nil {
-			break
-		}
-
-		return e.complexity.Query.CompanyChatRooms(childComplexity), true
 	case "Query.companyFinancialSummary":
 		if e.complexity.Query.CompanyFinancialSummary == nil {
 			break
@@ -5813,12 +5583,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.MyBookings(childComplexity, args["status"].(*model.BookingStatus), args["first"].(*int), args["after"].(*string)), true
-	case "Query.myChatRooms":
-		if e.complexity.Query.MyChatRooms == nil {
-			break
-		}
-
-		return e.complexity.Query.MyChatRooms(childComplexity), true
 	case "Query.myCompany":
 		if e.complexity.Query.MyCompany == nil {
 			break
@@ -7979,7 +7743,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
-//go:embed "schema/admin.graphql" "schema/analytics.graphql" "schema/audit.graphql" "schema/auth.graphql" "schema/booking.graphql" "schema/chat.graphql" "schema/client.graphql" "schema/company.graphql" "schema/contact.graphql" "schema/invoice.graphql" "schema/location.graphql" "schema/notification.graphql" "schema/payment.graphql" "schema/personality.graphql" "schema/recurring.graphql" "schema/review.graphql" "schema/schema.graphql" "schema/service.graphql" "schema/settings.graphql" "schema/subscription.graphql" "schema/user.graphql" "schema/waitlist.graphql" "schema/worker.graphql"
+//go:embed "schema/admin.graphql" "schema/analytics.graphql" "schema/audit.graphql" "schema/auth.graphql" "schema/booking.graphql" "schema/client.graphql" "schema/company.graphql" "schema/contact.graphql" "schema/invoice.graphql" "schema/location.graphql" "schema/notification.graphql" "schema/payment.graphql" "schema/personality.graphql" "schema/recurring.graphql" "schema/review.graphql" "schema/schema.graphql" "schema/service.graphql" "schema/settings.graphql" "schema/subscription.graphql" "schema/user.graphql" "schema/waitlist.graphql" "schema/worker.graphql"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -7996,7 +7760,6 @@ var sources = []*ast.Source{
 	{Name: "schema/audit.graphql", Input: sourceData("schema/audit.graphql"), BuiltIn: false},
 	{Name: "schema/auth.graphql", Input: sourceData("schema/auth.graphql"), BuiltIn: false},
 	{Name: "schema/booking.graphql", Input: sourceData("schema/booking.graphql"), BuiltIn: false},
-	{Name: "schema/chat.graphql", Input: sourceData("schema/chat.graphql"), BuiltIn: false},
 	{Name: "schema/client.graphql", Input: sourceData("schema/client.graphql"), BuiltIn: false},
 	{Name: "schema/company.graphql", Input: sourceData("schema/company.graphql"), BuiltIn: false},
 	{Name: "schema/contact.graphql", Input: sourceData("schema/contact.graphql"), BuiltIn: false},
@@ -8020,22 +7783,6 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
-
-func (ec *executionContext) field_ChatRoom_messages_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "first", ec.unmarshalOInt2ᚖint)
-	if err != nil {
-		return nil, err
-	}
-	args["first"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "after", ec.unmarshalOString2ᚖstring)
-	if err != nil {
-		return nil, err
-	}
-	args["after"] = arg1
-	return args, nil
-}
 
 func (ec *executionContext) field_Mutation_acceptInvitation_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
@@ -8333,17 +8080,6 @@ func (ec *executionContext) field_Mutation_confirmBooking_args(ctx context.Conte
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_createAdminChatRoom_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "userIds", ec.unmarshalNID2ᚕstringᚄ)
-	if err != nil {
-		return nil, err
-	}
-	args["userIds"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Mutation_createBookingPaymentIntent_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -8627,17 +8363,6 @@ func (ec *executionContext) field_Mutation_markInvoiceAsPaid_args(ctx context.Co
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_markMessagesAsRead_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "roomId", ec.unmarshalNID2string)
-	if err != nil {
-		return nil, err
-	}
-	args["roomId"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Mutation_markNotificationRead_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -8646,17 +8371,6 @@ func (ec *executionContext) field_Mutation_markNotificationRead_args(ctx context
 		return nil, err
 	}
 	args["id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_openBookingChat_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "bookingId", ec.unmarshalNID2string)
-	if err != nil {
-		return nil, err
-	}
-	args["bookingId"] = arg0
 	return args, nil
 }
 
@@ -8946,27 +8660,6 @@ func (ec *executionContext) field_Mutation_sendContactMessage_args(ctx context.C
 		return nil, err
 	}
 	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_sendMessage_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "roomId", ec.unmarshalNID2string)
-	if err != nil {
-		return nil, err
-	}
-	args["roomId"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "content", ec.unmarshalNString2string)
-	if err != nil {
-		return nil, err
-	}
-	args["content"] = arg1
-	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "messageType", ec.unmarshalOString2ᚖstring)
-	if err != nil {
-		return nil, err
-	}
-	args["messageType"] = arg2
 	return args, nil
 }
 
@@ -9824,17 +9517,6 @@ func (ec *executionContext) field_Query_bookingPaymentDetails_args(ctx context.C
 }
 
 func (ec *executionContext) field_Query_booking_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
-	if err != nil {
-		return nil, err
-	}
-	args["id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_chatRoom_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
@@ -13115,51 +12797,6 @@ func (ec *executionContext) fieldContext_Booking_review(_ context.Context, field
 	return fc, nil
 }
 
-func (ec *executionContext) _Booking_chatRoom(ctx context.Context, field graphql.CollectedField, obj *model.Booking) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Booking_chatRoom,
-		func(ctx context.Context) (any, error) {
-			return obj.ChatRoom, nil
-		},
-		nil,
-		ec.marshalOChatRoom2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatRoom,
-		true,
-		false,
-	)
-}
-
-func (ec *executionContext) fieldContext_Booking_chatRoom(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Booking",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_ChatRoom_id(ctx, field)
-			case "booking":
-				return ec.fieldContext_ChatRoom_booking(ctx, field)
-			case "roomType":
-				return ec.fieldContext_ChatRoom_roomType(ctx, field)
-			case "participants":
-				return ec.fieldContext_ChatRoom_participants(ctx, field)
-			case "messages":
-				return ec.fieldContext_ChatRoom_messages(ctx, field)
-			case "lastMessage":
-				return ec.fieldContext_ChatRoom_lastMessage(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_ChatRoom_createdAt(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type ChatRoom", field.Name)
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Booking_categoryId(ctx context.Context, field graphql.CollectedField, obj *model.Booking) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -13634,8 +13271,6 @@ func (ec *executionContext) fieldContext_BookingConnection_edges(_ context.Conte
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
-			case "chatRoom":
-				return ec.fieldContext_Booking_chatRoom(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -14138,686 +13773,6 @@ func (ec *executionContext) fieldContext_BookingsByStatus_count(_ context.Contex
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ChatMessage_id(ctx context.Context, field graphql.CollectedField, obj *model.ChatMessage) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_ChatMessage_id,
-		func(ctx context.Context) (any, error) {
-			return obj.ID, nil
-		},
-		nil,
-		ec.marshalNID2string,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_ChatMessage_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ChatMessage",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ChatMessage_sender(ctx context.Context, field graphql.CollectedField, obj *model.ChatMessage) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_ChatMessage_sender,
-		func(ctx context.Context) (any, error) {
-			return obj.Sender, nil
-		},
-		nil,
-		ec.marshalNUser2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUser,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_ChatMessage_sender(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ChatMessage",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_User_id(ctx, field)
-			case "email":
-				return ec.fieldContext_User_email(ctx, field)
-			case "fullName":
-				return ec.fieldContext_User_fullName(ctx, field)
-			case "phone":
-				return ec.fieldContext_User_phone(ctx, field)
-			case "avatarUrl":
-				return ec.fieldContext_User_avatarUrl(ctx, field)
-			case "role":
-				return ec.fieldContext_User_role(ctx, field)
-			case "status":
-				return ec.fieldContext_User_status(ctx, field)
-			case "preferredLanguage":
-				return ec.fieldContext_User_preferredLanguage(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_User_createdAt(ctx, field)
-			case "workerProfile":
-				return ec.fieldContext_User_workerProfile(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ChatMessage_content(ctx context.Context, field graphql.CollectedField, obj *model.ChatMessage) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_ChatMessage_content,
-		func(ctx context.Context) (any, error) {
-			return obj.Content, nil
-		},
-		nil,
-		ec.marshalNString2string,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_ChatMessage_content(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ChatMessage",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ChatMessage_messageType(ctx context.Context, field graphql.CollectedField, obj *model.ChatMessage) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_ChatMessage_messageType,
-		func(ctx context.Context) (any, error) {
-			return obj.MessageType, nil
-		},
-		nil,
-		ec.marshalNString2string,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_ChatMessage_messageType(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ChatMessage",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ChatMessage_isRead(ctx context.Context, field graphql.CollectedField, obj *model.ChatMessage) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_ChatMessage_isRead,
-		func(ctx context.Context) (any, error) {
-			return obj.IsRead, nil
-		},
-		nil,
-		ec.marshalNBoolean2bool,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_ChatMessage_isRead(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ChatMessage",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ChatMessage_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.ChatMessage) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_ChatMessage_createdAt,
-		func(ctx context.Context) (any, error) {
-			return obj.CreatedAt, nil
-		},
-		nil,
-		ec.marshalNDateTime2timeᚐTime,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_ChatMessage_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ChatMessage",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type DateTime does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ChatMessageConnection_edges(ctx context.Context, field graphql.CollectedField, obj *model.ChatMessageConnection) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_ChatMessageConnection_edges,
-		func(ctx context.Context) (any, error) {
-			return obj.Edges, nil
-		},
-		nil,
-		ec.marshalNChatMessage2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatMessageᚄ,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_ChatMessageConnection_edges(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ChatMessageConnection",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_ChatMessage_id(ctx, field)
-			case "sender":
-				return ec.fieldContext_ChatMessage_sender(ctx, field)
-			case "content":
-				return ec.fieldContext_ChatMessage_content(ctx, field)
-			case "messageType":
-				return ec.fieldContext_ChatMessage_messageType(ctx, field)
-			case "isRead":
-				return ec.fieldContext_ChatMessage_isRead(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_ChatMessage_createdAt(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type ChatMessage", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ChatMessageConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *model.ChatMessageConnection) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_ChatMessageConnection_pageInfo,
-		func(ctx context.Context) (any, error) {
-			return obj.PageInfo, nil
-		},
-		nil,
-		ec.marshalNPageInfo2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPageInfo,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_ChatMessageConnection_pageInfo(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ChatMessageConnection",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "hasNextPage":
-				return ec.fieldContext_PageInfo_hasNextPage(ctx, field)
-			case "endCursor":
-				return ec.fieldContext_PageInfo_endCursor(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type PageInfo", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ChatParticipant_user(ctx context.Context, field graphql.CollectedField, obj *model.ChatParticipant) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_ChatParticipant_user,
-		func(ctx context.Context) (any, error) {
-			return obj.User, nil
-		},
-		nil,
-		ec.marshalNUser2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUser,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_ChatParticipant_user(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ChatParticipant",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_User_id(ctx, field)
-			case "email":
-				return ec.fieldContext_User_email(ctx, field)
-			case "fullName":
-				return ec.fieldContext_User_fullName(ctx, field)
-			case "phone":
-				return ec.fieldContext_User_phone(ctx, field)
-			case "avatarUrl":
-				return ec.fieldContext_User_avatarUrl(ctx, field)
-			case "role":
-				return ec.fieldContext_User_role(ctx, field)
-			case "status":
-				return ec.fieldContext_User_status(ctx, field)
-			case "preferredLanguage":
-				return ec.fieldContext_User_preferredLanguage(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_User_createdAt(ctx, field)
-			case "workerProfile":
-				return ec.fieldContext_User_workerProfile(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ChatParticipant_joinedAt(ctx context.Context, field graphql.CollectedField, obj *model.ChatParticipant) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_ChatParticipant_joinedAt,
-		func(ctx context.Context) (any, error) {
-			return obj.JoinedAt, nil
-		},
-		nil,
-		ec.marshalNDateTime2timeᚐTime,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_ChatParticipant_joinedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ChatParticipant",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type DateTime does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ChatRoom_id(ctx context.Context, field graphql.CollectedField, obj *model.ChatRoom) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_ChatRoom_id,
-		func(ctx context.Context) (any, error) {
-			return obj.ID, nil
-		},
-		nil,
-		ec.marshalNID2string,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_ChatRoom_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ChatRoom",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ChatRoom_booking(ctx context.Context, field graphql.CollectedField, obj *model.ChatRoom) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_ChatRoom_booking,
-		func(ctx context.Context) (any, error) {
-			return obj.Booking, nil
-		},
-		nil,
-		ec.marshalOBooking2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking,
-		true,
-		false,
-	)
-}
-
-func (ec *executionContext) fieldContext_ChatRoom_booking(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ChatRoom",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Booking_id(ctx, field)
-			case "referenceCode":
-				return ec.fieldContext_Booking_referenceCode(ctx, field)
-			case "client":
-				return ec.fieldContext_Booking_client(ctx, field)
-			case "company":
-				return ec.fieldContext_Booking_company(ctx, field)
-			case "worker":
-				return ec.fieldContext_Booking_worker(ctx, field)
-			case "address":
-				return ec.fieldContext_Booking_address(ctx, field)
-			case "serviceType":
-				return ec.fieldContext_Booking_serviceType(ctx, field)
-			case "serviceName":
-				return ec.fieldContext_Booking_serviceName(ctx, field)
-			case "includedItems":
-				return ec.fieldContext_Booking_includedItems(ctx, field)
-			case "scheduledDate":
-				return ec.fieldContext_Booking_scheduledDate(ctx, field)
-			case "scheduledStartTime":
-				return ec.fieldContext_Booking_scheduledStartTime(ctx, field)
-			case "estimatedDurationHours":
-				return ec.fieldContext_Booking_estimatedDurationHours(ctx, field)
-			case "propertyType":
-				return ec.fieldContext_Booking_propertyType(ctx, field)
-			case "numRooms":
-				return ec.fieldContext_Booking_numRooms(ctx, field)
-			case "numBathrooms":
-				return ec.fieldContext_Booking_numBathrooms(ctx, field)
-			case "areaSqm":
-				return ec.fieldContext_Booking_areaSqm(ctx, field)
-			case "hasPets":
-				return ec.fieldContext_Booking_hasPets(ctx, field)
-			case "specialInstructions":
-				return ec.fieldContext_Booking_specialInstructions(ctx, field)
-			case "hourlyRate":
-				return ec.fieldContext_Booking_hourlyRate(ctx, field)
-			case "estimatedTotal":
-				return ec.fieldContext_Booking_estimatedTotal(ctx, field)
-			case "finalTotal":
-				return ec.fieldContext_Booking_finalTotal(ctx, field)
-			case "platformCommissionPct":
-				return ec.fieldContext_Booking_platformCommissionPct(ctx, field)
-			case "extras":
-				return ec.fieldContext_Booking_extras(ctx, field)
-			case "status":
-				return ec.fieldContext_Booking_status(ctx, field)
-			case "startedAt":
-				return ec.fieldContext_Booking_startedAt(ctx, field)
-			case "completedAt":
-				return ec.fieldContext_Booking_completedAt(ctx, field)
-			case "cancelledAt":
-				return ec.fieldContext_Booking_cancelledAt(ctx, field)
-			case "cancellationReason":
-				return ec.fieldContext_Booking_cancellationReason(ctx, field)
-			case "paymentStatus":
-				return ec.fieldContext_Booking_paymentStatus(ctx, field)
-			case "paidAt":
-				return ec.fieldContext_Booking_paidAt(ctx, field)
-			case "recurringGroupId":
-				return ec.fieldContext_Booking_recurringGroupId(ctx, field)
-			case "subscriptionId":
-				return ec.fieldContext_Booking_subscriptionId(ctx, field)
-			case "occurrenceNumber":
-				return ec.fieldContext_Booking_occurrenceNumber(ctx, field)
-			case "rescheduleCount":
-				return ec.fieldContext_Booking_rescheduleCount(ctx, field)
-			case "rescheduledAt":
-				return ec.fieldContext_Booking_rescheduledAt(ctx, field)
-			case "timeSlots":
-				return ec.fieldContext_Booking_timeSlots(ctx, field)
-			case "review":
-				return ec.fieldContext_Booking_review(ctx, field)
-			case "chatRoom":
-				return ec.fieldContext_Booking_chatRoom(ctx, field)
-			case "categoryId":
-				return ec.fieldContext_Booking_categoryId(ctx, field)
-			case "category":
-				return ec.fieldContext_Booking_category(ctx, field)
-			case "customFields":
-				return ec.fieldContext_Booking_customFields(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_Booking_createdAt(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Booking", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ChatRoom_roomType(ctx context.Context, field graphql.CollectedField, obj *model.ChatRoom) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_ChatRoom_roomType,
-		func(ctx context.Context) (any, error) {
-			return obj.RoomType, nil
-		},
-		nil,
-		ec.marshalNString2string,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_ChatRoom_roomType(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ChatRoom",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ChatRoom_participants(ctx context.Context, field graphql.CollectedField, obj *model.ChatRoom) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_ChatRoom_participants,
-		func(ctx context.Context) (any, error) {
-			return obj.Participants, nil
-		},
-		nil,
-		ec.marshalNChatParticipant2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatParticipantᚄ,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_ChatRoom_participants(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ChatRoom",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "user":
-				return ec.fieldContext_ChatParticipant_user(ctx, field)
-			case "joinedAt":
-				return ec.fieldContext_ChatParticipant_joinedAt(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type ChatParticipant", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ChatRoom_messages(ctx context.Context, field graphql.CollectedField, obj *model.ChatRoom) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_ChatRoom_messages,
-		func(ctx context.Context) (any, error) {
-			return obj.Messages, nil
-		},
-		nil,
-		ec.marshalNChatMessageConnection2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatMessageConnection,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_ChatRoom_messages(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ChatRoom",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "edges":
-				return ec.fieldContext_ChatMessageConnection_edges(ctx, field)
-			case "pageInfo":
-				return ec.fieldContext_ChatMessageConnection_pageInfo(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type ChatMessageConnection", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_ChatRoom_messages_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ChatRoom_lastMessage(ctx context.Context, field graphql.CollectedField, obj *model.ChatRoom) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_ChatRoom_lastMessage,
-		func(ctx context.Context) (any, error) {
-			return obj.LastMessage, nil
-		},
-		nil,
-		ec.marshalOChatMessage2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatMessage,
-		true,
-		false,
-	)
-}
-
-func (ec *executionContext) fieldContext_ChatRoom_lastMessage(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ChatRoom",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_ChatMessage_id(ctx, field)
-			case "sender":
-				return ec.fieldContext_ChatMessage_sender(ctx, field)
-			case "content":
-				return ec.fieldContext_ChatMessage_content(ctx, field)
-			case "messageType":
-				return ec.fieldContext_ChatMessage_messageType(ctx, field)
-			case "isRead":
-				return ec.fieldContext_ChatMessage_isRead(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_ChatMessage_createdAt(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type ChatMessage", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ChatRoom_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.ChatRoom) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_ChatRoom_createdAt,
-		func(ctx context.Context) (any, error) {
-			return obj.CreatedAt, nil
-		},
-		nil,
-		ec.marshalNDateTime2timeᚐTime,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_ChatRoom_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ChatRoom",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type DateTime does not have child fields")
 		},
 	}
 	return fc, nil
@@ -19420,8 +18375,6 @@ func (ec *executionContext) fieldContext_Invoice_booking(_ context.Context, fiel
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
-			case "chatRoom":
-				return ec.fieldContext_Booking_chatRoom(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -20603,8 +19556,6 @@ func (ec *executionContext) fieldContext_Mutation_adminCancelBooking(ctx context
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
-			case "chatRoom":
-				return ec.fieldContext_Booking_chatRoom(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -20730,8 +19681,6 @@ func (ec *executionContext) fieldContext_Mutation_adminRescheduleBooking(ctx con
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
-			case "chatRoom":
-				return ec.fieldContext_Booking_chatRoom(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -21663,8 +20612,6 @@ func (ec *executionContext) fieldContext_Mutation_createBookingRequest(ctx conte
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
-			case "chatRoom":
-				return ec.fieldContext_Booking_chatRoom(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -21790,8 +20737,6 @@ func (ec *executionContext) fieldContext_Mutation_cancelBooking(ctx context.Cont
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
-			case "chatRoom":
-				return ec.fieldContext_Booking_chatRoom(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -21917,8 +20862,6 @@ func (ec *executionContext) fieldContext_Mutation_assignWorkerToBooking(ctx cont
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
-			case "chatRoom":
-				return ec.fieldContext_Booking_chatRoom(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -22044,8 +20987,6 @@ func (ec *executionContext) fieldContext_Mutation_confirmBooking(ctx context.Con
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
-			case "chatRoom":
-				return ec.fieldContext_Booking_chatRoom(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -22171,8 +21112,6 @@ func (ec *executionContext) fieldContext_Mutation_startJob(ctx context.Context, 
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
-			case "chatRoom":
-				return ec.fieldContext_Booking_chatRoom(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -22298,8 +21237,6 @@ func (ec *executionContext) fieldContext_Mutation_completeJob(ctx context.Contex
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
-			case "chatRoom":
-				return ec.fieldContext_Booking_chatRoom(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -22425,8 +21362,6 @@ func (ec *executionContext) fieldContext_Mutation_selectBookingTimeSlot(ctx cont
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
-			case "chatRoom":
-				return ec.fieldContext_Booking_chatRoom(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -22552,8 +21487,6 @@ func (ec *executionContext) fieldContext_Mutation_rescheduleBooking(ctx context.
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
-			case "chatRoom":
-				return ec.fieldContext_Booking_chatRoom(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -22574,216 +21507,6 @@ func (ec *executionContext) fieldContext_Mutation_rescheduleBooking(ctx context.
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_rescheduleBooking_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_sendMessage(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Mutation_sendMessage,
-		func(ctx context.Context) (any, error) {
-			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().SendMessage(ctx, fc.Args["roomId"].(string), fc.Args["content"].(string), fc.Args["messageType"].(*string))
-		},
-		nil,
-		ec.marshalNChatMessage2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatMessage,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Mutation_sendMessage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_ChatMessage_id(ctx, field)
-			case "sender":
-				return ec.fieldContext_ChatMessage_sender(ctx, field)
-			case "content":
-				return ec.fieldContext_ChatMessage_content(ctx, field)
-			case "messageType":
-				return ec.fieldContext_ChatMessage_messageType(ctx, field)
-			case "isRead":
-				return ec.fieldContext_ChatMessage_isRead(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_ChatMessage_createdAt(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type ChatMessage", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_sendMessage_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_markMessagesAsRead(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Mutation_markMessagesAsRead,
-		func(ctx context.Context) (any, error) {
-			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().MarkMessagesAsRead(ctx, fc.Args["roomId"].(string))
-		},
-		nil,
-		ec.marshalNBoolean2bool,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Mutation_markMessagesAsRead(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_markMessagesAsRead_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_createAdminChatRoom(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Mutation_createAdminChatRoom,
-		func(ctx context.Context) (any, error) {
-			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().CreateAdminChatRoom(ctx, fc.Args["userIds"].([]string))
-		},
-		nil,
-		ec.marshalNChatRoom2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatRoom,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Mutation_createAdminChatRoom(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_ChatRoom_id(ctx, field)
-			case "booking":
-				return ec.fieldContext_ChatRoom_booking(ctx, field)
-			case "roomType":
-				return ec.fieldContext_ChatRoom_roomType(ctx, field)
-			case "participants":
-				return ec.fieldContext_ChatRoom_participants(ctx, field)
-			case "messages":
-				return ec.fieldContext_ChatRoom_messages(ctx, field)
-			case "lastMessage":
-				return ec.fieldContext_ChatRoom_lastMessage(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_ChatRoom_createdAt(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type ChatRoom", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_createAdminChatRoom_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_openBookingChat(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Mutation_openBookingChat,
-		func(ctx context.Context) (any, error) {
-			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().OpenBookingChat(ctx, fc.Args["bookingId"].(string))
-		},
-		nil,
-		ec.marshalNChatRoom2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatRoom,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Mutation_openBookingChat(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_ChatRoom_id(ctx, field)
-			case "booking":
-				return ec.fieldContext_ChatRoom_booking(ctx, field)
-			case "roomType":
-				return ec.fieldContext_ChatRoom_roomType(ctx, field)
-			case "participants":
-				return ec.fieldContext_ChatRoom_participants(ctx, field)
-			case "messages":
-				return ec.fieldContext_ChatRoom_messages(ctx, field)
-			case "lastMessage":
-				return ec.fieldContext_ChatRoom_lastMessage(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_ChatRoom_createdAt(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type ChatRoom", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_openBookingChat_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -26132,8 +24855,6 @@ func (ec *executionContext) fieldContext_Mutation_markBookingPaid(ctx context.Co
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
-			case "chatRoom":
-				return ec.fieldContext_Booking_chatRoom(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -29884,8 +28605,6 @@ func (ec *executionContext) fieldContext_PaymentHistoryEntry_booking(_ context.C
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
-			case "chatRoom":
-				return ec.fieldContext_Booking_chatRoom(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -30521,8 +29240,6 @@ func (ec *executionContext) fieldContext_PaymentTransaction_booking(_ context.Co
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
-			case "chatRoom":
-				return ec.fieldContext_Booking_chatRoom(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -30926,8 +29643,6 @@ func (ec *executionContext) fieldContext_PayoutLineItem_booking(_ context.Contex
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
-			case "chatRoom":
-				return ec.fieldContext_Booking_chatRoom(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -33776,51 +32491,6 @@ func (ec *executionContext) fieldContext_Query_allWorkers(_ context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_allChatRooms(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Query_allChatRooms,
-		func(ctx context.Context) (any, error) {
-			return ec.resolvers.Query().AllChatRooms(ctx)
-		},
-		nil,
-		ec.marshalNChatRoom2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatRoomᚄ,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Query_allChatRooms(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_ChatRoom_id(ctx, field)
-			case "booking":
-				return ec.fieldContext_ChatRoom_booking(ctx, field)
-			case "roomType":
-				return ec.fieldContext_ChatRoom_roomType(ctx, field)
-			case "participants":
-				return ec.fieldContext_ChatRoom_participants(ctx, field)
-			case "messages":
-				return ec.fieldContext_ChatRoom_messages(ctx, field)
-			case "lastMessage":
-				return ec.fieldContext_ChatRoom_lastMessage(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_ChatRoom_createdAt(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type ChatRoom", field.Name)
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Query_allUsers(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -34624,8 +33294,6 @@ func (ec *executionContext) fieldContext_Query_booking(ctx context.Context, fiel
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
-			case "chatRoom":
-				return ec.fieldContext_Booking_chatRoom(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -34800,8 +33468,6 @@ func (ec *executionContext) fieldContext_Query_myAssignedJobs(ctx context.Contex
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
-			case "chatRoom":
-				return ec.fieldContext_Booking_chatRoom(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -34926,8 +33592,6 @@ func (ec *executionContext) fieldContext_Query_todaysJobs(_ context.Context, fie
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
-			case "chatRoom":
-				return ec.fieldContext_Booking_chatRoom(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -35091,8 +33755,6 @@ func (ec *executionContext) fieldContext_Query_companyBookingsByDateRange(ctx co
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
-			case "chatRoom":
-				return ec.fieldContext_Booking_chatRoom(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -35250,108 +33912,6 @@ func (ec *executionContext) fieldContext_Query_checkWorkerAvailability(ctx conte
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_checkWorkerAvailability_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Query_myChatRooms(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Query_myChatRooms,
-		func(ctx context.Context) (any, error) {
-			return ec.resolvers.Query().MyChatRooms(ctx)
-		},
-		nil,
-		ec.marshalNChatRoom2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatRoomᚄ,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Query_myChatRooms(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_ChatRoom_id(ctx, field)
-			case "booking":
-				return ec.fieldContext_ChatRoom_booking(ctx, field)
-			case "roomType":
-				return ec.fieldContext_ChatRoom_roomType(ctx, field)
-			case "participants":
-				return ec.fieldContext_ChatRoom_participants(ctx, field)
-			case "messages":
-				return ec.fieldContext_ChatRoom_messages(ctx, field)
-			case "lastMessage":
-				return ec.fieldContext_ChatRoom_lastMessage(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_ChatRoom_createdAt(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type ChatRoom", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Query_chatRoom(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Query_chatRoom,
-		func(ctx context.Context) (any, error) {
-			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Query().ChatRoom(ctx, fc.Args["id"].(string))
-		},
-		nil,
-		ec.marshalNChatRoom2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatRoom,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Query_chatRoom(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_ChatRoom_id(ctx, field)
-			case "booking":
-				return ec.fieldContext_ChatRoom_booking(ctx, field)
-			case "roomType":
-				return ec.fieldContext_ChatRoom_roomType(ctx, field)
-			case "participants":
-				return ec.fieldContext_ChatRoom_participants(ctx, field)
-			case "messages":
-				return ec.fieldContext_ChatRoom_messages(ctx, field)
-			case "lastMessage":
-				return ec.fieldContext_ChatRoom_lastMessage(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_ChatRoom_createdAt(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type ChatRoom", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_chatRoom_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -35769,51 +34329,6 @@ func (ec *executionContext) fieldContext_Query_company(ctx context.Context, fiel
 	if fc.Args, err = ec.field_Query_company_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Query_companyChatRooms(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Query_companyChatRooms,
-		func(ctx context.Context) (any, error) {
-			return ec.resolvers.Query().CompanyChatRooms(ctx)
-		},
-		nil,
-		ec.marshalNChatRoom2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatRoomᚄ,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Query_companyChatRooms(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_ChatRoom_id(ctx, field)
-			case "booking":
-				return ec.fieldContext_ChatRoom_booking(ctx, field)
-			case "roomType":
-				return ec.fieldContext_ChatRoom_roomType(ctx, field)
-			case "participants":
-				return ec.fieldContext_ChatRoom_participants(ctx, field)
-			case "messages":
-				return ec.fieldContext_ChatRoom_messages(ctx, field)
-			case "lastMessage":
-				return ec.fieldContext_ChatRoom_lastMessage(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_ChatRoom_createdAt(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type ChatRoom", field.Name)
-		},
 	}
 	return fc, nil
 }
@@ -39637,8 +38152,6 @@ func (ec *executionContext) fieldContext_Query_myWorkerBookingsByDateRange(ctx c
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
-			case "chatRoom":
-				return ec.fieldContext_Booking_chatRoom(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -40383,8 +38896,6 @@ func (ec *executionContext) fieldContext_RefundRequest_booking(_ context.Context
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
-			case "chatRoom":
-				return ec.fieldContext_Booking_chatRoom(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -40948,8 +39459,6 @@ func (ec *executionContext) fieldContext_Review_booking(_ context.Context, field
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
-			case "chatRoom":
-				return ec.fieldContext_Booking_chatRoom(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -44129,8 +42638,6 @@ func (ec *executionContext) fieldContext_ServiceSubscription_bookings(_ context.
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
-			case "chatRoom":
-				return ec.fieldContext_Booking_chatRoom(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -44244,8 +42751,6 @@ func (ec *executionContext) fieldContext_ServiceSubscription_upcomingBookings(_ 
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
-			case "chatRoom":
-				return ec.fieldContext_Booking_chatRoom(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -52312,8 +50817,6 @@ func (ec *executionContext) _Booking(ctx context.Context, sel ast.SelectionSet, 
 			}
 		case "review":
 			out.Values[i] = ec._Booking_review(ctx, field, obj)
-		case "chatRoom":
-			out.Values[i] = ec._Booking_chatRoom(ctx, field, obj)
 		case "categoryId":
 			out.Values[i] = ec._Booking_categoryId(ctx, field, obj)
 		case "category":
@@ -52679,221 +51182,6 @@ func (ec *executionContext) _BookingsByStatus(ctx context.Context, sel ast.Selec
 			}
 		case "count":
 			out.Values[i] = ec._BookingsByStatus_count(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
-	return out
-}
-
-var chatMessageImplementors = []string{"ChatMessage"}
-
-func (ec *executionContext) _ChatMessage(ctx context.Context, sel ast.SelectionSet, obj *model.ChatMessage) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, chatMessageImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("ChatMessage")
-		case "id":
-			out.Values[i] = ec._ChatMessage_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "sender":
-			out.Values[i] = ec._ChatMessage_sender(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "content":
-			out.Values[i] = ec._ChatMessage_content(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "messageType":
-			out.Values[i] = ec._ChatMessage_messageType(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "isRead":
-			out.Values[i] = ec._ChatMessage_isRead(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "createdAt":
-			out.Values[i] = ec._ChatMessage_createdAt(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
-	return out
-}
-
-var chatMessageConnectionImplementors = []string{"ChatMessageConnection"}
-
-func (ec *executionContext) _ChatMessageConnection(ctx context.Context, sel ast.SelectionSet, obj *model.ChatMessageConnection) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, chatMessageConnectionImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("ChatMessageConnection")
-		case "edges":
-			out.Values[i] = ec._ChatMessageConnection_edges(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "pageInfo":
-			out.Values[i] = ec._ChatMessageConnection_pageInfo(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
-	return out
-}
-
-var chatParticipantImplementors = []string{"ChatParticipant"}
-
-func (ec *executionContext) _ChatParticipant(ctx context.Context, sel ast.SelectionSet, obj *model.ChatParticipant) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, chatParticipantImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("ChatParticipant")
-		case "user":
-			out.Values[i] = ec._ChatParticipant_user(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "joinedAt":
-			out.Values[i] = ec._ChatParticipant_joinedAt(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
-	return out
-}
-
-var chatRoomImplementors = []string{"ChatRoom"}
-
-func (ec *executionContext) _ChatRoom(ctx context.Context, sel ast.SelectionSet, obj *model.ChatRoom) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, chatRoomImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("ChatRoom")
-		case "id":
-			out.Values[i] = ec._ChatRoom_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "booking":
-			out.Values[i] = ec._ChatRoom_booking(ctx, field, obj)
-		case "roomType":
-			out.Values[i] = ec._ChatRoom_roomType(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "participants":
-			out.Values[i] = ec._ChatRoom_participants(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "messages":
-			out.Values[i] = ec._ChatRoom_messages(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "lastMessage":
-			out.Values[i] = ec._ChatRoom_lastMessage(ctx, field, obj)
-		case "createdAt":
-			out.Values[i] = ec._ChatRoom_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -54698,34 +52986,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "rescheduleBooking":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_rescheduleBooking(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "sendMessage":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_sendMessage(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "markMessagesAsRead":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_markMessagesAsRead(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "createAdminChatRoom":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_createAdminChatRoom(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "openBookingChat":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_openBookingChat(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -56841,28 +55101,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "allChatRooms":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_allChatRooms(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "allUsers":
 			field := field
 
@@ -57369,50 +55607,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "myChatRooms":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_myChatRooms(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "chatRoom":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_chatRoom(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "myAddresses":
 			field := field
 
@@ -57555,28 +55749,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_company(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "companyChatRooms":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_companyChatRooms(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -62234,186 +60406,6 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) marshalNChatMessage2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatMessage(ctx context.Context, sel ast.SelectionSet, v model.ChatMessage) graphql.Marshaler {
-	return ec._ChatMessage(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNChatMessage2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatMessageᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ChatMessage) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNChatMessage2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatMessage(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
-func (ec *executionContext) marshalNChatMessage2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatMessage(ctx context.Context, sel ast.SelectionSet, v *model.ChatMessage) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._ChatMessage(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalNChatMessageConnection2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatMessageConnection(ctx context.Context, sel ast.SelectionSet, v *model.ChatMessageConnection) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._ChatMessageConnection(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalNChatParticipant2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatParticipantᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ChatParticipant) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNChatParticipant2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatParticipant(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
-func (ec *executionContext) marshalNChatParticipant2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatParticipant(ctx context.Context, sel ast.SelectionSet, v *model.ChatParticipant) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._ChatParticipant(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalNChatRoom2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatRoom(ctx context.Context, sel ast.SelectionSet, v model.ChatRoom) graphql.Marshaler {
-	return ec._ChatRoom(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNChatRoom2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatRoomᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ChatRoom) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNChatRoom2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatRoom(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
-func (ec *executionContext) marshalNChatRoom2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatRoom(ctx context.Context, sel ast.SelectionSet, v *model.ChatRoom) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._ChatRoom(ctx, sel, v)
-}
-
 func (ec *executionContext) marshalNCityArea2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCityArea(ctx context.Context, sel ast.SelectionSet, v model.CityArea) graphql.Marshaler {
 	return ec._CityArea(ctx, sel, &v)
 }
@@ -66122,20 +64114,6 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	_ = ctx
 	res := graphql.MarshalBoolean(*v)
 	return res
-}
-
-func (ec *executionContext) marshalOChatMessage2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatMessage(ctx context.Context, sel ast.SelectionSet, v *model.ChatMessage) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._ChatMessage(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOChatRoom2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐChatRoom(ctx context.Context, sel ast.SelectionSet, v *model.ChatRoom) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._ChatRoom(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOClientBillingProfile2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐClientBillingProfile(ctx context.Context, sel ast.SelectionSet, v *model.ClientBillingProfile) graphql.Marshaler {

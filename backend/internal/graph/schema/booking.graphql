@@ -55,7 +55,6 @@ type Booking {
   rescheduledAt: DateTime
   timeSlots: [BookingTimeSlot!]!
   review: Review
-  chatRoom: ChatRoom
   categoryId: ID
   category: ServiceCategory
   customFields: String

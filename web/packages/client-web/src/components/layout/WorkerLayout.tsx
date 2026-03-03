@@ -13,7 +13,7 @@ const navItems = [
   { to: '/worker', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/worker/comenzi', icon: ClipboardList, label: 'Comenzi' },
   { to: '/worker/program', icon: CalendarDays, label: 'Program' },
-  { to: '/worker/mesaje', icon: MessageSquare, label: 'Mesaje' },
+  { to: '/worker/mesaje', icon: MessageSquare, label: 'Contact Suport' },
   { to: '/worker/profil', icon: User, label: 'Profil' },
 ];
 

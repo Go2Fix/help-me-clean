@@ -18,7 +18,7 @@ import { useAuth } from '@/context/AuthContext';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/ClientBadge';
-import { MY_BOOKINGS, MY_CHAT_ROOMS, MY_SUBSCRIPTIONS, MY_INVOICES } from '@/graphql/operations';
+import { MY_BOOKINGS, MY_SUBSCRIPTIONS, MY_INVOICES } from '@/graphql/operations';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -128,9 +128,7 @@ export default function ClientDashboardPage() {
     variables: { first: 20 },
   });
 
-  const { data: chatData, loading: l6 } = useQuery(MY_CHAT_ROOMS);
-
-  const isLoading = l1 || l2 || l3 || l4 || l5 || l6;
+  const isLoading = l1 || l2 || l3 || l4 || l5;
 
   // ─── Derived data ──────────────────────────────────────────────────────
 
@@ -161,8 +159,6 @@ export default function ClientDashboardPage() {
       (inv) => inv.status !== 'PAID' && inv.status !== 'CANCELLED' && inv.status !== 'CREDIT_NOTE',
     ).length;
   }, [invoicesData]);
-
-  const chatRoomCount = chatData?.myChatRooms?.length ?? 0;
 
   // ─── KPI config ────────────────────────────────────────────────────────
 
@@ -205,7 +201,7 @@ export default function ClientDashboardPage() {
 
   const quickActions = [
     { label: 'Comenzile mele', icon: ClipboardList, path: '/cont/comenzi' },
-    { label: 'Mesaje', icon: MessageCircle, path: '/cont/mesaje', badge: chatRoomCount || undefined },
+    { label: 'Contact Suport', icon: MessageCircle, path: '/cont/mesaje' },
     { label: 'Adresele mele', icon: MapPin, path: '/cont/adrese' },
     { label: 'Facturi', icon: FileText, path: '/cont/facturi' },
     { label: 'Metode de plata', icon: CreditCard, path: '/cont/plati' },
@@ -457,11 +453,6 @@ export default function ClientDashboardPage() {
                   <span className="text-sm font-medium text-gray-700 flex-1">
                     {action.label}
                   </span>
-                  {action.badge !== undefined && action.badge > 0 && (
-                    <span className="inline-flex items-center justify-center h-5 min-w-5 px-1.5 rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                      {action.badge}
-                    </span>
-                  )}
                   <ChevronRight className="h-4 w-4 text-gray-300 shrink-0" />
                 </button>
               ))}

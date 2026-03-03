@@ -12,7 +12,6 @@ import (
 
 type Querier interface {
 	ActivateWorkerStatus(ctx context.Context, id pgtype.UUID) (Worker, error)
-	AddChatParticipant(ctx context.Context, arg AddChatParticipantParams) (ChatParticipant, error)
 	AdminCancelBookingWithReason(ctx context.Context, arg AdminCancelBookingWithReasonParams) (Booking, error)
 	AdminUpdateCompanyProfile(ctx context.Context, arg AdminUpdateCompanyProfileParams) (Company, error)
 	AdminUpdateUserProfile(ctx context.Context, arg AdminUpdateUserProfileParams) (User, error)
@@ -25,7 +24,6 @@ type Querier interface {
 	CancelRecurringGroup(ctx context.Context, arg CancelRecurringGroupParams) (RecurringBookingGroup, error)
 	CancelSubscription(ctx context.Context, arg CancelSubscriptionParams) (Subscription, error)
 	CancelSubscriptionsByCompany(ctx context.Context, arg CancelSubscriptionsByCompanyParams) error
-	CheckChatParticipant(ctx context.Context, arg CheckChatParticipantParams) (int64, error)
 	// Returns true if all 3 required documents exist and are approved
 	CheckCompanyDocumentsReady(ctx context.Context, companyID pgtype.UUID) (pgtype.Bool, error)
 	// ============================================
@@ -78,8 +76,6 @@ type Querier interface {
 	CreateBillingProfile(ctx context.Context, arg CreateBillingProfileParams) (ClientBillingProfile, error)
 	CreateBooking(ctx context.Context, arg CreateBookingParams) (Booking, error)
 	CreateBookingTimeSlot(ctx context.Context, arg CreateBookingTimeSlotParams) (BookingTimeSlot, error)
-	CreateChatMessage(ctx context.Context, arg CreateChatMessageParams) (ChatMessage, error)
-	CreateChatRoom(ctx context.Context, arg CreateChatRoomParams) (ChatRoom, error)
 	CreateCity(ctx context.Context, arg CreateCityParams) (CreateCityRow, error)
 	CreateCompany(ctx context.Context, arg CreateCompanyParams) (Company, error)
 	CreateCompanyDocument(ctx context.Context, arg CreateCompanyDocumentParams) (CompanyDocument, error)
@@ -157,8 +153,6 @@ type Querier interface {
 	// Finds workers in an area who have no conflicting bookings on a specific date.
 	// Orders by same-company first (matching $4), then by rating.
 	FindAvailableWorkersForDateAndArea(ctx context.Context, arg FindAvailableWorkersForDateAndAreaParams) ([]FindAvailableWorkersForDateAndAreaRow, error)
-	FindChatRoomByExactParticipants(ctx context.Context, arg FindChatRoomByExactParticipantsParams) (ChatRoom, error)
-	FindDirectChatRoom(ctx context.Context, arg FindDirectChatRoomParams) (ChatRoom, error)
 	FindMatchingWorkers(ctx context.Context, cityAreaID pgtype.UUID) ([]FindMatchingWorkersRow, error)
 	// Area + category filtering: only returns workers (and their companies) qualified for the given category.
 	FindMatchingWorkersByCategory(ctx context.Context, arg FindMatchingWorkersByCategoryParams) ([]FindMatchingWorkersByCategoryRow, error)
@@ -177,8 +171,6 @@ type Querier interface {
 	GetBookingsByRecurringGroup(ctx context.Context, recurringGroupID pgtype.UUID) ([]Booking, error)
 	// ─── SUBSCRIPTION BOOKINGS ───────────────────────────────────────────────
 	GetBookingsBySubscription(ctx context.Context, subscriptionID pgtype.UUID) ([]Booking, error)
-	GetChatRoomByBookingID(ctx context.Context, bookingID pgtype.UUID) (ChatRoom, error)
-	GetChatRoomByID(ctx context.Context, id pgtype.UUID) (ChatRoom, error)
 	// Returns the centroid coordinates for a city area (set during migration seed or by admin).
 	GetCityAreaCoordinates(ctx context.Context, id pgtype.UUID) (GetCityAreaCoordinatesRow, error)
 	GetCityByID(ctx context.Context, id pgtype.UUID) (GetCityByIDRow, error)
@@ -210,7 +202,6 @@ type Querier interface {
 	GetInvoiceByID(ctx context.Context, id pgtype.UUID) (Invoice, error)
 	GetInvoiceCountByStatus(ctx context.Context, arg GetInvoiceCountByStatusParams) ([]GetInvoiceCountByStatusRow, error)
 	GetInvoiceCountByType(ctx context.Context, arg GetInvoiceCountByTypeParams) ([]GetInvoiceCountByTypeRow, error)
-	GetLastChatMessage(ctx context.Context, roomID pgtype.UUID) (ChatMessage, error)
 	// ============================================
 	// INVOICE SEQUENCES
 	// ============================================
@@ -300,7 +291,6 @@ type Querier interface {
 	ListAddressesByUser(ctx context.Context, userID pgtype.UUID) ([]ClientAddress, error)
 	ListAllActiveWorkers(ctx context.Context) ([]ListAllActiveWorkersRow, error)
 	ListAllBookings(ctx context.Context, arg ListAllBookingsParams) ([]Booking, error)
-	ListAllChatRooms(ctx context.Context) ([]ChatRoom, error)
 	ListAllCompanies(ctx context.Context, arg ListAllCompaniesParams) ([]Company, error)
 	ListAllExtras(ctx context.Context) ([]ServiceExtra, error)
 	// ============================================
@@ -327,10 +317,6 @@ type Querier interface {
 	ListBookingsByStatus(ctx context.Context, arg ListBookingsByStatusParams) ([]Booking, error)
 	ListBookingsByWorker(ctx context.Context, workerID pgtype.UUID) ([]Booking, error)
 	ListBookingsByWorkerAndDateRange(ctx context.Context, arg ListBookingsByWorkerAndDateRangeParams) ([]Booking, error)
-	ListChatMessages(ctx context.Context, arg ListChatMessagesParams) ([]ChatMessage, error)
-	ListChatParticipants(ctx context.Context, roomID pgtype.UUID) ([]ChatParticipant, error)
-	ListChatRoomsByCompanyWorkers(ctx context.Context, companyID pgtype.UUID) ([]ChatRoom, error)
-	ListChatRoomsByUser(ctx context.Context, userID pgtype.UUID) ([]ChatRoom, error)
 	ListCompaniesByStatus(ctx context.Context, arg ListCompaniesByStatusParams) ([]Company, error)
 	ListCompanyDocuments(ctx context.Context, companyID pgtype.UUID) ([]CompanyDocument, error)
 	ListCompanyServiceAreas(ctx context.Context, companyID pgtype.UUID) ([]ListCompanyServiceAreasRow, error)
@@ -403,7 +389,6 @@ type Querier interface {
 	MarkBookingPaidAndConfirmed(ctx context.Context, id pgtype.UUID) (Booking, error)
 	MarkEmailOTPUsed(ctx context.Context, id pgtype.UUID) error
 	MarkInvoiceAsPaid(ctx context.Context, id pgtype.UUID) (Invoice, error)
-	MarkMessagesRead(ctx context.Context, arg MarkMessagesReadParams) error
 	MarkNotificationRead(ctx context.Context, id pgtype.UUID) error
 	PauseRecurringGroup(ctx context.Context, id pgtype.UUID) (RecurringBookingGroup, error)
 	PauseSubscription(ctx context.Context, id pgtype.UUID) (Subscription, error)

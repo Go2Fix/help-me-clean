@@ -445,7 +445,7 @@ func (s *Service) GenerateCommissionInvoice(
 		updateErr := s.queries.UpdateInvoiceKeez(ctx, db.UpdateInvoiceKeezParams{
 			ID:             inv.ID,
 			InvoiceNumber:  pgText(assignedNumber),
-			KeezExternalId: pgText(extID),
+			KeezExternalID: pgText(extID),
 			KeezSeries:     pgText(keezSeries),
 			KeezNumber:     pgText(keezNum),
 		})
@@ -453,14 +453,14 @@ func (s *Service) GenerateCommissionInvoice(
 			log.Printf("invoice: failed to persist keez metadata: %v", updateErr)
 		} else {
 			inv.InvoiceNumber = pgText(assignedNumber)
-			inv.KeezExternalId = pgText(extID)
+			inv.KeezExternalID = pgText(extID)
 			inv.KeezSeries = pgText(keezSeries)
 			inv.KeezNumber = pgText(keezNum)
 		}
 	}
 
 	// Auto-transmit to e-factura (best-effort, non-blocking).
-	if inv.KeezExternalId.Valid && inv.KeezExternalId.String != "" {
+	if inv.KeezExternalID.Valid && inv.KeezExternalID.String != "" {
 		go func() {
 			bgCtx := context.Background()
 			if transmitErr := s.TransmitToEFactura(bgCtx, inv.ID); transmitErr != nil {
@@ -605,9 +605,9 @@ func (s *Service) CancelInvoice(ctx context.Context, invoiceID pgtype.UUID) (db.
 	}
 
 	// Cancel on Keez.ro if the invoice was synced.
-	if inv.KeezExternalId.Valid && inv.KeezExternalId.String != "" {
+	if inv.KeezExternalID.Valid && inv.KeezExternalID.String != "" {
 		cancelPayload := map[string]string{
-			"externalId": inv.KeezExternalId.String,
+			"externalId": inv.KeezExternalID.String,
 		}
 		_, apiErr := s.callKeezAPI(ctx, http.MethodPost, "/invoices/canceled", cancelPayload)
 		if apiErr != nil {
@@ -634,12 +634,12 @@ func (s *Service) TransmitToEFactura(ctx context.Context, invoiceID pgtype.UUID)
 		return fmt.Errorf("invoice: get invoice for e-factura: %w", err)
 	}
 
-	if !inv.KeezExternalId.Valid || inv.KeezExternalId.String == "" {
+	if !inv.KeezExternalID.Valid || inv.KeezExternalID.String == "" {
 		return errors.New("invoice: cannot transmit to e-factura: invoice not synced to keez.ro")
 	}
 
 	eInvPayload := map[string]string{
-		"externalId": inv.KeezExternalId.String,
+		"externalId": inv.KeezExternalID.String,
 	}
 
 	_, err = s.callKeezAPI(ctx, http.MethodPost, "/invoices/efactura/submitted", eInvPayload)
@@ -754,7 +754,7 @@ func (s *Service) GenerateCreditNote(ctx context.Context, invoiceID pgtype.UUID,
 	}
 
 	// Sync storno to Keez.ro if the original invoice was synced there.
-	if original.KeezExternalId.Valid && original.KeezExternalId.String != "" &&
+	if original.KeezExternalID.Valid && original.KeezExternalID.String != "" &&
 		original.KeezSeries.Valid && original.KeezSeries.String != "" &&
 		original.KeezNumber.Valid && original.KeezNumber.String != "" {
 
@@ -783,7 +783,7 @@ func (s *Service) GenerateCreditNote(ctx context.Context, invoiceID pgtype.UUID,
 				updateErr := s.queries.UpdateInvoiceKeez(ctx, db.UpdateInvoiceKeezParams{
 					ID:             creditNote.ID,
 					InvoiceNumber:  pgText(assignedNumber),
-					KeezExternalId: pgText(extID),
+					KeezExternalID: pgText(extID),
 					KeezSeries:     pgText(keezSeries),
 					KeezNumber:     pgText(keezNum),
 				})
@@ -791,7 +791,7 @@ func (s *Service) GenerateCreditNote(ctx context.Context, invoiceID pgtype.UUID,
 					log.Printf("invoice: failed to persist keez storno metadata: %v", updateErr)
 				} else {
 					creditNote.InvoiceNumber = pgText(assignedNumber)
-					creditNote.KeezExternalId = pgText(extID)
+					creditNote.KeezExternalID = pgText(extID)
 					creditNote.KeezSeries = pgText(keezSeries)
 					creditNote.KeezNumber = pgText(keezNum)
 				}

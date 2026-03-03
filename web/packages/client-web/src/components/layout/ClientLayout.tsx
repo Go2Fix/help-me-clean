@@ -19,7 +19,7 @@ const navItems = [
   { to: '/cont', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/cont/comenzi', icon: ClipboardList, label: 'Comenzile mele' },
   { to: '/cont/abonamente', icon: Repeat, label: 'Abonamente' },
-  { to: '/cont/mesaje', icon: MessageCircle, label: 'Mesaje' },
+  { to: '/cont/mesaje', icon: MessageCircle, label: 'Contact Suport' },
   { to: '/cont/adrese', icon: MapPin, label: 'Adresele mele' },
   { to: '/cont/plati', icon: CreditCard, label: 'Plati' },
   { to: '/cont/facturi', icon: FileText, label: 'Facturi' },

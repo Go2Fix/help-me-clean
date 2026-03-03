@@ -10,7 +10,6 @@ import {
   Settings,
   Building2,
   Shield,
-  MessageSquare,
   Star,
   BarChart3,
 } from 'lucide-react';
@@ -25,7 +24,6 @@ const navItems = [
   { to: '/admin/viramente', icon: Banknote, label: 'Viramente' },
   { to: '/admin/rambursari', icon: RefreshCw, label: 'Rambursari' },
   { to: '/admin/facturi', icon: FileText, label: 'Facturi' },
-  { to: '/admin/mesaje', icon: MessageSquare, label: 'Mesaje' },
   { to: '/admin/utilizatori', icon: Users, label: 'Utilizatori' },
   { to: '/admin/rapoarte', icon: BarChart3, label: 'Rapoarte' },
   { to: '/admin/recenzii', icon: Star, label: 'Recenzii' },

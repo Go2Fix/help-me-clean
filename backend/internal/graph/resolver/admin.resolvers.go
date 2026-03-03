@@ -501,21 +501,6 @@ func (r *queryResolver) AllWorkers(ctx context.Context) ([]*model.WorkerProfile,
 	return result, nil
 }
 
-// AllChatRooms is the resolver for the allChatRooms field.
-func (r *queryResolver) AllChatRooms(ctx context.Context) ([]*model.ChatRoom, error) {
-	claims := auth.GetUserFromContext(ctx)
-	if claims == nil || claims.Role != "global_admin" {
-		return nil, fmt.Errorf("not authorized")
-	}
-
-	rooms, err := r.Queries.ListAllChatRooms(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to list chat rooms: %w", err)
-	}
-
-	return r.enrichChatRoomList(ctx, rooms)
-}
-
 // AllUsers is the resolver for the allUsers field.
 func (r *queryResolver) AllUsers(ctx context.Context) ([]*model.User, error) {
 	claims := auth.GetUserFromContext(ctx)

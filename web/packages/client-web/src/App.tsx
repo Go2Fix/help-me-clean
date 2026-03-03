@@ -85,7 +85,6 @@ import AdminBookingDetailPage from '@/pages/admin/BookingDetailPage';
 import UsersPage from '@/pages/admin/UsersPage';
 import UserDetailPage from '@/pages/admin/UserDetailPage';
 import AdminSettingsPage from '@/pages/admin/SettingsPage';
-import AdminMessagesPage from '@/pages/admin/MessagesPage';
 import ReportsPage from '@/pages/admin/ReportsPage';
 import ReviewsPage from '@/pages/admin/ReviewsPage';
 import AdminPaymentsPage from '@/pages/admin/PaymentsPage';
@@ -226,7 +225,6 @@ function AppRoutes() {
         <Route path="abonamente" element={<ClientSubscriptionsPage />} />
         <Route path="abonamente/:id" element={<SubscriptionDetailPage />} />
         <Route path="mesaje" element={<ChatPage />} />
-        <Route path="mesaje/:roomId" element={<ChatPage />} />
         <Route path="adrese" element={<AddressesPage />} />
         <Route path="plati" element={<PaymentMethodsPage />} />
         <Route path="plati/istoric" element={<PaymentHistoryPage />} />
@@ -254,7 +252,6 @@ function AppRoutes() {
         <Route path="comenzi/:id" element={<CompanyOrderDetailPage />} />
         <Route path="program" element={<CompanyCalendarPage />} />
         <Route path="mesaje" element={<CompanyMessagesPage />} />
-        <Route path="mesaje/:roomId" element={<CompanyMessagesPage />} />
         <Route path="echipa" element={<TeamPage />} />
         <Route path="echipa/:id" element={<WorkerDetailPage />} />
         <Route path="recenzii" element={<CompanyReviewsPage />} />
@@ -283,7 +280,6 @@ function AppRoutes() {
         <Route path="comenzi/:id" element={<WorkerJobDetailPage />} />
         <Route path="program" element={<WorkerSchedulePage />} />
         <Route path="mesaje" element={<ChatPage />} />
-        <Route path="mesaje/:roomId" element={<ChatPage />} />
         <Route path="profil" element={<WorkerSettingsPage />} />
       </Route>
 
@@ -305,8 +301,6 @@ function AppRoutes() {
         <Route path="comenzi/:id" element={<AdminBookingDetailPage />} />
         <Route path="abonamente" element={<AdminSubscriptionsPage />} />
         <Route path="abonamente/:id" element={<AdminSubscriptionDetailPage />} />
-        <Route path="mesaje" element={<AdminMessagesPage />} />
-        <Route path="mesaje/:roomId" element={<AdminMessagesPage />} />
         <Route path="utilizatori" element={<UsersPage />} />
         <Route path="utilizatori/:id" element={<UserDetailPage />} />
         <Route path="plati" element={<AdminPaymentsPage />} />

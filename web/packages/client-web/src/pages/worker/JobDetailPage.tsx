@@ -5,7 +5,7 @@ import {
   ArrowLeft, Calendar, Repeat, Clock, MapPin, Home,
   PawPrint, Check, CheckCircle, CheckSquare, Square,
   AlertTriangle, Phone, Star,
-  MessageSquare, Building2, Key, FileText, XCircle,
+  Building2, Key, FileText, XCircle,
 } from 'lucide-react';
 import { cn } from '@go2fix/shared';
 import Card from '@/components/ui/Card';
@@ -15,7 +15,6 @@ import {
   CLIENT_BOOKING_DETAIL,
   START_JOB,
   COMPLETE_JOB,
-  OPEN_BOOKING_CHAT,
 } from '@/graphql/operations';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -135,13 +134,6 @@ export default function JobDetailPage() {
   // List queries (TODAYS_JOBS, MY_ASSIGNED_JOBS) self-correct via cache-and-network on next visit.
   const [startJob, { loading: starting }] = useMutation(START_JOB);
   const [completeJob, { loading: completing }] = useMutation(COMPLETE_JOB);
-  const [openBookingChat, { loading: openingChat }] = useMutation(OPEN_BOOKING_CHAT, {
-    onCompleted: (res) => {
-      const roomId = res?.openBookingChat?.id;
-      if (roomId) navigate(`/worker/mesaje/${roomId}`);
-    },
-  });
-
   const actionLoading = starting || completing;
 
   const handleAction = async (action: 'start' | 'complete') => {
@@ -619,14 +611,6 @@ export default function JobDetailPage() {
                     Suna
                   </a>
                 )}
-                <button
-                  onClick={() => openBookingChat({ variables: { bookingId: booking.id } })}
-                  disabled={openingChat}
-                  className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors cursor-pointer disabled:opacity-50"
-                >
-                  <MessageSquare className="h-3.5 w-3.5" />
-                  Mesaj
-                </button>
               </div>
             </Card>
           )}

@@ -133,7 +133,6 @@ type Booking struct {
 	RescheduledAt          *time.Time         `json:"rescheduledAt,omitempty"`
 	TimeSlots              []*BookingTimeSlot `json:"timeSlots"`
 	Review                 *Review            `json:"review,omitempty"`
-	ChatRoom               *ChatRoom          `json:"chatRoom,omitempty"`
 	CategoryID             *string            `json:"categoryId,omitempty"`
 	Category               *ServiceCategory   `json:"category,omitempty"`
 	CustomFields           *string            `json:"customFields,omitempty"`
@@ -186,35 +185,6 @@ type BookingWorkerAssignment struct {
 type BookingsByStatus struct {
 	Status BookingStatus `json:"status"`
 	Count  int           `json:"count"`
-}
-
-type ChatMessage struct {
-	ID          string    `json:"id"`
-	Sender      *User     `json:"sender"`
-	Content     string    `json:"content"`
-	MessageType string    `json:"messageType"`
-	IsRead      bool      `json:"isRead"`
-	CreatedAt   time.Time `json:"createdAt"`
-}
-
-type ChatMessageConnection struct {
-	Edges    []*ChatMessage `json:"edges"`
-	PageInfo *PageInfo      `json:"pageInfo"`
-}
-
-type ChatParticipant struct {
-	User     *User     `json:"user"`
-	JoinedAt time.Time `json:"joinedAt"`
-}
-
-type ChatRoom struct {
-	ID           string                 `json:"id"`
-	Booking      *Booking               `json:"booking,omitempty"`
-	RoomType     string                 `json:"roomType"`
-	Participants []*ChatParticipant     `json:"participants"`
-	Messages     *ChatMessageConnection `json:"messages"`
-	LastMessage  *ChatMessage           `json:"lastMessage,omitempty"`
-	CreatedAt    time.Time              `json:"createdAt"`
 }
 
 type CityArea struct {

@@ -1757,66 +1757,6 @@ func TestDbPaymentMethodToGQL(t *testing.T) {
 	})
 }
 
-func TestDbChatRoomToGQL(t *testing.T) {
-	t.Run("converts chat room", func(t *testing.T) {
-		now := time.Now().UTC().Truncate(time.Microsecond)
-
-		dbRoom := db.ChatRoom{
-			ID:        makeUUID(0xD1),
-			RoomType:  "booking",
-			CreatedAt: makeTimestamptz(now),
-		}
-
-		result := dbChatRoomToGQL(dbRoom)
-
-		if result == nil {
-			t.Fatal("expected non-nil result")
-		}
-		expectedID := uuidToString(makeUUID(0xD1))
-		if result.ID != expectedID {
-			t.Errorf("expected ID %q, got %q", expectedID, result.ID)
-		}
-		if result.RoomType != "booking" {
-			t.Errorf("expected RoomType 'booking', got %q", result.RoomType)
-		}
-		if !result.CreatedAt.Equal(now) {
-			t.Errorf("expected CreatedAt %v, got %v", now, result.CreatedAt)
-		}
-	})
-}
-
-func TestDbChatMessageToGQL(t *testing.T) {
-	t.Run("converts full chat message", func(t *testing.T) {
-		now := time.Now().UTC().Truncate(time.Microsecond)
-
-		dbMsg := db.ChatMessage{
-			ID:          makeUUID(0xD2),
-			Content:     "Hello, when do you arrive?",
-			MessageType: makeText("text"),
-			IsRead:      pgtype.Bool{Bool: false, Valid: true},
-			CreatedAt:   makeTimestamptz(now),
-		}
-
-		result := dbChatMessageToGQL(dbMsg)
-
-		if result == nil {
-			t.Fatal("expected non-nil result")
-		}
-		if result.Content != "Hello, when do you arrive?" {
-			t.Errorf("expected Content, got %q", result.Content)
-		}
-		if result.MessageType != "text" {
-			t.Errorf("expected MessageType 'text', got %q", result.MessageType)
-		}
-		if result.IsRead != false {
-			t.Error("expected IsRead false")
-		}
-		if !result.CreatedAt.Equal(now) {
-			t.Errorf("expected CreatedAt %v, got %v", now, result.CreatedAt)
-		}
-	})
-}
-
 func TestDbCompanyDocToGQL(t *testing.T) {
 	t.Run("converts company document with approved status and all fields", func(t *testing.T) {
 		now := time.Now().UTC().Truncate(time.Microsecond)

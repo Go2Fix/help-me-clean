@@ -32,6 +32,7 @@ import (
 	"go2fix-backend/internal/service/notification"
 	"go2fix-backend/internal/service/payment"
 	"go2fix-backend/internal/service/subscription"
+	"go2fix-backend/internal/service/whatsapp"
 	"go2fix-backend/internal/storage"
 	"go2fix-backend/internal/webhook"
 )
@@ -97,6 +98,8 @@ func NewHandler(ctx context.Context) (http.Handler, func(), error) {
 
 	subscriptionSvc := subscription.NewService(queries, pool, paymentSvc, invoiceSvc)
 
+	whatsappSvc := whatsapp.NewService()
+
 	// File storage — always GCS.
 	env := os.Getenv("ENVIRONMENT")
 	gcsCredentials := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
@@ -119,6 +122,13 @@ func NewHandler(ctx context.Context) (http.Handler, func(), error) {
 	stripeWebhook := webhook.NewStripeHandler(paymentSvc)
 	r.Post("/webhook/stripe", stripeWebhook.ServeHTTP)
 
+	// WhatsApp webhook — must be registered BEFORE auth middleware.
+	if whatsappSvc != nil {
+		waHandler := webhook.NewWhatsAppHandler(whatsappSvc)
+		r.Get("/webhook/whatsapp", waHandler.Verify)
+		r.Post("/webhook/whatsapp", waHandler.Handle)
+	}
+
 	// ANAF company lookup proxy — CORS-safe server-side relay for Romanian tax authority.
 	r.Get("/api/company-lookup", anafCompanyLookupHandler())
 
@@ -137,11 +147,6 @@ func NewHandler(ctx context.Context) (http.Handler, func(), error) {
 		SubscriptionService: subscriptionSvc,
 		Storage:             store,
 		AuthzHelper:         authzHelper,
-	}
-
-	// Wire auto-confirm callback: when payment webhook succeeds, create chat room.
-	paymentSvc.OnBookingConfirmed = func(ctx context.Context, booking db.Booking) {
-		res.CreateBookingChatFromPayment(ctx, booking)
 	}
 
 	// Wire subscription webhook callbacks.

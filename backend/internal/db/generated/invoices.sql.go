@@ -235,7 +235,7 @@ func (q *Queries) CreateInvoice(ctx context.Context, arg CreateInvoiceParams) (I
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.KeezSeries,
-		&i.KeezExternalId,
+		&i.KeezExternalID,
 	)
 	return i, err
 }
@@ -410,7 +410,7 @@ func (q *Queries) GetCommissionInvoiceByPeriod(ctx context.Context, arg GetCommi
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.KeezSeries,
-		&i.KeezExternalId,
+		&i.KeezExternalID,
 	)
 	return i, err
 }
@@ -499,7 +499,7 @@ func (q *Queries) GetInvoiceByBookingAndType(ctx context.Context, arg GetInvoice
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.KeezSeries,
-		&i.KeezExternalId,
+		&i.KeezExternalID,
 	)
 	return i, err
 }
@@ -552,7 +552,7 @@ func (q *Queries) GetInvoiceByID(ctx context.Context, id pgtype.UUID) (Invoice, 
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.KeezSeries,
-		&i.KeezExternalId,
+		&i.KeezExternalID,
 	)
 	return i, err
 }
@@ -719,7 +719,7 @@ func (q *Queries) ListAllInvoices(ctx context.Context, arg ListAllInvoicesParams
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.KeezSeries,
-			&i.KeezExternalId,
+			&i.KeezExternalID,
 		); err != nil {
 			return nil, err
 		}
@@ -831,7 +831,7 @@ func (q *Queries) ListInvoicesByClient(ctx context.Context, arg ListInvoicesByCl
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.KeezSeries,
-			&i.KeezExternalId,
+			&i.KeezExternalID,
 		); err != nil {
 			return nil, err
 		}
@@ -907,7 +907,7 @@ func (q *Queries) ListInvoicesByCompany(ctx context.Context, arg ListInvoicesByC
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.KeezSeries,
-			&i.KeezExternalId,
+			&i.KeezExternalID,
 		); err != nil {
 			return nil, err
 		}
@@ -985,7 +985,7 @@ func (q *Queries) ListInvoicesByCompanyAndStatus(ctx context.Context, arg ListIn
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.KeezSeries,
-			&i.KeezExternalId,
+			&i.KeezExternalID,
 		); err != nil {
 			return nil, err
 		}
@@ -1057,7 +1057,7 @@ func (q *Queries) ListInvoicesByCompanyID(ctx context.Context, arg ListInvoicesB
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.KeezSeries,
-			&i.KeezExternalId,
+			&i.KeezExternalID,
 		); err != nil {
 			return nil, err
 		}
@@ -1129,7 +1129,7 @@ func (q *Queries) ListInvoicesByType(ctx context.Context, arg ListInvoicesByType
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.KeezSeries,
-			&i.KeezExternalId,
+			&i.KeezExternalID,
 		); err != nil {
 			return nil, err
 		}
@@ -1207,7 +1207,7 @@ func (q *Queries) ListInvoicesByTypeAndStatus(ctx context.Context, arg ListInvoi
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.KeezSeries,
-			&i.KeezExternalId,
+			&i.KeezExternalID,
 		); err != nil {
 			return nil, err
 		}
@@ -1280,7 +1280,7 @@ func (q *Queries) ListReceivedInvoicesByCompany(ctx context.Context, arg ListRec
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.KeezSeries,
-			&i.KeezExternalId,
+			&i.KeezExternalID,
 		); err != nil {
 			return nil, err
 		}
@@ -1341,7 +1341,7 @@ func (q *Queries) MarkInvoiceAsPaid(ctx context.Context, id pgtype.UUID) (Invoic
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.KeezSeries,
-		&i.KeezExternalId,
+		&i.KeezExternalID,
 	)
 	return i, err
 }
@@ -1428,7 +1428,7 @@ WHERE id = $1
 type UpdateInvoiceKeezParams struct {
 	ID             pgtype.UUID `json:"id"`
 	InvoiceNumber  pgtype.Text `json:"invoice_number"`
-	KeezExternalId pgtype.Text `json:"keez_external_id"`
+	KeezExternalID pgtype.Text `json:"keez_external_id"`
 	KeezSeries     pgtype.Text `json:"keez_series"`
 	KeezNumber     pgtype.Text `json:"keez_number"`
 }
@@ -1437,7 +1437,7 @@ func (q *Queries) UpdateInvoiceKeez(ctx context.Context, arg UpdateInvoiceKeezPa
 	_, err := q.db.Exec(ctx, updateInvoiceKeez,
 		arg.ID,
 		arg.InvoiceNumber,
-		arg.KeezExternalId,
+		arg.KeezExternalID,
 		arg.KeezSeries,
 		arg.KeezNumber,
 	)
@@ -1498,7 +1498,7 @@ func (q *Queries) UpdateInvoiceStatus(ctx context.Context, arg UpdateInvoiceStat
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.KeezSeries,
-		&i.KeezExternalId,
+		&i.KeezExternalID,
 	)
 	return i, err
 }

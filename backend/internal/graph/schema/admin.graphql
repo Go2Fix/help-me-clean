@@ -69,7 +69,6 @@ extend type Query {
   companyPerformance(first: Int): [CompanyPerformance!]!
   pendingCompanyApplications: [Company!]!
   allWorkers: [WorkerProfile!]!
-  allChatRooms: [ChatRoom!]!
   allUsers: [User!]!
   searchCompanies(query: String, status: CompanyStatus, limit: Int, offset: Int): CompanyConnection!
   companyFinancialSummary(companyId: ID!): CompanyFinancialSummary!

@@ -882,26 +882,6 @@ func (r *queryResolver) Company(ctx context.Context, id string) (*model.Company,
 	return result, nil
 }
 
-// CompanyChatRooms is the resolver for the companyChatRooms field.
-func (r *queryResolver) CompanyChatRooms(ctx context.Context) ([]*model.ChatRoom, error) {
-	claims := auth.GetUserFromContext(ctx)
-	if claims == nil {
-		return nil, fmt.Errorf("not authenticated")
-	}
-
-	company, err := r.Queries.GetCompanyByAdminUserID(ctx, stringToUUID(claims.UserID))
-	if err != nil {
-		return nil, fmt.Errorf("company not found: %w", err)
-	}
-
-	rooms, err := r.Queries.ListChatRoomsByCompanyWorkers(ctx, company.ID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to list company chat rooms: %w", err)
-	}
-
-	return r.enrichChatRoomList(ctx, rooms)
-}
-
 // PendingCompanyDocuments is the resolver for the pendingCompanyDocuments field.
 func (r *queryResolver) PendingCompanyDocuments(ctx context.Context) ([]*model.CompanyDocument, error) {
 	claims := auth.GetUserFromContext(ctx)

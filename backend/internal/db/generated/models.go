@@ -253,6 +253,17 @@ const (
 	NotificationTypeBookingRescheduled                NotificationType = "booking_rescheduled"
 	NotificationTypeSubscriptionWorkerChangeRequested NotificationType = "subscription_worker_change_requested"
 	NotificationTypeSubscriptionWorkerChanged         NotificationType = "subscription_worker_changed"
+	NotificationTypeCompanyApplicationReceived        NotificationType = "company_application_received"
+	NotificationTypeCompanySuspended                  NotificationType = "company_suspended"
+	NotificationTypeDocumentApproved                  NotificationType = "document_approved"
+	NotificationTypeDocumentRejected                  NotificationType = "document_rejected"
+	NotificationTypeWorkerAccepted                    NotificationType = "worker_accepted"
+	NotificationTypeWorkerActivated                   NotificationType = "worker_activated"
+	NotificationTypeInvoiceReady                      NotificationType = "invoice_ready"
+	NotificationTypeSubscriptionConfirmed             NotificationType = "subscription_confirmed"
+	NotificationTypeSubscriptionCancelled             NotificationType = "subscription_cancelled"
+	NotificationTypeAccountSuspended                  NotificationType = "account_suspended"
+	NotificationTypeAccountReactivated                NotificationType = "account_reactivated"
 )
 
 func (e *NotificationType) Scan(src interface{}) error {
@@ -841,30 +852,6 @@ type BookingTimeSlot struct {
 	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 }
 
-type ChatMessage struct {
-	ID          pgtype.UUID        `json:"id"`
-	RoomID      pgtype.UUID        `json:"room_id"`
-	SenderID    pgtype.UUID        `json:"sender_id"`
-	Content     string             `json:"content"`
-	MessageType pgtype.Text        `json:"message_type"`
-	IsRead      pgtype.Bool        `json:"is_read"`
-	CreatedAt   pgtype.Timestamptz `json:"created_at"`
-}
-
-type ChatParticipant struct {
-	ID       pgtype.UUID        `json:"id"`
-	RoomID   pgtype.UUID        `json:"room_id"`
-	UserID   pgtype.UUID        `json:"user_id"`
-	JoinedAt pgtype.Timestamptz `json:"joined_at"`
-}
-
-type ChatRoom struct {
-	ID        pgtype.UUID        `json:"id"`
-	BookingID pgtype.UUID        `json:"booking_id"`
-	RoomType  string             `json:"room_type"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
-}
-
 type CityArea struct {
 	ID        pgtype.UUID        `json:"id"`
 	CityID    pgtype.UUID        `json:"city_id"`
@@ -1078,7 +1065,7 @@ type Invoice struct {
 	CreatedAt            pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt            pgtype.Timestamptz `json:"updated_at"`
 	KeezSeries           pgtype.Text        `json:"keez_series"`
-	KeezExternalId       pgtype.Text        `json:"keez_external_id"`
+	KeezExternalID       pgtype.Text        `json:"keez_external_id"`
 }
 
 type InvoiceLineItem struct {

@@ -36,7 +36,7 @@ import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/ClientBadge';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Modal from '@/components/ui/Modal';
-import { CLIENT_BOOKING_DETAIL, CANCEL_BOOKING, OPEN_BOOKING_CHAT, CREATE_BOOKING_PAYMENT_INTENT, REQUEST_REFUND, SUBMIT_REVIEW, UPLOAD_REVIEW_PHOTOS, BOOKING_POLICY, RESCHEDULE_BOOKING, CLIENT_INVOICE_FOR_BOOKING } from '@/graphql/operations';
+import { CLIENT_BOOKING_DETAIL, CANCEL_BOOKING, CREATE_BOOKING_PAYMENT_INTENT, REQUEST_REFUND, SUBMIT_REVIEW, UPLOAD_REVIEW_PHOTOS, BOOKING_POLICY, RESCHEDULE_BOOKING, CLIENT_INVOICE_FOR_BOOKING } from '@/graphql/operations';
 import RescheduleModal from '@/components/booking/RescheduleModal';
 import { StripeElementsWrapper } from '@/context/StripeContext';
 import StripePaymentForm from '@/components/payment/StripePaymentForm';
@@ -259,13 +259,6 @@ export default function BookingDetailPage() {
   const [rescheduleBooking, { loading: rescheduling }] = useMutation(RESCHEDULE_BOOKING, {
     refetchQueries: [{ query: CLIENT_BOOKING_DETAIL, variables: { id } }],
     onCompleted: () => setRescheduleModalOpen(false),
-  });
-
-  const [openBookingChat, { loading: openingChat }] = useMutation(OPEN_BOOKING_CHAT, {
-    onCompleted: (data) => {
-      const chatRoomId = data.openBookingChat.id;
-      navigate(`/cont/mesaje/${chatRoomId}`);
-    },
   });
 
   const [createPaymentIntent, { loading: creatingPayment }] = useMutation(CREATE_BOOKING_PAYMENT_INTENT);
@@ -810,38 +803,7 @@ export default function BookingDetailPage() {
                   <div className="text-base font-semibold text-gray-900">
                     {booking.worker.fullName}
                   </div>
-                  {!isCancelled && booking.status !== 'COMPLETED' && (
-                    <Button
-                      className="w-full"
-                      loading={openingChat}
-                      onClick={() =>
-                        openBookingChat({ variables: { bookingId: booking.id } })
-                      }
-                    >
-                      <MessageCircle className="h-4 w-4" />
-                      Deschide chat
-                    </Button>
-                  )}
                 </div>
-              </Card>
-            )}
-
-            {/* Chat (when no worker assigned) */}
-            {!booking.worker && !isCancelled && booking.status !== 'COMPLETED' && (
-              <Card>
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                  Chat
-                </h2>
-                <Button
-                  className="w-full"
-                  loading={openingChat}
-                  onClick={() =>
-                    openBookingChat({ variables: { bookingId: booking.id } })
-                  }
-                >
-                  <MessageCircle className="h-4 w-4" />
-                  Deschide chat
-                </Button>
               </Card>
             )}
 

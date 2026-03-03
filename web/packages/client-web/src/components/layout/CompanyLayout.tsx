@@ -19,7 +19,7 @@ const navItems = [
   { to: '/firma/comenzi', icon: ClipboardList, label: 'Comenzi' },
   { to: '/firma/abonamente', icon: Repeat, label: 'Abonamente' },
   { to: '/firma/program', icon: CalendarDays, label: 'Program' },
-  { to: '/firma/mesaje', icon: MessageSquare, label: 'Mesaje' },
+  { to: '/firma/mesaje', icon: MessageSquare, label: 'Contact Suport' },
   { to: '/firma/echipa', icon: Users, label: 'Echipa mea' },
   { to: '/firma/recenzii', icon: Star, label: 'Recenzii' },
   { to: '/firma/plati', icon: Wallet, label: 'Plati & Castiguri' },

@@ -824,24 +824,6 @@ func dbNotificationToGQL(n db.Notification) *model.Notification {
 	return notif
 }
 
-func dbChatRoomToGQL(r db.ChatRoom) *model.ChatRoom {
-	return &model.ChatRoom{
-		ID:        uuidToString(r.ID),
-		RoomType:  r.RoomType,
-		CreatedAt: timestamptzToTime(r.CreatedAt),
-	}
-}
-
-func dbChatMessageToGQL(m db.ChatMessage) *model.ChatMessage {
-	return &model.ChatMessage{
-		ID:          uuidToString(m.ID),
-		Content:     m.Content,
-		MessageType: textVal(m.MessageType),
-		IsRead:      boolVal(m.IsRead),
-		CreatedAt:   timestamptzToTime(m.CreatedAt),
-	}
-}
-
 func dbReviewToGQL(r db.Review) *model.Review {
 	return &model.Review{
 		ID:                  uuidToString(r.ID),

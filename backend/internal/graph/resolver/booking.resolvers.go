@@ -485,11 +485,6 @@ func (r *mutationResolver) ConfirmBooking(ctx context.Context, id string) (*mode
 		return nil, fmt.Errorf("failed to confirm booking: %w", err)
 	}
 
-	// Auto-create chat room between client and worker (non-blocking).
-	go func() {
-		r.createBookingChat(context.Background(), booking, claims.UserID)
-	}()
-
 	return dbBookingToGQL(booking), nil
 }
 

@@ -8,11 +8,11 @@ package resolver
 import (
 	"context"
 	"fmt"
+	"go2fix-backend/internal/graph/model"
 	"log"
 	"os"
 
 	resend "github.com/resend/resend-go/v2"
-	"go2fix-backend/internal/graph/model"
 )
 
 // SendContactMessage forwards a contact form submission to the support team and

@@ -98,7 +98,6 @@ extend type Query {
   myCompanyWorkSchedule: [CompanyWorkSchedule!]!
   companies(status: CompanyStatus, first: Int, after: String): CompanyConnection!
   company(id: ID!): Company!
-  companyChatRooms: [ChatRoom!]!
   pendingCompanyDocuments: [CompanyDocument!]!
   getDocumentUrl(documentId: ID!): String!
 }
