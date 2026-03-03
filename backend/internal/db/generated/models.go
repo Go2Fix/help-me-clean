@@ -832,6 +832,7 @@ type Booking struct {
 	CategoryID               pgtype.UUID        `json:"category_id"`
 	CustomFields             []byte             `json:"custom_fields"`
 	CityAreaID               pgtype.UUID        `json:"city_area_id"`
+	ReferralDiscountID       pgtype.UUID        `json:"referral_discount_id"`
 }
 
 type BookingExtra struct {
@@ -1269,6 +1270,36 @@ type RecurringGroupExtra struct {
 	Quantity pgtype.Int4 `json:"quantity"`
 }
 
+type ReferralCode struct {
+	ID           pgtype.UUID        `json:"id"`
+	OwnerUserID  pgtype.UUID        `json:"owner_user_id"`
+	Code         string             `json:"code"`
+	CurrentCycle int32              `json:"current_cycle"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+}
+
+type ReferralEarnedDiscount struct {
+	ID                 pgtype.UUID        `json:"id"`
+	ReferralCodeID     pgtype.UUID        `json:"referral_code_id"`
+	OwnerUserID        pgtype.UUID        `json:"owner_user_id"`
+	CycleNumber        int32              `json:"cycle_number"`
+	EarnedAt           pgtype.Timestamptz `json:"earned_at"`
+	AppliedToBookingID pgtype.UUID        `json:"applied_to_booking_id"`
+	AppliedAt          pgtype.Timestamptz `json:"applied_at"`
+	ExpiresAt          pgtype.Timestamptz `json:"expires_at"`
+	Status             string             `json:"status"`
+}
+
+type ReferralSignup struct {
+	ID                      pgtype.UUID        `json:"id"`
+	ReferralCodeID          pgtype.UUID        `json:"referral_code_id"`
+	ReferredUserID          pgtype.UUID        `json:"referred_user_id"`
+	CycleNumber             int32              `json:"cycle_number"`
+	JoinedAt                pgtype.Timestamptz `json:"joined_at"`
+	FirstBookingCompletedAt pgtype.Timestamptz `json:"first_booking_completed_at"`
+	QualifyingBookingID     pgtype.UUID        `json:"qualifying_booking_id"`
+}
+
 type RefundRequest struct {
 	ID                   pgtype.UUID        `json:"id"`
 	BookingID            pgtype.UUID        `json:"booking_id"`
@@ -1428,6 +1459,7 @@ type User struct {
 	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
 	StripeCustomerID  pgtype.Text        `json:"stripe_customer_id"`
 	PhoneVerified     bool               `json:"phone_verified"`
+	ReferralCodeUsed  pgtype.Text        `json:"referral_code_used"`
 }
 
 type WaitlistLead struct {

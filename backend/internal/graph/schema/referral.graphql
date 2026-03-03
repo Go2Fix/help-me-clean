@@ -1,0 +1,29 @@
+type ReferralSignupProgress {
+  joinedCount:    Int!
+  completedCount: Int!
+  requiredCount:  Int!
+}
+
+type ReferralDiscountInfo {
+  id:        ID!
+  status:    String!
+  earnedAt:  DateTime!
+  expiresAt: DateTime
+}
+
+type ReferralStatus {
+  # null until the client has at least one completed booking
+  code:               String
+  shareUrl:           String
+  currentProgress:    ReferralSignupProgress!
+  availableDiscounts: Int!
+  discounts:          [ReferralDiscountInfo!]!
+}
+
+extend type Query {
+  myReferralStatus: ReferralStatus!
+}
+
+extend type Mutation {
+  applyReferralDiscountToBooking(bookingId: ID!): Booking!
+}

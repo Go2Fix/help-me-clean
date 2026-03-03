@@ -158,13 +158,15 @@ class AuthService {
   async loginWithGoogle(idToken: string, role: string = 'CLIENT'): Promise<AuthUser> {
     if (!this.client) throw new Error('AuthService not initialized');
 
+    const referralCode = localStorage.getItem('pendingReferralCode') || undefined;
     const { data } = await this.client.mutate({
       mutation: SIGN_IN_WITH_GOOGLE,
-      variables: { idToken, role },
+      variables: { idToken, role, referralCode },
     });
 
     const { token, user } = data.signInWithGoogle as { token: string; user: AuthUser };
     if (token) this.setToken(token);
+    localStorage.removeItem('pendingReferralCode');
     this.emit({ user, loading: false });
     await this.client.resetStore();
     return user;
@@ -181,12 +183,14 @@ class AuthService {
 
   async loginWithEmailOtp(email: string, code: string, role: string = 'CLIENT'): Promise<AuthUser> {
     if (!this.client) throw new Error('AuthService not initialized');
+    const referralCode = localStorage.getItem('pendingReferralCode') || undefined;
     const { data } = await this.client.mutate({
       mutation: VERIFY_EMAIL_OTP,
-      variables: { email, code, role },
+      variables: { email, code, role, referralCode },
     });
     const { token, user } = data.verifyEmailOtp as { token: string; user: AuthUser };
     if (token) this.setToken(token);
+    localStorage.removeItem('pendingReferralCode');
     this.emit({ user, loading: false });
     await this.client.resetStore();
     return user;

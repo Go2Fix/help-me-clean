@@ -15,6 +15,10 @@ vi.mock('@go2fix/shared', () => ({
       .join(' '),
 }));
 
+vi.mock('@/components/notifications/NotificationBell', () => ({
+  default: () => null,
+}));
+
 vi.mock('@/context/AuthContext', () => ({
   useAuth: vi.fn(),
 }));
@@ -100,12 +104,12 @@ describe('WorkerLayout sidebar', () => {
     expect(screen.getAllByText('Worker Dashboard').length).toBeGreaterThanOrEqual(1);
   });
 
-  it('shows nav links: Dashboard, Comenzi, Program, Mesaje, Profil', () => {
+  it('shows nav links: Dashboard, Comenzi, Program, Contact Suport, Profil', () => {
     renderLayout();
     expect(screen.getAllByText('Dashboard').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('Comenzi').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('Program').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('Mesaje').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Contact Suport').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('Profil').length).toBeGreaterThanOrEqual(1);
   });
 

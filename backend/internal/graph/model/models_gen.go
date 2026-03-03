@@ -136,6 +136,7 @@ type Booking struct {
 	CategoryID             *string            `json:"categoryId,omitempty"`
 	Category               *ServiceCategory   `json:"category,omitempty"`
 	CustomFields           *string            `json:"customFields,omitempty"`
+	ReferralDiscountID     *string            `json:"referralDiscountId,omitempty"`
 	CreatedAt              time.Time          `json:"createdAt"`
 }
 
@@ -784,6 +785,27 @@ type RecurringDiscount struct {
 	RecurrenceType RecurrenceType `json:"recurrenceType"`
 	DiscountPct    float64        `json:"discountPct"`
 	IsActive       bool           `json:"isActive"`
+}
+
+type ReferralDiscountInfo struct {
+	ID        string     `json:"id"`
+	Status    string     `json:"status"`
+	EarnedAt  time.Time  `json:"earnedAt"`
+	ExpiresAt *time.Time `json:"expiresAt,omitempty"`
+}
+
+type ReferralSignupProgress struct {
+	JoinedCount    int `json:"joinedCount"`
+	CompletedCount int `json:"completedCount"`
+	RequiredCount  int `json:"requiredCount"`
+}
+
+type ReferralStatus struct {
+	Code               *string                 `json:"code,omitempty"`
+	ShareURL           *string                 `json:"shareUrl,omitempty"`
+	CurrentProgress    *ReferralSignupProgress `json:"currentProgress"`
+	AvailableDiscounts int                     `json:"availableDiscounts"`
+	Discounts          []*ReferralDiscountInfo `json:"discounts"`
 }
 
 type RefundRequest struct {

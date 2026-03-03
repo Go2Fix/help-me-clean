@@ -58,6 +58,7 @@ type Booking {
   categoryId: ID
   category: ServiceCategory
   customFields: String
+  referralDiscountId: ID
   createdAt: DateTime!
 }
 

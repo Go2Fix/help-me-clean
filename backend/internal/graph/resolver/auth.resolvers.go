@@ -22,7 +22,7 @@ import (
 )
 
 // SignInWithGoogle is the resolver for the signInWithGoogle field.
-func (r *mutationResolver) SignInWithGoogle(ctx context.Context, idToken string, role model.UserRole) (*model.AuthPayload, error) {
+func (r *mutationResolver) SignInWithGoogle(ctx context.Context, idToken string, role model.UserRole, referralCode *string) (*model.AuthPayload, error) {
 	googleInfo, err := auth.VerifyGoogleIDToken(idToken)
 	if err != nil {
 		return nil, fmt.Errorf("failed to verify Google ID token: %w", err)
@@ -113,6 +113,11 @@ func (r *mutationResolver) SignInWithGoogle(ctx context.Context, idToken string,
 
 	// Send welcome email and upsert contact (non-blocking).
 	r.dispatchWelcomeAndUpsert(newUser)
+
+	// Link referral signup if a referral code was provided (non-blocking).
+	if referralCode != nil && *referralCode != "" {
+		go r.processNewUserReferral(context.Background(), newUser.ID, *referralCode)
+	}
 
 	return &model.AuthPayload{
 		Token:     token, // Still return token for backward compatibility (will be removed after migration)
@@ -231,7 +236,7 @@ func (r *mutationResolver) RequestEmailOtp(ctx context.Context, email string, ro
 }
 
 // VerifyEmailOtp is the resolver for the verifyEmailOtp field.
-func (r *mutationResolver) VerifyEmailOtp(ctx context.Context, email string, code string, role model.UserRole) (*model.AuthPayload, error) {
+func (r *mutationResolver) VerifyEmailOtp(ctx context.Context, email string, code string, role model.UserRole, referralCode *string) (*model.AuthPayload, error) {
 	email = strings.ToLower(strings.TrimSpace(email))
 	code = strings.TrimSpace(code)
 
@@ -292,6 +297,11 @@ func (r *mutationResolver) VerifyEmailOtp(ctx context.Context, email string, cod
 	// Send welcome email for newly created users (non-blocking).
 	if isNewUser {
 		r.dispatchWelcomeAndUpsert(dbUser)
+
+		// Link referral signup if a referral code was provided (non-blocking).
+		if referralCode != nil && *referralCode != "" {
+			go r.processNewUserReferral(context.Background(), dbUser.ID, *referralCode)
+		}
 	}
 
 	return &model.AuthPayload{

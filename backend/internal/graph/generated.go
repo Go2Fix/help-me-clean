@@ -123,6 +123,7 @@ type ComplexityRoot struct {
 		PropertyType           func(childComplexity int) int
 		RecurringGroupID       func(childComplexity int) int
 		ReferenceCode          func(childComplexity int) int
+		ReferralDiscountID     func(childComplexity int) int
 		RescheduleCount        func(childComplexity int) int
 		RescheduledAt          func(childComplexity int) int
 		Review                 func(childComplexity int) int
@@ -437,6 +438,7 @@ type ComplexityRoot struct {
 		AdminUpdateCompanyStatus                  func(childComplexity int, id string, status model.CompanyStatus) int
 		AdminUpdateUserProfile                    func(childComplexity int, userID string, fullName string, phone *string) int
 		ApplyAsCompany                            func(childComplexity int, input model.CompanyApplicationInput) int
+		ApplyReferralDiscountToBooking            func(childComplexity int, bookingID string) int
 		ApproveCompany                            func(childComplexity int, id string) int
 		ApproveReview                             func(childComplexity int, id string) int
 		AssignWorkerToBooking                     func(childComplexity int, bookingID string, workerID string) int
@@ -504,7 +506,7 @@ type ComplexityRoot struct {
 		SetDefaultPaymentMethod                   func(childComplexity int, id string) int
 		SetWorkerDateOverride                     func(childComplexity int, date string, isAvailable bool, startTime string, endTime string) int
 		SetWorkerDateOverrideByAdmin              func(childComplexity int, workerID string, date string, isAvailable bool, startTime string, endTime string) int
-		SignInWithGoogle                          func(childComplexity int, idToken string, role model.UserRole) int
+		SignInWithGoogle                          func(childComplexity int, idToken string, role model.UserRole, referralCode *string) int
 		StartJob                                  func(childComplexity int, id string) int
 		SubmitPersonalityAssessment               func(childComplexity int, answers []*model.PersonalityAnswerInput) int
 		SubmitReview                              func(childComplexity int, input model.SubmitReviewInput) int
@@ -540,7 +542,7 @@ type ComplexityRoot struct {
 		UploadWorkerDocument                      func(childComplexity int, workerID string, documentType string, file graphql.Upload) int
 		UpsertBillingProfile                      func(childComplexity int, input model.BillingProfileInput) int
 		VerifyCompanyWithAnaf                     func(childComplexity int, id string) int
-		VerifyEmailOtp                            func(childComplexity int, email string, code string, role model.UserRole) int
+		VerifyEmailOtp                            func(childComplexity int, email string, code string, role model.UserRole, referralCode *string) int
 		VerifyPhone                               func(childComplexity int, phone string, code string) int
 	}
 
@@ -797,6 +799,7 @@ type ComplexityRoot struct {
 		MyPayoutDetail                     func(childComplexity int, id string) int
 		MyPayouts                          func(childComplexity int, first *int, after *string) int
 		MyPersonalityAssessment            func(childComplexity int) int
+		MyReferralStatus                   func(childComplexity int) int
 		MyRefundRequests                   func(childComplexity int) int
 		MySubscriptions                    func(childComplexity int) int
 		MyWorkerAvailability               func(childComplexity int) int
@@ -852,6 +855,27 @@ type ComplexityRoot struct {
 		DiscountPct    func(childComplexity int) int
 		IsActive       func(childComplexity int) int
 		RecurrenceType func(childComplexity int) int
+	}
+
+	ReferralDiscountInfo struct {
+		EarnedAt  func(childComplexity int) int
+		ExpiresAt func(childComplexity int) int
+		ID        func(childComplexity int) int
+		Status    func(childComplexity int) int
+	}
+
+	ReferralSignupProgress struct {
+		CompletedCount func(childComplexity int) int
+		JoinedCount    func(childComplexity int) int
+		RequiredCount  func(childComplexity int) int
+	}
+
+	ReferralStatus struct {
+		AvailableDiscounts func(childComplexity int) int
+		Code               func(childComplexity int) int
+		CurrentProgress    func(childComplexity int) int
+		Discounts          func(childComplexity int) int
+		ShareURL           func(childComplexity int) int
 	}
 
 	RefundRequest struct {
@@ -1208,12 +1232,12 @@ type MutationResolver interface {
 	DeleteReview(ctx context.Context, id string) (bool, error)
 	ApproveReview(ctx context.Context, id string) (*model.Review, error)
 	RejectReview(ctx context.Context, id string) (*model.Review, error)
-	SignInWithGoogle(ctx context.Context, idToken string, role model.UserRole) (*model.AuthPayload, error)
+	SignInWithGoogle(ctx context.Context, idToken string, role model.UserRole, referralCode *string) (*model.AuthPayload, error)
 	RefreshToken(ctx context.Context) (*model.AuthPayload, error)
 	RegisterDeviceToken(ctx context.Context, token string) (bool, error)
 	Logout(ctx context.Context) (bool, error)
 	RequestEmailOtp(ctx context.Context, email string, role model.UserRole) (*model.RequestOtpResponse, error)
-	VerifyEmailOtp(ctx context.Context, email string, code string, role model.UserRole) (*model.AuthPayload, error)
+	VerifyEmailOtp(ctx context.Context, email string, code string, role model.UserRole, referralCode *string) (*model.AuthPayload, error)
 	CreateBookingRequest(ctx context.Context, input model.CreateBookingInput) (*model.Booking, error)
 	CancelBooking(ctx context.Context, id string, reason *string) (*model.Booking, error)
 	AssignWorkerToBooking(ctx context.Context, bookingID string, workerID string) (*model.Booking, error)
@@ -1273,6 +1297,7 @@ type MutationResolver interface {
 	SubmitPersonalityAssessment(ctx context.Context, answers []*model.PersonalityAnswerInput) (*model.PersonalityAssessment, error)
 	GeneratePersonalityInsights(ctx context.Context, workerID string) (*model.PersonalityInsights, error)
 	RegeneratePersonalityInsights(ctx context.Context, workerID string) (*model.PersonalityInsights, error)
+	ApplyReferralDiscountToBooking(ctx context.Context, bookingID string) (*model.Booking, error)
 	SubmitReview(ctx context.Context, input model.SubmitReviewInput) (*model.Review, error)
 	UploadReviewPhotos(ctx context.Context, reviewID string, files []*graphql.Upload) ([]*model.ReviewPhoto, error)
 	UpdateServiceDefinition(ctx context.Context, input model.UpdateServiceDefinitionInput) (*model.ServiceDefinition, error)
@@ -1390,6 +1415,7 @@ type QueryResolver interface {
 	PersonalityQuestions(ctx context.Context) ([]*model.PersonalityQuestion, error)
 	MyPersonalityAssessment(ctx context.Context) (*model.PersonalityAssessment, error)
 	WorkerPersonalityAssessment(ctx context.Context, workerID string) (*model.PersonalityAssessment, error)
+	MyReferralStatus(ctx context.Context) (*model.ReferralStatus, error)
 	CompanyWorkerReviews(ctx context.Context, limit *int, offset *int, rating *int) (*model.ReviewConnection, error)
 	AvailableServices(ctx context.Context) ([]*model.ServiceDefinition, error)
 	AvailableExtras(ctx context.Context) ([]*model.ServiceExtra, error)
@@ -1806,6 +1832,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Booking.ReferenceCode(childComplexity), true
+	case "Booking.referralDiscountId":
+		if e.complexity.Booking.ReferralDiscountID == nil {
+			break
+		}
+
+		return e.complexity.Booking.ReferralDiscountID(childComplexity), true
 	case "Booking.rescheduleCount":
 		if e.complexity.Booking.RescheduleCount == nil {
 			break
@@ -3218,6 +3250,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.ApplyAsCompany(childComplexity, args["input"].(model.CompanyApplicationInput)), true
+	case "Mutation.applyReferralDiscountToBooking":
+		if e.complexity.Mutation.ApplyReferralDiscountToBooking == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_applyReferralDiscountToBooking_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ApplyReferralDiscountToBooking(childComplexity, args["bookingId"].(string)), true
 	case "Mutation.approveCompany":
 		if e.complexity.Mutation.ApproveCompany == nil {
 			break
@@ -3925,7 +3968,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.SignInWithGoogle(childComplexity, args["idToken"].(string), args["role"].(model.UserRole)), true
+		return e.complexity.Mutation.SignInWithGoogle(childComplexity, args["idToken"].(string), args["role"].(model.UserRole), args["referralCode"].(*string)), true
 	case "Mutation.startJob":
 		if e.complexity.Mutation.StartJob == nil {
 			break
@@ -4321,7 +4364,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.VerifyEmailOtp(childComplexity, args["email"].(string), args["code"].(string), args["role"].(model.UserRole)), true
+		return e.complexity.Mutation.VerifyEmailOtp(childComplexity, args["email"].(string), args["code"].(string), args["role"].(model.UserRole), args["referralCode"].(*string)), true
 	case "Mutation.verifyPhone":
 		if e.complexity.Mutation.VerifyPhone == nil {
 			break
@@ -5711,6 +5754,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.MyPersonalityAssessment(childComplexity), true
+	case "Query.myReferralStatus":
+		if e.complexity.Query.MyReferralStatus == nil {
+			break
+		}
+
+		return e.complexity.Query.MyReferralStatus(childComplexity), true
 	case "Query.myRefundRequests":
 		if e.complexity.Query.MyRefundRequests == nil {
 			break
@@ -6164,6 +6213,81 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.RecurringDiscount.RecurrenceType(childComplexity), true
+
+	case "ReferralDiscountInfo.earnedAt":
+		if e.complexity.ReferralDiscountInfo.EarnedAt == nil {
+			break
+		}
+
+		return e.complexity.ReferralDiscountInfo.EarnedAt(childComplexity), true
+	case "ReferralDiscountInfo.expiresAt":
+		if e.complexity.ReferralDiscountInfo.ExpiresAt == nil {
+			break
+		}
+
+		return e.complexity.ReferralDiscountInfo.ExpiresAt(childComplexity), true
+	case "ReferralDiscountInfo.id":
+		if e.complexity.ReferralDiscountInfo.ID == nil {
+			break
+		}
+
+		return e.complexity.ReferralDiscountInfo.ID(childComplexity), true
+	case "ReferralDiscountInfo.status":
+		if e.complexity.ReferralDiscountInfo.Status == nil {
+			break
+		}
+
+		return e.complexity.ReferralDiscountInfo.Status(childComplexity), true
+
+	case "ReferralSignupProgress.completedCount":
+		if e.complexity.ReferralSignupProgress.CompletedCount == nil {
+			break
+		}
+
+		return e.complexity.ReferralSignupProgress.CompletedCount(childComplexity), true
+	case "ReferralSignupProgress.joinedCount":
+		if e.complexity.ReferralSignupProgress.JoinedCount == nil {
+			break
+		}
+
+		return e.complexity.ReferralSignupProgress.JoinedCount(childComplexity), true
+	case "ReferralSignupProgress.requiredCount":
+		if e.complexity.ReferralSignupProgress.RequiredCount == nil {
+			break
+		}
+
+		return e.complexity.ReferralSignupProgress.RequiredCount(childComplexity), true
+
+	case "ReferralStatus.availableDiscounts":
+		if e.complexity.ReferralStatus.AvailableDiscounts == nil {
+			break
+		}
+
+		return e.complexity.ReferralStatus.AvailableDiscounts(childComplexity), true
+	case "ReferralStatus.code":
+		if e.complexity.ReferralStatus.Code == nil {
+			break
+		}
+
+		return e.complexity.ReferralStatus.Code(childComplexity), true
+	case "ReferralStatus.currentProgress":
+		if e.complexity.ReferralStatus.CurrentProgress == nil {
+			break
+		}
+
+		return e.complexity.ReferralStatus.CurrentProgress(childComplexity), true
+	case "ReferralStatus.discounts":
+		if e.complexity.ReferralStatus.Discounts == nil {
+			break
+		}
+
+		return e.complexity.ReferralStatus.Discounts(childComplexity), true
+	case "ReferralStatus.shareUrl":
+		if e.complexity.ReferralStatus.ShareURL == nil {
+			break
+		}
+
+		return e.complexity.ReferralStatus.ShareURL(childComplexity), true
 
 	case "RefundRequest.amount":
 		if e.complexity.RefundRequest.Amount == nil {
@@ -7769,7 +7893,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
-//go:embed "schema/admin.graphql" "schema/analytics.graphql" "schema/audit.graphql" "schema/auth.graphql" "schema/booking.graphql" "schema/client.graphql" "schema/company.graphql" "schema/contact.graphql" "schema/invoice.graphql" "schema/location.graphql" "schema/notification.graphql" "schema/payment.graphql" "schema/personality.graphql" "schema/recurring.graphql" "schema/review.graphql" "schema/schema.graphql" "schema/service.graphql" "schema/settings.graphql" "schema/subscription.graphql" "schema/user.graphql" "schema/waitlist.graphql" "schema/worker.graphql"
+//go:embed "schema/admin.graphql" "schema/analytics.graphql" "schema/audit.graphql" "schema/auth.graphql" "schema/booking.graphql" "schema/client.graphql" "schema/company.graphql" "schema/contact.graphql" "schema/invoice.graphql" "schema/location.graphql" "schema/notification.graphql" "schema/payment.graphql" "schema/personality.graphql" "schema/recurring.graphql" "schema/referral.graphql" "schema/review.graphql" "schema/schema.graphql" "schema/service.graphql" "schema/settings.graphql" "schema/subscription.graphql" "schema/user.graphql" "schema/waitlist.graphql" "schema/worker.graphql"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -7795,6 +7919,7 @@ var sources = []*ast.Source{
 	{Name: "schema/payment.graphql", Input: sourceData("schema/payment.graphql"), BuiltIn: false},
 	{Name: "schema/personality.graphql", Input: sourceData("schema/personality.graphql"), BuiltIn: false},
 	{Name: "schema/recurring.graphql", Input: sourceData("schema/recurring.graphql"), BuiltIn: false},
+	{Name: "schema/referral.graphql", Input: sourceData("schema/referral.graphql"), BuiltIn: false},
 	{Name: "schema/review.graphql", Input: sourceData("schema/review.graphql"), BuiltIn: false},
 	{Name: "schema/schema.graphql", Input: sourceData("schema/schema.graphql"), BuiltIn: false},
 	{Name: "schema/service.graphql", Input: sourceData("schema/service.graphql"), BuiltIn: false},
@@ -7978,6 +8103,17 @@ func (ec *executionContext) field_Mutation_applyAsCompany_args(ctx context.Conte
 		return nil, err
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_applyReferralDiscountToBooking_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "bookingId", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["bookingId"] = arg0
 	return args, nil
 }
 
@@ -8808,6 +8944,11 @@ func (ec *executionContext) field_Mutation_signInWithGoogle_args(ctx context.Con
 		return nil, err
 	}
 	args["role"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "referralCode", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["referralCode"] = arg2
 	return args, nil
 }
 
@@ -9319,6 +9460,11 @@ func (ec *executionContext) field_Mutation_verifyEmailOtp_args(ctx context.Conte
 		return nil, err
 	}
 	args["role"] = arg2
+	arg3, err := graphql.ProcessArgField(ctx, rawArgs, "referralCode", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["referralCode"] = arg3
 	return args, nil
 }
 
@@ -12967,6 +13113,35 @@ func (ec *executionContext) fieldContext_Booking_customFields(_ context.Context,
 	return fc, nil
 }
 
+func (ec *executionContext) _Booking_referralDiscountId(ctx context.Context, field graphql.CollectedField, obj *model.Booking) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Booking_referralDiscountId,
+		func(ctx context.Context) (any, error) {
+			return obj.ReferralDiscountID, nil
+		},
+		nil,
+		ec.marshalOID2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Booking_referralDiscountId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Booking",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Booking_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.Booking) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -13332,6 +13507,8 @@ func (ec *executionContext) fieldContext_BookingConnection_edges(_ context.Conte
 				return ec.fieldContext_Booking_category(ctx, field)
 			case "customFields":
 				return ec.fieldContext_Booking_customFields(ctx, field)
+			case "referralDiscountId":
+				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -18401,6 +18578,8 @@ func (ec *executionContext) fieldContext_Invoice_booking(_ context.Context, fiel
 				return ec.fieldContext_Booking_category(ctx, field)
 			case "customFields":
 				return ec.fieldContext_Booking_customFields(ctx, field)
+			case "referralDiscountId":
+				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -19580,6 +19759,8 @@ func (ec *executionContext) fieldContext_Mutation_adminCancelBooking(ctx context
 				return ec.fieldContext_Booking_category(ctx, field)
 			case "customFields":
 				return ec.fieldContext_Booking_customFields(ctx, field)
+			case "referralDiscountId":
+				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -19705,6 +19886,8 @@ func (ec *executionContext) fieldContext_Mutation_adminRescheduleBooking(ctx con
 				return ec.fieldContext_Booking_category(ctx, field)
 			case "customFields":
 				return ec.fieldContext_Booking_customFields(ctx, field)
+			case "referralDiscountId":
+				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -20287,7 +20470,7 @@ func (ec *executionContext) _Mutation_signInWithGoogle(ctx context.Context, fiel
 		ec.fieldContext_Mutation_signInWithGoogle,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().SignInWithGoogle(ctx, fc.Args["idToken"].(string), fc.Args["role"].(model.UserRole))
+			return ec.resolvers.Mutation().SignInWithGoogle(ctx, fc.Args["idToken"].(string), fc.Args["role"].(model.UserRole), fc.Args["referralCode"].(*string))
 		},
 		nil,
 		ec.marshalNAuthPayload2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐAuthPayload,
@@ -20490,7 +20673,7 @@ func (ec *executionContext) _Mutation_verifyEmailOtp(ctx context.Context, field 
 		ec.fieldContext_Mutation_verifyEmailOtp,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().VerifyEmailOtp(ctx, fc.Args["email"].(string), fc.Args["code"].(string), fc.Args["role"].(model.UserRole))
+			return ec.resolvers.Mutation().VerifyEmailOtp(ctx, fc.Args["email"].(string), fc.Args["code"].(string), fc.Args["role"].(model.UserRole), fc.Args["referralCode"].(*string))
 		},
 		nil,
 		ec.marshalNAuthPayload2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐAuthPayload,
@@ -20636,6 +20819,8 @@ func (ec *executionContext) fieldContext_Mutation_createBookingRequest(ctx conte
 				return ec.fieldContext_Booking_category(ctx, field)
 			case "customFields":
 				return ec.fieldContext_Booking_customFields(ctx, field)
+			case "referralDiscountId":
+				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -20761,6 +20946,8 @@ func (ec *executionContext) fieldContext_Mutation_cancelBooking(ctx context.Cont
 				return ec.fieldContext_Booking_category(ctx, field)
 			case "customFields":
 				return ec.fieldContext_Booking_customFields(ctx, field)
+			case "referralDiscountId":
+				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -20886,6 +21073,8 @@ func (ec *executionContext) fieldContext_Mutation_assignWorkerToBooking(ctx cont
 				return ec.fieldContext_Booking_category(ctx, field)
 			case "customFields":
 				return ec.fieldContext_Booking_customFields(ctx, field)
+			case "referralDiscountId":
+				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -21011,6 +21200,8 @@ func (ec *executionContext) fieldContext_Mutation_confirmBooking(ctx context.Con
 				return ec.fieldContext_Booking_category(ctx, field)
 			case "customFields":
 				return ec.fieldContext_Booking_customFields(ctx, field)
+			case "referralDiscountId":
+				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -21136,6 +21327,8 @@ func (ec *executionContext) fieldContext_Mutation_startJob(ctx context.Context, 
 				return ec.fieldContext_Booking_category(ctx, field)
 			case "customFields":
 				return ec.fieldContext_Booking_customFields(ctx, field)
+			case "referralDiscountId":
+				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -21261,6 +21454,8 @@ func (ec *executionContext) fieldContext_Mutation_completeJob(ctx context.Contex
 				return ec.fieldContext_Booking_category(ctx, field)
 			case "customFields":
 				return ec.fieldContext_Booking_customFields(ctx, field)
+			case "referralDiscountId":
+				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -21386,6 +21581,8 @@ func (ec *executionContext) fieldContext_Mutation_selectBookingTimeSlot(ctx cont
 				return ec.fieldContext_Booking_category(ctx, field)
 			case "customFields":
 				return ec.fieldContext_Booking_customFields(ctx, field)
+			case "referralDiscountId":
+				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -21511,6 +21708,8 @@ func (ec *executionContext) fieldContext_Mutation_rescheduleBooking(ctx context.
 				return ec.fieldContext_Booking_category(ctx, field)
 			case "customFields":
 				return ec.fieldContext_Booking_customFields(ctx, field)
+			case "referralDiscountId":
+				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -24863,6 +25062,8 @@ func (ec *executionContext) fieldContext_Mutation_markBookingPaid(ctx context.Co
 				return ec.fieldContext_Booking_category(ctx, field)
 			case "customFields":
 				return ec.fieldContext_Booking_customFields(ctx, field)
+			case "referralDiscountId":
+				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -25056,6 +25257,133 @@ func (ec *executionContext) fieldContext_Mutation_regeneratePersonalityInsights(
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_regeneratePersonalityInsights_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_applyReferralDiscountToBooking(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_applyReferralDiscountToBooking,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().ApplyReferralDiscountToBooking(ctx, fc.Args["bookingId"].(string))
+		},
+		nil,
+		ec.marshalNBooking2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_applyReferralDiscountToBooking(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Booking_id(ctx, field)
+			case "referenceCode":
+				return ec.fieldContext_Booking_referenceCode(ctx, field)
+			case "client":
+				return ec.fieldContext_Booking_client(ctx, field)
+			case "company":
+				return ec.fieldContext_Booking_company(ctx, field)
+			case "worker":
+				return ec.fieldContext_Booking_worker(ctx, field)
+			case "address":
+				return ec.fieldContext_Booking_address(ctx, field)
+			case "serviceType":
+				return ec.fieldContext_Booking_serviceType(ctx, field)
+			case "serviceName":
+				return ec.fieldContext_Booking_serviceName(ctx, field)
+			case "includedItems":
+				return ec.fieldContext_Booking_includedItems(ctx, field)
+			case "scheduledDate":
+				return ec.fieldContext_Booking_scheduledDate(ctx, field)
+			case "scheduledStartTime":
+				return ec.fieldContext_Booking_scheduledStartTime(ctx, field)
+			case "estimatedDurationHours":
+				return ec.fieldContext_Booking_estimatedDurationHours(ctx, field)
+			case "propertyType":
+				return ec.fieldContext_Booking_propertyType(ctx, field)
+			case "numRooms":
+				return ec.fieldContext_Booking_numRooms(ctx, field)
+			case "numBathrooms":
+				return ec.fieldContext_Booking_numBathrooms(ctx, field)
+			case "areaSqm":
+				return ec.fieldContext_Booking_areaSqm(ctx, field)
+			case "hasPets":
+				return ec.fieldContext_Booking_hasPets(ctx, field)
+			case "specialInstructions":
+				return ec.fieldContext_Booking_specialInstructions(ctx, field)
+			case "hourlyRate":
+				return ec.fieldContext_Booking_hourlyRate(ctx, field)
+			case "estimatedTotal":
+				return ec.fieldContext_Booking_estimatedTotal(ctx, field)
+			case "finalTotal":
+				return ec.fieldContext_Booking_finalTotal(ctx, field)
+			case "platformCommissionPct":
+				return ec.fieldContext_Booking_platformCommissionPct(ctx, field)
+			case "extras":
+				return ec.fieldContext_Booking_extras(ctx, field)
+			case "status":
+				return ec.fieldContext_Booking_status(ctx, field)
+			case "startedAt":
+				return ec.fieldContext_Booking_startedAt(ctx, field)
+			case "completedAt":
+				return ec.fieldContext_Booking_completedAt(ctx, field)
+			case "cancelledAt":
+				return ec.fieldContext_Booking_cancelledAt(ctx, field)
+			case "cancellationReason":
+				return ec.fieldContext_Booking_cancellationReason(ctx, field)
+			case "paymentStatus":
+				return ec.fieldContext_Booking_paymentStatus(ctx, field)
+			case "paidAt":
+				return ec.fieldContext_Booking_paidAt(ctx, field)
+			case "recurringGroupId":
+				return ec.fieldContext_Booking_recurringGroupId(ctx, field)
+			case "subscriptionId":
+				return ec.fieldContext_Booking_subscriptionId(ctx, field)
+			case "occurrenceNumber":
+				return ec.fieldContext_Booking_occurrenceNumber(ctx, field)
+			case "rescheduleCount":
+				return ec.fieldContext_Booking_rescheduleCount(ctx, field)
+			case "rescheduledAt":
+				return ec.fieldContext_Booking_rescheduledAt(ctx, field)
+			case "timeSlots":
+				return ec.fieldContext_Booking_timeSlots(ctx, field)
+			case "review":
+				return ec.fieldContext_Booking_review(ctx, field)
+			case "categoryId":
+				return ec.fieldContext_Booking_categoryId(ctx, field)
+			case "category":
+				return ec.fieldContext_Booking_category(ctx, field)
+			case "customFields":
+				return ec.fieldContext_Booking_customFields(ctx, field)
+			case "referralDiscountId":
+				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Booking_createdAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Booking", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_applyReferralDiscountToBooking_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -28727,6 +29055,8 @@ func (ec *executionContext) fieldContext_PaymentHistoryEntry_booking(_ context.C
 				return ec.fieldContext_Booking_category(ctx, field)
 			case "customFields":
 				return ec.fieldContext_Booking_customFields(ctx, field)
+			case "referralDiscountId":
+				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -29362,6 +29692,8 @@ func (ec *executionContext) fieldContext_PaymentTransaction_booking(_ context.Co
 				return ec.fieldContext_Booking_category(ctx, field)
 			case "customFields":
 				return ec.fieldContext_Booking_customFields(ctx, field)
+			case "referralDiscountId":
+				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -29765,6 +30097,8 @@ func (ec *executionContext) fieldContext_PayoutLineItem_booking(_ context.Contex
 				return ec.fieldContext_Booking_category(ctx, field)
 			case "customFields":
 				return ec.fieldContext_Booking_customFields(ctx, field)
+			case "referralDiscountId":
+				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -33416,6 +33750,8 @@ func (ec *executionContext) fieldContext_Query_booking(ctx context.Context, fiel
 				return ec.fieldContext_Booking_category(ctx, field)
 			case "customFields":
 				return ec.fieldContext_Booking_customFields(ctx, field)
+			case "referralDiscountId":
+				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -33590,6 +33926,8 @@ func (ec *executionContext) fieldContext_Query_myAssignedJobs(ctx context.Contex
 				return ec.fieldContext_Booking_category(ctx, field)
 			case "customFields":
 				return ec.fieldContext_Booking_customFields(ctx, field)
+			case "referralDiscountId":
+				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -33714,6 +34052,8 @@ func (ec *executionContext) fieldContext_Query_todaysJobs(_ context.Context, fie
 				return ec.fieldContext_Booking_category(ctx, field)
 			case "customFields":
 				return ec.fieldContext_Booking_customFields(ctx, field)
+			case "referralDiscountId":
+				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -33877,6 +34217,8 @@ func (ec *executionContext) fieldContext_Query_companyBookingsByDateRange(ctx co
 				return ec.fieldContext_Booking_category(ctx, field)
 			case "customFields":
 				return ec.fieldContext_Booking_customFields(ctx, field)
+			case "referralDiscountId":
+				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -36396,6 +36738,47 @@ func (ec *executionContext) fieldContext_Query_workerPersonalityAssessment(ctx c
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_myReferralStatus(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_myReferralStatus,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.Query().MyReferralStatus(ctx)
+		},
+		nil,
+		ec.marshalNReferralStatus2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐReferralStatus,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_myReferralStatus(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "code":
+				return ec.fieldContext_ReferralStatus_code(ctx, field)
+			case "shareUrl":
+				return ec.fieldContext_ReferralStatus_shareUrl(ctx, field)
+			case "currentProgress":
+				return ec.fieldContext_ReferralStatus_currentProgress(ctx, field)
+			case "availableDiscounts":
+				return ec.fieldContext_ReferralStatus_availableDiscounts(ctx, field)
+			case "discounts":
+				return ec.fieldContext_ReferralStatus_discounts(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ReferralStatus", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_companyWorkerReviews(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -38274,6 +38657,8 @@ func (ec *executionContext) fieldContext_Query_myWorkerBookingsByDateRange(ctx c
 				return ec.fieldContext_Booking_category(ctx, field)
 			case "customFields":
 				return ec.fieldContext_Booking_customFields(ctx, field)
+			case "referralDiscountId":
+				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -38885,6 +39270,372 @@ func (ec *executionContext) fieldContext_RecurringDiscount_isActive(_ context.Co
 	return fc, nil
 }
 
+func (ec *executionContext) _ReferralDiscountInfo_id(ctx context.Context, field graphql.CollectedField, obj *model.ReferralDiscountInfo) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ReferralDiscountInfo_id,
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ReferralDiscountInfo_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ReferralDiscountInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ReferralDiscountInfo_status(ctx context.Context, field graphql.CollectedField, obj *model.ReferralDiscountInfo) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ReferralDiscountInfo_status,
+		func(ctx context.Context) (any, error) {
+			return obj.Status, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ReferralDiscountInfo_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ReferralDiscountInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ReferralDiscountInfo_earnedAt(ctx context.Context, field graphql.CollectedField, obj *model.ReferralDiscountInfo) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ReferralDiscountInfo_earnedAt,
+		func(ctx context.Context) (any, error) {
+			return obj.EarnedAt, nil
+		},
+		nil,
+		ec.marshalNDateTime2timeᚐTime,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ReferralDiscountInfo_earnedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ReferralDiscountInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type DateTime does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ReferralDiscountInfo_expiresAt(ctx context.Context, field graphql.CollectedField, obj *model.ReferralDiscountInfo) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ReferralDiscountInfo_expiresAt,
+		func(ctx context.Context) (any, error) {
+			return obj.ExpiresAt, nil
+		},
+		nil,
+		ec.marshalODateTime2ᚖtimeᚐTime,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ReferralDiscountInfo_expiresAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ReferralDiscountInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type DateTime does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ReferralSignupProgress_joinedCount(ctx context.Context, field graphql.CollectedField, obj *model.ReferralSignupProgress) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ReferralSignupProgress_joinedCount,
+		func(ctx context.Context) (any, error) {
+			return obj.JoinedCount, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ReferralSignupProgress_joinedCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ReferralSignupProgress",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ReferralSignupProgress_completedCount(ctx context.Context, field graphql.CollectedField, obj *model.ReferralSignupProgress) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ReferralSignupProgress_completedCount,
+		func(ctx context.Context) (any, error) {
+			return obj.CompletedCount, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ReferralSignupProgress_completedCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ReferralSignupProgress",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ReferralSignupProgress_requiredCount(ctx context.Context, field graphql.CollectedField, obj *model.ReferralSignupProgress) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ReferralSignupProgress_requiredCount,
+		func(ctx context.Context) (any, error) {
+			return obj.RequiredCount, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ReferralSignupProgress_requiredCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ReferralSignupProgress",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ReferralStatus_code(ctx context.Context, field graphql.CollectedField, obj *model.ReferralStatus) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ReferralStatus_code,
+		func(ctx context.Context) (any, error) {
+			return obj.Code, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ReferralStatus_code(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ReferralStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ReferralStatus_shareUrl(ctx context.Context, field graphql.CollectedField, obj *model.ReferralStatus) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ReferralStatus_shareUrl,
+		func(ctx context.Context) (any, error) {
+			return obj.ShareURL, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ReferralStatus_shareUrl(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ReferralStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ReferralStatus_currentProgress(ctx context.Context, field graphql.CollectedField, obj *model.ReferralStatus) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ReferralStatus_currentProgress,
+		func(ctx context.Context) (any, error) {
+			return obj.CurrentProgress, nil
+		},
+		nil,
+		ec.marshalNReferralSignupProgress2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐReferralSignupProgress,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ReferralStatus_currentProgress(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ReferralStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "joinedCount":
+				return ec.fieldContext_ReferralSignupProgress_joinedCount(ctx, field)
+			case "completedCount":
+				return ec.fieldContext_ReferralSignupProgress_completedCount(ctx, field)
+			case "requiredCount":
+				return ec.fieldContext_ReferralSignupProgress_requiredCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ReferralSignupProgress", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ReferralStatus_availableDiscounts(ctx context.Context, field graphql.CollectedField, obj *model.ReferralStatus) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ReferralStatus_availableDiscounts,
+		func(ctx context.Context) (any, error) {
+			return obj.AvailableDiscounts, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ReferralStatus_availableDiscounts(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ReferralStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ReferralStatus_discounts(ctx context.Context, field graphql.CollectedField, obj *model.ReferralStatus) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ReferralStatus_discounts,
+		func(ctx context.Context) (any, error) {
+			return obj.Discounts, nil
+		},
+		nil,
+		ec.marshalNReferralDiscountInfo2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐReferralDiscountInfoᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ReferralStatus_discounts(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ReferralStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ReferralDiscountInfo_id(ctx, field)
+			case "status":
+				return ec.fieldContext_ReferralDiscountInfo_status(ctx, field)
+			case "earnedAt":
+				return ec.fieldContext_ReferralDiscountInfo_earnedAt(ctx, field)
+			case "expiresAt":
+				return ec.fieldContext_ReferralDiscountInfo_expiresAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ReferralDiscountInfo", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _RefundRequest_id(ctx context.Context, field graphql.CollectedField, obj *model.RefundRequest) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -39018,6 +39769,8 @@ func (ec *executionContext) fieldContext_RefundRequest_booking(_ context.Context
 				return ec.fieldContext_Booking_category(ctx, field)
 			case "customFields":
 				return ec.fieldContext_Booking_customFields(ctx, field)
+			case "referralDiscountId":
+				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -39585,6 +40338,8 @@ func (ec *executionContext) fieldContext_Review_booking(_ context.Context, field
 				return ec.fieldContext_Booking_category(ctx, field)
 			case "customFields":
 				return ec.fieldContext_Booking_customFields(ctx, field)
+			case "referralDiscountId":
+				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -42766,6 +43521,8 @@ func (ec *executionContext) fieldContext_ServiceSubscription_bookings(_ context.
 				return ec.fieldContext_Booking_category(ctx, field)
 			case "customFields":
 				return ec.fieldContext_Booking_customFields(ctx, field)
+			case "referralDiscountId":
+				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -42879,6 +43636,8 @@ func (ec *executionContext) fieldContext_ServiceSubscription_upcomingBookings(_ 
 				return ec.fieldContext_Booking_category(ctx, field)
 			case "customFields":
 				return ec.fieldContext_Booking_customFields(ctx, field)
+			case "referralDiscountId":
+				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -50996,6 +51755,8 @@ func (ec *executionContext) _Booking(ctx context.Context, sel ast.SelectionSet, 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "customFields":
 			out.Values[i] = ec._Booking_customFields(ctx, field, obj)
+		case "referralDiscountId":
+			out.Values[i] = ec._Booking_referralDiscountId(ctx, field, obj)
 		case "createdAt":
 			out.Values[i] = ec._Booking_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -53480,6 +54241,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "regeneratePersonalityInsights":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_regeneratePersonalityInsights(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "applyReferralDiscountToBooking":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_applyReferralDiscountToBooking(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -56664,6 +57432,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "myReferralStatus":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_myReferralStatus(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "companyWorkerReviews":
 			field := field
 
@@ -57592,6 +58382,159 @@ func (ec *executionContext) _RecurringDiscount(ctx context.Context, sel ast.Sele
 			}
 		case "isActive":
 			out.Values[i] = ec._RecurringDiscount_isActive(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var referralDiscountInfoImplementors = []string{"ReferralDiscountInfo"}
+
+func (ec *executionContext) _ReferralDiscountInfo(ctx context.Context, sel ast.SelectionSet, obj *model.ReferralDiscountInfo) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, referralDiscountInfoImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ReferralDiscountInfo")
+		case "id":
+			out.Values[i] = ec._ReferralDiscountInfo_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "status":
+			out.Values[i] = ec._ReferralDiscountInfo_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "earnedAt":
+			out.Values[i] = ec._ReferralDiscountInfo_earnedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "expiresAt":
+			out.Values[i] = ec._ReferralDiscountInfo_expiresAt(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var referralSignupProgressImplementors = []string{"ReferralSignupProgress"}
+
+func (ec *executionContext) _ReferralSignupProgress(ctx context.Context, sel ast.SelectionSet, obj *model.ReferralSignupProgress) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, referralSignupProgressImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ReferralSignupProgress")
+		case "joinedCount":
+			out.Values[i] = ec._ReferralSignupProgress_joinedCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "completedCount":
+			out.Values[i] = ec._ReferralSignupProgress_completedCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "requiredCount":
+			out.Values[i] = ec._ReferralSignupProgress_requiredCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var referralStatusImplementors = []string{"ReferralStatus"}
+
+func (ec *executionContext) _ReferralStatus(ctx context.Context, sel ast.SelectionSet, obj *model.ReferralStatus) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, referralStatusImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ReferralStatus")
+		case "code":
+			out.Values[i] = ec._ReferralStatus_code(ctx, field, obj)
+		case "shareUrl":
+			out.Values[i] = ec._ReferralStatus_shareUrl(ctx, field, obj)
+		case "currentProgress":
+			out.Values[i] = ec._ReferralStatus_currentProgress(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "availableDiscounts":
+			out.Values[i] = ec._ReferralStatus_availableDiscounts(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "discounts":
+			out.Values[i] = ec._ReferralStatus_discounts(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -62481,6 +63424,84 @@ func (ec *executionContext) marshalNRecurringDiscount2ᚖgo2fixᚑbackendᚋinte
 		return graphql.Null
 	}
 	return ec._RecurringDiscount(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNReferralDiscountInfo2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐReferralDiscountInfoᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ReferralDiscountInfo) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNReferralDiscountInfo2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐReferralDiscountInfo(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNReferralDiscountInfo2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐReferralDiscountInfo(ctx context.Context, sel ast.SelectionSet, v *model.ReferralDiscountInfo) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ReferralDiscountInfo(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNReferralSignupProgress2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐReferralSignupProgress(ctx context.Context, sel ast.SelectionSet, v *model.ReferralSignupProgress) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ReferralSignupProgress(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNReferralStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐReferralStatus(ctx context.Context, sel ast.SelectionSet, v model.ReferralStatus) graphql.Marshaler {
+	return ec._ReferralStatus(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNReferralStatus2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐReferralStatus(ctx context.Context, sel ast.SelectionSet, v *model.ReferralStatus) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ReferralStatus(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNRefundRequest2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐRefundRequest(ctx context.Context, sel ast.SelectionSet, v model.RefundRequest) graphql.Marshaler {

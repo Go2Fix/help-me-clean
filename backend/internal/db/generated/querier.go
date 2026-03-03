@@ -15,6 +15,7 @@ type Querier interface {
 	AdminCancelBookingWithReason(ctx context.Context, arg AdminCancelBookingWithReasonParams) (Booking, error)
 	AdminUpdateCompanyProfile(ctx context.Context, arg AdminUpdateCompanyProfileParams) (Company, error)
 	AdminUpdateUserProfile(ctx context.Context, arg AdminUpdateUserProfileParams) (User, error)
+	ApplyReferralDiscountToBooking(ctx context.Context, arg ApplyReferralDiscountToBookingParams) (Booking, error)
 	ApproveCompany(ctx context.Context, id pgtype.UUID) (Company, error)
 	AssignWorkerToBooking(ctx context.Context, arg AssignWorkerToBookingParams) (Booking, error)
 	CancelBookingWithReason(ctx context.Context, arg CancelBookingWithReasonParams) (Booking, error)
@@ -32,9 +33,11 @@ type Querier interface {
 	// Checks if a payment transaction is already part of any payout
 	CheckTransactionInPayout(ctx context.Context, paymentTransactionID pgtype.UUID) (bool, error)
 	ClaimCompanyByToken(ctx context.Context, arg ClaimCompanyByTokenParams) (Company, error)
+	ClearBookingReferralDiscount(ctx context.Context, id pgtype.UUID) error
 	ClearCompanyCommissionOverride(ctx context.Context, id pgtype.UUID) (Company, error)
 	CompanyHasCategory(ctx context.Context, arg CompanyHasCategoryParams) (bool, error)
 	CompleteBooking(ctx context.Context, id pgtype.UUID) (Booking, error)
+	ConfirmReferralDiscountUsed(ctx context.Context, id pgtype.UUID) (ReferralEarnedDiscount, error)
 	CountActiveEmailOTPs(ctx context.Context, email string) (int64, error)
 	CountActivePhoneOTPs(ctx context.Context, userID pgtype.UUID) (int64, error)
 	CountActiveRecurringGroups(ctx context.Context) (int64, error)
@@ -42,6 +45,7 @@ type Querier interface {
 	CountAllReviews(ctx context.Context) (int64, error)
 	CountAllReviewsFiltered(ctx context.Context, arg CountAllReviewsFilteredParams) (int64, error)
 	CountAllSubscriptions(ctx context.Context) (int64, error)
+	CountAvailableReferralDiscounts(ctx context.Context, ownerUserID pgtype.UUID) (int64, error)
 	CountBookingsByClient(ctx context.Context, clientUserID pgtype.UUID) (int64, error)
 	CountBookingsByClientAndStatus(ctx context.Context, arg CountBookingsByClientAndStatusParams) (int64, error)
 	CountBookingsByCompany(ctx context.Context, companyID pgtype.UUID) (int64, error)
@@ -52,6 +56,7 @@ type Querier interface {
 	CountCompletedBookingsBySubscription(ctx context.Context, subscriptionID pgtype.UUID) (int64, error)
 	CountCompletedJobsByCompany(ctx context.Context, companyID pgtype.UUID) (int64, error)
 	CountCompletedJobsByWorker(ctx context.Context, workerID pgtype.UUID) (int64, error)
+	CountCompletedSignupsInCycle(ctx context.Context, arg CountCompletedSignupsInCycleParams) (int64, error)
 	CountInvoicesByClient(ctx context.Context, clientUserID pgtype.UUID) (int64, error)
 	CountInvoicesByCompany(ctx context.Context, companyID pgtype.UUID) (int64, error)
 	CountPaymentHistoryByUser(ctx context.Context, clientUserID pgtype.UUID) (int64, error)
@@ -65,6 +70,7 @@ type Querier interface {
 	CountSearchCompanyBookings(ctx context.Context, arg CountSearchCompanyBookingsParams) (int64, error)
 	CountSearchUsers(ctx context.Context, arg CountSearchUsersParams) (int64, error)
 	CountSearchWorkerBookings(ctx context.Context, arg CountSearchWorkerBookingsParams) (int64, error)
+	CountSignupsInCycle(ctx context.Context, arg CountSignupsInCycleParams) (int64, error)
 	CountSubscriptionsByCompany(ctx context.Context, companyID pgtype.UUID) (int64, error)
 	CountSubscriptionsByStatusFilter(ctx context.Context, status SubscriptionStatus) (int64, error)
 	CountThisMonthJobsByWorker(ctx context.Context, workerID pgtype.UUID) (int64, error)
@@ -112,6 +118,15 @@ type Querier interface {
 	CreatePlatformEvent(ctx context.Context, arg CreatePlatformEventParams) error
 	CreatePriceAuditEntry(ctx context.Context, arg CreatePriceAuditEntryParams) (PriceAuditLog, error)
 	CreateRecurringGroup(ctx context.Context, arg CreateRecurringGroupParams) (RecurringBookingGroup, error)
+	CreateReferralCode(ctx context.Context, arg CreateReferralCodeParams) (ReferralCode, error)
+	// ============================================================
+	// Referral Earned Discounts
+	// ============================================================
+	CreateReferralEarnedDiscount(ctx context.Context, arg CreateReferralEarnedDiscountParams) (ReferralEarnedDiscount, error)
+	// ============================================================
+	// Referral Signups
+	// ============================================================
+	CreateReferralSignup(ctx context.Context, arg CreateReferralSignupParams) (ReferralSignup, error)
 	// ============================================
 	// REFUND REQUESTS
 	// ============================================
@@ -162,6 +177,7 @@ type Querier interface {
 	GetAddressByID(ctx context.Context, id pgtype.UUID) (ClientAddress, error)
 	GetAllCompanyScorecards(ctx context.Context, arg GetAllCompanyScorecardsParams) ([]GetAllCompanyScorecardsRow, error)
 	GetAreaByID(ctx context.Context, id pgtype.UUID) (GetAreaByIDRow, error)
+	GetAvailableReferralDiscount(ctx context.Context, ownerUserID pgtype.UUID) (ReferralEarnedDiscount, error)
 	GetAverageWorkerRating(ctx context.Context, reviewedWorkerID pgtype.UUID) (pgtype.Numeric, error)
 	// ============================================
 	// CLIENT BILLING PROFILES
@@ -230,6 +246,16 @@ type Querier interface {
 	GetRecurringDiscountByType(ctx context.Context, recurrenceType RecurrenceType) (RecurringDiscount, error)
 	GetRecurringGroupByID(ctx context.Context, id pgtype.UUID) (RecurringBookingGroup, error)
 	GetRecurringGroupExtras(ctx context.Context, groupID pgtype.UUID) ([]GetRecurringGroupExtrasRow, error)
+	GetReferralCodeByCode(ctx context.Context, code string) (ReferralCode, error)
+	GetReferralCodeByID(ctx context.Context, id pgtype.UUID) (ReferralCode, error)
+	// ============================================================
+	// Referral Codes
+	// ============================================================
+	GetReferralCodeByOwner(ctx context.Context, ownerUserID pgtype.UUID) (ReferralCode, error)
+	GetReferralDiscountIDForBooking(ctx context.Context, id pgtype.UUID) (pgtype.UUID, error)
+	GetReferralEarnedDiscountByID(ctx context.Context, id pgtype.UUID) (ReferralEarnedDiscount, error)
+	GetReferralSignupByReferredUser(ctx context.Context, referredUserID pgtype.UUID) (ReferralSignup, error)
+	GetReferralSignupsForCode(ctx context.Context, referralCodeID pgtype.UUID) ([]ReferralSignup, error)
 	GetRefundRequestByBookingID(ctx context.Context, bookingID pgtype.UUID) (RefundRequest, error)
 	GetRefundRequestByID(ctx context.Context, id pgtype.UUID) (RefundRequest, error)
 	GetRevenueByDateRange(ctx context.Context, arg GetRevenueByDateRangeParams) ([]GetRevenueByDateRangeRow, error)
@@ -275,6 +301,7 @@ type Querier interface {
 	// Per-dimension rating averages for a worker (from reviews with sub-ratings since migration 000047).
 	GetWorkerSubRatings(ctx context.Context, reviewedWorkerID pgtype.UUID) (GetWorkerSubRatingsRow, error)
 	HasPersonalityAssessment(ctx context.Context, workerID pgtype.UUID) (bool, error)
+	IncrementReferralCycle(ctx context.Context, id pgtype.UUID) (ReferralCode, error)
 	InsertBookingExtra(ctx context.Context, arg InsertBookingExtraParams) error
 	InsertCompanyServiceArea(ctx context.Context, arg InsertCompanyServiceAreaParams) (CompanyServiceArea, error)
 	InsertCompanyServiceCategory(ctx context.Context, arg InsertCompanyServiceCategoryParams) error
@@ -365,6 +392,7 @@ type Querier interface {
 	// ─── RECURRING DISCOUNTS ──────────────────────────────────────────────────
 	ListRecurringDiscounts(ctx context.Context) ([]RecurringDiscount, error)
 	ListRecurringGroupsByClient(ctx context.Context, clientUserID pgtype.UUID) ([]RecurringBookingGroup, error)
+	ListReferralEarnedDiscountsByOwner(ctx context.Context, ownerUserID pgtype.UUID) ([]ReferralEarnedDiscount, error)
 	ListRefundRequestsByStatus(ctx context.Context, arg ListRefundRequestsByStatusParams) ([]RefundRequest, error)
 	ListRefundRequestsByUser(ctx context.Context, requestedByUserID pgtype.UUID) ([]RefundRequest, error)
 	ListReviewPhotos(ctx context.Context, reviewID pgtype.UUID) ([]ReviewPhoto, error)
@@ -395,14 +423,17 @@ type Querier interface {
 	MarkInvoiceAsPaid(ctx context.Context, id pgtype.UUID) (Invoice, error)
 	MarkNotificationRead(ctx context.Context, id pgtype.UUID) error
 	MarkPhoneOTPUsed(ctx context.Context, id pgtype.UUID) error
+	MarkReferralSignupCompleted(ctx context.Context, arg MarkReferralSignupCompletedParams) (ReferralSignup, error)
 	PauseRecurringGroup(ctx context.Context, id pgtype.UUID) (RecurringBookingGroup, error)
 	PauseSubscription(ctx context.Context, id pgtype.UUID) (Subscription, error)
 	ReactivateWorkersByCompany(ctx context.Context, companyID pgtype.UUID) error
 	ReassignFutureSubscriptionBookings(ctx context.Context, arg ReassignFutureSubscriptionBookingsParams) error
 	ReassignSingleBookingWorker(ctx context.Context, arg ReassignSingleBookingWorkerParams) (Booking, error)
 	RejectCompany(ctx context.Context, arg RejectCompanyParams) (Company, error)
+	ReleaseReferralDiscount(ctx context.Context, id pgtype.UUID) (ReferralEarnedDiscount, error)
 	RequestSubscriptionWorkerChange(ctx context.Context, arg RequestSubscriptionWorkerChangeParams) (Subscription, error)
 	RescheduleBooking(ctx context.Context, arg RescheduleBookingParams) (Booking, error)
+	ReserveReferralDiscount(ctx context.Context, arg ReserveReferralDiscountParams) (ReferralEarnedDiscount, error)
 	ResolveSubscriptionWorkerChange(ctx context.Context, arg ResolveSubscriptionWorkerChangeParams) (Subscription, error)
 	ResumeRecurringGroup(ctx context.Context, id pgtype.UUID) (RecurringBookingGroup, error)
 	ResumeSubscription(ctx context.Context, id pgtype.UUID) (Subscription, error)
@@ -424,6 +455,7 @@ type Querier interface {
 	SetDefaultAddress(ctx context.Context, arg SetDefaultAddressParams) error
 	SetDefaultPaymentMethod(ctx context.Context, arg SetDefaultPaymentMethodParams) error
 	SetUserPhoneVerified(ctx context.Context, arg SetUserPhoneVerifiedParams) (User, error)
+	SetUserReferralCodeUsed(ctx context.Context, arg SetUserReferralCodeUsedParams) (User, error)
 	SetUserStripeCustomerID(ctx context.Context, arg SetUserStripeCustomerIDParams) error
 	SetWorkerAvailability(ctx context.Context, arg SetWorkerAvailabilityParams) (WorkerAvailability, error)
 	StartBooking(ctx context.Context, id pgtype.UUID) (Booking, error)

@@ -3,8 +3,8 @@ import { gql } from '@apollo/client';
 // ─── Auth ────────────────────────────────────────────────────────────────────
 
 export const SIGN_IN_WITH_GOOGLE = gql`
-  mutation SignInWithGoogle($idToken: String!, $role: UserRole!) {
-    signInWithGoogle(idToken: $idToken, role: $role) {
+  mutation SignInWithGoogle($idToken: String!, $role: UserRole!, $referralCode: String) {
+    signInWithGoogle(idToken: $idToken, role: $role, referralCode: $referralCode) {
       token
       user {
         id
@@ -54,8 +54,8 @@ export const REQUEST_EMAIL_OTP = gql`
 `;
 
 export const VERIFY_EMAIL_OTP = gql`
-  mutation VerifyEmailOtp($email: String!, $code: String!, $role: UserRole!) {
-    verifyEmailOtp(email: $email, code: $code, role: $role) {
+  mutation VerifyEmailOtp($email: String!, $code: String!, $role: UserRole!, $referralCode: String) {
+    verifyEmailOtp(email: $email, code: $code, role: $role, referralCode: $referralCode) {
       token
       user {
         id
@@ -4526,6 +4526,40 @@ export const VERIFY_PHONE = gql`
       id
       phone
       phoneVerified
+    }
+  }
+`;
+
+// ─── Referral ─────────────────────────────────────────────────────────────────
+
+export const MY_REFERRAL_STATUS = gql`
+  query MyReferralStatus {
+    myReferralStatus {
+      code
+      shareUrl
+      currentProgress {
+        joinedCount
+        completedCount
+        requiredCount
+      }
+      availableDiscounts
+      discounts {
+        id
+        status
+        earnedAt
+        expiresAt
+      }
+    }
+  }
+`;
+
+export const APPLY_REFERRAL_DISCOUNT = gql`
+  mutation ApplyReferralDiscountToBooking($bookingId: ID!) {
+    applyReferralDiscountToBooking(bookingId: $bookingId) {
+      id
+      platformCommissionPct
+      estimatedTotal
+      referralDiscountId
     }
   }
 `;

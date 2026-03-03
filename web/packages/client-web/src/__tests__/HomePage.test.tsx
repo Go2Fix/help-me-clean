@@ -168,7 +168,7 @@ describe('HomePage', () => {
     renderHomePage();
     await screen.findByText('Curățenie');
     const badges = screen.getAllByText('În curând');
-    expect(badges.length).toBe(3);
+    expect(badges.length).toBe(5);
   });
 
   it('shows skeleton cards while categories are loading', () => {

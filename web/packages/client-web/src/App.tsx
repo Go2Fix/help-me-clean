@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 import { ApolloProvider } from '@apollo/client';
 import { createApolloClient } from '@go2fix/shared';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
@@ -330,6 +331,14 @@ function AppRoutes() {
 // ─── App ─────────────────────────────────────────────────────────────────────
 
 function App() {
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get('ref');
+    if (ref) {
+      localStorage.setItem('pendingReferralCode', ref.toUpperCase());
+    }
+  }, []);
+
   return (
     <ApolloProvider client={client}>
       <PlatformProvider>

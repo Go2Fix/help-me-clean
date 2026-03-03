@@ -222,6 +222,23 @@ SET scheduled_date = $2, scheduled_start_time = $3,
     reschedule_count = reschedule_count + 1, rescheduled_at = NOW(), updated_at = NOW()
 WHERE id = $1 RETURNING *;
 
+-- name: ApplyReferralDiscountToBooking :one
+UPDATE bookings
+SET referral_discount_id    = $2,
+    platform_commission_pct = 0,
+    updated_at              = NOW()
+WHERE id = $1
+RETURNING *;
+
+-- name: ClearBookingReferralDiscount :exec
+UPDATE bookings
+SET referral_discount_id = NULL,
+    updated_at           = NOW()
+WHERE id = $1;
+
+-- name: GetReferralDiscountIDForBooking :one
+SELECT referral_discount_id FROM bookings WHERE id = $1;
+
 -- name: InsertBookingExtra :exec
 INSERT INTO booking_extras (booking_id, extra_id, price, quantity)
 VALUES ($1, $2, $3, $4);

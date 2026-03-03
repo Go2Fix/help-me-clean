@@ -13,12 +13,12 @@ type RequestOtpResponse {
 }
 
 extend type Mutation {
-  signInWithGoogle(idToken: String!, role: UserRole!): AuthPayload!
+  signInWithGoogle(idToken: String!, role: UserRole!, referralCode: String): AuthPayload!
   refreshToken: AuthPayload!
   registerDeviceToken(token: String!): Boolean!
   logout: Boolean!
 
   # Email OTP authentication
   requestEmailOtp(email: String!, role: UserRole!): RequestOtpResponse!
-  verifyEmailOtp(email: String!, code: String!, role: UserRole!): AuthPayload!
+  verifyEmailOtp(email: String!, code: String!, role: UserRole!, referralCode: String): AuthPayload!
 }

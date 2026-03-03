@@ -66,5 +66,9 @@ WHERE id = $1 RETURNING *;
 -- name: DeactivateUser :exec
 UPDATE users SET status = 'inactive', phone = NULL, avatar_url = NULL, fcm_token = NULL, updated_at = NOW() WHERE id = $1;
 
+-- name: SetUserReferralCodeUsed :one
+UPDATE users SET referral_code_used = $2, updated_at = NOW()
+WHERE id = $1 RETURNING *;
+
 -- name: DeleteUser :exec
 DELETE FROM users WHERE id = $1;

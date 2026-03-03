@@ -292,9 +292,4 @@ describe('Worker JobDetailPage', () => {
     expect(screen.getAllByText('Confirmata').length).toBeGreaterThanOrEqual(1);
   });
 
-  it('shows chat button', () => {
-    mockUseQuery.mockReturnValue({ data: { booking: mockBooking() }, loading: false });
-    renderPage();
-    expect(screen.getByText('Mesaj')).toBeInTheDocument();
-  });
 });

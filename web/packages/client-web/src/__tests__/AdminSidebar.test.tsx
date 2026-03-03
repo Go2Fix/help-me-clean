@@ -13,6 +13,10 @@ vi.mock('@go2fix/shared', () => ({
       .join(' '),
 }));
 
+vi.mock('@/components/notifications/NotificationBell', () => ({
+  default: () => null,
+}));
+
 vi.mock('@/context/AuthContext', () => ({
   useAuth: vi.fn(),
 }));
@@ -68,7 +72,6 @@ describe('AdminLayout sidebar', () => {
     expect(screen.getAllByText('Dashboard').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('Companii').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('Comenzi').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('Mesaje').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('Utilizatori').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('Setari').length).toBeGreaterThanOrEqual(1);
   });

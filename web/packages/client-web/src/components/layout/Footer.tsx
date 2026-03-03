@@ -118,11 +118,6 @@ export default function Footer() {
                   {t('footer.privacy')}
                 </Link>
               </li>
-              <li>
-                <Link to={ROUTE_MAP.gdpr[lang]} className="text-gray-300 hover:text-white text-sm transition-colors">
-                  {t('footer.gdpr')}
-                </Link>
-              </li>
             </ul>
           </div>
         </div>

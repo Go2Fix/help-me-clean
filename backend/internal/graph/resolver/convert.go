@@ -445,7 +445,14 @@ func dbBookingToGQL(b db.Booking) *model.Booking {
 		PaidAt:                timestamptzToTimePtr(b.PaidAt),
 		CategoryID:            categoryID,
 		CustomFields:          customFields,
-		CreatedAt:             timestamptzToTime(b.CreatedAt),
+		ReferralDiscountID: func() *string {
+			if !b.ReferralDiscountID.Valid {
+				return nil
+			}
+			s := uuidToString(b.ReferralDiscountID)
+			return &s
+		}(),
+		CreatedAt: timestamptzToTime(b.CreatedAt),
 	}
 }
 

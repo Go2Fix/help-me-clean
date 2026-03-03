@@ -375,6 +375,19 @@ func (r *mutationResolver) CancelBooking(ctx context.Context, id string, reason 
 		return nil, fmt.Errorf("failed to cancel booking: %w", err)
 	}
 
+	// If this booking had a reserved referral discount, release it back to available.
+	if current.ReferralDiscountID.Valid {
+		go func(discID pgtype.UUID, bID pgtype.UUID) {
+			bgCtx := context.Background()
+			if _, err := r.Queries.ReleaseReferralDiscount(bgCtx, discID); err != nil {
+				log.Printf("referral: failed to release discount %s on booking cancellation: %v", uuidToString(discID), err)
+			}
+			if err := r.Queries.ClearBookingReferralDiscount(bgCtx, bID); err != nil {
+				log.Printf("referral: failed to clear referral_discount_id on booking %s: %v", uuidToString(bID), err)
+			}
+		}(current.ReferralDiscountID, current.ID)
+	}
+
 	// Notify relevant parties based on who cancelled.
 	if cancelStatus == db.BookingStatusCancelledByClient {
 		r.dispatchBookingCancelledByClient(booking, reasonText)
@@ -557,6 +570,21 @@ func (r *mutationResolver) CompleteJob(ctx context.Context, id string) (*model.B
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to set final total: %w", err)
+	}
+
+	// Process referral tracking (non-blocking, best-effort).
+	// Must run before the invoice goroutine so that if the referrer also applies a
+	// discount on a future booking, the commission is already correct.
+	completedBookingForReferral := booking
+	go r.processReferralAtBookingComplete(context.Background(), completedBookingForReferral)
+
+	// Also: if this booking itself had a referral discount applied, confirm it as used.
+	if booking.ReferralDiscountID.Valid {
+		go func(discID pgtype.UUID) {
+			if _, err := r.Queries.ConfirmReferralDiscountUsed(context.Background(), discID); err != nil {
+				log.Printf("referral: failed to confirm discount %s as used: %v", uuidToString(discID), err)
+			}
+		}(booking.ReferralDiscountID)
 	}
 
 	// Auto-generate invoices after job completion (non-blocking, best-effort).

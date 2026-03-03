@@ -41,6 +41,7 @@ import {
   Mail,
   Info,
   Phone,
+  Gift,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@go2fix/shared';
@@ -75,6 +76,8 @@ import {
   SERVICE_CATEGORY_BY_SLUG,
   SERVICE_CATEGORIES,
   UPDATE_PROFILE,
+  MY_REFERRAL_STATUS,
+  APPLY_REFERRAL_DISCOUNT,
 } from '@/graphql/operations';
 
 const stripePromise = loadStripe(
@@ -387,6 +390,10 @@ export default function BookingPage() {
   const [paymentProcessing, setPaymentProcessing] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
 
+  // Referral discount state
+  const [appliedReferralDiscountId, setAppliedReferralDiscountId] = useState<string | null>(null);
+  const [referralApplied, setReferralApplied] = useState(false);
+
   // Dynamic steps: authenticated users get a Payment step; guests don't
   const STEPS = useMemo(() => {
     if (!isAuthenticated) return STEPS_BASE.filter((s) => s.key !== 'payment');
@@ -477,6 +484,16 @@ export default function BookingPage() {
   );
   const [createSubscription] = useMutation(CREATE_SUBSCRIPTION);
   const [updateProfile] = useMutation(UPDATE_PROFILE);
+
+  // Referral discount (lazy — only fetched when on payment step)
+  const isOnPaymentStep = STEPS[currentStep]?.key === 'payment';
+  const { data: referralData } = useQuery<{
+    myReferralStatus: { availableDiscounts: number };
+  }>(MY_REFERRAL_STATUS, {
+    skip: !isAuthenticated || !isOnPaymentStep,
+    fetchPolicy: 'network-only',
+  });
+  const [applyReferralDiscount] = useMutation(APPLY_REFERRAL_DISCOUNT);
 
   // Subscription pricing
   const { data: discountsData } = useQuery(RECURRING_DISCOUNTS);
@@ -671,6 +688,9 @@ export default function BookingPage() {
       setBookingPhoneSaving(false);
     }
   }, [bookingPhone, updateProfile, refetchUser]);
+
+  // wantReferralDiscount: user toggled "Aplică reducerea" before paying
+  const [wantReferralDiscount, setWantReferralDiscount] = useState(false);
 
   const handleToggleExtra = useCallback(
     (extraId: string, delta: number, allowMultiple: boolean) => {
@@ -885,6 +905,19 @@ export default function BookingPage() {
       const refCode = data.createBookingRequest.referenceCode;
       const recurringGrpId = data.createBookingRequest.recurringGroupId;
 
+      // 1b. Apply referral discount if user opted in
+      if (wantReferralDiscount && !appliedReferralDiscountId) {
+        try {
+          const { data: rdData } = await applyReferralDiscount({ variables: { bookingId } });
+          if (rdData?.applyReferralDiscount?.id) {
+            setAppliedReferralDiscountId(rdData.applyReferralDiscount.id);
+            setReferralApplied(true);
+          }
+        } catch (rdErr) {
+          console.error('Referral discount application failed (non-blocking):', rdErr);
+        }
+      }
+
       // 2. Create PaymentIntent
       try {
         const { data: piData } = await createPaymentIntent({
@@ -925,7 +958,7 @@ export default function BookingPage() {
     } finally {
       setPaymentProcessing(false);
     }
-  }, [selectedPaymentMethodId, paymentMethods, buildBookingInput, createBooking, createPaymentIntent, createSubscription, form]);
+  }, [selectedPaymentMethodId, paymentMethods, buildBookingInput, createBooking, createPaymentIntent, createSubscription, form, wantReferralDiscount, appliedReferralDiscountId, applyReferralDiscount]);
 
   // ---- Auth handlers --------------------------------------------------------
 
@@ -1284,6 +1317,59 @@ export default function BookingPage() {
 
             {STEPS[currentStep]?.key === 'payment' && (
               <div className="space-y-6">
+                {/* Referral discount banner */}
+                {isAuthenticated && (() => {
+                  const availableDiscounts = referralData?.myReferralStatus?.availableDiscounts ?? 0;
+                  if (referralApplied || appliedReferralDiscountId) {
+                    return (
+                      <div className="flex items-center gap-3 p-4 rounded-xl bg-emerald-50 border border-emerald-100">
+                        <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center shrink-0">
+                          <Check className="h-4 w-4 text-white" />
+                        </div>
+                        <p className="text-sm font-medium text-emerald-800">
+                          Reducere de recomandare aplicată — taxa platformei va fi eliminată din această comandă.
+                        </p>
+                      </div>
+                    );
+                  }
+                  if (availableDiscounts > 0) {
+                    return (
+                      <Card className="border-amber-100 bg-gradient-to-r from-amber-50 to-orange-50">
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+                            <Gift className="h-5 w-5 text-amber-600" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-gray-900 mb-0.5">
+                              Ai o reducere de recomandare disponibilă!
+                            </p>
+                            <p className="text-sm text-gray-600 mb-3">
+                              Taxa platformei va fi eliminată din această comandă. Compania va primi plata integrală.
+                            </p>
+                            {wantReferralDiscount ? (
+                              <div className="flex items-center gap-2 text-sm text-emerald-700 font-medium">
+                                <Check className="h-4 w-4" />
+                                Reducerea va fi aplicată la finalizarea plății
+                              </div>
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="border-amber-300 text-amber-800 hover:bg-amber-50"
+                                onClick={() => setWantReferralDiscount(true)}
+                              >
+                                <Gift className="h-4 w-4" />
+                                Aplică reducerea
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </Card>
+                    );
+                  }
+                  return null;
+                })()}
+
                 {/* Price reminder */}
                 {estimate && (
                   <Card className="bg-gradient-to-r from-blue-50 to-emerald-50 border-blue-100">
