@@ -1174,6 +1174,16 @@ type PersonalityInsight struct {
 	GeneratedAt       pgtype.Timestamptz `json:"generated_at"`
 }
 
+type PhoneOtpCode struct {
+	ID        pgtype.UUID        `json:"id"`
+	UserID    pgtype.UUID        `json:"user_id"`
+	Phone     string             `json:"phone"`
+	Code      string             `json:"code"`
+	ExpiresAt pgtype.Timestamptz `json:"expires_at"`
+	UsedAt    pgtype.Timestamptz `json:"used_at"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
 type PlatformEvent struct {
 	ID         pgtype.UUID        `json:"id"`
 	EventType  string             `json:"event_type"`
@@ -1418,6 +1428,7 @@ type User struct {
 	CreatedAt         pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
 	StripeCustomerID  pgtype.Text        `json:"stripe_customer_id"`
+	PhoneVerified     bool               `json:"phone_verified"`
 }
 
 type WaitlistLead struct {

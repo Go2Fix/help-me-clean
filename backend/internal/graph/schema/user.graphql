@@ -17,6 +17,7 @@ type User {
   email: String!
   fullName: String!
   phone: String
+  phoneVerified: Boolean!
   avatarUrl: String
   role: UserRole!
   status: UserStatus!
@@ -35,6 +36,13 @@ extend type Mutation {
   updateProfile(input: UpdateProfileInput!): User!
   uploadAvatar(file: Upload!): User!
   deleteMyAccount: Boolean!
+
+  # Sends a 6-digit OTP to the given phone via WhatsApp. Rate-limited to 3 per 10 minutes.
+  # Returns false gracefully if WhatsApp is not configured (dev/staging env).
+  requestPhoneVerification(phone: String!): Boolean!
+
+  # Validates the OTP code. On success sets phone + phone_verified = true on the user.
+  verifyPhone(phone: String!, code: String!): User!
 }
 
 input UpdateProfileInput {

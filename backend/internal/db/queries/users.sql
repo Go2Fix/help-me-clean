@@ -13,7 +13,7 @@ VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 RETURNING *;
 
 -- name: UpdateUser :one
-UPDATE users SET full_name = $2, phone = $3, avatar_url = $4, preferred_language = $5, updated_at = NOW()
+UPDATE users SET full_name = $2, phone = $3, phone_verified = CASE WHEN phone IS DISTINCT FROM $3 THEN false ELSE phone_verified END, avatar_url = $4, preferred_language = $5, updated_at = NOW()
 WHERE id = $1 RETURNING *;
 
 -- name: UpdateUserFCMToken :exec
@@ -58,6 +58,10 @@ UPDATE users SET avatar_url = $2, updated_at = NOW() WHERE id = $1 RETURNING *;
 
 -- name: UpdateUserPhone :one
 UPDATE users SET phone = $2, updated_at = NOW() WHERE id = $1 RETURNING *;
+
+-- name: SetUserPhoneVerified :one
+UPDATE users SET phone = $2, phone_verified = $3, updated_at = NOW()
+WHERE id = $1 RETURNING *;
 
 -- name: DeactivateUser :exec
 UPDATE users SET status = 'inactive', phone = NULL, avatar_url = NULL, fcm_token = NULL, updated_at = NOW() WHERE id = $1;

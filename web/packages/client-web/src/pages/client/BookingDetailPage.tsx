@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { usePlatform } from '@/context/PlatformContext';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/ClientBadge';
@@ -218,7 +219,8 @@ function RatingRow({ label, icon: Icon, value, onChange }: { label: string; icon
 export default function BookingDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { isAuthenticated, loading: authLoading } = useAuth();
+  const { isAuthenticated, loading: authLoading, user } = useAuth();
+  const { buildWhatsAppUrl } = usePlatform();
 
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [rescheduleModalOpen, setRescheduleModalOpen] = useState(false);
@@ -1180,6 +1182,36 @@ export default function BookingDetailPage() {
                 </div>
               </Card>
             )}
+            {/* Contact Suport */}
+            <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-start gap-4">
+              <div className="w-9 h-9 rounded-lg bg-[#25D366]/10 flex items-center justify-center shrink-0">
+                <MessageCircle className="h-4 w-4 text-[#25D366]" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-900">Ai o problema cu aceasta comanda?</p>
+                <p className="text-xs text-gray-500 mt-0.5">Contacteaza-ne pe WhatsApp si iti raspundem rapid.</p>
+              </div>
+              {user?.phone ? (
+                <a
+                  href={buildWhatsAppUrl(`Buna ziua, am nevoie de ajutor cu comanda #${booking.referenceCode}.`)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-all hover:opacity-90"
+                  style={{ backgroundColor: '#25D366' }}
+                >
+                  <MessageCircle className="h-3.5 w-3.5" />
+                  WhatsApp
+                </a>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => navigate('/cont/setari')}
+                  className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-primary border border-primary/30 hover:bg-primary/5 transition-colors"
+                >
+                  Adauga telefon mai intai &rarr;
+                </button>
+              )}
+            </div>
           </div>
         </div>
 

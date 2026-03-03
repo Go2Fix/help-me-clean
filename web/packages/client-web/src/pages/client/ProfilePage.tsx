@@ -4,7 +4,7 @@ import { useMutation } from '@apollo/client';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { standardSchemaResolver } from '@hookform/resolvers/standard-schema';
-import { User, Save, Check, AlertTriangle, Trash2 } from 'lucide-react';
+import { User, Save, Check, AlertTriangle, Trash2, CheckCircle, XCircle } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
@@ -12,6 +12,7 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import AvatarUpload from '@/components/ui/AvatarUpload';
+import PhoneVerificationWidget from '@/components/PhoneVerificationWidget';
 import {
   UPDATE_PROFILE,
   UPLOAD_AVATAR,
@@ -22,13 +23,16 @@ import {
 
 const profileSchema = z.object({
   fullName: z.string().min(2, 'Numele trebuie sa aiba cel putin 2 caractere'),
-  phone: z.string().optional(),
+  phone: z
+    .string()
+    .min(1, 'Numarul de telefon este obligatoriu')
+    .regex(/^\+/, 'Formatul trebuie sa fie +40...'),
   preferredLanguage: z.string().optional(),
 });
 
 type ProfileFormValues = {
   fullName: string;
-  phone?: string;
+  phone: string;
   preferredLanguage?: string;
 };
 
@@ -43,11 +47,13 @@ const LANGUAGE_OPTIONS = [
 
 export default function ProfilePage() {
   const { user, isAuthenticated, loading: authLoading, logout, refetchUser } = useAuth();
+  const [showVerifyWidget, setShowVerifyWidget] = useState(false);
 
   const {
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors, isDirty },
   } = useForm<ProfileFormValues>({
     resolver: standardSchemaResolver(profileSchema),
@@ -57,6 +63,8 @@ export default function ProfilePage() {
       preferredLanguage: 'ro',
     },
   });
+
+  const currentPhone = watch('phone');
 
   // Populate form when user data loads
   useEffect(() => {
@@ -111,6 +119,11 @@ export default function ProfilePage() {
         },
       },
     });
+    refetchUser();
+  };
+
+  const handleVerified = () => {
+    setShowVerifyWidget(false);
     refetchUser();
   };
 
@@ -177,13 +190,46 @@ export default function ProfilePage() {
                 {...register('fullName')}
               />
 
-              <Input
-                label="Numar de telefon"
-                type="tel"
-                placeholder="+40 7XX XXX XXX"
-                error={errors.phone?.message}
-                {...register('phone')}
-              />
+              <div className="space-y-2">
+                <Input
+                  label="Numar de telefon *"
+                  type="tel"
+                  placeholder="+40 7XX XXX XXX"
+                  error={errors.phone?.message}
+                  {...register('phone')}
+                />
+                {/* Verification status badge */}
+                {user?.phone && user.phoneVerified && (
+                  <div className="flex items-center gap-1.5 text-sm text-emerald-700 font-medium">
+                    <CheckCircle className="h-4 w-4" />
+                    Verificat via WhatsApp
+                  </div>
+                )}
+                {user?.phone && !user.phoneVerified && (
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex items-center gap-1.5 text-sm text-amber-600 font-medium">
+                      <XCircle className="h-4 w-4" />
+                      Neverificat
+                    </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setShowVerifyWidget((v) => !v)}
+                    >
+                      {showVerifyWidget ? 'Ascunde' : 'Verifica acum'}
+                    </Button>
+                  </div>
+                )}
+                {showVerifyWidget && user?.phone && (
+                  <div className="pt-2">
+                    <PhoneVerificationWidget
+                      phone={currentPhone || user.phone}
+                      onVerified={handleVerified}
+                    />
+                  </div>
+                )}
+              </div>
 
               <Select
                 label="Limba preferata"

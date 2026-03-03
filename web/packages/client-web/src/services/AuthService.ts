@@ -17,6 +17,7 @@ export interface AuthUser {
   role: string;
   status: string;
   phone?: string;
+  phoneVerified?: boolean;
   avatarUrl?: string;
   preferredLanguage?: string;
   createdAt?: string;

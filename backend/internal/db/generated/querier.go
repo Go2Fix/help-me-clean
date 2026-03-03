@@ -36,6 +36,7 @@ type Querier interface {
 	CompanyHasCategory(ctx context.Context, arg CompanyHasCategoryParams) (bool, error)
 	CompleteBooking(ctx context.Context, id pgtype.UUID) (Booking, error)
 	CountActiveEmailOTPs(ctx context.Context, email string) (int64, error)
+	CountActivePhoneOTPs(ctx context.Context, userID pgtype.UUID) (int64, error)
 	CountActiveRecurringGroups(ctx context.Context) (int64, error)
 	CountAllBookings(ctx context.Context) (int64, error)
 	CountAllReviews(ctx context.Context) (int64, error)
@@ -107,6 +108,7 @@ type Querier interface {
 	CreatePersonalityAssessment(ctx context.Context, arg CreatePersonalityAssessmentParams) (PersonalityAssessment, error)
 	// Create a new personality insight (cached AI analysis)
 	CreatePersonalityInsight(ctx context.Context, arg CreatePersonalityInsightParams) (PersonalityInsight, error)
+	CreatePhoneOTP(ctx context.Context, arg CreatePhoneOTPParams) (PhoneOtpCode, error)
 	CreatePlatformEvent(ctx context.Context, arg CreatePlatformEventParams) error
 	CreatePriceAuditEntry(ctx context.Context, arg CreatePriceAuditEntryParams) (PriceAuditLog, error)
 	CreateRecurringGroup(ctx context.Context, arg CreateRecurringGroupParams) (RecurringBookingGroup, error)
@@ -138,6 +140,7 @@ type Querier interface {
 	DeleteCompanyDocument(ctx context.Context, id pgtype.UUID) error
 	DeleteCompanyWorkSchedule(ctx context.Context, companyID pgtype.UUID) error
 	DeleteExpiredEmailOTPs(ctx context.Context) error
+	DeleteExpiredPhoneOTPs(ctx context.Context) error
 	DeletePaymentMethod(ctx context.Context, id pgtype.UUID) error
 	// Delete personality insight (for regeneration)
 	DeletePersonalityInsight(ctx context.Context, assessmentID pgtype.UUID) error
@@ -258,6 +261,7 @@ type Querier interface {
 	// ============================================
 	GetUserStripeCustomerID(ctx context.Context, id pgtype.UUID) (pgtype.Text, error)
 	GetValidEmailOTP(ctx context.Context, arg GetValidEmailOTPParams) (EmailOtpCode, error)
+	GetValidPhoneOTP(ctx context.Context, arg GetValidPhoneOTPParams) (PhoneOtpCode, error)
 	GetWorkerByID(ctx context.Context, id pgtype.UUID) (Worker, error)
 	GetWorkerByInviteToken(ctx context.Context, inviteToken pgtype.Text) (Worker, error)
 	GetWorkerByUserID(ctx context.Context, userID pgtype.UUID) (Worker, error)
@@ -390,6 +394,7 @@ type Querier interface {
 	MarkEmailOTPUsed(ctx context.Context, id pgtype.UUID) error
 	MarkInvoiceAsPaid(ctx context.Context, id pgtype.UUID) (Invoice, error)
 	MarkNotificationRead(ctx context.Context, id pgtype.UUID) error
+	MarkPhoneOTPUsed(ctx context.Context, id pgtype.UUID) error
 	PauseRecurringGroup(ctx context.Context, id pgtype.UUID) (RecurringBookingGroup, error)
 	PauseSubscription(ctx context.Context, id pgtype.UUID) (Subscription, error)
 	ReactivateWorkersByCompany(ctx context.Context, companyID pgtype.UUID) error
@@ -418,6 +423,7 @@ type Querier interface {
 	SetCompanyStripeConnect(ctx context.Context, arg SetCompanyStripeConnectParams) error
 	SetDefaultAddress(ctx context.Context, arg SetDefaultAddressParams) error
 	SetDefaultPaymentMethod(ctx context.Context, arg SetDefaultPaymentMethodParams) error
+	SetUserPhoneVerified(ctx context.Context, arg SetUserPhoneVerifiedParams) (User, error)
 	SetUserStripeCustomerID(ctx context.Context, arg SetUserStripeCustomerIDParams) error
 	SetWorkerAvailability(ctx context.Context, arg SetWorkerAvailabilityParams) (WorkerAvailability, error)
 	StartBooking(ctx context.Context, id pgtype.UUID) (Booking, error)

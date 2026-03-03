@@ -1107,6 +1107,7 @@ type User struct {
 	Email             string         `json:"email"`
 	FullName          string         `json:"fullName"`
 	Phone             *string        `json:"phone,omitempty"`
+	PhoneVerified     bool           `json:"phoneVerified"`
 	AvatarURL         *string        `json:"avatarUrl,omitempty"`
 	Role              UserRole       `json:"role"`
 	Status            UserStatus     `json:"status"`

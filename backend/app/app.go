@@ -147,6 +147,7 @@ func NewHandler(ctx context.Context) (http.Handler, func(), error) {
 		SubscriptionService: subscriptionSvc,
 		Storage:             store,
 		AuthzHelper:         authzHelper,
+		WhatsApp:            whatsappSvc,
 	}
 
 	// Wire subscription webhook callbacks.

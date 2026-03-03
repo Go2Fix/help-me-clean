@@ -12,9 +12,11 @@ import (
 	db "go2fix-backend/internal/db/generated"
 	"go2fix-backend/internal/graph/model"
 	"go2fix-backend/internal/storage"
+	"log"
 	"strings"
 
 	"github.com/99designs/gqlgen/graphql"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 // UpdateProfile is the resolver for the updateProfile field.
@@ -117,6 +119,93 @@ func (r *mutationResolver) DeleteMyAccount(ctx context.Context) (bool, error) {
 	}
 
 	return true, nil
+}
+
+// RequestPhoneVerification is the resolver for the requestPhoneVerification field.
+func (r *mutationResolver) RequestPhoneVerification(ctx context.Context, phone string) (bool, error) {
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil {
+		return false, fmt.Errorf("not authenticated")
+	}
+
+	// Validate phone format: must start with +
+	if !strings.HasPrefix(phone, "+") {
+		return false, fmt.Errorf("phone must be in international format starting with '+'")
+	}
+
+	// Rate limit: max 3 active OTPs per user
+	count, err := r.Queries.CountActivePhoneOTPs(ctx, stringToUUID(claims.UserID))
+	if err != nil {
+		return false, fmt.Errorf("failed to check rate limit: %w", err)
+	}
+	if count >= 3 {
+		return false, fmt.Errorf("prea multe incercari. Asteapta 10 minute.")
+	}
+
+	// Generate 6-digit OTP
+	code, err := generateOTPCode()
+	if err != nil {
+		return false, fmt.Errorf("failed to generate code: %w", err)
+	}
+
+	// Store OTP
+	_, err = r.Queries.CreatePhoneOTP(ctx, db.CreatePhoneOTPParams{
+		UserID: stringToUUID(claims.UserID),
+		Phone:  phone,
+		Code:   code,
+	})
+	if err != nil {
+		return false, fmt.Errorf("failed to store OTP: %w", err)
+	}
+
+	// Send via WhatsApp if configured
+	if r.WhatsApp != nil {
+		phoneDigits := strings.TrimPrefix(phone, "+")
+		message := fmt.Sprintf("Codul tau de verificare Go2Fix este: %s. Valid 10 minute.", code)
+		if err := r.WhatsApp.SendTextMessage(ctx, phoneDigits, message); err != nil {
+			log.Printf("RequestPhoneVerification: failed to send WhatsApp OTP to %s: %v", phone, err)
+			// Don't fail the request — OTP is stored, user can retry sending
+		}
+	} else {
+		log.Printf("RequestPhoneVerification: WhatsApp not configured, OTP stored but not sent (dev mode). Code: %s", code)
+	}
+
+	return true, nil
+}
+
+// VerifyPhone is the resolver for the verifyPhone field.
+func (r *mutationResolver) VerifyPhone(ctx context.Context, phone string, code string) (*model.User, error) {
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil {
+		return nil, fmt.Errorf("not authenticated")
+	}
+
+	// Look up valid OTP
+	otp, err := r.Queries.GetValidPhoneOTP(ctx, db.GetValidPhoneOTPParams{
+		UserID: stringToUUID(claims.UserID),
+		Phone:  phone,
+		Code:   code,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("cod invalid sau expirat")
+	}
+
+	// Mark as used
+	if err := r.Queries.MarkPhoneOTPUsed(ctx, otp.ID); err != nil {
+		return nil, fmt.Errorf("failed to mark OTP used: %w", err)
+	}
+
+	// Set phone as verified
+	updatedUser, err := r.Queries.SetUserPhoneVerified(ctx, db.SetUserPhoneVerifiedParams{
+		ID:            stringToUUID(claims.UserID),
+		Phone:         pgtype.Text{String: phone, Valid: true},
+		PhoneVerified: true,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to verify phone: %w", err)
+	}
+
+	return dbUserToGQL(updatedUser), nil
 }
 
 // UpdateUserRole is the resolver for the updateUserRole field.

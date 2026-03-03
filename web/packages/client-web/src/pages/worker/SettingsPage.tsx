@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import {
   Phone, FileText, Building2, Star, Briefcase, Camera, Loader2,
   Check, MapPin, Info, Brain, MessageSquare, Calendar, Layers,
+  CheckCircle, XCircle,
 } from 'lucide-react';
 import { cn } from '@go2fix/shared';
 import Card from '@/components/ui/Card';
@@ -13,6 +14,7 @@ import Input from '@/components/ui/Input';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import FileUpload from '@/components/ui/FileUpload';
 import DocumentCard from '@/components/ui/DocumentCard';
+import PhoneVerificationWidget from '@/components/PhoneVerificationWidget';
 import {
   MY_WORKER_PROFILE,
   MY_WORKER_STATS,
@@ -115,6 +117,8 @@ export default function SettingsPage() {
   const [bio, setBio] = useState('');
   const [saveSuccess, setSaveSuccess] = useState('');
   const [saveError, setSaveError] = useState('');
+  const [phoneError, setPhoneError] = useState('');
+  const [showVerifyWidget, setShowVerifyWidget] = useState(false);
 
   useEffect(() => {
     if (profile) {
@@ -131,6 +135,17 @@ export default function SettingsPage() {
     e.preventDefault();
     setSaveSuccess('');
     setSaveError('');
+    setPhoneError('');
+
+    if (!phone.trim()) {
+      setPhoneError('Numarul de telefon este obligatoriu.');
+      return;
+    }
+    if (!phone.startsWith('+')) {
+      setPhoneError('Formatul trebuie sa fie +40...');
+      return;
+    }
+
     try {
       await updateProfile({ variables: { input: { phone, bio } } });
       setSaveSuccess('Profil actualizat cu succes!');
@@ -521,15 +536,54 @@ export default function SettingsPage() {
       <Card>
         <h2 className="text-lg font-semibold text-gray-900 mb-6">Informatii profil</h2>
         <form onSubmit={handleSave} className="space-y-5">
-          <div className="relative">
-            <Phone className="absolute left-3 top-[38px] h-4 w-4 text-gray-400" />
-            <Input
-              label="Telefon"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="Numar de telefon"
-              className="pl-10"
-            />
+          <div className="space-y-2">
+            <div className="relative">
+              <Phone className="absolute left-3 top-[38px] h-4 w-4 text-gray-400" />
+              <Input
+                label="Telefon *"
+                value={phone}
+                onChange={(e) => {
+                  setPhone(e.target.value);
+                  setPhoneError('');
+                }}
+                placeholder="+40 7XX XXX XXX"
+                className="pl-10"
+                error={phoneError}
+              />
+            </div>
+            {/* Verification status badge */}
+            {profile?.phoneVerified && (
+              <div className="flex items-center gap-1.5 text-sm text-emerald-700 font-medium">
+                <CheckCircle className="h-4 w-4" />
+                Verificat via WhatsApp
+              </div>
+            )}
+            {profile?.phone && !profile?.phoneVerified && (
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-1.5 text-sm text-amber-600 font-medium">
+                  <XCircle className="h-4 w-4" />
+                  Neverificat
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowVerifyWidget((v) => !v)}
+                >
+                  {showVerifyWidget ? 'Ascunde' : 'Verifica acum'}
+                </Button>
+              </div>
+            )}
+            {showVerifyWidget && profile?.phone && (
+              <div className="pt-2">
+                <PhoneVerificationWidget
+                  phone={phone || profile.phone}
+                  onVerified={() => {
+                    setShowVerifyWidget(false);
+                  }}
+                />
+              </div>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Bio</label>

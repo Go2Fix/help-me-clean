@@ -84,7 +84,7 @@ func (q *Queries) CreateWorkerProfile(ctx context.Context, arg CreateWorkerProfi
 const createWorkerUser = `-- name: CreateWorkerUser :one
 INSERT INTO users (email, full_name, phone, role, status, created_at, updated_at)
 VALUES ($1, $2, $3, 'worker'::user_role, $4, NOW(), NOW())
-RETURNING id, email, full_name, phone, avatar_url, role, status, google_id, fcm_token, preferred_language, created_at, updated_at, stripe_customer_id
+RETURNING id, email, full_name, phone, avatar_url, role, status, google_id, fcm_token, preferred_language, created_at, updated_at, stripe_customer_id, phone_verified
 `
 
 type CreateWorkerUserParams struct {
@@ -116,6 +116,7 @@ func (q *Queries) CreateWorkerUser(ctx context.Context, arg CreateWorkerUserPara
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.StripeCustomerID,
+		&i.PhoneVerified,
 	)
 	return i, err
 }

@@ -15,6 +15,7 @@ import (
 	"go2fix-backend/internal/service/notification"
 	"go2fix-backend/internal/service/payment"
 	"go2fix-backend/internal/service/subscription"
+	"go2fix-backend/internal/service/whatsapp"
 	"go2fix-backend/internal/storage"
 )
 
@@ -28,6 +29,7 @@ type Resolver struct {
 	SubscriptionService *subscription.Service
 	Storage             storage.Storage
 	AuthzHelper         *middleware.AuthzHelper
+	WhatsApp            *whatsapp.Service
 }
 
 // workerWithCompany loads a worker's company, user, documents, and assessment, returns the full WorkerProfile.

@@ -12,7 +12,7 @@ import (
 )
 
 const adminUpdateUserProfile = `-- name: AdminUpdateUserProfile :one
-UPDATE users SET full_name = $2, phone = $3, updated_at = NOW() WHERE id = $1 RETURNING id, email, full_name, phone, avatar_url, role, status, google_id, fcm_token, preferred_language, created_at, updated_at, stripe_customer_id
+UPDATE users SET full_name = $2, phone = $3, updated_at = NOW() WHERE id = $1 RETURNING id, email, full_name, phone, avatar_url, role, status, google_id, fcm_token, preferred_language, created_at, updated_at, stripe_customer_id, phone_verified
 `
 
 type AdminUpdateUserProfileParams struct {
@@ -38,6 +38,7 @@ func (q *Queries) AdminUpdateUserProfile(ctx context.Context, arg AdminUpdateUse
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.StripeCustomerID,
+		&i.PhoneVerified,
 	)
 	return i, err
 }
@@ -76,7 +77,7 @@ func (q *Queries) CountUsersByRole(ctx context.Context, role UserRole) (int64, e
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (email, full_name, phone, avatar_url, role, status, google_id, preferred_language)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-RETURNING id, email, full_name, phone, avatar_url, role, status, google_id, fcm_token, preferred_language, created_at, updated_at, stripe_customer_id
+RETURNING id, email, full_name, phone, avatar_url, role, status, google_id, fcm_token, preferred_language, created_at, updated_at, stripe_customer_id, phone_verified
 `
 
 type CreateUserParams struct {
@@ -116,6 +117,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.StripeCustomerID,
+		&i.PhoneVerified,
 	)
 	return i, err
 }
@@ -139,7 +141,7 @@ func (q *Queries) DeleteUser(ctx context.Context, id pgtype.UUID) error {
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, email, full_name, phone, avatar_url, role, status, google_id, fcm_token, preferred_language, created_at, updated_at, stripe_customer_id FROM users WHERE email = $1
+SELECT id, email, full_name, phone, avatar_url, role, status, google_id, fcm_token, preferred_language, created_at, updated_at, stripe_customer_id, phone_verified FROM users WHERE email = $1
 `
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
@@ -159,12 +161,13 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.StripeCustomerID,
+		&i.PhoneVerified,
 	)
 	return i, err
 }
 
 const getUserByGoogleID = `-- name: GetUserByGoogleID :one
-SELECT id, email, full_name, phone, avatar_url, role, status, google_id, fcm_token, preferred_language, created_at, updated_at, stripe_customer_id FROM users WHERE google_id = $1
+SELECT id, email, full_name, phone, avatar_url, role, status, google_id, fcm_token, preferred_language, created_at, updated_at, stripe_customer_id, phone_verified FROM users WHERE google_id = $1
 `
 
 func (q *Queries) GetUserByGoogleID(ctx context.Context, googleID pgtype.Text) (User, error) {
@@ -184,12 +187,13 @@ func (q *Queries) GetUserByGoogleID(ctx context.Context, googleID pgtype.Text) (
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.StripeCustomerID,
+		&i.PhoneVerified,
 	)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, email, full_name, phone, avatar_url, role, status, google_id, fcm_token, preferred_language, created_at, updated_at, stripe_customer_id FROM users WHERE id = $1
+SELECT id, email, full_name, phone, avatar_url, role, status, google_id, fcm_token, preferred_language, created_at, updated_at, stripe_customer_id, phone_verified FROM users WHERE id = $1
 `
 
 func (q *Queries) GetUserByID(ctx context.Context, id pgtype.UUID) (User, error) {
@@ -209,12 +213,13 @@ func (q *Queries) GetUserByID(ctx context.Context, id pgtype.UUID) (User, error)
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.StripeCustomerID,
+		&i.PhoneVerified,
 	)
 	return i, err
 }
 
 const listAllUsers = `-- name: ListAllUsers :many
-SELECT id, email, full_name, phone, avatar_url, role, status, google_id, fcm_token, preferred_language, created_at, updated_at, stripe_customer_id FROM users ORDER BY full_name ASC
+SELECT id, email, full_name, phone, avatar_url, role, status, google_id, fcm_token, preferred_language, created_at, updated_at, stripe_customer_id, phone_verified FROM users ORDER BY full_name ASC
 `
 
 func (q *Queries) ListAllUsers(ctx context.Context) ([]User, error) {
@@ -240,6 +245,7 @@ func (q *Queries) ListAllUsers(ctx context.Context) ([]User, error) {
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.StripeCustomerID,
+			&i.PhoneVerified,
 		); err != nil {
 			return nil, err
 		}
@@ -252,7 +258,7 @@ func (q *Queries) ListAllUsers(ctx context.Context) ([]User, error) {
 }
 
 const listUsersByRole = `-- name: ListUsersByRole :many
-SELECT id, email, full_name, phone, avatar_url, role, status, google_id, fcm_token, preferred_language, created_at, updated_at, stripe_customer_id FROM users WHERE role = $1 ORDER BY created_at DESC
+SELECT id, email, full_name, phone, avatar_url, role, status, google_id, fcm_token, preferred_language, created_at, updated_at, stripe_customer_id, phone_verified FROM users WHERE role = $1 ORDER BY created_at DESC
 `
 
 func (q *Queries) ListUsersByRole(ctx context.Context, role UserRole) ([]User, error) {
@@ -278,6 +284,7 @@ func (q *Queries) ListUsersByRole(ctx context.Context, role UserRole) ([]User, e
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.StripeCustomerID,
+			&i.PhoneVerified,
 		); err != nil {
 			return nil, err
 		}
@@ -290,7 +297,7 @@ func (q *Queries) ListUsersByRole(ctx context.Context, role UserRole) ([]User, e
 }
 
 const searchUsers = `-- name: SearchUsers :many
-SELECT id, email, full_name, phone, avatar_url, role, status, google_id, fcm_token, preferred_language, created_at, updated_at, stripe_customer_id FROM users WHERE
+SELECT id, email, full_name, phone, avatar_url, role, status, google_id, fcm_token, preferred_language, created_at, updated_at, stripe_customer_id, phone_verified FROM users WHERE
     (full_name ILIKE '%' || $3::text || '%' OR email ILIKE '%' || $3::text || '%' OR COALESCE(phone, '') ILIKE '%' || $3::text || '%')
     AND ($4::text = '' OR role::text = $4::text)
     AND ($5::text = '' OR status::text = $5::text)
@@ -334,6 +341,7 @@ func (q *Queries) SearchUsers(ctx context.Context, arg SearchUsersParams) ([]Use
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.StripeCustomerID,
+			&i.PhoneVerified,
 		); err != nil {
 			return nil, err
 		}
@@ -346,7 +354,7 @@ func (q *Queries) SearchUsers(ctx context.Context, arg SearchUsersParams) ([]Use
 }
 
 const searchUsersByName = `-- name: SearchUsersByName :many
-SELECT id, email, full_name, phone, avatar_url, role, status, google_id, fcm_token, preferred_language, created_at, updated_at, stripe_customer_id FROM users WHERE full_name ILIKE '%' || $1 || '%' ORDER BY full_name ASC LIMIT 20
+SELECT id, email, full_name, phone, avatar_url, role, status, google_id, fcm_token, preferred_language, created_at, updated_at, stripe_customer_id, phone_verified FROM users WHERE full_name ILIKE '%' || $1 || '%' ORDER BY full_name ASC LIMIT 20
 `
 
 func (q *Queries) SearchUsersByName(ctx context.Context, dollar_1 pgtype.Text) ([]User, error) {
@@ -372,6 +380,7 @@ func (q *Queries) SearchUsersByName(ctx context.Context, dollar_1 pgtype.Text) (
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.StripeCustomerID,
+			&i.PhoneVerified,
 		); err != nil {
 			return nil, err
 		}
@@ -383,9 +392,42 @@ func (q *Queries) SearchUsersByName(ctx context.Context, dollar_1 pgtype.Text) (
 	return items, nil
 }
 
+const setUserPhoneVerified = `-- name: SetUserPhoneVerified :one
+UPDATE users SET phone = $2, phone_verified = $3, updated_at = NOW()
+WHERE id = $1 RETURNING id, email, full_name, phone, avatar_url, role, status, google_id, fcm_token, preferred_language, created_at, updated_at, stripe_customer_id, phone_verified
+`
+
+type SetUserPhoneVerifiedParams struct {
+	ID            pgtype.UUID `json:"id"`
+	Phone         pgtype.Text `json:"phone"`
+	PhoneVerified bool        `json:"phone_verified"`
+}
+
+func (q *Queries) SetUserPhoneVerified(ctx context.Context, arg SetUserPhoneVerifiedParams) (User, error) {
+	row := q.db.QueryRow(ctx, setUserPhoneVerified, arg.ID, arg.Phone, arg.PhoneVerified)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.FullName,
+		&i.Phone,
+		&i.AvatarUrl,
+		&i.Role,
+		&i.Status,
+		&i.GoogleID,
+		&i.FcmToken,
+		&i.PreferredLanguage,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.StripeCustomerID,
+		&i.PhoneVerified,
+	)
+	return i, err
+}
+
 const updateUser = `-- name: UpdateUser :one
-UPDATE users SET full_name = $2, phone = $3, avatar_url = $4, preferred_language = $5, updated_at = NOW()
-WHERE id = $1 RETURNING id, email, full_name, phone, avatar_url, role, status, google_id, fcm_token, preferred_language, created_at, updated_at, stripe_customer_id
+UPDATE users SET full_name = $2, phone = $3, phone_verified = CASE WHEN phone IS DISTINCT FROM $3 THEN false ELSE phone_verified END, avatar_url = $4, preferred_language = $5, updated_at = NOW()
+WHERE id = $1 RETURNING id, email, full_name, phone, avatar_url, role, status, google_id, fcm_token, preferred_language, created_at, updated_at, stripe_customer_id, phone_verified
 `
 
 type UpdateUserParams struct {
@@ -419,12 +461,13 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.StripeCustomerID,
+		&i.PhoneVerified,
 	)
 	return i, err
 }
 
 const updateUserAvatar = `-- name: UpdateUserAvatar :one
-UPDATE users SET avatar_url = $2, updated_at = NOW() WHERE id = $1 RETURNING id, email, full_name, phone, avatar_url, role, status, google_id, fcm_token, preferred_language, created_at, updated_at, stripe_customer_id
+UPDATE users SET avatar_url = $2, updated_at = NOW() WHERE id = $1 RETURNING id, email, full_name, phone, avatar_url, role, status, google_id, fcm_token, preferred_language, created_at, updated_at, stripe_customer_id, phone_verified
 `
 
 type UpdateUserAvatarParams struct {
@@ -449,6 +492,7 @@ func (q *Queries) UpdateUserAvatar(ctx context.Context, arg UpdateUserAvatarPara
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.StripeCustomerID,
+		&i.PhoneVerified,
 	)
 	return i, err
 }
@@ -468,7 +512,7 @@ func (q *Queries) UpdateUserFCMToken(ctx context.Context, arg UpdateUserFCMToken
 }
 
 const updateUserPhone = `-- name: UpdateUserPhone :one
-UPDATE users SET phone = $2, updated_at = NOW() WHERE id = $1 RETURNING id, email, full_name, phone, avatar_url, role, status, google_id, fcm_token, preferred_language, created_at, updated_at, stripe_customer_id
+UPDATE users SET phone = $2, updated_at = NOW() WHERE id = $1 RETURNING id, email, full_name, phone, avatar_url, role, status, google_id, fcm_token, preferred_language, created_at, updated_at, stripe_customer_id, phone_verified
 `
 
 type UpdateUserPhoneParams struct {
@@ -493,12 +537,13 @@ func (q *Queries) UpdateUserPhone(ctx context.Context, arg UpdateUserPhoneParams
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.StripeCustomerID,
+		&i.PhoneVerified,
 	)
 	return i, err
 }
 
 const updateUserRole = `-- name: UpdateUserRole :one
-UPDATE users SET role = $2, updated_at = NOW() WHERE id = $1 RETURNING id, email, full_name, phone, avatar_url, role, status, google_id, fcm_token, preferred_language, created_at, updated_at, stripe_customer_id
+UPDATE users SET role = $2, updated_at = NOW() WHERE id = $1 RETURNING id, email, full_name, phone, avatar_url, role, status, google_id, fcm_token, preferred_language, created_at, updated_at, stripe_customer_id, phone_verified
 `
 
 type UpdateUserRoleParams struct {
@@ -523,12 +568,13 @@ func (q *Queries) UpdateUserRole(ctx context.Context, arg UpdateUserRoleParams) 
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.StripeCustomerID,
+		&i.PhoneVerified,
 	)
 	return i, err
 }
 
 const updateUserStatus = `-- name: UpdateUserStatus :one
-UPDATE users SET status = $2, updated_at = NOW() WHERE id = $1 RETURNING id, email, full_name, phone, avatar_url, role, status, google_id, fcm_token, preferred_language, created_at, updated_at, stripe_customer_id
+UPDATE users SET status = $2, updated_at = NOW() WHERE id = $1 RETURNING id, email, full_name, phone, avatar_url, role, status, google_id, fcm_token, preferred_language, created_at, updated_at, stripe_customer_id, phone_verified
 `
 
 type UpdateUserStatusParams struct {
@@ -553,6 +599,7 @@ func (q *Queries) UpdateUserStatus(ctx context.Context, arg UpdateUserStatusPara
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.StripeCustomerID,
+		&i.PhoneVerified,
 	)
 	return i, err
 }

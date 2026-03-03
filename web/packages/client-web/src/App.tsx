@@ -8,6 +8,7 @@ import { LanguageProvider, useLanguage } from '@/context/LanguageContext';
 import { PageAlternateProvider } from '@/context/PageAlternateContext';
 import { ROUTE_MAP } from '@/i18n/routes';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import PhoneGate from '@/components/PhoneGate';
 
 // Layouts
 import PublicLayout from '@/components/layout/PublicLayout';
@@ -213,7 +214,9 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <RoleRoute role="CLIENT">
-              <ClientLayout />
+              <PhoneGate>
+                <ClientLayout />
+              </PhoneGate>
             </RoleRoute>
           </ProtectedRoute>
         }
@@ -239,9 +242,11 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <RoleRoute role="COMPANY_ADMIN">
-              <CompanyProvider>
-                <CompanyLayout />
-              </CompanyProvider>
+              <PhoneGate>
+                <CompanyProvider>
+                  <CompanyLayout />
+                </CompanyProvider>
+              </PhoneGate>
             </RoleRoute>
           </ProtectedRoute>
         }
@@ -268,7 +273,9 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <RoleRoute role="WORKER">
-              <WorkerLayout />
+              <PhoneGate>
+                <WorkerLayout />
+              </PhoneGate>
             </RoleRoute>
           </ProtectedRoute>
         }

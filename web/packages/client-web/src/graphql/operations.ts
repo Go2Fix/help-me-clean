@@ -81,6 +81,7 @@ export const ME = gql`
       email
       fullName
       phone
+      phoneVerified
       avatarUrl
       role
       status
@@ -4511,5 +4512,23 @@ export const MARK_NOTIFICATION_READ = gql`
 export const MARK_ALL_NOTIFICATIONS_READ = gql`
   mutation MarkAllNotificationsRead {
     markAllNotificationsRead
+  }
+`;
+
+// ─── Phone Verification ───────────────────────────────────────────────────────
+
+export const REQUEST_PHONE_VERIFICATION = gql`
+  mutation RequestPhoneVerification($phone: String!) {
+    requestPhoneVerification(phone: $phone)
+  }
+`;
+
+export const VERIFY_PHONE = gql`
+  mutation VerifyPhone($phone: String!, $code: String!) {
+    verifyPhone(phone: $phone, code: $code) {
+      id
+      phone
+      phoneVerified
+    }
   }
 `;

@@ -276,6 +276,7 @@ func dbUserToGQL(u db.User) *model.User {
 		Email:             u.Email,
 		FullName:          u.FullName,
 		Phone:             textPtr(u.Phone),
+		PhoneVerified:     u.PhoneVerified,
 		AvatarURL:         textPtr(u.AvatarUrl),
 		Role:              dbUserRoleToGQL(u.Role),
 		Status:            dbUserStatusToGQL(u.Status),

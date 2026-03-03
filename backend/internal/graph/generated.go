@@ -489,6 +489,7 @@ type ComplexityRoot struct {
 		RejectCompany                             func(childComplexity int, id string, reason string) int
 		RejectReview                              func(childComplexity int, id string) int
 		RequestEmailOtp                           func(childComplexity int, email string, role model.UserRole) int
+		RequestPhoneVerification                  func(childComplexity int, phone string) int
 		RequestRefund                             func(childComplexity int, bookingID string, reason string) int
 		RequestSubscriptionWorkerChange           func(childComplexity int, id string, reason *string) int
 		RescheduleBooking                         func(childComplexity int, id string, scheduledDate string, scheduledStartTime string, reason *string) int
@@ -541,6 +542,7 @@ type ComplexityRoot struct {
 		UpsertBillingProfile                      func(childComplexity int, input model.BillingProfileInput) int
 		VerifyCompanyWithAnaf                     func(childComplexity int, id string) int
 		VerifyEmailOtp                            func(childComplexity int, email string, code string, role model.UserRole) int
+		VerifyPhone                               func(childComplexity int, phone string, code string) int
 	}
 
 	Notification struct {
@@ -1077,6 +1079,7 @@ type ComplexityRoot struct {
 		FullName          func(childComplexity int) int
 		ID                func(childComplexity int) int
 		Phone             func(childComplexity int) int
+		PhoneVerified     func(childComplexity int) int
 		PreferredLanguage func(childComplexity int) int
 		Role              func(childComplexity int) int
 		Status            func(childComplexity int) int
@@ -1292,6 +1295,8 @@ type MutationResolver interface {
 	UpdateProfile(ctx context.Context, input model.UpdateProfileInput) (*model.User, error)
 	UploadAvatar(ctx context.Context, file graphql.Upload) (*model.User, error)
 	DeleteMyAccount(ctx context.Context) (bool, error)
+	RequestPhoneVerification(ctx context.Context, phone string) (bool, error)
+	VerifyPhone(ctx context.Context, phone string, code string) (*model.User, error)
 	UpdateUserRole(ctx context.Context, userID string, role model.UserRole) (*model.User, error)
 	AdminUpdateUserProfile(ctx context.Context, userID string, fullName string, phone *string) (*model.User, error)
 	JoinWaitlist(ctx context.Context, input model.JoinWaitlistInput) (*model.WaitlistLead, error)
@@ -3741,6 +3746,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.RequestEmailOtp(childComplexity, args["email"].(string), args["role"].(model.UserRole)), true
+	case "Mutation.requestPhoneVerification":
+		if e.complexity.Mutation.RequestPhoneVerification == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_requestPhoneVerification_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RequestPhoneVerification(childComplexity, args["phone"].(string)), true
 	case "Mutation.requestRefund":
 		if e.complexity.Mutation.RequestRefund == nil {
 			break
@@ -4313,6 +4329,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.VerifyEmailOtp(childComplexity, args["email"].(string), args["code"].(string), args["role"].(model.UserRole)), true
+	case "Mutation.verifyPhone":
+		if e.complexity.Mutation.VerifyPhone == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_verifyPhone_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.VerifyPhone(childComplexity, args["phone"].(string), args["code"].(string)), true
 
 	case "Notification.body":
 		if e.complexity.Notification.Body == nil {
@@ -7143,6 +7170,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.User.Phone(childComplexity), true
+	case "User.phoneVerified":
+		if e.complexity.User.PhoneVerified == nil {
+			break
+		}
+
+		return e.complexity.User.PhoneVerified(childComplexity), true
 	case "User.preferredLanguage":
 		if e.complexity.User.PreferredLanguage == nil {
 			break
@@ -8488,6 +8521,17 @@ func (ec *executionContext) field_Mutation_requestEmailOtp_args(ctx context.Cont
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_requestPhoneVerification_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "phone", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["phone"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_requestRefund_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -9282,6 +9326,22 @@ func (ec *executionContext) field_Mutation_verifyEmailOtp_args(ctx context.Conte
 		return nil, err
 	}
 	args["role"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_verifyPhone_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "phone", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["phone"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "code", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["code"] = arg1
 	return args, nil
 }
 
@@ -11337,6 +11397,8 @@ func (ec *executionContext) fieldContext_AuthPayload_user(_ context.Context, fie
 				return ec.fieldContext_User_fullName(ctx, field)
 			case "phone":
 				return ec.fieldContext_User_phone(ctx, field)
+			case "phoneVerified":
+				return ec.fieldContext_User_phoneVerified(ctx, field)
 			case "avatarUrl":
 				return ec.fieldContext_User_avatarUrl(ctx, field)
 			case "role":
@@ -11620,6 +11682,8 @@ func (ec *executionContext) fieldContext_Booking_client(_ context.Context, field
 				return ec.fieldContext_User_fullName(ctx, field)
 			case "phone":
 				return ec.fieldContext_User_phone(ctx, field)
+			case "phoneVerified":
+				return ec.fieldContext_User_phoneVerified(ctx, field)
 			case "avatarUrl":
 				return ec.fieldContext_User_avatarUrl(ctx, field)
 			case "role":
@@ -14967,6 +15031,8 @@ func (ec *executionContext) fieldContext_Company_admin(_ context.Context, field 
 				return ec.fieldContext_User_fullName(ctx, field)
 			case "phone":
 				return ec.fieldContext_User_phone(ctx, field)
+			case "phoneVerified":
+				return ec.fieldContext_User_phoneVerified(ctx, field)
 			case "avatarUrl":
 				return ec.fieldContext_User_avatarUrl(ctx, field)
 			case "role":
@@ -19740,6 +19806,8 @@ func (ec *executionContext) fieldContext_Mutation_suspendUser(ctx context.Contex
 				return ec.fieldContext_User_fullName(ctx, field)
 			case "phone":
 				return ec.fieldContext_User_phone(ctx, field)
+			case "phoneVerified":
+				return ec.fieldContext_User_phoneVerified(ctx, field)
 			case "avatarUrl":
 				return ec.fieldContext_User_avatarUrl(ctx, field)
 			case "role":
@@ -19803,6 +19871,8 @@ func (ec *executionContext) fieldContext_Mutation_reactivateUser(ctx context.Con
 				return ec.fieldContext_User_fullName(ctx, field)
 			case "phone":
 				return ec.fieldContext_User_phone(ctx, field)
+			case "phoneVerified":
+				return ec.fieldContext_User_phoneVerified(ctx, field)
 			case "avatarUrl":
 				return ec.fieldContext_User_avatarUrl(ctx, field)
 			case "role":
@@ -26709,6 +26779,8 @@ func (ec *executionContext) fieldContext_Mutation_updateProfile(ctx context.Cont
 				return ec.fieldContext_User_fullName(ctx, field)
 			case "phone":
 				return ec.fieldContext_User_phone(ctx, field)
+			case "phoneVerified":
+				return ec.fieldContext_User_phoneVerified(ctx, field)
 			case "avatarUrl":
 				return ec.fieldContext_User_avatarUrl(ctx, field)
 			case "role":
@@ -26772,6 +26844,8 @@ func (ec *executionContext) fieldContext_Mutation_uploadAvatar(ctx context.Conte
 				return ec.fieldContext_User_fullName(ctx, field)
 			case "phone":
 				return ec.fieldContext_User_phone(ctx, field)
+			case "phoneVerified":
+				return ec.fieldContext_User_phoneVerified(ctx, field)
 			case "avatarUrl":
 				return ec.fieldContext_User_avatarUrl(ctx, field)
 			case "role":
@@ -26831,6 +26905,112 @@ func (ec *executionContext) fieldContext_Mutation_deleteMyAccount(_ context.Cont
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_requestPhoneVerification(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_requestPhoneVerification,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().RequestPhoneVerification(ctx, fc.Args["phone"].(string))
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_requestPhoneVerification(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_requestPhoneVerification_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_verifyPhone(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_verifyPhone,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().VerifyPhone(ctx, fc.Args["phone"].(string), fc.Args["code"].(string))
+		},
+		nil,
+		ec.marshalNUser2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUser,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_verifyPhone(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "email":
+				return ec.fieldContext_User_email(ctx, field)
+			case "fullName":
+				return ec.fieldContext_User_fullName(ctx, field)
+			case "phone":
+				return ec.fieldContext_User_phone(ctx, field)
+			case "phoneVerified":
+				return ec.fieldContext_User_phoneVerified(ctx, field)
+			case "avatarUrl":
+				return ec.fieldContext_User_avatarUrl(ctx, field)
+			case "role":
+				return ec.fieldContext_User_role(ctx, field)
+			case "status":
+				return ec.fieldContext_User_status(ctx, field)
+			case "preferredLanguage":
+				return ec.fieldContext_User_preferredLanguage(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_User_createdAt(ctx, field)
+			case "workerProfile":
+				return ec.fieldContext_User_workerProfile(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_verifyPhone_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_updateUserRole(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -26864,6 +27044,8 @@ func (ec *executionContext) fieldContext_Mutation_updateUserRole(ctx context.Con
 				return ec.fieldContext_User_fullName(ctx, field)
 			case "phone":
 				return ec.fieldContext_User_phone(ctx, field)
+			case "phoneVerified":
+				return ec.fieldContext_User_phoneVerified(ctx, field)
 			case "avatarUrl":
 				return ec.fieldContext_User_avatarUrl(ctx, field)
 			case "role":
@@ -26927,6 +27109,8 @@ func (ec *executionContext) fieldContext_Mutation_adminUpdateUserProfile(ctx con
 				return ec.fieldContext_User_fullName(ctx, field)
 			case "phone":
 				return ec.fieldContext_User_phone(ctx, field)
+			case "phoneVerified":
+				return ec.fieldContext_User_phoneVerified(ctx, field)
 			case "avatarUrl":
 				return ec.fieldContext_User_avatarUrl(ctx, field)
 			case "role":
@@ -32523,6 +32707,8 @@ func (ec *executionContext) fieldContext_Query_allUsers(_ context.Context, field
 				return ec.fieldContext_User_fullName(ctx, field)
 			case "phone":
 				return ec.fieldContext_User_phone(ctx, field)
+			case "phoneVerified":
+				return ec.fieldContext_User_phoneVerified(ctx, field)
 			case "avatarUrl":
 				return ec.fieldContext_User_avatarUrl(ctx, field)
 			case "role":
@@ -37524,6 +37710,8 @@ func (ec *executionContext) fieldContext_Query_me(_ context.Context, field graph
 				return ec.fieldContext_User_fullName(ctx, field)
 			case "phone":
 				return ec.fieldContext_User_phone(ctx, field)
+			case "phoneVerified":
+				return ec.fieldContext_User_phoneVerified(ctx, field)
 			case "avatarUrl":
 				return ec.fieldContext_User_avatarUrl(ctx, field)
 			case "role":
@@ -37623,6 +37811,8 @@ func (ec *executionContext) fieldContext_Query_user(ctx context.Context, field g
 				return ec.fieldContext_User_fullName(ctx, field)
 			case "phone":
 				return ec.fieldContext_User_phone(ctx, field)
+			case "phoneVerified":
+				return ec.fieldContext_User_phoneVerified(ctx, field)
 			case "avatarUrl":
 				return ec.fieldContext_User_avatarUrl(ctx, field)
 			case "role":
@@ -38943,6 +39133,8 @@ func (ec *executionContext) fieldContext_RefundRequest_requestedBy(_ context.Con
 				return ec.fieldContext_User_fullName(ctx, field)
 			case "phone":
 				return ec.fieldContext_User_phone(ctx, field)
+			case "phoneVerified":
+				return ec.fieldContext_User_phoneVerified(ctx, field)
 			case "avatarUrl":
 				return ec.fieldContext_User_avatarUrl(ctx, field)
 			case "role":
@@ -38994,6 +39186,8 @@ func (ec *executionContext) fieldContext_RefundRequest_approvedBy(_ context.Cont
 				return ec.fieldContext_User_fullName(ctx, field)
 			case "phone":
 				return ec.fieldContext_User_phone(ctx, field)
+			case "phoneVerified":
+				return ec.fieldContext_User_phoneVerified(ctx, field)
 			case "avatarUrl":
 				return ec.fieldContext_User_avatarUrl(ctx, field)
 			case "role":
@@ -39506,6 +39700,8 @@ func (ec *executionContext) fieldContext_Review_reviewer(_ context.Context, fiel
 				return ec.fieldContext_User_fullName(ctx, field)
 			case "phone":
 				return ec.fieldContext_User_phone(ctx, field)
+			case "phoneVerified":
+				return ec.fieldContext_User_phoneVerified(ctx, field)
 			case "avatarUrl":
 				return ec.fieldContext_User_avatarUrl(ctx, field)
 			case "role":
@@ -41471,6 +41667,8 @@ func (ec *executionContext) fieldContext_ServiceSubscription_client(_ context.Co
 				return ec.fieldContext_User_fullName(ctx, field)
 			case "phone":
 				return ec.fieldContext_User_phone(ctx, field)
+			case "phoneVerified":
+				return ec.fieldContext_User_phoneVerified(ctx, field)
 			case "avatarUrl":
 				return ec.fieldContext_User_avatarUrl(ctx, field)
 			case "role":
@@ -44302,6 +44500,35 @@ func (ec *executionContext) fieldContext_User_phone(_ context.Context, field gra
 	return fc, nil
 }
 
+func (ec *executionContext) _User_phoneVerified(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_User_phoneVerified,
+		func(ctx context.Context) (any, error) {
+			return obj.PhoneVerified, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_User_phoneVerified(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _User_avatarUrl(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -44546,6 +44773,8 @@ func (ec *executionContext) fieldContext_UserConnection_users(_ context.Context,
 				return ec.fieldContext_User_fullName(ctx, field)
 			case "phone":
 				return ec.fieldContext_User_phone(ctx, field)
+			case "phoneVerified":
+				return ec.fieldContext_User_phoneVerified(ctx, field)
 			case "avatarUrl":
 				return ec.fieldContext_User_avatarUrl(ctx, field)
 			case "role":
@@ -45757,6 +45986,8 @@ func (ec *executionContext) fieldContext_WorkerProfile_user(_ context.Context, f
 				return ec.fieldContext_User_fullName(ctx, field)
 			case "phone":
 				return ec.fieldContext_User_phone(ctx, field)
+			case "phoneVerified":
+				return ec.fieldContext_User_phoneVerified(ctx, field)
 			case "avatarUrl":
 				return ec.fieldContext_User_avatarUrl(ctx, field)
 			case "role":
@@ -53494,6 +53725,20 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "requestPhoneVerification":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_requestPhoneVerification(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "verifyPhone":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_verifyPhone(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "updateUserRole":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_updateUserRole(ctx, field)
@@ -58813,6 +59058,11 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "phone":
 			out.Values[i] = ec._User_phone(ctx, field, obj)
+		case "phoneVerified":
+			out.Values[i] = ec._User_phoneVerified(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "avatarUrl":
 			out.Values[i] = ec._User_avatarUrl(ctx, field, obj)
 		case "role":
