@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Bell, Star, CheckCircle2, Smartphone } from 'lucide-react';
+import { Bell, Star, CheckCircle2 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { ROUTE_MAP } from '@/i18n/routes';
 
@@ -36,12 +36,63 @@ function GooglePlayLogo({ className }: { className?: string }) {
   );
 }
 
+// ─── Tab bar SF-style icons ───────────────────────────────────────────────────
+
+function TabHome({ active }: { active: boolean }) {
+  const c = active ? '#2563EB' : '#374151';
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1H5a1 1 0 01-1-1v-9.5z" />
+      <path d="M9 21v-8h6v8" />
+    </svg>
+  );
+}
+
+function TabCalendar({ active }: { active: boolean }) {
+  const c = active ? '#2563EB' : '#374151';
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="4" width="18" height="18" rx="2.5" />
+      <path d="M16 2v4M8 2v4M3 10h18" />
+      <circle cx="8.5" cy="15" r="0.9" fill={c} stroke="none" />
+      <circle cx="12" cy="15" r="0.9" fill={c} stroke="none" />
+      <circle cx="15.5" cy="15" r="0.9" fill={c} stroke="none" />
+    </svg>
+  );
+}
+
+function TabChat({ active }: { active: boolean }) {
+  const c = active ? '#2563EB' : '#374151';
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+    </svg>
+  );
+}
+
+function TabProfile({ active }: { active: boolean }) {
+  const c = active ? '#2563EB' : '#374151';
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 20c0-3.866 3.582-7 8-7s8 3.134 8 7" />
+    </svg>
+  );
+}
+
 // ─── Phone Mockup ─────────────────────────────────────────────────────────────
 
 function PhoneMockup() {
+  const tabs = [
+    { Icon: TabHome,     label: 'Acasă',      active: true  },
+    { Icon: TabCalendar, label: 'Programări',  active: false },
+    { Icon: TabChat,     label: 'Chat',        active: false },
+    { Icon: TabProfile,  label: 'Profil',      active: false },
+  ];
+
   return (
     <div className="relative flex justify-center">
-      {/* Glow effect */}
+      {/* Glow */}
       <div className="absolute inset-0 bg-blue-500/20 blur-3xl rounded-full scale-75" />
 
       {/* Floating notification */}
@@ -75,48 +126,62 @@ function PhoneMockup() {
 
       {/* Phone frame */}
       <div className="relative w-[200px] sm:w-[220px]">
-        {/* Phone outer shell */}
+        {/* Outer shell */}
         <div className="bg-slate-800 rounded-[40px] p-2 shadow-2xl ring-1 ring-white/10">
           {/* Screen */}
-          <div className="bg-gray-50 rounded-[32px] overflow-hidden">
+          <div className="relative bg-gradient-to-b from-slate-100 to-gray-50 rounded-[32px] overflow-hidden">
+
             {/* Status bar */}
-            <div className="bg-white px-5 pt-3 pb-2 flex items-center justify-between">
+            <div className="relative bg-transparent px-5 pt-3 pb-2 flex items-center justify-between">
               <span className="text-[10px] font-bold text-gray-800">9:41</span>
-              {/* Notch */}
-              <div className="w-16 h-4 bg-slate-800 rounded-full absolute left-1/2 -translate-x-1/2 top-2" />
+              {/* Dynamic Island */}
+              <div className="w-14 h-[14px] bg-slate-900 rounded-full absolute left-1/2 -translate-x-1/2 top-2" />
               <div className="flex items-center gap-1">
-                <div className="w-3 h-2 border border-gray-400 rounded-[2px]">
-                  <div className="w-2 h-full bg-gray-400 rounded-[1px]" />
+                {/* Signal bars */}
+                <svg width="12" height="9" viewBox="0 0 12 9" fill="#1C1C1E">
+                  <rect x="0" y="5" width="2.5" height="4" rx="0.5" opacity="0.35"/>
+                  <rect x="3.2" y="3.2" width="2.5" height="5.8" rx="0.5" opacity="0.55"/>
+                  <rect x="6.4" y="1.5" width="2.5" height="7.5" rx="0.5" opacity="0.75"/>
+                  <rect x="9.5" y="0" width="2.5" height="9" rx="0.5"/>
+                </svg>
+                {/* Battery */}
+                <div className="flex items-center gap-0.5">
+                  <div className="w-5 h-2.5 border border-gray-700 rounded-[3px] relative">
+                    <div className="absolute inset-[2px] right-[2px] bg-gray-800 rounded-[1px]" />
+                  </div>
+                  <div className="w-0.5 h-1 bg-gray-600 rounded-r-sm" />
                 </div>
               </div>
             </div>
 
-            {/* App UI */}
-            <div className="px-3 pb-4 space-y-2 bg-gray-50">
+            {/* App content */}
+            <div className="px-3 pb-14 space-y-2">
               {/* Header */}
-              <div className="pt-2 pb-1">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center">
-                    <Smartphone className="h-4 w-4 text-white" />
-                  </div>
+              <div className="pt-1 pb-1">
+                <div className="flex items-center justify-between mb-3">
                   <div>
-                    <p className="text-[9px] font-black text-gray-900 leading-tight">Go2Fix</p>
-                    <p className="text-[7px] text-gray-400 leading-tight">Bună, Maria!</p>
+                    <p className="text-[8px] text-gray-400 leading-tight">Bună dimineața,</p>
+                    <p className="text-[10px] font-black text-gray-900 leading-tight">Maria! 👋</p>
+                  </div>
+                  <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
+                    <Bell className="h-3 w-3 text-white" />
                   </div>
                 </div>
 
-                {/* Search bar mockup */}
-                <div className="bg-white rounded-lg px-2 py-1.5 flex items-center gap-1.5 border border-gray-200">
-                  <div className="w-2 h-2 rounded-full border border-gray-300" />
+                {/* Search bar */}
+                <div className="bg-white/80 backdrop-blur-sm rounded-xl px-2.5 py-2 flex items-center gap-1.5 border border-gray-200/60 shadow-sm">
+                  <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2.5" strokeLinecap="round">
+                    <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+                  </svg>
                   <p className="text-[8px] text-gray-400">Caută servicii...</p>
                 </div>
               </div>
 
               {/* Upcoming booking card */}
               <div className="bg-white rounded-xl p-2.5 border border-gray-100 shadow-sm">
-                <div className="flex items-center gap-1.5 mb-2">
+                <div className="flex items-center gap-1.5 mb-1.5">
                   <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
-                  <p className="text-[8px] font-bold text-gray-700 uppercase tracking-wide">Programare</p>
+                  <p className="text-[7px] font-bold text-gray-500 uppercase tracking-wide">Programare</p>
                 </div>
                 <p className="text-[9px] font-black text-gray-900 leading-snug">Curățenie apartament</p>
                 <p className="text-[7px] text-gray-400 mt-0.5">Mâine · 10:00 – 13:00</p>
@@ -144,21 +209,41 @@ function PhoneMockup() {
                   </div>
                 ))}
               </div>
+            </div>
 
-              {/* Bottom nav bar */}
-              <div className="bg-white rounded-2xl p-2 border border-gray-100 flex justify-around mt-1">
-                {['🏠', '📅', '💬', '👤'].map((icon) => (
-                  <div key={icon} className="text-sm">{icon}</div>
+            {/* ── Liquid Glass Tab Bar ── */}
+            <div className="absolute bottom-0 left-0 right-0 px-2 pb-2.5 pt-1">
+              <div
+                className="rounded-2xl flex justify-around items-center px-1 py-2"
+                style={{
+                  background: 'rgba(255,255,255,0.08)',
+                  backdropFilter: 'blur(24px) saturate(200%)',
+                  WebkitBackdropFilter: 'blur(24px) saturate(200%)',
+                  border: '1px solid rgba(255,255,255,0.18)',
+                  boxShadow: '0 2px 20px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.3)',
+                }}
+              >
+                {tabs.map(({ Icon, label, active }) => (
+                  <div key={label} className="flex flex-col items-center gap-0.5 px-1.5">
+                    <Icon active={active} />
+                    <span
+                      className="text-[6px] font-medium leading-none"
+                      style={{ color: active ? '#2563EB' : '#374151' }}
+                    >
+                      {label}
+                    </span>
+                  </div>
                 ))}
               </div>
             </div>
+
           </div>
         </div>
 
         {/* Side buttons */}
         <div className="absolute right-[-4px] top-20 w-1 h-8 bg-slate-700 rounded-r-sm" />
         <div className="absolute left-[-4px] top-14 w-1 h-6 bg-slate-700 rounded-l-sm" />
-        <div className="absolute left-[-4px] top-22 w-1 h-6 bg-slate-700 rounded-l-sm" />
+        <div className="absolute left-[-4px] top-[88px] w-1 h-6 bg-slate-700 rounded-l-sm" />
       </div>
     </div>
   );
