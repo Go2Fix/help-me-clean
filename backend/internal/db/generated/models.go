@@ -1041,8 +1041,8 @@ type Invoice struct {
 	ID                   pgtype.UUID        `json:"id"`
 	InvoiceType          InvoiceType        `json:"invoice_type"`
 	InvoiceNumber        pgtype.Text        `json:"invoice_number"`
-	OblioNumber          pgtype.Text        `json:"oblio_number"`
-	OblioDownloadUrl     pgtype.Text        `json:"oblio_download_url"`
+	KeezNumber           pgtype.Text        `json:"keez_number"`
+	KeezDownloadUrl      pgtype.Text        `json:"keez_download_url"`
 	SellerCompanyName    string             `json:"seller_company_name"`
 	SellerCui            string             `json:"seller_cui"`
 	SellerRegNumber      pgtype.Text        `json:"seller_reg_number"`
@@ -1077,7 +1077,8 @@ type Invoice struct {
 	Notes                pgtype.Text        `json:"notes"`
 	CreatedAt            pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt            pgtype.Timestamptz `json:"updated_at"`
-	OblioSeriesName      pgtype.Text        `json:"oblio_series_name"`
+	KeezSeries           pgtype.Text        `json:"keez_series"`
+	KeezExternalId       pgtype.Text        `json:"keez_external_id"`
 }
 
 type InvoiceLineItem struct {

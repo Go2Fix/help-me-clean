@@ -727,11 +727,11 @@ func dbRefundRequestToGQL(r db.RefundRequest) *model.RefundRequest {
 }
 
 func dbInvoiceToGQL(inv db.Invoice) *model.Invoice {
-	// Prefer Oblio's invoice number (e.g. "FCT-0053") when available.
-	// Fall back to local sequence number while Oblio sync is pending.
+	// Prefer Keez's invoice number (e.g. "FCT 53") when available.
+	// Fall back to local sequence number while Keez sync is pending.
 	invoiceNumber := textPtr(inv.InvoiceNumber)
-	if inv.OblioSeriesName.Valid && inv.OblioNumber.Valid && inv.OblioNumber.String != "" {
-		s := inv.OblioSeriesName.String + "-" + inv.OblioNumber.String
+	if inv.KeezSeries.Valid && inv.KeezNumber.Valid && inv.KeezNumber.String != "" {
+		s := inv.KeezSeries.String + " " + inv.KeezNumber.String
 		invoiceNumber = &s
 	}
 	return &model.Invoice{
@@ -760,7 +760,7 @@ func dbInvoiceToGQL(inv db.Invoice) *model.Invoice {
 		TotalAmount:       int(inv.TotalAmount),
 		Currency:          inv.Currency,
 		EfacturaStatus:    textPtr(inv.EfacturaStatus),
-		DownloadURL:       textPtr(inv.OblioDownloadUrl),
+		DownloadURL:       textPtr(inv.KeezDownloadUrl),
 		IssuedAt:          timestamptzToTimePtr(inv.IssuedAt),
 		DueDate: func() *string {
 			s := dateToString(inv.DueDate)

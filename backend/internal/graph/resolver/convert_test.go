@@ -2453,9 +2453,9 @@ func TestDbInvoiceToGQL(t *testing.T) {
 			VatAmount:             2850,
 			TotalAmount:           17850,
 			Currency:              "RON",
-			EfacturaStatus:        makeText("transmitted"),
-			OblioDownloadUrl: makeText("https://www.oblio.eu/utils/show_file/?id=abc123"),
-			IssuedAt:              makeTimestamptz(issuedAt),
+			EfacturaStatus:  makeText("transmitted"),
+			KeezDownloadUrl: makeText("https://app.keez.ro/invoices/preview/abc123"),
+			IssuedAt:        makeTimestamptz(issuedAt),
 			DueDate:               pgtype.Date{Time: time.Date(2025, 7, 15, 0, 0, 0, 0, time.UTC), Valid: true},
 			Notes:                 makeText("Service curatenie standard"),
 			CreatedAt:             makeTimestamptz(now),
@@ -2509,7 +2509,7 @@ func TestDbInvoiceToGQL(t *testing.T) {
 		if result.EfacturaStatus == nil || *result.EfacturaStatus != "transmitted" {
 			t.Errorf("expected EfacturaStatus 'transmitted', got %v", result.EfacturaStatus)
 		}
-		if result.DownloadURL == nil || *result.DownloadURL != "https://www.oblio.eu/utils/show_file/?id=abc123" {
+		if result.DownloadURL == nil || *result.DownloadURL != "https://app.keez.ro/invoices/preview/abc123" {
 			t.Errorf("expected DownloadURL, got %v", result.DownloadURL)
 		}
 		if result.IssuedAt == nil || !result.IssuedAt.Equal(issuedAt) {
@@ -2549,9 +2549,9 @@ func TestDbInvoiceToGQL(t *testing.T) {
 			VatAmount:             950,
 			TotalAmount:           5950,
 			Currency:              "RON",
-			EfacturaStatus:        pgtype.Text{Valid: false},
-			OblioDownloadUrl: pgtype.Text{Valid: false},
-			IssuedAt:              pgtype.Timestamptz{Valid: false},
+			EfacturaStatus:  pgtype.Text{Valid: false},
+			KeezDownloadUrl: pgtype.Text{Valid: false},
+			IssuedAt:        pgtype.Timestamptz{Valid: false},
 			DueDate:               pgtype.Date{Valid: false},
 			Notes:                 pgtype.Text{Valid: false},
 			CreatedAt:             makeTimestamptz(now),

@@ -1,4 +1,4 @@
-// Package invoice implements invoice generation, Oblio.eu API integration,
+// Package invoice implements invoice generation, Keez.ro API integration,
 // and e-factura transmission for the Go2Fix platform.
 package invoice
 
@@ -13,8 +13,10 @@ import (
 	"math"
 	"math/big"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
@@ -38,33 +40,35 @@ type PlatformConfig struct {
 	IBAN        string
 }
 
-// Service handles invoice generation, storage, and Oblio.eu API integration.
+// Service handles invoice generation, storage, and Keez.ro API integration.
 type Service struct {
-	queries           *db.Queries
-	oblioClientID     string
-	oblioClientSecret string
-	oblioCIF          string
-	oblioSeriesName   string
-	httpClient        *http.Client
-	oblioToken        string
-	oblioTokenExpiry  time.Time
-	platformConfig    PlatformConfig
-	vatRatePct        int // cached VAT rate; 0 means not yet loaded
+	queries            *db.Queries
+	keezClientEid      string
+	keezApplicationID  string
+	keezSecret         string
+	keezSeries         string
+	httpClient         *http.Client
+	keezToken          string
+	keezTokenExpiry    time.Time
+	keezItemMu         sync.Mutex
+	keezCommissionID string // itemExternalId for "Comision platforma Go2Fix" (ITSRV category)
+	platformConfig     PlatformConfig
+	vatRatePct         int // cached VAT rate; 0 means not yet loaded
 }
 
 // NewService creates a new invoice service, reading configuration from environment variables.
 func NewService(queries *db.Queries) *Service {
-	seriesName := os.Getenv("OBLIO_SERIES_NAME")
-	if seriesName == "" {
-		seriesName = "FCT"
+	series := os.Getenv("KEEZ_SERIES")
+	if series == "" {
+		series = "FCT"
 	}
 
 	svc := &Service{
 		queries:           queries,
-		oblioClientID:     os.Getenv("OBLIO_CLIENT_ID"),
-		oblioClientSecret: os.Getenv("OBLIO_CLIENT_SECRET"),
-		oblioCIF:          os.Getenv("OBLIO_CIF"),
-		oblioSeriesName:   seriesName,
+		keezClientEid:     os.Getenv("KEEZ_CLIENT_EID"),
+		keezApplicationID: os.Getenv("KEEZ_APPLICATION_ID"),
+		keezSecret:        os.Getenv("KEEZ_SECRET"),
+		keezSeries:        series,
 		httpClient:        &http.Client{Timeout: 30 * time.Second},
 		platformConfig:    PlatformConfig{}, // Will be loaded from DB on first use
 	}
@@ -123,61 +127,67 @@ func (s *Service) loadVATRate(ctx context.Context) int {
 	return s.vatRatePct
 }
 
-// oblioGetToken returns a valid OAuth2 Bearer token for the Oblio.eu API,
+// keezGetToken returns a valid Bearer token for the Keez.ro API,
 // refreshing it automatically when it is about to expire.
-func (s *Service) oblioGetToken(ctx context.Context) (string, error) {
-	if s.oblioClientID == "" || s.oblioClientSecret == "" {
-		return "", errors.New("invoice: OBLIO_CLIENT_ID or OBLIO_CLIENT_SECRET not configured")
+func (s *Service) keezGetToken(ctx context.Context) (string, error) {
+	if s.keezApplicationID == "" || s.keezSecret == "" {
+		return "", errors.New("invoice: KEEZ_APPLICATION_ID or KEEZ_SECRET not configured")
 	}
 	// Return cached token if still valid (with 60-second safety margin).
-	if s.oblioToken != "" && time.Now().Before(s.oblioTokenExpiry.Add(-60*time.Second)) {
-		return s.oblioToken, nil
+	if s.keezToken != "" && time.Now().Before(s.keezTokenExpiry.Add(-60*time.Second)) {
+		return s.keezToken, nil
 	}
 
-	form := "client_id=" + s.oblioClientID + "&client_secret=" + s.oblioClientSecret
+	formData := url.Values{}
+	formData.Set("client_id", "app"+s.keezApplicationID)
+	formData.Set("client_secret", s.keezSecret)
+	formData.Set("grant_type", "client_credentials")
+	formData.Set("scope", "public-api")
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost,
-		"https://www.oblio.eu/api/authorize/token",
-		strings.NewReader(form),
+		"https://app.keez.ro/idp/connect/token",
+		strings.NewReader(formData.Encode()),
 	)
 	if err != nil {
-		return "", fmt.Errorf("invoice: build oblio token request: %w", err)
+		return "", fmt.Errorf("invoice: build keez token request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := s.httpClient.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("invoice: oblio token request failed: %w", err)
+		return "", fmt.Errorf("invoice: keez token request failed: %w", err)
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", fmt.Errorf("invoice: read oblio token response: %w", err)
+		return "", fmt.Errorf("invoice: read keez token response: %w", err)
 	}
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("invoice: oblio token endpoint returned %d: %s", resp.StatusCode, string(body))
+		return "", fmt.Errorf("invoice: keez token endpoint returned %d: %s", resp.StatusCode, string(body))
 	}
 
 	var tokenResp struct {
 		AccessToken string `json:"access_token"`
-		ExpiresIn   string `json:"expires_in"`
 		TokenType   string `json:"token_type"`
+		ExpiresIn   int64  `json:"expires_in"`
 	}
 	if err := json.Unmarshal(body, &tokenResp); err != nil {
-		return "", fmt.Errorf("invoice: parse oblio token response: %w", err)
+		return "", fmt.Errorf("invoice: parse keez token response: %w", err)
 	}
 	if tokenResp.AccessToken == "" {
-		return "", errors.New("invoice: oblio returned empty access_token")
+		return "", errors.New("invoice: keez returned empty access_token")
 	}
 
-	var expiresInSec int64 = 3600
-	if _, parseErr := fmt.Sscanf(tokenResp.ExpiresIn, "%d", &expiresInSec); parseErr != nil || expiresInSec <= 0 {
+	expiresInSec := tokenResp.ExpiresIn
+	if expiresInSec <= 0 {
 		expiresInSec = 3600
 	}
 
-	s.oblioToken = tokenResp.AccessToken
-	s.oblioTokenExpiry = time.Now().Add(time.Duration(expiresInSec) * time.Second)
-	return s.oblioToken, nil
+	// Store the full token string including type (e.g. "Bearer abc123").
+	s.keezToken = tokenResp.TokenType + " " + tokenResp.AccessToken
+	s.keezTokenExpiry = time.Now().Add(time.Duration(expiresInSec) * time.Second)
+	return s.keezToken, nil
 }
 
 // Ping is a health-check method for the invoice service.
@@ -364,7 +374,7 @@ func (s *Service) GenerateCommissionInvoice(
 		return db.Invoice{}, fmt.Errorf("invoice: load platform config: %w", err)
 	}
 
-	// Invoice number is assigned by Oblio; we leave it null until Oblio responds.
+	// Invoice number is assigned by Keez; we leave it null until Keez responds.
 	inv, err := s.queries.CreateInvoice(ctx, db.CreateInvoiceParams{
 		InvoiceType:          db.InvoiceTypePlatformCommission,
 		InvoiceNumber:        pgtype.Text{},
@@ -421,32 +431,36 @@ func (s *Service) GenerateCommissionInvoice(
 		return db.Invoice{}, fmt.Errorf("invoice: create commission line item: %w", err)
 	}
 
-	// Push to Oblio — they are the source of truth for the invoice number and PDF.
+	// Push to Keez — they are the source of truth for the invoice number.
+	if ensureErr := s.ensureKeezItems(ctx); ensureErr != nil {
+		log.Printf("invoice: keez.ro ensure items error (non-fatal): %v", ensureErr)
+	}
+
 	lineItems, _ := s.queries.ListInvoiceLineItems(ctx, inv.ID)
-	oblioSeries, oblioNum, oblioURL, apiErr := s.createInvoiceOnOblio(ctx, inv, lineItems)
+	extID, keezSeries, keezNum, apiErr := s.createInvoiceOnKeez(ctx, inv, lineItems, s.keezCommissionID, nil)
 	if apiErr != nil {
-		log.Printf("invoice: oblio.eu API error for commission invoice (non-fatal): %v", apiErr)
-	} else if oblioNum != "" {
-		assignedNumber := oblioSeries + " " + oblioNum
-		updateErr := s.queries.UpdateInvoiceOblio(ctx, db.UpdateInvoiceOblioParams{
-			ID:               inv.ID,
-			InvoiceNumber:    pgText(assignedNumber),
-			OblioSeriesName:  pgText(oblioSeries),
-			OblioNumber:      pgText(oblioNum),
-			OblioDownloadUrl: pgText(oblioURL),
+		log.Printf("invoice: keez.ro API error for commission invoice (non-fatal): %v", apiErr)
+	} else if extID != "" {
+		assignedNumber := keezSeries + " " + keezNum
+		updateErr := s.queries.UpdateInvoiceKeez(ctx, db.UpdateInvoiceKeezParams{
+			ID:             inv.ID,
+			InvoiceNumber:  pgText(assignedNumber),
+			KeezExternalId: pgText(extID),
+			KeezSeries:     pgText(keezSeries),
+			KeezNumber:     pgText(keezNum),
 		})
 		if updateErr != nil {
-			log.Printf("invoice: failed to persist oblio metadata: %v", updateErr)
+			log.Printf("invoice: failed to persist keez metadata: %v", updateErr)
 		} else {
 			inv.InvoiceNumber = pgText(assignedNumber)
-			inv.OblioSeriesName = pgText(oblioSeries)
-			inv.OblioNumber = pgText(oblioNum)
-			inv.OblioDownloadUrl = pgText(oblioURL)
+			inv.KeezExternalId = pgText(extID)
+			inv.KeezSeries = pgText(keezSeries)
+			inv.KeezNumber = pgText(keezNum)
 		}
 	}
 
 	// Auto-transmit to e-factura (best-effort, non-blocking).
-	if inv.OblioNumber.Valid && inv.OblioNumber.String != "" {
+	if inv.KeezExternalId.Valid && inv.KeezExternalId.String != "" {
 		go func() {
 			bgCtx := context.Background()
 			if transmitErr := s.TransmitToEFactura(bgCtx, inv.ID); transmitErr != nil {
@@ -506,7 +520,7 @@ func (s *Service) GenerateSubscriptionMonthlyInvoice(
 		periodEnd.Format("02.01.2006"),
 	)
 
-	// Invoice number is assigned by Oblio; we leave it null until Oblio responds.
+	// Create the local DB invoice record.
 	inv, err := s.queries.CreateInvoice(ctx, db.CreateInvoiceParams{
 		InvoiceType:          db.InvoiceTypeSubscriptionMonthly,
 		InvoiceNumber:        pgtype.Text{},
@@ -572,48 +586,14 @@ func (s *Service) GenerateSubscriptionMonthlyInvoice(
 		return fmt.Errorf("invoice: create subscription line item: %w", err)
 	}
 
-	// Push to Oblio — they are the source of truth for the invoice number and PDF.
-	lineItems, _ := s.queries.ListInvoiceLineItems(ctx, inv.ID)
-	oblioSeries, oblioNum, oblioURL, apiErr := s.createInvoiceOnOblio(ctx, inv, lineItems)
-	if apiErr != nil {
-		log.Printf("invoice: oblio.eu API error for subscription invoice (non-fatal): %v", apiErr)
-	} else if oblioNum != "" {
-		assignedNumber := oblioSeries + " " + oblioNum
-		updateErr := s.queries.UpdateInvoiceOblio(ctx, db.UpdateInvoiceOblioParams{
-			ID:               inv.ID,
-			InvoiceNumber:    pgText(assignedNumber),
-			OblioSeriesName:  pgText(oblioSeries),
-			OblioNumber:      pgText(oblioNum),
-			OblioDownloadUrl: pgText(oblioURL),
-		})
-		if updateErr != nil {
-			log.Printf("invoice: failed to persist oblio metadata for subscription invoice: %v", updateErr)
-		} else {
-			inv.InvoiceNumber = pgText(assignedNumber)
-			inv.OblioSeriesName = pgText(oblioSeries)
-			inv.OblioNumber = pgText(oblioNum)
-			inv.OblioDownloadUrl = pgText(oblioURL)
-		}
-	}
-
-	// Auto-transmit to e-factura (best-effort, non-blocking).
-	if inv.OblioNumber.Valid && inv.OblioNumber.String != "" {
-		go func() {
-			bgCtx := context.Background()
-			if transmitErr := s.TransmitToEFactura(bgCtx, inv.ID); transmitErr != nil {
-				log.Printf("invoice: auto e-factura transmission failed for subscription invoice (non-fatal): %v", transmitErr)
-			} else {
-				log.Printf("invoice: auto-transmitted subscription invoice %s to e-factura", textVal(inv.InvoiceNumber))
-			}
-		}()
-	}
-
-	log.Printf("invoice: created subscription monthly invoice %s for subscription %s, amount=%d bani",
-		textVal(inv.InvoiceNumber), uuidToString(sub.ID), totalBani)
+	// Subscription invoices (company → client) are NOT synced to Keez.
+	// Keez is only used for platform commission invoices (Go2Fix → company).
+	log.Printf("invoice: created subscription monthly invoice for subscription %s, amount=%d bani",
+		uuidToString(sub.ID), totalBani)
 	return nil
 }
 
-// CancelInvoice marks an invoice as cancelled, both locally and on Oblio.eu.
+// CancelInvoice marks an invoice as cancelled, both locally and on Keez.ro.
 func (s *Service) CancelInvoice(ctx context.Context, invoiceID pgtype.UUID) (db.Invoice, error) {
 	inv, err := s.queries.GetInvoiceByID(ctx, invoiceID)
 	if err != nil {
@@ -624,16 +604,14 @@ func (s *Service) CancelInvoice(ctx context.Context, invoiceID pgtype.UUID) (db.
 		return inv, nil
 	}
 
-	// Cancel on Oblio.eu if the invoice was synced.
-	if inv.OblioNumber.Valid && inv.OblioNumber.String != "" {
+	// Cancel on Keez.ro if the invoice was synced.
+	if inv.KeezExternalId.Valid && inv.KeezExternalId.String != "" {
 		cancelPayload := map[string]string{
-			"cif":        s.oblioCIF,
-			"seriesName": textVal(inv.OblioSeriesName),
-			"number":     inv.OblioNumber.String,
+			"externalId": inv.KeezExternalId.String,
 		}
-		_, apiErr := s.callOblioAPI(ctx, http.MethodPut, "/docs/invoice/cancel", cancelPayload)
+		_, apiErr := s.callKeezAPI(ctx, http.MethodPost, "/invoices/canceled", cancelPayload)
 		if apiErr != nil {
-			log.Printf("invoice: oblio.eu cancel error (non-fatal): %v", apiErr)
+			log.Printf("invoice: keez.ro cancel error (non-fatal): %v", apiErr)
 		}
 	}
 
@@ -649,99 +627,49 @@ func (s *Service) CancelInvoice(ctx context.Context, invoiceID pgtype.UUID) (db.
 	return updated, nil
 }
 
-// TransmitToEFactura triggers e-factura transmission via the Oblio.eu API.
+// TransmitToEFactura triggers e-factura submission via the Keez.ro API.
 func (s *Service) TransmitToEFactura(ctx context.Context, invoiceID pgtype.UUID) error {
 	inv, err := s.queries.GetInvoiceByID(ctx, invoiceID)
 	if err != nil {
 		return fmt.Errorf("invoice: get invoice for e-factura: %w", err)
 	}
 
-	if !inv.OblioNumber.Valid || inv.OblioNumber.String == "" {
-		return errors.New("invoice: cannot transmit to e-factura: invoice not synced to oblio.eu")
+	if !inv.KeezExternalId.Valid || inv.KeezExternalId.String == "" {
+		return errors.New("invoice: cannot transmit to e-factura: invoice not synced to keez.ro")
 	}
 
 	eInvPayload := map[string]string{
-		"cif":        s.oblioCIF,
-		"seriesName": textVal(inv.OblioSeriesName),
-		"number":     inv.OblioNumber.String,
+		"externalId": inv.KeezExternalId.String,
 	}
 
-	respBody, err := s.callOblioAPI(ctx, http.MethodPost, "/docs/einvoice", eInvPayload)
+	_, err = s.callKeezAPI(ctx, http.MethodPost, "/invoices/efactura/submitted", eInvPayload)
 	if err != nil {
-		return fmt.Errorf("invoice: e-factura transmission via oblio: %w", err)
+		return fmt.Errorf("invoice: e-factura transmission via keez.ro: %w", err)
 	}
 
-	var efResp oblioEInvoiceResponse
-	if jsonErr := json.Unmarshal(respBody, &efResp); jsonErr != nil {
-		log.Printf("invoice: failed to parse oblio e-factura response: %v", jsonErr)
-	}
-
-	efStatus := oblioCodeToStatus(efResp.Data.Code)
-	efIndex := efResp.Data.Text
-	if efResp.Data.Code == -1 {
-		log.Printf("invoice: oblio e-factura returned error code -1: %s", efResp.Data.Text)
-	}
-
-	err = s.queries.UpdateInvoiceEFactura(ctx, db.UpdateInvoiceEFacturaParams{
+	// On success, update DB with transmitted status.
+	updateErr := s.queries.UpdateInvoiceEFactura(ctx, db.UpdateInvoiceEFacturaParams{
 		ID:             invoiceID,
-		EfacturaStatus: pgText(efStatus),
-		EfacturaIndex:  pgText(efIndex),
+		EfacturaStatus: pgText("transmitted"),
+		EfacturaIndex:  pgText(""),
 	})
-	if err != nil {
-		return fmt.Errorf("invoice: update e-factura status: %w", err)
+	if updateErr != nil {
+		return fmt.Errorf("invoice: update e-factura status: %w", updateErr)
 	}
 
-	log.Printf("invoice: transmitted invoice %s to e-factura (index: %s)", textVal(inv.InvoiceNumber), efIndex)
+	log.Printf("invoice: transmitted invoice %s to e-factura", textVal(inv.InvoiceNumber))
 	return nil
 }
 
-// CheckEFacturaStatus polls Oblio.eu for the current e-factura status
-// of an invoice and updates the local database accordingly.
+// CheckEFacturaStatus returns the current invoice from the database.
+// Keez.ro does not expose an e-factura status polling endpoint, so no API call is made.
 func (s *Service) CheckEFacturaStatus(ctx context.Context, invoiceID pgtype.UUID) (db.Invoice, error) {
-	inv, err := s.queries.GetInvoiceByID(ctx, invoiceID)
-	if err != nil {
-		return db.Invoice{}, fmt.Errorf("invoice: get invoice: %w", err)
-	}
-
-	if !inv.OblioNumber.Valid || inv.OblioNumber.String == "" {
-		return db.Invoice{}, errors.New("invoice: no oblio.eu number to check e-factura status for")
-	}
-
-	path := fmt.Sprintf("/docs/einvoice?cif=%s&seriesName=%s&number=%s",
-		s.oblioCIF, textVal(inv.OblioSeriesName), inv.OblioNumber.String)
-
-	respBody, err := s.callOblioAPI(ctx, http.MethodGet, path, nil)
-	if err != nil {
-		return db.Invoice{}, fmt.Errorf("invoice: check e-factura status via oblio: %w", err)
-	}
-
-	var statusResp oblioEInvoiceResponse
-	if jsonErr := json.Unmarshal(respBody, &statusResp); jsonErr != nil {
-		return db.Invoice{}, fmt.Errorf("invoice: parse oblio status response: %w", jsonErr)
-	}
-
-	newStatus := oblioCodeToStatus(statusResp.Data.Code)
-	updateErr := s.queries.UpdateInvoiceEFactura(ctx, db.UpdateInvoiceEFacturaParams{
-		ID:             invoiceID,
-		EfacturaStatus: pgText(newStatus),
-		EfacturaIndex:  pgText(statusResp.Data.Text),
-	})
-	if updateErr != nil {
-		return db.Invoice{}, fmt.Errorf("invoice: update e-factura status: %w", updateErr)
-	}
-
-	// Re-read to return updated record.
-	updated, err := s.queries.GetInvoiceByID(ctx, invoiceID)
-	if err != nil {
-		return db.Invoice{}, fmt.Errorf("invoice: re-read invoice: %w", err)
-	}
-
-	log.Printf("invoice: checked e-factura status for %s: %s", textVal(inv.InvoiceNumber), newStatus)
-	return updated, nil
+	return s.queries.GetInvoiceByID(ctx, invoiceID)
 }
 
 // GenerateCreditNote creates a credit note (storno) referencing an original invoice.
 // The amount parameter is in bani and represents the credited total (VAT-inclusive).
+// If the original invoice was synced to Keez, a storno invoice is also created there.
 func (s *Service) GenerateCreditNote(ctx context.Context, invoiceID pgtype.UUID, amount int32, reason string) (db.Invoice, error) {
 	original, err := s.queries.GetInvoiceByID(ctx, invoiceID)
 	if err != nil {
@@ -825,201 +753,411 @@ func (s *Service) GenerateCreditNote(ctx context.Context, invoiceID pgtype.UUID,
 		return db.Invoice{}, fmt.Errorf("invoice: create credit note line item: %w", err)
 	}
 
+	// Sync storno to Keez.ro if the original invoice was synced there.
+	if original.KeezExternalId.Valid && original.KeezExternalId.String != "" &&
+		original.KeezSeries.Valid && original.KeezSeries.String != "" &&
+		original.KeezNumber.Valid && original.KeezNumber.String != "" {
+
+		if ensureErr := s.ensureKeezItems(ctx); ensureErr != nil {
+			log.Printf("invoice: keez.ro ensure items error for storno (non-fatal): %v", ensureErr)
+		} else {
+			stornoRef := &keezStornoRef{
+				Series: original.KeezSeries.String,
+				Number: original.KeezNumber.String,
+				Date:   original.IssuedAt.Time.Format("20060102"),
+			}
+
+			// Build a synthetic local invoice with positive amounts for the Keez payload —
+			// the storno marker in the request handles the sign reversal.
+			syntheticInv := creditNote
+			syntheticInv.SubtotalAmount = creditNet
+			syntheticInv.VatAmount = creditVAT
+			syntheticInv.TotalAmount = creditTotal
+
+			lineItems, _ := s.queries.ListInvoiceLineItems(ctx, creditNote.ID)
+			extID, keezSeries, keezNum, apiErr := s.createInvoiceOnKeez(ctx, syntheticInv, lineItems, s.keezCommissionID, stornoRef)
+			if apiErr != nil {
+				log.Printf("invoice: keez.ro storno API error (non-fatal): %v", apiErr)
+			} else if extID != "" {
+				assignedNumber := keezSeries + " " + keezNum
+				updateErr := s.queries.UpdateInvoiceKeez(ctx, db.UpdateInvoiceKeezParams{
+					ID:             creditNote.ID,
+					InvoiceNumber:  pgText(assignedNumber),
+					KeezExternalId: pgText(extID),
+					KeezSeries:     pgText(keezSeries),
+					KeezNumber:     pgText(keezNum),
+				})
+				if updateErr != nil {
+					log.Printf("invoice: failed to persist keez storno metadata: %v", updateErr)
+				} else {
+					creditNote.InvoiceNumber = pgText(assignedNumber)
+					creditNote.KeezExternalId = pgText(extID)
+					creditNote.KeezSeries = pgText(keezSeries)
+					creditNote.KeezNumber = pgText(keezNum)
+				}
+			}
+		}
+	}
+
 	log.Printf("invoice: created credit note %s for original invoice %s", invoiceNumber, textVal(original.InvoiceNumber))
 	return creditNote, nil
 }
 
 // ---------------------------------------------------------------------------
-// Oblio.eu API helpers
+// Keez.ro API helpers
 // ---------------------------------------------------------------------------
 
-// callOblioAPI performs an authenticated HTTP request to the Oblio.eu REST API.
-// body must be JSON-serialisable or nil (for GET/DELETE without a body).
-func (s *Service) callOblioAPI(ctx context.Context, method, path string, body interface{}) ([]byte, error) {
-	token, err := s.oblioGetToken(ctx)
+// keezBaseURL returns the base URL for all Keez.ro public API calls for this client.
+func (s *Service) keezBaseURL() string {
+	return "https://app.keez.ro/api/v1.0/public-api/" + s.keezClientEid
+}
+
+// callKeezAPI performs an authenticated HTTP request to the Keez.ro REST API.
+// path is relative to the client-scoped base URL (e.g. "/invoices").
+// body must be JSON-serialisable or nil (for GET requests without a body).
+func (s *Service) callKeezAPI(ctx context.Context, method, path string, body interface{}) ([]byte, error) {
+	token, err := s.keezGetToken(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("invoice: oblio auth: %w", err)
+		return nil, fmt.Errorf("invoice: keez auth: %w", err)
 	}
 
 	var reqBody io.Reader
 	if body != nil {
 		jsonBytes, err := json.Marshal(body)
 		if err != nil {
-			return nil, fmt.Errorf("invoice: marshal oblio request body: %w", err)
+			return nil, fmt.Errorf("invoice: marshal keez request body: %w", err)
 		}
 		reqBody = bytes.NewReader(jsonBytes)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, method, "https://www.oblio.eu/api"+path, reqBody)
+	req, err := http.NewRequestWithContext(ctx, method, s.keezBaseURL()+path, reqBody)
 	if err != nil {
-		return nil, fmt.Errorf("invoice: create oblio HTTP request: %w", err)
+		return nil, fmt.Errorf("invoice: create keez HTTP request: %w", err)
 	}
-	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Authorization", token)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
 
 	resp, err := s.httpClient.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("invoice: oblio HTTP request failed: %w", err)
+		return nil, fmt.Errorf("invoice: keez HTTP request failed: %w", err)
 	}
 	defer resp.Body.Close()
 
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("invoice: read oblio response body: %w", err)
+		return nil, fmt.Errorf("invoice: read keez response body: %w", err)
 	}
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		log.Printf("invoice: oblio API returned %d: %s", resp.StatusCode, string(respBody))
-		return respBody, fmt.Errorf("invoice: oblio returned status %d", resp.StatusCode)
+		log.Printf("invoice: keez API returned %d: %s", resp.StatusCode, string(respBody))
+		return respBody, fmt.Errorf("invoice: keez returned status %d", resp.StatusCode)
 	}
 
 	return respBody, nil
 }
 
-// oblioInvoiceRequest is the JSON payload for POST /docs/invoice.
-type oblioInvoiceRequest struct {
-	CIF        string         `json:"cif"`
-	SeriesName string         `json:"seriesName"`
-	Client     oblioClient    `json:"client"`
-	IssueDate  string         `json:"issueDate"`
-	DueDate    string         `json:"dueDate"`
-	Currency   string         `json:"currency"`
-	Language   string         `json:"language"`
-	Products   []oblioProduct `json:"products"`
+// ensureKeezItems lazily creates and caches the platform commission line-item on Keez.ro.
+// It is safe to call concurrently. If Keez is not configured, it returns nil silently.
+func (s *Service) ensureKeezItems(ctx context.Context) error {
+	if s.keezClientEid == "" {
+		return nil // Not configured; skip silently.
+	}
+
+	s.keezItemMu.Lock()
+	defer s.keezItemMu.Unlock()
+
+	if s.keezCommissionID != "" {
+		return nil
+	}
+
+	type keezItemRequest struct {
+		Name               string `json:"name"`
+		CurrencyCode       string `json:"currencyCode"`
+		MeasureUnitID      int    `json:"measureUnitId"`
+		IsActive           bool   `json:"isActive"`
+		CategoryExternalID string `json:"categoryExternalId"`
+	}
+
+	type keezItemResponse struct {
+		ExternalID string `json:"externalId"`
+	}
+
+	payload := keezItemRequest{
+		Name:               "Comision platforma Go2Fix",
+		CurrencyCode:       "RON",
+		MeasureUnitID:      1,
+		IsActive:           true,
+		CategoryExternalID: "ITSRV", // "Servicii it si similare" — 19% VAT, for digital marketplace services
+	}
+	respBody, err := s.callKeezAPI(ctx, http.MethodPost, "/items", payload)
+	if err != nil {
+		return fmt.Errorf("invoice: create keez commission item: %w", err)
+	}
+	var itemResp keezItemResponse
+	if jsonErr := json.Unmarshal(respBody, &itemResp); jsonErr != nil {
+		return fmt.Errorf("invoice: parse keez item response: %w", jsonErr)
+	}
+	if itemResp.ExternalID == "" {
+		return fmt.Errorf("invoice: keez returned empty externalId for commission item")
+	}
+	s.keezCommissionID = itemResp.ExternalID
+	return nil
 }
 
-type oblioClient struct {
-	Name     string `json:"name"`
-	CIF      string `json:"cif,omitempty"`
-	RC       string `json:"rc,omitempty"`
-	Address  string `json:"address,omitempty"`
-	State    string `json:"state,omitempty"`
-	City     string `json:"city,omitempty"`
-	VATpayer int    `json:"vatPayer"`
+// keezStornoRef holds the reference to the original invoice for a storno invoice.
+type keezStornoRef struct {
+	Series string `json:"series"`
+	Number string `json:"number"`
+	Date   string `json:"date"` // yyyyMMdd
 }
 
-type oblioProduct struct {
-	Name          string  `json:"name"`
-	MeasuringUnit string  `json:"measuringUnit"`
-	Quantity      float64 `json:"quantity"`
-	Price         float64 `json:"price"`
-	VATPercentage float64 `json:"vatPercentage"`
-	VATIncluded   int     `json:"vatIncluded"`
+// keezInvoiceDetail represents a single line item in a Keez invoice creation request.
+type keezInvoiceDetail struct {
+	ItemExternalID              string  `json:"itemExternalId"`
+	MeasureUnitID               int     `json:"measureUnitId"`
+	Quantity                    float64 `json:"quantity"`
+	UnitPrice                   float64 `json:"unitPrice"`
+	OriginalNetAmount           float64 `json:"originalNetAmount"`
+	OriginalNetAmountCurrency   float64 `json:"originalNetAmountCurrency"`
+	OriginalVatAmount           float64 `json:"originalVatAmount"`
+	OriginalVatAmountCurrency   float64 `json:"originalVatAmountCurrency"`
+	NetAmount                   float64 `json:"netAmount"`
+	NetAmountCurrency           float64 `json:"netAmountCurrency"`
+	VatAmount                   float64 `json:"vatAmount"`
+	VatAmountCurrency           float64 `json:"vatAmountCurrency"`
+	GrossAmount                 float64 `json:"grossAmount"`
+	GrossAmountCurrency         float64 `json:"grossAmountCurrency"`
 }
 
-// oblioInvoiceResponse is the standard Oblio API response envelope for invoice creation.
-type oblioInvoiceResponse struct {
-	Status        int    `json:"status"`
-	StatusMessage string `json:"statusMessage"`
-	Data          struct {
-		SeriesName string `json:"seriesName"`
-		Number     string `json:"number"`
-		Link       string `json:"link"`
-	} `json:"data"`
+// keezPartner describes the buyer/partner in a Keez invoice.
+type keezPartner struct {
+	IsLegalPerson        bool   `json:"isLegalPerson"`
+	PartnerName          string `json:"partnerName"`
+	IdentificationNumber string `json:"identificationNumber,omitempty"`
+	RegistrationNumber   string `json:"registrationNumber,omitempty"`
+	TaxAttribute         string `json:"taxAttribute,omitempty"`
+	CountryCode          string `json:"countryCode,omitempty"`
+	CountryName          string `json:"countryName,omitempty"`
+	CityName             string `json:"cityName,omitempty"`
+	AddressDetails       string `json:"addressDetails,omitempty"`
 }
 
-// oblioEInvoiceResponse is the response for e-invoice endpoints (POST/GET /docs/einvoice).
-type oblioEInvoiceResponse struct {
-	Status        int    `json:"status"`
-	StatusMessage string `json:"statusMessage"`
-	Data          struct {
-		Text string `json:"text"`
-		Sent bool   `json:"sent"`
-		// Code: -1=error, 0=pending/processing, 1=uploaded, 2=accepted by SPV
-		Code int `json:"code"`
-	} `json:"data"`
+// keezInvoiceRequest is the full payload for POST /{clientEid}/invoices on Keez.ro.
+type keezInvoiceRequest struct {
+	Series                    string              `json:"series"`
+	DocumentDate              int                 `json:"documentDate"`
+	DueDate                   int                 `json:"dueDate"`
+	VatOnCollection           bool                `json:"vatOnCollection"`
+	CurrencyCode              string              `json:"currencyCode"`
+	OriginalNetAmount         float64             `json:"originalNetAmount"`
+	OriginalNetAmountCurrency float64             `json:"originalNetAmountCurrency"`
+	OriginalVatAmount         float64             `json:"originalVatAmount"`
+	OriginalVatAmountCurrency float64             `json:"originalVatAmountCurrency"`
+	NetAmount                 float64             `json:"netAmount"`
+	NetAmountCurrency         float64             `json:"netAmountCurrency"`
+	VatAmount                 float64             `json:"vatAmount"`
+	VatAmountCurrency         float64             `json:"vatAmountCurrency"`
+	GrossAmount               float64             `json:"grossAmount"`
+	GrossAmountCurrency       float64             `json:"grossAmountCurrency"`
+	PaymentTypeID             int                 `json:"paymentTypeId"`
+	Partner                   keezPartner         `json:"partner"`
+	InvoiceDetails            []keezInvoiceDetail `json:"invoiceDetails"`
+	Storno                    *keezStornoRef      `json:"storno,omitempty"`
 }
 
-// createInvoiceOnOblio syncs a local invoice to Oblio.eu and returns the
-// (seriesName, number, downloadURL) assigned by Oblio.
-func (s *Service) createInvoiceOnOblio(ctx context.Context, inv db.Invoice, lineItems []db.InvoiceLineItem) (string, string, string, error) {
-	if s.oblioClientID == "" {
+// keezCreateInvoiceResponse is the response from POST /{clientEid}/invoices.
+type keezCreateInvoiceResponse struct {
+	ExternalID string `json:"externalId"`
+}
+
+// keezInvoiceResponse is the response from GET /{clientEid}/invoices/{externalId}.
+type keezInvoiceResponse struct {
+	Series string `json:"series"`
+	Number string `json:"number"`
+}
+
+// createInvoiceOnKeez syncs a local invoice to Keez.ro.
+// It creates the invoice, validates it (Draft → Fiscal), and retrieves the assigned series and number.
+// Returns (externalId, series, number, error).
+// If Keez is not configured, it returns ("", "", "", nil) silently.
+// stornoRef is optional; when non-nil, the invoice is created as a storno (credit note).
+func (s *Service) createInvoiceOnKeez(
+	ctx context.Context,
+	inv db.Invoice,
+	lineItems []db.InvoiceLineItem,
+	itemExternalID string,
+	stornoRef *keezStornoRef,
+) (string, string, string, error) {
+	if s.keezClientEid == "" {
 		return "", "", "", nil // Not configured; skip silently.
 	}
 
-	vatRate := float64(s.loadVATRate(ctx))
+	netRON := baniToRON(inv.SubtotalAmount)
+	vatRON := baniToRON(inv.VatAmount)
+	grossRON := baniToRON(inv.TotalAmount)
 
-	products := make([]oblioProduct, 0, len(lineItems))
-	for _, li := range lineItems {
-		products = append(products, oblioProduct{
-			Name:          li.DescriptionRo,
-			MeasuringUnit: "buc",
-			Quantity:      numericToFloat64(li.Quantity),
-			Price:         baniToRON(li.UnitPrice), // net price in RON
-			VATPercentage: vatRate,
-			VATIncluded:   0, // price is net; Oblio calculates VAT on top
-		})
+	documentDateInt := mustDateInt(time.Now())
+	dueDateInt := mustDateInt(time.Now().AddDate(0, 0, 30))
+
+	// Build partner block.
+	partner := buildKeezPartner(inv)
+
+	// Build invoice detail lines.
+	details := buildKeezDetails(lineItems, itemExternalID, netRON, vatRON, grossRON)
+
+	payload := keezInvoiceRequest{
+		Series:                    s.keezSeries,
+		DocumentDate:              documentDateInt,
+		DueDate:                   dueDateInt,
+		VatOnCollection:           false,
+		CurrencyCode:              "RON",
+		OriginalNetAmount:         netRON,
+		OriginalNetAmountCurrency: netRON,
+		OriginalVatAmount:         vatRON,
+		OriginalVatAmountCurrency: vatRON,
+		NetAmount:                 netRON,
+		NetAmountCurrency:         netRON,
+		VatAmount:                 vatRON,
+		VatAmountCurrency:         vatRON,
+		GrossAmount:               grossRON,
+		GrossAmountCurrency:       grossRON,
+		PaymentTypeID:             3, // transfer bancar
+		Partner:                   partner,
+		InvoiceDetails:            details,
+		Storno:                    stornoRef,
 	}
 
-	// Fallback: single synthetic line item when no line items are present.
-	if len(products) == 0 {
-		products = append(products, oblioProduct{
-			Name:          "Servicii curatenie",
-			MeasuringUnit: "buc",
-			Quantity:      1,
-			Price:         baniToRON(inv.SubtotalAmount),
-			VATPercentage: vatRate,
-			VATIncluded:   0,
-		})
-	}
-
-	vatPayer := 0
-	if inv.BuyerIsVatPayer.Valid && inv.BuyerIsVatPayer.Bool {
-		vatPayer = 1
-	}
-
-	issueDate := time.Now().Format("2006-01-02")
-	dueDate := time.Now().AddDate(0, 0, 30).Format("2006-01-02")
-
-	payload := oblioInvoiceRequest{
-		CIF:        s.oblioCIF,
-		SeriesName: s.oblioSeriesName,
-		Client: oblioClient{
-			Name:     inv.BuyerName,
-			CIF:      textVal(inv.BuyerCui),
-			RC:       textVal(inv.BuyerRegNumber),
-			Address:  textVal(inv.BuyerAddress),
-			State:    textVal(inv.BuyerCounty),
-			City:     textVal(inv.BuyerCity),
-			VATpayer: vatPayer,
-		},
-		IssueDate: issueDate,
-		DueDate:   dueDate,
-		Currency:  inv.Currency,
-		Language:  "RO",
-		Products:  products,
-	}
-
-	respBody, err := s.callOblioAPI(ctx, http.MethodPost, "/docs/invoice", payload)
+	// Step 1: Create the invoice (Draft state).
+	createBody, err := s.callKeezAPI(ctx, http.MethodPost, "/invoices", payload)
 	if err != nil {
-		return "", "", "", fmt.Errorf("create invoice on oblio.eu: %w", err)
+		return "", "", "", fmt.Errorf("create invoice on keez.ro: %w", err)
 	}
 
-	var apiResp oblioInvoiceResponse
-	if jsonErr := json.Unmarshal(respBody, &apiResp); jsonErr != nil {
-		return "", "", "", fmt.Errorf("parse oblio invoice response: %w", jsonErr)
+	var createResp keezCreateInvoiceResponse
+	if jsonErr := json.Unmarshal(createBody, &createResp); jsonErr != nil {
+		return "", "", "", fmt.Errorf("parse keez create invoice response: %w", jsonErr)
 	}
-	if apiResp.Status != 200 {
-		return "", "", "", fmt.Errorf("oblio invoice error: %s", apiResp.StatusMessage)
+	if createResp.ExternalID == "" {
+		return "", "", "", errors.New("keez.ro returned empty externalId after invoice creation")
+	}
+	extID := createResp.ExternalID
+
+	// Step 2: Validate the invoice (Draft → Fiscal).
+	validPayload := map[string]string{"externalId": extID}
+	_, err = s.callKeezAPI(ctx, http.MethodPost, "/invoices/valid", validPayload)
+	if err != nil {
+		return "", "", "", fmt.Errorf("validate keez invoice %s: %w", extID, err)
 	}
 
-	return apiResp.Data.SeriesName, apiResp.Data.Number, apiResp.Data.Link, nil
+	// Step 3: Fetch the validated invoice to get the assigned series and number.
+	getBody, err := s.callKeezAPI(ctx, http.MethodGet, "/invoices/"+extID, nil)
+	if err != nil {
+		return "", "", "", fmt.Errorf("fetch keez invoice %s: %w", extID, err)
+	}
+
+	var getResp keezInvoiceResponse
+	if jsonErr := json.Unmarshal(getBody, &getResp); jsonErr != nil {
+		return "", "", "", fmt.Errorf("parse keez get invoice response: %w", jsonErr)
+	}
+
+	return extID, getResp.Series, getResp.Number, nil
 }
 
-// oblioCodeToStatus converts the Oblio e-invoice status code to a string status.
-// Code: -1=error, 0=pending, 1=uploaded, 2=accepted by SPV.
-func oblioCodeToStatus(code int) string {
-	switch code {
-	case 2:
-		return "transmitted"
-	case 1:
-		return "uploaded"
-	case 0:
-		return "pending"
-	default:
-		return "error"
+// buildKeezPartner constructs the Keez partner block from an invoice record.
+func buildKeezPartner(inv db.Invoice) keezPartner {
+	buyerCUI := textVal(inv.BuyerCui)
+	isLegalPerson := buyerCUI != ""
+
+	p := keezPartner{
+		IsLegalPerson: isLegalPerson,
+		PartnerName:   inv.BuyerName,
+		CountryCode:   "RO",
+		CountryName:   "Romania",
+		CityName:      textVal(inv.BuyerCity),
+		AddressDetails: textVal(inv.BuyerAddress),
 	}
+
+	if isLegalPerson {
+		// Strip "RO" prefix from CUI for the identification number field.
+		cui := strings.TrimPrefix(strings.TrimPrefix(buyerCUI, "RO"), "ro")
+		p.IdentificationNumber = cui
+		p.RegistrationNumber = textVal(inv.BuyerRegNumber)
+		p.TaxAttribute = "RO"
+	} else {
+		// Natural person: use name as identification when no CUI is present.
+		p.IdentificationNumber = inv.BuyerName
+	}
+
+	return p
+}
+
+// buildKeezDetails constructs the invoice detail lines for a Keez invoice.
+// When no line items are present, a single synthetic line is generated from the invoice totals.
+func buildKeezDetails(
+	lineItems []db.InvoiceLineItem,
+	itemExternalID string,
+	invoiceNetRON float64,
+	invoiceVatRON float64,
+	invoiceGrossRON float64,
+) []keezInvoiceDetail {
+	if len(lineItems) == 0 {
+		// Synthetic fallback — single line covering the full invoice amounts.
+		d := keezInvoiceDetail{
+			ItemExternalID:              itemExternalID,
+			MeasureUnitID:               1,
+			Quantity:                    1,
+			UnitPrice:                   invoiceNetRON,
+			OriginalNetAmount:           invoiceNetRON,
+			OriginalNetAmountCurrency:   invoiceNetRON,
+			OriginalVatAmount:           invoiceVatRON,
+			OriginalVatAmountCurrency:   invoiceVatRON,
+			NetAmount:                   invoiceNetRON,
+			NetAmountCurrency:           invoiceNetRON,
+			VatAmount:                   invoiceVatRON,
+			VatAmountCurrency:           invoiceVatRON,
+			GrossAmount:                 invoiceGrossRON,
+			GrossAmountCurrency:         invoiceGrossRON,
+		}
+		return []keezInvoiceDetail{d}
+	}
+
+	details := make([]keezInvoiceDetail, 0, len(lineItems))
+	for _, li := range lineItems {
+		qty := numericToFloat64(li.Quantity)
+		if qty == 0 {
+			qty = 1
+		}
+		unitNetRON := baniToRON(li.UnitPrice)
+		lineNetRON := baniToRON(li.LineTotal)
+		lineVatRON := baniToRON(li.VatAmount)
+		lineGrossRON := baniToRON(li.LineTotalWithVat)
+
+		d := keezInvoiceDetail{
+			ItemExternalID:              itemExternalID,
+			MeasureUnitID:               1,
+			Quantity:                    qty,
+			UnitPrice:                   unitNetRON,
+			OriginalNetAmount:           lineNetRON,
+			OriginalNetAmountCurrency:   lineNetRON,
+			OriginalVatAmount:           lineVatRON,
+			OriginalVatAmountCurrency:   lineVatRON,
+			NetAmount:                   lineNetRON,
+			NetAmountCurrency:           lineNetRON,
+			VatAmount:                   lineVatRON,
+			VatAmountCurrency:           lineVatRON,
+			GrossAmount:                 lineGrossRON,
+			GrossAmountCurrency:         lineGrossRON,
+		}
+		details = append(details, d)
+	}
+	return details
+}
+
+// mustDateInt converts a time.Time to the Keez integer date format yyyyMMdd (e.g. 20240216).
+func mustDateInt(t time.Time) int {
+	y, m, d := t.Date()
+	return y*10000 + int(m)*100 + d
 }
 
 // ---------------------------------------------------------------------------

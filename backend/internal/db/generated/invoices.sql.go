@@ -119,7 +119,7 @@ INSERT INTO invoices (
   $29, $30, $31,
   CASE WHEN $29::text = 'issued' THEN NOW() ELSE NULL END
 )
-RETURNING id, invoice_type, invoice_number, oblio_number, oblio_download_url, seller_company_name, seller_cui, seller_reg_number, seller_address, seller_city, seller_county, seller_is_vat_payer, seller_bank_name, seller_iban, buyer_name, buyer_cui, buyer_reg_number, buyer_address, buyer_city, buyer_county, buyer_is_vat_payer, buyer_email, subtotal_amount, vat_rate, vat_amount, total_amount, currency, booking_id, payment_transaction_id, company_id, client_user_id, efactura_status, efactura_index, status, issued_at, due_date, notes, created_at, updated_at, oblio_series_name
+RETURNING id, invoice_type, invoice_number, keez_number, keez_download_url, seller_company_name, seller_cui, seller_reg_number, seller_address, seller_city, seller_county, seller_is_vat_payer, seller_bank_name, seller_iban, buyer_name, buyer_cui, buyer_reg_number, buyer_address, buyer_city, buyer_county, buyer_is_vat_payer, buyer_email, subtotal_amount, vat_rate, vat_amount, total_amount, currency, booking_id, payment_transaction_id, company_id, client_user_id, efactura_status, efactura_index, status, issued_at, due_date, notes, created_at, updated_at, keez_series, keez_external_id
 `
 
 type CreateInvoiceParams struct {
@@ -198,8 +198,8 @@ func (q *Queries) CreateInvoice(ctx context.Context, arg CreateInvoiceParams) (I
 		&i.ID,
 		&i.InvoiceType,
 		&i.InvoiceNumber,
-		&i.OblioNumber,
-		&i.OblioDownloadUrl,
+		&i.KeezNumber,
+		&i.KeezDownloadUrl,
 		&i.SellerCompanyName,
 		&i.SellerCui,
 		&i.SellerRegNumber,
@@ -234,7 +234,8 @@ func (q *Queries) CreateInvoice(ctx context.Context, arg CreateInvoiceParams) (I
 		&i.Notes,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.OblioSeriesName,
+		&i.KeezSeries,
+		&i.KeezExternalId,
 	)
 	return i, err
 }
@@ -352,7 +353,7 @@ func (q *Queries) GetBillingProfileByUser(ctx context.Context, userID pgtype.UUI
 }
 
 const getCommissionInvoiceByPeriod = `-- name: GetCommissionInvoiceByPeriod :one
-SELECT id, invoice_type, invoice_number, oblio_number, oblio_download_url, seller_company_name, seller_cui, seller_reg_number, seller_address, seller_city, seller_county, seller_is_vat_payer, seller_bank_name, seller_iban, buyer_name, buyer_cui, buyer_reg_number, buyer_address, buyer_city, buyer_county, buyer_is_vat_payer, buyer_email, subtotal_amount, vat_rate, vat_amount, total_amount, currency, booking_id, payment_transaction_id, company_id, client_user_id, efactura_status, efactura_index, status, issued_at, due_date, notes, created_at, updated_at, oblio_series_name FROM invoices
+SELECT id, invoice_type, invoice_number, keez_number, keez_download_url, seller_company_name, seller_cui, seller_reg_number, seller_address, seller_city, seller_county, seller_is_vat_payer, seller_bank_name, seller_iban, buyer_name, buyer_cui, buyer_reg_number, buyer_address, buyer_city, buyer_county, buyer_is_vat_payer, buyer_email, subtotal_amount, vat_rate, vat_amount, total_amount, currency, booking_id, payment_transaction_id, company_id, client_user_id, efactura_status, efactura_index, status, issued_at, due_date, notes, created_at, updated_at, keez_series, keez_external_id FROM invoices
 WHERE company_id = $1 AND invoice_type = 'platform_commission'
   AND notes LIKE '%' || $2 || '%' AND notes LIKE '%' || $3 || '%'
 ORDER BY created_at DESC LIMIT 1
@@ -372,8 +373,8 @@ func (q *Queries) GetCommissionInvoiceByPeriod(ctx context.Context, arg GetCommi
 		&i.ID,
 		&i.InvoiceType,
 		&i.InvoiceNumber,
-		&i.OblioNumber,
-		&i.OblioDownloadUrl,
+		&i.KeezNumber,
+		&i.KeezDownloadUrl,
 		&i.SellerCompanyName,
 		&i.SellerCui,
 		&i.SellerRegNumber,
@@ -408,7 +409,8 @@ func (q *Queries) GetCommissionInvoiceByPeriod(ctx context.Context, arg GetCommi
 		&i.Notes,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.OblioSeriesName,
+		&i.KeezSeries,
+		&i.KeezExternalId,
 	)
 	return i, err
 }
@@ -445,7 +447,7 @@ func (q *Queries) GetInvoiceAnalytics(ctx context.Context, arg GetInvoiceAnalyti
 }
 
 const getInvoiceByBookingAndType = `-- name: GetInvoiceByBookingAndType :one
-SELECT id, invoice_type, invoice_number, oblio_number, oblio_download_url, seller_company_name, seller_cui, seller_reg_number, seller_address, seller_city, seller_county, seller_is_vat_payer, seller_bank_name, seller_iban, buyer_name, buyer_cui, buyer_reg_number, buyer_address, buyer_city, buyer_county, buyer_is_vat_payer, buyer_email, subtotal_amount, vat_rate, vat_amount, total_amount, currency, booking_id, payment_transaction_id, company_id, client_user_id, efactura_status, efactura_index, status, issued_at, due_date, notes, created_at, updated_at, oblio_series_name FROM invoices WHERE booking_id = $1 AND invoice_type = $2 ORDER BY created_at DESC LIMIT 1
+SELECT id, invoice_type, invoice_number, keez_number, keez_download_url, seller_company_name, seller_cui, seller_reg_number, seller_address, seller_city, seller_county, seller_is_vat_payer, seller_bank_name, seller_iban, buyer_name, buyer_cui, buyer_reg_number, buyer_address, buyer_city, buyer_county, buyer_is_vat_payer, buyer_email, subtotal_amount, vat_rate, vat_amount, total_amount, currency, booking_id, payment_transaction_id, company_id, client_user_id, efactura_status, efactura_index, status, issued_at, due_date, notes, created_at, updated_at, keez_series, keez_external_id FROM invoices WHERE booking_id = $1 AND invoice_type = $2 ORDER BY created_at DESC LIMIT 1
 `
 
 type GetInvoiceByBookingAndTypeParams struct {
@@ -460,8 +462,8 @@ func (q *Queries) GetInvoiceByBookingAndType(ctx context.Context, arg GetInvoice
 		&i.ID,
 		&i.InvoiceType,
 		&i.InvoiceNumber,
-		&i.OblioNumber,
-		&i.OblioDownloadUrl,
+		&i.KeezNumber,
+		&i.KeezDownloadUrl,
 		&i.SellerCompanyName,
 		&i.SellerCui,
 		&i.SellerRegNumber,
@@ -496,13 +498,14 @@ func (q *Queries) GetInvoiceByBookingAndType(ctx context.Context, arg GetInvoice
 		&i.Notes,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.OblioSeriesName,
+		&i.KeezSeries,
+		&i.KeezExternalId,
 	)
 	return i, err
 }
 
 const getInvoiceByID = `-- name: GetInvoiceByID :one
-SELECT id, invoice_type, invoice_number, oblio_number, oblio_download_url, seller_company_name, seller_cui, seller_reg_number, seller_address, seller_city, seller_county, seller_is_vat_payer, seller_bank_name, seller_iban, buyer_name, buyer_cui, buyer_reg_number, buyer_address, buyer_city, buyer_county, buyer_is_vat_payer, buyer_email, subtotal_amount, vat_rate, vat_amount, total_amount, currency, booking_id, payment_transaction_id, company_id, client_user_id, efactura_status, efactura_index, status, issued_at, due_date, notes, created_at, updated_at, oblio_series_name FROM invoices WHERE id = $1
+SELECT id, invoice_type, invoice_number, keez_number, keez_download_url, seller_company_name, seller_cui, seller_reg_number, seller_address, seller_city, seller_county, seller_is_vat_payer, seller_bank_name, seller_iban, buyer_name, buyer_cui, buyer_reg_number, buyer_address, buyer_city, buyer_county, buyer_is_vat_payer, buyer_email, subtotal_amount, vat_rate, vat_amount, total_amount, currency, booking_id, payment_transaction_id, company_id, client_user_id, efactura_status, efactura_index, status, issued_at, due_date, notes, created_at, updated_at, keez_series, keez_external_id FROM invoices WHERE id = $1
 `
 
 func (q *Queries) GetInvoiceByID(ctx context.Context, id pgtype.UUID) (Invoice, error) {
@@ -512,8 +515,8 @@ func (q *Queries) GetInvoiceByID(ctx context.Context, id pgtype.UUID) (Invoice, 
 		&i.ID,
 		&i.InvoiceType,
 		&i.InvoiceNumber,
-		&i.OblioNumber,
-		&i.OblioDownloadUrl,
+		&i.KeezNumber,
+		&i.KeezDownloadUrl,
 		&i.SellerCompanyName,
 		&i.SellerCui,
 		&i.SellerRegNumber,
@@ -548,7 +551,8 @@ func (q *Queries) GetInvoiceByID(ctx context.Context, id pgtype.UUID) (Invoice, 
 		&i.Notes,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.OblioSeriesName,
+		&i.KeezSeries,
+		&i.KeezExternalId,
 	)
 	return i, err
 }
@@ -654,7 +658,7 @@ func (q *Queries) GetNextInvoiceNumber(ctx context.Context, arg GetNextInvoiceNu
 
 const listAllInvoices = `-- name: ListAllInvoices :many
 
-SELECT id, invoice_type, invoice_number, oblio_number, oblio_download_url, seller_company_name, seller_cui, seller_reg_number, seller_address, seller_city, seller_county, seller_is_vat_payer, seller_bank_name, seller_iban, buyer_name, buyer_cui, buyer_reg_number, buyer_address, buyer_city, buyer_county, buyer_is_vat_payer, buyer_email, subtotal_amount, vat_rate, vat_amount, total_amount, currency, booking_id, payment_transaction_id, company_id, client_user_id, efactura_status, efactura_index, status, issued_at, due_date, notes, created_at, updated_at, oblio_series_name FROM invoices ORDER BY created_at DESC LIMIT $1 OFFSET $2
+SELECT id, invoice_type, invoice_number, keez_number, keez_download_url, seller_company_name, seller_cui, seller_reg_number, seller_address, seller_city, seller_county, seller_is_vat_payer, seller_bank_name, seller_iban, buyer_name, buyer_cui, buyer_reg_number, buyer_address, buyer_city, buyer_county, buyer_is_vat_payer, buyer_email, subtotal_amount, vat_rate, vat_amount, total_amount, currency, booking_id, payment_transaction_id, company_id, client_user_id, efactura_status, efactura_index, status, issued_at, due_date, notes, created_at, updated_at, keez_series, keez_external_id FROM invoices ORDER BY created_at DESC LIMIT $1 OFFSET $2
 `
 
 type ListAllInvoicesParams struct {
@@ -678,8 +682,8 @@ func (q *Queries) ListAllInvoices(ctx context.Context, arg ListAllInvoicesParams
 			&i.ID,
 			&i.InvoiceType,
 			&i.InvoiceNumber,
-			&i.OblioNumber,
-			&i.OblioDownloadUrl,
+			&i.KeezNumber,
+			&i.KeezDownloadUrl,
 			&i.SellerCompanyName,
 			&i.SellerCui,
 			&i.SellerRegNumber,
@@ -714,7 +718,8 @@ func (q *Queries) ListAllInvoices(ctx context.Context, arg ListAllInvoicesParams
 			&i.Notes,
 			&i.CreatedAt,
 			&i.UpdatedAt,
-			&i.OblioSeriesName,
+			&i.KeezSeries,
+			&i.KeezExternalId,
 		); err != nil {
 			return nil, err
 		}
@@ -764,7 +769,7 @@ func (q *Queries) ListInvoiceLineItems(ctx context.Context, invoiceID pgtype.UUI
 
 const listInvoicesByClient = `-- name: ListInvoicesByClient :many
 
-SELECT id, invoice_type, invoice_number, oblio_number, oblio_download_url, seller_company_name, seller_cui, seller_reg_number, seller_address, seller_city, seller_county, seller_is_vat_payer, seller_bank_name, seller_iban, buyer_name, buyer_cui, buyer_reg_number, buyer_address, buyer_city, buyer_county, buyer_is_vat_payer, buyer_email, subtotal_amount, vat_rate, vat_amount, total_amount, currency, booking_id, payment_transaction_id, company_id, client_user_id, efactura_status, efactura_index, status, issued_at, due_date, notes, created_at, updated_at, oblio_series_name FROM invoices WHERE client_user_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3
+SELECT id, invoice_type, invoice_number, keez_number, keez_download_url, seller_company_name, seller_cui, seller_reg_number, seller_address, seller_city, seller_county, seller_is_vat_payer, seller_bank_name, seller_iban, buyer_name, buyer_cui, buyer_reg_number, buyer_address, buyer_city, buyer_county, buyer_is_vat_payer, buyer_email, subtotal_amount, vat_rate, vat_amount, total_amount, currency, booking_id, payment_transaction_id, company_id, client_user_id, efactura_status, efactura_index, status, issued_at, due_date, notes, created_at, updated_at, keez_series, keez_external_id FROM invoices WHERE client_user_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3
 `
 
 type ListInvoicesByClientParams struct {
@@ -789,8 +794,8 @@ func (q *Queries) ListInvoicesByClient(ctx context.Context, arg ListInvoicesByCl
 			&i.ID,
 			&i.InvoiceType,
 			&i.InvoiceNumber,
-			&i.OblioNumber,
-			&i.OblioDownloadUrl,
+			&i.KeezNumber,
+			&i.KeezDownloadUrl,
 			&i.SellerCompanyName,
 			&i.SellerCui,
 			&i.SellerRegNumber,
@@ -825,7 +830,8 @@ func (q *Queries) ListInvoicesByClient(ctx context.Context, arg ListInvoicesByCl
 			&i.Notes,
 			&i.CreatedAt,
 			&i.UpdatedAt,
-			&i.OblioSeriesName,
+			&i.KeezSeries,
+			&i.KeezExternalId,
 		); err != nil {
 			return nil, err
 		}
@@ -839,7 +845,7 @@ func (q *Queries) ListInvoicesByClient(ctx context.Context, arg ListInvoicesByCl
 
 const listInvoicesByCompany = `-- name: ListInvoicesByCompany :many
 
-SELECT id, invoice_type, invoice_number, oblio_number, oblio_download_url, seller_company_name, seller_cui, seller_reg_number, seller_address, seller_city, seller_county, seller_is_vat_payer, seller_bank_name, seller_iban, buyer_name, buyer_cui, buyer_reg_number, buyer_address, buyer_city, buyer_county, buyer_is_vat_payer, buyer_email, subtotal_amount, vat_rate, vat_amount, total_amount, currency, booking_id, payment_transaction_id, company_id, client_user_id, efactura_status, efactura_index, status, issued_at, due_date, notes, created_at, updated_at, oblio_series_name FROM invoices WHERE company_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3
+SELECT id, invoice_type, invoice_number, keez_number, keez_download_url, seller_company_name, seller_cui, seller_reg_number, seller_address, seller_city, seller_county, seller_is_vat_payer, seller_bank_name, seller_iban, buyer_name, buyer_cui, buyer_reg_number, buyer_address, buyer_city, buyer_county, buyer_is_vat_payer, buyer_email, subtotal_amount, vat_rate, vat_amount, total_amount, currency, booking_id, payment_transaction_id, company_id, client_user_id, efactura_status, efactura_index, status, issued_at, due_date, notes, created_at, updated_at, keez_series, keez_external_id FROM invoices WHERE company_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3
 `
 
 type ListInvoicesByCompanyParams struct {
@@ -864,8 +870,8 @@ func (q *Queries) ListInvoicesByCompany(ctx context.Context, arg ListInvoicesByC
 			&i.ID,
 			&i.InvoiceType,
 			&i.InvoiceNumber,
-			&i.OblioNumber,
-			&i.OblioDownloadUrl,
+			&i.KeezNumber,
+			&i.KeezDownloadUrl,
 			&i.SellerCompanyName,
 			&i.SellerCui,
 			&i.SellerRegNumber,
@@ -900,7 +906,8 @@ func (q *Queries) ListInvoicesByCompany(ctx context.Context, arg ListInvoicesByC
 			&i.Notes,
 			&i.CreatedAt,
 			&i.UpdatedAt,
-			&i.OblioSeriesName,
+			&i.KeezSeries,
+			&i.KeezExternalId,
 		); err != nil {
 			return nil, err
 		}
@@ -913,7 +920,7 @@ func (q *Queries) ListInvoicesByCompany(ctx context.Context, arg ListInvoicesByC
 }
 
 const listInvoicesByCompanyAndStatus = `-- name: ListInvoicesByCompanyAndStatus :many
-SELECT id, invoice_type, invoice_number, oblio_number, oblio_download_url, seller_company_name, seller_cui, seller_reg_number, seller_address, seller_city, seller_county, seller_is_vat_payer, seller_bank_name, seller_iban, buyer_name, buyer_cui, buyer_reg_number, buyer_address, buyer_city, buyer_county, buyer_is_vat_payer, buyer_email, subtotal_amount, vat_rate, vat_amount, total_amount, currency, booking_id, payment_transaction_id, company_id, client_user_id, efactura_status, efactura_index, status, issued_at, due_date, notes, created_at, updated_at, oblio_series_name FROM invoices WHERE company_id = $1 AND status = $2 ORDER BY created_at DESC LIMIT $3 OFFSET $4
+SELECT id, invoice_type, invoice_number, keez_number, keez_download_url, seller_company_name, seller_cui, seller_reg_number, seller_address, seller_city, seller_county, seller_is_vat_payer, seller_bank_name, seller_iban, buyer_name, buyer_cui, buyer_reg_number, buyer_address, buyer_city, buyer_county, buyer_is_vat_payer, buyer_email, subtotal_amount, vat_rate, vat_amount, total_amount, currency, booking_id, payment_transaction_id, company_id, client_user_id, efactura_status, efactura_index, status, issued_at, due_date, notes, created_at, updated_at, keez_series, keez_external_id FROM invoices WHERE company_id = $1 AND status = $2 ORDER BY created_at DESC LIMIT $3 OFFSET $4
 `
 
 type ListInvoicesByCompanyAndStatusParams struct {
@@ -941,8 +948,8 @@ func (q *Queries) ListInvoicesByCompanyAndStatus(ctx context.Context, arg ListIn
 			&i.ID,
 			&i.InvoiceType,
 			&i.InvoiceNumber,
-			&i.OblioNumber,
-			&i.OblioDownloadUrl,
+			&i.KeezNumber,
+			&i.KeezDownloadUrl,
 			&i.SellerCompanyName,
 			&i.SellerCui,
 			&i.SellerRegNumber,
@@ -977,7 +984,8 @@ func (q *Queries) ListInvoicesByCompanyAndStatus(ctx context.Context, arg ListIn
 			&i.Notes,
 			&i.CreatedAt,
 			&i.UpdatedAt,
-			&i.OblioSeriesName,
+			&i.KeezSeries,
+			&i.KeezExternalId,
 		); err != nil {
 			return nil, err
 		}
@@ -990,7 +998,7 @@ func (q *Queries) ListInvoicesByCompanyAndStatus(ctx context.Context, arg ListIn
 }
 
 const listInvoicesByCompanyID = `-- name: ListInvoicesByCompanyID :many
-SELECT id, invoice_type, invoice_number, oblio_number, oblio_download_url, seller_company_name, seller_cui, seller_reg_number, seller_address, seller_city, seller_county, seller_is_vat_payer, seller_bank_name, seller_iban, buyer_name, buyer_cui, buyer_reg_number, buyer_address, buyer_city, buyer_county, buyer_is_vat_payer, buyer_email, subtotal_amount, vat_rate, vat_amount, total_amount, currency, booking_id, payment_transaction_id, company_id, client_user_id, efactura_status, efactura_index, status, issued_at, due_date, notes, created_at, updated_at, oblio_series_name FROM invoices WHERE company_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3
+SELECT id, invoice_type, invoice_number, keez_number, keez_download_url, seller_company_name, seller_cui, seller_reg_number, seller_address, seller_city, seller_county, seller_is_vat_payer, seller_bank_name, seller_iban, buyer_name, buyer_cui, buyer_reg_number, buyer_address, buyer_city, buyer_county, buyer_is_vat_payer, buyer_email, subtotal_amount, vat_rate, vat_amount, total_amount, currency, booking_id, payment_transaction_id, company_id, client_user_id, efactura_status, efactura_index, status, issued_at, due_date, notes, created_at, updated_at, keez_series, keez_external_id FROM invoices WHERE company_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3
 `
 
 type ListInvoicesByCompanyIDParams struct {
@@ -1012,8 +1020,8 @@ func (q *Queries) ListInvoicesByCompanyID(ctx context.Context, arg ListInvoicesB
 			&i.ID,
 			&i.InvoiceType,
 			&i.InvoiceNumber,
-			&i.OblioNumber,
-			&i.OblioDownloadUrl,
+			&i.KeezNumber,
+			&i.KeezDownloadUrl,
 			&i.SellerCompanyName,
 			&i.SellerCui,
 			&i.SellerRegNumber,
@@ -1048,7 +1056,8 @@ func (q *Queries) ListInvoicesByCompanyID(ctx context.Context, arg ListInvoicesB
 			&i.Notes,
 			&i.CreatedAt,
 			&i.UpdatedAt,
-			&i.OblioSeriesName,
+			&i.KeezSeries,
+			&i.KeezExternalId,
 		); err != nil {
 			return nil, err
 		}
@@ -1061,7 +1070,7 @@ func (q *Queries) ListInvoicesByCompanyID(ctx context.Context, arg ListInvoicesB
 }
 
 const listInvoicesByType = `-- name: ListInvoicesByType :many
-SELECT id, invoice_type, invoice_number, oblio_number, oblio_download_url, seller_company_name, seller_cui, seller_reg_number, seller_address, seller_city, seller_county, seller_is_vat_payer, seller_bank_name, seller_iban, buyer_name, buyer_cui, buyer_reg_number, buyer_address, buyer_city, buyer_county, buyer_is_vat_payer, buyer_email, subtotal_amount, vat_rate, vat_amount, total_amount, currency, booking_id, payment_transaction_id, company_id, client_user_id, efactura_status, efactura_index, status, issued_at, due_date, notes, created_at, updated_at, oblio_series_name FROM invoices WHERE invoice_type = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3
+SELECT id, invoice_type, invoice_number, keez_number, keez_download_url, seller_company_name, seller_cui, seller_reg_number, seller_address, seller_city, seller_county, seller_is_vat_payer, seller_bank_name, seller_iban, buyer_name, buyer_cui, buyer_reg_number, buyer_address, buyer_city, buyer_county, buyer_is_vat_payer, buyer_email, subtotal_amount, vat_rate, vat_amount, total_amount, currency, booking_id, payment_transaction_id, company_id, client_user_id, efactura_status, efactura_index, status, issued_at, due_date, notes, created_at, updated_at, keez_series, keez_external_id FROM invoices WHERE invoice_type = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3
 `
 
 type ListInvoicesByTypeParams struct {
@@ -1083,8 +1092,8 @@ func (q *Queries) ListInvoicesByType(ctx context.Context, arg ListInvoicesByType
 			&i.ID,
 			&i.InvoiceType,
 			&i.InvoiceNumber,
-			&i.OblioNumber,
-			&i.OblioDownloadUrl,
+			&i.KeezNumber,
+			&i.KeezDownloadUrl,
 			&i.SellerCompanyName,
 			&i.SellerCui,
 			&i.SellerRegNumber,
@@ -1119,7 +1128,8 @@ func (q *Queries) ListInvoicesByType(ctx context.Context, arg ListInvoicesByType
 			&i.Notes,
 			&i.CreatedAt,
 			&i.UpdatedAt,
-			&i.OblioSeriesName,
+			&i.KeezSeries,
+			&i.KeezExternalId,
 		); err != nil {
 			return nil, err
 		}
@@ -1132,7 +1142,7 @@ func (q *Queries) ListInvoicesByType(ctx context.Context, arg ListInvoicesByType
 }
 
 const listInvoicesByTypeAndStatus = `-- name: ListInvoicesByTypeAndStatus :many
-SELECT id, invoice_type, invoice_number, oblio_number, oblio_download_url, seller_company_name, seller_cui, seller_reg_number, seller_address, seller_city, seller_county, seller_is_vat_payer, seller_bank_name, seller_iban, buyer_name, buyer_cui, buyer_reg_number, buyer_address, buyer_city, buyer_county, buyer_is_vat_payer, buyer_email, subtotal_amount, vat_rate, vat_amount, total_amount, currency, booking_id, payment_transaction_id, company_id, client_user_id, efactura_status, efactura_index, status, issued_at, due_date, notes, created_at, updated_at, oblio_series_name FROM invoices WHERE invoice_type = $1 AND status = $2 ORDER BY created_at DESC LIMIT $3 OFFSET $4
+SELECT id, invoice_type, invoice_number, keez_number, keez_download_url, seller_company_name, seller_cui, seller_reg_number, seller_address, seller_city, seller_county, seller_is_vat_payer, seller_bank_name, seller_iban, buyer_name, buyer_cui, buyer_reg_number, buyer_address, buyer_city, buyer_county, buyer_is_vat_payer, buyer_email, subtotal_amount, vat_rate, vat_amount, total_amount, currency, booking_id, payment_transaction_id, company_id, client_user_id, efactura_status, efactura_index, status, issued_at, due_date, notes, created_at, updated_at, keez_series, keez_external_id FROM invoices WHERE invoice_type = $1 AND status = $2 ORDER BY created_at DESC LIMIT $3 OFFSET $4
 `
 
 type ListInvoicesByTypeAndStatusParams struct {
@@ -1160,8 +1170,8 @@ func (q *Queries) ListInvoicesByTypeAndStatus(ctx context.Context, arg ListInvoi
 			&i.ID,
 			&i.InvoiceType,
 			&i.InvoiceNumber,
-			&i.OblioNumber,
-			&i.OblioDownloadUrl,
+			&i.KeezNumber,
+			&i.KeezDownloadUrl,
 			&i.SellerCompanyName,
 			&i.SellerCui,
 			&i.SellerRegNumber,
@@ -1196,7 +1206,8 @@ func (q *Queries) ListInvoicesByTypeAndStatus(ctx context.Context, arg ListInvoi
 			&i.Notes,
 			&i.CreatedAt,
 			&i.UpdatedAt,
-			&i.OblioSeriesName,
+			&i.KeezSeries,
+			&i.KeezExternalId,
 		); err != nil {
 			return nil, err
 		}
@@ -1209,7 +1220,7 @@ func (q *Queries) ListInvoicesByTypeAndStatus(ctx context.Context, arg ListInvoi
 }
 
 const listReceivedInvoicesByCompany = `-- name: ListReceivedInvoicesByCompany :many
-SELECT id, invoice_type, invoice_number, oblio_number, oblio_download_url, seller_company_name, seller_cui, seller_reg_number, seller_address, seller_city, seller_county, seller_is_vat_payer, seller_bank_name, seller_iban, buyer_name, buyer_cui, buyer_reg_number, buyer_address, buyer_city, buyer_county, buyer_is_vat_payer, buyer_email, subtotal_amount, vat_rate, vat_amount, total_amount, currency, booking_id, payment_transaction_id, company_id, client_user_id, efactura_status, efactura_index, status, issued_at, due_date, notes, created_at, updated_at, oblio_series_name FROM invoices WHERE company_id = $1 AND invoice_type = 'platform_commission' ORDER BY created_at DESC LIMIT $2 OFFSET $3
+SELECT id, invoice_type, invoice_number, keez_number, keez_download_url, seller_company_name, seller_cui, seller_reg_number, seller_address, seller_city, seller_county, seller_is_vat_payer, seller_bank_name, seller_iban, buyer_name, buyer_cui, buyer_reg_number, buyer_address, buyer_city, buyer_county, buyer_is_vat_payer, buyer_email, subtotal_amount, vat_rate, vat_amount, total_amount, currency, booking_id, payment_transaction_id, company_id, client_user_id, efactura_status, efactura_index, status, issued_at, due_date, notes, created_at, updated_at, keez_series, keez_external_id FROM invoices WHERE company_id = $1 AND invoice_type = 'platform_commission' ORDER BY created_at DESC LIMIT $2 OFFSET $3
 `
 
 type ListReceivedInvoicesByCompanyParams struct {
@@ -1232,8 +1243,8 @@ func (q *Queries) ListReceivedInvoicesByCompany(ctx context.Context, arg ListRec
 			&i.ID,
 			&i.InvoiceType,
 			&i.InvoiceNumber,
-			&i.OblioNumber,
-			&i.OblioDownloadUrl,
+			&i.KeezNumber,
+			&i.KeezDownloadUrl,
 			&i.SellerCompanyName,
 			&i.SellerCui,
 			&i.SellerRegNumber,
@@ -1268,7 +1279,8 @@ func (q *Queries) ListReceivedInvoicesByCompany(ctx context.Context, arg ListRec
 			&i.Notes,
 			&i.CreatedAt,
 			&i.UpdatedAt,
-			&i.OblioSeriesName,
+			&i.KeezSeries,
+			&i.KeezExternalId,
 		); err != nil {
 			return nil, err
 		}
@@ -1282,7 +1294,7 @@ func (q *Queries) ListReceivedInvoicesByCompany(ctx context.Context, arg ListRec
 
 const markInvoiceAsPaid = `-- name: MarkInvoiceAsPaid :one
 UPDATE invoices SET status = 'paid', updated_at = NOW()
-WHERE id = $1 RETURNING id, invoice_type, invoice_number, oblio_number, oblio_download_url, seller_company_name, seller_cui, seller_reg_number, seller_address, seller_city, seller_county, seller_is_vat_payer, seller_bank_name, seller_iban, buyer_name, buyer_cui, buyer_reg_number, buyer_address, buyer_city, buyer_county, buyer_is_vat_payer, buyer_email, subtotal_amount, vat_rate, vat_amount, total_amount, currency, booking_id, payment_transaction_id, company_id, client_user_id, efactura_status, efactura_index, status, issued_at, due_date, notes, created_at, updated_at, oblio_series_name
+WHERE id = $1 RETURNING id, invoice_type, invoice_number, keez_number, keez_download_url, seller_company_name, seller_cui, seller_reg_number, seller_address, seller_city, seller_county, seller_is_vat_payer, seller_bank_name, seller_iban, buyer_name, buyer_cui, buyer_reg_number, buyer_address, buyer_city, buyer_county, buyer_is_vat_payer, buyer_email, subtotal_amount, vat_rate, vat_amount, total_amount, currency, booking_id, payment_transaction_id, company_id, client_user_id, efactura_status, efactura_index, status, issued_at, due_date, notes, created_at, updated_at, keez_series, keez_external_id
 `
 
 func (q *Queries) MarkInvoiceAsPaid(ctx context.Context, id pgtype.UUID) (Invoice, error) {
@@ -1292,8 +1304,8 @@ func (q *Queries) MarkInvoiceAsPaid(ctx context.Context, id pgtype.UUID) (Invoic
 		&i.ID,
 		&i.InvoiceType,
 		&i.InvoiceNumber,
-		&i.OblioNumber,
-		&i.OblioDownloadUrl,
+		&i.KeezNumber,
+		&i.KeezDownloadUrl,
 		&i.SellerCompanyName,
 		&i.SellerCui,
 		&i.SellerRegNumber,
@@ -1328,7 +1340,8 @@ func (q *Queries) MarkInvoiceAsPaid(ctx context.Context, id pgtype.UUID) (Invoic
 		&i.Notes,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.OblioSeriesName,
+		&i.KeezSeries,
+		&i.KeezExternalId,
 	)
 	return i, err
 }
@@ -1407,33 +1420,33 @@ func (q *Queries) UpdateInvoiceEFactura(ctx context.Context, arg UpdateInvoiceEF
 	return err
 }
 
-const updateInvoiceOblio = `-- name: UpdateInvoiceOblio :exec
-UPDATE invoices SET invoice_number = $2, oblio_series_name = $3, oblio_number = $4, oblio_download_url = $5, updated_at = NOW()
+const updateInvoiceKeez = `-- name: UpdateInvoiceKeez :exec
+UPDATE invoices SET invoice_number = $2, keez_external_id = $3, keez_series = $4, keez_number = $5, updated_at = NOW()
 WHERE id = $1
 `
 
-type UpdateInvoiceOblioParams struct {
-	ID               pgtype.UUID `json:"id"`
-	InvoiceNumber    pgtype.Text `json:"invoice_number"`
-	OblioSeriesName  pgtype.Text `json:"oblio_series_name"`
-	OblioNumber      pgtype.Text `json:"oblio_number"`
-	OblioDownloadUrl pgtype.Text `json:"oblio_download_url"`
+type UpdateInvoiceKeezParams struct {
+	ID             pgtype.UUID `json:"id"`
+	InvoiceNumber  pgtype.Text `json:"invoice_number"`
+	KeezExternalId pgtype.Text `json:"keez_external_id"`
+	KeezSeries     pgtype.Text `json:"keez_series"`
+	KeezNumber     pgtype.Text `json:"keez_number"`
 }
 
-func (q *Queries) UpdateInvoiceOblio(ctx context.Context, arg UpdateInvoiceOblioParams) error {
-	_, err := q.db.Exec(ctx, updateInvoiceOblio,
+func (q *Queries) UpdateInvoiceKeez(ctx context.Context, arg UpdateInvoiceKeezParams) error {
+	_, err := q.db.Exec(ctx, updateInvoiceKeez,
 		arg.ID,
 		arg.InvoiceNumber,
-		arg.OblioSeriesName,
-		arg.OblioNumber,
-		arg.OblioDownloadUrl,
+		arg.KeezExternalId,
+		arg.KeezSeries,
+		arg.KeezNumber,
 	)
 	return err
 }
 
 const updateInvoiceStatus = `-- name: UpdateInvoiceStatus :one
 UPDATE invoices SET status = $2, issued_at = CASE WHEN $2 = 'issued' THEN NOW() ELSE issued_at END, updated_at = NOW()
-WHERE id = $1 RETURNING id, invoice_type, invoice_number, oblio_number, oblio_download_url, seller_company_name, seller_cui, seller_reg_number, seller_address, seller_city, seller_county, seller_is_vat_payer, seller_bank_name, seller_iban, buyer_name, buyer_cui, buyer_reg_number, buyer_address, buyer_city, buyer_county, buyer_is_vat_payer, buyer_email, subtotal_amount, vat_rate, vat_amount, total_amount, currency, booking_id, payment_transaction_id, company_id, client_user_id, efactura_status, efactura_index, status, issued_at, due_date, notes, created_at, updated_at, oblio_series_name
+WHERE id = $1 RETURNING id, invoice_type, invoice_number, keez_number, keez_download_url, seller_company_name, seller_cui, seller_reg_number, seller_address, seller_city, seller_county, seller_is_vat_payer, seller_bank_name, seller_iban, buyer_name, buyer_cui, buyer_reg_number, buyer_address, buyer_city, buyer_county, buyer_is_vat_payer, buyer_email, subtotal_amount, vat_rate, vat_amount, total_amount, currency, booking_id, payment_transaction_id, company_id, client_user_id, efactura_status, efactura_index, status, issued_at, due_date, notes, created_at, updated_at, keez_series, keez_external_id
 `
 
 type UpdateInvoiceStatusParams struct {
@@ -1448,8 +1461,8 @@ func (q *Queries) UpdateInvoiceStatus(ctx context.Context, arg UpdateInvoiceStat
 		&i.ID,
 		&i.InvoiceType,
 		&i.InvoiceNumber,
-		&i.OblioNumber,
-		&i.OblioDownloadUrl,
+		&i.KeezNumber,
+		&i.KeezDownloadUrl,
 		&i.SellerCompanyName,
 		&i.SellerCui,
 		&i.SellerRegNumber,
@@ -1484,7 +1497,8 @@ func (q *Queries) UpdateInvoiceStatus(ctx context.Context, arg UpdateInvoiceStat
 		&i.Notes,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.OblioSeriesName,
+		&i.KeezSeries,
+		&i.KeezExternalId,
 	)
 	return i, err
 }

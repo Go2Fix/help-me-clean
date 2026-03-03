@@ -60,8 +60,8 @@ WHERE id = $1 RETURNING *;
 UPDATE invoices SET status = 'paid', updated_at = NOW()
 WHERE id = $1 RETURNING *;
 
--- name: UpdateInvoiceOblio :exec
-UPDATE invoices SET invoice_number = $2, oblio_series_name = $3, oblio_number = $4, oblio_download_url = $5, updated_at = NOW()
+-- name: UpdateInvoiceKeez :exec
+UPDATE invoices SET invoice_number = $2, keez_external_id = $3, keez_series = $4, keez_number = $5, updated_at = NOW()
 WHERE id = $1;
 
 -- name: UpdateInvoiceEFactura :exec

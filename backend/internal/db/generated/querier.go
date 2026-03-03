@@ -458,7 +458,7 @@ type Querier interface {
 	UpdateCompanyOwnProfile(ctx context.Context, arg UpdateCompanyOwnProfileParams) (Company, error)
 	UpdateCompanyStatus(ctx context.Context, arg UpdateCompanyStatusParams) (Company, error)
 	UpdateInvoiceEFactura(ctx context.Context, arg UpdateInvoiceEFacturaParams) error
-	UpdateInvoiceOblio(ctx context.Context, arg UpdateInvoiceOblioParams) error
+	UpdateInvoiceKeez(ctx context.Context, arg UpdateInvoiceKeezParams) error
 	UpdateInvoiceStatus(ctx context.Context, arg UpdateInvoiceStatusParams) (Invoice, error)
 	UpdatePaymentTransactionDisputed(ctx context.Context, arg UpdatePaymentTransactionDisputedParams) (PaymentTransaction, error)
 	UpdatePaymentTransactionFailed(ctx context.Context, arg UpdatePaymentTransactionFailedParams) (PaymentTransaction, error)
