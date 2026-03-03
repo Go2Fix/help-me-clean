@@ -40,6 +40,7 @@ import {
   Repeat,
   Mail,
   Info,
+  Phone,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@go2fix/shared';
@@ -73,6 +74,7 @@ import {
   CREATE_SUBSCRIPTION,
   SERVICE_CATEGORY_BY_SLUG,
   SERVICE_CATEGORIES,
+  UPDATE_PROFILE,
 } from '@/graphql/operations';
 
 const stripePromise = loadStripe(
@@ -357,7 +359,7 @@ function minutesToTime(mins: number): string {
 export default function BookingPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { isAuthenticated, user, loginWithGoogle } = useAuth();
+  const { isAuthenticated, user, loginWithGoogle, refetchUser } = useAuth();
   const { lang } = useLanguage();
 
   const preselectedService = searchParams.get('service') || '';
@@ -374,6 +376,10 @@ export default function BookingPage() {
   const [authError, setAuthError] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
   const [showOtpModal, setShowOtpModal] = useState(false);
+
+  const [bookingPhone, setBookingPhone] = useState('');
+  const [bookingPhoneError, setBookingPhoneError] = useState('');
+  const [bookingPhoneSaving, setBookingPhoneSaving] = useState(false);
 
   // Payment step state
   const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<string | null>(null);
@@ -470,6 +476,7 @@ export default function BookingPage() {
     CREATE_BOOKING_REQUEST,
   );
   const [createSubscription] = useMutation(CREATE_SUBSCRIPTION);
+  const [updateProfile] = useMutation(UPDATE_PROFILE);
 
   // Subscription pricing
   const { data: discountsData } = useQuery(RECURRING_DISCOUNTS);
@@ -630,13 +637,13 @@ export default function BookingPage() {
       case 'worker':
         return !!form.preferredWorkerId;
       case 'summary':
-        return isAuthenticated;
+        return isAuthenticated && !!user?.phone;
       case 'payment':
         return !!selectedPaymentMethodId;
       default:
         return false;
     }
-  }, [currentStep, STEPS, form, isAuthenticated, selectedPaymentMethodId, isCleaning, categoryFormFields, selectedService]);
+  }, [currentStep, STEPS, form, isAuthenticated, user, selectedPaymentMethodId, isCleaning, categoryFormFields, selectedService]);
 
   const handleNext = useCallback(() => {
     if (currentStep < STEPS.length - 1) {
@@ -649,6 +656,21 @@ export default function BookingPage() {
       setCurrentStep(currentStep - 1);
     }
   }, [currentStep]);
+
+  const handleSaveBookingPhone = useCallback(async () => {
+    if (!bookingPhone.trim()) { setBookingPhoneError('Numărul este obligatoriu.'); return; }
+    if (!bookingPhone.startsWith('+')) { setBookingPhoneError('Folosiți formatul internațional (+40...)'); return; }
+    setBookingPhoneError('');
+    setBookingPhoneSaving(true);
+    try {
+      await updateProfile({ variables: { input: { phone: bookingPhone.trim() } } });
+      refetchUser();
+    } catch {
+      setBookingPhoneError('Salvarea a eșuat. Încearcă din nou.');
+    } finally {
+      setBookingPhoneSaving(false);
+    }
+  }, [bookingPhone, updateProfile, refetchUser]);
 
   const handleToggleExtra = useCallback(
     (extraId: string, delta: number, allowMultiple: boolean) => {
@@ -1211,6 +1233,37 @@ export default function BookingPage() {
                       onSuccess={() => {/* auth state updates automatically via authService */}}
                       role="CLIENT"
                     />
+                  </Card>
+                )}
+
+                {isAuthenticated && !user?.phone && (
+                  <Card className="mb-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center">
+                        <Phone className="h-5 w-5 text-green-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-900">Adaugă numărul tău de telefon</h3>
+                        <p className="text-sm text-gray-500">Necesar pentru a te contacta despre această rezervare prin WhatsApp</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="+40 7XX XXX XXX"
+                        value={bookingPhone}
+                        onChange={(e) => { setBookingPhone(e.target.value); setBookingPhoneError(''); }}
+                        error={bookingPhoneError}
+                        className="flex-1"
+                      />
+                      <Button
+                        onClick={handleSaveBookingPhone}
+                        loading={bookingPhoneSaving}
+                        disabled={bookingPhoneSaving}
+                        className="shrink-0"
+                      >
+                        Salvează
+                      </Button>
+                    </div>
                   </Card>
                 )}
 
