@@ -425,6 +425,22 @@ export default function OrderDetailPage() {
 
   const isCancelled = booking.status.startsWith('CANCELLED');
   const canCancel = !['COMPLETED'].includes(booking.status) && !isCancelled;
+
+  const hoursUntilBooking = (() => {
+    try {
+      const [h, m] = (booking.scheduledStartTime || '08:00').split(':').map(Number);
+      const start = new Date(
+        `${booking.scheduledDate}T${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:00`,
+      );
+      return (start.getTime() - Date.now()) / 3_600_000;
+    } catch {
+      return Infinity;
+    }
+  })();
+  const rescheduleFreeHours = policyData?.bookingPolicy?.rescheduleFreeHoursBefore ?? 24;
+  const canReschedule =
+    (booking.status === 'ASSIGNED' || booking.status === 'CONFIRMED') &&
+    hoursUntilBooking >= rescheduleFreeHours;
   const totalForCalc = booking.finalTotal || booking.estimatedTotal || 0;
   const commissionPct = booking.platformCommissionPct || 0;
   const commissionAmount = totalForCalc * (commissionPct / 100);
@@ -509,16 +525,21 @@ export default function OrderDetailPage() {
               Mesaje
             </Button>
           </Link>
+          {(booking.status === 'ASSIGNED' || booking.status === 'CONFIRMED') && (
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!canReschedule}
+              onClick={() => canReschedule && setRescheduleModal(true)}
+            >
+              <CalendarClock className="h-4 w-4" />
+              Reprogrameaza
+            </Button>
+          )}
           {canCancel && (
-            <>
-              <Button variant="outline" size="sm" onClick={() => setRescheduleModal(true)}>
-                <CalendarClock className="h-4 w-4" />
-                Reprogrameaza
-              </Button>
-              <Button variant="danger" size="sm" onClick={() => setCancelModal(true)}>
-                Anuleaza
-              </Button>
-            </>
+            <Button variant="danger" size="sm" onClick={() => setCancelModal(true)}>
+              Anuleaza
+            </Button>
           )}
         </div>
       </div>
@@ -1412,9 +1433,7 @@ export default function OrderDetailPage() {
           {(() => {
             const policy = policyData?.bookingPolicy;
             if (!policy || !booking) return null;
-            const [h, m] = (booking.scheduledStartTime || '08:00').split(':').map(Number);
-            const start = new Date(`${booking.scheduledDate}T${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:00`);
-            const hoursUntil = (start.getTime() - Date.now()) / 3_600_000;
+            const hoursUntil = hoursUntilBooking;
             let msg: string;
             if (hoursUntil >= policy.cancelFreeHoursBefore) {
               msg = 'Clientul va primi o rambursare completa (100%).';

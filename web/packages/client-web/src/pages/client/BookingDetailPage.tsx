@@ -413,6 +413,20 @@ export default function BookingDetailPage() {
   const isCancelled = booking.status.startsWith('CANCELLED');
   const canCancel = booking.status === 'ASSIGNED' || booking.status === 'CONFIRMED';
 
+  const hoursUntilBooking = (() => {
+    try {
+      const [h, m] = (booking.scheduledStartTime || '08:00').split(':').map(Number);
+      const start = new Date(
+        `${booking.scheduledDate}T${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:00`,
+      );
+      return (start.getTime() - Date.now()) / 3_600_000;
+    } catch {
+      return Infinity;
+    }
+  })();
+  const rescheduleFreeHours = policyData?.bookingPolicy?.rescheduleFreeHoursBefore ?? 24;
+  const tooLateToReschedule = hoursUntilBooking < rescheduleFreeHours;
+
   // Timeline
   const timelineSteps: { label: string; date: string | null; icon: typeof FileText; done: boolean }[] = [
     { label: 'Comanda plasata', date: booking.createdAt, icon: FileText, done: true },
@@ -1158,7 +1172,7 @@ export default function BookingDetailPage() {
                         <Button
                           variant="outline"
                           className="w-full"
-                          disabled={limitReached}
+                          disabled={limitReached || tooLateToReschedule}
                           onClick={() => setRescheduleModalOpen(true)}
                         >
                           <CalendarClock className="h-4 w-4" />
@@ -1167,6 +1181,11 @@ export default function BookingDetailPage() {
                         {limitReached && (
                           <p className="text-xs text-gray-400 mt-1.5 text-center">
                             Ai atins limita de {maxReschedules} reprogramari
+                          </p>
+                        )}
+                        {tooLateToReschedule && !limitReached && (
+                          <p className="text-xs text-gray-400 mt-1.5 text-center">
+                            Reprogramarea nu este permisă cu mai puțin de {rescheduleFreeHours}h înainte
                           </p>
                         )}
                       </div>
@@ -1224,9 +1243,7 @@ export default function BookingDetailPage() {
           {(() => {
             const policy = policyData?.bookingPolicy;
             if (!policy) return null;
-            const [h, m] = (booking.scheduledStartTime || '08:00').split(':').map(Number);
-            const start = new Date(`${booking.scheduledDate}T${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:00`);
-            const hoursUntil = (start.getTime() - Date.now()) / 3_600_000;
+            const hoursUntil = hoursUntilBooking;
             let msg: string;
             if (hoursUntil >= policy.cancelFreeHoursBefore) {
               msg = 'Vei primi o rambursare completa (100%).';

@@ -242,24 +242,5 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://go2fix.ro/confidentialitate"/>
   </url>
 
-  <!-- GDPR -->
-  <url>
-    <loc>https://go2fix.ro/gdpr</loc>
-    <lastmod>2026-03-03</lastmod>
-    <priority>0.3</priority>
-    <changefreq>yearly</changefreq>
-    <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/gdpr"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://go2fix.ro/en/gdpr"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://go2fix.ro/gdpr"/>
-  </url>
-  <url>
-    <loc>https://go2fix.ro/en/gdpr</loc>
-    <lastmod>2026-03-03</lastmod>
-    <priority>0.3</priority>
-    <changefreq>yearly</changefreq>
-    <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/gdpr"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://go2fix.ro/en/gdpr"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://go2fix.ro/gdpr"/>
-  </url>
 
 </urlset>

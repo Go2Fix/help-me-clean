@@ -93,11 +93,12 @@ export default function TermsPage() {
               <p className="leading-relaxed">{t('terms.s4.p3')}</p>
             </section>
 
-            {/* 5. Anulare și rambursare */}
+            {/* 5. Anulare, reprogramare și rambursare */}
             <section>
               <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('terms.s5.title')}</h2>
               <p className="leading-relaxed mb-4">{t('terms.s5.p1')}</p>
-              <p className="leading-relaxed">{t('terms.s5.p2')}</p>
+              <p className="leading-relaxed mb-4">{t('terms.s5.p2')}</p>
+              <p className="leading-relaxed">{t('terms.s5.p3')}</p>
             </section>
 
             {/* 6. Răspundere */}

@@ -5,7 +5,7 @@
       "description": "Terms and conditions for using the Go2Fix.ro platform."
     },
     "title": "Terms and Conditions",
-    "lastUpdated": "Last updated: January 1, 2024",
+    "lastUpdated": "Last updated: March 1, 2026",
     "intro": "Please read these Terms and Conditions carefully before using the Go2Fix.ro platform. By accessing or using our services, you agree to these terms.",
     "s1": {
       "title": "1. Definitions",
@@ -47,9 +47,10 @@
       "p3": "Go2Fix SRL charges an intermediary commission from the value of each transaction. The commission is included in the final price displayed to the Client."
     },
     "s5": {
-      "title": "5. Cancellation and refund",
-      "p1": "The Client may cancel a booking free of charge at least 24 hours before the scheduled time. Cancellations made less than 24 hours in advance may be subject to a cancellation fee according to the Partner company's policy.",
-      "p2": "If the service was not provided as contracted, the Client may request a partial or full refund through the Platform within 48 hours of the scheduled service completion. Refund requests are reviewed individually by the Go2Fix team."
+      "title": "5. Cancellation, rescheduling and refunds",
+      "p1": "The Client may cancel a booking at any time before the scheduled time, subject to the following refund conditions: cancellations made at least 48 hours in advance receive a full refund (100%); cancellations made between 24 and 48 hours in advance receive a partial refund of 50% of the amount paid; cancellations made less than 24 hours before the scheduled time are not eligible for any refund.",
+      "p2": "The Client may reschedule a booking at least 24 hours before the scheduled time, up to a maximum of 2 times per booking. Rescheduling requests made less than 24 hours in advance are not permitted.",
+      "p3": "If the service was not provided as contracted, the Client may request a partial or full refund through the Platform within 48 hours of the scheduled service completion. Refund requests are reviewed individually by the Go2Fix team."
     },
     "s6": {
       "title": "6. Liability",

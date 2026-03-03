@@ -5,7 +5,7 @@
       "description": "Termenii și condițiile de utilizare ale platformei Go2Fix.ro."
     },
     "title": "Termeni și Condiții",
-    "lastUpdated": "Ultima actualizare: 1 ianuarie 2024",
+    "lastUpdated": "Ultima actualizare: 1 martie 2026",
     "intro": "Vă rugăm să citiți cu atenție acești Termeni și Condiții înainte de a utiliza platforma Go2Fix.ro. Prin accesarea sau utilizarea serviciilor noastre, sunteți de acord cu acești termeni.",
     "s1": {
       "title": "1. Definiții",
@@ -47,9 +47,10 @@
       "p3": "Go2Fix SRL percepe un comision de intermediere din valoarea fiecărei tranzacții. Comisionul este inclus în prețul final afișat Clientului."
     },
     "s5": {
-      "title": "5. Anulare și rambursare",
-      "p1": "Clientul poate anula o rezervare gratuit cu cel puțin 24 de ore înainte de ora programată. Anulările efectuate cu mai puțin de 24 de ore pot fi supuse unei taxe de anulare conform politicii Firmei partenere.",
-      "p2": "În cazul în care serviciul nu a fost prestat conform contractului, Clientul poate solicita o rambursare parțială sau totală prin intermediul Platformei, în termen de 48 de ore de la finalizarea programată a serviciului. Cererile de rambursare sunt analizate individual de echipa Go2Fix."
+      "title": "5. Anulare, reprogramare și rambursare",
+      "p1": "Clientul poate anula o rezervare oricând înainte de ora programată, cu următoarele condiții de rambursare: anulările efectuate cu cel puțin 48 de ore înainte beneficiază de rambursare integrală (100%); anulările efectuate între 24 și 48 de ore înainte beneficiază de rambursare parțială de 50% din valoarea plătită; anulările efectuate cu mai puțin de 24 de ore înainte de ora programată nu beneficiază de nicio rambursare.",
+      "p2": "Clientul poate reprograma o rezervare cu cel puțin 24 de ore înainte de ora programată, de maximum 2 ori per rezervare. Reprogramările efectuate cu mai puțin de 24 de ore înainte nu sunt permise.",
+      "p3": "În cazul în care serviciul nu a fost prestat conform contractului, Clientul poate solicita o rambursare parțială sau totală prin intermediul Platformei, în termen de 48 de ore de la finalizarea programată a serviciului. Cererile de rambursare sunt analizate individual de echipa Go2Fix."
     },
     "s6": {
       "title": "6. Răspundere",

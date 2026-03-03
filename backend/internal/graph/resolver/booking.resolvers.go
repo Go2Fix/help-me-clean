@@ -702,6 +702,14 @@ func (r *mutationResolver) RescheduleBooking(ctx context.Context, id string, sch
 		}
 	}
 
+	// Enforce minimum reschedule window (admin bypasses).
+	if !isAdmin {
+		hoursLeft := hoursUntilBooking(current.ScheduledDate, current.ScheduledStartTime)
+		if hoursLeft < float64(policy.RescheduleFreeHoursBefore) {
+			return nil, fmt.Errorf("reprogramarea trebuie efectuată cu cel puțin %d ore înainte de serviciu", policy.RescheduleFreeHoursBefore)
+		}
+	}
+
 	// Parse and validate new date/time.
 	newDate, err := time.Parse("2006-01-02", scheduledDate)
 	if err != nil {
