@@ -65,7 +65,12 @@ func (r *mutationResolver) SubmitPersonalityAssessment(ctx context.Context, answ
 	}
 	defer tx.Rollback(ctx)
 
-	qtx := r.Queries.WithTx(tx)
+	var qtx db.Querier
+	if concreteQ, ok := r.Queries.(*db.Queries); ok {
+		qtx = concreteQ.WithTx(tx)
+	} else {
+		qtx = r.Queries
+	}
 
 	// Insert the assessment.
 	assessment, err := qtx.CreatePersonalityAssessment(ctx, db.CreatePersonalityAssessmentParams{

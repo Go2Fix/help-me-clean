@@ -11,7 +11,7 @@ import (
 
 // loadMatchConfig reads matchmaking settings from platform_settings KV table,
 // falling back to DefaultMatchConfig for any missing keys.
-func loadMatchConfig(ctx context.Context, queries *db.Queries) matching.MatchConfig {
+func loadMatchConfig(ctx context.Context, queries db.Querier) matching.MatchConfig {
 	config := matching.DefaultMatchConfig()
 
 	if v, err := queries.GetPlatformSetting(ctx, "matchmaking_buffer_minutes"); err == nil {

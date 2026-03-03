@@ -23,7 +23,7 @@ type BookingPolicyConfig struct {
 
 // loadBookingPolicy reads booking policy settings from platform_settings,
 // falling back to defaults for any missing keys.
-func loadBookingPolicy(ctx context.Context, queries *db.Queries) BookingPolicyConfig {
+func loadBookingPolicy(ctx context.Context, queries db.Querier) BookingPolicyConfig {
 	cfg := BookingPolicyConfig{
 		CancelFreeHoursBefore:     48,
 		CancelLateRefundPct:       50,

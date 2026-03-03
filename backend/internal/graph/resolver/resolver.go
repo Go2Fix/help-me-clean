@@ -22,7 +22,7 @@ import (
 // Resolver is the root resolver struct.
 type Resolver struct {
 	Pool                *pgxpool.Pool
-	Queries             *db.Queries
+	Queries             db.Querier
 	PaymentService      *payment.Service
 	InvoiceService      *invoice.Service
 	NotifSvc            *notification.Service

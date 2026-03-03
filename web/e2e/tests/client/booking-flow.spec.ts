@@ -1,5 +1,29 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 import { getFutureDate, uniqueEmail } from './helpers';
+
+// ─── Helper: navigate to summary step ─────────────────────────────────────────
+
+async function navigateToSummaryStep(page: Page) {
+  await page.goto('/rezervare?service=STANDARD_CLEANING');
+  await expect(page.getByText('Detalii proprietate')).toBeVisible({ timeout: 10_000 });
+
+  // Step 1 → Step 2
+  await page.getByRole('button', { name: /Continua/i }).click();
+  await expect(page.getByText('Alege data si ora')).toBeVisible();
+  await page.locator('input[type="date"]').fill(getFutureDate(5));
+  await page.locator('select').selectOption('10:00');
+
+  // Step 2 → Step 3
+  await page.getByRole('button', { name: /Continua/i }).click();
+  await expect(page.getByText('Adresa de curatenie')).toBeVisible();
+  await page.getByLabel('Strada si numar').fill('Str. Victoriei nr. 42');
+  await page.getByLabel('Oras').fill('Bucuresti');
+  await page.locator('select').last().selectOption('Bucuresti');
+
+  // Step 3 → Step 4 (summary)
+  await page.getByRole('button', { name: /Continua/i }).click();
+  await expect(page.getByText('Sumar si confirmare')).toBeVisible();
+}
 
 test.describe('Booking wizard flow', () => {
   test('Full booking flow as guest (not logged in)', async ({ page }) => {
@@ -244,5 +268,56 @@ test.describe('Booking wizard flow', () => {
 
     // Verify price estimate section exists
     await expect(page.getByText('Estimare pret')).toBeVisible();
+  });
+});
+
+// ─── Promo code scenarios ──────────────────────────────────────────────────────
+
+test.describe('Booking wizard – promo code', () => {
+  test('Promo code input is visible in summary step', async ({ page }) => {
+    await navigateToSummaryStep(page);
+
+    // The promo code field should be visible in the summary/payment step
+    await expect(
+      page.getByPlaceholder(/cod promo/i).or(page.getByLabel(/cod promo/i)),
+    ).toBeVisible({ timeout: 10_000 });
+  });
+
+  test('Invalid promo code shows validation error', async ({ page }) => {
+    await navigateToSummaryStep(page);
+
+    // Type an invalid code and apply it
+    const promoInput = page.getByPlaceholder(/cod promo/i).or(page.getByLabel(/cod promo/i));
+    await promoInput.fill('INVALID999');
+    await page.getByRole('button', { name: /aplica|verifica/i }).click();
+
+    // An error message should appear
+    await expect(
+      page.getByText(/invalid|expirat|nu exista|negasit/i),
+    ).toBeVisible({ timeout: 10_000 });
+  });
+
+  test('Valid promo code reflects discount in price summary', async ({
+    page,
+  }) => {
+    await navigateToSummaryStep(page);
+
+    // Capture the initial estimated price
+    const priceEl = page.getByText(/RON/i).first();
+    const initialPrice = await priceEl.textContent();
+
+    // Apply a valid promo code (TEST10 is seeded in dev environment)
+    const promoInput = page.getByPlaceholder(/cod promo/i).or(page.getByLabel(/cod promo/i));
+    await promoInput.fill('TEST10');
+    await page.getByRole('button', { name: /aplica|verifica/i }).click();
+
+    // Success: discount text should appear
+    await expect(
+      page.getByText(/reducere|discount|aplicat/i),
+    ).toBeVisible({ timeout: 10_000 });
+
+    // Price shown should differ from original (discount applied)
+    const discountedPrice = await priceEl.textContent();
+    expect(discountedPrice).not.toBe(initialPrice);
   });
 });
