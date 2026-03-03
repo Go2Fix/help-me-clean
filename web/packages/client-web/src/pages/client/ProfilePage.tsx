@@ -40,7 +40,7 @@ const profileSchema = z.object({
   fullName: z.string().min(2, 'Numele trebuie sa aiba cel putin 2 caractere'),
   phone: z
     .string()
-    .min(1, 'Numarul de telefon este obligatoriu')
+    .min(1, 'Numărul de telefon este obligatoriu')
     .regex(/^\+/, 'Formatul trebuie sa fie +40...'),
   preferredLanguage: z.string().optional(),
 });

@@ -191,10 +191,10 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">
-          Bun venit{company ? `, ${company.companyName}` : ''}!
+          Bun venit{company ? `, ${company.companyName.split(' ')[0]}` : ''}!
         </h1>
         <p className="text-gray-500 mt-1">
-          Iata o privire de ansamblu asupra activitatii tale.
+          Iată o privire de ansamblu asupra activității tale.
         </p>
       </div>
 

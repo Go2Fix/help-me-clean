@@ -2222,14 +2222,14 @@ function StepDetails({
         {!isPerSqm && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <StepperField
-              label="Numar camere"
+              label="Număr camere"
               value={form.numRooms}
               min={1}
               max={10}
               onChange={(v) => updateForm({ numRooms: v })}
             />
             <StepperField
-              label="Numar bai"
+              label="Număr băi"
               value={form.numBathrooms}
               min={1}
               max={5}
@@ -4901,7 +4901,7 @@ function PriceSidebar({
               </div>
             ) : estimate ? (
               <div className="flex justify-between">
-                <span className="text-gray-500">Durata estimata</span>
+                <span className="text-gray-500">Durată estimată</span>
                 <span className="font-medium text-gray-900">
                   ~{estimate.estimatedHours} ore
                 </span>

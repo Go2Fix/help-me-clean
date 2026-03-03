@@ -421,7 +421,7 @@ export default function RefundsPage() {
                       </div>
                     ) : bookingResults.length === 0 ? (
                       <div className="px-4 py-3 text-sm text-gray-400 text-center">
-                        Nicio rezervare gasita.
+                        Nicio rezervare găsită.
                       </div>
                     ) : (
                       bookingResults.map((booking) => (

@@ -227,8 +227,8 @@ export default function ClientDashboardPage() {
     { label: 'Contact Suport', icon: MessageCircle, path: '/cont/mesaje' },
     { label: 'Adresele mele', icon: MapPin, path: '/cont/adrese' },
     { label: 'Facturi', icon: FileText, path: '/cont/facturi' },
-    { label: 'Metode de plata', icon: CreditCard, path: '/cont/plati' },
-    { label: 'Profil & Setari', icon: Settings, path: '/cont/setari' },
+    { label: 'Metode de plată', icon: CreditCard, path: '/cont/plati' },
+    { label: 'Profil & Setări', icon: Settings, path: '/cont/setari' },
   ];
 
   const setupItems: SetupItem[] = [

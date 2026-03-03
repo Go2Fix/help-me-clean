@@ -148,11 +148,11 @@ export default function TeamPage() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Echipa mea</h1>
-          <p className="text-gray-500 mt-1">Gestioneaza angajatii firmei tale.</p>
+          <p className="text-gray-500 mt-1">Gestionează angajații firmei tale.</p>
         </div>
         <Button onClick={() => setShowInvite(true)}>
           <UserPlus className="h-4 w-4" />
-          Invita lucrator
+          Invită lucrător
         </Button>
       </div>
 
@@ -163,7 +163,7 @@ export default function TeamPage() {
             options={statusFilterOptions}
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            label="Filtreaza dupa status"
+            label="Filtrează după status"
           />
         </div>
       </div>
@@ -186,10 +186,10 @@ export default function TeamPage() {
         ) : filtered.length === 0 ? (
           <div className="text-center py-12 px-6">
             <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-1">Niciun lucrator</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-1">Niciun lucrător</h3>
             <p className="text-gray-500 mb-4">Nu ai adaugat inca niciun lucrator in echipa ta.</p>
             <Button onClick={() => setShowInvite(true)}>
-              <UserPlus className="h-4 w-4" /> Invita lucrator
+              <UserPlus className="h-4 w-4" /> Invită lucrător
             </Button>
           </div>
         ) : (
@@ -268,7 +268,7 @@ export default function TeamPage() {
       </Card>
 
       {/* Invite Modal */}
-      <Modal open={showInvite} onClose={() => setShowInvite(false)} title="Invita lucrator">
+      <Modal open={showInvite} onClose={() => setShowInvite(false)} title="Invită lucrător">
         <form onSubmit={handleInvite} className="space-y-4">
           <Input
             label="Nume complet"
@@ -317,7 +317,7 @@ export default function TeamPage() {
             </button>
           </div>
           {copied && <p className="text-xs text-secondary">Linkul a fost copiat!</p>}
-          <Button onClick={() => setShowToken(false)} className="w-full">Am inteles</Button>
+          <Button onClick={() => setShowToken(false)} className="w-full">Am înțeles</Button>
         </div>
       </Modal>
     </div>

@@ -62,7 +62,7 @@ describe('OrdersPage', () => {
   it('shows status filter dropdown', () => {
     mockQuery();
     renderPage();
-    expect(screen.getByLabelText('Filtreaza dupa status')).toBeInTheDocument();
+    expect(screen.getByLabelText('Filtrează după status')).toBeInTheDocument();
   });
 
   it('shows search input', () => {

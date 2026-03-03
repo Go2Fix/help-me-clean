@@ -22,9 +22,9 @@ const navItems = [
   { to: '/firma/mesaje', icon: MessageSquare, label: 'Contact Suport' },
   { to: '/firma/echipa', icon: Users, label: 'Echipa mea' },
   { to: '/firma/recenzii', icon: Star, label: 'Recenzii' },
-  { to: '/firma/plati', icon: Wallet, label: 'Plati & Castiguri' },
+  { to: '/firma/plati', icon: Wallet, label: 'Plăți & Câștiguri' },
   { to: '/firma/facturi', icon: FileText, label: 'Facturi' },
-  { to: '/firma/setari', icon: Settings, label: 'Setari' },
+  { to: '/firma/setari', icon: Settings, label: 'Setări' },
 ];
 
 export default function CompanyLayout() {

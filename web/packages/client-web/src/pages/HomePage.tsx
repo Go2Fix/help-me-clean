@@ -57,6 +57,13 @@ const CATEGORY_DESC_KEYS: Record<string, string> = {
   curatenie: 'cleaningDesc',
 };
 
+const CATEGORY_ICONS: Record<string, string> = {
+  curatenie: '🧹',
+  dezinfectie: '🦠',
+  instalatii: '🔧',
+  electrician: '⚡',
+};
+
 const CATEGORY_COLORS: Record<string, string> = {
   curatenie: 'border-t-primary',
   dezinfectie: 'border-t-secondary',
@@ -549,7 +556,7 @@ export default function HomePage() {
                       onClick={() => navigate(categoryPath)}
                     >
                       <div className="text-4xl mb-4">
-                        {category.icon || '🏠'}
+                        {CATEGORY_ICONS[category.slug] || category.icon || '🏠'}
                       </div>
                       <h3 className="text-lg font-black text-gray-900 mb-2 group-hover:text-primary transition-colors">
                         {lang === 'en' ? category.nameEn : category.nameRo}

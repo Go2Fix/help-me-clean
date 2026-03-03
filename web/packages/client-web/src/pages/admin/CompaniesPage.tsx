@@ -393,7 +393,7 @@ export default function CompaniesPage() {
               <ListSkeleton />
             ) : approvedCompanies.length === 0 ? (
               <p className="text-center text-gray-400 py-16">
-                {debouncedSearch ? 'Nicio companie gasita.' : 'Nu exista companii aprobate.'}
+                {debouncedSearch ? 'Nicio companie găsită.' : 'Nu exista companii aprobate.'}
               </p>
             ) : (
               <CompanyList companies={approvedCompanies} onRowClick={(id) => navigate(`/admin/companii/${id}`)} showStatus={false} />
@@ -419,7 +419,7 @@ export default function CompaniesPage() {
               <ListSkeleton />
             ) : allCompanies.length === 0 ? (
               <p className="text-center text-gray-400 py-16">
-                {debouncedSearch || statusFilter ? 'Nicio companie gasita.' : 'Nu exista companii.'}
+                {debouncedSearch || statusFilter ? 'Nicio companie găsită.' : 'Nu exista companii.'}
               </p>
             ) : (
               <CompanyList companies={allCompanies} onRowClick={(id) => navigate(`/admin/companii/${id}`)} showStatus />

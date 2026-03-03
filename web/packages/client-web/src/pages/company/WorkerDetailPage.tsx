@@ -515,7 +515,7 @@ export default function WorkerDetailPage() {
           onClick={() => navigate('/firma/echipa')}
           className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-6 cursor-pointer"
         >
-          <ArrowLeft className="h-4 w-4" /> Inapoi la echipa
+          <ArrowLeft className="h-4 w-4" /> Înapoi la echipă
         </button>
         <LoadingSpinner text="Se incarca profilul..." />
       </div>
@@ -531,14 +531,14 @@ export default function WorkerDetailPage() {
           onClick={() => navigate('/firma/echipa')}
           className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-6 cursor-pointer"
         >
-          <ArrowLeft className="h-4 w-4" /> Inapoi la echipa
+          <ArrowLeft className="h-4 w-4" /> Înapoi la echipă
         </button>
         <Card>
           <div className="text-center py-12">
             <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-1">Lucrator negasit</h3>
             <p className="text-gray-500 mb-4">Lucratorul nu a fost gasit in echipa ta.</p>
-            <Button onClick={() => navigate('/firma/echipa')}>Inapoi la echipa</Button>
+            <Button onClick={() => navigate('/firma/echipa')}>Înapoi la echipă</Button>
           </div>
         </Card>
       </div>
@@ -557,8 +557,8 @@ export default function WorkerDetailPage() {
     ? [
         { bg: 'bg-blue-50', icon: Briefcase, iconCls: 'text-blue-600', label: 'Total joburi', value: perf.totalCompletedJobs, valCls: 'text-blue-900' },
         { bg: 'bg-emerald-50', icon: Calendar, iconCls: 'text-emerald-600', label: 'Luna aceasta', value: perf.thisMonthCompleted, valCls: 'text-emerald-900' },
-        { bg: 'bg-amber-50', icon: DollarSign, iconCls: 'text-amber-600', label: 'Castiguri totale', value: fmtCurrency(perf.totalEarnings), valCls: 'text-amber-900' },
-        { bg: 'bg-purple-50', icon: TrendingUp, iconCls: 'text-purple-600', label: 'Castiguri luna', value: fmtCurrency(perf.thisMonthEarnings), valCls: 'text-purple-900' },
+        { bg: 'bg-amber-50', icon: DollarSign, iconCls: 'text-amber-600', label: 'Câștiguri totale', value: fmtCurrency(perf.totalEarnings), valCls: 'text-amber-900' },
+        { bg: 'bg-purple-50', icon: TrendingUp, iconCls: 'text-purple-600', label: 'Câștiguri luna', value: fmtCurrency(perf.thisMonthEarnings), valCls: 'text-purple-900' },
       ]
     : [];
 
@@ -571,7 +571,7 @@ export default function WorkerDetailPage() {
         onClick={() => navigate('/firma/echipa')}
         className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-6 cursor-pointer"
       >
-        <ArrowLeft className="h-4 w-4" /> Inapoi la echipa
+        <ArrowLeft className="h-4 w-4" /> Înapoi la echipă
       </button>
 
       {/* 2. Header Card */}
@@ -828,7 +828,7 @@ export default function WorkerDetailPage() {
             {/* Save button */}
             <div className="mt-4">
               <Button onClick={handleSaveAreas} loading={savingAreas}>
-                Salveaza zonele
+                Salvează zonele
               </Button>
             </div>
           </>
@@ -914,7 +914,7 @@ export default function WorkerDetailPage() {
 
             <div className="mt-4">
               <Button onClick={handleSaveCategories} loading={savingCategories}>
-                Salveaza categoriile
+                Salvează categoriile
               </Button>
             </div>
           </>
@@ -924,7 +924,7 @@ export default function WorkerDetailPage() {
       {/* 5c. Max Daily Bookings Card */}
       <Card className="mb-6 p-5">
         <h3 className="font-semibold text-gray-900 mb-1">Limita zilnica comenzi</h3>
-        <p className="text-sm text-gray-500 mb-3">Numarul maxim de comenzi pe zi. Lasa gol pentru nelimitat.</p>
+        <p className="text-sm text-gray-500 mb-3">Numărul maxim de comenzi pe zi. Lasa gol pentru nelimitat.</p>
         <div className="flex gap-2">
           <input
             type="number"
@@ -939,7 +939,7 @@ export default function WorkerDetailPage() {
             size="sm"
             onClick={() => handleUpdateMaxDailyBookings()}
           >
-            Salveaza
+            Salvează
           </Button>
         </div>
       </Card>

@@ -116,9 +116,9 @@ export default function BookingDetailPage() {
   if (!booking) {
     return (
       <div className="text-center py-20">
-        <p className="text-gray-400">Comanda nu a fost gasita.</p>
+        <p className="text-gray-400">Comanda nu a fost găsită.</p>
         <Button variant="ghost" className="mt-4" onClick={() => navigate('/admin/comenzi')}>
-          Inapoi la comenzi
+          Înapoi la comenzi
         </Button>
       </div>
     );
@@ -158,7 +158,7 @@ export default function BookingDetailPage() {
   // Build status timeline
   const timelineSteps = [
     { label: 'Creata', date: booking.createdAt, icon: FileText, done: true },
-    { label: 'Platita & Confirmata', date: booking.paidAt ?? null, icon: CheckCircle, done: ['CONFIRMED', 'IN_PROGRESS', 'COMPLETED'].includes(booking.status) },
+    { label: 'Plătită & Confirmată', date: booking.paidAt ?? null, icon: CheckCircle, done: ['CONFIRMED', 'IN_PROGRESS', 'COMPLETED'].includes(booking.status) },
     { label: 'In desfasurare', date: booking.startedAt, icon: Clock, done: ['IN_PROGRESS', 'COMPLETED'].includes(booking.status) },
     { label: 'Finalizata', date: booking.completedAt, icon: CheckCircle, done: booking.status === 'COMPLETED' },
   ];

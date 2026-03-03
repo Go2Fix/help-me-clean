@@ -177,7 +177,7 @@ export default function DashboardPage() {
           { to: '/worker/comenzi', icon: ClipboardList, label: 'Comenzile mele', color: 'bg-blue-50 text-blue-600' },
           { to: '/worker/program', icon: CalendarDays, label: 'Programul meu', color: 'bg-emerald-50 text-emerald-600' },
           { to: '/worker/mesaje', icon: MessageSquare, label: 'Mesaje', color: 'bg-violet-50 text-violet-600' },
-          { to: '/worker/profil', icon: User, label: 'Profil & Setari', color: 'bg-amber-50 text-amber-600' },
+          { to: '/worker/profil', icon: User, label: 'Profil & Setări', color: 'bg-amber-50 text-amber-600' },
         ].map((item) => (
           <Link
             key={item.to}

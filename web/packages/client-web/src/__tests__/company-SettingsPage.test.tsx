@@ -77,10 +77,10 @@ describe('SettingsPage', () => {
       </MemoryRouter>,
     );
 
-  it('shows page title "Setari"', () => {
+  it('shows page title "Setări"', () => {
     mockQuery();
     renderPage();
-    expect(screen.getByText('Setari')).toBeInTheDocument();
+    expect(screen.getByText('Setări')).toBeInTheDocument();
   });
 
   it('shows company name when loaded', () => {

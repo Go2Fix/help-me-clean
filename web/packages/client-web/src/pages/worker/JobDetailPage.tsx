@@ -209,7 +209,7 @@ export default function JobDetailPage() {
           className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-6 transition-colors cursor-pointer"
         >
           <ArrowLeft className="h-4 w-4" />
-          Inapoi la comenzi
+          Înapoi la comenzi
         </button>
         <div className="animate-pulse space-y-6">
           <div className="h-8 bg-gray-200 rounded w-64" />
@@ -238,11 +238,11 @@ export default function JobDetailPage() {
           className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-6 transition-colors cursor-pointer"
         >
           <ArrowLeft className="h-4 w-4" />
-          Inapoi la comenzi
+          Înapoi la comenzi
         </button>
         <Card>
           <div className="text-center py-12">
-            <h3 className="text-lg font-medium text-gray-900 mb-1">Comanda nu a fost gasita</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-1">Comanda nu a fost găsită</h3>
             <p className="text-gray-500">Aceasta comanda nu exista sau nu ai acces.</p>
           </div>
         </Card>
@@ -303,7 +303,7 @@ export default function JobDetailPage() {
         className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-4 transition-colors cursor-pointer"
       >
         <ArrowLeft className="h-4 w-4" />
-        Inapoi la comenzi
+        Înapoi la comenzi
       </button>
 
       {/* Header */}
@@ -424,7 +424,7 @@ export default function JobDetailPage() {
                   <PawPrint className={cn('h-4 w-4', booking.hasPets ? 'text-red-500' : 'text-gray-400')} />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Suprafata & Animale</p>
+                  <p className="text-xs text-gray-500">Suprafață & Animale</p>
                   <p className="text-sm font-medium">
                     {booking.areaSqm != null ? `${booking.areaSqm} mp` : '-'}
                     {' \u00b7 '}

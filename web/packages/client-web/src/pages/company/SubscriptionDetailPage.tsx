@@ -325,7 +325,7 @@ export default function CompanySubscriptionDetailPage() {
                 <span className="text-gray-900">{fmtCurrency(sub.hourlyRate)}/h</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Durata estimata</span>
+                <span className="text-gray-500">Durată estimată</span>
                 <span className="text-gray-900">{sub.estimatedDurationHours} {sub.estimatedDurationHours === 1 ? 'ora' : 'ore'}</span>
               </div>
               <div className="flex justify-between text-sm">
@@ -389,7 +389,7 @@ export default function CompanySubscriptionDetailPage() {
                 <div className="flex items-start gap-3">
                   <Ruler className="h-4 w-4 text-gray-400 mt-0.5" />
                   <div>
-                    <p className="text-xs text-gray-400">Suprafata</p>
+                    <p className="text-xs text-gray-400">Suprafață</p>
                     <p className="text-sm text-gray-900">{sub.areaSqm} mp</p>
                   </div>
                 </div>

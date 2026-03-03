@@ -72,15 +72,15 @@ describe('Admin SettingsPage', () => {
     vi.mocked(useMutation).mockReturnValue([vi.fn(), { loading: false }] as unknown as ReturnType<typeof useMutation>);
   });
 
-  it('shows "Setari Platforma" title', () => {
+  it('shows "Setări Platformă" title', () => {
     renderSettingsPage();
-    expect(screen.getByText('Setari Platforma')).toBeInTheDocument();
+    expect(screen.getByText('Setări Platformă')).toBeInTheDocument();
   });
 
   it('shows 5 tab options', () => {
     renderSettingsPage();
     // Both mobile Select and desktop buttons render in JSDOM, so use getAllByText
-    expect(screen.getAllByText('Setari Generale').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Setări Generale').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('Servicii').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('Extra-uri').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('Orase').length).toBeGreaterThanOrEqual(1);
@@ -115,14 +115,14 @@ describe('Admin SettingsPage', () => {
 
   it('shows "Adauga serviciu" button when Services tab is active', () => {
     renderSettingsPage();
-    const select = screen.getByDisplayValue('Setari Generale');
+    const select = screen.getByDisplayValue('Setări Generale');
     fireEvent.change(select, { target: { value: 'services' } });
     expect(screen.getByText('Adauga serviciu')).toBeInTheDocument();
   });
 
   it('shows services table when Services tab is active', () => {
     renderSettingsPage();
-    const select = screen.getByDisplayValue('Setari Generale');
+    const select = screen.getByDisplayValue('Setări Generale');
     fireEvent.change(select, { target: { value: 'services' } });
     expect(screen.getByText('Curatenie standard')).toBeInTheDocument();
     expect(screen.getByText('Curatenie generala')).toBeInTheDocument();
@@ -131,7 +131,7 @@ describe('Admin SettingsPage', () => {
 
   it('shows extras table when Extra-uri tab is active', () => {
     renderSettingsPage();
-    const select = screen.getByDisplayValue('Setari Generale');
+    const select = screen.getByDisplayValue('Setări Generale');
     fireEvent.change(select, { target: { value: 'extras' } });
     expect(screen.getByText('Curatare geamuri')).toBeInTheDocument();
     expect(screen.getByText('Calcat rufe')).toBeInTheDocument();
@@ -140,7 +140,7 @@ describe('Admin SettingsPage', () => {
 
   it('shows "Adauga extra" button when Extra-uri tab is active', () => {
     renderSettingsPage();
-    const select = screen.getByDisplayValue('Setari Generale');
+    const select = screen.getByDisplayValue('Setări Generale');
     fireEvent.change(select, { target: { value: 'extras' } });
     expect(screen.getByText('Adauga extra')).toBeInTheDocument();
   });

@@ -133,7 +133,7 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-500 mt-1">Statistici si date despre platforma Go2Fix.</p>
+        <p className="text-gray-500 mt-1">Statistici și date despre platforma Go2Fix.</p>
       </div>
 
       {/* Key Metrics */}
@@ -179,7 +179,7 @@ export default function DashboardPage() {
               />
             </div>
             <div className="space-y-1 pt-3 md:pt-0 md:pl-6">
-              <Metric icon={CalendarDays} label="Rezervari" value={stats.totalBookings} />
+              <Metric icon={CalendarDays} label="Rezervări" value={stats.totalBookings} />
               <Metric
                 icon={CalendarDays}
                 label="Luna aceasta"
@@ -286,7 +286,7 @@ export default function DashboardPage() {
 
         {/* Bookings by Status — 1 col */}
         <Card>
-          <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">Rezervari dupa status</h3>
+          <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">Rezervări după status</h3>
           {bookingStatuses.length > 0 ? (
             <div className="space-y-2">
               {bookingStatuses.map((item: { status: string; count: number }) => (
@@ -317,7 +317,7 @@ export default function DashboardPage() {
         <Card className="mt-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
-              Aplicatii in asteptare
+              Aplicații în așteptare
             </h3>
             <button
               onClick={() => navigate('/admin/companii')}
@@ -366,7 +366,7 @@ export default function DashboardPage() {
           <CalendarDays className="h-4 w-4" /> Comenzi
         </Link>
         <Link to="/admin/plati" className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:border-gray-300 hover:text-gray-900 transition-colors">
-          <Banknote className="h-4 w-4" /> Plati
+          <Banknote className="h-4 w-4" /> Plăți
         </Link>
       </div>
     </div>

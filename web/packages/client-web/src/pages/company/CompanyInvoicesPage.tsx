@@ -58,7 +58,7 @@ const invoiceStatusLabel: Record<InvoiceStatus, string> = {
   ISSUED: 'Emisa',
   SENT: 'Trimisa',
   TRANSMITTED: 'Transmisa e-Factura',
-  PAID: 'Platita',
+  PAID: 'Plătită',
   CANCELLED: 'Anulata',
   CREDIT_NOTE: 'Nota de credit',
 };
@@ -87,7 +87,7 @@ const statusFilterOptions = [
   { value: 'ISSUED', label: 'Emisa' },
   { value: 'SENT', label: 'Trimisa' },
   { value: 'TRANSMITTED', label: 'Transmisa e-Factura' },
-  { value: 'PAID', label: 'Platita' },
+  { value: 'PAID', label: 'Plătită' },
   { value: 'CANCELLED', label: 'Anulata' },
   { value: 'CREDIT_NOTE', label: 'Nota de credit' },
 ];
@@ -250,7 +250,7 @@ export default function CompanyInvoicesPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Facturi</h1>
           <p className="text-gray-500 mt-1">
-            Gestioneaza facturile firmei tale.
+            Gestionează facturile firmei tale.
           </p>
         </div>
         {activeTab === 'issued' && (
@@ -299,7 +299,7 @@ export default function CompanyInvoicesPage() {
                 options={statusFilterOptions}
                 value={statusFilter}
                 onChange={(e) => { setStatusFilter(e.target.value); setIssuedPage(0); }}
-                label="Filtreaza dupa status"
+                label="Filtrează după status"
               />
             </div>
           </div>

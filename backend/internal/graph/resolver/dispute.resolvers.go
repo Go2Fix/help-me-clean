@@ -332,7 +332,21 @@ func (r *queryResolver) AllDisputes(ctx context.Context, status *model.DisputeSt
 
 	edges := make([]*model.BookingDispute, 0, len(rows))
 	for _, d := range rows {
-		edges = append(edges, dbDisputeToGQL(d))
+		gqlDispute := dbDisputeToGQL(d)
+
+		// Enrich openedBy with full user data so fullName is populated.
+		if openedByUser, err := r.Queries.GetUserByID(ctx, d.OpenedBy); err == nil {
+			gqlDispute.OpenedBy = dbUserToGQL(openedByUser)
+		}
+
+		// Enrich resolvedBy if present.
+		if d.ResolvedBy.Valid {
+			if resolvedByUser, err := r.Queries.GetUserByID(ctx, d.ResolvedBy); err == nil {
+				gqlDispute.ResolvedBy = dbUserToGQL(resolvedByUser)
+			}
+		}
+
+		edges = append(edges, gqlDispute)
 	}
 
 	return &model.DisputeConnection{

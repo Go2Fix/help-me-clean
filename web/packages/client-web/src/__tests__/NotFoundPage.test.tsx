@@ -31,22 +31,22 @@ describe('NotFoundPage', () => {
     expect(screen.getByText('404')).toBeInTheDocument();
   });
 
-  it('shows "Pagina nu a fost gasita"', () => {
+  it('shows "Pagina nu a fost găsită"', () => {
     renderNotFoundPage();
-    expect(screen.getByText('Pagina nu a fost gasita')).toBeInTheDocument();
+    expect(screen.getByText('Pagina nu a fost găsită')).toBeInTheDocument();
   });
 
   it('shows descriptive message', () => {
     renderNotFoundPage();
     expect(
-      screen.getByText(/pagina pe care o cauti nu exista/),
+      screen.getByText(/pagina pe care o cau/),
     ).toBeInTheDocument();
   });
 
-  it('shows back button with "Inapoi la pagina principala"', () => {
+  it('shows back button with "Înapoi la pagina principală"', () => {
     renderNotFoundPage();
     expect(
-      screen.getByRole('button', { name: /Inapoi la pagina principala/ }),
+      screen.getByRole('button', { name: /napoi la pagina principal/ }),
     ).toBeInTheDocument();
   });
 
@@ -54,7 +54,7 @@ describe('NotFoundPage', () => {
     const user = userEvent.setup();
     renderNotFoundPage();
     const button = screen.getByRole('button', {
-      name: /Inapoi la pagina principala/,
+      name: /napoi la pagina principal/,
     });
     await user.click(button);
     expect(mockNavigate).toHaveBeenCalledWith('/');
@@ -66,9 +66,9 @@ describe('NotFoundPage', () => {
     expect(heading.tagName).toBe('H1');
   });
 
-  it('renders "Pagina nu a fost gasita" as h2', () => {
+  it('renders "Pagina nu a fost găsită" as h2', () => {
     renderNotFoundPage();
-    const subheading = screen.getByText('Pagina nu a fost gasita');
+    const subheading = screen.getByText('Pagina nu a fost găsită');
     expect(subheading.tagName).toBe('H2');
   });
 });

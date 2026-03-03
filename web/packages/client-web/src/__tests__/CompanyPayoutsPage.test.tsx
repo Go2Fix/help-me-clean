@@ -143,6 +143,6 @@ describe('PayoutsPage (Company)', () => {
   it('renders status filter dropdown', () => {
     mockQueries();
     renderPage();
-    expect(screen.getByLabelText('Filtreaza dupa status')).toBeInTheDocument();
+    expect(screen.getByLabelText('Filtrează după status')).toBeInTheDocument();
   });
 });

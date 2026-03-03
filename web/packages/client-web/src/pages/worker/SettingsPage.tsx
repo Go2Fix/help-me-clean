@@ -138,7 +138,7 @@ export default function SettingsPage() {
     setPhoneError('');
 
     if (!phone.trim()) {
-      setPhoneError('Numarul de telefon este obligatoriu.');
+      setPhoneError('Numărul de telefon este obligatoriu.');
       return;
     }
     if (!phone.startsWith('+')) {
@@ -212,7 +212,7 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-8">Profil & Setari</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-8">Profil & Setări</h1>
         <LoadingSpinner text="Se incarca profilul..." />
       </div>
     );
@@ -223,7 +223,7 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-2xl">
-      <h1 className="text-2xl font-bold text-gray-900 mb-8">Profil & Setari</h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-8">Profil & Setări</h1>
 
       {/* ── 1. Profile Header ─────────────────────────────────────────── */}
       <Card className="mb-6">

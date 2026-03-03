@@ -552,7 +552,7 @@ export default function SubscriptionDetailPage() {
                     <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                       <CalendarRange className="h-5 w-5 text-primary" />
                     </div>
-                    <span className="text-sm text-gray-600">Durata estimata</span>
+                    <span className="text-sm text-gray-600">Durată estimată</span>
                   </div>
                   <span className="text-sm font-semibold text-gray-900">
                     {sub.estimatedDurationHours} {sub.estimatedDurationHours === 1 ? 'ora' : 'ore'}
@@ -655,7 +655,7 @@ export default function SubscriptionDetailPage() {
                       <Ruler className="h-5 w-5 text-accent" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-400">Suprafata</div>
+                      <div className="text-xs text-gray-400">Suprafață</div>
                       <div className="text-sm font-medium text-gray-900">
                         {sub.areaSqm} mp
                       </div>

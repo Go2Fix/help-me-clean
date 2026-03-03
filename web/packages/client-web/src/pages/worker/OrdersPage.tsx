@@ -104,7 +104,7 @@ export default function OrdersPage() {
             options={statusFilterOptions}
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            label="Filtreaza dupa status"
+            label="Filtrează după status"
           />
         </div>
         <div className="relative flex-1 w-full min-w-0">

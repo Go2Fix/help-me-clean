@@ -158,13 +158,13 @@ describe('BookingDetailPage', () => {
     expect(screen.queryByText('Asigneaza lucrator')).not.toBeInTheDocument();
   });
 
-  it('shows "Inapoi la comenzi" on not-found page navigating to /admin/comenzi', () => {
+  it('shows "Înapoi la comenzi" on not-found page navigating to /admin/comenzi', () => {
     vi.mocked(useQuery).mockImplementation((() => ({
       data: { booking: null },
       loading: false,
     })) as typeof useQuery);
     renderPage();
-    expect(screen.getByText('Inapoi la comenzi')).toBeInTheDocument();
+    expect(screen.getByText('Înapoi la comenzi')).toBeInTheDocument();
   });
 
   it('shows client info', () => {
@@ -180,10 +180,10 @@ describe('BookingDetailPage', () => {
     expect(screen.getByText('Clean SRL')).toBeInTheDocument();
   });
 
-  it('shows "Platita & Confirmata" step in timeline', () => {
+  it('shows "Plătită & Confirmată" step in timeline', () => {
     mockBooking();
     renderPage();
-    expect(screen.getByText('Platita & Confirmata')).toBeInTheDocument();
+    expect(screen.getByText('Plătită & Confirmată')).toBeInTheDocument();
   });
 
   it('shows not found fallback', () => {
@@ -192,7 +192,7 @@ describe('BookingDetailPage', () => {
       loading: false,
     })) as typeof useQuery);
     renderPage();
-    expect(screen.getByText('Comanda nu a fost gasita.')).toBeInTheDocument();
+    expect(screen.getByText('Comanda nu a fost găsită.')).toBeInTheDocument();
   });
 
   it('handles CANCELLED_BY_CLIENT status label', () => {

@@ -319,7 +319,7 @@ export default function PayoutsPage() {
     <div className="max-w-full overflow-hidden">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Plati si Castiguri</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Plăți și Câștiguri</h1>
         <p className="text-gray-500 mt-1">
           Gestioneaza castigurile, platile si contul Stripe Connect.
         </p>
@@ -380,7 +380,7 @@ export default function PayoutsPage() {
               <Metric icon={Wallet} label="Venit net" value={formatRON(earnings.totalNet ?? 0)} />
             </div>
             <div className="pt-3 md:pt-0 md:pl-6">
-              <Metric icon={Hash} label="Rezervari" value={earnings.bookingCount ?? 0} />
+              <Metric icon={Hash} label="Rezervări" value={earnings.bookingCount ?? 0} />
             </div>
           </div>
         </Card>
@@ -393,7 +393,7 @@ export default function PayoutsPage() {
             options={statusFilterOptions}
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            label="Filtreaza dupa status"
+            label="Filtrează după status"
           />
         </div>
       </div>
@@ -422,7 +422,7 @@ export default function PayoutsPage() {
                     Suma
                   </th>
                   <th className="text-right px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">
-                    Rezervari
+                    Rezervări
                   </th>
                   <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase">
                     Status

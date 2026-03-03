@@ -106,13 +106,13 @@ describe('Client BookingDetailPage', () => {
   it('shows not found message when booking is null', () => {
     mockUseQuery.mockReturnValue({ data: { booking: null }, loading: false, error: undefined, refetch: vi.fn() });
     renderPage();
-    expect(screen.getByText('Comanda nu a fost gasita.')).toBeInTheDocument();
+    expect(screen.getByText('Comanda nu a fost găsită.')).toBeInTheDocument();
   });
 
   it('shows back link to comenzi', () => {
     mockUseQuery.mockReturnValue({ data: { booking: makeBooking() }, loading: false, error: undefined, refetch: vi.fn() });
     renderPage();
-    expect(screen.getByText('Inapoi la comenzi')).toBeInTheDocument();
+    expect(screen.getByText('Înapoi la comenzi')).toBeInTheDocument();
   });
 
   it('shows service name and reference code', () => {
@@ -284,6 +284,6 @@ describe('Client BookingDetailPage', () => {
     renderPage();
     expect(screen.getByText('Progresul comenzii')).toBeInTheDocument();
     expect(screen.getByText('Comanda plasata')).toBeInTheDocument();
-    expect(screen.getByText('Platita & Confirmata')).toBeInTheDocument();
+    expect(screen.getByText('Plătită & Confirmată')).toBeInTheDocument();
   });
 });

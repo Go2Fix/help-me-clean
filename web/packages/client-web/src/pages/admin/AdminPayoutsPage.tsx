@@ -210,6 +210,12 @@ export default function AdminPayoutsPage() {
 
   return (
     <div>
+      {/* Page header */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">Viramente</h1>
+        <p className="text-gray-500 mt-1">Gestionează plățile către companii partenere.</p>
+      </div>
+
       {/* Filter + Create button */}
       <div className="mb-4 flex items-center gap-3">
         <div className="w-48">
@@ -229,7 +235,7 @@ export default function AdminPayoutsPage() {
               'Perioada De La': p.periodFrom,
               'Perioada Pana La': p.periodTo,
               'Suma (lei)': (p.amount / 100).toFixed(2),
-              'Nr Rezervari': p.bookingCount,
+              'Nr Rezervări': p.bookingCount,
               'Status': p.status,
               'Data Plata': p.paidAt ? new Date(p.paidAt).toLocaleDateString('ro-RO') : '',
               'Data Creare': new Date(p.createdAt).toLocaleDateString('ro-RO'),

@@ -345,7 +345,7 @@ export default function ReportsPage() {
           onClick={() => {
             const rows = revenueByDate.map((d) => ({
               'Data': d.date,
-              'Rezervari': d.bookingCount,
+              'Rezervări': d.bookingCount,
               'Venit (RON)': (d.revenue / 100).toFixed(2),
               'Comision (RON)': (d.commission / 100).toFixed(2),
             }));

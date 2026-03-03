@@ -73,7 +73,7 @@ describe('AdminLayout sidebar', () => {
     expect(screen.getAllByText('Companii').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('Comenzi').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('Utilizatori').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('Setari').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Setări').length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows user name and email when authenticated', () => {
@@ -111,6 +111,6 @@ describe('AdminLayout sidebar', () => {
 
   it('shows collapse toggle button', () => {
     renderLayout();
-    expect(screen.getAllByText('Restrange').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Restrânge').length).toBeGreaterThanOrEqual(1);
   });
 });

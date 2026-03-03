@@ -102,7 +102,7 @@ export default function PaymentMethodsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Metode de plata</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Metode de plată</h1>
           <p className="text-gray-500 mt-1">
             Gestioneaza cardurile salvate pentru plati rapide.
           </p>

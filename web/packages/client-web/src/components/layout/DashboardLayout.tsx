@@ -118,14 +118,14 @@ export default function DashboardLayout({
                 'flex items-center gap-3 w-full py-2.5 rounded-xl text-sm font-medium text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition-colors cursor-pointer',
                 collapsed ? 'justify-center px-2' : 'px-4',
               )}
-              title={collapsed ? 'Extinde meniul' : 'Restrange meniul'}
+              title={collapsed ? 'Extinde meniul' : 'Restrânge meniul'}
             >
               {collapsed ? (
                 <PanelLeftOpen className="h-5 w-5 shrink-0" />
               ) : (
                 <>
                   <PanelLeftClose className="h-5 w-5 shrink-0" />
-                  Restrange
+                  Restrânge
                 </>
               )}
             </button>

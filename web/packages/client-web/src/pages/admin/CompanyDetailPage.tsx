@@ -308,7 +308,7 @@ export default function CompanyDetailPage() {
   if (!company) {
     return (
       <div className="text-center py-20">
-        <p className="text-gray-400">Compania nu a fost gasita.</p>
+        <p className="text-gray-400">Compania nu a fost găsită.</p>
         <Button variant="ghost" className="mt-4" onClick={() => navigate('/admin/companii')}>
           Inapoi la companii
         </Button>
@@ -706,12 +706,13 @@ export default function CompanyDetailPage() {
                   <>
                     <Button
                       variant="secondary"
-                      className="w-full"
+                      className={`w-full${!docStatus.ready ? ' opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                       onClick={handleApprove}
                       loading={approving}
                       disabled={!docStatus.ready}
+                      title={!docStatus.ready ? 'Încarcă toate documentele obligatorii înainte de aprobare' : undefined}
                     >
-                      Aproba compania
+                      Aprobă compania
                     </Button>
                     <Button
                       variant="danger"
@@ -818,7 +819,7 @@ export default function CompanyDetailPage() {
                     <ClipboardList className="h-4.5 w-4.5 text-gray-500" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 leading-tight">Rezervari finalizate</p>
+                    <p className="text-xs text-gray-500 leading-tight">Rezervări finalizate</p>
                     <p className="text-lg font-semibold text-gray-900 leading-tight">{financial.completedBookings}</p>
                   </div>
                 </div>

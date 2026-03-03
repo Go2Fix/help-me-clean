@@ -126,6 +126,11 @@ export default function Header() {
                 <Link to={ROUTE_MAP.contact[lang]} className="text-sm text-gray-600 hover:text-gray-900 font-medium transition-colors">
                   {t('nav.contact')}
                 </Link>
+                {!isPreRelease && (
+                  <Link to={ROUTE_MAP.forCompanies[lang]} className="text-sm text-secondary hover:text-emerald-600 font-medium transition-colors">
+                    {t('nav.forCompanies')}
+                  </Link>
+                )}
               </>
             )}
 

@@ -180,6 +180,19 @@ func (r *mutationResolver) AcceptInvitation(ctx context.Context, token string) (
 
 	currentUserID := stringToUUID(claims.UserID)
 
+	// Security check: if the invitation was issued for a specific user (UserID is set),
+	// verify that the authenticated caller's email matches the intended recipient's email.
+	// This prevents any logged-in user from hijacking an invitation meant for someone else.
+	if worker.UserID.Valid {
+		invitedUser, err := r.Queries.GetUserByID(ctx, worker.UserID)
+		if err != nil {
+			return nil, fmt.Errorf("invalid invitation: could not verify intended recipient: %w", err)
+		}
+		if !strings.EqualFold(invitedUser.Email, claims.Email) {
+			return nil, fmt.Errorf("Această invitație a fost trimisă la o altă adresă de email.")
+		}
+	}
+
 	// Case 1: Invited worker has their own pending user, accepting user is different
 	// Transfer the worker association to the current user and delete pending user
 	if worker.UserID.Valid && uuidToString(worker.UserID) != claims.UserID {

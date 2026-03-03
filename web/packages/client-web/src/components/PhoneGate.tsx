@@ -48,7 +48,7 @@ export default function PhoneGate({ children }: PhoneGateProps) {
     setSaveError('');
 
     if (!phone.trim()) {
-      setPhoneError('Numarul de telefon este obligatoriu.');
+      setPhoneError('Numărul de telefon este obligatoriu.');
       return;
     }
     if (!phone.startsWith('+')) {
@@ -120,7 +120,7 @@ export default function PhoneGate({ children }: PhoneGateProps) {
                   loading={saving}
                   className="w-full"
                 >
-                  Salveaza numarul
+                  Salvează numărul
                 </Button>
               </form>
             ) : (

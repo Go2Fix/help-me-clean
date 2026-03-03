@@ -21,9 +21,9 @@ const navItems = [
   { to: '/cont/abonamente', icon: Repeat, label: 'Abonamente' },
   { to: '/cont/mesaje', icon: MessageCircle, label: 'Contact Suport' },
   { to: '/cont/adrese', icon: MapPin, label: 'Adresele mele' },
-  { to: '/cont/plati', icon: CreditCard, label: 'Plati' },
+  { to: '/cont/plati', icon: CreditCard, label: 'Plăți' },
   { to: '/cont/facturi', icon: FileText, label: 'Facturi' },
-  { to: '/cont/setari', icon: Settings, label: 'Profil & Setari' },
+  { to: '/cont/setari', icon: Settings, label: 'Profil & Setări' },
   { to: '/cont/ajutor', icon: LifeBuoy, label: 'Ajutor' },
 ];
 

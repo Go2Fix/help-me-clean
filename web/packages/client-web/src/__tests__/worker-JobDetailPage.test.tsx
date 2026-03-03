@@ -93,7 +93,7 @@ describe('Worker JobDetailPage', () => {
   it('shows not found state when booking is missing', () => {
     mockUseQuery.mockReturnValue({ data: { booking: null }, loading: false });
     renderPage();
-    expect(screen.getByText('Comanda nu a fost gasita')).toBeInTheDocument();
+    expect(screen.getByText('Comanda nu a fost găsită')).toBeInTheDocument();
   });
 
   it('shows booking details', () => {
@@ -279,7 +279,7 @@ describe('Worker JobDetailPage', () => {
   it('shows back link to comenzi', () => {
     mockUseQuery.mockReturnValue({ data: { booking: mockBooking() }, loading: false });
     renderPage();
-    expect(screen.getByText('Inapoi la comenzi')).toBeInTheDocument();
+    expect(screen.getByText('Înapoi la comenzi')).toBeInTheDocument();
   });
 
   it('shows status badge', () => {

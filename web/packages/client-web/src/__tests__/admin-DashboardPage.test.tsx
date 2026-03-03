@@ -121,12 +121,12 @@ describe('Admin DashboardPage', () => {
     expect(screen.getByText('Venit pe luni')).toBeInTheDocument();
   });
 
-  it('shows "Rezervari dupa status" section title', () => {
+  it('shows "Rezervări după status" section title', () => {
     renderDashboard();
-    expect(screen.getByText('Rezervari dupa status')).toBeInTheDocument();
+    expect(screen.getByText('Rezervări după status')).toBeInTheDocument();
   });
 
-  it('shows "Aplicatii in asteptare" section when there are pending apps', () => {
+  it('shows "Aplicații în așteptare" section when there are pending apps', () => {
     vi.mocked(useQuery).mockImplementation((query: unknown) => {
       if (query === PLATFORM_STATS) return { data: mockStats, loading: false } as ReturnType<typeof useQuery>;
       if (query === BOOKINGS_BY_STATUS)
@@ -149,7 +149,7 @@ describe('Admin DashboardPage', () => {
       return { data: null, loading: false } as ReturnType<typeof useQuery>;
     });
     renderDashboard();
-    expect(screen.getByText('Aplicatii in asteptare')).toBeInTheDocument();
+    expect(screen.getByText('Aplicații în așteptare')).toBeInTheDocument();
   });
 
   it('shows pending company documents count', () => {

@@ -143,7 +143,7 @@ interface WaitlistLead {
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const tabs: { key: TabKey; label: string }[] = [
-  { key: 'general', label: 'Setari Generale' },
+  { key: 'general', label: 'Setări Generale' },
   { key: 'services', label: 'Servicii' },
   { key: 'extras', label: 'Extra-uri' },
   { key: 'cities', label: 'Orase' },
@@ -1930,7 +1930,7 @@ function AuditLogTab() {
         {loading && entries.length === 0 ? (
           <TableSkeleton />
         ) : entries.length === 0 ? (
-          <p className="text-center text-gray-400 py-12">Nicio inregistrare gasita.</p>
+          <p className="text-center text-gray-400 py-12">Nicio înregistrare găsită.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -2063,8 +2063,8 @@ function PlatformTab() {
             <h3 className="font-semibold text-gray-900 text-lg">Modul platformei</h3>
             <p className="text-sm text-gray-500 mt-1">
               {isLive
-                ? 'Platforma este LIVE -- clientii pot face rezervari normative.'
-                : 'Platforma este in PRE-LANSARE -- se colecteaza inscrieri in lista de asteptare.'}
+                ? 'Platforma este LIVE — clienții pot face rezervări normale.'
+                : 'Platforma este în PRE-LANSARE — se colectează înscrieri în lista de așteptare.'}
             </p>
           </div>
           <div className="flex items-center gap-4">
@@ -2191,7 +2191,7 @@ export default function SettingsPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Setari Platforma</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Setări Platformă</h1>
         <p className="text-gray-500 mt-1">Configuratii generale, servicii, extra-uri si orase.</p>
       </div>
 

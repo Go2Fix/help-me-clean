@@ -31,7 +31,7 @@ const navItems = [
   { to: '/admin/recenzii', icon: Star, label: 'Recenzii' },
   { to: '/admin/promo-coduri', icon: Tag, label: 'Coduri promo' },
   { to: '/admin/dispute', icon: Scale, label: 'Dispute' },
-  { to: '/admin/setari', icon: Settings, label: 'Setari' },
+  { to: '/admin/setari', icon: Settings, label: 'Setări' },
 ];
 
 export default function AdminLayout() {

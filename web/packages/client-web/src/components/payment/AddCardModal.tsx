@@ -142,7 +142,7 @@ function AddCardForm({ onClose, onSuccess }: { onClose: () => void; onSuccess?: 
           ) : (
             <>
               <CreditCard className="h-4 w-4" />
-              Salveaza cardul
+              Salvează cardul
             </>
           )}
         </Button>

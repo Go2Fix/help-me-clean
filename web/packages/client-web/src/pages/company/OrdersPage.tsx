@@ -118,7 +118,7 @@ export default function OrdersPage() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Comenzi</h1>
-        <p className="text-gray-500 mt-1">Gestioneaza comenzile firmei tale.</p>
+        <p className="text-gray-500 mt-1">Gestionează comenzile firmei tale.</p>
       </div>
 
       {/* Filters */}
@@ -128,7 +128,7 @@ export default function OrdersPage() {
             options={statusFilterOptions}
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            label="Filtreaza dupa status"
+            label="Filtrează după status"
           />
         </div>
         <div className="relative flex-1 w-full min-w-0">

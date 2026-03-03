@@ -82,8 +82,8 @@ const statusLabel: Record<string, string> = {
 };
 
 const paymentStatusLabel: Record<string, string> = {
-  PAID: 'Platita',
-  paid: 'Platita',
+  PAID: 'Plătită',
+  paid: 'Plătită',
   PENDING: 'In asteptare',
   pending: 'In asteptare',
   FAILED: 'Esuata',
@@ -111,7 +111,7 @@ const invoiceStatusLabel: Record<string, string> = {
   DRAFT: 'Ciorna',
   ISSUED: 'Emisa',
   CANCELLED: 'Anulata',
-  PAID: 'Platita',
+  PAID: 'Plătită',
 };
 
 const invoiceBadgeVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
@@ -380,7 +380,7 @@ export default function OrderDetailPage() {
           className="flex items-center gap-2 text-gray-500 hover:text-gray-900 mb-6 transition-colors cursor-pointer"
         >
           <ArrowLeft className="h-4 w-4" />
-          Inapoi la comenzi
+          Înapoi la comenzi
         </button>
         <div className="animate-pulse space-y-6">
           <div className="h-8 bg-gray-200 rounded w-64" />
@@ -409,11 +409,11 @@ export default function OrderDetailPage() {
           className="flex items-center gap-2 text-gray-500 hover:text-gray-900 mb-6 transition-colors cursor-pointer"
         >
           <ArrowLeft className="h-4 w-4" />
-          Inapoi la comenzi
+          Înapoi la comenzi
         </button>
         <Card>
           <div className="text-center py-12">
-            <h3 className="text-lg font-medium text-gray-900 mb-1">Comanda nu a fost gasita</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-1">Comanda nu a fost găsită</h3>
             <p className="text-gray-500">Aceasta comanda nu exista sau nu ai acces.</p>
           </div>
         </Card>
@@ -450,7 +450,7 @@ export default function OrderDetailPage() {
   const timelineSteps: TimelineStep[] = [
     { label: 'Creata', date: booking.createdAt, icon: FileText, done: true },
     {
-      label: 'Platita & Confirmata',
+      label: 'Plătită & Confirmată',
       date: booking.paidAt,
       icon: CheckCircle,
       done: ['CONFIRMED', 'IN_PROGRESS', 'COMPLETED'].includes(booking.status),
@@ -487,7 +487,7 @@ export default function OrderDetailPage() {
         className="flex items-center gap-2 text-gray-500 hover:text-gray-900 mb-4 transition-colors cursor-pointer"
       >
         <ArrowLeft className="h-4 w-4" />
-        Inapoi la comenzi
+        Înapoi la comenzi
       </button>
 
       {/* Header */}
@@ -645,7 +645,7 @@ export default function OrderDetailPage() {
                   <Home className="h-4 w-4 text-gray-600" />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Suprafata & Animale</p>
+                  <p className="text-xs text-gray-500">Suprafață & Animale</p>
                   <p className="text-sm font-medium">
                     {booking.areaSqm != null ? `${booking.areaSqm} mp` : '-'}
                     {' \u00b7 '}
@@ -857,7 +857,7 @@ export default function OrderDetailPage() {
                 </div>
               )}
               <div className="flex justify-between">
-                <span className="text-gray-500">Durata estimata</span>
+                <span className="text-gray-500">Durată estimată</span>
                 <span className="font-medium">{booking.estimatedDurationHours}h</span>
               </div>
               <div className="border-t border-gray-100 my-2" />

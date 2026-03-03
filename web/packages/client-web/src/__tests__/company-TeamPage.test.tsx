@@ -89,27 +89,27 @@ describe('TeamPage', () => {
     mockQueries();
     renderPage();
     expect(screen.getByText('Echipa mea')).toBeInTheDocument();
-    expect(screen.getByText('Gestioneaza angajatii firmei tale.')).toBeInTheDocument();
+    expect(screen.getByText('Gestionează angajații firmei tale.')).toBeInTheDocument();
   });
 
-  it('shows "Invita lucrator" button in header', () => {
+  it('shows "Invită lucrător" button in header', () => {
     mockQueries({ workers: [defaultWorker] });
     renderPage();
     // When workers exist, only the header button shows (no empty state)
-    expect(screen.getByRole('button', { name: /invita lucrator/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /invit. lucr.tor/i })).toBeInTheDocument();
   });
 
   it('shows empty state when no workers', () => {
     mockQueries();
     renderPage();
-    expect(screen.getByText('Niciun lucrator')).toBeInTheDocument();
+    expect(screen.getByText('Niciun lucrător')).toBeInTheDocument();
     expect(screen.getByText(/nu ai adaugat inca niciun lucrator/i)).toBeInTheDocument();
   });
 
   it('shows invite button in empty state', () => {
     mockQueries();
     renderPage();
-    const buttons = screen.getAllByRole('button', { name: /invita lucrator/i });
+    const buttons = screen.getAllByRole('button', { name: /invit. lucr.tor/i });
     expect(buttons.length).toBe(2); // header + empty state
   });
 
@@ -174,7 +174,7 @@ describe('TeamPage', () => {
   it('renders status filter dropdown', () => {
     mockQueries({ workers: [defaultWorker] });
     renderPage();
-    expect(screen.getByLabelText('Filtreaza dupa status')).toBeInTheDocument();
+    expect(screen.getByLabelText('Filtrează după status')).toBeInTheDocument();
   });
 
   it('filters by dropdown selection', () => {
@@ -184,7 +184,7 @@ describe('TeamPage', () => {
     expect(screen.getByText('Ana Popa')).toBeInTheDocument();
     expect(screen.getByText('Ion Ionescu')).toBeInTheDocument();
     // Select "Activ" from dropdown
-    fireEvent.change(screen.getByLabelText('Filtreaza dupa status'), { target: { value: 'ACTIVE' } });
+    fireEvent.change(screen.getByLabelText('Filtrează după status'), { target: { value: 'ACTIVE' } });
     expect(screen.getByText('Ana Popa')).toBeInTheDocument();
     expect(screen.queryByText('Ion Ionescu')).not.toBeInTheDocument();
   });
@@ -211,7 +211,7 @@ describe('TeamPage', () => {
     const user = userEvent.setup();
     mockQueries({ workers: [defaultWorker] });
     renderPage();
-    await user.click(screen.getByRole('button', { name: /invita lucrator/i }));
+    await user.click(screen.getByRole('button', { name: /invit. lucr.tor/i }));
     expect(screen.getByText('Trimite invitatie')).toBeInTheDocument();
     expect(screen.getByLabelText(/nume complet/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/adresa de email/i)).toBeInTheDocument();
@@ -221,7 +221,7 @@ describe('TeamPage', () => {
     const user = userEvent.setup();
     mockQueries({ workers: [defaultWorker] });
     renderPage();
-    await user.click(screen.getByRole('button', { name: /invita lucrator/i }));
+    await user.click(screen.getByRole('button', { name: /invit. lucr.tor/i }));
     await user.click(screen.getByText('Trimite invitatie'));
     expect(screen.getByText('Te rugam sa completezi toate campurile.')).toBeInTheDocument();
   });

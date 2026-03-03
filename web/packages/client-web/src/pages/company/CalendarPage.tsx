@@ -312,7 +312,7 @@ export default function CalendarPage() {
     <div className="max-w-full overflow-hidden">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Calendar</h1>
-        <p className="text-gray-500 mt-1">Gestioneaza disponibilitatea si vezi programarile echipei.</p>
+        <p className="text-gray-500 mt-1">Gestionează disponibilitatea și vezi programările echipei.</p>
       </div>
 
       {/* Week Navigation */}

@@ -325,7 +325,7 @@ export default function SettingsPage() {
           },
         },
       });
-      setSuccessMessage('Setarile au fost salvate cu succes.');
+      setSuccessMessage('Setările au fost salvate cu succes.');
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch {
       // Error handled by Apollo
@@ -470,7 +470,7 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-8">Setari</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-8">Setări</h1>
         <div className="animate-pulse space-y-6">
           <div className="h-48 bg-gray-200 rounded-xl" />
           <div className="h-64 bg-gray-200 rounded-xl" />
@@ -484,7 +484,7 @@ export default function SettingsPage() {
   if (!company) {
     return (
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-8">Setari</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-8">Setări</h1>
         <Card>
           <div className="text-center py-12">
             <Building2 className="h-12 w-12 text-gray-300 mx-auto mb-4" />
@@ -500,7 +500,7 @@ export default function SettingsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-8">Setari</h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-8">Setări</h1>
 
       {/* Logo Upload */}
       <Card className="mb-6">

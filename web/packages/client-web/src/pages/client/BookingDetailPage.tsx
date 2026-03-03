@@ -492,11 +492,11 @@ export default function BookingDetailPage() {
         <p className="text-danger mb-4">
           {error
             ? 'Nu am putut incarca detaliile comenzii.'
-            : 'Comanda nu a fost gasita.'}
+            : 'Comanda nu a fost găsită.'}
         </p>
         <Button variant="outline" onClick={() => navigate('/cont/comenzi')}>
           <ArrowLeft className="h-4 w-4" />
-          Inapoi la comenzi
+          Înapoi la comenzi
         </Button>
       </div>
     );
@@ -524,7 +524,7 @@ export default function BookingDetailPage() {
   // Timeline
   const timelineSteps: { label: string; date: string | null; icon: typeof FileText; done: boolean }[] = [
     { label: 'Comanda plasata', date: booking.createdAt, icon: FileText, done: true },
-    { label: 'Platita & Confirmata', date: booking.paidAt ?? null, icon: CheckCircle, done: !!booking.paidAt },
+    { label: 'Plătită & Confirmată', date: booking.paidAt ?? null, icon: CheckCircle, done: !!booking.paidAt },
     { label: 'In desfasurare', date: booking.startedAt ?? null, icon: Clock, done: !!booking.startedAt },
     { label: 'Finalizata', date: booking.completedAt ?? null, icon: CheckCircle, done: booking.status === 'COMPLETED' },
   ];
@@ -555,7 +555,7 @@ export default function BookingDetailPage() {
           className="flex items-center gap-2 text-gray-500 hover:text-gray-700 mb-6 transition-colors cursor-pointer"
         >
           <ArrowLeft className="h-4 w-4" />
-          <span className="text-sm font-medium">Inapoi la comenzi</span>
+          <span className="text-sm font-medium">Înapoi la comenzi</span>
         </button>
 
         {/* Recurring group banner */}
@@ -715,7 +715,7 @@ export default function BookingDetailPage() {
                     <Timer className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <div className="text-xs text-gray-400">Durata estimata</div>
+                    <div className="text-xs text-gray-400">Durată estimată</div>
                     <div className="text-sm font-medium text-gray-900">
                       {booking.estimatedDurationHours} {booking.estimatedDurationHours === 1 ? 'ora' : 'ore'}
                     </div>
@@ -751,7 +751,7 @@ export default function BookingDetailPage() {
                       <Ruler className="h-5 w-5 text-accent" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-400">Suprafata</div>
+                      <div className="text-xs text-gray-400">Suprafață</div>
                       <div className="text-sm font-medium text-gray-900">
                         {booking.areaSqm} mp
                       </div>
