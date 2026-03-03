@@ -1,0 +1,59 @@
+enum DisputeStatus {
+  OPEN
+  COMPANY_RESPONDED
+  UNDER_REVIEW
+  RESOLVED_REFUND_FULL
+  RESOLVED_REFUND_PARTIAL
+  RESOLVED_NO_REFUND
+  AUTO_CLOSED
+}
+
+enum DisputeReason {
+  POOR_QUALITY
+  NO_SHOW
+  PROPERTY_DAMAGE
+  INCOMPLETE_JOB
+  OVERCHARGE
+  OTHER
+}
+
+type BookingDispute {
+  id: ID!
+  bookingId: ID!
+  booking: Booking
+  openedBy: User!
+  reason: DisputeReason!
+  description: String!
+  evidenceUrls: [String!]!
+  companyResponse: String
+  companyRespondedAt: DateTime
+  resolutionNotes: String
+  resolvedBy: User
+  refundAmount: Float
+  status: DisputeStatus!
+  autoCloseAt: DateTime!
+  createdAt: DateTime!
+}
+
+type DisputeConnection {
+  edges: [BookingDispute!]!
+  totalCount: Int!
+}
+
+extend type Query {
+  # Client: view their dispute for a booking
+  myDisputeForBooking(bookingId: ID!): BookingDispute
+  # Admin: list all disputes with optional status filter
+  allDisputes(status: DisputeStatus, first: Int, after: String): DisputeConnection!
+}
+
+extend type Mutation {
+  # Client: open a dispute (within 48h of job completion)
+  openDispute(bookingId: ID!, reason: DisputeReason!, description: String!, evidenceUrls: [String!]): BookingDispute!
+  # Client: add more evidence to an open dispute
+  addDisputeEvidence(disputeId: ID!, evidenceUrls: [String!]!): BookingDispute!
+  # Company: respond to a dispute
+  respondToDispute(disputeId: ID!, response: String!): BookingDispute!
+  # Admin: resolve a dispute
+  resolveDispute(disputeId: ID!, status: DisputeStatus!, resolutionNotes: String!, refundAmount: Float): BookingDispute!
+}

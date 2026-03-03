@@ -1,6 +1,6 @@
-import { useState, useRef } from 'react';
-import { useParams, useNavigate, Navigate } from 'react-router-dom';
-import { useQuery, useMutation } from '@apollo/client';
+import { useState, useRef, useEffect } from 'react';
+import { useParams, useNavigate, Navigate, useSearchParams } from 'react-router-dom';
+import { useQuery, useMutation, useLazyQuery } from '@apollo/client';
 import {
   ArrowLeft,
   Calendar,
@@ -37,7 +37,7 @@ import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/ClientBadge';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Modal from '@/components/ui/Modal';
-import { CLIENT_BOOKING_DETAIL, CANCEL_BOOKING, CREATE_BOOKING_PAYMENT_INTENT, REQUEST_REFUND, SUBMIT_REVIEW, UPLOAD_REVIEW_PHOTOS, BOOKING_POLICY, RESCHEDULE_BOOKING, CLIENT_INVOICE_FOR_BOOKING } from '@/graphql/operations';
+import { CLIENT_BOOKING_DETAIL, CANCEL_BOOKING, CREATE_BOOKING_PAYMENT_INTENT, REQUEST_REFUND, SUBMIT_REVIEW, UPLOAD_REVIEW_PHOTOS, BOOKING_POLICY, RESCHEDULE_BOOKING, CLIENT_INVOICE_FOR_BOOKING, MY_DISPUTE_FOR_BOOKING, OPEN_DISPUTE } from '@/graphql/operations';
 import RescheduleModal from '@/components/booking/RescheduleModal';
 import { StripeElementsWrapper } from '@/context/StripeContext';
 import StripePaymentForm from '@/components/payment/StripePaymentForm';
@@ -115,6 +115,7 @@ interface BookingData {
   rescheduleCount?: number;
   rescheduledAt?: string;
   createdAt: string;
+  updatedAt?: string;
   startedAt?: string;
   completedAt?: string;
   address: BookingAddress;
@@ -136,6 +137,28 @@ interface BookingData {
   }[];
 
   review?: BookingReview;
+}
+
+interface DisputeUser {
+  id: string;
+  fullName: string;
+}
+
+interface BookingDispute {
+  id: string;
+  bookingId: string;
+  reason: string;
+  description: string;
+  evidenceUrls?: string[];
+  status: string;
+  companyResponse?: string;
+  companyRespondedAt?: string;
+  resolutionNotes?: string;
+  refundAmount?: number;
+  autoCloseAt?: string;
+  createdAt: string;
+  openedBy?: DisputeUser;
+  resolvedBy?: DisputeUser;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -189,6 +212,22 @@ function formatDateTime(dateStr: string): string {
   }
 }
 
+// ─── Dispute Helpers ─────────────────────────────────────────────────────────
+
+function isAfterScheduledStart(booking: BookingData, minutesAfter: number): boolean {
+  if (!booking.scheduledDate || !booking.scheduledStartTime) return false;
+  const [y, m, d] = booking.scheduledDate.split('-').map(Number);
+  const [h, min] = booking.scheduledStartTime.split(':').map(Number);
+  const start = new Date(y, m - 1, d, h, min);
+  return Date.now() > start.getTime() + minutesAfter * 60_000;
+}
+
+function isWithin48Hours(booking: BookingData): boolean {
+  if (!booking.updatedAt && !booking.createdAt) return true;
+  const completedTime = new Date(booking.updatedAt ?? booking.createdAt).getTime();
+  return Date.now() - completedTime < 48 * 60 * 60 * 1000;
+}
+
 // ─── Rating Row ─────────────────────────────────────────────────────────────
 
 function RatingRow({ label, icon: Icon, value, onChange }: { label: string; icon: LucideIcon; value: number; onChange: (v: number) => void }) {
@@ -219,6 +258,7 @@ function RatingRow({ label, icon: Icon, value, onChange }: { label: string; icon
 export default function BookingDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { isAuthenticated, loading: authLoading, user } = useAuth();
   const { buildWhatsAppUrl } = usePlatform();
 
@@ -232,6 +272,21 @@ export default function BookingDetailPage() {
   const [ratingValue, setRatingValue] = useState(0);
   const [reviewPhotos, setReviewPhotos] = useState<File[]>([]);
   const photoInputRef = useRef<HTMLInputElement>(null);
+  const reviewSectionRef = useRef<HTMLDivElement>(null);
+
+  // No-show dispute state
+  const [noShowModalOpen, setNoShowModalOpen] = useState(false);
+  const [noShowDisputeSubmitted, setNoShowDisputeSubmitted] = useState(false);
+
+  // Post-completion dispute state
+  const [disputeModalOpen, setDisputeModalOpen] = useState(false);
+  const [disputeReason, setDisputeReason] = useState('');
+  const [disputeDescription, setDisputeDescription] = useState('');
+  const [disputeError, setDisputeError] = useState('');
+  const [disputeSubmitted, setDisputeSubmitted] = useState(false);
+
+  // PAST_DUE banner (SubscriptionDetailPage uses its own; here for no-show toast)
+  const [noShowToast, setNoShowToast] = useState('');
 
   const { data, loading, error, refetch } = useQuery<{ booking: BookingData }>(
     CLIENT_BOOKING_DETAIL,
@@ -252,6 +307,7 @@ export default function BookingDetailPage() {
   });
 
   const bookingStatus = data?.booking?.status;
+
   const { data: invoiceData } = useQuery(CLIENT_INVOICE_FOR_BOOKING, {
     variables: { bookingId: id },
     skip: !id || !isAuthenticated || bookingStatus !== 'COMPLETED',
@@ -281,6 +337,17 @@ export default function BookingDetailPage() {
 
   const [uploadReviewPhotosMutation] = useMutation(UPLOAD_REVIEW_PHOTOS);
 
+  // Dispute queries/mutations
+  const [fetchDispute, { data: disputeData, refetch: refetchDispute }] = useLazyQuery<{
+    myDisputeForBooking: BookingDispute | null;
+  }>(MY_DISPUTE_FOR_BOOKING, { fetchPolicy: 'cache-and-network' });
+
+  const [openDisputeMutation, { loading: openingDispute }] = useMutation(OPEN_DISPUTE, {
+    onCompleted: () => {
+      if (id) refetchDispute?.();
+    },
+  });
+
   const [submitReview, { loading: submittingReview }] = useMutation(SUBMIT_REVIEW, {
     onCompleted: async (result) => {
       const reviewId = result?.submitReview?.id;
@@ -302,6 +369,32 @@ export default function BookingDetailPage() {
     },
     refetchQueries: [{ query: CLIENT_BOOKING_DETAIL, variables: { id } }],
   });
+
+  // Fetch dispute when booking is COMPLETED or CONFIRMED
+  useEffect(() => {
+    if (id && isAuthenticated && (bookingStatus === 'COMPLETED' || bookingStatus === 'CONFIRMED')) {
+      fetchDispute({ variables: { bookingId: id } });
+    }
+  }, [id, isAuthenticated, bookingStatus, fetchDispute]);
+
+  // Clear no-show toast after 5 seconds
+  useEffect(() => {
+    if (!noShowToast) return;
+    const timer = setTimeout(() => setNoShowToast(''), 5000);
+    return () => clearTimeout(timer);
+  }, [noShowToast]);
+
+  // ?action=review deep-link: scroll to review section when booking data loads
+  useEffect(() => {
+    if (
+      searchParams.get('action') === 'review' &&
+      bookingStatus === 'COMPLETED' &&
+      !data?.booking?.review &&
+      reviewSectionRef.current
+    ) {
+      reviewSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [searchParams, bookingStatus, data?.booking?.review]);
 
   // Auth guard
   if (authLoading) {
@@ -410,6 +503,7 @@ export default function BookingDetailPage() {
   }
 
   const booking = data.booking;
+  const dispute = disputeData?.myDisputeForBooking ?? null;
   const isCancelled = booking.status.startsWith('CANCELLED');
   const canCancel = booking.status === 'ASSIGNED' || booking.status === 'CONFIRMED';
 
@@ -787,6 +881,27 @@ export default function BookingDetailPage() {
                 </div>
               </Card>
             )}
+
+            {/* No-show banner */}
+            {booking.status === 'CONFIRMED' && isAfterScheduledStart(booking, 60) && !noShowDisputeSubmitted && (
+              <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1">
+                    <p className="font-medium text-amber-900">Lucrătorul nu a ajuns?</p>
+                    <p className="text-sm text-amber-700 mt-1">
+                      A trecut mai mult de o oră de la ora programată. Vrem să știm dacă echipa ta a ajuns.
+                    </p>
+                    <button
+                      onClick={() => setNoShowModalOpen(true)}
+                      className="mt-3 text-sm font-medium text-amber-700 underline hover:text-amber-900"
+                    >
+                      Raportează că nu a ajuns
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Sidebar */}
@@ -1137,6 +1252,60 @@ export default function BookingDetailPage() {
               </Card>
             )}
 
+            {/* Post-completion dispute section */}
+            {booking.status === 'COMPLETED' && !disputeSubmitted && !dispute && isWithin48Hours(booking) && (
+              <div className="mt-6 p-5 bg-gray-50 border border-gray-200 rounded-xl">
+                <p className="font-medium text-gray-900">Ai o problemă cu serviciul?</p>
+                <p className="text-sm text-gray-500 mt-1">
+                  Ai 48 de ore de la finalizare pentru a deschide o dispută. Vom analiza și te vom contacta.
+                </p>
+                <button
+                  onClick={() => setDisputeModalOpen(true)}
+                  className="mt-3 text-sm font-medium text-blue-600 underline hover:text-blue-800"
+                >
+                  Deschide o dispută
+                </button>
+              </div>
+            )}
+
+            {/* Existing dispute status */}
+            {dispute && (
+              <div className="mt-6 p-5 bg-gray-50 border border-gray-200 rounded-xl">
+                <p className="font-medium text-gray-900 mb-2">Disputa ta</p>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Scale className="h-4 w-4 text-gray-400 shrink-0" />
+                    <span className="text-sm text-gray-700 capitalize">{dispute.reason.replace(/_/g, ' ').toLowerCase()}</span>
+                    <span className={`ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${
+                      dispute.status === 'RESOLVED'
+                        ? 'bg-green-100 text-green-800'
+                        : dispute.status === 'REJECTED'
+                        ? 'bg-red-100 text-red-800'
+                        : 'bg-amber-100 text-amber-800'
+                    }`}>
+                      {dispute.status === 'OPEN' ? 'Deschisă' : dispute.status === 'RESOLVED' ? 'Rezolvată' : dispute.status === 'REJECTED' ? 'Respinsă' : dispute.status}
+                    </span>
+                  </div>
+                  {dispute.companyResponse && (
+                    <p className="text-sm text-gray-600 pt-1 border-t border-gray-200">
+                      <span className="font-medium">Răspuns companie:</span> {dispute.companyResponse}
+                    </p>
+                  )}
+                  {dispute.resolutionNotes && (
+                    <p className="text-sm text-gray-600">
+                      <span className="font-medium">Rezoluție:</span> {dispute.resolutionNotes}
+                    </p>
+                  )}
+                  {dispute.refundAmount != null && dispute.refundAmount > 0 && (
+                    <p className="text-sm text-emerald-700 font-medium">
+                      Rambursare aprobată: {dispute.refundAmount} RON
+                    </p>
+                  )}
+                  <p className="text-xs text-gray-400">Deschisă pe {formatDateTime(dispute.createdAt)}</p>
+                </div>
+              </div>
+            )}
+
             {/* Refund Request (for cancelled bookings that were paid) */}
             {isCancelled && booking.paymentStatus === 'paid' && (
               <Card>
@@ -1385,6 +1554,152 @@ export default function BookingDetailPage() {
             </Button>
           </div>
         </Modal>
+
+        {/* No-show Confirmation Modal */}
+        <Modal
+          open={noShowModalOpen}
+          onClose={() => setNoShowModalOpen(false)}
+          title="Raportează absența lucrătorului"
+        >
+          <div className="flex items-start gap-3 p-3 mb-4 rounded-xl bg-amber-50 border border-amber-100">
+            <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+            <p className="text-sm text-amber-800">
+              Această acțiune va deschide o sesizare de tip „neprezentare". Echipa noastră va analiza și te va contacta în cel mai scurt timp.
+            </p>
+          </div>
+          <p className="text-sm text-gray-500 mb-6">
+            Confirmi că lucrătorul nu s-a prezentat la adresă în intervalul programat?
+          </p>
+          <div className="flex gap-3 justify-end">
+            <Button variant="ghost" onClick={() => setNoShowModalOpen(false)}>
+              Renunță
+            </Button>
+            <Button
+              variant="danger"
+              loading={openingDispute}
+              onClick={async () => {
+                try {
+                  await openDisputeMutation({
+                    variables: {
+                      bookingId: booking.id,
+                      reason: 'NO_SHOW',
+                      description: 'Lucrătorul nu a ajuns la adresă în intervalul programat.',
+                    },
+                  });
+                  setNoShowDisputeSubmitted(true);
+                  setNoShowModalOpen(false);
+                  setNoShowToast('Am primit sesizarea. O să fim în contact cu tine în curând.');
+                } catch {
+                  // error handled by Apollo
+                }
+              }}
+            >
+              Confirmă raportarea
+            </Button>
+          </div>
+        </Modal>
+
+        {/* Open Dispute Modal */}
+        <Modal
+          open={disputeModalOpen}
+          onClose={() => {
+            setDisputeModalOpen(false);
+            setDisputeError('');
+          }}
+          title="Deschide o dispută"
+        >
+          <p className="text-sm text-gray-500 mb-4">
+            Descrie problema cu serviciul. Vom analiza și te vom contacta în cel mai scurt timp.
+          </p>
+          <div className="space-y-4 mb-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Motiv
+              </label>
+              <select
+                className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                value={disputeReason}
+                onChange={(e) => setDisputeReason(e.target.value)}
+              >
+                <option value="">Selectează un motiv...</option>
+                <option value="POOR_QUALITY">Calitate slabă a serviciului</option>
+                <option value="NO_SHOW">Lucrătorul nu s-a prezentat</option>
+                <option value="PROPERTY_DAMAGE">Daune la proprietate</option>
+                <option value="INCOMPLETE_JOB">Serviciu incomplet</option>
+                <option value="OVERCHARGE">Suprataxare</option>
+                <option value="OTHER">Altul</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Descriere <span className="text-gray-400 font-normal">(minim 20 de caractere)</span>
+              </label>
+              <textarea
+                className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary resize-none"
+                rows={4}
+                placeholder="Descrie în detaliu problema întâmpinată..."
+                value={disputeDescription}
+                onChange={(e) => {
+                  setDisputeDescription(e.target.value);
+                  if (disputeError) setDisputeError('');
+                }}
+              />
+              <p className="text-xs text-gray-400 mt-1">{disputeDescription.length} / 20 caractere minime</p>
+            </div>
+            {disputeError && (
+              <div className="text-danger text-sm bg-red-50 px-4 py-3 rounded-xl">
+                {disputeError}
+              </div>
+            )}
+          </div>
+          <div className="flex gap-3 justify-end">
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setDisputeModalOpen(false);
+                setDisputeError('');
+              }}
+            >
+              Renunță
+            </Button>
+            <Button
+              loading={openingDispute}
+              disabled={!disputeReason || disputeDescription.trim().length < 20}
+              onClick={async () => {
+                if (!disputeReason) {
+                  setDisputeError('Selectează un motiv.');
+                  return;
+                }
+                if (disputeDescription.trim().length < 20) {
+                  setDisputeError('Descrierea trebuie să aibă cel puțin 20 de caractere.');
+                  return;
+                }
+                try {
+                  await openDisputeMutation({
+                    variables: {
+                      bookingId: booking.id,
+                      reason: disputeReason,
+                      description: disputeDescription.trim(),
+                    },
+                  });
+                  setDisputeSubmitted(true);
+                  setDisputeModalOpen(false);
+                } catch {
+                  setDisputeError('Nu am putut deschide disputa. Încearcă din nou.');
+                }
+              }}
+            >
+              Trimite disputa
+            </Button>
+          </div>
+        </Modal>
+
+        {/* No-show toast */}
+        {noShowToast && (
+          <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded-xl shadow-lg z-50">
+            {noShowToast}
+          </div>
+        )}
       </div>
     </div>
   );

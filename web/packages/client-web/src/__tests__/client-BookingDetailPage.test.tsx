@@ -8,10 +8,12 @@ import { makeBooking } from './mocks/factories';
 
 const mockUseQuery = vi.fn();
 const mockUseMutation = vi.fn();
+const mockUseLazyQuery = vi.fn();
 
 vi.mock('@apollo/client', () => ({
   useQuery: (...args: unknown[]) => mockUseQuery(...args),
   useMutation: (...args: unknown[]) => mockUseMutation(...args),
+  useLazyQuery: (...args: unknown[]) => mockUseLazyQuery(...args),
   gql: (strings: TemplateStringsArray) => strings.join(''),
 }));
 
@@ -88,6 +90,8 @@ describe('Client BookingDetailPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUseMutation.mockReturnValue(defaultMutation);
+    // Default: lazy query (dispute) returns no data
+    mockUseLazyQuery.mockReturnValue([vi.fn(), { data: undefined, loading: false, error: undefined }]);
     // Default: policy query returns minimal data
     mockUseQuery.mockReturnValue({ data: undefined, loading: false, error: undefined, refetch: vi.fn() });
   });

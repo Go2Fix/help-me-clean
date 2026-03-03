@@ -145,6 +145,99 @@ func (ns NullCompanyType) Value() (driver.Value, error) {
 	return string(ns.CompanyType), nil
 }
 
+type DisputeReason string
+
+const (
+	DisputeReasonPoorQuality    DisputeReason = "poor_quality"
+	DisputeReasonNoShow         DisputeReason = "no_show"
+	DisputeReasonPropertyDamage DisputeReason = "property_damage"
+	DisputeReasonIncompleteJob  DisputeReason = "incomplete_job"
+	DisputeReasonOvercharge     DisputeReason = "overcharge"
+	DisputeReasonOther          DisputeReason = "other"
+)
+
+func (e *DisputeReason) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = DisputeReason(s)
+	case string:
+		*e = DisputeReason(s)
+	default:
+		return fmt.Errorf("unsupported scan type for DisputeReason: %T", src)
+	}
+	return nil
+}
+
+type NullDisputeReason struct {
+	DisputeReason DisputeReason `json:"dispute_reason"`
+	Valid         bool          `json:"valid"` // Valid is true if DisputeReason is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullDisputeReason) Scan(value interface{}) error {
+	if value == nil {
+		ns.DisputeReason, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.DisputeReason.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullDisputeReason) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.DisputeReason), nil
+}
+
+type DisputeStatus string
+
+const (
+	DisputeStatusOpen                  DisputeStatus = "open"
+	DisputeStatusCompanyResponded      DisputeStatus = "company_responded"
+	DisputeStatusUnderReview           DisputeStatus = "under_review"
+	DisputeStatusResolvedRefundFull    DisputeStatus = "resolved_refund_full"
+	DisputeStatusResolvedRefundPartial DisputeStatus = "resolved_refund_partial"
+	DisputeStatusResolvedNoRefund      DisputeStatus = "resolved_no_refund"
+	DisputeStatusAutoClosed            DisputeStatus = "auto_closed"
+)
+
+func (e *DisputeStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = DisputeStatus(s)
+	case string:
+		*e = DisputeStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for DisputeStatus: %T", src)
+	}
+	return nil
+}
+
+type NullDisputeStatus struct {
+	DisputeStatus DisputeStatus `json:"dispute_status"`
+	Valid         bool          `json:"valid"` // Valid is true if DisputeStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullDisputeStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.DisputeStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.DisputeStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullDisputeStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.DisputeStatus), nil
+}
+
 type InvoiceStatus string
 
 const (
@@ -835,6 +928,24 @@ type Booking struct {
 	ReferralDiscountID       pgtype.UUID        `json:"referral_discount_id"`
 	PromoCodeID              pgtype.UUID        `json:"promo_code_id"`
 	PromoDiscountAmount      pgtype.Numeric     `json:"promo_discount_amount"`
+}
+
+type BookingDispute struct {
+	ID                 pgtype.UUID        `json:"id"`
+	BookingID          pgtype.UUID        `json:"booking_id"`
+	OpenedBy           pgtype.UUID        `json:"opened_by"`
+	Reason             DisputeReason      `json:"reason"`
+	Description        string             `json:"description"`
+	EvidenceUrls       []string           `json:"evidence_urls"`
+	CompanyResponse    pgtype.Text        `json:"company_response"`
+	CompanyRespondedAt pgtype.Timestamptz `json:"company_responded_at"`
+	ResolutionNotes    pgtype.Text        `json:"resolution_notes"`
+	ResolvedBy         pgtype.UUID        `json:"resolved_by"`
+	RefundAmount       pgtype.Numeric     `json:"refund_amount"`
+	Status             DisputeStatus      `json:"status"`
+	AutoCloseAt        pgtype.Timestamptz `json:"auto_close_at"`
+	CreatedAt          pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt          pgtype.Timestamptz `json:"updated_at"`
 }
 
 type BookingExtra struct {

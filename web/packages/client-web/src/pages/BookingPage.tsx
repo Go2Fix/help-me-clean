@@ -379,6 +379,7 @@ export default function BookingPage() {
   const [authError, setAuthError] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
   const [showOtpModal, setShowOtpModal] = useState(false);
+  const [conversionDismissed, setConversionDismissed] = useState(false);
 
   const [bookingPhone, setBookingPhone] = useState('');
   const [bookingPhoneError, setBookingPhoneError] = useState('');
@@ -1119,40 +1120,45 @@ export default function BookingPage() {
             </Button>
           </div>
 
-          {/* Guest upsell — create account to track booking & earn referral credits */}
-          {!isAuthenticated && !hasPaymentError && (
-            <div className="mt-8 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 p-6 text-left">
-              <div className="flex items-start gap-3 mb-4">
+          {/* Guest conversion banner — create account to track order */}
+          {!isAuthenticated && !hasPaymentError && !conversionDismissed && (
+            <div className="mt-8 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 p-6 text-left relative">
+              <button
+                type="button"
+                onClick={() => setConversionDismissed(true)}
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+                aria-label="Închide"
+              >
+                <X className="h-4 w-4" />
+              </button>
+              <div className="flex items-start gap-3 mb-3 pr-6">
                 <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-blue-600 shrink-0">
                   <LogIn className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900 text-sm">Creează un cont gratuit</h3>
-                  <p className="text-xs text-gray-500 mt-0.5">Urmărești comanda mai ușor și primești beneficii exclusive</p>
+                  <h3 className="font-semibold text-gray-900">Urmărește-ți comanda oricând</h3>
+                  <p className="text-sm text-gray-500 mt-0.5">
+                    Creează un cont Go2Fix pentru a vedea statusul comenzii, a gestiona viitoarele
+                    rezervări și a câștiga credite prin referral.
+                  </p>
                 </div>
               </div>
-              <ul className="space-y-2 text-xs text-gray-600 mb-5">
-                <li className="flex items-center gap-2">
-                  <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                  Urmărești statusul comenzii în timp real
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                  Adresele și preferințele salvate pentru rezervări viitoare
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                  Cod de referral — câștigă reduceri invitând prieteni
-                </li>
-              </ul>
-              <GoogleLogin
-                onSuccess={handleBookingGoogleSuccess}
-                onError={() => {}}
-                text="signup_with"
-                shape="rectangular"
-                size="large"
-                width="100%"
-              />
+              <div className="flex flex-col gap-3 mt-4">
+                <Button
+                  onClick={() => navigate('/autentificare')}
+                  className="w-full justify-center"
+                >
+                  Creează cont
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+                <button
+                  type="button"
+                  onClick={() => setConversionDismissed(true)}
+                  className="text-sm text-gray-400 hover:text-gray-600 text-center transition-colors"
+                >
+                  Mai târziu
+                </button>
+              </div>
             </div>
           )}
         </div>

@@ -20,6 +20,8 @@ import {
   TrendingDown,
   CalendarRange,
   RefreshCw,
+  AlertTriangle,
+  X,
 } from 'lucide-react';
 import { cn } from '@go2fix/shared';
 import { useAuth } from '@/context/AuthContext';
@@ -197,6 +199,7 @@ export default function SubscriptionDetailPage() {
 
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
+  const [pastDueDismissed, setPastDueDismissed] = useState(false);
   const [showWorkerChangeModal, setShowWorkerChangeModal] = useState(false);
   const [workerChangeSuccess, setWorkerChangeSuccess] = useState(false);
   const [workerChangeError, setWorkerChangeError] = useState<string | null>(null);
@@ -363,6 +366,32 @@ export default function SubscriptionDetailPage() {
           <ArrowLeft className="h-4 w-4" />
           <span className="text-sm font-medium">Inapoi la abonamente</span>
         </button>
+
+        {/* PAST_DUE payment failure banner */}
+        {sub.status === 'PAST_DUE' && !pastDueDismissed && (
+          <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="font-semibold text-amber-900">Plata abonamentului a eșuat</p>
+              <p className="text-sm text-amber-700 mt-1">
+                Ultima plată automată nu a putut fi procesată. Actualizează metoda de plată
+                pentru a evita anularea abonamentului.
+              </p>
+              <button
+                onClick={() => navigate('/cont/plati')}
+                className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-amber-600 text-white text-sm font-medium rounded-lg hover:bg-amber-700 transition-colors"
+              >
+                Actualizează metoda de plată
+              </button>
+            </div>
+            <button
+              onClick={() => setPastDueDismissed(true)}
+              className="text-amber-400 hover:text-amber-600 transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">

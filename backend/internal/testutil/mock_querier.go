@@ -1508,3 +1508,39 @@ func (m *PartialMockQuerier) UpsertPlatformLegalEntity(ctx context.Context, arg 
 func (m *PartialMockQuerier) UpsertWorkerDateOverride(ctx context.Context, arg db.UpsertWorkerDateOverrideParams) (db.WorkerDateOverride, error) {
 	panic("PartialMockQuerier: UpsertWorkerDateOverride not configured")
 }
+
+// Dispute operations — stub implementations; configure Fn fields when a test requires them.
+
+func (m *PartialMockQuerier) AddDisputeEvidenceURLs(ctx context.Context, arg db.AddDisputeEvidenceURLsParams) (db.BookingDispute, error) {
+	panic("PartialMockQuerier: AddDisputeEvidenceURLs not configured")
+}
+func (m *PartialMockQuerier) AutoCloseExpiredDisputes(ctx context.Context) ([]db.BookingDispute, error) {
+	panic("PartialMockQuerier: AutoCloseExpiredDisputes not configured")
+}
+func (m *PartialMockQuerier) CountAllDisputes(ctx context.Context) (int64, error) {
+	panic("PartialMockQuerier: CountAllDisputes not configured")
+}
+func (m *PartialMockQuerier) CountDisputesByStatus(ctx context.Context, status db.DisputeStatus) (int64, error) {
+	panic("PartialMockQuerier: CountDisputesByStatus not configured")
+}
+func (m *PartialMockQuerier) CreateDispute(ctx context.Context, arg db.CreateDisputeParams) (db.BookingDispute, error) {
+	panic("PartialMockQuerier: CreateDispute not configured")
+}
+func (m *PartialMockQuerier) GetDisputeByBookingID(ctx context.Context, bookingID pgtype.UUID) (db.BookingDispute, error) {
+	panic("PartialMockQuerier: GetDisputeByBookingID not configured")
+}
+func (m *PartialMockQuerier) GetDisputeByID(ctx context.Context, id pgtype.UUID) (db.BookingDispute, error) {
+	panic("PartialMockQuerier: GetDisputeByID not configured")
+}
+func (m *PartialMockQuerier) ListAllDisputes(ctx context.Context, arg db.ListAllDisputesParams) ([]db.BookingDispute, error) {
+	panic("PartialMockQuerier: ListAllDisputes not configured")
+}
+func (m *PartialMockQuerier) ListDisputesByStatus(ctx context.Context, arg db.ListDisputesByStatusParams) ([]db.BookingDispute, error) {
+	panic("PartialMockQuerier: ListDisputesByStatus not configured")
+}
+func (m *PartialMockQuerier) ResolveDispute(ctx context.Context, arg db.ResolveDisputeParams) (db.BookingDispute, error) {
+	panic("PartialMockQuerier: ResolveDispute not configured")
+}
+func (m *PartialMockQuerier) UpdateDisputeCompanyResponse(ctx context.Context, arg db.UpdateDisputeCompanyResponseParams) (db.BookingDispute, error) {
+	panic("PartialMockQuerier: UpdateDisputeCompanyResponse not configured")
+}

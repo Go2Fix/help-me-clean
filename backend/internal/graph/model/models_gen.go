@@ -160,6 +160,24 @@ type BookingConnection struct {
 	TotalCount int        `json:"totalCount"`
 }
 
+type BookingDispute struct {
+	ID                 string        `json:"id"`
+	BookingID          string        `json:"bookingId"`
+	Booking            *Booking      `json:"booking,omitempty"`
+	OpenedBy           *User         `json:"openedBy"`
+	Reason             DisputeReason `json:"reason"`
+	Description        string        `json:"description"`
+	EvidenceUrls       []string      `json:"evidenceUrls"`
+	CompanyResponse    *string       `json:"companyResponse,omitempty"`
+	CompanyRespondedAt *time.Time    `json:"companyRespondedAt,omitempty"`
+	ResolutionNotes    *string       `json:"resolutionNotes,omitempty"`
+	ResolvedBy         *User         `json:"resolvedBy,omitempty"`
+	RefundAmount       *float64      `json:"refundAmount,omitempty"`
+	Status             DisputeStatus `json:"status"`
+	AutoCloseAt        time.Time     `json:"autoCloseAt"`
+	CreatedAt          time.Time     `json:"createdAt"`
+}
+
 type BookingExtra struct {
 	Extra    *ServiceExtra `json:"extra"`
 	Price    float64       `json:"price"`
@@ -477,6 +495,11 @@ type DemandSlot struct {
 	DayOfWeek int `json:"dayOfWeek"`
 	Hour      int `json:"hour"`
 	Count     int `json:"count"`
+}
+
+type DisputeConnection struct {
+	Edges      []*BookingDispute `json:"edges"`
+	TotalCount int               `json:"totalCount"`
 }
 
 type EnabledCity struct {
@@ -1549,6 +1572,134 @@ func (e *ConnectOnboardingStatus) UnmarshalJSON(b []byte) error {
 }
 
 func (e ConnectOnboardingStatus) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+type DisputeReason string
+
+const (
+	DisputeReasonPoorQuality    DisputeReason = "POOR_QUALITY"
+	DisputeReasonNoShow         DisputeReason = "NO_SHOW"
+	DisputeReasonPropertyDamage DisputeReason = "PROPERTY_DAMAGE"
+	DisputeReasonIncompleteJob  DisputeReason = "INCOMPLETE_JOB"
+	DisputeReasonOvercharge     DisputeReason = "OVERCHARGE"
+	DisputeReasonOther          DisputeReason = "OTHER"
+)
+
+var AllDisputeReason = []DisputeReason{
+	DisputeReasonPoorQuality,
+	DisputeReasonNoShow,
+	DisputeReasonPropertyDamage,
+	DisputeReasonIncompleteJob,
+	DisputeReasonOvercharge,
+	DisputeReasonOther,
+}
+
+func (e DisputeReason) IsValid() bool {
+	switch e {
+	case DisputeReasonPoorQuality, DisputeReasonNoShow, DisputeReasonPropertyDamage, DisputeReasonIncompleteJob, DisputeReasonOvercharge, DisputeReasonOther:
+		return true
+	}
+	return false
+}
+
+func (e DisputeReason) String() string {
+	return string(e)
+}
+
+func (e *DisputeReason) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = DisputeReason(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid DisputeReason", str)
+	}
+	return nil
+}
+
+func (e DisputeReason) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *DisputeReason) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e DisputeReason) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+type DisputeStatus string
+
+const (
+	DisputeStatusOpen                  DisputeStatus = "OPEN"
+	DisputeStatusCompanyResponded      DisputeStatus = "COMPANY_RESPONDED"
+	DisputeStatusUnderReview           DisputeStatus = "UNDER_REVIEW"
+	DisputeStatusResolvedRefundFull    DisputeStatus = "RESOLVED_REFUND_FULL"
+	DisputeStatusResolvedRefundPartial DisputeStatus = "RESOLVED_REFUND_PARTIAL"
+	DisputeStatusResolvedNoRefund      DisputeStatus = "RESOLVED_NO_REFUND"
+	DisputeStatusAutoClosed            DisputeStatus = "AUTO_CLOSED"
+)
+
+var AllDisputeStatus = []DisputeStatus{
+	DisputeStatusOpen,
+	DisputeStatusCompanyResponded,
+	DisputeStatusUnderReview,
+	DisputeStatusResolvedRefundFull,
+	DisputeStatusResolvedRefundPartial,
+	DisputeStatusResolvedNoRefund,
+	DisputeStatusAutoClosed,
+}
+
+func (e DisputeStatus) IsValid() bool {
+	switch e {
+	case DisputeStatusOpen, DisputeStatusCompanyResponded, DisputeStatusUnderReview, DisputeStatusResolvedRefundFull, DisputeStatusResolvedRefundPartial, DisputeStatusResolvedNoRefund, DisputeStatusAutoClosed:
+		return true
+	}
+	return false
+}
+
+func (e DisputeStatus) String() string {
+	return string(e)
+}
+
+func (e *DisputeStatus) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = DisputeStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid DisputeStatus", str)
+	}
+	return nil
+}
+
+func (e DisputeStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *DisputeStatus) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e DisputeStatus) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil

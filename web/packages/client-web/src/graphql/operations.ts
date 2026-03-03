@@ -4717,3 +4717,125 @@ export const UPDATE_PROMO_CODE = gql`
     }
   }
 `;
+
+// ─── Disputes ────────────────────────────────────────────────────────────────
+
+export const MY_DISPUTE_FOR_BOOKING = gql`
+  query MyDisputeForBooking($bookingId: ID!) {
+    myDisputeForBooking(bookingId: $bookingId) {
+      id
+      bookingId
+      reason
+      description
+      evidenceUrls
+      status
+      companyResponse
+      companyRespondedAt
+      resolutionNotes
+      refundAmount
+      autoCloseAt
+      createdAt
+      openedBy {
+        id
+        fullName
+      }
+      resolvedBy {
+        id
+        fullName
+      }
+    }
+  }
+`;
+
+export const OPEN_DISPUTE = gql`
+  mutation OpenDispute(
+    $bookingId: ID!
+    $reason: DisputeReason!
+    $description: String!
+    $evidenceUrls: [String!]
+  ) {
+    openDispute(
+      bookingId: $bookingId
+      reason: $reason
+      description: $description
+      evidenceUrls: $evidenceUrls
+    ) {
+      id
+      status
+      reason
+      description
+      createdAt
+    }
+  }
+`;
+
+export const ALL_DISPUTES = gql`
+  query AllDisputes($status: DisputeStatus, $first: Int, $after: String) {
+    allDisputes(status: $status, first: $first, after: $after) {
+      edges {
+        id
+        bookingId
+        status
+        reason
+        description
+        evidenceUrls
+        companyResponse
+        companyRespondedAt
+        resolutionNotes
+        refundAmount
+        autoCloseAt
+        createdAt
+        openedBy {
+          id
+          fullName
+        }
+        resolvedBy {
+          id
+          fullName
+        }
+        booking {
+          id
+          referenceCode
+          serviceName
+        }
+      }
+      totalCount
+    }
+  }
+`;
+
+export const RESPOND_TO_DISPUTE = gql`
+  mutation RespondToDispute($disputeId: ID!, $response: String!) {
+    respondToDispute(disputeId: $disputeId, response: $response) {
+      id
+      status
+      companyResponse
+      companyRespondedAt
+    }
+  }
+`;
+
+export const RESOLVE_DISPUTE = gql`
+  mutation ResolveDispute(
+    $disputeId: ID!
+    $status: DisputeStatus!
+    $resolutionNotes: String!
+    $refundAmount: Float
+  ) {
+    resolveDispute(
+      disputeId: $disputeId
+      status: $status
+      resolutionNotes: $resolutionNotes
+      refundAmount: $refundAmount
+    ) {
+      id
+      status
+      resolutionNotes
+      refundAmount
+      resolvedBy {
+        id
+        fullName
+      }
+    }
+  }
+`;

@@ -96,6 +96,7 @@ import AdminSubscriptionDetailPage from '@/pages/admin/AdminSubscriptionDetailPa
 import AdminPayoutsPage from '@/pages/admin/AdminPayoutsPage';
 import AdminRefundsPage from '@/pages/admin/RefundsPage';
 import PromoCodesPage from '@/pages/admin/PromoCodesPage';
+import DisputesPage from '@/pages/admin/DisputesPage';
 
 // ─── Apollo Client ───────────────────────────────────────────────────────────
 
@@ -319,6 +320,7 @@ function AppRoutes() {
         <Route path="rapoarte" element={<ReportsPage />} />
         <Route path="recenzii" element={<ReviewsPage />} />
         <Route path="promo-coduri" element={<PromoCodesPage />} />
+        <Route path="dispute" element={<DisputesPage />} />
         <Route path="setari" element={<AdminSettingsPage />} />
       </Route>
 

@@ -564,13 +564,13 @@ func (r *mutationResolver) StartJob(ctx context.Context, id string) (*model.Book
 
 	// Notify client that the worker has arrived and started the job.
 	if booking.ClientUserID.Valid {
-		body := fmt.Sprintf("Lucratorul a ajuns și a început munca pentru comanda %s.", booking.ReferenceCode)
+		body := fmt.Sprintf("Echipa ta a ajuns și a început lucrul pentru comanda %s.", booking.ReferenceCode)
 		data := []byte(fmt.Sprintf(`{"bookingId":"%s"}`, uuidToString(booking.ID)))
 		go func() {
 			if _, err := r.Queries.CreateNotification(context.Background(), db.CreateNotificationParams{
 				UserID: booking.ClientUserID,
 				Type:   db.NotificationTypeBookingStarted,
-				Title:  "Lucrarea a început",
+				Title:  "Curățenia a început",
 				Body:   body,
 				Data:   data,
 			}); err != nil {
@@ -578,6 +578,9 @@ func (r *mutationResolver) StartJob(ctx context.Context, id string) (*model.Book
 			}
 		}()
 	}
+
+	// Send email and WhatsApp notifications (non-blocking).
+	r.dispatchJobStartedEmail(booking)
 
 	return dbBookingToGQL(booking), nil
 }
