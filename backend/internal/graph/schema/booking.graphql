@@ -55,10 +55,13 @@ type Booking {
   rescheduledAt: DateTime
   timeSlots: [BookingTimeSlot!]!
   review: Review
+  photos: [BookingJobPhoto!]!
   categoryId: ID
   category: ServiceCategory
   customFields: String
   referralDiscountId: ID
+  promoCodeId: ID
+  promoDiscountAmount: Float
   createdAt: DateTime!
 }
 
@@ -66,6 +69,16 @@ type BookingExtra {
   extra: ServiceExtra!
   price: Float!
   quantity: Int!
+}
+
+type BookingJobPhoto {
+  id: ID!
+  bookingId: ID!
+  uploadedBy: ID!
+  photoUrl: String!
+  phase: String!
+  sortOrder: Int!
+  createdAt: DateTime!
 }
 
 type BookingTimeSlot {
@@ -123,6 +136,8 @@ extend type Mutation {
   completeJob(id: ID!): Booking!
   selectBookingTimeSlot(bookingId: ID!, timeSlotId: ID!): Booking!
   rescheduleBooking(id: ID!, scheduledDate: String!, scheduledStartTime: String!, reason: String): Booking!
+  uploadJobPhoto(bookingId: ID!, file: Upload!, phase: String!): BookingJobPhoto!
+  deleteJobPhoto(id: ID!): Boolean!
 }
 
 input CreateBookingInput {

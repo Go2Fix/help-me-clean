@@ -833,6 +833,8 @@ type Booking struct {
 	CustomFields             []byte             `json:"custom_fields"`
 	CityAreaID               pgtype.UUID        `json:"city_area_id"`
 	ReferralDiscountID       pgtype.UUID        `json:"referral_discount_id"`
+	PromoCodeID              pgtype.UUID        `json:"promo_code_id"`
+	PromoDiscountAmount      pgtype.Numeric     `json:"promo_discount_amount"`
 }
 
 type BookingExtra struct {
@@ -841,6 +843,16 @@ type BookingExtra struct {
 	ExtraID   pgtype.UUID    `json:"extra_id"`
 	Price     pgtype.Numeric `json:"price"`
 	Quantity  pgtype.Int4    `json:"quantity"`
+}
+
+type BookingJobPhoto struct {
+	ID         pgtype.UUID        `json:"id"`
+	BookingID  pgtype.UUID        `json:"booking_id"`
+	UploadedBy pgtype.UUID        `json:"uploaded_by"`
+	PhotoUrl   string             `json:"photo_url"`
+	Phase      string             `json:"phase"`
+	SortOrder  int32              `json:"sort_order"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 }
 
 type BookingTimeSlot struct {
@@ -1229,6 +1241,33 @@ type PriceAuditLog struct {
 	Reason     pgtype.Text        `json:"reason"`
 }
 
+type PromoCode struct {
+	ID             pgtype.UUID        `json:"id"`
+	Code           string             `json:"code"`
+	Description    pgtype.Text        `json:"description"`
+	DiscountType   string             `json:"discount_type"`
+	DiscountValue  pgtype.Numeric     `json:"discount_value"`
+	MinOrderAmount pgtype.Numeric     `json:"min_order_amount"`
+	MaxUses        pgtype.Int4        `json:"max_uses"`
+	UsesCount      int32              `json:"uses_count"`
+	MaxUsesPerUser int32              `json:"max_uses_per_user"`
+	ActiveFrom     pgtype.Timestamptz `json:"active_from"`
+	ActiveUntil    pgtype.Timestamptz `json:"active_until"`
+	IsActive       bool               `json:"is_active"`
+	CreatedBy      pgtype.UUID        `json:"created_by"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
+}
+
+type PromoCodeUse struct {
+	ID             pgtype.UUID        `json:"id"`
+	PromoCodeID    pgtype.UUID        `json:"promo_code_id"`
+	UserID         pgtype.UUID        `json:"user_id"`
+	BookingID      pgtype.UUID        `json:"booking_id"`
+	DiscountAmount pgtype.Numeric     `json:"discount_amount"`
+	UsedAt         pgtype.Timestamptz `json:"used_at"`
+}
+
 type RecurringBookingGroup struct {
 	ID                          pgtype.UUID        `json:"id"`
 	ClientUserID                pgtype.UUID        `json:"client_user_id"`
@@ -1489,6 +1528,7 @@ type Worker struct {
 	Bio                pgtype.Text        `json:"bio"`
 	HomeLatitude       pgtype.Float8      `json:"home_latitude"`
 	HomeLongitude      pgtype.Float8      `json:"home_longitude"`
+	MaxDailyBookings   pgtype.Int4        `json:"max_daily_bookings"`
 }
 
 type WorkerAvailability struct {

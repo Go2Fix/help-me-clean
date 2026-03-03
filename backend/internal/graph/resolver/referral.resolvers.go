@@ -8,14 +8,91 @@ package resolver
 import (
 	"context"
 	"fmt"
-	"log"
-
 	"go2fix-backend/internal/auth"
 	db "go2fix-backend/internal/db/generated"
 	"go2fix-backend/internal/graph/model"
+	"log"
 
-	"github.com/jackc/pgx/v5"
+	pgx "github.com/jackc/pgx/v5"
 )
+
+// ApplyReferralDiscountToBooking is the resolver for the applyReferralDiscountToBooking field.
+func (r *mutationResolver) ApplyReferralDiscountToBooking(ctx context.Context, bookingID string) (*model.Booking, error) {
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil {
+		return nil, fmt.Errorf("not authenticated")
+	}
+	if claims.Role != "client" {
+		return nil, fmt.Errorf("only clients can apply referral discounts")
+	}
+
+	userID := stringToUUID(claims.UserID)
+	bID := stringToUUID(bookingID)
+
+	// Load booking and verify ownership.
+	booking, err := r.Queries.GetBookingByID(ctx, bID)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, fmt.Errorf("booking not found")
+		}
+		return nil, fmt.Errorf("failed to load booking: %w", err)
+	}
+
+	if booking.ClientUserID != userID {
+		return nil, fmt.Errorf("booking does not belong to you")
+	}
+
+	// Only allow before payment (assigned or confirmed, not yet in progress or completed).
+	allowedStatuses := map[db.BookingStatus]bool{
+		db.BookingStatusAssigned:  true,
+		db.BookingStatusConfirmed: true,
+	}
+	if !allowedStatuses[booking.Status] {
+		return nil, fmt.Errorf("referral discount can only be applied before the booking is paid")
+	}
+
+	if booking.PaymentStatus.String == "succeeded" || booking.PaymentStatus.String == "paid" {
+		return nil, fmt.Errorf("booking has already been paid")
+	}
+
+	// Already has a discount.
+	if booking.ReferralDiscountID.Valid {
+		return dbBookingToGQL(booking), nil
+	}
+
+	// Get an available discount.
+	discount, err := r.Queries.GetAvailableReferralDiscount(ctx, userID)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, fmt.Errorf("nicio reducere de recomandare disponibilă")
+		}
+		return nil, fmt.Errorf("failed to fetch discount: %w", err)
+	}
+
+	// Reserve the discount (prevent double use).
+	_, err = r.Queries.ReserveReferralDiscount(ctx, db.ReserveReferralDiscountParams{
+		ID:                 discount.ID,
+		AppliedToBookingID: bID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to reserve discount: %w", err)
+	}
+
+	// Apply to booking: set platform_commission_pct = 0.
+	updated, err := r.Queries.ApplyReferralDiscountToBooking(ctx, db.ApplyReferralDiscountToBookingParams{
+		ID:                 bID,
+		ReferralDiscountID: discount.ID,
+	})
+	if err != nil {
+		// Rollback: release the discount.
+		if _, releaseErr := r.Queries.ReleaseReferralDiscount(ctx, discount.ID); releaseErr != nil {
+			log.Printf("referral: failed to release discount %s after booking update failure: %v", uuidToString(discount.ID), releaseErr)
+		}
+		return nil, fmt.Errorf("failed to apply discount to booking: %w", err)
+	}
+
+	return dbBookingToGQL(updated), nil
+}
 
 // MyReferralStatus is the resolver for the myReferralStatus field.
 func (r *queryResolver) MyReferralStatus(ctx context.Context) (*model.ReferralStatus, error) {
@@ -115,82 +192,4 @@ func (r *queryResolver) MyReferralStatus(ctx context.Context) (*model.ReferralSt
 		AvailableDiscounts: int(availCount),
 		Discounts:          discounts,
 	}, nil
-}
-
-// ApplyReferralDiscountToBooking is the resolver for the applyReferralDiscountToBooking field.
-func (r *mutationResolver) ApplyReferralDiscountToBooking(ctx context.Context, bookingID string) (*model.Booking, error) {
-	claims := auth.GetUserFromContext(ctx)
-	if claims == nil {
-		return nil, fmt.Errorf("not authenticated")
-	}
-	if claims.Role != "client" {
-		return nil, fmt.Errorf("only clients can apply referral discounts")
-	}
-
-	userID := stringToUUID(claims.UserID)
-	bID := stringToUUID(bookingID)
-
-	// Load booking and verify ownership.
-	booking, err := r.Queries.GetBookingByID(ctx, bID)
-	if err != nil {
-		if err == pgx.ErrNoRows {
-			return nil, fmt.Errorf("booking not found")
-		}
-		return nil, fmt.Errorf("failed to load booking: %w", err)
-	}
-
-	if booking.ClientUserID != userID {
-		return nil, fmt.Errorf("booking does not belong to you")
-	}
-
-	// Only allow before payment (assigned or confirmed, not yet in progress or completed).
-	allowedStatuses := map[db.BookingStatus]bool{
-		db.BookingStatusAssigned:  true,
-		db.BookingStatusConfirmed: true,
-	}
-	if !allowedStatuses[booking.Status] {
-		return nil, fmt.Errorf("referral discount can only be applied before the booking is paid")
-	}
-
-	if booking.PaymentStatus.String == "succeeded" || booking.PaymentStatus.String == "paid" {
-		return nil, fmt.Errorf("booking has already been paid")
-	}
-
-	// Already has a discount.
-	if booking.ReferralDiscountID.Valid {
-		return dbBookingToGQL(booking), nil
-	}
-
-	// Get an available discount.
-	discount, err := r.Queries.GetAvailableReferralDiscount(ctx, userID)
-	if err != nil {
-		if err == pgx.ErrNoRows {
-			return nil, fmt.Errorf("nicio reducere de recomandare disponibilă")
-		}
-		return nil, fmt.Errorf("failed to fetch discount: %w", err)
-	}
-
-	// Reserve the discount (prevent double use).
-	_, err = r.Queries.ReserveReferralDiscount(ctx, db.ReserveReferralDiscountParams{
-		ID:                 discount.ID,
-		AppliedToBookingID: bID,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to reserve discount: %w", err)
-	}
-
-	// Apply to booking: set platform_commission_pct = 0.
-	updated, err := r.Queries.ApplyReferralDiscountToBooking(ctx, db.ApplyReferralDiscountToBookingParams{
-		ID:                 bID,
-		ReferralDiscountID: discount.ID,
-	})
-	if err != nil {
-		// Rollback: release the discount.
-		if _, releaseErr := r.Queries.ReleaseReferralDiscount(ctx, discount.ID); releaseErr != nil {
-			log.Printf("referral: failed to release discount %s after booking update failure: %v", uuidToString(discount.ID), releaseErr)
-		}
-		return nil, fmt.Errorf("failed to apply discount to booking: %w", err)
-	}
-
-	return dbBookingToGQL(updated), nil
 }

@@ -416,8 +416,8 @@ func (r *mutationResolver) ApproveCompany(ctx context.Context, id string) (*mode
 // RejectCompany is the resolver for the rejectCompany field.
 func (r *mutationResolver) RejectCompany(ctx context.Context, id string, reason string) (*model.Company, error) {
 	claims := auth.GetUserFromContext(ctx)
-	if claims == nil {
-		return nil, fmt.Errorf("not authenticated")
+	if claims == nil || claims.Role != "global_admin" {
+		return nil, fmt.Errorf("admin access required")
 	}
 
 	company, err := r.Queries.RejectCompany(ctx, db.RejectCompanyParams{
@@ -447,8 +447,8 @@ func (r *mutationResolver) RejectCompany(ctx context.Context, id string, reason 
 // SuspendCompany is the resolver for the suspendCompany field.
 func (r *mutationResolver) SuspendCompany(ctx context.Context, id string, reason string) (*model.Company, error) {
 	claims := auth.GetUserFromContext(ctx)
-	if claims == nil {
-		return nil, fmt.Errorf("not authenticated")
+	if claims == nil || claims.Role != "global_admin" {
+		return nil, fmt.Errorf("admin access required")
 	}
 
 	companyUUID := stringToUUID(id)

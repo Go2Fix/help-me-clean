@@ -119,7 +119,10 @@ type ComplexityRoot struct {
 		OccurrenceNumber       func(childComplexity int) int
 		PaidAt                 func(childComplexity int) int
 		PaymentStatus          func(childComplexity int) int
+		Photos                 func(childComplexity int) int
 		PlatformCommissionPct  func(childComplexity int) int
+		PromoCodeID            func(childComplexity int) int
+		PromoDiscountAmount    func(childComplexity int) int
 		PropertyType           func(childComplexity int) int
 		RecurringGroupID       func(childComplexity int) int
 		ReferenceCode          func(childComplexity int) int
@@ -160,6 +163,16 @@ type ComplexityRoot struct {
 		Extra    func(childComplexity int) int
 		Price    func(childComplexity int) int
 		Quantity func(childComplexity int) int
+	}
+
+	BookingJobPhoto struct {
+		BookingID  func(childComplexity int) int
+		CreatedAt  func(childComplexity int) int
+		ID         func(childComplexity int) int
+		Phase      func(childComplexity int) int
+		PhotoURL   func(childComplexity int) int
+		SortOrder  func(childComplexity int) int
+		UploadedBy func(childComplexity int) int
 	}
 
 	BookingPolicy struct {
@@ -438,6 +451,7 @@ type ComplexityRoot struct {
 		AdminUpdateCompanyStatus                  func(childComplexity int, id string, status model.CompanyStatus) int
 		AdminUpdateUserProfile                    func(childComplexity int, userID string, fullName string, phone *string) int
 		ApplyAsCompany                            func(childComplexity int, input model.CompanyApplicationInput) int
+		ApplyPromoCodeToBooking                   func(childComplexity int, bookingID string, code string) int
 		ApplyReferralDiscountToBooking            func(childComplexity int, bookingID string) int
 		ApproveCompany                            func(childComplexity int, id string) int
 		ApproveReview                             func(childComplexity int, id string) int
@@ -454,6 +468,7 @@ type ComplexityRoot struct {
 		CreateCity                                func(childComplexity int, name string, county string) int
 		CreateCityArea                            func(childComplexity int, cityID string, name string) int
 		CreateMonthlyPayout                       func(childComplexity int, companyID string, periodFrom string, periodTo string) int
+		CreatePromoCode                           func(childComplexity int, input model.CreatePromoCodeInput) int
 		CreateServiceCategory                     func(childComplexity int, input model.CreateServiceCategoryInput) int
 		CreateServiceDefinition                   func(childComplexity int, input model.CreateServiceDefinitionInput) int
 		CreateServiceExtra                        func(childComplexity int, input model.CreateServiceExtraInput) int
@@ -462,6 +477,7 @@ type ComplexityRoot struct {
 		DeleteAddress                             func(childComplexity int, id string) int
 		DeleteCityArea                            func(childComplexity int, id string) int
 		DeleteCompanyDocument                     func(childComplexity int, id string) int
+		DeleteJobPhoto                            func(childComplexity int, id string) int
 		DeleteMyAccount                           func(childComplexity int) int
 		DeletePaymentMethod                       func(childComplexity int, id string) int
 		DeleteReview                              func(childComplexity int, id string) int
@@ -523,12 +539,14 @@ type ComplexityRoot struct {
 		UpdatePayoutStatus                        func(childComplexity int, payoutID string, status model.PayoutStatus, notes *string) int
 		UpdatePlatformSetting                     func(childComplexity int, key string, value string) int
 		UpdateProfile                             func(childComplexity int, input model.UpdateProfileInput) int
+		UpdatePromoCode                           func(childComplexity int, id string, input model.UpdatePromoCodeInput) int
 		UpdateRecurringDiscount                   func(childComplexity int, recurrenceType model.RecurrenceType, discountPct float64) int
 		UpdateServiceCategory                     func(childComplexity int, input model.UpdateServiceCategoryInput) int
 		UpdateServiceDefinition                   func(childComplexity int, input model.UpdateServiceDefinitionInput) int
 		UpdateServiceExtra                        func(childComplexity int, input model.UpdateServiceExtraInput) int
 		UpdateUserRole                            func(childComplexity int, userID string, role model.UserRole) int
 		UpdateWorkerAvailability                  func(childComplexity int, workerID string, slots []*model.AvailabilitySlotInput) int
+		UpdateWorkerMaxDailyBookings              func(childComplexity int, workerID string, limit *int) int
 		UpdateWorkerProfile                       func(childComplexity int, input model.UpdateWorkerProfileInput) int
 		UpdateWorkerServiceAreas                  func(childComplexity int, workerID string, areaIds []string) int
 		UpdateWorkerServiceCategories             func(childComplexity int, workerID string, categoryIds []string) int
@@ -537,6 +555,7 @@ type ComplexityRoot struct {
 		UploadCompanyDocument                     func(childComplexity int, companyID string, documentType string, file graphql.Upload) int
 		UploadCompanyLogo                         func(childComplexity int, file graphql.Upload) int
 		UploadFile                                func(childComplexity int, file graphql.Upload, purpose string) int
+		UploadJobPhoto                            func(childComplexity int, bookingID string, file graphql.Upload, phase string) int
 		UploadReviewPhotos                        func(childComplexity int, reviewID string, files []*graphql.Upload) int
 		UploadWorkerAvatar                        func(childComplexity int, workerID string, file graphql.Upload) int
 		UploadWorkerDocument                      func(childComplexity int, workerID string, documentType string, file graphql.Upload) int
@@ -736,6 +755,34 @@ type ComplexityRoot struct {
 		Total                 func(childComplexity int) int
 	}
 
+	PromoCode struct {
+		ActiveFrom     func(childComplexity int) int
+		ActiveUntil    func(childComplexity int) int
+		Code           func(childComplexity int) int
+		CreatedAt      func(childComplexity int) int
+		Description    func(childComplexity int) int
+		DiscountType   func(childComplexity int) int
+		DiscountValue  func(childComplexity int) int
+		ID             func(childComplexity int) int
+		IsActive       func(childComplexity int) int
+		MaxUses        func(childComplexity int) int
+		MaxUsesPerUser func(childComplexity int) int
+		MinOrderAmount func(childComplexity int) int
+		UsesCount      func(childComplexity int) int
+	}
+
+	PromoCodeConnection struct {
+		Edges      func(childComplexity int) int
+		TotalCount func(childComplexity int) int
+	}
+
+	PromoCodeValidation struct {
+		DiscountAmount func(childComplexity int) int
+		ErrorMessage   func(childComplexity int) int
+		PromoCode      func(childComplexity int) int
+		Valid          func(childComplexity int) int
+	}
+
 	Query struct {
 		ActiveCities                       func(childComplexity int) int
 		AllBookings                        func(childComplexity int, status *model.BookingStatus, companyID *string, dateFrom *string, dateTo *string, first *int, after *string) int
@@ -781,6 +828,7 @@ type ComplexityRoot struct {
 		InvoiceAnalytics                   func(childComplexity int, from string, to string) int
 		InvoiceDetail                      func(childComplexity int, id string) int
 		IsCitySupported                    func(childComplexity int, city string) int
+		ListPromoCodes                     func(childComplexity int, limit *int, offset *int) int
 		Me                                 func(childComplexity int) int
 		MyAddresses                        func(childComplexity int) int
 		MyAssignedJobs                     func(childComplexity int, status *model.BookingStatus) int
@@ -841,6 +889,7 @@ type ComplexityRoot struct {
 		TopCompaniesByRevenue              func(childComplexity int, from string, to string, limit *int) int
 		UnreadNotificationCount            func(childComplexity int) int
 		User                               func(childComplexity int, id string) int
+		ValidatePromoCode                  func(childComplexity int, code string, orderAmount float64) int
 		WaitlistLeads                      func(childComplexity int, leadType *model.WaitlistLeadType, limit *int, offset *int) int
 		WaitlistStats                      func(childComplexity int) int
 		WorkerDateOverrides                func(childComplexity int, workerID string, from string, to string) int
@@ -1183,6 +1232,7 @@ type ComplexityRoot struct {
 		ID                    func(childComplexity int) int
 		InviteToken           func(childComplexity int) int
 		IsCompanyAdmin        func(childComplexity int) int
+		MaxDailyBookings      func(childComplexity int) int
 		PersonalityAssessment func(childComplexity int) int
 		Phone                 func(childComplexity int) int
 		RatingAvg             func(childComplexity int) int
@@ -1246,6 +1296,8 @@ type MutationResolver interface {
 	CompleteJob(ctx context.Context, id string) (*model.Booking, error)
 	SelectBookingTimeSlot(ctx context.Context, bookingID string, timeSlotID string) (*model.Booking, error)
 	RescheduleBooking(ctx context.Context, id string, scheduledDate string, scheduledStartTime string, reason *string) (*model.Booking, error)
+	UploadJobPhoto(ctx context.Context, bookingID string, file graphql.Upload, phase string) (*model.BookingJobPhoto, error)
+	DeleteJobPhoto(ctx context.Context, id string) (bool, error)
 	AddAddress(ctx context.Context, input model.AddAddressInput) (*model.Address, error)
 	UpdateAddress(ctx context.Context, id string, input model.UpdateAddressInput) (*model.Address, error)
 	DeleteAddress(ctx context.Context, id string) (bool, error)
@@ -1297,6 +1349,9 @@ type MutationResolver interface {
 	SubmitPersonalityAssessment(ctx context.Context, answers []*model.PersonalityAnswerInput) (*model.PersonalityAssessment, error)
 	GeneratePersonalityInsights(ctx context.Context, workerID string) (*model.PersonalityInsights, error)
 	RegeneratePersonalityInsights(ctx context.Context, workerID string) (*model.PersonalityInsights, error)
+	ApplyPromoCodeToBooking(ctx context.Context, bookingID string, code string) (*model.Booking, error)
+	CreatePromoCode(ctx context.Context, input model.CreatePromoCodeInput) (*model.PromoCode, error)
+	UpdatePromoCode(ctx context.Context, id string, input model.UpdatePromoCodeInput) (*model.PromoCode, error)
 	ApplyReferralDiscountToBooking(ctx context.Context, bookingID string) (*model.Booking, error)
 	SubmitReview(ctx context.Context, input model.SubmitReviewInput) (*model.Review, error)
 	UploadReviewPhotos(ctx context.Context, reviewID string, files []*graphql.Upload) ([]*model.ReviewPhoto, error)
@@ -1339,6 +1394,7 @@ type MutationResolver interface {
 	ReviewWorkerDocument(ctx context.Context, id string, approved bool, rejectionReason *string) (*model.WorkerDocument, error)
 	ActivateWorker(ctx context.Context, id string) (*model.WorkerProfile, error)
 	UpdateWorkerServiceCategories(ctx context.Context, workerID string, categoryIds []string) ([]*model.ServiceCategory, error)
+	UpdateWorkerMaxDailyBookings(ctx context.Context, workerID string, limit *int) (*model.WorkerProfile, error)
 }
 type PersonalityAssessmentResolver interface {
 	Insights(ctx context.Context, obj *model.PersonalityAssessment) (*model.PersonalityInsights, error)
@@ -1415,6 +1471,8 @@ type QueryResolver interface {
 	PersonalityQuestions(ctx context.Context) ([]*model.PersonalityQuestion, error)
 	MyPersonalityAssessment(ctx context.Context) (*model.PersonalityAssessment, error)
 	WorkerPersonalityAssessment(ctx context.Context, workerID string) (*model.PersonalityAssessment, error)
+	ValidatePromoCode(ctx context.Context, code string, orderAmount float64) (*model.PromoCodeValidation, error)
+	ListPromoCodes(ctx context.Context, limit *int, offset *int) (*model.PromoCodeConnection, error)
 	MyReferralStatus(ctx context.Context) (*model.ReferralStatus, error)
 	CompanyWorkerReviews(ctx context.Context, limit *int, offset *int, rating *int) (*model.ReviewConnection, error)
 	AvailableServices(ctx context.Context) ([]*model.ServiceDefinition, error)
@@ -1808,12 +1866,30 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Booking.PaymentStatus(childComplexity), true
+	case "Booking.photos":
+		if e.complexity.Booking.Photos == nil {
+			break
+		}
+
+		return e.complexity.Booking.Photos(childComplexity), true
 	case "Booking.platformCommissionPct":
 		if e.complexity.Booking.PlatformCommissionPct == nil {
 			break
 		}
 
 		return e.complexity.Booking.PlatformCommissionPct(childComplexity), true
+	case "Booking.promoCodeId":
+		if e.complexity.Booking.PromoCodeID == nil {
+			break
+		}
+
+		return e.complexity.Booking.PromoCodeID(childComplexity), true
+	case "Booking.promoDiscountAmount":
+		if e.complexity.Booking.PromoDiscountAmount == nil {
+			break
+		}
+
+		return e.complexity.Booking.PromoDiscountAmount(childComplexity), true
 	case "Booking.propertyType":
 		if e.complexity.Booking.PropertyType == nil {
 			break
@@ -2003,6 +2079,49 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.BookingExtra.Quantity(childComplexity), true
+
+	case "BookingJobPhoto.bookingId":
+		if e.complexity.BookingJobPhoto.BookingID == nil {
+			break
+		}
+
+		return e.complexity.BookingJobPhoto.BookingID(childComplexity), true
+	case "BookingJobPhoto.createdAt":
+		if e.complexity.BookingJobPhoto.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.BookingJobPhoto.CreatedAt(childComplexity), true
+	case "BookingJobPhoto.id":
+		if e.complexity.BookingJobPhoto.ID == nil {
+			break
+		}
+
+		return e.complexity.BookingJobPhoto.ID(childComplexity), true
+	case "BookingJobPhoto.phase":
+		if e.complexity.BookingJobPhoto.Phase == nil {
+			break
+		}
+
+		return e.complexity.BookingJobPhoto.Phase(childComplexity), true
+	case "BookingJobPhoto.photoUrl":
+		if e.complexity.BookingJobPhoto.PhotoURL == nil {
+			break
+		}
+
+		return e.complexity.BookingJobPhoto.PhotoURL(childComplexity), true
+	case "BookingJobPhoto.sortOrder":
+		if e.complexity.BookingJobPhoto.SortOrder == nil {
+			break
+		}
+
+		return e.complexity.BookingJobPhoto.SortOrder(childComplexity), true
+	case "BookingJobPhoto.uploadedBy":
+		if e.complexity.BookingJobPhoto.UploadedBy == nil {
+			break
+		}
+
+		return e.complexity.BookingJobPhoto.UploadedBy(childComplexity), true
 
 	case "BookingPolicy.cancelFreeHoursBefore":
 		if e.complexity.BookingPolicy.CancelFreeHoursBefore == nil {
@@ -3250,6 +3369,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.ApplyAsCompany(childComplexity, args["input"].(model.CompanyApplicationInput)), true
+	case "Mutation.applyPromoCodeToBooking":
+		if e.complexity.Mutation.ApplyPromoCodeToBooking == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_applyPromoCodeToBooking_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ApplyPromoCodeToBooking(childComplexity, args["bookingId"].(string), args["code"].(string)), true
 	case "Mutation.applyReferralDiscountToBooking":
 		if e.complexity.Mutation.ApplyReferralDiscountToBooking == nil {
 			break
@@ -3426,6 +3556,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.CreateMonthlyPayout(childComplexity, args["companyId"].(string), args["periodFrom"].(string), args["periodTo"].(string)), true
+	case "Mutation.createPromoCode":
+		if e.complexity.Mutation.CreatePromoCode == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createPromoCode_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreatePromoCode(childComplexity, args["input"].(model.CreatePromoCodeInput)), true
 	case "Mutation.createServiceCategory":
 		if e.complexity.Mutation.CreateServiceCategory == nil {
 			break
@@ -3509,6 +3650,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.DeleteCompanyDocument(childComplexity, args["id"].(string)), true
+	case "Mutation.deleteJobPhoto":
+		if e.complexity.Mutation.DeleteJobPhoto == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteJobPhoto_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteJobPhoto(childComplexity, args["id"].(string)), true
 	case "Mutation.deleteMyAccount":
 		if e.complexity.Mutation.DeleteMyAccount == nil {
 			break
@@ -4145,6 +4297,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.UpdateProfile(childComplexity, args["input"].(model.UpdateProfileInput)), true
+	case "Mutation.updatePromoCode":
+		if e.complexity.Mutation.UpdatePromoCode == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updatePromoCode_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdatePromoCode(childComplexity, args["id"].(string), args["input"].(model.UpdatePromoCodeInput)), true
 	case "Mutation.updateRecurringDiscount":
 		if e.complexity.Mutation.UpdateRecurringDiscount == nil {
 			break
@@ -4211,6 +4374,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.UpdateWorkerAvailability(childComplexity, args["workerId"].(string), args["slots"].([]*model.AvailabilitySlotInput)), true
+	case "Mutation.updateWorkerMaxDailyBookings":
+		if e.complexity.Mutation.UpdateWorkerMaxDailyBookings == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateWorkerMaxDailyBookings_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateWorkerMaxDailyBookings(childComplexity, args["workerId"].(string), args["limit"].(*int)), true
 	case "Mutation.updateWorkerProfile":
 		if e.complexity.Mutation.UpdateWorkerProfile == nil {
 			break
@@ -4299,6 +4473,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.UploadFile(childComplexity, args["file"].(graphql.Upload), args["purpose"].(string)), true
+	case "Mutation.uploadJobPhoto":
+		if e.complexity.Mutation.UploadJobPhoto == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_uploadJobPhoto_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UploadJobPhoto(childComplexity, args["bookingId"].(string), args["file"].(graphql.Upload), args["phase"].(string)), true
 	case "Mutation.uploadReviewPhotos":
 		if e.complexity.Mutation.UploadReviewPhotos == nil {
 			break
@@ -5177,6 +5362,123 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.PriceEstimate.Total(childComplexity), true
 
+	case "PromoCode.activeFrom":
+		if e.complexity.PromoCode.ActiveFrom == nil {
+			break
+		}
+
+		return e.complexity.PromoCode.ActiveFrom(childComplexity), true
+	case "PromoCode.activeUntil":
+		if e.complexity.PromoCode.ActiveUntil == nil {
+			break
+		}
+
+		return e.complexity.PromoCode.ActiveUntil(childComplexity), true
+	case "PromoCode.code":
+		if e.complexity.PromoCode.Code == nil {
+			break
+		}
+
+		return e.complexity.PromoCode.Code(childComplexity), true
+	case "PromoCode.createdAt":
+		if e.complexity.PromoCode.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.PromoCode.CreatedAt(childComplexity), true
+	case "PromoCode.description":
+		if e.complexity.PromoCode.Description == nil {
+			break
+		}
+
+		return e.complexity.PromoCode.Description(childComplexity), true
+	case "PromoCode.discountType":
+		if e.complexity.PromoCode.DiscountType == nil {
+			break
+		}
+
+		return e.complexity.PromoCode.DiscountType(childComplexity), true
+	case "PromoCode.discountValue":
+		if e.complexity.PromoCode.DiscountValue == nil {
+			break
+		}
+
+		return e.complexity.PromoCode.DiscountValue(childComplexity), true
+	case "PromoCode.id":
+		if e.complexity.PromoCode.ID == nil {
+			break
+		}
+
+		return e.complexity.PromoCode.ID(childComplexity), true
+	case "PromoCode.isActive":
+		if e.complexity.PromoCode.IsActive == nil {
+			break
+		}
+
+		return e.complexity.PromoCode.IsActive(childComplexity), true
+	case "PromoCode.maxUses":
+		if e.complexity.PromoCode.MaxUses == nil {
+			break
+		}
+
+		return e.complexity.PromoCode.MaxUses(childComplexity), true
+	case "PromoCode.maxUsesPerUser":
+		if e.complexity.PromoCode.MaxUsesPerUser == nil {
+			break
+		}
+
+		return e.complexity.PromoCode.MaxUsesPerUser(childComplexity), true
+	case "PromoCode.minOrderAmount":
+		if e.complexity.PromoCode.MinOrderAmount == nil {
+			break
+		}
+
+		return e.complexity.PromoCode.MinOrderAmount(childComplexity), true
+	case "PromoCode.usesCount":
+		if e.complexity.PromoCode.UsesCount == nil {
+			break
+		}
+
+		return e.complexity.PromoCode.UsesCount(childComplexity), true
+
+	case "PromoCodeConnection.edges":
+		if e.complexity.PromoCodeConnection.Edges == nil {
+			break
+		}
+
+		return e.complexity.PromoCodeConnection.Edges(childComplexity), true
+	case "PromoCodeConnection.totalCount":
+		if e.complexity.PromoCodeConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.PromoCodeConnection.TotalCount(childComplexity), true
+
+	case "PromoCodeValidation.discountAmount":
+		if e.complexity.PromoCodeValidation.DiscountAmount == nil {
+			break
+		}
+
+		return e.complexity.PromoCodeValidation.DiscountAmount(childComplexity), true
+	case "PromoCodeValidation.errorMessage":
+		if e.complexity.PromoCodeValidation.ErrorMessage == nil {
+			break
+		}
+
+		return e.complexity.PromoCodeValidation.ErrorMessage(childComplexity), true
+	case "PromoCodeValidation.promoCode":
+		if e.complexity.PromoCodeValidation.PromoCode == nil {
+			break
+		}
+
+		return e.complexity.PromoCodeValidation.PromoCode(childComplexity), true
+	case "PromoCodeValidation.valid":
+		if e.complexity.PromoCodeValidation.Valid == nil {
+			break
+		}
+
+		return e.complexity.PromoCodeValidation.Valid(childComplexity), true
+
 	case "Query.activeCities":
 		if e.complexity.Query.ActiveCities == nil {
 			break
@@ -5606,6 +5908,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.IsCitySupported(childComplexity, args["city"].(string)), true
+	case "Query.listPromoCodes":
+		if e.complexity.Query.ListPromoCodes == nil {
+			break
+		}
+
+		args, err := ec.field_Query_listPromoCodes_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ListPromoCodes(childComplexity, args["limit"].(*int), args["offset"].(*int)), true
 	case "Query.me":
 		if e.complexity.Query.Me == nil {
 			break
@@ -6111,6 +6424,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.User(childComplexity, args["id"].(string)), true
+	case "Query.validatePromoCode":
+		if e.complexity.Query.ValidatePromoCode == nil {
+			break
+		}
+
+		args, err := ec.field_Query_validatePromoCode_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ValidatePromoCode(childComplexity, args["code"].(string), args["orderAmount"].(float64)), true
 	case "Query.waitlistLeads":
 		if e.complexity.Query.WaitlistLeads == nil {
 			break
@@ -7620,6 +7944,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.WorkerProfile.IsCompanyAdmin(childComplexity), true
+	case "WorkerProfile.maxDailyBookings":
+		if e.complexity.WorkerProfile.MaxDailyBookings == nil {
+			break
+		}
+
+		return e.complexity.WorkerProfile.MaxDailyBookings(childComplexity), true
 	case "WorkerProfile.personalityAssessment":
 		if e.complexity.WorkerProfile.PersonalityAssessment == nil {
 			break
@@ -7777,6 +8107,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputCompanyApplicationInput,
 		ec.unmarshalInputContactMessageInput,
 		ec.unmarshalInputCreateBookingInput,
+		ec.unmarshalInputCreatePromoCodeInput,
 		ec.unmarshalInputCreateServiceCategoryInput,
 		ec.unmarshalInputCreateServiceDefinitionInput,
 		ec.unmarshalInputCreateServiceExtraInput,
@@ -7792,6 +8123,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputUpdateAddressInput,
 		ec.unmarshalInputUpdateCompanyInput,
 		ec.unmarshalInputUpdateProfileInput,
+		ec.unmarshalInputUpdatePromoCodeInput,
 		ec.unmarshalInputUpdateServiceCategoryInput,
 		ec.unmarshalInputUpdateServiceDefinitionInput,
 		ec.unmarshalInputUpdateServiceExtraInput,
@@ -7893,7 +8225,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
-//go:embed "schema/admin.graphql" "schema/analytics.graphql" "schema/audit.graphql" "schema/auth.graphql" "schema/booking.graphql" "schema/client.graphql" "schema/company.graphql" "schema/contact.graphql" "schema/invoice.graphql" "schema/location.graphql" "schema/notification.graphql" "schema/payment.graphql" "schema/personality.graphql" "schema/recurring.graphql" "schema/referral.graphql" "schema/review.graphql" "schema/schema.graphql" "schema/service.graphql" "schema/settings.graphql" "schema/subscription.graphql" "schema/user.graphql" "schema/waitlist.graphql" "schema/worker.graphql"
+//go:embed "schema/admin.graphql" "schema/analytics.graphql" "schema/audit.graphql" "schema/auth.graphql" "schema/booking.graphql" "schema/client.graphql" "schema/company.graphql" "schema/contact.graphql" "schema/invoice.graphql" "schema/location.graphql" "schema/notification.graphql" "schema/payment.graphql" "schema/personality.graphql" "schema/promo.graphql" "schema/recurring.graphql" "schema/referral.graphql" "schema/review.graphql" "schema/schema.graphql" "schema/service.graphql" "schema/settings.graphql" "schema/subscription.graphql" "schema/user.graphql" "schema/waitlist.graphql" "schema/worker.graphql"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -7918,6 +8250,7 @@ var sources = []*ast.Source{
 	{Name: "schema/notification.graphql", Input: sourceData("schema/notification.graphql"), BuiltIn: false},
 	{Name: "schema/payment.graphql", Input: sourceData("schema/payment.graphql"), BuiltIn: false},
 	{Name: "schema/personality.graphql", Input: sourceData("schema/personality.graphql"), BuiltIn: false},
+	{Name: "schema/promo.graphql", Input: sourceData("schema/promo.graphql"), BuiltIn: false},
 	{Name: "schema/recurring.graphql", Input: sourceData("schema/recurring.graphql"), BuiltIn: false},
 	{Name: "schema/referral.graphql", Input: sourceData("schema/referral.graphql"), BuiltIn: false},
 	{Name: "schema/review.graphql", Input: sourceData("schema/review.graphql"), BuiltIn: false},
@@ -8103,6 +8436,22 @@ func (ec *executionContext) field_Mutation_applyAsCompany_args(ctx context.Conte
 		return nil, err
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_applyPromoCodeToBooking_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "bookingId", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["bookingId"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "code", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["code"] = arg1
 	return args, nil
 }
 
@@ -8317,6 +8666,17 @@ func (ec *executionContext) field_Mutation_createMonthlyPayout_args(ctx context.
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_createPromoCode_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNCreatePromoCodeInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCreatePromoCodeInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_createServiceCategory_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -8384,6 +8744,17 @@ func (ec *executionContext) field_Mutation_deleteCityArea_args(ctx context.Conte
 }
 
 func (ec *executionContext) field_Mutation_deleteCompanyDocument_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteJobPhoto_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
@@ -9168,6 +9539,22 @@ func (ec *executionContext) field_Mutation_updateProfile_args(ctx context.Contex
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_updatePromoCode_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNUpdatePromoCodeInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUpdatePromoCodeInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_updateRecurringDiscount_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -9246,6 +9633,22 @@ func (ec *executionContext) field_Mutation_updateWorkerAvailability_args(ctx con
 		return nil, err
 	}
 	args["slots"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateWorkerMaxDailyBookings_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "workerId", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["workerId"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "limit", ec.unmarshalOInt2ᚖint)
+	if err != nil {
+		return nil, err
+	}
+	args["limit"] = arg1
 	return args, nil
 }
 
@@ -9364,6 +9767,27 @@ func (ec *executionContext) field_Mutation_uploadFile_args(ctx context.Context, 
 		return nil, err
 	}
 	args["purpose"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_uploadJobPhoto_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "bookingId", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["bookingId"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "file", ec.unmarshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload)
+	if err != nil {
+		return nil, err
+	}
+	args["file"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "phase", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["phase"] = arg2
 	return args, nil
 }
 
@@ -10053,6 +10477,22 @@ func (ec *executionContext) field_Query_isCitySupported_args(ctx context.Context
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_listPromoCodes_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "limit", ec.unmarshalOInt2ᚖint)
+	if err != nil {
+		return nil, err
+	}
+	args["limit"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "offset", ec.unmarshalOInt2ᚖint)
+	if err != nil {
+		return nil, err
+	}
+	args["offset"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_myAssignedJobs_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -10674,6 +11114,22 @@ func (ec *executionContext) field_Query_user_args(ctx context.Context, rawArgs m
 		return nil, err
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_validatePromoCode_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "code", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["code"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "orderAmount", ec.unmarshalNFloat2float64)
+	if err != nil {
+		return nil, err
+	}
+	args["orderAmount"] = arg1
 	return args, nil
 }
 
@@ -11987,6 +12443,8 @@ func (ec *executionContext) fieldContext_Booking_worker(_ context.Context, field
 				return ec.fieldContext_WorkerProfile_serviceCategories(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_WorkerProfile_createdAt(ctx, field)
+			case "maxDailyBookings":
+				return ec.fieldContext_WorkerProfile_maxDailyBookings(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type WorkerProfile", field.Name)
 		},
@@ -12998,6 +13456,51 @@ func (ec *executionContext) fieldContext_Booking_review(_ context.Context, field
 	return fc, nil
 }
 
+func (ec *executionContext) _Booking_photos(ctx context.Context, field graphql.CollectedField, obj *model.Booking) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Booking_photos,
+		func(ctx context.Context) (any, error) {
+			return obj.Photos, nil
+		},
+		nil,
+		ec.marshalNBookingJobPhoto2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingJobPhotoᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Booking_photos(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Booking",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_BookingJobPhoto_id(ctx, field)
+			case "bookingId":
+				return ec.fieldContext_BookingJobPhoto_bookingId(ctx, field)
+			case "uploadedBy":
+				return ec.fieldContext_BookingJobPhoto_uploadedBy(ctx, field)
+			case "photoUrl":
+				return ec.fieldContext_BookingJobPhoto_photoUrl(ctx, field)
+			case "phase":
+				return ec.fieldContext_BookingJobPhoto_phase(ctx, field)
+			case "sortOrder":
+				return ec.fieldContext_BookingJobPhoto_sortOrder(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_BookingJobPhoto_createdAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type BookingJobPhoto", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Booking_categoryId(ctx context.Context, field graphql.CollectedField, obj *model.Booking) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -13137,6 +13640,64 @@ func (ec *executionContext) fieldContext_Booking_referralDiscountId(_ context.Co
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Booking_promoCodeId(ctx context.Context, field graphql.CollectedField, obj *model.Booking) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Booking_promoCodeId,
+		func(ctx context.Context) (any, error) {
+			return obj.PromoCodeID, nil
+		},
+		nil,
+		ec.marshalOID2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Booking_promoCodeId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Booking",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Booking_promoDiscountAmount(ctx context.Context, field graphql.CollectedField, obj *model.Booking) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Booking_promoDiscountAmount,
+		func(ctx context.Context) (any, error) {
+			return obj.PromoDiscountAmount, nil
+		},
+		nil,
+		ec.marshalOFloat2ᚖfloat64,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Booking_promoDiscountAmount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Booking",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
 		},
 	}
 	return fc, nil
@@ -13501,6 +14062,8 @@ func (ec *executionContext) fieldContext_BookingConnection_edges(_ context.Conte
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
+			case "photos":
+				return ec.fieldContext_Booking_photos(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -13509,6 +14072,10 @@ func (ec *executionContext) fieldContext_BookingConnection_edges(_ context.Conte
 				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "referralDiscountId":
 				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
+			case "promoCodeId":
+				return ec.fieldContext_Booking_promoCodeId(ctx, field)
+			case "promoDiscountAmount":
+				return ec.fieldContext_Booking_promoDiscountAmount(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -13686,6 +14253,209 @@ func (ec *executionContext) fieldContext_BookingExtra_quantity(_ context.Context
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BookingJobPhoto_id(ctx context.Context, field graphql.CollectedField, obj *model.BookingJobPhoto) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BookingJobPhoto_id,
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BookingJobPhoto_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BookingJobPhoto",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BookingJobPhoto_bookingId(ctx context.Context, field graphql.CollectedField, obj *model.BookingJobPhoto) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BookingJobPhoto_bookingId,
+		func(ctx context.Context) (any, error) {
+			return obj.BookingID, nil
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BookingJobPhoto_bookingId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BookingJobPhoto",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BookingJobPhoto_uploadedBy(ctx context.Context, field graphql.CollectedField, obj *model.BookingJobPhoto) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BookingJobPhoto_uploadedBy,
+		func(ctx context.Context) (any, error) {
+			return obj.UploadedBy, nil
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BookingJobPhoto_uploadedBy(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BookingJobPhoto",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BookingJobPhoto_photoUrl(ctx context.Context, field graphql.CollectedField, obj *model.BookingJobPhoto) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BookingJobPhoto_photoUrl,
+		func(ctx context.Context) (any, error) {
+			return obj.PhotoURL, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BookingJobPhoto_photoUrl(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BookingJobPhoto",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BookingJobPhoto_phase(ctx context.Context, field graphql.CollectedField, obj *model.BookingJobPhoto) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BookingJobPhoto_phase,
+		func(ctx context.Context) (any, error) {
+			return obj.Phase, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BookingJobPhoto_phase(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BookingJobPhoto",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BookingJobPhoto_sortOrder(ctx context.Context, field graphql.CollectedField, obj *model.BookingJobPhoto) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BookingJobPhoto_sortOrder,
+		func(ctx context.Context) (any, error) {
+			return obj.SortOrder, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BookingJobPhoto_sortOrder(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BookingJobPhoto",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BookingJobPhoto_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.BookingJobPhoto) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BookingJobPhoto_createdAt,
+		func(ctx context.Context) (any, error) {
+			return obj.CreatedAt, nil
+		},
+		nil,
+		ec.marshalNDateTime2timeᚐTime,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BookingJobPhoto_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BookingJobPhoto",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type DateTime does not have child fields")
 		},
 	}
 	return fc, nil
@@ -15045,6 +15815,8 @@ func (ec *executionContext) fieldContext_Company_workers(_ context.Context, fiel
 				return ec.fieldContext_WorkerProfile_serviceCategories(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_WorkerProfile_createdAt(ctx, field)
+			case "maxDailyBookings":
+				return ec.fieldContext_WorkerProfile_maxDailyBookings(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type WorkerProfile", field.Name)
 		},
@@ -18572,6 +19344,8 @@ func (ec *executionContext) fieldContext_Invoice_booking(_ context.Context, fiel
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
+			case "photos":
+				return ec.fieldContext_Booking_photos(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -18580,6 +19354,10 @@ func (ec *executionContext) fieldContext_Invoice_booking(_ context.Context, fiel
 				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "referralDiscountId":
 				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
+			case "promoCodeId":
+				return ec.fieldContext_Booking_promoCodeId(ctx, field)
+			case "promoDiscountAmount":
+				return ec.fieldContext_Booking_promoDiscountAmount(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -19753,6 +20531,8 @@ func (ec *executionContext) fieldContext_Mutation_adminCancelBooking(ctx context
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
+			case "photos":
+				return ec.fieldContext_Booking_photos(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -19761,6 +20541,10 @@ func (ec *executionContext) fieldContext_Mutation_adminCancelBooking(ctx context
 				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "referralDiscountId":
 				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
+			case "promoCodeId":
+				return ec.fieldContext_Booking_promoCodeId(ctx, field)
+			case "promoDiscountAmount":
+				return ec.fieldContext_Booking_promoDiscountAmount(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -19880,6 +20664,8 @@ func (ec *executionContext) fieldContext_Mutation_adminRescheduleBooking(ctx con
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
+			case "photos":
+				return ec.fieldContext_Booking_photos(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -19888,6 +20674,10 @@ func (ec *executionContext) fieldContext_Mutation_adminRescheduleBooking(ctx con
 				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "referralDiscountId":
 				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
+			case "promoCodeId":
+				return ec.fieldContext_Booking_promoCodeId(ctx, field)
+			case "promoDiscountAmount":
+				return ec.fieldContext_Booking_promoDiscountAmount(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -20813,6 +21603,8 @@ func (ec *executionContext) fieldContext_Mutation_createBookingRequest(ctx conte
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
+			case "photos":
+				return ec.fieldContext_Booking_photos(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -20821,6 +21613,10 @@ func (ec *executionContext) fieldContext_Mutation_createBookingRequest(ctx conte
 				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "referralDiscountId":
 				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
+			case "promoCodeId":
+				return ec.fieldContext_Booking_promoCodeId(ctx, field)
+			case "promoDiscountAmount":
+				return ec.fieldContext_Booking_promoDiscountAmount(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -20940,6 +21736,8 @@ func (ec *executionContext) fieldContext_Mutation_cancelBooking(ctx context.Cont
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
+			case "photos":
+				return ec.fieldContext_Booking_photos(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -20948,6 +21746,10 @@ func (ec *executionContext) fieldContext_Mutation_cancelBooking(ctx context.Cont
 				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "referralDiscountId":
 				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
+			case "promoCodeId":
+				return ec.fieldContext_Booking_promoCodeId(ctx, field)
+			case "promoDiscountAmount":
+				return ec.fieldContext_Booking_promoDiscountAmount(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -21067,6 +21869,8 @@ func (ec *executionContext) fieldContext_Mutation_assignWorkerToBooking(ctx cont
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
+			case "photos":
+				return ec.fieldContext_Booking_photos(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -21075,6 +21879,10 @@ func (ec *executionContext) fieldContext_Mutation_assignWorkerToBooking(ctx cont
 				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "referralDiscountId":
 				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
+			case "promoCodeId":
+				return ec.fieldContext_Booking_promoCodeId(ctx, field)
+			case "promoDiscountAmount":
+				return ec.fieldContext_Booking_promoDiscountAmount(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -21194,6 +22002,8 @@ func (ec *executionContext) fieldContext_Mutation_confirmBooking(ctx context.Con
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
+			case "photos":
+				return ec.fieldContext_Booking_photos(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -21202,6 +22012,10 @@ func (ec *executionContext) fieldContext_Mutation_confirmBooking(ctx context.Con
 				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "referralDiscountId":
 				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
+			case "promoCodeId":
+				return ec.fieldContext_Booking_promoCodeId(ctx, field)
+			case "promoDiscountAmount":
+				return ec.fieldContext_Booking_promoDiscountAmount(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -21321,6 +22135,8 @@ func (ec *executionContext) fieldContext_Mutation_startJob(ctx context.Context, 
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
+			case "photos":
+				return ec.fieldContext_Booking_photos(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -21329,6 +22145,10 @@ func (ec *executionContext) fieldContext_Mutation_startJob(ctx context.Context, 
 				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "referralDiscountId":
 				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
+			case "promoCodeId":
+				return ec.fieldContext_Booking_promoCodeId(ctx, field)
+			case "promoDiscountAmount":
+				return ec.fieldContext_Booking_promoDiscountAmount(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -21448,6 +22268,8 @@ func (ec *executionContext) fieldContext_Mutation_completeJob(ctx context.Contex
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
+			case "photos":
+				return ec.fieldContext_Booking_photos(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -21456,6 +22278,10 @@ func (ec *executionContext) fieldContext_Mutation_completeJob(ctx context.Contex
 				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "referralDiscountId":
 				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
+			case "promoCodeId":
+				return ec.fieldContext_Booking_promoCodeId(ctx, field)
+			case "promoDiscountAmount":
+				return ec.fieldContext_Booking_promoDiscountAmount(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -21575,6 +22401,8 @@ func (ec *executionContext) fieldContext_Mutation_selectBookingTimeSlot(ctx cont
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
+			case "photos":
+				return ec.fieldContext_Booking_photos(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -21583,6 +22411,10 @@ func (ec *executionContext) fieldContext_Mutation_selectBookingTimeSlot(ctx cont
 				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "referralDiscountId":
 				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
+			case "promoCodeId":
+				return ec.fieldContext_Booking_promoCodeId(ctx, field)
+			case "promoDiscountAmount":
+				return ec.fieldContext_Booking_promoDiscountAmount(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -21702,6 +22534,8 @@ func (ec *executionContext) fieldContext_Mutation_rescheduleBooking(ctx context.
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
+			case "photos":
+				return ec.fieldContext_Booking_photos(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -21710,6 +22544,10 @@ func (ec *executionContext) fieldContext_Mutation_rescheduleBooking(ctx context.
 				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "referralDiscountId":
 				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
+			case "promoCodeId":
+				return ec.fieldContext_Booking_promoCodeId(ctx, field)
+			case "promoDiscountAmount":
+				return ec.fieldContext_Booking_promoDiscountAmount(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -21724,6 +22562,104 @@ func (ec *executionContext) fieldContext_Mutation_rescheduleBooking(ctx context.
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_rescheduleBooking_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_uploadJobPhoto(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_uploadJobPhoto,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().UploadJobPhoto(ctx, fc.Args["bookingId"].(string), fc.Args["file"].(graphql.Upload), fc.Args["phase"].(string))
+		},
+		nil,
+		ec.marshalNBookingJobPhoto2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingJobPhoto,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_uploadJobPhoto(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_BookingJobPhoto_id(ctx, field)
+			case "bookingId":
+				return ec.fieldContext_BookingJobPhoto_bookingId(ctx, field)
+			case "uploadedBy":
+				return ec.fieldContext_BookingJobPhoto_uploadedBy(ctx, field)
+			case "photoUrl":
+				return ec.fieldContext_BookingJobPhoto_photoUrl(ctx, field)
+			case "phase":
+				return ec.fieldContext_BookingJobPhoto_phase(ctx, field)
+			case "sortOrder":
+				return ec.fieldContext_BookingJobPhoto_sortOrder(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_BookingJobPhoto_createdAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type BookingJobPhoto", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_uploadJobPhoto_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deleteJobPhoto(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_deleteJobPhoto,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().DeleteJobPhoto(ctx, fc.Args["id"].(string))
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deleteJobPhoto(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deleteJobPhoto_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -25056,6 +25992,8 @@ func (ec *executionContext) fieldContext_Mutation_markBookingPaid(ctx context.Co
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
+			case "photos":
+				return ec.fieldContext_Booking_photos(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -25064,6 +26002,10 @@ func (ec *executionContext) fieldContext_Mutation_markBookingPaid(ctx context.Co
 				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "referralDiscountId":
 				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
+			case "promoCodeId":
+				return ec.fieldContext_Booking_promoCodeId(ctx, field)
+			case "promoDiscountAmount":
+				return ec.fieldContext_Booking_promoDiscountAmount(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -25263,6 +26205,277 @@ func (ec *executionContext) fieldContext_Mutation_regeneratePersonalityInsights(
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_applyPromoCodeToBooking(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_applyPromoCodeToBooking,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().ApplyPromoCodeToBooking(ctx, fc.Args["bookingId"].(string), fc.Args["code"].(string))
+		},
+		nil,
+		ec.marshalNBooking2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_applyPromoCodeToBooking(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Booking_id(ctx, field)
+			case "referenceCode":
+				return ec.fieldContext_Booking_referenceCode(ctx, field)
+			case "client":
+				return ec.fieldContext_Booking_client(ctx, field)
+			case "company":
+				return ec.fieldContext_Booking_company(ctx, field)
+			case "worker":
+				return ec.fieldContext_Booking_worker(ctx, field)
+			case "address":
+				return ec.fieldContext_Booking_address(ctx, field)
+			case "serviceType":
+				return ec.fieldContext_Booking_serviceType(ctx, field)
+			case "serviceName":
+				return ec.fieldContext_Booking_serviceName(ctx, field)
+			case "includedItems":
+				return ec.fieldContext_Booking_includedItems(ctx, field)
+			case "scheduledDate":
+				return ec.fieldContext_Booking_scheduledDate(ctx, field)
+			case "scheduledStartTime":
+				return ec.fieldContext_Booking_scheduledStartTime(ctx, field)
+			case "estimatedDurationHours":
+				return ec.fieldContext_Booking_estimatedDurationHours(ctx, field)
+			case "propertyType":
+				return ec.fieldContext_Booking_propertyType(ctx, field)
+			case "numRooms":
+				return ec.fieldContext_Booking_numRooms(ctx, field)
+			case "numBathrooms":
+				return ec.fieldContext_Booking_numBathrooms(ctx, field)
+			case "areaSqm":
+				return ec.fieldContext_Booking_areaSqm(ctx, field)
+			case "hasPets":
+				return ec.fieldContext_Booking_hasPets(ctx, field)
+			case "specialInstructions":
+				return ec.fieldContext_Booking_specialInstructions(ctx, field)
+			case "hourlyRate":
+				return ec.fieldContext_Booking_hourlyRate(ctx, field)
+			case "estimatedTotal":
+				return ec.fieldContext_Booking_estimatedTotal(ctx, field)
+			case "finalTotal":
+				return ec.fieldContext_Booking_finalTotal(ctx, field)
+			case "platformCommissionPct":
+				return ec.fieldContext_Booking_platformCommissionPct(ctx, field)
+			case "extras":
+				return ec.fieldContext_Booking_extras(ctx, field)
+			case "status":
+				return ec.fieldContext_Booking_status(ctx, field)
+			case "startedAt":
+				return ec.fieldContext_Booking_startedAt(ctx, field)
+			case "completedAt":
+				return ec.fieldContext_Booking_completedAt(ctx, field)
+			case "cancelledAt":
+				return ec.fieldContext_Booking_cancelledAt(ctx, field)
+			case "cancellationReason":
+				return ec.fieldContext_Booking_cancellationReason(ctx, field)
+			case "paymentStatus":
+				return ec.fieldContext_Booking_paymentStatus(ctx, field)
+			case "paidAt":
+				return ec.fieldContext_Booking_paidAt(ctx, field)
+			case "recurringGroupId":
+				return ec.fieldContext_Booking_recurringGroupId(ctx, field)
+			case "subscriptionId":
+				return ec.fieldContext_Booking_subscriptionId(ctx, field)
+			case "occurrenceNumber":
+				return ec.fieldContext_Booking_occurrenceNumber(ctx, field)
+			case "rescheduleCount":
+				return ec.fieldContext_Booking_rescheduleCount(ctx, field)
+			case "rescheduledAt":
+				return ec.fieldContext_Booking_rescheduledAt(ctx, field)
+			case "timeSlots":
+				return ec.fieldContext_Booking_timeSlots(ctx, field)
+			case "review":
+				return ec.fieldContext_Booking_review(ctx, field)
+			case "photos":
+				return ec.fieldContext_Booking_photos(ctx, field)
+			case "categoryId":
+				return ec.fieldContext_Booking_categoryId(ctx, field)
+			case "category":
+				return ec.fieldContext_Booking_category(ctx, field)
+			case "customFields":
+				return ec.fieldContext_Booking_customFields(ctx, field)
+			case "referralDiscountId":
+				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
+			case "promoCodeId":
+				return ec.fieldContext_Booking_promoCodeId(ctx, field)
+			case "promoDiscountAmount":
+				return ec.fieldContext_Booking_promoDiscountAmount(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Booking_createdAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Booking", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_applyPromoCodeToBooking_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createPromoCode(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_createPromoCode,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().CreatePromoCode(ctx, fc.Args["input"].(model.CreatePromoCodeInput))
+		},
+		nil,
+		ec.marshalNPromoCode2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPromoCode,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createPromoCode(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_PromoCode_id(ctx, field)
+			case "code":
+				return ec.fieldContext_PromoCode_code(ctx, field)
+			case "description":
+				return ec.fieldContext_PromoCode_description(ctx, field)
+			case "discountType":
+				return ec.fieldContext_PromoCode_discountType(ctx, field)
+			case "discountValue":
+				return ec.fieldContext_PromoCode_discountValue(ctx, field)
+			case "minOrderAmount":
+				return ec.fieldContext_PromoCode_minOrderAmount(ctx, field)
+			case "maxUses":
+				return ec.fieldContext_PromoCode_maxUses(ctx, field)
+			case "usesCount":
+				return ec.fieldContext_PromoCode_usesCount(ctx, field)
+			case "maxUsesPerUser":
+				return ec.fieldContext_PromoCode_maxUsesPerUser(ctx, field)
+			case "activeFrom":
+				return ec.fieldContext_PromoCode_activeFrom(ctx, field)
+			case "activeUntil":
+				return ec.fieldContext_PromoCode_activeUntil(ctx, field)
+			case "isActive":
+				return ec.fieldContext_PromoCode_isActive(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_PromoCode_createdAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PromoCode", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createPromoCode_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updatePromoCode(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_updatePromoCode,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().UpdatePromoCode(ctx, fc.Args["id"].(string), fc.Args["input"].(model.UpdatePromoCodeInput))
+		},
+		nil,
+		ec.marshalNPromoCode2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPromoCode,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updatePromoCode(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_PromoCode_id(ctx, field)
+			case "code":
+				return ec.fieldContext_PromoCode_code(ctx, field)
+			case "description":
+				return ec.fieldContext_PromoCode_description(ctx, field)
+			case "discountType":
+				return ec.fieldContext_PromoCode_discountType(ctx, field)
+			case "discountValue":
+				return ec.fieldContext_PromoCode_discountValue(ctx, field)
+			case "minOrderAmount":
+				return ec.fieldContext_PromoCode_minOrderAmount(ctx, field)
+			case "maxUses":
+				return ec.fieldContext_PromoCode_maxUses(ctx, field)
+			case "usesCount":
+				return ec.fieldContext_PromoCode_usesCount(ctx, field)
+			case "maxUsesPerUser":
+				return ec.fieldContext_PromoCode_maxUsesPerUser(ctx, field)
+			case "activeFrom":
+				return ec.fieldContext_PromoCode_activeFrom(ctx, field)
+			case "activeUntil":
+				return ec.fieldContext_PromoCode_activeUntil(ctx, field)
+			case "isActive":
+				return ec.fieldContext_PromoCode_isActive(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_PromoCode_createdAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PromoCode", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updatePromoCode_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_applyReferralDiscountToBooking(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -25362,6 +26575,8 @@ func (ec *executionContext) fieldContext_Mutation_applyReferralDiscountToBooking
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
+			case "photos":
+				return ec.fieldContext_Booking_photos(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -25370,6 +26585,10 @@ func (ec *executionContext) fieldContext_Mutation_applyReferralDiscountToBooking
 				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "referralDiscountId":
 				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
+			case "promoCodeId":
+				return ec.fieldContext_Booking_promoCodeId(ctx, field)
+			case "promoDiscountAmount":
+				return ec.fieldContext_Booking_promoDiscountAmount(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -27523,6 +28742,8 @@ func (ec *executionContext) fieldContext_Mutation_inviteWorker(ctx context.Conte
 				return ec.fieldContext_WorkerProfile_serviceCategories(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_WorkerProfile_createdAt(ctx, field)
+			case "maxDailyBookings":
+				return ec.fieldContext_WorkerProfile_maxDailyBookings(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type WorkerProfile", field.Name)
 		},
@@ -27601,6 +28822,8 @@ func (ec *executionContext) fieldContext_Mutation_inviteSelfAsWorker(_ context.C
 				return ec.fieldContext_WorkerProfile_serviceCategories(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_WorkerProfile_createdAt(ctx, field)
+			case "maxDailyBookings":
+				return ec.fieldContext_WorkerProfile_maxDailyBookings(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type WorkerProfile", field.Name)
 		},
@@ -27669,6 +28892,8 @@ func (ec *executionContext) fieldContext_Mutation_updateWorkerStatus(ctx context
 				return ec.fieldContext_WorkerProfile_serviceCategories(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_WorkerProfile_createdAt(ctx, field)
+			case "maxDailyBookings":
+				return ec.fieldContext_WorkerProfile_maxDailyBookings(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type WorkerProfile", field.Name)
 		},
@@ -27748,6 +28973,8 @@ func (ec *executionContext) fieldContext_Mutation_acceptInvitation(ctx context.C
 				return ec.fieldContext_WorkerProfile_serviceCategories(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_WorkerProfile_createdAt(ctx, field)
+			case "maxDailyBookings":
+				return ec.fieldContext_WorkerProfile_maxDailyBookings(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type WorkerProfile", field.Name)
 		},
@@ -27933,6 +29160,8 @@ func (ec *executionContext) fieldContext_Mutation_updateWorkerProfile(ctx contex
 				return ec.fieldContext_WorkerProfile_serviceCategories(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_WorkerProfile_createdAt(ctx, field)
+			case "maxDailyBookings":
+				return ec.fieldContext_WorkerProfile_maxDailyBookings(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type WorkerProfile", field.Name)
 		},
@@ -28012,6 +29241,8 @@ func (ec *executionContext) fieldContext_Mutation_uploadWorkerAvatar(ctx context
 				return ec.fieldContext_WorkerProfile_serviceCategories(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_WorkerProfile_createdAt(ctx, field)
+			case "maxDailyBookings":
+				return ec.fieldContext_WorkerProfile_maxDailyBookings(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type WorkerProfile", field.Name)
 		},
@@ -28356,6 +29587,8 @@ func (ec *executionContext) fieldContext_Mutation_activateWorker(ctx context.Con
 				return ec.fieldContext_WorkerProfile_serviceCategories(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_WorkerProfile_createdAt(ctx, field)
+			case "maxDailyBookings":
+				return ec.fieldContext_WorkerProfile_maxDailyBookings(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type WorkerProfile", field.Name)
 		},
@@ -28437,6 +29670,87 @@ func (ec *executionContext) fieldContext_Mutation_updateWorkerServiceCategories(
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_updateWorkerServiceCategories_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateWorkerMaxDailyBookings(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_updateWorkerMaxDailyBookings,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().UpdateWorkerMaxDailyBookings(ctx, fc.Args["workerId"].(string), fc.Args["limit"].(*int))
+		},
+		nil,
+		ec.marshalNWorkerProfile2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐWorkerProfile,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateWorkerMaxDailyBookings(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_WorkerProfile_id(ctx, field)
+			case "userId":
+				return ec.fieldContext_WorkerProfile_userId(ctx, field)
+			case "user":
+				return ec.fieldContext_WorkerProfile_user(ctx, field)
+			case "company":
+				return ec.fieldContext_WorkerProfile_company(ctx, field)
+			case "fullName":
+				return ec.fieldContext_WorkerProfile_fullName(ctx, field)
+			case "phone":
+				return ec.fieldContext_WorkerProfile_phone(ctx, field)
+			case "email":
+				return ec.fieldContext_WorkerProfile_email(ctx, field)
+			case "bio":
+				return ec.fieldContext_WorkerProfile_bio(ctx, field)
+			case "status":
+				return ec.fieldContext_WorkerProfile_status(ctx, field)
+			case "isCompanyAdmin":
+				return ec.fieldContext_WorkerProfile_isCompanyAdmin(ctx, field)
+			case "inviteToken":
+				return ec.fieldContext_WorkerProfile_inviteToken(ctx, field)
+			case "ratingAvg":
+				return ec.fieldContext_WorkerProfile_ratingAvg(ctx, field)
+			case "totalJobsCompleted":
+				return ec.fieldContext_WorkerProfile_totalJobsCompleted(ctx, field)
+			case "documents":
+				return ec.fieldContext_WorkerProfile_documents(ctx, field)
+			case "personalityAssessment":
+				return ec.fieldContext_WorkerProfile_personalityAssessment(ctx, field)
+			case "availability":
+				return ec.fieldContext_WorkerProfile_availability(ctx, field)
+			case "serviceCategories":
+				return ec.fieldContext_WorkerProfile_serviceCategories(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_WorkerProfile_createdAt(ctx, field)
+			case "maxDailyBookings":
+				return ec.fieldContext_WorkerProfile_maxDailyBookings(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type WorkerProfile", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateWorkerMaxDailyBookings_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -29049,6 +30363,8 @@ func (ec *executionContext) fieldContext_PaymentHistoryEntry_booking(_ context.C
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
+			case "photos":
+				return ec.fieldContext_Booking_photos(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -29057,6 +30373,10 @@ func (ec *executionContext) fieldContext_PaymentHistoryEntry_booking(_ context.C
 				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "referralDiscountId":
 				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
+			case "promoCodeId":
+				return ec.fieldContext_Booking_promoCodeId(ctx, field)
+			case "promoDiscountAmount":
+				return ec.fieldContext_Booking_promoDiscountAmount(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -29686,6 +31006,8 @@ func (ec *executionContext) fieldContext_PaymentTransaction_booking(_ context.Co
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
+			case "photos":
+				return ec.fieldContext_Booking_photos(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -29694,6 +31016,10 @@ func (ec *executionContext) fieldContext_PaymentTransaction_booking(_ context.Co
 				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "referralDiscountId":
 				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
+			case "promoCodeId":
+				return ec.fieldContext_Booking_promoCodeId(ctx, field)
+			case "promoDiscountAmount":
+				return ec.fieldContext_Booking_promoDiscountAmount(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -30091,6 +31417,8 @@ func (ec *executionContext) fieldContext_PayoutLineItem_booking(_ context.Contex
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
+			case "photos":
+				return ec.fieldContext_Booking_photos(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -30099,6 +31427,10 @@ func (ec *executionContext) fieldContext_PayoutLineItem_booking(_ context.Contex
 				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "referralDiscountId":
 				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
+			case "promoCodeId":
+				return ec.fieldContext_Booking_promoCodeId(ctx, field)
+			case "promoDiscountAmount":
+				return ec.fieldContext_Booking_promoDiscountAmount(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -32575,6 +33907,613 @@ func (ec *executionContext) fieldContext_PriceEstimate_areaTotal(_ context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) _PromoCode_id(ctx context.Context, field graphql.CollectedField, obj *model.PromoCode) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PromoCode_id,
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PromoCode_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PromoCode",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PromoCode_code(ctx context.Context, field graphql.CollectedField, obj *model.PromoCode) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PromoCode_code,
+		func(ctx context.Context) (any, error) {
+			return obj.Code, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PromoCode_code(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PromoCode",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PromoCode_description(ctx context.Context, field graphql.CollectedField, obj *model.PromoCode) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PromoCode_description,
+		func(ctx context.Context) (any, error) {
+			return obj.Description, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_PromoCode_description(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PromoCode",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PromoCode_discountType(ctx context.Context, field graphql.CollectedField, obj *model.PromoCode) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PromoCode_discountType,
+		func(ctx context.Context) (any, error) {
+			return obj.DiscountType, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PromoCode_discountType(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PromoCode",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PromoCode_discountValue(ctx context.Context, field graphql.CollectedField, obj *model.PromoCode) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PromoCode_discountValue,
+		func(ctx context.Context) (any, error) {
+			return obj.DiscountValue, nil
+		},
+		nil,
+		ec.marshalNFloat2float64,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PromoCode_discountValue(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PromoCode",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PromoCode_minOrderAmount(ctx context.Context, field graphql.CollectedField, obj *model.PromoCode) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PromoCode_minOrderAmount,
+		func(ctx context.Context) (any, error) {
+			return obj.MinOrderAmount, nil
+		},
+		nil,
+		ec.marshalNFloat2float64,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PromoCode_minOrderAmount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PromoCode",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PromoCode_maxUses(ctx context.Context, field graphql.CollectedField, obj *model.PromoCode) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PromoCode_maxUses,
+		func(ctx context.Context) (any, error) {
+			return obj.MaxUses, nil
+		},
+		nil,
+		ec.marshalOInt2ᚖint,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_PromoCode_maxUses(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PromoCode",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PromoCode_usesCount(ctx context.Context, field graphql.CollectedField, obj *model.PromoCode) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PromoCode_usesCount,
+		func(ctx context.Context) (any, error) {
+			return obj.UsesCount, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PromoCode_usesCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PromoCode",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PromoCode_maxUsesPerUser(ctx context.Context, field graphql.CollectedField, obj *model.PromoCode) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PromoCode_maxUsesPerUser,
+		func(ctx context.Context) (any, error) {
+			return obj.MaxUsesPerUser, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PromoCode_maxUsesPerUser(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PromoCode",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PromoCode_activeFrom(ctx context.Context, field graphql.CollectedField, obj *model.PromoCode) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PromoCode_activeFrom,
+		func(ctx context.Context) (any, error) {
+			return obj.ActiveFrom, nil
+		},
+		nil,
+		ec.marshalNDateTime2timeᚐTime,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PromoCode_activeFrom(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PromoCode",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type DateTime does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PromoCode_activeUntil(ctx context.Context, field graphql.CollectedField, obj *model.PromoCode) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PromoCode_activeUntil,
+		func(ctx context.Context) (any, error) {
+			return obj.ActiveUntil, nil
+		},
+		nil,
+		ec.marshalODateTime2ᚖtimeᚐTime,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_PromoCode_activeUntil(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PromoCode",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type DateTime does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PromoCode_isActive(ctx context.Context, field graphql.CollectedField, obj *model.PromoCode) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PromoCode_isActive,
+		func(ctx context.Context) (any, error) {
+			return obj.IsActive, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PromoCode_isActive(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PromoCode",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PromoCode_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.PromoCode) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PromoCode_createdAt,
+		func(ctx context.Context) (any, error) {
+			return obj.CreatedAt, nil
+		},
+		nil,
+		ec.marshalNDateTime2timeᚐTime,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PromoCode_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PromoCode",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type DateTime does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PromoCodeConnection_edges(ctx context.Context, field graphql.CollectedField, obj *model.PromoCodeConnection) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PromoCodeConnection_edges,
+		func(ctx context.Context) (any, error) {
+			return obj.Edges, nil
+		},
+		nil,
+		ec.marshalNPromoCode2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPromoCodeᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PromoCodeConnection_edges(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PromoCodeConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_PromoCode_id(ctx, field)
+			case "code":
+				return ec.fieldContext_PromoCode_code(ctx, field)
+			case "description":
+				return ec.fieldContext_PromoCode_description(ctx, field)
+			case "discountType":
+				return ec.fieldContext_PromoCode_discountType(ctx, field)
+			case "discountValue":
+				return ec.fieldContext_PromoCode_discountValue(ctx, field)
+			case "minOrderAmount":
+				return ec.fieldContext_PromoCode_minOrderAmount(ctx, field)
+			case "maxUses":
+				return ec.fieldContext_PromoCode_maxUses(ctx, field)
+			case "usesCount":
+				return ec.fieldContext_PromoCode_usesCount(ctx, field)
+			case "maxUsesPerUser":
+				return ec.fieldContext_PromoCode_maxUsesPerUser(ctx, field)
+			case "activeFrom":
+				return ec.fieldContext_PromoCode_activeFrom(ctx, field)
+			case "activeUntil":
+				return ec.fieldContext_PromoCode_activeUntil(ctx, field)
+			case "isActive":
+				return ec.fieldContext_PromoCode_isActive(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_PromoCode_createdAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PromoCode", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PromoCodeConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *model.PromoCodeConnection) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PromoCodeConnection_totalCount,
+		func(ctx context.Context) (any, error) {
+			return obj.TotalCount, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PromoCodeConnection_totalCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PromoCodeConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PromoCodeValidation_valid(ctx context.Context, field graphql.CollectedField, obj *model.PromoCodeValidation) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PromoCodeValidation_valid,
+		func(ctx context.Context) (any, error) {
+			return obj.Valid, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PromoCodeValidation_valid(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PromoCodeValidation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PromoCodeValidation_promoCode(ctx context.Context, field graphql.CollectedField, obj *model.PromoCodeValidation) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PromoCodeValidation_promoCode,
+		func(ctx context.Context) (any, error) {
+			return obj.PromoCode, nil
+		},
+		nil,
+		ec.marshalOPromoCode2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPromoCode,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_PromoCodeValidation_promoCode(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PromoCodeValidation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_PromoCode_id(ctx, field)
+			case "code":
+				return ec.fieldContext_PromoCode_code(ctx, field)
+			case "description":
+				return ec.fieldContext_PromoCode_description(ctx, field)
+			case "discountType":
+				return ec.fieldContext_PromoCode_discountType(ctx, field)
+			case "discountValue":
+				return ec.fieldContext_PromoCode_discountValue(ctx, field)
+			case "minOrderAmount":
+				return ec.fieldContext_PromoCode_minOrderAmount(ctx, field)
+			case "maxUses":
+				return ec.fieldContext_PromoCode_maxUses(ctx, field)
+			case "usesCount":
+				return ec.fieldContext_PromoCode_usesCount(ctx, field)
+			case "maxUsesPerUser":
+				return ec.fieldContext_PromoCode_maxUsesPerUser(ctx, field)
+			case "activeFrom":
+				return ec.fieldContext_PromoCode_activeFrom(ctx, field)
+			case "activeUntil":
+				return ec.fieldContext_PromoCode_activeUntil(ctx, field)
+			case "isActive":
+				return ec.fieldContext_PromoCode_isActive(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_PromoCode_createdAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PromoCode", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PromoCodeValidation_discountAmount(ctx context.Context, field graphql.CollectedField, obj *model.PromoCodeValidation) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PromoCodeValidation_discountAmount,
+		func(ctx context.Context) (any, error) {
+			return obj.DiscountAmount, nil
+		},
+		nil,
+		ec.marshalNFloat2float64,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PromoCodeValidation_discountAmount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PromoCodeValidation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PromoCodeValidation_errorMessage(ctx context.Context, field graphql.CollectedField, obj *model.PromoCodeValidation) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PromoCodeValidation_errorMessage,
+		func(ctx context.Context) (any, error) {
+			return obj.ErrorMessage, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_PromoCodeValidation_errorMessage(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PromoCodeValidation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_platformStats(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -32932,6 +34871,8 @@ func (ec *executionContext) fieldContext_Query_allWorkers(_ context.Context, fie
 				return ec.fieldContext_WorkerProfile_serviceCategories(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_WorkerProfile_createdAt(ctx, field)
+			case "maxDailyBookings":
+				return ec.fieldContext_WorkerProfile_maxDailyBookings(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type WorkerProfile", field.Name)
 		},
@@ -33744,6 +35685,8 @@ func (ec *executionContext) fieldContext_Query_booking(ctx context.Context, fiel
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
+			case "photos":
+				return ec.fieldContext_Booking_photos(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -33752,6 +35695,10 @@ func (ec *executionContext) fieldContext_Query_booking(ctx context.Context, fiel
 				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "referralDiscountId":
 				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
+			case "promoCodeId":
+				return ec.fieldContext_Booking_promoCodeId(ctx, field)
+			case "promoDiscountAmount":
+				return ec.fieldContext_Booking_promoDiscountAmount(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -33920,6 +35867,8 @@ func (ec *executionContext) fieldContext_Query_myAssignedJobs(ctx context.Contex
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
+			case "photos":
+				return ec.fieldContext_Booking_photos(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -33928,6 +35877,10 @@ func (ec *executionContext) fieldContext_Query_myAssignedJobs(ctx context.Contex
 				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "referralDiscountId":
 				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
+			case "promoCodeId":
+				return ec.fieldContext_Booking_promoCodeId(ctx, field)
+			case "promoDiscountAmount":
+				return ec.fieldContext_Booking_promoDiscountAmount(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -34046,6 +35999,8 @@ func (ec *executionContext) fieldContext_Query_todaysJobs(_ context.Context, fie
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
+			case "photos":
+				return ec.fieldContext_Booking_photos(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -34054,6 +36009,10 @@ func (ec *executionContext) fieldContext_Query_todaysJobs(_ context.Context, fie
 				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "referralDiscountId":
 				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
+			case "promoCodeId":
+				return ec.fieldContext_Booking_promoCodeId(ctx, field)
+			case "promoDiscountAmount":
+				return ec.fieldContext_Booking_promoDiscountAmount(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -34211,6 +36170,8 @@ func (ec *executionContext) fieldContext_Query_companyBookingsByDateRange(ctx co
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
+			case "photos":
+				return ec.fieldContext_Booking_photos(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -34219,6 +36180,10 @@ func (ec *executionContext) fieldContext_Query_companyBookingsByDateRange(ctx co
 				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "referralDiscountId":
 				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
+			case "promoCodeId":
+				return ec.fieldContext_Booking_promoCodeId(ctx, field)
+			case "promoDiscountAmount":
+				return ec.fieldContext_Booking_promoDiscountAmount(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -36738,6 +38703,104 @@ func (ec *executionContext) fieldContext_Query_workerPersonalityAssessment(ctx c
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_validatePromoCode(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_validatePromoCode,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Query().ValidatePromoCode(ctx, fc.Args["code"].(string), fc.Args["orderAmount"].(float64))
+		},
+		nil,
+		ec.marshalNPromoCodeValidation2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPromoCodeValidation,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_validatePromoCode(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "valid":
+				return ec.fieldContext_PromoCodeValidation_valid(ctx, field)
+			case "promoCode":
+				return ec.fieldContext_PromoCodeValidation_promoCode(ctx, field)
+			case "discountAmount":
+				return ec.fieldContext_PromoCodeValidation_discountAmount(ctx, field)
+			case "errorMessage":
+				return ec.fieldContext_PromoCodeValidation_errorMessage(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PromoCodeValidation", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_validatePromoCode_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_listPromoCodes(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_listPromoCodes,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Query().ListPromoCodes(ctx, fc.Args["limit"].(*int), fc.Args["offset"].(*int))
+		},
+		nil,
+		ec.marshalNPromoCodeConnection2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPromoCodeConnection,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_listPromoCodes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "edges":
+				return ec.fieldContext_PromoCodeConnection_edges(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_PromoCodeConnection_totalCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PromoCodeConnection", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_listPromoCodes_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_myReferralStatus(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -38339,6 +40402,8 @@ func (ec *executionContext) fieldContext_Query_myWorkers(_ context.Context, fiel
 				return ec.fieldContext_WorkerProfile_serviceCategories(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_WorkerProfile_createdAt(ctx, field)
+			case "maxDailyBookings":
+				return ec.fieldContext_WorkerProfile_maxDailyBookings(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type WorkerProfile", field.Name)
 		},
@@ -38406,6 +40471,8 @@ func (ec *executionContext) fieldContext_Query_myWorkerProfile(_ context.Context
 				return ec.fieldContext_WorkerProfile_serviceCategories(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_WorkerProfile_createdAt(ctx, field)
+			case "maxDailyBookings":
+				return ec.fieldContext_WorkerProfile_maxDailyBookings(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type WorkerProfile", field.Name)
 		},
@@ -38651,6 +40718,8 @@ func (ec *executionContext) fieldContext_Query_myWorkerBookingsByDateRange(ctx c
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
+			case "photos":
+				return ec.fieldContext_Booking_photos(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -38659,6 +40728,10 @@ func (ec *executionContext) fieldContext_Query_myWorkerBookingsByDateRange(ctx c
 				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "referralDiscountId":
 				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
+			case "promoCodeId":
+				return ec.fieldContext_Booking_promoCodeId(ctx, field)
+			case "promoDiscountAmount":
+				return ec.fieldContext_Booking_promoDiscountAmount(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -39763,6 +41836,8 @@ func (ec *executionContext) fieldContext_RefundRequest_booking(_ context.Context
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
+			case "photos":
+				return ec.fieldContext_Booking_photos(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -39771,6 +41846,10 @@ func (ec *executionContext) fieldContext_RefundRequest_booking(_ context.Context
 				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "referralDiscountId":
 				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
+			case "promoCodeId":
+				return ec.fieldContext_Booking_promoCodeId(ctx, field)
+			case "promoDiscountAmount":
+				return ec.fieldContext_Booking_promoDiscountAmount(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -40332,6 +42411,8 @@ func (ec *executionContext) fieldContext_Review_booking(_ context.Context, field
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
+			case "photos":
+				return ec.fieldContext_Booking_photos(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -40340,6 +42421,10 @@ func (ec *executionContext) fieldContext_Review_booking(_ context.Context, field
 				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "referralDiscountId":
 				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
+			case "promoCodeId":
+				return ec.fieldContext_Booking_promoCodeId(ctx, field)
+			case "promoDiscountAmount":
+				return ec.fieldContext_Booking_promoDiscountAmount(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -40462,6 +42547,8 @@ func (ec *executionContext) fieldContext_Review_worker(_ context.Context, field 
 				return ec.fieldContext_WorkerProfile_serviceCategories(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_WorkerProfile_createdAt(ctx, field)
+			case "maxDailyBookings":
+				return ec.fieldContext_WorkerProfile_maxDailyBookings(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type WorkerProfile", field.Name)
 		},
@@ -42514,6 +44601,8 @@ func (ec *executionContext) fieldContext_ServiceSubscription_worker(_ context.Co
 				return ec.fieldContext_WorkerProfile_serviceCategories(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_WorkerProfile_createdAt(ctx, field)
+			case "maxDailyBookings":
+				return ec.fieldContext_WorkerProfile_maxDailyBookings(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type WorkerProfile", field.Name)
 		},
@@ -43515,6 +45604,8 @@ func (ec *executionContext) fieldContext_ServiceSubscription_bookings(_ context.
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
+			case "photos":
+				return ec.fieldContext_Booking_photos(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -43523,6 +45614,10 @@ func (ec *executionContext) fieldContext_ServiceSubscription_bookings(_ context.
 				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "referralDiscountId":
 				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
+			case "promoCodeId":
+				return ec.fieldContext_Booking_promoCodeId(ctx, field)
+			case "promoDiscountAmount":
+				return ec.fieldContext_Booking_promoDiscountAmount(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -43630,6 +45725,8 @@ func (ec *executionContext) fieldContext_ServiceSubscription_upcomingBookings(_ 
 				return ec.fieldContext_Booking_timeSlots(ctx, field)
 			case "review":
 				return ec.fieldContext_Booking_review(ctx, field)
+			case "photos":
+				return ec.fieldContext_Booking_photos(ctx, field)
 			case "categoryId":
 				return ec.fieldContext_Booking_categoryId(ctx, field)
 			case "category":
@@ -43638,6 +45735,10 @@ func (ec *executionContext) fieldContext_ServiceSubscription_upcomingBookings(_ 
 				return ec.fieldContext_Booking_customFields(ctx, field)
 			case "referralDiscountId":
 				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
+			case "promoCodeId":
+				return ec.fieldContext_Booking_promoCodeId(ctx, field)
+			case "promoDiscountAmount":
+				return ec.fieldContext_Booking_promoDiscountAmount(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Booking_createdAt(ctx, field)
 			}
@@ -44596,6 +46697,8 @@ func (ec *executionContext) fieldContext_SubscriptionWorkerSuggestion_worker(_ c
 				return ec.fieldContext_WorkerProfile_serviceCategories(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_WorkerProfile_createdAt(ctx, field)
+			case "maxDailyBookings":
+				return ec.fieldContext_WorkerProfile_maxDailyBookings(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type WorkerProfile", field.Name)
 		},
@@ -45415,6 +47518,8 @@ func (ec *executionContext) fieldContext_User_workerProfile(_ context.Context, f
 				return ec.fieldContext_WorkerProfile_serviceCategories(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_WorkerProfile_createdAt(ctx, field)
+			case "maxDailyBookings":
+				return ec.fieldContext_WorkerProfile_maxDailyBookings(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type WorkerProfile", field.Name)
 		},
@@ -47257,6 +49362,35 @@ func (ec *executionContext) fieldContext_WorkerProfile_createdAt(_ context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) _WorkerProfile_maxDailyBookings(ctx context.Context, field graphql.CollectedField, obj *model.WorkerProfile) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_WorkerProfile_maxDailyBookings,
+		func(ctx context.Context) (any, error) {
+			return obj.MaxDailyBookings, nil
+		},
+		nil,
+		ec.marshalOInt2ᚖint,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_WorkerProfile_maxDailyBookings(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "WorkerProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _WorkerStats_totalJobsCompleted(ctx context.Context, field graphql.CollectedField, obj *model.WorkerStats) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -47462,6 +49596,8 @@ func (ec *executionContext) fieldContext_WorkerSuggestion_worker(_ context.Conte
 				return ec.fieldContext_WorkerProfile_serviceCategories(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_WorkerProfile_createdAt(ctx, field)
+			case "maxDailyBookings":
+				return ec.fieldContext_WorkerProfile_maxDailyBookings(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type WorkerProfile", field.Name)
 		},
@@ -49910,6 +52046,89 @@ func (ec *executionContext) unmarshalInputCreateBookingInput(ctx context.Context
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputCreatePromoCodeInput(ctx context.Context, obj any) (model.CreatePromoCodeInput, error) {
+	var it model.CreatePromoCodeInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"code", "description", "discountType", "discountValue", "minOrderAmount", "maxUses", "maxUsesPerUser", "activeFrom", "activeUntil"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "code":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("code"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Code = data
+		case "description":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Description = data
+		case "discountType":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("discountType"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DiscountType = data
+		case "discountValue":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("discountValue"))
+			data, err := ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DiscountValue = data
+		case "minOrderAmount":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("minOrderAmount"))
+			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.MinOrderAmount = data
+		case "maxUses":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("maxUses"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.MaxUses = data
+		case "maxUsesPerUser":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("maxUsesPerUser"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.MaxUsesPerUser = data
+		case "activeFrom":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("activeFrom"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ActiveFrom = data
+		case "activeUntil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("activeUntil"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ActiveUntil = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCreateServiceCategoryInput(ctx context.Context, obj any) (model.CreateServiceCategoryInput, error) {
 	var it model.CreateServiceCategoryInput
 	asMap := map[string]any{}
@@ -50952,6 +53171,89 @@ func (ec *executionContext) unmarshalInputUpdateProfileInput(ctx context.Context
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUpdatePromoCodeInput(ctx context.Context, obj any) (model.UpdatePromoCodeInput, error) {
+	var it model.UpdatePromoCodeInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"description", "discountType", "discountValue", "minOrderAmount", "maxUses", "maxUsesPerUser", "activeFrom", "activeUntil", "isActive"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "description":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Description = data
+		case "discountType":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("discountType"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DiscountType = data
+		case "discountValue":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("discountValue"))
+			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DiscountValue = data
+		case "minOrderAmount":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("minOrderAmount"))
+			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.MinOrderAmount = data
+		case "maxUses":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("maxUses"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.MaxUses = data
+		case "maxUsesPerUser":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("maxUsesPerUser"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.MaxUsesPerUser = data
+		case "activeFrom":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("activeFrom"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ActiveFrom = data
+		case "activeUntil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("activeUntil"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ActiveUntil = data
+		case "isActive":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isActive"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IsActive = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputUpdateServiceCategoryInput(ctx context.Context, obj any) (model.UpdateServiceCategoryInput, error) {
 	var it model.UpdateServiceCategoryInput
 	asMap := map[string]any{}
@@ -51718,6 +54020,11 @@ func (ec *executionContext) _Booking(ctx context.Context, sel ast.SelectionSet, 
 			}
 		case "review":
 			out.Values[i] = ec._Booking_review(ctx, field, obj)
+		case "photos":
+			out.Values[i] = ec._Booking_photos(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		case "categoryId":
 			out.Values[i] = ec._Booking_categoryId(ctx, field, obj)
 		case "category":
@@ -51757,6 +54064,10 @@ func (ec *executionContext) _Booking(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = ec._Booking_customFields(ctx, field, obj)
 		case "referralDiscountId":
 			out.Values[i] = ec._Booking_referralDiscountId(ctx, field, obj)
+		case "promoCodeId":
+			out.Values[i] = ec._Booking_promoCodeId(ctx, field, obj)
+		case "promoDiscountAmount":
+			out.Values[i] = ec._Booking_promoDiscountAmount(ctx, field, obj)
 		case "createdAt":
 			out.Values[i] = ec._Booking_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -51928,6 +54239,75 @@ func (ec *executionContext) _BookingExtra(ctx context.Context, sel ast.Selection
 			}
 		case "quantity":
 			out.Values[i] = ec._BookingExtra_quantity(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var bookingJobPhotoImplementors = []string{"BookingJobPhoto"}
+
+func (ec *executionContext) _BookingJobPhoto(ctx context.Context, sel ast.SelectionSet, obj *model.BookingJobPhoto) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, bookingJobPhotoImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("BookingJobPhoto")
+		case "id":
+			out.Values[i] = ec._BookingJobPhoto_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "bookingId":
+			out.Values[i] = ec._BookingJobPhoto_bookingId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "uploadedBy":
+			out.Values[i] = ec._BookingJobPhoto_uploadedBy(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "photoUrl":
+			out.Values[i] = ec._BookingJobPhoto_photoUrl(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "phase":
+			out.Values[i] = ec._BookingJobPhoto_phase(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "sortOrder":
+			out.Values[i] = ec._BookingJobPhoto_sortOrder(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createdAt":
+			out.Values[i] = ec._BookingJobPhoto_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -53888,6 +56268,20 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "uploadJobPhoto":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_uploadJobPhoto(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "deleteJobPhoto":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deleteJobPhoto(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "addAddress":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_addAddress(ctx, field)
@@ -54245,6 +56639,27 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "applyPromoCodeToBooking":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_applyPromoCodeToBooking(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createPromoCode":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createPromoCode(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updatePromoCode":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updatePromoCode(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "applyReferralDiscountToBooking":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_applyReferralDiscountToBooking(ctx, field)
@@ -54535,6 +56950,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "updateWorkerServiceCategories":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_updateWorkerServiceCategories(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updateWorkerMaxDailyBookings":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateWorkerMaxDailyBookings(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -55846,6 +58268,188 @@ func (ec *executionContext) _PriceEstimate(ctx context.Context, sel ast.Selectio
 			}
 		case "areaTotal":
 			out.Values[i] = ec._PriceEstimate_areaTotal(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var promoCodeImplementors = []string{"PromoCode"}
+
+func (ec *executionContext) _PromoCode(ctx context.Context, sel ast.SelectionSet, obj *model.PromoCode) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, promoCodeImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PromoCode")
+		case "id":
+			out.Values[i] = ec._PromoCode_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "code":
+			out.Values[i] = ec._PromoCode_code(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "description":
+			out.Values[i] = ec._PromoCode_description(ctx, field, obj)
+		case "discountType":
+			out.Values[i] = ec._PromoCode_discountType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "discountValue":
+			out.Values[i] = ec._PromoCode_discountValue(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "minOrderAmount":
+			out.Values[i] = ec._PromoCode_minOrderAmount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "maxUses":
+			out.Values[i] = ec._PromoCode_maxUses(ctx, field, obj)
+		case "usesCount":
+			out.Values[i] = ec._PromoCode_usesCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "maxUsesPerUser":
+			out.Values[i] = ec._PromoCode_maxUsesPerUser(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "activeFrom":
+			out.Values[i] = ec._PromoCode_activeFrom(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "activeUntil":
+			out.Values[i] = ec._PromoCode_activeUntil(ctx, field, obj)
+		case "isActive":
+			out.Values[i] = ec._PromoCode_isActive(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createdAt":
+			out.Values[i] = ec._PromoCode_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var promoCodeConnectionImplementors = []string{"PromoCodeConnection"}
+
+func (ec *executionContext) _PromoCodeConnection(ctx context.Context, sel ast.SelectionSet, obj *model.PromoCodeConnection) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, promoCodeConnectionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PromoCodeConnection")
+		case "edges":
+			out.Values[i] = ec._PromoCodeConnection_edges(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "totalCount":
+			out.Values[i] = ec._PromoCodeConnection_totalCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var promoCodeValidationImplementors = []string{"PromoCodeValidation"}
+
+func (ec *executionContext) _PromoCodeValidation(ctx context.Context, sel ast.SelectionSet, obj *model.PromoCodeValidation) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, promoCodeValidationImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PromoCodeValidation")
+		case "valid":
+			out.Values[i] = ec._PromoCodeValidation_valid(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "promoCode":
+			out.Values[i] = ec._PromoCodeValidation_promoCode(ctx, field, obj)
+		case "discountAmount":
+			out.Values[i] = ec._PromoCodeValidation_discountAmount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "errorMessage":
+			out.Values[i] = ec._PromoCodeValidation_errorMessage(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -57423,6 +60027,50 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_workerPersonalityAssessment(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "validatePromoCode":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_validatePromoCode(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "listPromoCodes":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_listPromoCodes(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
 				return res
 			}
 
@@ -60513,6 +63161,8 @@ func (ec *executionContext) _WorkerProfile(ctx context.Context, sel ast.Selectio
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "maxDailyBookings":
+			out.Values[i] = ec._WorkerProfile_maxDailyBookings(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -61337,6 +63987,64 @@ func (ec *executionContext) marshalNBookingExtra2ᚖgo2fixᚑbackendᚋinternal�
 	return ec._BookingExtra(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNBookingJobPhoto2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingJobPhoto(ctx context.Context, sel ast.SelectionSet, v model.BookingJobPhoto) graphql.Marshaler {
+	return ec._BookingJobPhoto(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNBookingJobPhoto2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingJobPhotoᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.BookingJobPhoto) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNBookingJobPhoto2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingJobPhoto(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNBookingJobPhoto2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingJobPhoto(ctx context.Context, sel ast.SelectionSet, v *model.BookingJobPhoto) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._BookingJobPhoto(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNBookingPolicy2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingPolicy(ctx context.Context, sel ast.SelectionSet, v model.BookingPolicy) graphql.Marshaler {
 	return ec._BookingPolicy(ctx, sel, &v)
 }
@@ -62025,6 +64733,11 @@ func (ec *executionContext) unmarshalNContactMessageInput2go2fixᚑbackendᚋint
 
 func (ec *executionContext) unmarshalNCreateBookingInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCreateBookingInput(ctx context.Context, v any) (model.CreateBookingInput, error) {
 	res, err := ec.unmarshalInputCreateBookingInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNCreatePromoCodeInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCreatePromoCodeInput(ctx context.Context, v any) (model.CreatePromoCodeInput, error) {
+	res, err := ec.unmarshalInputCreatePromoCodeInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -63358,6 +66071,92 @@ func (ec *executionContext) marshalNPricingModel2go2fixᚑbackendᚋinternalᚋg
 	return v
 }
 
+func (ec *executionContext) marshalNPromoCode2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPromoCode(ctx context.Context, sel ast.SelectionSet, v model.PromoCode) graphql.Marshaler {
+	return ec._PromoCode(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNPromoCode2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPromoCodeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PromoCode) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNPromoCode2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPromoCode(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNPromoCode2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPromoCode(ctx context.Context, sel ast.SelectionSet, v *model.PromoCode) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._PromoCode(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNPromoCodeConnection2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPromoCodeConnection(ctx context.Context, sel ast.SelectionSet, v model.PromoCodeConnection) graphql.Marshaler {
+	return ec._PromoCodeConnection(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNPromoCodeConnection2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPromoCodeConnection(ctx context.Context, sel ast.SelectionSet, v *model.PromoCodeConnection) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._PromoCodeConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNPromoCodeValidation2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPromoCodeValidation(ctx context.Context, sel ast.SelectionSet, v model.PromoCodeValidation) graphql.Marshaler {
+	return ec._PromoCodeValidation(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNPromoCodeValidation2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPromoCodeValidation(ctx context.Context, sel ast.SelectionSet, v *model.PromoCodeValidation) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._PromoCodeValidation(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNRecurrenceType2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐRecurrenceType(ctx context.Context, v any) (model.RecurrenceType, error) {
 	var res model.RecurrenceType
 	err := res.UnmarshalGQL(v)
@@ -64347,6 +67146,11 @@ func (ec *executionContext) unmarshalNUpdateCompanyInput2go2fixᚑbackendᚋinte
 
 func (ec *executionContext) unmarshalNUpdateProfileInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUpdateProfileInput(ctx context.Context, v any) (model.UpdateProfileInput, error) {
 	res, err := ec.unmarshalInputUpdateProfileInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNUpdatePromoCodeInput2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUpdatePromoCodeInput(ctx context.Context, v any) (model.UpdatePromoCodeInput, error) {
+	res, err := ec.unmarshalInputUpdatePromoCodeInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -65563,6 +68367,13 @@ func (ec *executionContext) marshalOPersonalityInsights2ᚖgo2fixᚑbackendᚋin
 		return graphql.Null
 	}
 	return ec._PersonalityInsights(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOPromoCode2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPromoCode(ctx context.Context, sel ast.SelectionSet, v *model.PromoCode) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._PromoCode(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalORecurrenceInput2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐRecurrenceInput(ctx context.Context, v any) (*model.RecurrenceInput, error) {

@@ -23,8 +23,8 @@ import (
 // AdminCancelBooking is the resolver for the adminCancelBooking field.
 func (r *mutationResolver) AdminCancelBooking(ctx context.Context, id string, reason string) (*model.Booking, error) {
 	claims := auth.GetUserFromContext(ctx)
-	if claims == nil {
-		return nil, fmt.Errorf("not authenticated")
+	if claims == nil || claims.Role != "global_admin" {
+		return nil, fmt.Errorf("admin access required")
 	}
 
 	booking, err := r.Queries.AdminCancelBookingWithReason(ctx, db.AdminCancelBookingWithReasonParams{
@@ -89,8 +89,8 @@ func (r *mutationResolver) AdminRescheduleBooking(ctx context.Context, id string
 // SuspendUser is the resolver for the suspendUser field.
 func (r *mutationResolver) SuspendUser(ctx context.Context, id string, reason string) (*model.User, error) {
 	claims := auth.GetUserFromContext(ctx)
-	if claims == nil {
-		return nil, fmt.Errorf("not authenticated")
+	if claims == nil || claims.Role != "global_admin" {
+		return nil, fmt.Errorf("admin access required")
 	}
 
 	user, err := r.Queries.UpdateUserStatus(ctx, db.UpdateUserStatusParams{
@@ -122,8 +122,8 @@ func (r *mutationResolver) SuspendUser(ctx context.Context, id string, reason st
 // ReactivateUser is the resolver for the reactivateUser field.
 func (r *mutationResolver) ReactivateUser(ctx context.Context, id string) (*model.User, error) {
 	claims := auth.GetUserFromContext(ctx)
-	if claims == nil {
-		return nil, fmt.Errorf("not authenticated")
+	if claims == nil || claims.Role != "global_admin" {
+		return nil, fmt.Errorf("admin access required")
 	}
 
 	user, err := r.Queries.UpdateUserStatus(ctx, db.UpdateUserStatusParams{
@@ -189,8 +189,8 @@ func (r *mutationResolver) UploadFile(ctx context.Context, file graphql.Upload, 
 // AdminUpdateCompanyProfile is the resolver for the adminUpdateCompanyProfile field.
 func (r *mutationResolver) AdminUpdateCompanyProfile(ctx context.Context, input model.AdminUpdateCompanyInput) (*model.Company, error) {
 	claims := auth.GetUserFromContext(ctx)
-	if claims == nil {
-		return nil, fmt.Errorf("not authenticated")
+	if claims == nil || claims.Role != "global_admin" {
+		return nil, fmt.Errorf("admin access required")
 	}
 
 	company, err := r.Queries.AdminUpdateCompanyProfile(ctx, db.AdminUpdateCompanyProfileParams{
@@ -211,8 +211,8 @@ func (r *mutationResolver) AdminUpdateCompanyProfile(ctx context.Context, input 
 // AdminUpdateCompanyStatus is the resolver for the adminUpdateCompanyStatus field.
 func (r *mutationResolver) AdminUpdateCompanyStatus(ctx context.Context, id string, status model.CompanyStatus) (*model.Company, error) {
 	claims := auth.GetUserFromContext(ctx)
-	if claims == nil {
-		return nil, fmt.Errorf("not authenticated")
+	if claims == nil || claims.Role != "global_admin" {
+		return nil, fmt.Errorf("admin access required")
 	}
 
 	company, err := r.Queries.UpdateCompanyStatus(ctx, db.UpdateCompanyStatusParams{
@@ -229,8 +229,8 @@ func (r *mutationResolver) AdminUpdateCompanyStatus(ctx context.Context, id stri
 // DeleteReview is the resolver for the deleteReview field.
 func (r *mutationResolver) DeleteReview(ctx context.Context, id string) (bool, error) {
 	claims := auth.GetUserFromContext(ctx)
-	if claims == nil {
-		return false, fmt.Errorf("not authenticated")
+	if claims == nil || claims.Role != "global_admin" {
+		return false, fmt.Errorf("admin access required")
 	}
 
 	err := r.Queries.DeleteReview(ctx, stringToUUID(id))
@@ -244,8 +244,8 @@ func (r *mutationResolver) DeleteReview(ctx context.Context, id string) (bool, e
 // ApproveReview is the resolver for the approveReview field.
 func (r *mutationResolver) ApproveReview(ctx context.Context, id string) (*model.Review, error) {
 	claims := auth.GetUserFromContext(ctx)
-	if claims == nil {
-		return nil, fmt.Errorf("not authenticated")
+	if claims == nil || claims.Role != "global_admin" {
+		return nil, fmt.Errorf("admin access required")
 	}
 
 	review, err := r.Queries.UpdateReviewStatus(ctx, db.UpdateReviewStatusParams{
@@ -262,8 +262,8 @@ func (r *mutationResolver) ApproveReview(ctx context.Context, id string) (*model
 // RejectReview is the resolver for the rejectReview field.
 func (r *mutationResolver) RejectReview(ctx context.Context, id string) (*model.Review, error) {
 	claims := auth.GetUserFromContext(ctx)
-	if claims == nil {
-		return nil, fmt.Errorf("not authenticated")
+	if claims == nil || claims.Role != "global_admin" {
+		return nil, fmt.Errorf("admin access required")
 	}
 
 	review, err := r.Queries.UpdateReviewStatus(ctx, db.UpdateReviewStatusParams{

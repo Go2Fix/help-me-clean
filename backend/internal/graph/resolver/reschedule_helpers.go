@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math"
 	"strconv"
 	"time"
 
@@ -123,4 +124,58 @@ func (r *Resolver) sendRescheduleNotifications(ctx context.Context, booking db.B
 
 	// Send email notifications to all parties via notification service (non-blocking).
 	r.dispatchBookingRescheduledEmail(booking, newDate, newTime)
+}
+
+// issueCancellationRefund issues a Stripe partial or full refund based on
+// booking policy and who initiated the cancellation. It is non-blocking —
+// failures are logged but do not affect the cancellation that already occurred.
+//
+// Rules:
+//   - Cancelled by client before the free-cancel window: full refund.
+//   - Cancelled by client inside the late-cancel window: partial refund
+//     (CancelLateRefundPct % of estimated total).
+//   - Cancelled by company or admin: full refund (client is not at fault).
+//
+// Only acts if the booking was paid via Stripe (payment_status = 'paid').
+func (r *Resolver) issueCancellationRefund(ctx context.Context, booking db.Booking, cancelStatus db.BookingStatus) {
+	if booking.PaymentStatus.String != "paid" || !booking.StripePaymentIntentID.Valid || booking.StripePaymentIntentID.String == "" {
+		return
+	}
+
+	totalRON := numericToFloat(booking.EstimatedTotal)
+	if totalRON <= 0 {
+		return
+	}
+	totalBani := int64(math.Round(totalRON * 100))
+
+	var refundBani int64
+	switch cancelStatus {
+	case db.BookingStatusCancelledByCompany, db.BookingStatusCancelledByAdmin:
+		// Company or admin cancelled — full refund to the client.
+		refundBani = totalBani
+	default:
+		// Client cancelled — apply the late-cancel policy.
+		policy := loadBookingPolicy(ctx, r.Queries)
+		hoursLeft := hoursUntilBooking(booking.ScheduledDate, booking.ScheduledStartTime)
+		if hoursLeft >= float64(policy.CancelFreeHoursBefore) {
+			// Inside the free-cancel window — full refund.
+			refundBani = totalBani
+		} else {
+			// Late cancellation — partial refund.
+			refundBani = int64(math.Round(totalRON * float64(policy.CancelLateRefundPct) / 100.0 * 100))
+		}
+	}
+
+	if refundBani <= 0 {
+		return
+	}
+
+	refundID, err := r.PaymentService.CreateRefund(ctx, booking.StripePaymentIntentID.String, refundBani)
+	if err != nil {
+		log.Printf("cancellation: failed to issue Stripe refund for booking %s (PI %s): %v",
+			uuidToString(booking.ID), booking.StripePaymentIntentID.String, err)
+		return
+	}
+	log.Printf("cancellation: issued Stripe refund %s for booking %s (%.2f RON)",
+		refundID, uuidToString(booking.ID), float64(refundBani)/100.0)
 }

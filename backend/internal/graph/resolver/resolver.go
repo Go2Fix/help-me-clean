@@ -186,6 +186,12 @@ func (r *Resolver) enrichBooking(ctx context.Context, dbB db.Booking, gqlB *mode
 	if review, err := r.Queries.GetReviewByBookingID(ctx, dbB.ID); err == nil {
 		gqlB.Review = dbReviewToGQL(review)
 	}
+	// Load job photos.
+	if photos, err := r.Queries.ListJobPhotosByBooking(ctx, dbB.ID); err == nil {
+		for _, p := range photos {
+			gqlB.Photos = append(gqlB.Photos, dbJobPhotoToGQL(p))
+		}
+	}
 	// Load booking extras with service extra details.
 	if extras, err := r.Queries.ListBookingExtras(ctx, dbB.ID); err == nil {
 		for _, e := range extras {

@@ -16,9 +16,7 @@ import {
   MY_PAYMENT_METHODS,
 } from '@/graphql/operations';
 
-const stripePromise = loadStripe(
-  import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_placeholder',
-);
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || null);
 
 interface AddCardModalProps {
   open: boolean;

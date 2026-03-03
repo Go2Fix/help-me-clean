@@ -17,6 +17,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	chimiddleware "github.com/go-chi/cors"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/joho/godotenv"
 	"github.com/stripe/stripe-go/v81"
 
@@ -159,6 +160,20 @@ func NewHandler(ctx context.Context) (http.Handler, func(), error) {
 	paymentSvc.OnSubscriptionInvoiceFailed = func(ctx context.Context, stripeSubID string) {
 		if err := subscriptionSvc.HandleInvoicePaymentFailed(ctx, stripeSubID); err != nil {
 			log.Printf("subscription: invoice failed handler failed for %s: %v", stripeSubID, err)
+			return
+		}
+		// Notify client that their subscription payment failed.
+		sub, sErr := queries.GetSubscriptionByStripeID(ctx, pgtype.Text{String: stripeSubID, Valid: true})
+		if sErr == nil {
+			if _, nErr := queries.CreateNotification(ctx, db.CreateNotificationParams{
+				UserID: sub.ClientUserID,
+				Type:   db.NotificationTypeSubscriptionCancelled,
+				Title:  "Plată eșuată pentru abonament",
+				Body:   "Nu am putut procesa plata pentru abonamentul tău. Te rugăm să actualizezi metoda de plată.",
+				Data:   []byte(fmt.Sprintf(`{"subscriptionId":"%s"}`, sub.ID.String())),
+			}); nErr != nil {
+				log.Printf("subscription: failed to notify client of payment failure for %s: %v", stripeSubID, nErr)
+			}
 		}
 	}
 	paymentSvc.OnSubscriptionUpdated = func(ctx context.Context, stripeSubID string, status stripe.SubscriptionStatus, periodStart, periodEnd int64) {

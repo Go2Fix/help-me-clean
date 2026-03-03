@@ -14,6 +14,7 @@ import {
   Settings,
   Calendar,
   UserCircle,
+  Star,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import Button from '@/components/ui/Button';
@@ -21,7 +22,7 @@ import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/ClientBadge';
 import ProfileSetupChecklist from '@/components/ProfileSetupChecklist';
 import type { SetupItem } from '@/components/ProfileSetupChecklist';
-import { MY_BOOKINGS, MY_SUBSCRIPTIONS, MY_INVOICES, MY_PAYMENT_METHODS, MY_ADDRESSES } from '@/graphql/operations';
+import { MY_BOOKINGS, MY_SUBSCRIPTIONS, MY_INVOICES, MY_PAYMENT_METHODS, MY_ADDRESSES, MY_RECENT_COMPLETED_BOOKINGS } from '@/graphql/operations';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -86,6 +87,16 @@ interface InvoiceEdge {
   status: string;
 }
 
+interface CompletedBookingEdge {
+  id: string;
+  referenceCode: string;
+  serviceType: string;
+  serviceName: string;
+  scheduledDate: string;
+  paymentStatus: string;
+  review?: { id: string; rating: number } | null;
+}
+
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 function formatDate(dateStr: string): string {
@@ -133,6 +144,7 @@ export default function ClientDashboardPage() {
 
   const { data: paymentMethodsData } = useQuery(MY_PAYMENT_METHODS);
   const { data: addressesData } = useQuery(MY_ADDRESSES);
+  const { data: recentCompletedData } = useQuery(MY_RECENT_COMPLETED_BOOKINGS);
 
   const isLoading = l1 || l2 || l3 || l4 || l5;
 
@@ -158,6 +170,11 @@ export default function ClientDashboardPage() {
   }, [subscriptionsData]);
 
   const allSubscriptions: Subscription[] = subscriptionsData?.mySubscriptions ?? [];
+
+  const unreviewedCompleted = useMemo(() => {
+    const completed: CompletedBookingEdge[] = recentCompletedData?.myBookings?.edges ?? [];
+    return completed.filter((b) => b.paymentStatus === 'paid' && !b.review);
+  }, [recentCompletedData]);
 
   const unpaidInvoiceCount = useMemo(() => {
     const invoices: InvoiceEdge[] = invoicesData?.myInvoices?.edges ?? [];
@@ -249,6 +266,29 @@ export default function ClientDashboardPage() {
           subtitle="Câțiva pași pentru a folosi platforma din plin"
         />
       </div>
+
+      {/* Review prompts for recently completed unreviewed bookings */}
+      {unreviewedCompleted.length > 0 && (
+        <div className="mb-6 space-y-3">
+          {unreviewedCompleted.map((booking) => (
+            <button
+              key={booking.id}
+              type="button"
+              onClick={() => navigate(`/cont/comenzi/${booking.id}`)}
+              className="w-full flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-100 hover:border-amber-200 transition-all text-left cursor-pointer group"
+            >
+              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-amber-400 shrink-0">
+                <Star className="h-5 w-5 text-white fill-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-900">Lasă o recenzie pentru {booking.serviceName}</p>
+                <p className="text-xs text-gray-500">{formatDate(booking.scheduledDate)} · {booking.referenceCode}</p>
+              </div>
+              <ChevronRight className="h-4 w-4 text-amber-500 group-hover:translate-x-0.5 transition-transform shrink-0" />
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* KPI Cards */}
       {isLoading ? (

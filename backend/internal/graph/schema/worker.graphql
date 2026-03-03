@@ -25,6 +25,7 @@ type WorkerProfile {
   availability: [AvailabilitySlot!]!
   serviceCategories: [ServiceCategory!]!
   createdAt: DateTime!
+  maxDailyBookings: Int
 }
 
 type WorkerDocument {
@@ -110,6 +111,7 @@ extend type Mutation {
   reviewWorkerDocument(id: ID!, approved: Boolean!, rejectionReason: String): WorkerDocument!
   activateWorker(id: ID!): WorkerProfile!
   updateWorkerServiceCategories(workerId: ID!, categoryIds: [ID!]!): [ServiceCategory!]!
+  updateWorkerMaxDailyBookings(workerId: ID!, limit: Int): WorkerProfile!
 }
 
 input InviteWorkerInput {

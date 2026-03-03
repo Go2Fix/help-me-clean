@@ -3,9 +3,11 @@ import { loadStripe, type Stripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 import { useLanguage } from '@/context/LanguageContext';
 
-const stripePromise = loadStripe(
-  import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_placeholder',
-);
+const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+if (!stripeKey && import.meta.env.DEV) {
+  console.warn('[Stripe] VITE_STRIPE_PUBLISHABLE_KEY is not set — payment features will be disabled.');
+}
+const stripePromise = loadStripe(stripeKey || null);
 
 interface StripeContextValue {
   stripe: Promise<Stripe | null>;

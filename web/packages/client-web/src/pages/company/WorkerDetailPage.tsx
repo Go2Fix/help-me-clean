@@ -18,6 +18,7 @@ import {
   MY_COMPANY_SERVICE_AREAS, WORKER_SERVICE_AREAS, UPDATE_WORKER_SERVICE_AREAS,
   UPLOAD_WORKER_DOCUMENT, UPLOAD_WORKER_AVATAR,
   SERVICE_CATEGORIES, UPDATE_WORKER_SERVICE_CATEGORIES,
+  UPDATE_WORKER_MAX_DAILY_BOOKINGS,
 } from '@/graphql/operations';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -99,6 +100,7 @@ interface Worker {
   documents: WorkerDocument[];
   personalityAssessment?: PersonalityAssessment | null;
   company?: { id: string; companyName: string } | null;
+  maxDailyBookings?: number | null;
 }
 
 interface WorkerPerformance {
@@ -283,6 +285,7 @@ export default function WorkerDetailPage() {
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<Set<string>>(new Set());
   const [saveCategoriesSuccess, setSaveCategoriesSuccess] = useState(false);
   const [saveCategoriesError, setSaveCategoriesError] = useState('');
+  const [maxDailyBookings, setMaxDailyBookings] = useState<string>('');
 
   // ─── Queries ────────────────────────────────────────────────────────────
   const { data, loading, refetch } = useQuery(MY_WORKERS);
@@ -304,6 +307,7 @@ export default function WorkerDetailPage() {
   const [updateWorkerAreas, { loading: savingAreas }] = useMutation(UPDATE_WORKER_SERVICE_AREAS);
   const [uploadDocument] = useMutation(UPLOAD_WORKER_DOCUMENT);
   const [uploadAvatar] = useMutation(UPLOAD_WORKER_AVATAR);
+  const [updateWorkerMaxDailyBookings] = useMutation(UPDATE_WORKER_MAX_DAILY_BOOKINGS);
 
   // ─── Service Categories ───────────────────────────────────────────────
   const { data: categoriesData, loading: categoriesLoading } = useQuery(SERVICE_CATEGORIES);
@@ -356,6 +360,13 @@ export default function WorkerDetailPage() {
   useEffect(() => {
     if (worker?.serviceCategories) {
       setSelectedCategoryIds(new Set(worker.serviceCategories.map((c) => c.id)));
+    }
+  }, [worker]);
+
+  // Initialize max daily bookings from worker data
+  useEffect(() => {
+    if (worker) {
+      setMaxDailyBookings(worker.maxDailyBookings != null ? String(worker.maxDailyBookings) : '');
     }
   }, [worker]);
 
@@ -452,6 +463,19 @@ export default function WorkerDetailPage() {
     } catch {
       setSaveCategoriesError('Eroare la salvarea categoriilor. Incearca din nou.');
       setTimeout(() => setSaveCategoriesError(''), 4000);
+    }
+  };
+
+  const handleUpdateMaxDailyBookings = async () => {
+    if (!worker) return;
+    const limit = maxDailyBookings ? parseInt(maxDailyBookings, 10) : null;
+    try {
+      await updateWorkerMaxDailyBookings({
+        variables: { workerId: worker.id, limit },
+        refetchQueries: [{ query: MY_WORKERS }],
+      });
+    } catch (err) {
+      console.error('Failed to update max daily bookings:', err);
     }
   };
 
@@ -895,6 +919,29 @@ export default function WorkerDetailPage() {
             </div>
           </>
         )}
+      </Card>
+
+      {/* 5c. Max Daily Bookings Card */}
+      <Card className="mb-6 p-5">
+        <h3 className="font-semibold text-gray-900 mb-1">Limita zilnica comenzi</h3>
+        <p className="text-sm text-gray-500 mb-3">Numarul maxim de comenzi pe zi. Lasa gol pentru nelimitat.</p>
+        <div className="flex gap-2">
+          <input
+            type="number"
+            min="1"
+            max="20"
+            value={maxDailyBookings}
+            onChange={(e) => setMaxDailyBookings(e.target.value)}
+            placeholder="Nelimitat"
+            className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2"
+          />
+          <Button
+            size="sm"
+            onClick={() => handleUpdateMaxDailyBookings()}
+          >
+            Salveaza
+          </Button>
+        </div>
       </Card>
 
       {/* 6. Documents Card */}

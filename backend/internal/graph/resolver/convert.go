@@ -440,6 +440,7 @@ func dbBookingToGQL(b db.Booking) *model.Booking {
 		CancellationReason:    textPtr(b.CancellationReason),
 		TimeSlots:             []*model.BookingTimeSlot{},
 		Extras:                []*model.BookingExtra{},
+		Photos:                []*model.BookingJobPhoto{},
 		IncludedItems:         []string{},
 		PaymentStatus:         paymentStatus,
 		PaidAt:                timestamptzToTimePtr(b.PaidAt),
@@ -452,7 +453,15 @@ func dbBookingToGQL(b db.Booking) *model.Booking {
 			s := uuidToString(b.ReferralDiscountID)
 			return &s
 		}(),
-		CreatedAt: timestamptzToTime(b.CreatedAt),
+		PromoCodeID: func() *string {
+			if !b.PromoCodeID.Valid {
+				return nil
+			}
+			s := uuidToString(b.PromoCodeID)
+			return &s
+		}(),
+		PromoDiscountAmount: numericToFloatPtr(b.PromoDiscountAmount),
+		CreatedAt:           timestamptzToTime(b.CreatedAt),
 	}
 }
 
@@ -635,6 +644,7 @@ func dbWorkerToGQL(c db.Worker, u *db.User) *model.WorkerProfile {
 		RatingAvg:          numericToFloat(c.RatingAvg),
 		TotalJobsCompleted: int4Val(c.TotalJobsCompleted),
 		CreatedAt:          timestamptzToTime(c.CreatedAt),
+		MaxDailyBookings:   int4Ptr(c.MaxDailyBookings),
 	}
 
 	// Populate from user (source of truth)

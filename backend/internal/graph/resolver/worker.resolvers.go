@@ -16,6 +16,7 @@ import (
 	"go2fix-backend/internal/graph/model"
 	"go2fix-backend/internal/service/notification"
 	"go2fix-backend/internal/storage"
+	"log"
 	"strings"
 	"time"
 
@@ -226,6 +227,24 @@ func (r *mutationResolver) AcceptInvitation(ctx context.Context, token string) (
 	if err != nil {
 		fmt.Printf("Warning: failed to activate user: %v\n", err)
 	}
+
+	// Notify company admin that the worker accepted the invitation.
+	go func(w db.Worker) {
+		bgCtx := context.Background()
+		company, cErr := r.Queries.GetCompanyByID(bgCtx, w.CompanyID)
+		if cErr != nil || !company.AdminUserID.Valid {
+			return
+		}
+		if _, nErr := r.Queries.CreateNotification(bgCtx, db.CreateNotificationParams{
+			UserID: company.AdminUserID,
+			Type:   db.NotificationTypeWorkerAccepted,
+			Title:  "Lucrător a acceptat invitația",
+			Body:   "Un lucrător a acceptat invitația și și-a creat profilul. Verificați profilul pentru aprobare.",
+			Data:   []byte(fmt.Sprintf(`{"workerId":"%s"}`, uuidToString(w.ID))),
+		}); nErr != nil {
+			log.Printf("acceptInvitation: failed to notify company admin: %v", nErr)
+		}
+	}(worker)
 
 	return r.workerWithCompany(ctx, worker)
 }
@@ -642,6 +661,21 @@ func (r *mutationResolver) ActivateWorker(ctx context.Context, id string) (*mode
 		return nil, fmt.Errorf("failed to activate worker: %w", err)
 	}
 
+	// Notify the worker's linked user account that they've been activated.
+	if worker.UserID.Valid {
+		go func(userID pgtype.UUID) {
+			if _, nErr := r.Queries.CreateNotification(context.Background(), db.CreateNotificationParams{
+				UserID: userID,
+				Type:   db.NotificationTypeWorkerActivated,
+				Title:  "Cont activat!",
+				Body:   "Felicitări! Contul tău de lucrător a fost aprobat. Poți începe să primești comenzi.",
+				Data:   []byte(fmt.Sprintf(`{"workerId":"%s"}`, uuidToString(worker.ID))),
+			}); nErr != nil {
+				log.Printf("activateWorker: failed to notify worker: %v", nErr)
+			}
+		}(worker.UserID)
+	}
+
 	return r.workerWithCompany(ctx, worker)
 }
 
@@ -701,6 +735,32 @@ func (r *mutationResolver) UpdateWorkerServiceCategories(ctx context.Context, wo
 		}
 	}
 	return result, nil
+}
+
+// UpdateWorkerMaxDailyBookings is the resolver for the updateWorkerMaxDailyBookings field.
+func (r *mutationResolver) UpdateWorkerMaxDailyBookings(ctx context.Context, workerID string, limit *int) (*model.WorkerProfile, error) {
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil || (claims.Role != "company_admin" && claims.Role != "global_admin") {
+		return nil, fmt.Errorf("not authorized")
+	}
+
+	wID := stringToUUID(workerID)
+	var maxBookings pgtype.Int4
+	if limit != nil {
+		maxBookings = pgtype.Int4{Int32: int32(*limit), Valid: true}
+	} else {
+		maxBookings = pgtype.Int4{Valid: false}
+	}
+
+	worker, err := r.Queries.UpdateWorkerMaxDailyBookings(ctx, db.UpdateWorkerMaxDailyBookingsParams{
+		ID:               wID,
+		MaxDailyBookings: maxBookings,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to update worker: %w", err)
+	}
+
+	return r.workerWithCompany(ctx, worker)
 }
 
 // MyWorkers is the resolver for the myWorkers field.

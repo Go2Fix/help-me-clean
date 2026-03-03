@@ -12,11 +12,13 @@ import (
 	db "go2fix-backend/internal/db/generated"
 	"go2fix-backend/internal/graph"
 	"go2fix-backend/internal/graph/model"
+	"go2fix-backend/internal/storage"
 	"log"
 	"math"
 	"strings"
 	"time"
 
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -388,6 +390,9 @@ func (r *mutationResolver) CancelBooking(ctx context.Context, id string, reason 
 		}(current.ReferralDiscountID, current.ID)
 	}
 
+	// Issue Stripe refund (partial for late client cancellations, full otherwise).
+	go r.issueCancellationRefund(context.Background(), current, cancelStatus)
+
 	// Notify relevant parties based on who cancelled.
 	if cancelStatus == db.BookingStatusCancelledByClient {
 		r.dispatchBookingCancelledByClient(booking, reasonText)
@@ -441,6 +446,18 @@ func (r *mutationResolver) AssignWorkerToBooking(ctx context.Context, bookingID 
 		}
 		if !hasCategory {
 			return nil, fmt.Errorf("worker is not qualified for this booking's service category")
+		}
+	}
+
+	// Check worker's daily booking limit before assigning.
+	if worker.MaxDailyBookings.Valid {
+		count, countErr := r.Queries.CountWorkerBookingsForDate(ctx, db.CountWorkerBookingsForDateParams{
+			WorkerID:      wID,
+			ScheduledDate: existingBooking.ScheduledDate,
+		})
+		if countErr == nil && count >= int64(worker.MaxDailyBookings.Int32) {
+			return nil, fmt.Errorf("worker has reached their daily booking limit of %d for %s",
+				worker.MaxDailyBookings.Int32, existingBooking.ScheduledDate.Time.Format("2006-01-02"))
 		}
 	}
 
@@ -498,6 +515,23 @@ func (r *mutationResolver) ConfirmBooking(ctx context.Context, id string) (*mode
 		return nil, fmt.Errorf("failed to confirm booking: %w", err)
 	}
 
+	// Notify client that the company confirmed the booking.
+	if booking.ClientUserID.Valid {
+		body := fmt.Sprintf("Comanda %s a fost confirmată. Ne vedem în curând!", booking.ReferenceCode)
+		data := []byte(fmt.Sprintf(`{"bookingId":"%s"}`, uuidToString(booking.ID)))
+		go func() {
+			if _, err := r.Queries.CreateNotification(context.Background(), db.CreateNotificationParams{
+				UserID: booking.ClientUserID,
+				Type:   db.NotificationTypeBookingConfirmed,
+				Title:  "Comandă confirmată",
+				Body:   body,
+				Data:   data,
+			}); err != nil {
+				log.Printf("confirmBooking: failed to notify client: %v", err)
+			}
+		}()
+	}
+
 	return dbBookingToGQL(booking), nil
 }
 
@@ -526,6 +560,23 @@ func (r *mutationResolver) StartJob(ctx context.Context, id string) (*model.Book
 	booking, err := r.Queries.StartBooking(ctx, stringToUUID(id))
 	if err != nil {
 		return nil, fmt.Errorf("failed to start job: %w", err)
+	}
+
+	// Notify client that the worker has arrived and started the job.
+	if booking.ClientUserID.Valid {
+		body := fmt.Sprintf("Lucratorul a ajuns și a început munca pentru comanda %s.", booking.ReferenceCode)
+		data := []byte(fmt.Sprintf(`{"bookingId":"%s"}`, uuidToString(booking.ID)))
+		go func() {
+			if _, err := r.Queries.CreateNotification(context.Background(), db.CreateNotificationParams{
+				UserID: booking.ClientUserID,
+				Type:   db.NotificationTypeBookingStarted,
+				Title:  "Lucrarea a început",
+				Body:   body,
+				Data:   data,
+			}); err != nil {
+				log.Printf("startJob: failed to notify client: %v", err)
+			}
+		}()
 	}
 
 	return dbBookingToGQL(booking), nil
@@ -744,6 +795,84 @@ func (r *mutationResolver) RescheduleBooking(ctx context.Context, id string, sch
 	result := dbBookingToGQL(booking)
 	r.enrichBooking(ctx, booking, result)
 	return result, nil
+}
+
+// UploadJobPhoto is the resolver for the uploadJobPhoto field.
+func (r *mutationResolver) UploadJobPhoto(ctx context.Context, bookingID string, file graphql.Upload, phase string) (*model.BookingJobPhoto, error) {
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil {
+		return nil, fmt.Errorf("not authenticated")
+	}
+
+	// Validate phase value
+	if phase != "before" && phase != "after" && phase != "during" {
+		return nil, fmt.Errorf("phase must be 'before', 'after', or 'during'")
+	}
+
+	bID := stringToUUID(bookingID)
+	booking, err := r.Queries.GetBookingByID(ctx, bID)
+	if err != nil {
+		return nil, fmt.Errorf("booking not found: %w", err)
+	}
+
+	// Only the assigned worker or company admin / global admin can upload photos
+	switch claims.Role {
+	case "worker":
+		wID := stringToUUID(claims.UserID)
+		w, wErr := r.Queries.GetWorkerByUserID(ctx, wID)
+		if wErr != nil || uuidToString(w.ID) != uuidToString(booking.WorkerID) {
+			return nil, fmt.Errorf("not authorized: you are not assigned to this booking")
+		}
+	case "company_admin", "global_admin":
+		// allowed
+	default:
+		return nil, fmt.Errorf("not authorized")
+	}
+
+	// Upload to cloud storage with public access (photos are shared with the client)
+	path := fmt.Sprintf("uploads/bookings/%s/job-photos", bookingID)
+	photoURL, uploadErr := r.Storage.Upload(ctx, path, file.Filename, file.File, storage.StorageTypePublic)
+	if uploadErr != nil {
+		return nil, fmt.Errorf("failed to upload photo: %w", uploadErr)
+	}
+
+	userID := stringToUUID(claims.UserID)
+	photo, err := r.Queries.CreateJobPhoto(ctx, db.CreateJobPhotoParams{
+		BookingID:  bID,
+		UploadedBy: userID,
+		PhotoUrl:   photoURL,
+		Phase:      phase,
+		SortOrder:  0,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to save photo: %w", err)
+	}
+	return dbJobPhotoToGQL(photo), nil
+}
+
+// DeleteJobPhoto is the resolver for the deleteJobPhoto field.
+func (r *mutationResolver) DeleteJobPhoto(ctx context.Context, id string) (bool, error) {
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil {
+		return false, fmt.Errorf("not authenticated")
+	}
+
+	photo, err := r.Queries.GetJobPhoto(ctx, stringToUUID(id))
+	if err != nil {
+		return false, fmt.Errorf("photo not found: %w", err)
+	}
+
+	// Only the original uploader, company admin, or global admin can delete
+	if claims.Role != "company_admin" && claims.Role != "global_admin" {
+		if uuidToString(photo.UploadedBy) != claims.UserID {
+			return false, fmt.Errorf("not authorized")
+		}
+	}
+
+	if err := r.Queries.DeleteJobPhoto(ctx, photo.ID); err != nil {
+		return false, fmt.Errorf("failed to delete photo: %w", err)
+	}
+	return true, nil
 }
 
 // MyBookings is the resolver for the myBookings field.

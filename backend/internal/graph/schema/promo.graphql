@@ -1,0 +1,62 @@
+type PromoCode {
+  id: ID!
+  code: String!
+  description: String
+  discountType: String!
+  discountValue: Float!
+  minOrderAmount: Float!
+  maxUses: Int
+  usesCount: Int!
+  maxUsesPerUser: Int!
+  activeFrom: DateTime!
+  activeUntil: DateTime
+  isActive: Boolean!
+  createdAt: DateTime!
+}
+
+type PromoCodeValidation {
+  valid: Boolean!
+  promoCode: PromoCode
+  discountAmount: Float!
+  errorMessage: String
+}
+
+type PromoCodeConnection {
+  edges: [PromoCode!]!
+  totalCount: Int!
+}
+
+input CreatePromoCodeInput {
+  code: String!
+  description: String
+  discountType: String!
+  discountValue: Float!
+  minOrderAmount: Float
+  maxUses: Int
+  maxUsesPerUser: Int
+  activeFrom: String
+  activeUntil: String
+}
+
+input UpdatePromoCodeInput {
+  description: String
+  discountType: String
+  discountValue: Float
+  minOrderAmount: Float
+  maxUses: Int
+  maxUsesPerUser: Int
+  activeFrom: String
+  activeUntil: String
+  isActive: Boolean
+}
+
+extend type Query {
+  validatePromoCode(code: String!, orderAmount: Float!): PromoCodeValidation!
+  listPromoCodes(limit: Int, offset: Int): PromoCodeConnection!
+}
+
+extend type Mutation {
+  applyPromoCodeToBooking(bookingId: ID!, code: String!): Booking!
+  createPromoCode(input: CreatePromoCodeInput!): PromoCode!
+  updatePromoCode(id: ID!, input: UpdatePromoCodeInput!): PromoCode!
+}

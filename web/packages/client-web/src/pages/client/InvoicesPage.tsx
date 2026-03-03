@@ -16,6 +16,7 @@ import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Input from '@/components/ui/Input';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import { downloadClientInvoicePDF } from '@/components/invoice/ClientInvoicePDF';
 import {
   MY_INVOICES,
   MY_BILLING_PROFILE,
@@ -103,8 +104,19 @@ interface InvoiceDetail {
   status: string;
   sellerCompanyName: string;
   sellerCui: string;
+  sellerRegNumber?: string;
+  sellerAddress: string;
+  sellerCity: string;
+  sellerCounty: string;
+  sellerIsVatPayer: boolean;
+  sellerBankName?: string;
+  sellerIban?: string;
   buyerName: string;
   buyerCui?: string;
+  buyerAddress?: string;
+  buyerCity?: string;
+  buyerCounty?: string;
+  buyerIsVatPayer?: boolean;
   subtotalAmount: number;
   vatRate: number;
   vatAmount: number;
@@ -611,18 +623,21 @@ export default function InvoicesPage() {
                         </td>
                         <td className="px-3 md:px-6 py-4">
                           <div className="flex items-center gap-1">
-                            {inv.downloadUrl && (
-                              <a
-                                href={inv.downloadUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="p-2 rounded-lg text-gray-400 hover:bg-primary/5 hover:text-primary transition inline-flex"
-                                title="Descarca PDF"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <Download className="h-4 w-4" />
-                              </a>
-                            )}
+                            <button
+                              className="p-2 rounded-lg text-gray-400 hover:bg-primary/5 hover:text-primary transition inline-flex"
+                              title="Descarcă PDF"
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                if (inv.downloadUrl) {
+                                  window.open(inv.downloadUrl, '_blank');
+                                } else {
+                                  // Expand to load detail then generate PDF
+                                  setExpandedInvoiceId(inv.id);
+                                }
+                              }}
+                            >
+                              <Download className="h-4 w-4" />
+                            </button>
                             {isExpanded ? (
                               <ChevronUp className="h-4 w-4 text-gray-400" />
                             ) : (
@@ -742,19 +757,47 @@ export default function InvoicesPage() {
 
                                 {/* Action buttons */}
                                 <div className="flex flex-wrap gap-3 pt-1">
-                                  {detail.downloadUrl && (
-                                    <a
-                                      href={detail.downloadUrl}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      onClick={(e) => e.stopPropagation()}
-                                    >
-                                      <Button size="sm" variant="primary">
-                                        <Download className="h-4 w-4" />
-                                        Descarca PDF
-                                      </Button>
-                                    </a>
-                                  )}
+                                  <Button
+                                    size="sm"
+                                    variant="primary"
+                                    onClick={async (e) => {
+                                      e.stopPropagation();
+                                      if (detail.downloadUrl) {
+                                        window.open(detail.downloadUrl, '_blank');
+                                      } else {
+                                        await downloadClientInvoicePDF({
+                                          invoiceNumber: detail.invoiceNumber,
+                                          issuedAt: detail.issuedAt,
+                                          dueDate: detail.dueDate,
+                                          sellerCompanyName: detail.sellerCompanyName,
+                                          sellerCui: detail.sellerCui,
+                                          sellerRegNumber: detail.sellerRegNumber,
+                                          sellerAddress: detail.sellerAddress,
+                                          sellerCity: detail.sellerCity,
+                                          sellerCounty: detail.sellerCounty,
+                                          sellerIsVatPayer: detail.sellerIsVatPayer,
+                                          sellerBankName: detail.sellerBankName,
+                                          sellerIban: detail.sellerIban,
+                                          buyerName: detail.buyerName,
+                                          buyerCui: detail.buyerCui,
+                                          buyerAddress: detail.buyerAddress,
+                                          buyerCity: detail.buyerCity,
+                                          buyerCounty: detail.buyerCounty,
+                                          buyerIsVatPayer: detail.buyerIsVatPayer,
+                                          subtotalAmount: detail.subtotalAmount,
+                                          vatRate: detail.vatRate,
+                                          vatAmount: detail.vatAmount,
+                                          totalAmount: detail.totalAmount,
+                                          currency: detail.currency,
+                                          notes: detail.notes,
+                                          lineItems: detail.lineItems,
+                                        });
+                                      }
+                                    }}
+                                  >
+                                    <Download className="h-4 w-4" />
+                                    Descarcă PDF
+                                  </Button>
                                   {detail.booking && (
                                     <Button
                                       size="sm"

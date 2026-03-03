@@ -12,6 +12,7 @@ import {
   Shield,
   Star,
   BarChart3,
+  Tag,
 } from 'lucide-react';
 import DashboardLayout from './DashboardLayout';
 
@@ -27,6 +28,7 @@ const navItems = [
   { to: '/admin/utilizatori', icon: Users, label: 'Utilizatori' },
   { to: '/admin/rapoarte', icon: BarChart3, label: 'Rapoarte' },
   { to: '/admin/recenzii', icon: Star, label: 'Recenzii' },
+  { to: '/admin/promo-coduri', icon: Tag, label: 'Coduri promo' },
   { to: '/admin/setari', icon: Settings, label: 'Setari' },
 ];
 

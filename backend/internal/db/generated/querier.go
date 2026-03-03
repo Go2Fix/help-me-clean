@@ -15,6 +15,7 @@ type Querier interface {
 	AdminCancelBookingWithReason(ctx context.Context, arg AdminCancelBookingWithReasonParams) (Booking, error)
 	AdminUpdateCompanyProfile(ctx context.Context, arg AdminUpdateCompanyProfileParams) (Company, error)
 	AdminUpdateUserProfile(ctx context.Context, arg AdminUpdateUserProfileParams) (User, error)
+	ApplyPromoCodeToBooking(ctx context.Context, arg ApplyPromoCodeToBookingParams) (Booking, error)
 	ApplyReferralDiscountToBooking(ctx context.Context, arg ApplyReferralDiscountToBookingParams) (Booking, error)
 	ApproveCompany(ctx context.Context, id pgtype.UUID) (Company, error)
 	AssignWorkerToBooking(ctx context.Context, arg AssignWorkerToBookingParams) (Booking, error)
@@ -42,6 +43,7 @@ type Querier interface {
 	CountActivePhoneOTPs(ctx context.Context, userID pgtype.UUID) (int64, error)
 	CountActiveRecurringGroups(ctx context.Context) (int64, error)
 	CountAllBookings(ctx context.Context) (int64, error)
+	CountAllPromoCodes(ctx context.Context) (int64, error)
 	CountAllReviews(ctx context.Context) (int64, error)
 	CountAllReviewsFiltered(ctx context.Context, arg CountAllReviewsFilteredParams) (int64, error)
 	CountAllSubscriptions(ctx context.Context) (int64, error)
@@ -61,6 +63,7 @@ type Querier interface {
 	CountInvoicesByCompany(ctx context.Context, companyID pgtype.UUID) (int64, error)
 	CountPaymentHistoryByUser(ctx context.Context, clientUserID pgtype.UUID) (int64, error)
 	CountPriceAuditLog(ctx context.Context, entityType pgtype.Text) (int64, error)
+	CountPromoCodeUsesByUser(ctx context.Context, arg CountPromoCodeUsesByUserParams) (int64, error)
 	CountReceivedInvoicesByCompany(ctx context.Context, companyID pgtype.UUID) (int64, error)
 	CountReviewsByCompanyWorkers(ctx context.Context, arg CountReviewsByCompanyWorkersParams) (int64, error)
 	CountReviewsByWorkerID(ctx context.Context, reviewedWorkerID pgtype.UUID) (int64, error)
@@ -77,6 +80,7 @@ type Querier interface {
 	CountUnreadNotifications(ctx context.Context, userID pgtype.UUID) (int64, error)
 	CountUsersByRole(ctx context.Context, role UserRole) (int64, error)
 	CountWaitlistLeads(ctx context.Context) (CountWaitlistLeadsRow, error)
+	CountWorkerBookingsForDate(ctx context.Context, arg CountWorkerBookingsForDateParams) (int64, error)
 	CountWorkerBookingsInDateRange(ctx context.Context, arg CountWorkerBookingsInDateRangeParams) (int64, error)
 	CreateAddress(ctx context.Context, arg CreateAddressParams) (ClientAddress, error)
 	CreateArea(ctx context.Context, arg CreateAreaParams) (CreateAreaRow, error)
@@ -100,6 +104,7 @@ type Querier interface {
 	// ============================================
 	CreateInvoiceLineItem(ctx context.Context, arg CreateInvoiceLineItemParams) (InvoiceLineItem, error)
 	CreateInvoiceSequence(ctx context.Context, arg CreateInvoiceSequenceParams) error
+	CreateJobPhoto(ctx context.Context, arg CreateJobPhotoParams) (BookingJobPhoto, error)
 	CreateNotification(ctx context.Context, arg CreateNotificationParams) (Notification, error)
 	CreatePaymentMethod(ctx context.Context, arg CreatePaymentMethodParams) (ClientPaymentMethod, error)
 	// ============================================
@@ -117,6 +122,8 @@ type Querier interface {
 	CreatePhoneOTP(ctx context.Context, arg CreatePhoneOTPParams) (PhoneOtpCode, error)
 	CreatePlatformEvent(ctx context.Context, arg CreatePlatformEventParams) error
 	CreatePriceAuditEntry(ctx context.Context, arg CreatePriceAuditEntryParams) (PriceAuditLog, error)
+	CreatePromoCode(ctx context.Context, arg CreatePromoCodeParams) (PromoCode, error)
+	CreatePromoCodeUse(ctx context.Context, arg CreatePromoCodeUseParams) (PromoCodeUse, error)
 	CreateRecurringGroup(ctx context.Context, arg CreateRecurringGroupParams) (RecurringBookingGroup, error)
 	CreateReferralCode(ctx context.Context, arg CreateReferralCodeParams) (ReferralCode, error)
 	// ============================================================
@@ -156,6 +163,7 @@ type Querier interface {
 	DeleteCompanyWorkSchedule(ctx context.Context, companyID pgtype.UUID) error
 	DeleteExpiredEmailOTPs(ctx context.Context) error
 	DeleteExpiredPhoneOTPs(ctx context.Context) error
+	DeleteJobPhoto(ctx context.Context, id pgtype.UUID) error
 	DeletePaymentMethod(ctx context.Context, id pgtype.UUID) error
 	// Delete personality insight (for regeneration)
 	DeletePersonalityInsight(ctx context.Context, assessmentID pgtype.UUID) error
@@ -221,6 +229,7 @@ type Querier interface {
 	GetInvoiceByID(ctx context.Context, id pgtype.UUID) (Invoice, error)
 	GetInvoiceCountByStatus(ctx context.Context, arg GetInvoiceCountByStatusParams) ([]GetInvoiceCountByStatusRow, error)
 	GetInvoiceCountByType(ctx context.Context, arg GetInvoiceCountByTypeParams) ([]GetInvoiceCountByTypeRow, error)
+	GetJobPhoto(ctx context.Context, id pgtype.UUID) (BookingJobPhoto, error)
 	// ============================================
 	// INVOICE SEQUENCES
 	// ============================================
@@ -243,6 +252,9 @@ type Querier interface {
 	GetPlatformSetting(ctx context.Context, key string) (PlatformSetting, error)
 	GetPlatformStats(ctx context.Context) (GetPlatformStatsRow, error)
 	GetPlatformTotals(ctx context.Context) (GetPlatformTotalsRow, error)
+	GetPromoCodeByCode(ctx context.Context, upper interface{}) (PromoCode, error)
+	GetPromoCodeByID(ctx context.Context, id pgtype.UUID) (PromoCode, error)
+	GetPromoCodeUseByBooking(ctx context.Context, bookingID pgtype.UUID) (PromoCodeUse, error)
 	GetRecurringDiscountByType(ctx context.Context, recurrenceType RecurrenceType) (RecurringDiscount, error)
 	GetRecurringGroupByID(ctx context.Context, id pgtype.UUID) (RecurringBookingGroup, error)
 	GetRecurringGroupExtras(ctx context.Context, groupID pgtype.UUID) ([]GetRecurringGroupExtrasRow, error)
@@ -301,6 +313,7 @@ type Querier interface {
 	// Per-dimension rating averages for a worker (from reviews with sub-ratings since migration 000047).
 	GetWorkerSubRatings(ctx context.Context, reviewedWorkerID pgtype.UUID) (GetWorkerSubRatingsRow, error)
 	HasPersonalityAssessment(ctx context.Context, workerID pgtype.UUID) (bool, error)
+	IncrementPromoCodeUses(ctx context.Context, id pgtype.UUID) (PromoCode, error)
 	IncrementReferralCycle(ctx context.Context, id pgtype.UUID) (ReferralCode, error)
 	InsertBookingExtra(ctx context.Context, arg InsertBookingExtraParams) error
 	InsertCompanyServiceArea(ctx context.Context, arg InsertCompanyServiceAreaParams) (CompanyServiceArea, error)
@@ -367,6 +380,7 @@ type Querier interface {
 	ListInvoicesByCompanyID(ctx context.Context, arg ListInvoicesByCompanyIDParams) ([]Invoice, error)
 	ListInvoicesByType(ctx context.Context, arg ListInvoicesByTypeParams) ([]Invoice, error)
 	ListInvoicesByTypeAndStatus(ctx context.Context, arg ListInvoicesByTypeAndStatusParams) ([]Invoice, error)
+	ListJobPhotosByBooking(ctx context.Context, bookingID pgtype.UUID) ([]BookingJobPhoto, error)
 	ListNotificationsByUser(ctx context.Context, arg ListNotificationsByUserParams) ([]Notification, error)
 	// ============================================
 	// PAYMENT HISTORY (Client-facing)
@@ -387,6 +401,7 @@ type Querier interface {
 	ListPlatformSettings(ctx context.Context) ([]PlatformSetting, error)
 	ListPriceAuditLog(ctx context.Context, arg ListPriceAuditLogParams) ([]ListPriceAuditLogRow, error)
 	ListPriceAuditLogByEntity(ctx context.Context, arg ListPriceAuditLogByEntityParams) ([]ListPriceAuditLogByEntityRow, error)
+	ListPromoCodes(ctx context.Context, arg ListPromoCodesParams) ([]PromoCode, error)
 	// Lists platform commission invoices where the company is the buyer
 	ListReceivedInvoicesByCompany(ctx context.Context, arg ListReceivedInvoicesByCompanyParams) ([]Invoice, error)
 	// ─── RECURRING DISCOUNTS ──────────────────────────────────────────────────
@@ -492,6 +507,7 @@ type Querier interface {
 	// UpdatePlatformLegalEntity updates the platform legal entity details.
 	UpdatePlatformLegalEntity(ctx context.Context, arg UpdatePlatformLegalEntityParams) (PlatformLegalEntity, error)
 	UpdatePlatformSetting(ctx context.Context, arg UpdatePlatformSettingParams) (PlatformSetting, error)
+	UpdatePromoCode(ctx context.Context, arg UpdatePromoCodeParams) (PromoCode, error)
 	UpdateRecurringDiscount(ctx context.Context, arg UpdateRecurringDiscountParams) (RecurringDiscount, error)
 	UpdateRefundRequestStatus(ctx context.Context, arg UpdateRefundRequestStatusParams) (RefundRequest, error)
 	UpdateReviewStatus(ctx context.Context, arg UpdateReviewStatusParams) (Review, error)
@@ -510,6 +526,10 @@ type Querier interface {
 	UpdateUserStatus(ctx context.Context, arg UpdateUserStatusParams) (User, error)
 	UpdateWorkerBio(ctx context.Context, arg UpdateWorkerBioParams) (Worker, error)
 	UpdateWorkerDocumentStatus(ctx context.Context, arg UpdateWorkerDocumentStatusParams) (WorkerDocument, error)
+	// DEPRECATED: Avatar now stored in users table (see users.sql UpdateUserAvatar)
+	// -- name: UpdateWorkerAvatar :one
+	// UPDATE workers SET avatar_url = $2, updated_at = NOW() WHERE id = $1 RETURNING *;
+	UpdateWorkerMaxDailyBookings(ctx context.Context, arg UpdateWorkerMaxDailyBookingsParams) (Worker, error)
 	UpdateWorkerStatus(ctx context.Context, arg UpdateWorkerStatusParams) (Worker, error)
 	UpdateWorkerUserPhone(ctx context.Context, arg UpdateWorkerUserPhoneParams) error
 	UpsertCompanyWorkScheduleDay(ctx context.Context, arg UpsertCompanyWorkScheduleDayParams) (CompanyWorkSchedule, error)

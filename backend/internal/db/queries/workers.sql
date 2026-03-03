@@ -85,3 +85,12 @@ WHERE company_id = $1 AND status = 'suspended';
 -- DEPRECATED: Avatar now stored in users table (see users.sql UpdateUserAvatar)
 -- -- name: UpdateWorkerAvatar :one
 -- UPDATE workers SET avatar_url = $2, updated_at = NOW() WHERE id = $1 RETURNING *;
+
+-- name: UpdateWorkerMaxDailyBookings :one
+UPDATE workers SET max_daily_bookings = $2, updated_at = NOW() WHERE id = $1 RETURNING *;
+
+-- name: CountWorkerBookingsForDate :one
+SELECT COUNT(*) FROM bookings
+WHERE worker_id = $1
+  AND scheduled_date = $2
+  AND status NOT IN ('cancelled_by_client', 'cancelled_by_company', 'cancelled_by_admin');

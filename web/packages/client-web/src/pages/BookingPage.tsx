@@ -78,11 +78,11 @@ import {
   UPDATE_PROFILE,
   MY_REFERRAL_STATUS,
   APPLY_REFERRAL_DISCOUNT,
+  VALIDATE_PROMO_CODE,
+  APPLY_PROMO_CODE_TO_BOOKING,
 } from '@/graphql/operations';
 
-const stripePromise = loadStripe(
-  import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_placeholder',
-);
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || null);
 
 // ---- Types ------------------------------------------------------------------
 
@@ -394,6 +394,16 @@ export default function BookingPage() {
   const [appliedReferralDiscountId, setAppliedReferralDiscountId] = useState<string | null>(null);
   const [referralApplied, setReferralApplied] = useState(false);
 
+  // Promo code state
+  const [promoCode, setPromoCode] = useState('');
+  const [promoValidation, setPromoValidation] = useState<{
+    valid: boolean;
+    discountAmount?: number;
+    errorMessage?: string;
+  } | null>(null);
+  const [validatingPromo, setValidatingPromo] = useState(false);
+  const [appliedPromoCode, setAppliedPromoCode] = useState<string | null>(null);
+
   // Dynamic steps: authenticated users get a Payment step; guests don't
   const STEPS = useMemo(() => {
     if (!isAuthenticated) return STEPS_BASE.filter((s) => s.key !== 'payment');
@@ -494,6 +504,10 @@ export default function BookingPage() {
     fetchPolicy: 'network-only',
   });
   const [applyReferralDiscount] = useMutation(APPLY_REFERRAL_DISCOUNT);
+
+  // Promo code hooks
+  const [validatePromoCode] = useLazyQuery(VALIDATE_PROMO_CODE);
+  const [applyPromoCode] = useMutation(APPLY_PROMO_CODE_TO_BOOKING);
 
   // Subscription pricing
   const { data: discountsData } = useQuery(RECURRING_DISCOUNTS);
@@ -688,6 +702,25 @@ export default function BookingPage() {
       setBookingPhoneSaving(false);
     }
   }, [bookingPhone, updateProfile, refetchUser]);
+
+  const handleValidatePromo = useCallback(async () => {
+    if (!promoCode.trim()) return;
+    setValidatingPromo(true);
+    setPromoValidation(null);
+    try {
+      const { data } = await validatePromoCode({
+        variables: { code: promoCode.trim(), orderAmount: estimate?.total ?? 0 },
+      });
+      setPromoValidation(data?.validatePromoCode);
+      if (data?.validatePromoCode?.valid) {
+        setAppliedPromoCode(promoCode.trim());
+      }
+    } catch {
+      setPromoValidation({ valid: false, errorMessage: 'Eroare la validarea codului' });
+    } finally {
+      setValidatingPromo(false);
+    }
+  }, [promoCode, validatePromoCode, estimate?.total]);
 
   // wantReferralDiscount: user toggled "Aplică reducerea" before paying
   const [wantReferralDiscount, setWantReferralDiscount] = useState(false);
@@ -918,6 +951,11 @@ export default function BookingPage() {
         }
       }
 
+      // 1c. Apply promo code if one was validated
+      if (appliedPromoCode) {
+        applyPromoCode({ variables: { bookingId, code: appliedPromoCode } }).catch(() => {});
+      }
+
       // 2. Create PaymentIntent
       try {
         const { data: piData } = await createPaymentIntent({
@@ -958,7 +996,7 @@ export default function BookingPage() {
     } finally {
       setPaymentProcessing(false);
     }
-  }, [selectedPaymentMethodId, paymentMethods, buildBookingInput, createBooking, createPaymentIntent, createSubscription, form, wantReferralDiscount, appliedReferralDiscountId, applyReferralDiscount]);
+  }, [selectedPaymentMethodId, paymentMethods, buildBookingInput, createBooking, createPaymentIntent, createSubscription, form, wantReferralDiscount, appliedReferralDiscountId, applyReferralDiscount, appliedPromoCode, applyPromoCode]);
 
   // ---- Auth handlers --------------------------------------------------------
 
@@ -1080,6 +1118,43 @@ export default function BookingPage() {
               Înapoi la pagina principală
             </Button>
           </div>
+
+          {/* Guest upsell — create account to track booking & earn referral credits */}
+          {!isAuthenticated && !hasPaymentError && (
+            <div className="mt-8 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 p-6 text-left">
+              <div className="flex items-start gap-3 mb-4">
+                <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-blue-600 shrink-0">
+                  <LogIn className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 text-sm">Creează un cont gratuit</h3>
+                  <p className="text-xs text-gray-500 mt-0.5">Urmărești comanda mai ușor și primești beneficii exclusive</p>
+                </div>
+              </div>
+              <ul className="space-y-2 text-xs text-gray-600 mb-5">
+                <li className="flex items-center gap-2">
+                  <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                  Urmărești statusul comenzii în timp real
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                  Adresele și preferințele salvate pentru rezervări viitoare
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                  Cod de referral — câștigă reduceri invitând prieteni
+                </li>
+              </ul>
+              <GoogleLogin
+                onSuccess={handleBookingGoogleSuccess}
+                onError={() => {}}
+                text="signup_with"
+                shape="rectangular"
+                size="large"
+                width="100%"
+              />
+            </div>
+          )}
         </div>
       </div>
     );
@@ -1386,6 +1461,53 @@ export default function BookingPage() {
                     </div>
                   </Card>
                 )}
+
+                {/* Promo code */}
+                <div className="mt-4">
+                  <label className="text-sm font-medium text-gray-700 block mb-1.5">Cod promoțional</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={promoCode}
+                      onChange={(e) => {
+                        setPromoCode(e.target.value.toUpperCase());
+                        setPromoValidation(null);
+                      }}
+                      onKeyDown={(e) => e.key === 'Enter' && handleValidatePromo()}
+                      placeholder="ex: SPRING25"
+                      className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 font-mono uppercase"
+                      disabled={promoValidation?.valid}
+                    />
+                    {!promoValidation?.valid && (
+                      <Button
+                        size="sm"
+                        onClick={handleValidatePromo}
+                        disabled={!promoCode.trim() || validatingPromo}
+                      >
+                        {validatingPromo ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Aplică'}
+                      </Button>
+                    )}
+                  </div>
+                  {promoValidation && (
+                    <div
+                      className={`mt-2 text-sm flex items-center gap-2 ${
+                        promoValidation.valid ? 'text-green-600' : 'text-red-500'
+                      }`}
+                    >
+                      {promoValidation.valid ? (
+                        <>
+                          <CheckCircle2 className="h-4 w-4" />
+                          Reducere aplicată: -{promoValidation.discountAmount?.toFixed(2)} RON
+                        </>
+                      ) : (
+                        <>
+                          <AlertCircle className="h-4 w-4" />
+                          {promoValidation.errorMessage}
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
 
                 {/* Saved cards */}
                 <Card>

@@ -12,6 +12,7 @@ import (
 	db "go2fix-backend/internal/db/generated"
 	"go2fix-backend/internal/graph/model"
 	subSvc "go2fix-backend/internal/service/subscription"
+	"log"
 	"strings"
 	"time"
 
@@ -181,6 +182,19 @@ func (r *mutationResolver) PauseSubscription(ctx context.Context, id string) (*m
 		return nil, err
 	}
 
+	// Notify client that their subscription is paused.
+	go func(clientID pgtype.UUID) {
+		if _, err := r.Queries.CreateNotification(context.Background(), db.CreateNotificationParams{
+			UserID: clientID,
+			Type:   db.NotificationTypeSubscriptionCancelled,
+			Title:  "Abonament pausat",
+			Body:   "Abonamentul tău a fost pausat cu succes. Îl poți reactiva oricând.",
+			Data:   []byte(fmt.Sprintf(`{"subscriptionId":"%s"}`, uuidToString(updated.ID))),
+		}); err != nil {
+			log.Printf("pauseSubscription: failed to notify client: %v", err)
+		}
+	}(sub.ClientUserID)
+
 	return r.fullSubscription(ctx, updated)
 }
 
@@ -204,6 +218,19 @@ func (r *mutationResolver) ResumeSubscription(ctx context.Context, id string) (*
 	if err != nil {
 		return nil, err
 	}
+
+	// Notify client that their subscription is active again.
+	go func(clientID pgtype.UUID) {
+		if _, err := r.Queries.CreateNotification(context.Background(), db.CreateNotificationParams{
+			UserID: clientID,
+			Type:   db.NotificationTypeSubscriptionConfirmed,
+			Title:  "Abonament reactivat",
+			Body:   "Abonamentul tău a fost reactivat. Programările tale reiau conform planificării.",
+			Data:   []byte(fmt.Sprintf(`{"subscriptionId":"%s"}`, uuidToString(updated.ID))),
+		}); err != nil {
+			log.Printf("resumeSubscription: failed to notify client: %v", err)
+		}
+	}(sub.ClientUserID)
 
 	return r.fullSubscription(ctx, updated)
 }

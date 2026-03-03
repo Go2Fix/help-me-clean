@@ -206,6 +206,25 @@ export const MY_BOOKINGS = gql`
   }
 `;
 
+export const MY_RECENT_COMPLETED_BOOKINGS = gql`
+  query MyRecentCompletedBookings {
+    myBookings(status: COMPLETED, first: 3) {
+      edges {
+        id
+        referenceCode
+        serviceType
+        serviceName
+        scheduledDate
+        paymentStatus
+        review {
+          id
+          rating
+        }
+      }
+    }
+  }
+`;
+
 export const CLIENT_BOOKING_DETAIL = gql`
   query ClientBookingDetail($id: ID!) {
     booking(id: $id) {
@@ -274,6 +293,12 @@ export const CLIENT_BOOKING_DETAIL = gql`
         }
         price
         quantity
+      }
+      photos {
+        id
+        photoUrl
+        phase
+        sortOrder
       }
       review {
         id
@@ -1211,6 +1236,7 @@ export const MY_WORKERS = gql`
       inviteToken
       ratingAvg
       totalJobsCompleted
+      maxDailyBookings
       serviceCategories {
         id
         slug
@@ -3586,8 +3612,19 @@ export const INVOICE_DETAIL = gql`
       status
       sellerCompanyName
       sellerCui
+      sellerRegNumber
+      sellerAddress
+      sellerCity
+      sellerCounty
+      sellerIsVatPayer
+      sellerBankName
+      sellerIban
       buyerName
       buyerCui
+      buyerAddress
+      buyerCity
+      buyerCounty
+      buyerIsVatPayer
       subtotalAmount
       vatRate
       vatAmount
@@ -4560,6 +4597,123 @@ export const APPLY_REFERRAL_DISCOUNT = gql`
       platformCommissionPct
       estimatedTotal
       referralDiscountId
+    }
+  }
+`;
+
+// ─── Job Photos ───────────────────────────────────────────────────────────────
+
+export const UPLOAD_JOB_PHOTO = gql`
+  mutation UploadJobPhoto($bookingId: ID!, $file: Upload!, $phase: String!) {
+    uploadJobPhoto(bookingId: $bookingId, file: $file, phase: $phase) {
+      id
+      bookingId
+      photoUrl
+      phase
+      sortOrder
+      createdAt
+    }
+  }
+`;
+
+export const DELETE_JOB_PHOTO = gql`
+  mutation DeleteJobPhoto($id: ID!) {
+    deleteJobPhoto(id: $id)
+  }
+`;
+
+// ─── Worker Max Daily Bookings ────────────────────────────────────────────────
+
+export const UPDATE_WORKER_MAX_DAILY_BOOKINGS = gql`
+  mutation UpdateWorkerMaxDailyBookings($workerId: ID!, $limit: Int) {
+    updateWorkerMaxDailyBookings(workerId: $workerId, limit: $limit) {
+      id
+      maxDailyBookings
+    }
+  }
+`;
+
+// ─── Promo Codes ──────────────────────────────────────────────────────────────
+
+export const VALIDATE_PROMO_CODE = gql`
+  query ValidatePromoCode($code: String!, $orderAmount: Float!) {
+    validatePromoCode(code: $code, orderAmount: $orderAmount) {
+      valid
+      discountAmount
+      errorMessage
+      promoCode {
+        id
+        code
+        description
+        discountType
+        discountValue
+        minOrderAmount
+      }
+    }
+  }
+`;
+
+export const APPLY_PROMO_CODE_TO_BOOKING = gql`
+  mutation ApplyPromoCodeToBooking($bookingId: ID!, $code: String!) {
+    applyPromoCodeToBooking(bookingId: $bookingId, code: $code) {
+      id
+      promoCodeId
+      promoDiscountAmount
+      estimatedTotal
+    }
+  }
+`;
+
+export const LIST_PROMO_CODES = gql`
+  query ListPromoCodes($limit: Int, $offset: Int) {
+    listPromoCodes(limit: $limit, offset: $offset) {
+      edges {
+        id
+        code
+        description
+        discountType
+        discountValue
+        minOrderAmount
+        maxUses
+        usesCount
+        maxUsesPerUser
+        isActive
+        activeFrom
+        activeUntil
+        createdAt
+      }
+      totalCount
+    }
+  }
+`;
+
+export const CREATE_PROMO_CODE = gql`
+  mutation CreatePromoCode($input: CreatePromoCodeInput!) {
+    createPromoCode(input: $input) {
+      id
+      code
+      description
+      discountType
+      discountValue
+      minOrderAmount
+      maxUses
+      usesCount
+      maxUsesPerUser
+      isActive
+      activeFrom
+      activeUntil
+    }
+  }
+`;
+
+export const UPDATE_PROMO_CODE = gql`
+  mutation UpdatePromoCode($id: ID!, $input: UpdatePromoCodeInput!) {
+    updatePromoCode(id: $id, input: $input) {
+      id
+      code
+      isActive
+      maxUses
+      activeUntil
     }
   }
 `;

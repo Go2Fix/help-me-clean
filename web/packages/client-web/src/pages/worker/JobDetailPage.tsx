@@ -5,7 +5,8 @@ import {
   ArrowLeft, Calendar, Repeat, Clock, MapPin, Home,
   PawPrint, Check, CheckCircle, CheckSquare, Square,
   AlertTriangle, Phone, Star,
-  Building2, Key, FileText, XCircle,
+  Building2, Key, FileText, XCircle, Navigation,
+  Camera, X, Loader2,
 } from 'lucide-react';
 import { cn } from '@go2fix/shared';
 import Card from '@/components/ui/Card';
@@ -15,9 +16,18 @@ import {
   CLIENT_BOOKING_DETAIL,
   START_JOB,
   COMPLETE_JOB,
+  UPLOAD_JOB_PHOTO,
+  DELETE_JOB_PHOTO,
 } from '@/graphql/operations';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
+
+interface BookingJobPhoto {
+  id: string;
+  photoUrl: string;
+  phase: string;
+  sortOrder: number;
+}
 
 interface BookingExtra {
   extra: {
@@ -66,6 +76,7 @@ interface BookingData {
   extras: BookingExtra[];
   review?: { id: string; rating: number; comment?: string; createdAt: string };
   category?: { id: string; slug: string; nameRo: string; nameEn: string; icon?: string } | null;
+  photos?: BookingJobPhoto[];
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -123,6 +134,8 @@ export default function JobDetailPage() {
   const navigate = useNavigate();
   const [error, setError] = useState('');
   const [checkedItems, setCheckedItems] = useState<Set<number>>(new Set());
+  const [photoPhase, setPhotoPhase] = useState<'before' | 'after' | 'during'>('during');
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   const { data, loading } = useQuery(CLIENT_BOOKING_DETAIL, {
     variables: { id },
@@ -134,6 +147,8 @@ export default function JobDetailPage() {
   // List queries (TODAYS_JOBS, MY_ASSIGNED_JOBS) self-correct via cache-and-network on next visit.
   const [startJob, { loading: starting }] = useMutation(START_JOB);
   const [completeJob, { loading: completing }] = useMutation(COMPLETE_JOB);
+  const [uploadJobPhoto] = useMutation(UPLOAD_JOB_PHOTO);
+  const [deleteJobPhoto] = useMutation(DELETE_JOB_PHOTO);
   const actionLoading = starting || completing;
 
   const handleAction = async (action: 'start' | 'complete') => {
@@ -143,6 +158,35 @@ export default function JobDetailPage() {
       if (action === 'complete') await completeJob({ variables: { id } });
     } catch {
       setError('Nu s-a putut actualiza statusul. Te rugam sa incerci din nou.');
+    }
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !booking) return;
+    setUploadingPhoto(true);
+    try {
+      await uploadJobPhoto({
+        variables: { bookingId: booking.id, file, phase: photoPhase },
+        refetchQueries: ['ClientBookingDetail'],
+      });
+    } catch (err) {
+      console.error('Failed to upload photo:', err);
+    } finally {
+      setUploadingPhoto(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleDeletePhoto = async (photoId: string) => {
+    if (!confirm('Stergi aceasta poza?')) return;
+    try {
+      await deleteJobPhoto({
+        variables: { id: photoId },
+        refetchQueries: ['ClientBookingDetail'],
+      });
+    } catch (err) {
+      console.error('Failed to delete photo:', err);
     }
   };
 
@@ -536,7 +580,7 @@ export default function JobDetailPage() {
                 <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-blue-50 shrink-0 mt-0.5">
                   <MapPin className="h-4 w-4 text-blue-600" />
                 </div>
-                <div className="space-y-0.5 text-sm text-gray-600">
+                <div className="space-y-0.5 text-sm text-gray-600 flex-1">
                   <p className="font-medium text-gray-900">{booking.address.streetAddress}</p>
                   <p>{booking.address.city}{booking.address.county ? `, ${booking.address.county}` : ''}</p>
                   {(booking.address.floor || booking.address.apartment) && (
@@ -546,6 +590,17 @@ export default function JobDetailPage() {
                       {booking.address.apartment && `Ap. ${booking.address.apartment}`}
                     </p>
                   )}
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                      [booking.address.streetAddress, booking.address.city, booking.address.county].filter(Boolean).join(', ')
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 mt-2 text-xs font-medium text-blue-600 hover:text-blue-700 transition-colors"
+                  >
+                    <Navigation className="h-3.5 w-3.5" />
+                    Deschide în Google Maps
+                  </a>
                 </div>
               </div>
 
@@ -565,6 +620,61 @@ export default function JobDetailPage() {
                 <div className="mt-3 pt-3 border-t border-gray-100">
                   <p className="text-xs text-gray-500 mb-1">Note adresa</p>
                   <p className="text-sm text-gray-600">{booking.address.notes}</p>
+                </div>
+              )}
+            </Card>
+          )}
+
+          {/* Job Photos */}
+          {(booking.status === 'IN_PROGRESS' || booking.status === 'COMPLETED') && (
+            <Card className="p-5">
+              <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Camera className="h-4 w-4 text-blue-600" />
+                Poze lucrare
+              </h3>
+
+              {/* Photo grid */}
+              {booking.photos && booking.photos.length > 0 && (
+                <div className="grid grid-cols-3 gap-2 mb-4">
+                  {booking.photos.map((photo) => (
+                    <div key={photo.id} className="relative group aspect-square rounded-lg overflow-hidden bg-gray-100">
+                      <img src={photo.photoUrl} alt={photo.phase} className="w-full h-full object-cover" />
+                      <div className="absolute top-1 left-1">
+                        <span className="text-xs bg-black/60 text-white px-1.5 py-0.5 rounded-full">
+                          {photo.phase === 'before' ? 'Inainte' : photo.phase === 'after' ? 'Dupa' : 'Lucru'}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => handleDeletePhoto(photo.id)}
+                        className="absolute top-1 right-1 p-1 bg-red-500/80 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Upload controls (only in IN_PROGRESS) */}
+              {booking.status === 'IN_PROGRESS' && (
+                <div className="flex gap-2">
+                  <select
+                    value={photoPhase}
+                    onChange={(e) => setPhotoPhase(e.target.value as 'before' | 'after' | 'during')}
+                    className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white"
+                  >
+                    <option value="before">Inainte</option>
+                    <option value="during">In lucru</option>
+                    <option value="after">Dupa</option>
+                  </select>
+                  <label className={cn(
+                    'flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg cursor-pointer hover:bg-blue-700 transition-colors',
+                    uploadingPhoto && 'opacity-50 pointer-events-none',
+                  )}>
+                    {uploadingPhoto ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+                    Adauga poza
+                    <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={uploadingPhoto} />
+                  </label>
                 </div>
               )}
             </Card>

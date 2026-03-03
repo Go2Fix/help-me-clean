@@ -133,10 +133,13 @@ type Booking struct {
 	RescheduledAt          *time.Time         `json:"rescheduledAt,omitempty"`
 	TimeSlots              []*BookingTimeSlot `json:"timeSlots"`
 	Review                 *Review            `json:"review,omitempty"`
+	Photos                 []*BookingJobPhoto `json:"photos"`
 	CategoryID             *string            `json:"categoryId,omitempty"`
 	Category               *ServiceCategory   `json:"category,omitempty"`
 	CustomFields           *string            `json:"customFields,omitempty"`
 	ReferralDiscountID     *string            `json:"referralDiscountId,omitempty"`
+	PromoCodeID            *string            `json:"promoCodeId,omitempty"`
+	PromoDiscountAmount    *float64           `json:"promoDiscountAmount,omitempty"`
 	CreatedAt              time.Time          `json:"createdAt"`
 }
 
@@ -161,6 +164,16 @@ type BookingExtra struct {
 	Extra    *ServiceExtra `json:"extra"`
 	Price    float64       `json:"price"`
 	Quantity int           `json:"quantity"`
+}
+
+type BookingJobPhoto struct {
+	ID         string    `json:"id"`
+	BookingID  string    `json:"bookingId"`
+	UploadedBy string    `json:"uploadedBy"`
+	PhotoURL   string    `json:"photoUrl"`
+	Phase      string    `json:"phase"`
+	SortOrder  int       `json:"sortOrder"`
+	CreatedAt  time.Time `json:"createdAt"`
 }
 
 type BookingPolicy struct {
@@ -378,6 +391,18 @@ type CreateBookingInput struct {
 	Recurrence          *RecurrenceInput `json:"recurrence,omitempty"`
 	CustomFields        *string          `json:"customFields,omitempty"`
 	CityAreaID          *string          `json:"cityAreaId,omitempty"`
+}
+
+type CreatePromoCodeInput struct {
+	Code           string   `json:"code"`
+	Description    *string  `json:"description,omitempty"`
+	DiscountType   string   `json:"discountType"`
+	DiscountValue  float64  `json:"discountValue"`
+	MinOrderAmount *float64 `json:"minOrderAmount,omitempty"`
+	MaxUses        *int     `json:"maxUses,omitempty"`
+	MaxUsesPerUser *int     `json:"maxUsesPerUser,omitempty"`
+	ActiveFrom     *string  `json:"activeFrom,omitempty"`
+	ActiveUntil    *string  `json:"activeUntil,omitempty"`
 }
 
 type CreateServiceCategoryInput struct {
@@ -773,6 +798,34 @@ type PriceEstimateInput struct {
 	City         *string       `json:"city,omitempty"`
 }
 
+type PromoCode struct {
+	ID             string     `json:"id"`
+	Code           string     `json:"code"`
+	Description    *string    `json:"description,omitempty"`
+	DiscountType   string     `json:"discountType"`
+	DiscountValue  float64    `json:"discountValue"`
+	MinOrderAmount float64    `json:"minOrderAmount"`
+	MaxUses        *int       `json:"maxUses,omitempty"`
+	UsesCount      int        `json:"usesCount"`
+	MaxUsesPerUser int        `json:"maxUsesPerUser"`
+	ActiveFrom     time.Time  `json:"activeFrom"`
+	ActiveUntil    *time.Time `json:"activeUntil,omitempty"`
+	IsActive       bool       `json:"isActive"`
+	CreatedAt      time.Time  `json:"createdAt"`
+}
+
+type PromoCodeConnection struct {
+	Edges      []*PromoCode `json:"edges"`
+	TotalCount int          `json:"totalCount"`
+}
+
+type PromoCodeValidation struct {
+	Valid          bool       `json:"valid"`
+	PromoCode      *PromoCode `json:"promoCode,omitempty"`
+	DiscountAmount float64    `json:"discountAmount"`
+	ErrorMessage   *string    `json:"errorMessage,omitempty"`
+}
+
 type Query struct {
 }
 
@@ -1068,6 +1121,18 @@ type UpdateProfileInput struct {
 	PreferredLanguage *string `json:"preferredLanguage,omitempty"`
 }
 
+type UpdatePromoCodeInput struct {
+	Description    *string  `json:"description,omitempty"`
+	DiscountType   *string  `json:"discountType,omitempty"`
+	DiscountValue  *float64 `json:"discountValue,omitempty"`
+	MinOrderAmount *float64 `json:"minOrderAmount,omitempty"`
+	MaxUses        *int     `json:"maxUses,omitempty"`
+	MaxUsesPerUser *int     `json:"maxUsesPerUser,omitempty"`
+	ActiveFrom     *string  `json:"activeFrom,omitempty"`
+	ActiveUntil    *string  `json:"activeUntil,omitempty"`
+	IsActive       *bool    `json:"isActive,omitempty"`
+}
+
 type UpdateServiceCategoryInput struct {
 	ID            string   `json:"id"`
 	NameRo        string   `json:"nameRo"`
@@ -1225,6 +1290,7 @@ type WorkerProfile struct {
 	Availability          []*AvailabilitySlot    `json:"availability"`
 	ServiceCategories     []*ServiceCategory     `json:"serviceCategories"`
 	CreatedAt             time.Time              `json:"createdAt"`
+	MaxDailyBookings      *int                   `json:"maxDailyBookings,omitempty"`
 }
 
 type WorkerStats struct {
