@@ -81,7 +81,7 @@ func (r *mutationResolver) OpenDispute(ctx context.Context, bookingID string, re
 		return nil, fmt.Errorf("failed to create dispute: %w", err)
 	}
 
-	r.dispatchDisputeOpenedNotifications(booking, dispute)
+	r.dispatchDisputeOpenedNotifications(ctx, booking, dispute)
 
 	return dbDisputeToGQL(dispute), nil
 }
@@ -175,7 +175,7 @@ func (r *mutationResolver) RespondToDispute(ctx context.Context, disputeID strin
 		return nil, fmt.Errorf("failed to save company response: %w", err)
 	}
 
-	r.dispatchDisputeResponseNotifications(booking, updated)
+	r.dispatchDisputeResponseNotifications(ctx, booking, updated)
 
 	return dbDisputeToGQL(updated), nil
 }
@@ -238,7 +238,7 @@ func (r *mutationResolver) ResolveDispute(ctx context.Context, disputeID string,
 		r.issueDisputeRefund(dispute.BookingID, *refundAmount)
 	}
 
-	r.dispatchDisputeResolvedNotification(dispute.BookingID, resolved)
+	r.dispatchDisputeResolvedNotification(ctx, dispute.BookingID, resolved)
 
 	return dbDisputeToGQL(resolved), nil
 }

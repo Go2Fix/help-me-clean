@@ -101,7 +101,7 @@ func (r *mutationResolver) GenerateBookingInvoice(ctx context.Context, bookingID
 	}
 
 	// Notify buyer that invoice is ready (non-blocking).
-	r.dispatchInvoiceReady(inv)
+	r.dispatchInvoiceReady(ctx, inv)
 
 	gqlInvoice := dbInvoiceToGQL(inv)
 	r.enrichInvoice(ctx, inv, gqlInvoice)
@@ -247,7 +247,7 @@ func (r *mutationResolver) MarkInvoiceAsPaid(ctx context.Context, id string) (*m
 	}
 
 	// Notify company admin that invoice has been paid (non-blocking).
-	r.dispatchInvoicePaid(inv)
+	r.dispatchInvoicePaid(ctx, inv)
 
 	return dbInvoiceToGQL(inv), nil
 }

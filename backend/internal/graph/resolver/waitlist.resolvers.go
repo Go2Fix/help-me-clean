@@ -61,7 +61,7 @@ func (r *mutationResolver) JoinWaitlist(ctx context.Context, input model.JoinWai
 	if input.City != nil {
 		city = *input.City
 	}
-	r.dispatchWaitlistJoined(input.Name, input.Email, city, leadType)
+	r.dispatchWaitlistJoined(ctx, input.Name, input.Email, city, leadType)
 
 	return dbWaitlistLeadToGQL(row), nil
 }

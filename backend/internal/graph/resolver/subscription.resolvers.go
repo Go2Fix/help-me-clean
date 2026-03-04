@@ -156,7 +156,7 @@ func (r *mutationResolver) CreateSubscription(ctx context.Context, input model.C
 	}
 
 	// Notify client that subscription is confirmed (non-blocking).
-	r.dispatchSubscriptionConfirmed(sub)
+	r.dispatchSubscriptionConfirmed(ctx, sub)
 
 	return r.fullSubscription(ctx, sub)
 }
@@ -262,7 +262,7 @@ func (r *mutationResolver) CancelSubscription(ctx context.Context, id string, re
 	}
 
 	// Notify client that subscription is cancelled (non-blocking).
-	r.dispatchSubscriptionCancelled(updated, reasonText)
+	r.dispatchSubscriptionCancelled(ctx, updated, reasonText)
 
 	return r.fullSubscription(ctx, updated)
 }

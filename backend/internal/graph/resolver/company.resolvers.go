@@ -127,16 +127,16 @@ func (r *mutationResolver) ApplyAsCompany(ctx context.Context, input model.Compa
 	// Trigger ANAF verification asynchronously — never blocks the mutation response.
 	go r.triggerANAFVerification(company.ID, input.Cui)
 
-	// Notify applicant that their application was received (non-blocking).
-	go func() {
-		r.NotifSvc.Dispatch(notification.EventCompanyApplicationReceived,
-			notification.Payload{
-				"companyName":         company.CompanyName,
-				"legalRepresentative": company.LegalRepresentative,
-			},
-			[]notification.Target{{Email: company.ContactEmail, Name: company.LegalRepresentative}},
-		)
-	}()
+	// Notify applicant that their application was received.
+	if err := r.NotifSvc.DispatchSync(ctx, notification.EventCompanyApplicationReceived,
+		notification.Payload{
+			"companyName":         company.CompanyName,
+			"legalRepresentative": company.LegalRepresentative,
+		},
+		[]notification.Target{{Email: company.ContactEmail, Name: company.LegalRepresentative}},
+	); err != nil {
+		log.Printf("[notif] ApplyAsCompany: %v", err)
+	}
 
 	result := &model.CompanyApplicationResult{
 		Company: dbCompanyToGQL(company),
@@ -378,22 +378,25 @@ func (r *mutationResolver) ApproveCompany(ctx context.Context, id string) (*mode
 	// Reactivate workers that were suspended when the company was suspended
 	_ = r.Queries.ReactivateWorkersByCompany(ctx, companyUUID)
 
-	// Notify company admin and upsert contact (non-blocking).
-	go func() {
-		bgCtx := context.Background()
+	// Notify company admin and upsert contact.
+	{
 		targets := []notification.Target{{Email: company.ContactEmail, Name: company.LegalRepresentative}}
 		payload := notification.Payload{
 			"companyName":         company.CompanyName,
 			"legalRepresentative": company.LegalRepresentative,
 		}
-		r.NotifSvc.Dispatch(notification.EventCompanyApproved, payload, targets)
+		if err := r.NotifSvc.DispatchSync(ctx, notification.EventCompanyApproved, payload, targets); err != nil {
+			log.Printf("[notif] ApproveCompany: contact email: %v", err)
+		}
 
 		// Also notify admin user (linked account) and upsert contact.
-		adminUserID, adminEmail, adminName := r.loadCompanyAdmin(bgCtx, company)
+		adminUserID, adminEmail, adminName := r.loadCompanyAdmin(ctx, company)
 		if adminEmail != "" && adminEmail != company.ContactEmail {
-			r.NotifSvc.Dispatch(notification.EventCompanyApproved, payload,
+			if err := r.NotifSvc.DispatchSync(ctx, notification.EventCompanyApproved, payload,
 				[]notification.Target{{UserID: adminUserID, Email: adminEmail, Name: adminName}},
-			)
+			); err != nil {
+				log.Printf("[notif] ApproveCompany: admin email: %v", err)
+			}
 		}
 		contactEmail := adminEmail
 		contactName := adminName
@@ -401,14 +404,14 @@ func (r *mutationResolver) ApproveCompany(ctx context.Context, id string) (*mode
 			contactEmail = company.ContactEmail
 			contactName = company.LegalRepresentative
 		}
-		r.NotifSvc.UpsertContact(bgCtx, notification.ContactData{
+		r.NotifSvc.UpsertContact(ctx, notification.ContactData{
 			Email:    contactEmail,
 			Name:     contactName,
 			UserType: "company_admin",
 			City:     company.City,
 			Status:   "active",
 		})
-	}()
+	}
 
 	return dbCompanyToGQL(company), nil
 }
@@ -428,18 +431,19 @@ func (r *mutationResolver) RejectCompany(ctx context.Context, id string, reason 
 		return nil, fmt.Errorf("failed to reject company: %w", err)
 	}
 
-	// Notify applicant of rejection (non-blocking).
-	go func() {
-		bgCtx := context.Background()
-		adminUserID, _, _ := r.loadCompanyAdmin(bgCtx, company)
-		r.NotifSvc.Dispatch(notification.EventCompanyRejected,
+	// Notify applicant of rejection.
+	{
+		adminUserID, _, _ := r.loadCompanyAdmin(ctx, company)
+		if err := r.NotifSvc.DispatchSync(ctx, notification.EventCompanyRejected,
 			notification.Payload{
 				"companyName": company.CompanyName,
 				"reason":      reason,
 			},
 			[]notification.Target{{UserID: adminUserID, Email: company.ContactEmail, Name: company.LegalRepresentative}},
-		)
-	}()
+		); err != nil {
+			log.Printf("[notif] RejectCompany: %v", err)
+		}
+	}
 
 	return dbCompanyToGQL(company), nil
 }
@@ -476,30 +480,31 @@ func (r *mutationResolver) SuspendCompany(ctx context.Context, id string, reason
 		CancellationReason: pgtype.Text{String: "Compania a fost suspendată", Valid: true},
 	})
 
-	// Notify company contact and update contact record (non-blocking).
-	go func() {
-		bgCtx := context.Background()
-		adminUserID, adminEmail, adminName := r.loadCompanyAdmin(bgCtx, company)
-		r.NotifSvc.Dispatch(notification.EventCompanySuspended,
+	// Notify company contact and update contact record.
+	{
+		adminUserID, adminEmail, adminName := r.loadCompanyAdmin(ctx, company)
+		if err := r.NotifSvc.DispatchSync(ctx, notification.EventCompanySuspended,
 			notification.Payload{
 				"companyName": company.CompanyName,
 				"reason":      reason,
 			},
 			[]notification.Target{{UserID: adminUserID, Email: company.ContactEmail, Name: company.LegalRepresentative}},
-		)
+		); err != nil {
+			log.Printf("[notif] SuspendCompany: %v", err)
+		}
 		// Update admin user contact status to suspended.
 		if adminEmail == "" {
 			adminEmail = company.ContactEmail
 			adminName = company.LegalRepresentative
 		}
-		r.NotifSvc.UpsertContact(bgCtx, notification.ContactData{
+		r.NotifSvc.UpsertContact(ctx, notification.ContactData{
 			Email:    adminEmail,
 			Name:     adminName,
 			UserType: "company_admin",
 			City:     company.City,
 			Status:   "suspended",
 		})
-	}()
+	}
 
 	return dbCompanyToGQL(company), nil
 }
@@ -531,43 +536,46 @@ func (r *mutationResolver) ReviewCompanyDocument(ctx context.Context, id string,
 		return nil, fmt.Errorf("failed to review document: %w", err)
 	}
 
-	// Notify the company admin about the document review result (non-blocking).
-	go func() {
-		bgCtx := context.Background()
-		company, compErr := r.Queries.GetCompanyByID(bgCtx, doc.CompanyID)
+	// Notify the company admin about the document review result.
+	{
+		company, compErr := r.Queries.GetCompanyByID(ctx, doc.CompanyID)
 		if compErr != nil {
 			log.Printf("[notif] reviewDocument: could not load company %s: %v", uuidToString(doc.CompanyID), compErr)
-			return
-		}
-		adminUserID, adminEmail, adminName := r.loadCompanyAdmin(bgCtx, company)
-		if adminEmail == "" {
-			adminEmail = company.ContactEmail
-			adminName = company.LegalRepresentative
-		}
-		targets := []notification.Target{{UserID: adminUserID, Email: adminEmail, Name: adminName}}
-		if approved {
-			r.NotifSvc.Dispatch(notification.EventDocumentApproved,
-				notification.Payload{
-					"documentType": doc.DocumentType,
-					"companyName":  company.CompanyName,
-				},
-				targets,
-			)
 		} else {
-			rejectionStr := ""
-			if rejectionReason != nil {
-				rejectionStr = *rejectionReason
+			adminUserID, adminEmail, adminName := r.loadCompanyAdmin(ctx, company)
+			if adminEmail == "" {
+				adminEmail = company.ContactEmail
+				adminName = company.LegalRepresentative
 			}
-			r.NotifSvc.Dispatch(notification.EventDocumentRejected,
-				notification.Payload{
-					"documentType": doc.DocumentType,
-					"reason":       rejectionStr,
-					"companyName":  company.CompanyName,
-				},
-				targets,
-			)
+			targets := []notification.Target{{UserID: adminUserID, Email: adminEmail, Name: adminName}}
+			if approved {
+				if err := r.NotifSvc.DispatchSync(ctx, notification.EventDocumentApproved,
+					notification.Payload{
+						"documentType": doc.DocumentType,
+						"companyName":  company.CompanyName,
+					},
+					targets,
+				); err != nil {
+					log.Printf("[notif] ReviewCompanyDocument approved: %v", err)
+				}
+			} else {
+				rejectionStr := ""
+				if rejectionReason != nil {
+					rejectionStr = *rejectionReason
+				}
+				if err := r.NotifSvc.DispatchSync(ctx, notification.EventDocumentRejected,
+					notification.Payload{
+						"documentType": doc.DocumentType,
+						"reason":       rejectionStr,
+						"companyName":  company.CompanyName,
+					},
+					targets,
+				); err != nil {
+					log.Printf("[notif] ReviewCompanyDocument rejected: %v", err)
+				}
+			}
 		}
-	}()
+	}
 
 	return dbCompanyDocToGQL(doc), nil
 }

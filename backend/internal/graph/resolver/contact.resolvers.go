@@ -21,7 +21,7 @@ import (
 // In non-production environments the message is only logged.
 func (r *mutationResolver) SendContactMessage(ctx context.Context, input model.ContactMessageInput) (bool, error) {
 	// Always send to Slack so the admin sees contact form submissions in all environments.
-	r.NotifSvc.Dispatch(notification.EventContactMessage,
+	if err := r.NotifSvc.DispatchSync(ctx, notification.EventContactMessage,
 		notification.Payload{
 			"name":    input.Name,
 			"email":   input.Email,
@@ -29,7 +29,9 @@ func (r *mutationResolver) SendContactMessage(ctx context.Context, input model.C
 			"message": input.Message,
 		},
 		[]notification.Target{{Email: input.Email, Name: input.Name}},
-	)
+	); err != nil {
+		log.Printf("[notif] SendContactMessage: %v", err)
+	}
 
 	if os.Getenv("ENVIRONMENT") != "production" {
 		log.Printf("[contact] form submission: from=%s (%s) subject=%q message=%q",

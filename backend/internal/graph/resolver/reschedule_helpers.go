@@ -122,8 +122,8 @@ func (r *Resolver) sendRescheduleNotifications(ctx context.Context, booking db.B
 		}
 	}
 
-	// Send email notifications to all parties via notification service (non-blocking).
-	r.dispatchBookingRescheduledEmail(booking, newDate, newTime)
+	// Send email notifications to all parties via notification service.
+	r.dispatchBookingRescheduledEmail(ctx, booking, newDate, newTime)
 }
 
 // issueCancellationRefund issues a Stripe partial or full refund based on

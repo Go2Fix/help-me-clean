@@ -325,7 +325,7 @@ func (r *mutationResolver) CreateBookingRequest(ctx context.Context, input model
 	r.enrichBooking(ctx, booking, gqlBooking)
 
 	// Notify client (booking confirmed) and company admin (new request), if applicable.
-	r.dispatchBookingCreatedNotifications(booking)
+	r.dispatchBookingCreatedNotifications(ctx, booking)
 
 	return gqlBooking, nil
 }
@@ -395,9 +395,9 @@ func (r *mutationResolver) CancelBooking(ctx context.Context, id string, reason 
 
 	// Notify relevant parties based on who cancelled.
 	if cancelStatus == db.BookingStatusCancelledByClient {
-		r.dispatchBookingCancelledByClient(booking, reasonText)
+		r.dispatchBookingCancelledByClient(ctx, booking, reasonText)
 	} else if cancelStatus == db.BookingStatusCancelledByAdmin {
-		r.dispatchBookingCancelledByAdmin(booking, reasonText)
+		r.dispatchBookingCancelledByAdmin(ctx, booking, reasonText)
 	}
 
 	return dbBookingToGQL(booking), nil
@@ -471,7 +471,7 @@ func (r *mutationResolver) AssignWorkerToBooking(ctx context.Context, bookingID 
 	}
 
 	// Notify client and assigned worker (non-blocking).
-	r.dispatchWorkerAssignedNotifications(booking)
+	r.dispatchWorkerAssignedNotifications(ctx, booking)
 
 	gqlBooking := dbBookingToGQL(booking)
 	r.enrichBooking(ctx, booking, gqlBooking)
@@ -580,7 +580,7 @@ func (r *mutationResolver) StartJob(ctx context.Context, id string) (*model.Book
 	}
 
 	// Send email and WhatsApp notifications (non-blocking).
-	r.dispatchJobStartedEmail(booking)
+	r.dispatchJobStartedEmail(ctx, booking)
 
 	return dbBookingToGQL(booking), nil
 }
@@ -680,7 +680,7 @@ func (r *mutationResolver) CompleteJob(ctx context.Context, id string) (*model.B
 	}()
 
 	// Notify client that job is complete (non-blocking).
-	r.dispatchBookingCompletedNotification(booking)
+	r.dispatchBookingCompletedNotification(ctx, booking)
 
 	return dbBookingToGQL(booking), nil
 }

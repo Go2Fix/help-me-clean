@@ -13,6 +13,7 @@ import (
 	"go2fix-backend/internal/graph/model"
 	"go2fix-backend/internal/service/notification"
 	"go2fix-backend/internal/storage"
+	"log"
 	"strings"
 	"time"
 
@@ -36,7 +37,7 @@ func (r *mutationResolver) AdminCancelBooking(ctx context.Context, id string, re
 	}
 
 	// Notify client (and company/worker if assigned) about admin cancellation (non-blocking).
-	r.dispatchBookingCancelledByAdmin(booking, reason)
+	r.dispatchBookingCancelledByAdmin(ctx, booking, reason)
 
 	return dbBookingToGQL(booking), nil
 }
@@ -79,7 +80,7 @@ func (r *mutationResolver) AdminRescheduleBooking(ctx context.Context, id string
 		return nil, fmt.Errorf("failed to reschedule booking: %w", err)
 	}
 
-	go r.sendRescheduleNotifications(context.Background(), booking, scheduledDate, scheduledStartTime)
+	r.sendRescheduleNotifications(ctx, booking, scheduledDate, scheduledStartTime)
 
 	result := dbBookingToGQL(booking)
 	r.enrichBooking(ctx, booking, result)
@@ -101,20 +102,19 @@ func (r *mutationResolver) SuspendUser(ctx context.Context, id string, reason st
 		return nil, fmt.Errorf("failed to suspend user: %w", err)
 	}
 
-	// Notify the suspended user and update their contact record (non-blocking).
-	go func() {
-		suspendedUser := user
-		r.NotifSvc.Dispatch(notification.EventAccountSuspended,
-			notification.Payload{"reason": reason},
-			[]notification.Target{{UserID: uuidToString(suspendedUser.ID), Email: suspendedUser.Email, Name: suspendedUser.FullName}},
-		)
-		r.NotifSvc.UpsertContact(context.Background(), notification.ContactData{
-			Email:    suspendedUser.Email,
-			Name:     suspendedUser.FullName,
-			UserType: string(suspendedUser.Role),
-			Status:   "suspended",
-		})
-	}()
+	// Notify the suspended user and update their contact record.
+	if err := r.NotifSvc.DispatchSync(ctx, notification.EventAccountSuspended,
+		notification.Payload{"reason": reason},
+		[]notification.Target{{UserID: uuidToString(user.ID), Email: user.Email, Name: user.FullName}},
+	); err != nil {
+		log.Printf("[notif] SuspendUser: %v", err)
+	}
+	r.NotifSvc.UpsertContact(ctx, notification.ContactData{
+		Email:    user.Email,
+		Name:     user.FullName,
+		UserType: string(user.Role),
+		Status:   "suspended",
+	})
 
 	return dbUserToGQL(user), nil
 }
@@ -134,20 +134,19 @@ func (r *mutationResolver) ReactivateUser(ctx context.Context, id string) (*mode
 		return nil, fmt.Errorf("failed to reactivate user: %w", err)
 	}
 
-	// Notify the reactivated user and update their contact record (non-blocking).
-	go func() {
-		reactivatedUser := user
-		r.NotifSvc.Dispatch(notification.EventAccountReactivated,
-			notification.Payload{"name": reactivatedUser.FullName},
-			[]notification.Target{{UserID: uuidToString(reactivatedUser.ID), Email: reactivatedUser.Email, Name: reactivatedUser.FullName}},
-		)
-		r.NotifSvc.UpsertContact(context.Background(), notification.ContactData{
-			Email:    reactivatedUser.Email,
-			Name:     reactivatedUser.FullName,
-			UserType: string(reactivatedUser.Role),
-			Status:   "active",
-		})
-	}()
+	// Notify the reactivated user and update their contact record.
+	if err := r.NotifSvc.DispatchSync(ctx, notification.EventAccountReactivated,
+		notification.Payload{"name": user.FullName},
+		[]notification.Target{{UserID: uuidToString(user.ID), Email: user.Email, Name: user.FullName}},
+	); err != nil {
+		log.Printf("[notif] ReactivateUser: %v", err)
+	}
+	r.NotifSvc.UpsertContact(ctx, notification.ContactData{
+		Email:    user.Email,
+		Name:     user.FullName,
+		UserType: string(user.Role),
+		Status:   "active",
+	})
 
 	return dbUserToGQL(user), nil
 }

@@ -128,163 +128,159 @@ func dbStatusToGQLStatus(s db.DisputeStatus) model.DisputeStatus {
 }
 
 // dispatchDisputeOpenedNotifications notifies the company admin when a client opens a dispute.
-// Runs in a goroutine — non-blocking.
-func (r *Resolver) dispatchDisputeOpenedNotifications(booking db.Booking, dispute db.BookingDispute) {
-	go func() {
-		ctx := context.Background()
+func (r *Resolver) dispatchDisputeOpenedNotifications(ctx context.Context, booking db.Booking, dispute db.BookingDispute) {
+	bookingID := uuidToString(booking.ID)
+	disputeID := uuidToString(dispute.ID)
+	notifData := []byte(fmt.Sprintf(`{"bookingId":"%s","disputeId":"%s"}`, bookingID, disputeID))
 
-		bookingID := uuidToString(booking.ID)
-		disputeID := uuidToString(dispute.ID)
-		notifData := []byte(fmt.Sprintf(`{"bookingId":"%s","disputeId":"%s"}`, bookingID, disputeID))
-
-		clientName := "Clientul"
-		if booking.ClientUserID.Valid {
-			if cu, err := r.Queries.GetUserByID(ctx, booking.ClientUserID); err == nil {
-				clientName = cu.FullName
-			}
+	clientName := "Clientul"
+	if booking.ClientUserID.Valid {
+		if cu, err := r.Queries.GetUserByID(ctx, booking.ClientUserID); err == nil {
+			clientName = cu.FullName
 		}
+	}
 
-		// In-app notification to company admin.
-		if booking.CompanyID.Valid {
-			company, err := r.Queries.GetCompanyByID(ctx, booking.CompanyID)
-			if err == nil {
-				adminUserID, adminEmail, adminName := r.loadCompanyAdmin(ctx, company)
-				if adminUserID != "" {
-					adminPgID := stringToUUID(adminUserID)
-					body := fmt.Sprintf("Un client a deschis o dispută pentru comanda %s.", booking.ReferenceCode)
-					if _, err := r.Queries.CreateNotification(ctx, db.CreateNotificationParams{
-						UserID: adminPgID,
-						Type:   db.NotificationTypeBookingCancelled, // reuse nearest type; dispute type not yet in enum
-						Title:  "Dispută deschisă",
-						Body:   body,
-						Data:   notifData,
-					}); err != nil {
-						log.Printf("[dispute] openedNotif: failed to notify company admin in-app: %v", err)
-					}
-				}
-				if adminEmail != "" {
-					r.NotifSvc.Dispatch(notification.EventBookingCancelledByClient,
-						notification.Payload{
-							"bookingId":     bookingID,
-							"referenceCode": booking.ReferenceCode,
-							"clientName":    clientName,
-							"reason":        fmt.Sprintf("Dispută: %s", dispute.Reason),
-						},
-						[]notification.Target{{UserID: adminUserID, Email: adminEmail, Name: adminName}},
-					)
+	// In-app notification to company admin.
+	if booking.CompanyID.Valid {
+		company, err := r.Queries.GetCompanyByID(ctx, booking.CompanyID)
+		if err == nil {
+			adminUserID, adminEmail, adminName := r.loadCompanyAdmin(ctx, company)
+			if adminUserID != "" {
+				adminPgID := stringToUUID(adminUserID)
+				body := fmt.Sprintf("Un client a deschis o dispută pentru comanda %s.", booking.ReferenceCode)
+				if _, err := r.Queries.CreateNotification(ctx, db.CreateNotificationParams{
+					UserID: adminPgID,
+					Type:   db.NotificationTypeBookingCancelled, // reuse nearest type; dispute type not yet in enum
+					Title:  "Dispută deschisă",
+					Body:   body,
+					Data:   notifData,
+				}); err != nil {
+					log.Printf("[dispute] openedNotif: failed to notify company admin in-app: %v", err)
 				}
 			}
-		}
-
-		// Platform-level Slack notification so the admin sees all disputes.
-		r.NotifSvc.Dispatch(notification.EventDisputeOpened,
-			notification.Payload{
-				"referenceCode": booking.ReferenceCode,
-				"clientName":    clientName,
-				"reason":        string(dispute.Reason),
-			},
-			[]notification.Target{{Name: "Admin"}},
-		)
-	}()
-}
-
-// dispatchDisputeResponseNotifications notifies the client and platform admin when a
-// company submits a response to a dispute. Runs in a goroutine — non-blocking.
-func (r *Resolver) dispatchDisputeResponseNotifications(booking db.Booking, dispute db.BookingDispute) {
-	go func() {
-		ctx := context.Background()
-
-		bookingID := uuidToString(booking.ID)
-		disputeID := uuidToString(dispute.ID)
-		notifData := []byte(fmt.Sprintf(`{"bookingId":"%s","disputeId":"%s"}`, bookingID, disputeID))
-
-		// In-app notification to client.
-		if booking.ClientUserID.Valid {
-			body := fmt.Sprintf("Compania a răspuns la disputa ta pentru comanda %s.", booking.ReferenceCode)
-			if _, err := r.Queries.CreateNotification(ctx, db.CreateNotificationParams{
-				UserID: booking.ClientUserID,
-				Type:   db.NotificationTypeBookingCancelled,
-				Title:  "Răspuns la dispută",
-				Body:   body,
-				Data:   notifData,
-			}); err != nil {
-				log.Printf("[dispute] responseNotif: failed to notify client in-app: %v", err)
-			}
-
-			// Email to client.
-			if clientUser, err := r.Queries.GetUserByID(ctx, booking.ClientUserID); err == nil {
-				r.NotifSvc.Dispatch(notification.EventBookingConfirmedClient,
+			if adminEmail != "" {
+				if err := r.NotifSvc.DispatchSync(ctx, notification.EventBookingCancelledByClient,
 					notification.Payload{
 						"bookingId":     bookingID,
 						"referenceCode": booking.ReferenceCode,
-						"clientName":    clientUser.FullName,
-						"status":        "dispute_responded",
+						"clientName":    clientName,
+						"reason":        fmt.Sprintf("Dispută: %s", dispute.Reason),
 					},
-					[]notification.Target{{UserID: uuidToString(clientUser.ID), Email: clientUser.Email, Name: clientUser.FullName}},
-				)
+					[]notification.Target{{UserID: adminUserID, Email: adminEmail, Name: adminName}},
+				); err != nil {
+					log.Printf("[dispute] openedNotif: admin email: %v", err)
+				}
 			}
 		}
-	}()
+	}
+
+	// Platform-level Slack notification so the admin sees all disputes.
+	if err := r.NotifSvc.DispatchSync(ctx, notification.EventDisputeOpened,
+		notification.Payload{
+			"referenceCode": booking.ReferenceCode,
+			"clientName":    clientName,
+			"reason":        string(dispute.Reason),
+		},
+		[]notification.Target{{Name: "Admin"}},
+	); err != nil {
+		log.Printf("[dispute] openedNotif: slack: %v", err)
+	}
 }
 
-// dispatchDisputeResolvedNotification notifies the client of the dispute resolution outcome.
-// Runs in a goroutine — non-blocking.
-func (r *Resolver) dispatchDisputeResolvedNotification(bookingID pgtype.UUID, dispute db.BookingDispute) {
-	go func() {
-		ctx := context.Background()
+// dispatchDisputeResponseNotifications notifies the client and platform admin when a
+// company submits a response to a dispute.
+func (r *Resolver) dispatchDisputeResponseNotifications(ctx context.Context, booking db.Booking, dispute db.BookingDispute) {
+	bookingID := uuidToString(booking.ID)
+	disputeID := uuidToString(dispute.ID)
+	notifData := []byte(fmt.Sprintf(`{"bookingId":"%s","disputeId":"%s"}`, bookingID, disputeID))
 
-		booking, err := r.Queries.GetBookingByID(ctx, bookingID)
-		if err != nil {
-			log.Printf("[dispute] resolvedNotif: could not load booking %s: %v", uuidToString(bookingID), err)
-			return
-		}
-
-		disputeIDStr := uuidToString(dispute.ID)
-		bookingIDStr := uuidToString(booking.ID)
-		notifData := []byte(fmt.Sprintf(`{"bookingId":"%s","disputeId":"%s"}`, bookingIDStr, disputeIDStr))
-
-		if !booking.ClientUserID.Valid {
-			return
-		}
-
-		clientUser, err := r.Queries.GetUserByID(ctx, booking.ClientUserID)
-		if err != nil {
-			log.Printf("[dispute] resolvedNotif: could not load client for booking %s: %v", booking.ReferenceCode, err)
-			return
-		}
-
-		body := fmt.Sprintf("Disputa ta pentru comanda %s a fost rezolvată: %s.", booking.ReferenceCode, dispute.Status)
-
-		// In-app notification.
+	// In-app notification to client.
+	if booking.ClientUserID.Valid {
+		body := fmt.Sprintf("Compania a răspuns la disputa ta pentru comanda %s.", booking.ReferenceCode)
 		if _, err := r.Queries.CreateNotification(ctx, db.CreateNotificationParams{
 			UserID: booking.ClientUserID,
-			Type:   db.NotificationTypePaymentProcessed,
-			Title:  "Dispută rezolvată",
+			Type:   db.NotificationTypeBookingCancelled,
+			Title:  "Răspuns la dispută",
 			Body:   body,
 			Data:   notifData,
 		}); err != nil {
-			log.Printf("[dispute] resolvedNotif: failed to notify client in-app: %v", err)
+			log.Printf("[dispute] responseNotif: failed to notify client in-app: %v", err)
 		}
 
-		// Email notification — reuse booking_completed template as closest match.
-		r.NotifSvc.Dispatch(notification.EventBookingCompleted,
-			notification.Payload{
-				"bookingId":       bookingIDStr,
-				"referenceCode":   booking.ReferenceCode,
-				"clientName":      clientUser.FullName,
-				"disputeStatus":   string(dispute.Status),
-				"resolutionNotes": dispute.ResolutionNotes.String,
-			},
-			[]notification.Target{{UserID: uuidToString(clientUser.ID), Email: clientUser.Email, Name: clientUser.FullName}},
-		)
+		// Email to client.
+		if clientUser, err := r.Queries.GetUserByID(ctx, booking.ClientUserID); err == nil {
+			if err := r.NotifSvc.DispatchSync(ctx, notification.EventBookingConfirmedClient,
+				notification.Payload{
+					"bookingId":     bookingID,
+					"referenceCode": booking.ReferenceCode,
+					"clientName":    clientUser.FullName,
+					"status":        "dispute_responded",
+				},
+				[]notification.Target{{UserID: uuidToString(clientUser.ID), Email: clientUser.Email, Name: clientUser.FullName}},
+			); err != nil {
+				log.Printf("[dispute] responseNotif: client email: %v", err)
+			}
+		}
+	}
+}
 
-		// Platform-level Slack notification so the admin sees dispute resolutions.
-		r.NotifSvc.Dispatch(notification.EventDisputeResolved,
-			notification.Payload{
-				"referenceCode": booking.ReferenceCode,
-				"disputeStatus": string(dispute.Status),
-			},
-			[]notification.Target{{Name: "Admin"}},
-		)
-	}()
+// dispatchDisputeResolvedNotification notifies the client of the dispute resolution outcome.
+func (r *Resolver) dispatchDisputeResolvedNotification(ctx context.Context, bookingID pgtype.UUID, dispute db.BookingDispute) {
+	booking, err := r.Queries.GetBookingByID(ctx, bookingID)
+	if err != nil {
+		log.Printf("[dispute] resolvedNotif: could not load booking %s: %v", uuidToString(bookingID), err)
+		return
+	}
+
+	disputeIDStr := uuidToString(dispute.ID)
+	bookingIDStr := uuidToString(booking.ID)
+	notifData := []byte(fmt.Sprintf(`{"bookingId":"%s","disputeId":"%s"}`, bookingIDStr, disputeIDStr))
+
+	if !booking.ClientUserID.Valid {
+		return
+	}
+
+	clientUser, err := r.Queries.GetUserByID(ctx, booking.ClientUserID)
+	if err != nil {
+		log.Printf("[dispute] resolvedNotif: could not load client for booking %s: %v", booking.ReferenceCode, err)
+		return
+	}
+
+	body := fmt.Sprintf("Disputa ta pentru comanda %s a fost rezolvată: %s.", booking.ReferenceCode, dispute.Status)
+
+	// In-app notification.
+	if _, err := r.Queries.CreateNotification(ctx, db.CreateNotificationParams{
+		UserID: booking.ClientUserID,
+		Type:   db.NotificationTypePaymentProcessed,
+		Title:  "Dispută rezolvată",
+		Body:   body,
+		Data:   notifData,
+	}); err != nil {
+		log.Printf("[dispute] resolvedNotif: failed to notify client in-app: %v", err)
+	}
+
+	// Email notification — reuse booking_completed template as closest match.
+	if err := r.NotifSvc.DispatchSync(ctx, notification.EventBookingCompleted,
+		notification.Payload{
+			"bookingId":       bookingIDStr,
+			"referenceCode":   booking.ReferenceCode,
+			"clientName":      clientUser.FullName,
+			"disputeStatus":   string(dispute.Status),
+			"resolutionNotes": dispute.ResolutionNotes.String,
+		},
+		[]notification.Target{{UserID: uuidToString(clientUser.ID), Email: clientUser.Email, Name: clientUser.FullName}},
+	); err != nil {
+		log.Printf("[dispute] resolvedNotif: client email: %v", err)
+	}
+
+	// Platform-level Slack notification so the admin sees dispute resolutions.
+	if err := r.NotifSvc.DispatchSync(ctx, notification.EventDisputeResolved,
+		notification.Payload{
+			"referenceCode": booking.ReferenceCode,
+			"disputeStatus": string(dispute.Status),
+		},
+		[]notification.Target{{Name: "Admin"}},
+	); err != nil {
+		log.Printf("[dispute] resolvedNotif: slack: %v", err)
+	}
 }

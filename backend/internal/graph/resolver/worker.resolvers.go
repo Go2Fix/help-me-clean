@@ -79,12 +79,11 @@ func (r *mutationResolver) InviteWorker(ctx context.Context, input model.InviteW
 	// Auto-assign all company service areas to the new worker
 	r.copyCompanyAreasToWorkerHelper(ctx, company.ID, worker.ID)
 
-	// Notify the invited worker by email and upsert contact (non-blocking).
-	workerInviteToken := textVal(worker.InviteToken)
-	go func() {
-		inviteToken := workerInviteToken
+	// Notify the invited worker by email and upsert contact.
+	{
+		inviteToken := textVal(worker.InviteToken)
 		acceptURL := buildInviteURL(inviteToken)
-		r.NotifSvc.Dispatch(notification.EventWorkerInvited,
+		if err := r.NotifSvc.DispatchSync(ctx, notification.EventWorkerInvited,
 			notification.Payload{
 				"companyName": company.CompanyName,
 				"workerName":  input.FullName,
@@ -92,14 +91,16 @@ func (r *mutationResolver) InviteWorker(ctx context.Context, input model.InviteW
 				"acceptUrl":   acceptURL,
 			},
 			[]notification.Target{{Email: input.Email, Name: input.FullName}},
-		)
-		r.NotifSvc.UpsertContact(context.Background(), notification.ContactData{
+		); err != nil {
+			log.Printf("[notif] InviteWorker: %v", err)
+		}
+		r.NotifSvc.UpsertContact(ctx, notification.ContactData{
 			Email:    input.Email,
 			Name:     input.FullName,
 			UserType: "worker",
 			Status:   "active",
 		})
-	}()
+	}
 
 	return r.workerWithCompany(ctx, worker)
 }
@@ -242,33 +243,33 @@ func (r *mutationResolver) AcceptInvitation(ctx context.Context, token string) (
 	}
 
 	// Notify company admin that the worker accepted the invitation.
-	go func(w db.Worker) {
-		bgCtx := context.Background()
-		company, cErr := r.Queries.GetCompanyByID(bgCtx, w.CompanyID)
-		if cErr != nil || !company.AdminUserID.Valid {
-			return
+	{
+		company, cErr := r.Queries.GetCompanyByID(ctx, worker.CompanyID)
+		if cErr == nil && company.AdminUserID.Valid {
+			if _, nErr := r.Queries.CreateNotification(ctx, db.CreateNotificationParams{
+				UserID: company.AdminUserID,
+				Type:   db.NotificationTypeWorkerAccepted,
+				Title:  "Lucrător a acceptat invitația",
+				Body:   "Un lucrător a acceptat invitația și și-a creat profilul. Verificați profilul pentru aprobare.",
+				Data:   []byte(fmt.Sprintf(`{"workerId":"%s"}`, uuidToString(worker.ID))),
+			}); nErr != nil {
+				log.Printf("acceptInvitation: failed to notify company admin: %v", nErr)
+			}
+			// Email + Slack to company admin.
+			adminEmail, adminName := r.loadCompanyAdminEmail(ctx, company)
+			if adminEmail != "" {
+				if err := r.NotifSvc.DispatchSync(ctx, notification.EventWorkerAccepted,
+					notification.Payload{
+						"companyName": company.CompanyName,
+						"workerName":  claims.Email,
+					},
+					[]notification.Target{{Email: adminEmail, Name: adminName}},
+				); err != nil {
+					log.Printf("[notif] AcceptInvitation: %v", err)
+				}
+			}
 		}
-		if _, nErr := r.Queries.CreateNotification(bgCtx, db.CreateNotificationParams{
-			UserID: company.AdminUserID,
-			Type:   db.NotificationTypeWorkerAccepted,
-			Title:  "Lucrător a acceptat invitația",
-			Body:   "Un lucrător a acceptat invitația și și-a creat profilul. Verificați profilul pentru aprobare.",
-			Data:   []byte(fmt.Sprintf(`{"workerId":"%s"}`, uuidToString(w.ID))),
-		}); nErr != nil {
-			log.Printf("acceptInvitation: failed to notify company admin: %v", nErr)
-		}
-		// Email + Slack to company admin.
-		adminEmail, adminName := r.loadCompanyAdminEmail(bgCtx, company)
-		if adminEmail != "" {
-			r.NotifSvc.Dispatch(notification.EventWorkerAccepted,
-				notification.Payload{
-					"companyName": company.CompanyName,
-					"workerName":  claims.Email,
-				},
-				[]notification.Target{{Email: adminEmail, Name: adminName}},
-			)
-		}
-	}(worker)
+	}
 
 	return r.workerWithCompany(ctx, worker)
 }
@@ -687,17 +688,15 @@ func (r *mutationResolver) ActivateWorker(ctx context.Context, id string) (*mode
 
 	// Notify the worker's linked user account that they've been activated.
 	if worker.UserID.Valid {
-		go func(userID pgtype.UUID) {
-			if _, nErr := r.Queries.CreateNotification(context.Background(), db.CreateNotificationParams{
-				UserID: userID,
-				Type:   db.NotificationTypeWorkerActivated,
-				Title:  "Cont activat!",
-				Body:   "Felicitări! Contul tău de lucrător a fost aprobat. Poți începe să primești comenzi.",
-				Data:   []byte(fmt.Sprintf(`{"workerId":"%s"}`, uuidToString(worker.ID))),
-			}); nErr != nil {
-				log.Printf("activateWorker: failed to notify worker: %v", nErr)
-			}
-		}(worker.UserID)
+		if _, nErr := r.Queries.CreateNotification(ctx, db.CreateNotificationParams{
+			UserID: worker.UserID,
+			Type:   db.NotificationTypeWorkerActivated,
+			Title:  "Cont activat!",
+			Body:   "Felicitări! Contul tău de lucrător a fost aprobat. Poți începe să primești comenzi.",
+			Data:   []byte(fmt.Sprintf(`{"workerId":"%s"}`, uuidToString(worker.ID))),
+		}); nErr != nil {
+			log.Printf("activateWorker: failed to notify worker: %v", nErr)
+		}
 	}
 
 	return r.workerWithCompany(ctx, worker)

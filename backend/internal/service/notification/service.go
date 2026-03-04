@@ -120,7 +120,9 @@ func (s *Service) Dispatch(event Event, payload Payload, targets []Target) {
 }
 
 // DispatchSync sends the event to all channels synchronously.
-// Use only for time-sensitive flows (e.g., OTP) where the user is waiting.
+// Use only for time-sensitive flows (e.g., OTP, waitlist) where the caller must
+// ensure delivery before returning (e.g., serverless environments).
+// All channels are attempted even if one fails.
 func (s *Service) DispatchSync(ctx context.Context, event Event, payload Payload, targets []Target) error {
 	if !s.isProd {
 		emails := make([]string, len(targets))
@@ -130,13 +132,14 @@ func (s *Service) DispatchSync(ctx context.Context, event Event, payload Payload
 		log.Printf("[notification:dev] sync event=%s targets=%v payload=%v", event, emails, payload)
 		return nil
 	}
+	var lastErr error
 	for _, ch := range s.channels {
 		if err := ch.Send(ctx, event, payload, targets); err != nil {
 			log.Printf("[notification] channel=%s event=%s error: %v", ch.Name(), event, err)
-			return err
+			lastErr = err
 		}
 	}
-	return nil
+	return lastErr
 }
 
 // UpsertContact creates or updates a contact in the audience of any email channel registered.
