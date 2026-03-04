@@ -1,4 +1,4 @@
 package middleware
 
-// Logging is handled by chi middleware.Logger.
-// This file reserved for custom structured logging.
+// TelemetryLogger provides structured JSON request logging.
+// See telemetry.go for the implementation.

@@ -14,6 +14,8 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/extension"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/getsentry/sentry-go"
+	sentryhttp "github.com/getsentry/sentry-go/http"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	chimiddleware "github.com/go-chi/cors"
@@ -21,6 +23,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/stripe/stripe-go/v81"
 
+	"go2fix-backend/internal/analytics"
 	"go2fix-backend/internal/auth"
 	internaldb "go2fix-backend/internal/db"
 	db "go2fix-backend/internal/db/generated"
@@ -49,10 +52,22 @@ func NewHandler(ctx context.Context) (http.Handler, func(), error) {
 		log.Println("No .env file found, using environment variables")
 	}
 
+	// Sentry — error and performance monitoring.
+	if dsn := os.Getenv("SENTRY_DSN"); dsn != "" {
+		if err := sentry.Init(sentry.ClientOptions{
+			Dsn:              dsn,
+			Environment:      os.Getenv("ENVIRONMENT"),
+			TracesSampleRate: 0.1, // 10% — stays under free 10K/mo limit
+		}); err != nil {
+			log.Printf("sentry: init failed: %v", err)
+		}
+	}
+
 	r := chi.NewRouter()
 
-	r.Use(middleware.Logger)
+	r.Use(custommiddleware.TelemetryLogger)
 	r.Use(middleware.Recoverer)
+	r.Use(sentryhttp.New(sentryhttp.Options{Repanic: true}).Handle)
 	r.Use(middleware.RequestID)
 	r.Use(custommiddleware.SecurityHeaders)
 
@@ -84,7 +99,10 @@ func NewHandler(ctx context.Context) (http.Handler, func(), error) {
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
-	shutdown := func() { pool.Close() }
+	shutdown := func() {
+		pool.Close()
+		analytics.Shutdown()
+	}
 
 	queries := db.New(pool)
 

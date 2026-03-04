@@ -7,6 +7,7 @@ import { useAuth } from '@/context/AuthContext';
 import { ROUTE_MAP } from '@/i18n/routes';
 import EmailOtpModal from '@/components/auth/EmailOtpModal';
 import type { AuthUser } from '@/services/AuthService';
+import { trackAuthInitiated, trackAuthCompleted } from '@/lib/analytics';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -50,8 +51,10 @@ export default function LoginPage() {
       return;
     }
     setError('');
+    trackAuthInitiated('google');
     try {
       const authUser = await loginWithGoogle(response.credential);
+      trackAuthCompleted('google', authUser.role, false);
       navigate(from || ROLE_HOME[authUser.role] || '/', { replace: true });
     } catch {
       setError(t('errors.generic'));
@@ -159,7 +162,7 @@ export default function LoginPage() {
 
               <button
                 type="button"
-                onClick={() => setShowOtpModal(true)}
+                onClick={() => { trackAuthInitiated('email_otp'); setShowOtpModal(true); }}
                 className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition flex items-center justify-center gap-2"
               >
                 <Mail className="h-4 w-4" />
@@ -174,9 +177,10 @@ export default function LoginPage() {
             <EmailOtpModal
               open={showOtpModal}
               onClose={() => setShowOtpModal(false)}
-              onSuccess={(authUser: AuthUser) =>
-                navigate(from || ROLE_HOME[authUser.role] || '/', { replace: true })
-              }
+              onSuccess={(authUser: AuthUser) => {
+                trackAuthCompleted('email_otp', authUser.role, false);
+                navigate(from || ROLE_HOME[authUser.role] || '/', { replace: true });
+              }}
               role="CLIENT"
             />
 

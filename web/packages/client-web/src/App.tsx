@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 import { ApolloProvider } from '@apollo/client';
+import { identifyUser, resetUser } from '@/lib/analytics';
 import { createApolloClient } from '@go2fix/shared';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { CompanyProvider } from '@/context/CompanyContext';
@@ -163,6 +164,20 @@ function RoleRoute({ children, role }: { children: React.ReactNode; role: string
   }
 
   return <>{children}</>;
+}
+
+// ─── Analytics User Sync ─────────────────────────────────────────────────────
+
+function AnalyticsSync() {
+  const { user } = useAuth();
+  useEffect(() => {
+    if (user) {
+      identifyUser(user.id, { email: user.email, role: user.role, name: user.fullName });
+    } else {
+      resetUser();
+    }
+  }, [user]);
+  return null;
 }
 
 // ─── Routes ──────────────────────────────────────────────────────────────────
@@ -353,6 +368,7 @@ function App() {
     <ApolloProvider client={client}>
       <PlatformProvider>
         <AuthProvider>
+          <AnalyticsSync />
           <PageAlternateProvider>
             <LanguageProvider>
               <ErrorBoundary>

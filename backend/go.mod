@@ -5,12 +5,14 @@ go 1.24.0
 require (
 	cloud.google.com/go/storage v1.60.0
 	github.com/99designs/gqlgen v0.17.86
+	github.com/getsentry/sentry-go v0.31.1
 	github.com/go-chi/chi/v5 v5.2.5
 	github.com/go-chi/cors v1.2.2
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.8.0
 	github.com/joho/godotenv v1.5.1
+	github.com/posthog/posthog-go v1.10.0
 	github.com/resend/resend-go/v2 v2.28.0
 	github.com/stripe/stripe-go/v81 v81.4.0
 	github.com/vektah/gqlparser/v2 v2.5.31
@@ -38,6 +40,7 @@ require (
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
+	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/goccy/go-yaml v1.19.2 // indirect
 	github.com/google/s2a-go v0.1.9 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.11 // indirect
