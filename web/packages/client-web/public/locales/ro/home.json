@@ -44,7 +44,7 @@
     "freeCancellation": "Anulare gratuită",
     "rating": "4.9★ Recenzii clienți",
     "support": "Suport rapid",
-    "guarantee": "Garanție de calitate",
+    "guarantee": "Firme evaluate de clienți",
     "transparent": "Prețuri transparente",
     "partners": "50+ firme partenere"
   },
@@ -84,8 +84,8 @@
     "title": "De ce Go2Fix?",
     "subtitle": "Siguranță, transparență și calitate în fiecare serviciu.",
     "guarantee": {
-      "title": "Garantăm calitatea",
-      "desc": "Dacă nu ești mulțumit de rezultat, echipa revine și reface lucrarea gratuit. Fără întrebări, fără birocrație."
+      "title": "Calitate în centrul a tot ce facem",
+      "desc": "Lucrăm doar cu firme verificate și evaluate de alți clienți, pentru că reputația contează mai mult decât orice promisiune."
     },
     "verified": {
       "title": "Firme verificate",

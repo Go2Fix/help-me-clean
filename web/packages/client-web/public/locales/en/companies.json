@@ -5,7 +5,7 @@
   },
   "hero": {
     "title": "Grow your business with Go2Fix",
-    "subtitle": "We bring new clients directly to your door. No hidden fees, no hassle — just verified orders and guaranteed payments.",
+    "subtitle": "We bring new clients directly to your door. No hidden fees, no hassle — just verified orders and secure online payments.",
     "ctaApply": "Apply now",
     "ctaWaitlist": "Join the waitlist"
   },
@@ -15,11 +15,11 @@
     "b1Title": "New clients online",
     "b1Desc": "We reach thousands of households in Bucharest and major cities. You focus on cleaning, we handle marketing.",
     "b2Title": "Safe digital payments",
-    "b2Desc": "Payments are processed online and guaranteed. No chasing payments — collect directly into your account.",
+    "b2Desc": "Payments are processed online, directly into your account. No more chasing clients for money.",
     "b3Title": "Simplified management",
     "b3Desc": "Dedicated dashboard to manage orders, team and schedule. Everything in one place.",
-    "b4Title": "Guaranteed growth",
-    "b4Desc": "Partner companies report an average 40% increase in orders within their first 3 months."
+    "b4Title": "More visibility",
+    "b4Desc": "Partner companies get access to an active client base actively looking for professional cleaning services."
   },
   "howToJoin": {
     "title": "How to become a partner?",

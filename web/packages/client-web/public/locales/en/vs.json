@@ -65,7 +65,7 @@
         { "feature": "Professional equipment & products", "go2fix": true, "competitor": false },
         { "feature": "Fixed transparent pricing", "go2fix": true, "competitor": false },
         { "feature": "Automatic invoicing", "go2fix": true, "competitor": false },
-        { "feature": "Service quality guarantee", "go2fix": true, "competitor": false },
+        { "feature": "Quality-focused service", "go2fix": true, "competitor": false },
         { "feature": "Secure digital payments", "go2fix": true, "competitor": false }
       ]
     },
@@ -85,7 +85,7 @@
       }
     ],
     "ctaTitle": "Try Go2Fix for free",
-    "ctaSubtitle": "Professional cleaning, booked in 2 minutes.",
+    "ctaSubtitle": "Professional cleaning, simple and fast to book.",
     "ctaButton": "Book now",
     "ctaButtonWaitlist": "Join the waitlist"
   }

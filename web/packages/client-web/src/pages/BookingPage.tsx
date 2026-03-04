@@ -2869,7 +2869,7 @@ function StepSchedule({
               <div className="text-sm text-emerald-800">
                 <p className="font-medium mb-1">Abonament lunar cu plată automată</p>
                 <p className="text-emerald-600">
-                  Cel mai potrivit lucrător va fi alocat automat — consistență garantată.
+                  Cel mai potrivit lucrător va fi alocat automat — potrivire atentă cu echipa ta.
                   Poți pune pe pauză sau anula oricând.
                 </p>
               </div>
@@ -4174,7 +4174,7 @@ function StepWorkerSubscription({
       <div className="flex flex-wrap gap-2 mb-5">
         {([
           { icon: CheckCircle2, text: 'Verificare cazier' },
-          { icon: Repeat, text: 'Consistenta garantata' },
+          { icon: Repeat, text: 'Echipa potrivita' },
           { icon: Sparkles, text: 'Potrivire automata AI' },
         ] as { icon: typeof CheckCircle2; text: string }[]).map(({ icon: Icon, text }) => (
           <div key={text} className="flex items-center gap-1.5 text-xs text-gray-600 bg-gray-50 border border-gray-200 rounded-full px-3 py-1.5">

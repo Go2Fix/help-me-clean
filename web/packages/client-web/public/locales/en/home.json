@@ -44,7 +44,7 @@
     "freeCancellation": "Free cancellation",
     "rating": "4.9★ Client reviews",
     "support": "Fast support",
-    "guarantee": "Quality guarantee",
+    "guarantee": "Client-rated companies",
     "transparent": "Transparent pricing",
     "partners": "50+ partner companies"
   },
@@ -84,8 +84,8 @@
     "title": "Why Go2Fix?",
     "subtitle": "Safety, transparency and quality in every service.",
     "guarantee": {
-      "title": "We guarantee quality",
-      "desc": "If you're not satisfied with the result, the team comes back and redoes the job for free. No questions, no bureaucracy."
+      "title": "Quality at the heart of everything we do",
+      "desc": "We work only with verified, client-rated companies — because reputation matters more than any promise."
     },
     "verified": {
       "title": "Verified companies",

@@ -1007,7 +1007,7 @@ If your monthly rent is 1,000 EUR and your deposit is 2,000 EUR, a professional 
 
 ## Book a verified move-out clean
 
-[Go2Fix](/en/waitlist) works with companies specialised in end-of-tenancy cleaning across Bucharest and major Romanian cities. Book a verified clean with a satisfaction guarantee and official invoice — exactly what you need for a stress-free move.
+[Go2Fix](/en/waitlist) works with companies specialised in end-of-tenancy cleaning across Bucharest and major Romanian cities. Book a verified clean with an official invoice — exactly what you need for a stress-free move.
 `,
   },
   {

@@ -419,12 +419,12 @@ export default function CategoryLandingPage() {
             </div>
             <div>
               <h3 className="text-xl font-bold mb-2">
-                {lang === 'en' ? 'Quality guaranteed' : 'Calitate garantata'}
+                {lang === 'en' ? 'Verified companies' : 'Firme verificate'}
               </h3>
               <p className="text-blue-100 leading-relaxed max-w-2xl">
                 {lang === 'en'
-                  ? "If you're not satisfied with the result, the team comes back and redoes the job for free. No questions asked."
-                  : 'Daca nu esti multumit de rezultat, echipa revine si reface lucrarea gratuit. Fara intrebari, fara birocratie.'}
+                  ? 'All listed companies are reviewed by real clients and vetted by our team.'
+                  : 'Toate firmele sunt evaluate de clienți reali și verificate de echipa noastră.'}
               </p>
             </div>
           </motion.div>
@@ -472,10 +472,10 @@ export default function CategoryLandingPage() {
                 icon: Shield,
                 color: 'text-purple-600',
                 bg: 'bg-purple-50',
-                labelRo: 'Garantie calitate',
-                labelEn: 'Quality guarantee',
-                descRo: 'Refacere gratuita daca nu esti multumit',
-                descEn: 'Free redo if you are not satisfied',
+                labelRo: 'Firme verificate',
+                labelEn: 'Verified companies',
+                descRo: 'Evaluate de clienti, verificate de echipa noastra',
+                descEn: 'Client-reviewed & vetted by our team',
               },
             ].map((badge) => (
               <motion.div key={badge.labelRo} variants={fadeUpItem}>
@@ -533,8 +533,8 @@ export default function CategoryLandingPage() {
 
             <p className="text-blue-100 mb-8 text-lg">
               {lang === 'en'
-                ? 'Book in under 2 minutes. Choose your preferred date, time and team.'
-                : 'Rezerva in mai putin de 2 minute. Alege data, ora si echipa preferata.'}
+                ? 'Choose your preferred date, time and team.'
+                : 'Alege data, ora si echipa preferata.'}
             </p>
 
             <Link to={bookingUrl}>

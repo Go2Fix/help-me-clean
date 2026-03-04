@@ -319,7 +319,7 @@ export default function RegisterCompanyPage() {
           </p>
           <ul className="space-y-3">
             {[
-              'Clienți verificați, plăți garantate',
+              'Clienți verificați, plăți online securizate',
               'Dashboard complet pentru gestionarea comenzilor',
               'Facturare automată și transparență totală',
             ].map((benefit) => (

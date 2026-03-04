@@ -140,23 +140,19 @@ export default function ContactPage() {
           <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-12">
 
             {/* Left: info cards */}
-            <div>
-              <motion.h2
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.45, delay: 0.1 }}
-                className="text-2xl font-black text-gray-900 mb-7"
-              >
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.45, delay: 0.2 }}
+            >
+              <h2 className="text-2xl font-black text-gray-900 mb-7">
                 {t('info.title')}
-              </motion.h2>
+              </h2>
 
               <div className="space-y-4">
                 {CONTACT_INFO.map(({ icon: Icon, label, value, href }, idx) => (
-                  <motion.div
+                  <div
                     key={label}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.45, delay: 0.15 + idx * 0.08, ease: [0.22, 1, 0.36, 1] }}
                     className="flex items-center gap-4 bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition"
                   >
                     <div
@@ -179,10 +175,10 @@ export default function ContactPage() {
                         <p className="text-gray-900 font-semibold text-sm">{value}</p>
                       )}
                     </div>
-                  </motion.div>
+                  </div>
                 ))}
               </div>
-            </div>
+            </motion.div>
 
             {/* Right: contact form */}
             <motion.div
