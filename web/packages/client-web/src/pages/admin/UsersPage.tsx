@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useQuery } from '@apollo/client';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Search, Users, Phone } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
@@ -14,37 +15,11 @@ import { SEARCH_USERS } from '@/graphql/operations';
 
 const PAGE_SIZE = 20;
 
-const roleOptions = [
-  { value: '', label: 'Toate rolurile' },
-  { value: 'CLIENT', label: 'Client' },
-  { value: 'COMPANY_ADMIN', label: 'Admin Companie' },
-  { value: 'WORKER', label: 'Curatator' },
-  { value: 'GLOBAL_ADMIN', label: 'Admin Global' },
-];
-
-const statusOptions = [
-  { value: '', label: 'Toate statusurile' },
-  { value: 'ACTIVE', label: 'Activ' },
-  { value: 'SUSPENDED', label: 'Suspendat' },
-];
-
-const roleLabel: Record<string, string> = {
-  CLIENT: 'Client',
-  COMPANY_ADMIN: 'Admin Companie',
-  WORKER: 'Curatator',
-  GLOBAL_ADMIN: 'Admin Global',
-};
-
 const roleVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
   CLIENT: 'default',
   COMPANY_ADMIN: 'info',
   WORKER: 'success',
   GLOBAL_ADMIN: 'warning',
-};
-
-const statusLabel: Record<string, string> = {
-  ACTIVE: 'Activ',
-  SUSPENDED: 'Suspendat',
 };
 
 const statusVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
@@ -78,6 +53,21 @@ function getInitials(name: string): string {
 
 export default function UsersPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation(['dashboard', 'admin']);
+
+  const roleOptions = [
+    { value: '', label: t('admin:users.allRoles') },
+    { value: 'CLIENT', label: t('admin:users.roleLabels.CLIENT') },
+    { value: 'COMPANY_ADMIN', label: t('admin:users.roleLabels.COMPANY_ADMIN') },
+    { value: 'WORKER', label: t('admin:users.roleLabels.WORKER') },
+    { value: 'GLOBAL_ADMIN', label: t('admin:users.roleLabels.GLOBAL_ADMIN') },
+  ];
+
+  const statusOptions = [
+    { value: '', label: t('admin:users.allStatuses') },
+    { value: 'ACTIVE', label: t('admin:users.statusLabels.ACTIVE') },
+    { value: 'SUSPENDED', label: t('admin:users.statusLabels.SUSPENDED') },
+  ];
 
   const [searchInput, setSearchInput] = useState('');
   const debouncedQuery = useDebounce(searchInput, 300);
@@ -119,9 +109,9 @@ export default function UsersPage() {
     <div>
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Utilizatori</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t('admin:users.title')}</h1>
         <p className="text-gray-500 mt-1">
-          Gestioneaza utilizatorii platformei.
+          {t('admin:users.subtitle')}
         </p>
       </div>
 
@@ -135,7 +125,7 @@ export default function UsersPage() {
               type="text"
               value={searchInput}
               onChange={(e) => handleSearchChange(e.target.value)}
-              placeholder="Cauta dupa nume, email sau telefon..."
+              placeholder={t('admin:users.searchPlaceholder')}
               className="w-full rounded-xl border border-gray-300 bg-white pl-10 pr-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
             />
           </div>
@@ -180,10 +170,10 @@ export default function UsersPage() {
           <div className="text-center py-16">
             <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Niciun utilizator gasit
+              {t('admin:users.emptyTitle')}
             </h3>
             <p className="text-gray-500 max-w-md mx-auto">
-              Incearca sa modifici criteriile de cautare sau filtrele aplicate.
+              {t('admin:users.emptySubtitle')}
             </p>
           </div>
         ) : (
@@ -194,22 +184,22 @@ export default function UsersPage() {
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50">
                     <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">
-                      Utilizator
+                      {t('admin:users.columns.user')}
                     </th>
                     <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">
-                      Email
+                      {t('admin:users.columns.email')}
                     </th>
                     <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">
-                      Telefon
+                      {t('admin:users.columns.phone')}
                     </th>
                     <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">
-                      Rol
+                      {t('admin:users.columns.role')}
                     </th>
                     <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">
-                      Status
+                      {t('admin:users.columns.status')}
                     </th>
                     <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">
-                      Inregistrat
+                      {t('admin:users.columns.registered')}
                     </th>
                   </tr>
                 </thead>
@@ -259,14 +249,14 @@ export default function UsersPage() {
                       {/* Role */}
                       <td className="px-6 py-4">
                         <Badge variant={roleVariant[user.role] ?? 'default'}>
-                          {roleLabel[user.role] ?? user.role}
+                          {t(`admin:users.roleLabels.${user.role}`, { defaultValue: user.role })}
                         </Badge>
                       </td>
 
                       {/* Status */}
                       <td className="px-6 py-4">
                         <Badge variant={statusVariant[user.status] ?? 'default'}>
-                          {statusLabel[user.status] ?? user.status}
+                          {t(`admin:users.statusLabels.${user.status}`, { defaultValue: user.status })}
                         </Badge>
                       </td>
 
@@ -324,10 +314,10 @@ export default function UsersPage() {
                       </span>
                     )}
                     <Badge variant={roleVariant[user.role] ?? 'default'}>
-                      {roleLabel[user.role] ?? user.role}
+                      {t(`admin:users.roleLabels.${user.role}`, { defaultValue: user.role })}
                     </Badge>
                     <Badge variant={statusVariant[user.status] ?? 'default'}>
-                      {statusLabel[user.status] ?? user.status}
+                      {t(`admin:users.statusLabels.${user.status}`, { defaultValue: user.status })}
                     </Badge>
                   </div>
                 </div>
@@ -344,7 +334,7 @@ export default function UsersPage() {
           totalCount={totalCount}
           pageSize={PAGE_SIZE}
           onPageChange={setPage}
-          noun="utilizatori"
+          noun={t('admin:users.noun')}
         />
       )}
     </div>

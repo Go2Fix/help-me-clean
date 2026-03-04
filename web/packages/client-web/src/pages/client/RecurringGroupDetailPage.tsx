@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate, Navigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@apollo/client';
+import { useTranslation } from 'react-i18next';
 import {
   ArrowLeft,
   Calendar,
@@ -74,18 +75,10 @@ interface RecurringGroup {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-const RECURRENCE_LABELS: Record<string, string> = {
-  WEEKLY: 'Saptamanal',
-  BIWEEKLY: 'Bisaptamanal',
-  MONTHLY: 'Lunar',
-};
-
-const DAY_NAMES = ['Duminica', 'Luni', 'Marti', 'Miercuri', 'Joi', 'Vineri', 'Sambata'];
-
-function formatDate(dateStr: string): string {
+function formatDate(dateStr: string, locale: string): string {
   try {
     const date = new Date(dateStr);
-    return date.toLocaleDateString('ro-RO', {
+    return date.toLocaleDateString(locale === 'en' ? 'en-GB' : 'ro-RO', {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
@@ -106,6 +99,7 @@ export default function RecurringGroupDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { isAuthenticated, loading: authLoading } = useAuth();
+  const { t, i18n } = useTranslation(['dashboard', 'client']);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
 
@@ -133,16 +127,16 @@ export default function RecurringGroupDetailPage() {
     onCompleted: () => refetch(),
   });
 
-  if (authLoading) return <LoadingSpinner text="Se verifica autentificarea..." />;
+  if (authLoading) return <LoadingSpinner text={t('client:recurringGroup.verifyingAuth')} />;
   if (!isAuthenticated) return <Navigate to="/autentificare" replace />;
-  if (loading) return <LoadingSpinner text="Se incarca detaliile..." />;
+  if (loading) return <LoadingSpinner text={t('client:recurringGroup.loading')} />;
   if (error || !data?.recurringGroup) {
     return (
       <div className="py-4 sm:py-8">
         <div className="max-w-3xl mx-auto sm:px-2 text-center">
-          <p className="text-danger mb-4">Nu am putut incarca seria recurenta.</p>
+          <p className="text-danger mb-4">{t('client:recurringGroup.error.loadFailed')}</p>
           <Button variant="outline" onClick={() => navigate('/cont/comenzi')}>
-            Inapoi la comenzi
+            {t('client:recurringGroup.error.backToBookings')}
           </Button>
         </div>
       </div>
@@ -160,7 +154,7 @@ export default function RecurringGroupDetailPage() {
           className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-6 cursor-pointer"
         >
           <ArrowLeft className="h-4 w-4" />
-          Inapoi la comenzi
+          {t('client:recurringGroup.backToBookings')}
         </button>
 
         {/* Header */}
@@ -179,12 +173,16 @@ export default function RecurringGroupDetailPage() {
                     : 'bg-gray-100 text-gray-500',
                 )}
               >
-                {group.isActive ? 'Activa' : group.cancelledAt ? 'Anulata' : 'Pauza'}
+                {group.isActive
+                  ? t('client:recurringGroup.statusActive')
+                  : group.cancelledAt
+                    ? t('client:recurringGroup.statusCancelled')
+                    : t('client:recurringGroup.statusPaused')}
               </span>
             </div>
             <p className="text-gray-500 text-sm">
-              {RECURRENCE_LABELS[group.recurrenceType] || group.recurrenceType} —{' '}
-              {DAY_NAMES[group.dayOfWeek] || ''}, ora {formatTime(group.preferredTime)}
+              {t(`client:recurringGroup.recurrenceLabels.${group.recurrenceType}`, { defaultValue: group.recurrenceType })} —{' '}
+              {t(`client:subscriptionDetail.days.${group.dayOfWeek}`, { defaultValue: '' })}, {formatTime(group.preferredTime)}
             </p>
           </div>
 
@@ -197,7 +195,7 @@ export default function RecurringGroupDetailPage() {
                 disabled={pausing}
               >
                 <Pause className="h-4 w-4" />
-                Pauza
+                {t('client:recurringGroup.pause')}
               </Button>
               <Button
                 variant="outline"
@@ -206,7 +204,7 @@ export default function RecurringGroupDetailPage() {
                 className="text-red-600 border-red-200 hover:bg-red-50"
               >
                 <XCircle className="h-4 w-4" />
-                Anuleaza seria
+                {t('client:recurringGroup.cancelSeries')}
               </Button>
             </div>
           )}
@@ -218,7 +216,7 @@ export default function RecurringGroupDetailPage() {
               disabled={resuming}
             >
               <Play className="h-4 w-4" />
-              Reia seria
+              {t('client:recurringGroup.resumeSeries')}
             </Button>
           )}
         </div>
@@ -233,7 +231,7 @@ export default function RecurringGroupDetailPage() {
                   <User className="h-5 w-5 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Curatator preferat</p>
+                  <p className="text-xs text-gray-500">{t('client:recurringGroup.preferredCleaner')}</p>
                   <p className="font-semibold text-gray-900">{group.preferredWorker.fullName}</p>
                 </div>
               </div>
@@ -248,7 +246,7 @@ export default function RecurringGroupDetailPage() {
                   <Building2 className="h-5 w-5 text-emerald-600" />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Companie</p>
+                  <p className="text-xs text-gray-500">{t('client:recurringGroup.company')}</p>
                   <p className="font-semibold text-gray-900">{group.company.companyName}</p>
                 </div>
               </div>
@@ -263,7 +261,7 @@ export default function RecurringGroupDetailPage() {
                   <MapPin className="h-5 w-5 text-purple-600" />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Adresa</p>
+                  <p className="text-xs text-gray-500">{t('client:recurringGroup.address')}</p>
                   <p className="font-semibold text-gray-900 text-sm">
                     {group.address.streetAddress}, {group.address.city}
                   </p>
@@ -279,7 +277,7 @@ export default function RecurringGroupDetailPage() {
                 <Clock className="h-5 w-5 text-amber-600" />
               </div>
               <div>
-                <p className="text-xs text-gray-500">Pret per sesiune</p>
+                <p className="text-xs text-gray-500">{t('client:recurringGroup.pricePerSession')}</p>
                 <p className="font-semibold text-gray-900">
                   {group.estimatedTotalPerOccurrence} lei
                 </p>
@@ -291,9 +289,9 @@ export default function RecurringGroupDetailPage() {
         {/* Progress */}
         <Card className="mb-8">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-gray-900">Progres</h3>
+            <h3 className="font-semibold text-gray-900">{t('client:recurringGroup.progress')}</h3>
             <span className="text-sm text-gray-500">
-              {group.completedOccurrences} / {group.totalOccurrences} finalizate
+              {t('client:recurringGroup.completedOf', { completed: group.completedOccurrences, total: group.totalOccurrences })}
             </span>
           </div>
           <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
@@ -308,7 +306,7 @@ export default function RecurringGroupDetailPage() {
 
         {/* Occurrences */}
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          Toate programarile ({group.occurrences.length})
+          {t('client:recurringGroup.allAppointments', { count: group.occurrences.length })}
         </h3>
         <div className="space-y-3">
           {group.occurrences.map((occ) => {
@@ -332,14 +330,14 @@ export default function RecurringGroupDetailPage() {
                       <Badge status={occ.status} />
                       {occ.paymentStatus === 'PAID' && (
                         <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
-                          Platit
+                          {t('client:recurringGroup.paid')}
                         </span>
                       )}
                     </div>
                     <div className="flex flex-wrap gap-3 text-sm text-gray-600">
                       <span className="flex items-center gap-1">
                         <Calendar className="h-3.5 w-3.5" />
-                        {formatDate(occ.scheduledDate)}
+                        {formatDate(occ.scheduledDate, i18n.language)}
                       </span>
                       <span className="flex items-center gap-1">
                         <Clock className="h-3.5 w-3.5" />
@@ -351,7 +349,7 @@ export default function RecurringGroupDetailPage() {
                           {occ.worker.fullName}
                           {isSubstitute && (
                             <span className="text-xs text-amber-600 font-medium">
-                              (Inlocuitor)
+                              {t('client:recurringGroup.substitute')}
                             </span>
                           )}
                         </span>
@@ -374,21 +372,21 @@ export default function RecurringGroupDetailPage() {
         <Modal
           open={showCancelModal}
           onClose={() => setShowCancelModal(false)}
-          title="Anuleaza seria recurenta"
+          title={t('client:recurringGroup.cancelModal.title')}
         >
           <p className="text-sm text-gray-600 mb-4">
-            Toate programarile viitoare vor fi anulate. Programarile deja finalizate nu sunt afectate.
+            {t('client:recurringGroup.cancelModal.description')}
           </p>
           <textarea
             className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600 resize-none mb-4"
             rows={3}
-            placeholder="Motivul anularii (optional)"
+            placeholder={t('client:recurringGroup.cancelModal.reasonPlaceholder')}
             value={cancelReason}
             onChange={(e) => setCancelReason(e.target.value)}
           />
           <div className="flex justify-end gap-3">
             <Button variant="outline" onClick={() => setShowCancelModal(false)}>
-              Renunta
+              {t('client:recurringGroup.cancelModal.cancel')}
             </Button>
             <Button
               onClick={() =>
@@ -399,7 +397,7 @@ export default function RecurringGroupDetailPage() {
               disabled={cancelling}
               className="bg-red-600 hover:bg-red-700"
             >
-              {cancelling ? 'Se anuleaza...' : 'Confirma anularea'}
+              {cancelling ? t('client:recurringGroup.cancelModal.cancelling') : t('client:recurringGroup.cancelModal.confirm')}
             </Button>
           </div>
         </Modal>

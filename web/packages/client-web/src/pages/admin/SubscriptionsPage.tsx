@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   CreditCard,
   Pause,
@@ -32,32 +33,11 @@ const PAGE_SIZE = 20;
 
 type StatusFilter = 'ALL' | 'ACTIVE' | 'PAUSED' | 'PAST_DUE' | 'CANCELLED';
 
-const statusOptions = [
-  { value: 'ALL', label: 'Toate statusurile' },
-  { value: 'ACTIVE', label: 'Active' },
-  { value: 'PAUSED', label: 'Pauzate' },
-  { value: 'PAST_DUE', label: 'Restante' },
-  { value: 'CANCELLED', label: 'Anulate' },
-];
-
 const statusDotColor: Record<string, string> = {
   ACTIVE: 'bg-emerald-500',
   PAUSED: 'bg-amber-400',
   PAST_DUE: 'bg-red-400',
   CANCELLED: 'bg-gray-300',
-};
-
-const statusLabel: Record<string, string> = {
-  ACTIVE: 'Activ',
-  PAUSED: 'Pauzat',
-  PAST_DUE: 'Restant',
-  CANCELLED: 'Anulat',
-};
-
-const recurrenceLabel: Record<string, string> = {
-  WEEKLY: 'Saptamanal',
-  BIWEEKLY: 'La 2 sapt.',
-  MONTHLY: 'Lunar',
 };
 
 // ─── Types ─────────────────────────────────────────────────────────────────
@@ -94,6 +74,17 @@ interface SubscriptionStats {
 
 export default function AdminSubscriptionsPage() {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation(['dashboard', 'admin']);
+
+  const locale = i18n.language === 'en' ? 'en-GB' : 'ro-RO';
+
+  const statusOptions = [
+    { value: 'ALL', label: t('admin:subscriptions.allStatuses') },
+    { value: 'ACTIVE', label: t('admin:subscriptions.statusLabels.ACTIVE') },
+    { value: 'PAUSED', label: t('admin:subscriptions.statusLabels.PAUSED') },
+    { value: 'PAST_DUE', label: t('admin:subscriptions.statusLabels.PAST_DUE') },
+    { value: 'CANCELLED', label: t('admin:subscriptions.statusLabels.CANCELLED') },
+  ];
 
   // Filter & pagination
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL');
@@ -174,7 +165,7 @@ export default function AdminSubscriptionsPage() {
   };
 
   const formatMRR = (bani: number): string => {
-    return new Intl.NumberFormat('ro-RO', {
+    return new Intl.NumberFormat(locale, {
       style: 'currency',
       currency: 'RON',
       minimumFractionDigits: 0,
@@ -186,8 +177,8 @@ export default function AdminSubscriptionsPage() {
     <div>
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Abonamente</h1>
-        <p className="text-gray-500 mt-1">Gestioneaza toate abonamentele de pe platforma.</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('admin:subscriptions.title')}</h1>
+        <p className="text-gray-500 mt-1">{t('admin:subscriptions.subtitle')}</p>
       </div>
 
       {/* Key Metrics */}
@@ -213,7 +204,7 @@ export default function AdminSubscriptionsPage() {
                 <CreditCard className="h-4.5 w-4.5 text-gray-500" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs text-gray-500 leading-tight">Active</p>
+                <p className="text-xs text-gray-500 leading-tight">{t('admin:subscriptions.metrics.active')}</p>
                 <p className="text-lg font-semibold text-gray-900 leading-tight">{stats.activeCount}</p>
               </div>
             </div>
@@ -222,7 +213,7 @@ export default function AdminSubscriptionsPage() {
                 <Pause className="h-4.5 w-4.5 text-gray-500" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs text-gray-500 leading-tight">Pauzate</p>
+                <p className="text-xs text-gray-500 leading-tight">{t('admin:subscriptions.metrics.paused')}</p>
                 <p className="text-lg font-semibold text-gray-900 leading-tight">{stats.pausedCount}</p>
               </div>
             </div>
@@ -231,7 +222,7 @@ export default function AdminSubscriptionsPage() {
                 <AlertTriangle className="h-4.5 w-4.5 text-gray-500" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs text-gray-500 leading-tight">Restante</p>
+                <p className="text-xs text-gray-500 leading-tight">{t('admin:subscriptions.metrics.pastDue')}</p>
                 <p className="text-lg font-semibold text-gray-900 leading-tight">{stats.pastDueCount}</p>
               </div>
             </div>
@@ -240,7 +231,7 @@ export default function AdminSubscriptionsPage() {
                 <TrendingUp className="h-4.5 w-4.5 text-gray-500" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs text-gray-500 leading-tight">MRR</p>
+                <p className="text-xs text-gray-500 leading-tight">{t('admin:subscriptions.metrics.mrr')}</p>
                 <p className="text-lg font-semibold text-gray-900 leading-tight">{formatMRR(stats.monthlyRecurringRevenue)}</p>
               </div>
             </div>
@@ -259,7 +250,7 @@ export default function AdminSubscriptionsPage() {
               setSearchInput(e.target.value);
               setPage(0);
             }}
-            placeholder="Cauta dupa client, companie, lucrator..."
+            placeholder={t('admin:subscriptions.searchPlaceholder')}
             className="w-full rounded-xl border border-gray-300 bg-white pl-10 pr-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
           />
         </div>
@@ -276,7 +267,7 @@ export default function AdminSubscriptionsPage() {
           <div className="flex items-start gap-3 p-4 rounded-xl bg-red-50 border border-red-200">
             <AlertTriangle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
             <p className="text-sm text-red-700">
-              Eroare la incarcarea abonamentelor. Incearca din nou.
+              {t('admin:subscriptions.errorLoading')}
             </p>
           </div>
         </Card>
@@ -298,7 +289,7 @@ export default function AdminSubscriptionsPage() {
             ))}
           </div>
         ) : subscriptions.length === 0 ? (
-          <p className="text-center text-gray-400 py-16">Nu exista abonamente.</p>
+          <p className="text-center text-gray-400 py-16">{t('admin:subscriptions.empty')}</p>
         ) : (
           <div className="divide-y divide-gray-100">
             {subscriptions.map((sub) => (
@@ -318,7 +309,7 @@ export default function AdminSubscriptionsPage() {
                 {/* Recurrence badge */}
                 <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 text-xs font-medium text-blue-600 shrink-0">
                   <Repeat className="h-3 w-3" />
-                  {recurrenceLabel[sub.recurrenceType] ?? sub.recurrenceType}
+                  {t(`admin:subscriptions.recurrenceLabels.${sub.recurrenceType}`, { defaultValue: sub.recurrenceType })}
                 </span>
 
                 {/* Spacer */}
@@ -344,12 +335,12 @@ export default function AdminSubscriptionsPage() {
 
                 {/* Monthly amount */}
                 <span className="text-sm font-medium text-gray-900 shrink-0 w-24 text-right">
-                  {formatCurrency(sub.monthlyAmount)}/luna
+                  {formatCurrency(sub.monthlyAmount)}/{t('admin:subscriptions.monthSuffix')}
                 </span>
 
                 {/* Status label */}
                 <span className="text-xs text-gray-500 shrink-0 w-16 text-right hidden sm:block">
-                  {statusLabel[sub.status] ?? sub.status}
+                  {t(`admin:subscriptions.statusLabels.${sub.status}`, { defaultValue: sub.status })}
                 </span>
 
                 {/* Cancel button */}
@@ -357,7 +348,7 @@ export default function AdminSubscriptionsPage() {
                   <button
                     onClick={(e) => handleOpenCancel(e, sub.id)}
                     className="hidden sm:flex items-center p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer shrink-0"
-                    title="Anuleaza abonamentul"
+                    title={t('admin:subscriptions.cancelTitle')}
                   >
                     <XCircle className="h-4 w-4" />
                   </button>
@@ -375,7 +366,7 @@ export default function AdminSubscriptionsPage() {
           totalCount={totalCount}
           pageSize={PAGE_SIZE}
           onPageChange={setPage}
-          noun="abonamente"
+          noun={t('admin:subscriptions.noun')}
         />
       )}
 
@@ -387,25 +378,25 @@ export default function AdminSubscriptionsPage() {
           setCancelSubId(null);
           setCancelReason('');
         }}
-        title="Anuleaza abonamentul"
+        title={t('admin:subscriptions.cancelModal.title')}
       >
         <div className="space-y-4">
           <div className="flex items-start gap-3 p-4 rounded-xl bg-red-50 border border-red-200">
             <AlertTriangle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
             <p className="text-sm text-red-700">
-              Esti sigur ca doresti sa anulezi acest abonament? Aceasta actiune nu poate fi anulata.
+              {t('admin:subscriptions.cancelModal.warning')}
             </p>
           </div>
 
           <div className="w-full">
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Motiv anulare (optional)
+              {t('admin:subscriptions.cancelModal.reasonLabel')}
             </label>
             <textarea
               value={cancelReason}
               onChange={(e) => setCancelReason(e.target.value)}
               rows={3}
-              placeholder="Descrie motivul anularii..."
+              placeholder={t('admin:subscriptions.cancelModal.reasonPlaceholder')}
               className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary resize-none"
             />
           </div>
@@ -419,11 +410,11 @@ export default function AdminSubscriptionsPage() {
                 setCancelReason('');
               }}
             >
-              Renunta
+              {t('admin:subscriptions.cancelModal.dismiss')}
             </Button>
             <Button variant="danger" onClick={handleCancel} loading={cancelling}>
               <XCircle className="h-4 w-4" />
-              Anuleaza abonamentul
+              {t('admin:subscriptions.cancelModal.confirm')}
             </Button>
           </div>
         </div>

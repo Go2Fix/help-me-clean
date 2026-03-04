@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight, Calendar, AlertTriangle } from 'lucide-react';
 import { cn } from '@go2fix/shared';
 import Card from '@/components/ui/Card';
@@ -83,9 +84,6 @@ interface ModalState {
 
 // ─── Constants & Helpers ────────────────────────────────────────────────────
 
-const DAY_SHORT = ['Lun', 'Mar', 'Mie', 'Joi', 'Vin', 'Sam', 'Dum'];
-const DAY_FULL = ['Luni', 'Marti', 'Miercuri', 'Joi', 'Vineri', 'Sambata', 'Duminica'];
-
 function canEditSchedule(status: string): boolean {
   return status !== 'PENDING_REVIEW';
 }
@@ -134,10 +132,21 @@ function addHoursToTime(time: string, hours: number): string {
 
 export default function CalendarPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation(['dashboard', 'company']);
+
+  const DAY_SHORT = [
+    t('days.Mon'), t('days.Tue'), t('days.Wed'), t('days.Thu'),
+    t('days.Fri'), t('days.Sat'), t('days.Sun'),
+  ];
+  const DAY_FULL = [
+    t('days.Monday'), t('days.Tuesday'), t('days.Wednesday'), t('days.Thursday'),
+    t('days.Friday'), t('days.Saturday'), t('days.Sunday'),
+  ];
+
   const [weekStart, setWeekStart] = useState<Date>(() => getMonday(new Date()));
   const [mobileDay, setMobileDay] = useState(() => {
     const today = new Date().getDay();
-    return today === 0 ? 6 : today - 1; // Convert Sun=0..Sat=6 to Mon=0..Sun=6
+    return today === 0 ? 6 : today - 1;
   });
   const [modal, setModal] = useState<ModalState>({
     open: false, workerId: '', workerName: '',
@@ -163,8 +172,6 @@ export default function CalendarPage() {
   const workSchedule: WorkScheduleSlot[] = wsData?.myCompanyWorkSchedule ?? [];
   const loading = cLoading || bLoading || wsLoading;
 
-  // Fetch date overrides for all workers. We batch them into a single derived query
-  // using the first worker's data to trigger refetch for all.
   const firstWorkerId = workers[0]?.id;
   const { data: ovDataFirst, refetch: refetchOverridesFirst } = useQuery(WORKER_DATE_OVERRIDES, {
     variables: { workerId: firstWorkerId ?? '', from: fromDate, to: toDate },
@@ -181,7 +188,6 @@ export default function CalendarPage() {
     skip: !thirdWorkerId,
   });
 
-  // Build override index: workerId_date -> DateOverride
   const overrideIndex = useMemo(() => {
     const map = new Map<string, DateOverride>();
     const addOverrides = (cid: string | undefined, data: DateOverride[]) => {
@@ -200,7 +206,6 @@ export default function CalendarPage() {
     else if (cid === thirdWorkerId) refetchOverridesThird();
   }
 
-  // ─── Booking index: workerId_date -> bookings[] ─────────────────────
   const bIndex = useMemo(() => {
     const map = new Map<string, Booking[]>();
     for (const b of bookings) {
@@ -222,17 +227,14 @@ export default function CalendarPage() {
     return false;
   }, []);
 
-  // ─── Navigation ───────────────────────────────────────────────────────
   const goToPrevWeek = () => setWeekStart((p) => addDays(p, -7));
   const goToNextWeek = () => setWeekStart((p) => addDays(p, 7));
   const goToToday = () => setWeekStart(getMonday(new Date()));
 
-  // ─── Cell helpers ─────────────────────────────────────────────────────
   function getEffectiveAvailability(c: Worker, gi: number, date: Date): EffectiveAvailability {
     const dow = gridToDow(gi);
     const dateStr = fmtYMD(date);
 
-    // 1. Check date-specific override
     const override = overrideIndex.get(`${c.id}_${dateStr}`);
     if (override) {
       return {
@@ -243,7 +245,6 @@ export default function CalendarPage() {
       };
     }
 
-    // 2. Check explicit worker weekly availability
     const explicit = c.availability?.find((s) => s.dayOfWeek === dow);
     if (explicit) {
       return {
@@ -254,7 +255,6 @@ export default function CalendarPage() {
       };
     }
 
-    // 3. Fallback to company work schedule
     const companySlot = workSchedule.find((s) => s.dayOfWeek === dow);
     if (companySlot) {
       return {
@@ -265,7 +265,6 @@ export default function CalendarPage() {
       };
     }
 
-    // 4. Hardcoded fallback
     const isWeekday = dow >= 1 && dow <= 5;
     return { startTime: '08:00', endTime: '17:00', isAvailable: isWeekday, source: 'default' };
   }
@@ -274,7 +273,6 @@ export default function CalendarPage() {
     return bIndex.get(`${cid}_${fmtYMD(d)}`) ?? [];
   }
 
-  // ─── Modal ────────────────────────────────────────────────────────────
   function openModal(c: Worker, gi: number, date: Date) {
     const eff = getEffectiveAvailability(c, gi, date);
     setModal({
@@ -301,18 +299,21 @@ export default function CalendarPage() {
     refetchBookings();
   }
 
-  const weekLabel = `Saptamana ${fmtDM(weekStart)} - ${fmtDM(weekEnd)} ${weekEnd.getFullYear()}`;
+  const weekLabel = t('company:calendar.weekLabel', {
+    from: fmtDM(weekStart),
+    to: fmtDM(weekEnd),
+    year: weekEnd.getFullYear(),
+  });
 
-  // ─── Render ───────────────────────────────────────────────────────────
   if (loading && workers.length === 0) {
-    return <LoadingSpinner text="Se incarca calendarul..." />;
+    return <LoadingSpinner text={t('company:calendar.loading')} />;
   }
 
   return (
     <div className="max-w-full overflow-hidden">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Calendar</h1>
-        <p className="text-gray-500 mt-1">Gestionează disponibilitatea și vezi programările echipei.</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('company:calendar.title')}</h1>
+        <p className="text-gray-500 mt-1">{t('company:calendar.subtitle')}</p>
       </div>
 
       {/* Week Navigation */}
@@ -320,16 +321,16 @@ export default function CalendarPage() {
         <div className="flex items-center justify-between">
           <Button variant="ghost" size="sm" onClick={goToPrevWeek}>
             <ChevronLeft className="h-4 w-4" />
-            <span className="hidden sm:inline">Inapoi</span>
+            <span className="hidden sm:inline">{t('company:calendar.back')}</span>
           </Button>
           <div className="flex items-center gap-3">
             <Calendar className="h-5 w-5 text-primary hidden sm:block" />
             <span className="text-sm sm:text-base font-semibold text-gray-900">{weekLabel}</span>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={goToToday}>Astazi</Button>
+            <Button variant="outline" size="sm" onClick={goToToday}>{t('company:calendar.today')}</Button>
             <Button variant="ghost" size="sm" onClick={goToNextWeek}>
-              <span className="hidden sm:inline">Inainte</span>
+              <span className="hidden sm:inline">{t('company:calendar.forward')}</span>
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
@@ -340,8 +341,8 @@ export default function CalendarPage() {
         <Card>
           <div className="text-center py-12">
             <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-1">Niciun lucrator</h3>
-            <p className="text-gray-500">Adauga lucratori in echipa pentru a gestiona calendarul.</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-1">{t('company:calendar.empty')}</h3>
+            <p className="text-gray-500">{t('company:calendar.emptyDesc')}</p>
           </div>
         </Card>
       ) : (
@@ -350,7 +351,7 @@ export default function CalendarPage() {
           <div className="hidden lg:block overflow-x-auto">
             <div className="min-w-[800px]">
               <div className="grid gap-px bg-gray-200 rounded-t-xl overflow-hidden" style={{ gridTemplateColumns: '160px repeat(7, 1fr)' }}>
-                <div className="bg-gray-50 p-3 text-xs font-medium text-gray-500 uppercase">Lucrator</div>
+                <div className="bg-gray-50 p-3 text-xs font-medium text-gray-500 uppercase">{t('company:calendar.workerCol')}</div>
                 {weekDates.map((date, idx) => {
                   const isToday = fmtYMD(date) === fmtYMD(new Date());
                   return (
@@ -400,14 +401,14 @@ export default function CalendarPage() {
                         {eff.isAvailable && (
                           <div className="mb-1">
                             <p className="text-xs font-medium text-emerald-700">{eff.startTime} - {eff.endTime}</p>
-                            {isDefault && <p className="text-[10px] text-emerald-500/70 italic">(implicit)</p>}
-                            {eff.source === 'weekly' && <p className="text-[10px] text-emerald-500/70 italic">(saptamanal)</p>}
+                            {isDefault && <p className="text-[10px] text-emerald-500/70 italic">{t('company:calendar.implicit')}</p>}
+                            {eff.source === 'weekly' && <p className="text-[10px] text-emerald-500/70 italic">{t('company:calendar.weekly')}</p>}
                           </div>
                         )}
                         {!eff.isAvailable && (
                           <p className={cn('text-xs mb-1', isDefault ? 'text-gray-400' : 'text-red-400 font-medium')}>
-                            {isDefault ? 'Liber' : 'Indisponibil'}
-                            {eff.source === 'weekly' && <span className="text-[10px] italic"> (saptamanal)</span>}
+                            {isDefault ? t('company:calendar.free') : t('company:calendar.unavailable')}
+                            {eff.source === 'weekly' && <span className="text-[10px] italic"> {t('company:calendar.weekly')}</span>}
                           </p>
                         )}
                         {cb.map((b) => (
@@ -421,7 +422,7 @@ export default function CalendarPage() {
                           </div>
                         ))}
                         {conflict && (
-                          <div className="absolute top-1 right-1" title="Conflict de programare">
+                          <div className="absolute top-1 right-1" title={t('company:calendar.conflict')}>
                             <AlertTriangle className="h-3.5 w-3.5 text-red-500" />
                           </div>
                         )}
@@ -477,7 +478,9 @@ export default function CalendarPage() {
                         <p className="text-sm font-semibold text-gray-900">{worker.fullName}</p>
                       </div>
                       {canEditSchedule(worker.status) && (
-                        <Button variant="ghost" size="sm" onClick={() => openModal(worker, mobileDay, weekDates[mobileDay])}>Editeaza</Button>
+                        <Button variant="ghost" size="sm" onClick={() => openModal(worker, mobileDay, weekDates[mobileDay])}>
+                          {t('actions.edit')}
+                        </Button>
                       )}
                     </div>
                     {eff.isAvailable ? (
@@ -488,10 +491,10 @@ export default function CalendarPage() {
                           : 'bg-emerald-50 border border-emerald-200',
                       )}>
                         <p className="text-sm font-medium text-emerald-700">
-                          Disponibil: {eff.startTime} - {eff.endTime}
+                          {t('company:calendar.available', { start: eff.startTime, end: eff.endTime })}
                         </p>
-                        {isDefault && <p className="text-xs text-emerald-500/70 italic mt-0.5">(implicit)</p>}
-                        {eff.source === 'weekly' && <p className="text-xs text-emerald-500/70 italic mt-0.5">(saptamanal)</p>}
+                        {isDefault && <p className="text-xs text-emerald-500/70 italic mt-0.5">{t('company:calendar.implicit')}</p>}
+                        {eff.source === 'weekly' && <p className="text-xs text-emerald-500/70 italic mt-0.5">{t('company:calendar.weekly')}</p>}
                       </div>
                     ) : (
                       <div className={cn(
@@ -501,7 +504,7 @@ export default function CalendarPage() {
                           : 'bg-red-50 border border-red-100',
                       )}>
                         <p className={cn('text-sm', isDefault ? 'text-gray-400' : 'text-red-400 font-medium')}>
-                          {isDefault ? 'Liber' : 'Indisponibil'}
+                          {isDefault ? t('company:calendar.free') : t('company:calendar.unavailable')}
                         </p>
                       </div>
                     )}
@@ -525,7 +528,7 @@ export default function CalendarPage() {
                     {conflict && (
                       <div className="flex items-center gap-1.5 mt-2 text-red-500">
                         <AlertTriangle className="h-3.5 w-3.5" />
-                        <p className="text-xs font-medium">Conflict de programare</p>
+                        <p className="text-xs font-medium">{t('company:calendar.conflict')}</p>
                       </div>
                     )}
                   </Card>
@@ -552,31 +555,31 @@ export default function CalendarPage() {
               className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary/30"
             />
             <label htmlFor="isAvailable" className="text-sm font-medium text-gray-700">
-              Disponibil in aceasta zi
+              {t('company:calendar.editModal.availableLabel')}
             </label>
           </div>
           {modal.isAvailable && (
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Ora de inceput</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('company:calendar.editModal.startTime')}</label>
                 <TimeInput24h value={modal.startTime}
                   onChange={(v) => setModal((p) => ({ ...p, startTime: v }))} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Ora de sfarsit</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('company:calendar.editModal.endTime')}</label>
                 <TimeInput24h value={modal.endTime}
                   onChange={(v) => setModal((p) => ({ ...p, endTime: v }))} />
               </div>
             </div>
           )}
           <p className="text-xs text-gray-400">
-            Modificarea se aplica doar pentru data de {modal.date ? modal.date.split('-').reverse().join('.') : ''}.
+            {t('company:calendar.editModal.note', { date: modal.date ? modal.date.split('-').reverse().join('.') : '' })}
           </p>
           <div className="flex gap-3 pt-2">
             <Button type="button" variant="ghost" onClick={() => setModal((p) => ({ ...p, open: false }))} className="flex-1">
-              Anuleaza
+              {t('company:calendar.editModal.cancel')}
             </Button>
-            <Button onClick={handleSave} loading={saving} className="flex-1">Salveaza</Button>
+            <Button onClick={handleSave} loading={saving} className="flex-1">{t('company:calendar.editModal.save')}</Button>
           </div>
         </div>
       </Modal>

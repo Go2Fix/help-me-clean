@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@apollo/client';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ArrowLeft, Calendar, Repeat, Clock, MapPin, Home,
   PawPrint, Check, CheckCircle, CheckSquare, Square,
@@ -33,6 +34,7 @@ interface BookingExtra {
   extra: {
     id: string;
     nameRo: string;
+    nameEn: string;
     icon?: string;
     allowMultiple: boolean;
     unitLabel?: string;
@@ -83,53 +85,31 @@ interface BookingData {
 
 type BadgeVariant = 'default' | 'success' | 'warning' | 'danger' | 'info';
 
-const STATUS_BADGE: Record<string, { label: string; variant: BadgeVariant }> = {
-  ASSIGNED: { label: 'Asignata', variant: 'info' },
-  CONFIRMED: { label: 'Confirmata', variant: 'warning' },
-  IN_PROGRESS: { label: 'In lucru', variant: 'info' },
-  COMPLETED: { label: 'Finalizata', variant: 'success' },
-  CANCELLED_BY_CLIENT: { label: 'Anulata de client', variant: 'danger' },
-  CANCELLED_BY_COMPANY: { label: 'Anulata de companie', variant: 'danger' },
-  CANCELLED_BY_ADMIN: { label: 'Anulata de admin', variant: 'danger' },
+const STATUS_BADGE_VARIANT: Record<string, BadgeVariant> = {
+  ASSIGNED: 'info',
+  CONFIRMED: 'warning',
+  IN_PROGRESS: 'info',
+  COMPLETED: 'success',
+  CANCELLED_BY_CLIENT: 'danger',
+  CANCELLED_BY_COMPANY: 'danger',
+  CANCELLED_BY_ADMIN: 'danger',
 };
 
 const FINALIZED_STATUSES = ['COMPLETED', 'CANCELLED_BY_CLIENT', 'CANCELLED_BY_COMPANY', 'CANCELLED_BY_ADMIN'];
 
-const propertyTypeLabel: Record<string, string> = {
-  APARTMENT: 'Apartament',
-  HOUSE: 'Casa',
-  OFFICE: 'Birou',
-  STUDIO: 'Garsoniera',
-};
-
-function formatDate(date: string): string {
-  return new Date(date).toLocaleDateString('ro-RO', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-}
-
-function formatDateTime(date: string): string {
-  return new Date(date).toLocaleString('ro-RO', {
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  });
-}
-
 interface TimelineStep {
-  label: string;
+  labelKey: string;
   date: string | null;
   icon: typeof FileText;
   done: boolean;
+  isCancelStep?: boolean;
+  customLabel?: string;
 }
 
 // ─── Component ──────────────────────────────────────────────────────────────
 
 export default function JobDetailPage() {
+  const { t, i18n } = useTranslation(['dashboard', 'worker']);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [error, setError] = useState('');
@@ -143,13 +123,31 @@ export default function JobDetailPage() {
   });
   const booking = data?.booking as BookingData | undefined;
 
-  // Mutations return { id, status } — Apollo auto-updates the normalized booking entity.
-  // List queries (TODAYS_JOBS, MY_ASSIGNED_JOBS) self-correct via cache-and-network on next visit.
   const [startJob, { loading: starting }] = useMutation(START_JOB);
   const [completeJob, { loading: completing }] = useMutation(COMPLETE_JOB);
   const [uploadJobPhoto] = useMutation(UPLOAD_JOB_PHOTO);
   const [deleteJobPhoto] = useMutation(DELETE_JOB_PHOTO);
   const actionLoading = starting || completing;
+
+  const locale = i18n.language === 'en' ? 'en-GB' : 'ro-RO';
+
+  function formatDate(date: string): string {
+    return new Date(date).toLocaleDateString(locale, {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  }
+
+  function formatDateTime(date: string): string {
+    return new Date(date).toLocaleString(locale, {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+  }
 
   const handleAction = async (action: 'start' | 'complete') => {
     setError('');
@@ -157,7 +155,7 @@ export default function JobDetailPage() {
       if (action === 'start') await startJob({ variables: { id } });
       if (action === 'complete') await completeJob({ variables: { id } });
     } catch {
-      setError('Nu s-a putut actualiza statusul. Te rugam sa incerci din nou.');
+      setError(t('worker:jobDetail.actions.errorUpdate'));
     }
   };
 
@@ -179,7 +177,7 @@ export default function JobDetailPage() {
   };
 
   const handleDeletePhoto = async (photoId: string) => {
-    if (!confirm('Stergi aceasta poza?')) return;
+    if (!confirm(t('worker:jobDetail.photos.deleteConfirm'))) return;
     try {
       await deleteJobPhoto({
         variables: { id: photoId },
@@ -209,7 +207,7 @@ export default function JobDetailPage() {
           className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-6 transition-colors cursor-pointer"
         >
           <ArrowLeft className="h-4 w-4" />
-          Înapoi la comenzi
+          {t('worker:jobDetail.backToOrders')}
         </button>
         <div className="animate-pulse space-y-6">
           <div className="h-8 bg-gray-200 rounded w-64" />
@@ -238,12 +236,12 @@ export default function JobDetailPage() {
           className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-6 transition-colors cursor-pointer"
         >
           <ArrowLeft className="h-4 w-4" />
-          Înapoi la comenzi
+          {t('worker:jobDetail.backToOrders')}
         </button>
         <Card>
           <div className="text-center py-12">
-            <h3 className="text-lg font-medium text-gray-900 mb-1">Comanda nu a fost găsită</h3>
-            <p className="text-gray-500">Aceasta comanda nu exista sau nu ai acces.</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-1">{t('worker:jobDetail.notFound')}</h3>
+            <p className="text-gray-500">{t('worker:jobDetail.notFoundDesc')}</p>
           </div>
         </Card>
       </div>
@@ -252,7 +250,8 @@ export default function JobDetailPage() {
 
   // ─── Derived data ───────────────────────────────────────────────────────────
 
-  const badge = STATUS_BADGE[booking.status] ?? { label: booking.status, variant: 'default' as const };
+  const badgeVariant = STATUS_BADGE_VARIANT[booking.status] ?? ('default' as const);
+  const badgeLabel = t(`worker:jobDetail.statusLabels.${booking.status}`, { defaultValue: booking.status });
   const isFinalized = FINALIZED_STATUSES.includes(booking.status);
   const isCancelled = booking.status.startsWith('CANCELLED');
 
@@ -264,21 +263,21 @@ export default function JobDetailPage() {
 
   // Timeline
   const timelineSteps: TimelineStep[] = [
-    { label: 'Asignata', date: booking.createdAt, icon: FileText, done: true },
+    { labelKey: 'worker:jobDetail.timeline.assigned', date: booking.createdAt, icon: FileText, done: true },
     {
-      label: 'Confirmata',
+      labelKey: 'worker:jobDetail.timeline.confirmed',
       date: null,
       icon: CheckCircle,
       done: ['CONFIRMED', 'IN_PROGRESS', 'COMPLETED'].includes(booking.status),
     },
     {
-      label: 'In lucru',
+      labelKey: 'worker:jobDetail.timeline.inProgress',
       date: booking.startedAt || null,
       icon: Clock,
       done: ['IN_PROGRESS', 'COMPLETED'].includes(booking.status),
     },
     {
-      label: 'Finalizata',
+      labelKey: 'worker:jobDetail.timeline.completed',
       date: booking.completedAt || null,
       icon: CheckCircle,
       done: booking.status === 'COMPLETED',
@@ -286,12 +285,20 @@ export default function JobDetailPage() {
   ];
   if (isCancelled) {
     timelineSteps.push({
-      label: STATUS_BADGE[booking.status]?.label || 'Anulata',
+      labelKey: 'worker:jobDetail.timeline.cancelled',
+      customLabel: t(`worker:jobDetail.statusLabels.${booking.status}`, { defaultValue: t('worker:jobDetail.timeline.cancelled') }),
       date: null,
       icon: XCircle,
       done: true,
+      isCancelStep: true,
     });
   }
+
+  const getPhaseLabel = (phase: string) => {
+    if (phase === 'before') return t('worker:jobDetail.photos.phaseBefore');
+    if (phase === 'after') return t('worker:jobDetail.photos.phaseAfter');
+    return t('worker:jobDetail.photos.phaseDuring');
+  };
 
   // ─── Render ─────────────────────────────────────────────────────────────────
 
@@ -303,7 +310,7 @@ export default function JobDetailPage() {
         className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-4 transition-colors cursor-pointer"
       >
         <ArrowLeft className="h-4 w-4" />
-        Înapoi la comenzi
+        {t('worker:jobDetail.backToOrders')}
       </button>
 
       {/* Header */}
@@ -311,21 +318,23 @@ export default function JobDetailPage() {
         <div>
           <div className="flex flex-wrap items-center gap-3">
             <h1 className="text-2xl font-bold text-gray-900">{booking.serviceName}</h1>
-            <Badge variant={badge.variant}>{badge.label}</Badge>
+            <Badge variant={badgeVariant}>{badgeLabel}</Badge>
             {booking.category && (
               <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-medium">
-                {booking.category.icon} {booking.category.nameRo}
+                {booking.category.icon} {i18n.language === 'en' ? booking.category.nameEn : booking.category.nameRo}
               </span>
             )}
             {booking.recurringGroupId && (
               <Badge variant="info">
                 <Repeat className="h-3 w-3 mr-1" />
-                Recurenta{booking.occurrenceNumber ? ` #${booking.occurrenceNumber}` : ''}
+                {booking.occurrenceNumber
+                  ? t('worker:jobDetail.recurringNum', { num: booking.occurrenceNumber })
+                  : t('worker:jobDetail.recurring')}
               </Badge>
             )}
           </div>
           <p className="text-sm text-gray-500 mt-1">
-            Ref: {booking.referenceCode} &middot; {formatDateTime(booking.createdAt)}
+            {t('worker:jobDetail.ref', { code: booking.referenceCode })} &middot; {formatDateTime(booking.createdAt)}
           </p>
         </div>
       </div>
@@ -337,12 +346,13 @@ export default function JobDetailPage() {
 
           {/* Status Timeline */}
           <Card>
-            <h2 className="font-semibold text-gray-900 mb-4">Progresul comenzii</h2>
+            <h2 className="font-semibold text-gray-900 mb-4">{t('worker:jobDetail.timeline.title')}</h2>
             <div className="relative">
               {timelineSteps.map((step, idx) => {
                 const IconComp = step.icon;
                 const isLast = idx === timelineSteps.length - 1;
-                const isCancelStep = step.icon === XCircle;
+                const isCancelStep = !!step.isCancelStep;
+                const label = step.customLabel ?? t(step.labelKey);
                 return (
                   <div key={idx} className="flex gap-3 relative">
                     {!isLast && (
@@ -367,7 +377,7 @@ export default function JobDetailPage() {
                     </div>
                     <div className={isLast ? 'pb-0' : 'pb-5'}>
                       <p className={cn('text-sm font-medium', step.done ? 'text-gray-900' : 'text-gray-400')}>
-                        {step.label}
+                        {label}
                       </p>
                       {step.date && (
                         <p className="text-xs text-gray-500 mt-0.5">{formatDateTime(step.date)}</p>
@@ -381,14 +391,14 @@ export default function JobDetailPage() {
 
           {/* Job Details */}
           <Card>
-            <h2 className="font-semibold text-gray-900 mb-4">Detalii job</h2>
+            <h2 className="font-semibold text-gray-900 mb-4">{t('worker:jobDetail.jobDetails.title')}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="flex items-center gap-3">
                 <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-blue-50">
                   <Calendar className="h-4 w-4 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Data</p>
+                  <p className="text-xs text-gray-500">{t('worker:jobDetail.jobDetails.date')}</p>
                   <p className="text-sm font-medium">{formatDate(booking.scheduledDate)}</p>
                 </div>
               </div>
@@ -397,7 +407,7 @@ export default function JobDetailPage() {
                   <Clock className="h-4 w-4 text-emerald-600" />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Ora & Durata</p>
+                  <p className="text-xs text-gray-500">{t('worker:jobDetail.jobDetails.timeAndDuration')}</p>
                   <p className="text-sm font-medium">
                     {booking.scheduledStartTime?.slice(0, 5)} &middot; {booking.estimatedDurationHours}h
                   </p>
@@ -408,11 +418,11 @@ export default function JobDetailPage() {
                   <Home className="h-4 w-4 text-gray-600" />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Proprietate</p>
+                  <p className="text-xs text-gray-500">{t('worker:jobDetail.jobDetails.property')}</p>
                   <p className="text-sm font-medium">
-                    {propertyTypeLabel[booking.propertyType || ''] || booking.propertyType || 'Apartament'}
-                    {booking.numRooms != null && ` \u00b7 ${booking.numRooms} cam.`}
-                    {booking.numBathrooms != null && ` \u00b7 ${booking.numBathrooms} bai`}
+                    {t(`worker:jobDetail.propertyTypes.${booking.propertyType || 'APARTMENT'}`, { defaultValue: booking.propertyType || 'Apartament' })}
+                    {booking.numRooms != null && ` \u00b7 ${t('worker:jobDetail.jobDetails.rooms', { count: booking.numRooms })}`}
+                    {booking.numBathrooms != null && ` \u00b7 ${t('worker:jobDetail.jobDetails.bathrooms', { count: booking.numBathrooms })}`}
                   </p>
                 </div>
               </div>
@@ -424,11 +434,11 @@ export default function JobDetailPage() {
                   <PawPrint className={cn('h-4 w-4', booking.hasPets ? 'text-red-500' : 'text-gray-400')} />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Suprafață & Animale</p>
+                  <p className="text-xs text-gray-500">{t('worker:jobDetail.jobDetails.surfaceAndPets')}</p>
                   <p className="text-sm font-medium">
-                    {booking.areaSqm != null ? `${booking.areaSqm} mp` : '-'}
+                    {booking.areaSqm != null ? t('worker:jobDetail.jobDetails.sqm', { area: booking.areaSqm }) : '-'}
                     {' \u00b7 '}
-                    {booking.hasPets ? 'Cu animale' : 'Fara animale'}
+                    {booking.hasPets ? t('worker:jobDetail.jobDetails.withPets') : t('worker:jobDetail.jobDetails.noPets')}
                   </p>
                 </div>
               </div>
@@ -438,14 +448,14 @@ export default function JobDetailPage() {
           {/* Checklist */}
           {totalChecklistItems > 0 && (
             <Card>
-              <h2 className="font-semibold text-gray-900 mb-4">Ce trebuie sa faci</h2>
+              <h2 className="font-semibold text-gray-900 mb-4">{t('worker:jobDetail.checklist.title')}</h2>
 
               {/* Progress bar — active statuses only */}
               {showProgress && (
                 <div className="mb-4">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium text-gray-700">
-                      Progres: {checkedCount}/{totalChecklistItems} finalizate
+                      {t('worker:jobDetail.checklist.progress', { checked: checkedCount, total: totalChecklistItems })}
                     </span>
                     <span className="text-sm font-medium text-emerald-600">
                       {Math.round((checkedCount / totalChecklistItems) * 100)}%
@@ -508,10 +518,13 @@ export default function JobDetailPage() {
               {extras.length > 0 && (
                 <>
                   <div className="border-t border-gray-100 my-3" />
-                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2 px-3">Suplimentare</p>
+                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2 px-3">
+                    {t('worker:jobDetail.checklist.extras')}
+                  </p>
                   <div className="space-y-1">
                     {extras.map((extra, idx) => {
                       const checklistIndex = includedItems.length + idx;
+                      const extraName = i18n.language === 'en' ? (extra.extra.nameEn || extra.extra.nameRo) : extra.extra.nameRo;
                       if (isFinalized) {
                         return (
                           <div key={extra.extra.id} className={cn(
@@ -526,7 +539,7 @@ export default function JobDetailPage() {
                               'text-sm',
                               isCancelled ? 'text-gray-400 line-through' : 'text-gray-600',
                             )}>
-                              {extra.extra.nameRo}
+                              {extraName}
                               {extra.quantity > 1 && ` (x${extra.quantity})`}
                             </span>
                           </div>
@@ -549,7 +562,7 @@ export default function JobDetailPage() {
                             <Square className="h-5 w-5 text-gray-300 shrink-0" />
                           )}
                           <span className={cn('text-sm', isChecked ? 'line-through text-gray-400' : 'text-gray-700')}>
-                            {extra.extra.nameRo}
+                            {extraName}
                             {extra.quantity > 1 && ` (x${extra.quantity})`}
                           </span>
                         </button>
@@ -566,7 +579,7 @@ export default function JobDetailPage() {
             <div className="flex items-start gap-3 px-4 py-4 rounded-xl bg-amber-50 border border-amber-200">
               <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
               <div>
-                <p className="text-sm font-semibold text-amber-800 mb-1">Instructiuni speciale</p>
+                <p className="text-sm font-semibold text-amber-800 mb-1">{t('worker:jobDetail.specialInstructions')}</p>
                 <p className="text-sm text-amber-700">{booking.specialInstructions}</p>
               </div>
             </div>
@@ -575,7 +588,7 @@ export default function JobDetailPage() {
           {/* Address */}
           {booking.address && (
             <Card>
-              <h2 className="font-semibold text-gray-900 mb-3">Adresa</h2>
+              <h2 className="font-semibold text-gray-900 mb-3">{t('worker:jobDetail.address.title')}</h2>
               <div className="flex items-start gap-3">
                 <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-blue-50 shrink-0 mt-0.5">
                   <MapPin className="h-4 w-4 text-blue-600" />
@@ -585,9 +598,9 @@ export default function JobDetailPage() {
                   <p>{booking.address.city}{booking.address.county ? `, ${booking.address.county}` : ''}</p>
                   {(booking.address.floor || booking.address.apartment) && (
                     <p className="text-gray-400">
-                      {booking.address.floor && `Etaj ${booking.address.floor}`}
+                      {booking.address.floor && t('worker:jobDetail.address.floor', { floor: booking.address.floor })}
                       {booking.address.floor && booking.address.apartment && ', '}
-                      {booking.address.apartment && `Ap. ${booking.address.apartment}`}
+                      {booking.address.apartment && t('worker:jobDetail.address.apartment', { apt: booking.address.apartment })}
                     </p>
                   )}
                   <a
@@ -599,7 +612,7 @@ export default function JobDetailPage() {
                     className="inline-flex items-center gap-1.5 mt-2 text-xs font-medium text-blue-600 hover:text-blue-700 transition-colors"
                   >
                     <Navigation className="h-3.5 w-3.5" />
-                    Deschide în Google Maps
+                    {t('worker:jobDetail.address.openMaps')}
                   </a>
                 </div>
               </div>
@@ -610,7 +623,7 @@ export default function JobDetailPage() {
                     <Key className="h-4 w-4 text-amber-600" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Cod intrare</p>
+                    <p className="text-xs text-gray-500">{t('worker:jobDetail.address.entryCode')}</p>
                     <p className="text-sm font-bold text-gray-900 font-mono tracking-wider">{booking.address.entryCode}</p>
                   </div>
                 </div>
@@ -618,7 +631,7 @@ export default function JobDetailPage() {
 
               {booking.address.notes && (
                 <div className="mt-3 pt-3 border-t border-gray-100">
-                  <p className="text-xs text-gray-500 mb-1">Note adresa</p>
+                  <p className="text-xs text-gray-500 mb-1">{t('worker:jobDetail.address.notes')}</p>
                   <p className="text-sm text-gray-600">{booking.address.notes}</p>
                 </div>
               )}
@@ -630,7 +643,7 @@ export default function JobDetailPage() {
             <Card className="p-5">
               <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
                 <Camera className="h-4 w-4 text-blue-600" />
-                Poze lucrare
+                {t('worker:jobDetail.photos.title')}
               </h3>
 
               {/* Photo grid */}
@@ -641,7 +654,7 @@ export default function JobDetailPage() {
                       <img src={photo.photoUrl} alt={photo.phase} className="w-full h-full object-cover" />
                       <div className="absolute top-1 left-1">
                         <span className="text-xs bg-black/60 text-white px-1.5 py-0.5 rounded-full">
-                          {photo.phase === 'before' ? 'Inainte' : photo.phase === 'after' ? 'Dupa' : 'Lucru'}
+                          {getPhaseLabel(photo.phase)}
                         </span>
                       </div>
                       <button
@@ -663,16 +676,16 @@ export default function JobDetailPage() {
                     onChange={(e) => setPhotoPhase(e.target.value as 'before' | 'after' | 'during')}
                     className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white"
                   >
-                    <option value="before">Inainte</option>
-                    <option value="during">In lucru</option>
-                    <option value="after">Dupa</option>
+                    <option value="before">{t('worker:jobDetail.photos.phaseOptions.before')}</option>
+                    <option value="during">{t('worker:jobDetail.photos.phaseOptions.during')}</option>
+                    <option value="after">{t('worker:jobDetail.photos.phaseOptions.after')}</option>
                   </select>
                   <label className={cn(
                     'flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg cursor-pointer hover:bg-blue-700 transition-colors',
                     uploadingPhoto && 'opacity-50 pointer-events-none',
                   )}>
                     {uploadingPhoto ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
-                    Adauga poza
+                    {t('worker:jobDetail.photos.addPhoto')}
                     <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={uploadingPhoto} />
                   </label>
                 </div>
@@ -687,7 +700,7 @@ export default function JobDetailPage() {
           {/* Client */}
           {booking.client && (
             <Card>
-              <h2 className="font-semibold text-gray-900 mb-3">Client</h2>
+              <h2 className="font-semibold text-gray-900 mb-3">{t('worker:jobDetail.client.title')}</h2>
               <div className="flex items-center gap-3 mb-3">
                 <div className="h-10 w-10 rounded-full flex items-center justify-center shrink-0 bg-blue-100 text-blue-700">
                   <span className="text-sm font-semibold">
@@ -718,7 +731,7 @@ export default function JobDetailPage() {
                     className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors"
                   >
                     <Phone className="h-3.5 w-3.5" />
-                    Suna
+                    {t('worker:jobDetail.client.call')}
                   </a>
                 )}
               </div>
@@ -728,7 +741,7 @@ export default function JobDetailPage() {
           {/* Company */}
           {booking.company && (
             <Card>
-              <h2 className="font-semibold text-gray-900 mb-3">Firma</h2>
+              <h2 className="font-semibold text-gray-900 mb-3">{t('worker:jobDetail.company.title')}</h2>
               <div className="flex items-center gap-3">
                 <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-gray-50 shrink-0">
                   <Building2 className="h-4 w-4 text-gray-600" />
@@ -741,7 +754,7 @@ export default function JobDetailPage() {
           {/* Review */}
           {booking.review && (
             <Card>
-              <h2 className="font-semibold text-gray-900 mb-3">Recenzie client</h2>
+              <h2 className="font-semibold text-gray-900 mb-3">{t('worker:jobDetail.review.title')}</h2>
               <div className="flex items-center gap-1 mb-2">
                 {[1, 2, 3, 4, 5].map((n) => (
                   <Star
@@ -785,7 +798,7 @@ export default function JobDetailPage() {
             size="lg"
             className="w-full"
           >
-            Incepe curatenia
+            {t('worker:jobDetail.actions.startCleaning')}
           </Button>
         )}
         {booking.status === 'IN_PROGRESS' && (
@@ -798,11 +811,11 @@ export default function JobDetailPage() {
               size="lg"
               className="w-full"
             >
-              Finalizeaza curatenia
+              {t('worker:jobDetail.actions.completeCleaning')}
             </Button>
             {totalChecklistItems > 0 && checkedCount < totalChecklistItems && (
               <p className="text-xs text-gray-400 text-center">
-                Bifeaza toate sarcinile pentru a finaliza
+                {t('worker:jobDetail.actions.checkAllTasks')}
               </p>
             )}
           </>

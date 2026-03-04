@@ -134,7 +134,7 @@ describe('Company DashboardPage', () => {
   it('shows welcome message with company name', () => {
     mockAllQueries();
     renderPage();
-    expect(screen.getByText(/bun venit.*cleanpro srl/i)).toBeInTheDocument();
+    expect(screen.getByText(/bun venit.*cleanpro/i)).toBeInTheDocument();
   });
 
   it('shows all 6 KPI cards', () => {
@@ -157,7 +157,7 @@ describe('Company DashboardPage', () => {
   it('shows default values when no company data', () => {
     mockAllQueries({ companyData: { myCompany: null }, financialData: { myCompanyFinancialSummary: null } });
     renderPage();
-    expect(screen.getByText('Bun venit!')).toBeInTheDocument();
+    expect(screen.getByText('Bun venit')).toBeInTheDocument();
   });
 
   it('shows company stats values', () => {

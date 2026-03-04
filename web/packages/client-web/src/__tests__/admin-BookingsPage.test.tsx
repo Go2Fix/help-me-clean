@@ -90,13 +90,13 @@ describe('BookingsPage', () => {
     renderBookingsPage();
     expect(screen.getByText('REF-001')).toBeInTheDocument();
     expect(screen.getByText('Curatenie standard')).toBeInTheDocument();
-    // "Confirmat" appears as the CONFIRMED status badge
-    expect(screen.getByText('Confirmat')).toBeInTheDocument();
+    // "Confirmat" appears as the CONFIRMED status badge and in the filter dropdown
+    expect(screen.getAllByText('Confirmat').length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows "Nu exista comenzi." empty state when edges is empty', () => {
     renderBookingsPage();
-    expect(screen.getByText('Nu exista comenzi.')).toBeInTheDocument();
+    expect(screen.getByText('Nu există comenzi.')).toBeInTheDocument();
   });
 
   it('shows pagination controls when totalCount > 20', () => {
@@ -122,16 +122,16 @@ describe('BookingsPage', () => {
 
   it('shows search input with placeholder', () => {
     renderBookingsPage();
-    expect(screen.getByPlaceholderText('Cauta dupa cod referinta, client, companie...')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Caută după cod referință, client, companie...')).toBeInTheDocument();
   });
 
   it('shows status filter options in select dropdown', () => {
     renderBookingsPage();
     expect(screen.getByText('Toate statusurile')).toBeInTheDocument();
-    expect(screen.getByText('Confirmate')).toBeInTheDocument();
-    expect(screen.getByText('In desfasurare')).toBeInTheDocument();
-    expect(screen.getByText('Finalizate')).toBeInTheDocument();
-    expect(screen.getByText('Anulate')).toBeInTheDocument();
+    expect(screen.getByText('Confirmat')).toBeInTheDocument();
+    expect(screen.getByText('În desfășurare')).toBeInTheDocument();
+    expect(screen.getByText('Finalizat')).toBeInTheDocument();
+    expect(screen.getByText('Anulat')).toBeInTheDocument();
   });
 
   it('shows pagination info when there are many bookings', () => {
@@ -180,7 +180,7 @@ describe('BookingsPage', () => {
       loading: false,
     } as ReturnType<typeof useQuery>);
     renderBookingsPage();
-    expect(screen.getByText('Asignat')).toBeInTheDocument();
+    expect(screen.getAllByText('Asignat').length).toBeGreaterThanOrEqual(1);
   });
 
   it('status filter can be changed via select', () => {

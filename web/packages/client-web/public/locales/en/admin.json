@@ -1,0 +1,1356 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "companies": "Companies",
+    "bookings": "Bookings",
+    "subscriptions": "Subscriptions",
+    "users": "Users",
+    "payments": "Payments",
+    "payouts": "Payouts",
+    "refunds": "Refunds",
+    "invoices": "Invoices",
+    "reports": "Reports",
+    "reviews": "Reviews",
+    "promoCodes": "Promo Codes",
+    "disputes": "Disputes",
+    "settings": "Settings",
+    "subtitle": "Admin Panel"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Platform statistics and data for Go2Fix.",
+    "metrics": {
+      "clients": "Clients",
+      "newThisMonth": "New this month",
+      "companies": "Companies",
+      "averageRating": "Average rating",
+      "bookings": "Bookings",
+      "thisMonth": "This month",
+      "totalRevenue": "Total revenue",
+      "revenueThisMonth": "Revenue this month",
+      "activeSubscriptions": "Active subscriptions",
+      "mrr": "MRR"
+    },
+    "alerts": {
+      "newApplication_one": "{{count}} new application",
+      "newApplication_other": "{{count}} new applications",
+      "companyDocs_one": "{{count}} company document",
+      "companyDocs_other": "{{count}} company documents",
+      "workerDocs_one": "{{count}} worker document",
+      "workerDocs_other": "{{count}} worker documents"
+    },
+    "charts": {
+      "revenueByMonth": "Revenue by month",
+      "bookingsByStatus": "Bookings by status",
+      "noChartData": "No data available for chart",
+      "noData": "No data available",
+      "revenueBarLabel": "Revenue",
+      "commissionBarLabel": "Commission"
+    },
+    "pendingApplications": {
+      "title": "Pending applications",
+      "viewAll": "View all"
+    },
+    "quickLinks": {
+      "companies": "Companies",
+      "bookings": "Bookings",
+      "payments": "Payments"
+    },
+    "statusLabels": {
+      "ASSIGNED": "Assigned",
+      "CONFIRMED": "Confirmed",
+      "IN_PROGRESS": "In Progress",
+      "COMPLETED": "Completed",
+      "CANCELLED": "Cancelled"
+    }
+  },
+  "companies": {
+    "title": "Companies",
+    "subtitle": "Manage companies on the platform.",
+    "searchPlaceholder": "Search by company name or tax ID...",
+    "tabs": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "all": "All",
+      "performance": "Performance"
+    },
+    "statusFilter": {
+      "allStatuses": "All statuses",
+      "pendingReview": "Pending review",
+      "approved": "Approved",
+      "suspended": "Suspended",
+      "rejected": "Rejected"
+    },
+    "statusLabels": {
+      "PENDING_REVIEW": "Pending review",
+      "APPROVED": "Approved",
+      "SUSPENDED": "Suspended",
+      "REJECTED": "Rejected"
+    },
+    "docsHints": {
+      "missing": "Missing documents",
+      "pending": "Documents pending",
+      "rejected": "Documents rejected"
+    },
+    "actions": {
+      "approve": "Approve",
+      "reject": "Reject",
+      "approveDisabledTitle": "All documents must be approved"
+    },
+    "empty": {
+      "noPending": "No pending applications.",
+      "noFound": "No companies found.",
+      "noApproved": "No approved companies.",
+      "noCompanies": "No companies found."
+    },
+    "performance": {
+      "sortBy": "Sort by:",
+      "sortRevenue": "Revenue",
+      "sortRating": "Rating",
+      "sortCompletion": "Completion",
+      "totalBookings": "{{count}} total bookings",
+      "completionRate": "Completion",
+      "cancellationRate": "Cancellation",
+      "highCancellation": "⚠",
+      "reviews_one": "{{count}} review",
+      "reviews_other": "{{count}} reviews"
+    },
+    "rejectModal": {
+      "title": "Reject application",
+      "reasonLabel": "Rejection reason",
+      "reasonPlaceholder": "Explain the reason for rejection...",
+      "cancel": "Cancel",
+      "confirm": "Reject"
+    },
+    "table": {
+      "jobs": "jobs"
+    }
+  },
+  "companyDetail": {
+    "tabs": {
+      "details": "Details",
+      "financial": "Financial",
+      "bookings": "Bookings",
+      "documents": "Documents",
+      "team": "Team"
+    },
+    "statusLabels": {
+      "PENDING_REVIEW": "Pending review",
+      "APPROVED": "Approved",
+      "SUSPENDED": "Suspended",
+      "REJECTED": "Rejected"
+    },
+    "docStatusLabels": {
+      "PENDING": "Pending",
+      "APPROVED": "Approved",
+      "REJECTED": "Rejected"
+    },
+    "docTypeLabels": {
+      "certificat_constatator": "Incorporation Certificate",
+      "asigurare_raspundere_civila": "Public Liability Insurance",
+      "cui_document": "Tax ID Document"
+    },
+    "workerDocTypeLabels": {
+      "cazier_judiciar": "Criminal Record",
+      "contract_munca": "Employment Contract"
+    },
+    "workerStatusLabels": {
+      "ACTIVE": "Active",
+      "PENDING_REVIEW": "Pending review",
+      "INACTIVE": "Inactive",
+      "INVITED": "Invited"
+    },
+    "bookingStatusLabels": {
+      "PENDING": "Pending",
+      "ASSIGNED": "Assigned",
+      "CONFIRMED": "Confirmed",
+      "IN_PROGRESS": "In Progress",
+      "COMPLETED": "Completed",
+      "CANCELLED": "Cancelled"
+    },
+    "notFound": "Company not found.",
+    "backToCompanies": "Back to companies",
+    "editProfile": "Edit profile",
+    "actions": {
+      "approve": "Approve",
+      "reject": "Reject",
+      "suspend": "Suspend",
+      "activate": "Activate",
+      "verifyANAF": "Verify Tax ID"
+    },
+    "details": {
+      "title": "Company details",
+      "infoTitle": "Company information",
+      "companyName": "Company name",
+      "cui": "Tax ID",
+      "companyType": "Company type",
+      "legalRep": "Legal representative",
+      "email": "Contact email",
+      "phone": "Phone",
+      "address": "Address",
+      "city": "City",
+      "county": "County",
+      "description": "Description",
+      "commissionOverride": "Custom commission (%)",
+      "commissionPlaceholder": "e.g. 15",
+      "setCommission": "Set commission",
+      "registeredAt": "Registered on",
+      "status": "Status"
+    },
+    "serviceZones": {
+      "title": "Service areas",
+      "noInfo": "No service area information available.",
+      "managedBy": "Service areas are managed by the company administrator."
+    },
+    "serviceCategories": {
+      "title": "Service categories",
+      "noCategories": "No service categories configured.",
+      "managedBy": "Categories are managed by the company administrator."
+    },
+    "stats": {
+      "rating": "Rating",
+      "jobs": "Jobs"
+    },
+    "docSummary": {
+      "title": "Required document status",
+      "notUploaded": "Not uploaded",
+      "allApproved": "All documents are approved. The company can be approved.",
+      "cannotApprove": "Company cannot be approved yet",
+      "missing": "Missing",
+      "pending": "Pending",
+      "rejected": "Rejected"
+    },
+    "actionsCard": {
+      "title": "Actions",
+      "approveCompany": "Approve company",
+      "rejectCompany": "Reject company",
+      "suspendCompany": "Suspend company",
+      "reactivateCompany": "Reactivate company",
+      "changeStatus": "Change status",
+      "moveToSuspended": "Move to Suspended",
+      "moveToApproved": "Move to Approved",
+      "rejectedNote": "Company has been rejected.",
+      "rejectionReasonLabel": "Reason",
+      "approveDisabledTitle": "Upload all required documents before approval"
+    },
+    "commission": {
+      "title": "Platform commission",
+      "label": "Custom commission (%)",
+      "save": "Save",
+      "resetToDefault": "Reset to default",
+      "cancel": "Cancel",
+      "custom": "custom",
+      "default": "default"
+    },
+    "financial": {
+      "title": "Financial summary",
+      "totalRevenue": "Total revenue",
+      "totalCommission": "Total commission",
+      "totalPayouts": "Total payouts",
+      "pendingPayouts": "Pending",
+      "totalBookings": "Total bookings",
+      "completedBookings": "Completed bookings",
+      "netPayout": "Net payout",
+      "completionRate": "Completion rate",
+      "averageBookingValue": "Average value",
+      "noData": "No financial data available."
+    },
+    "bookingsTab": {
+      "title": "Company bookings",
+      "noBookings": "This company has no bookings."
+    },
+    "documents": {
+      "title": "Documents",
+      "required": "Required documents",
+      "optional": "Optional documents",
+      "noDocuments": "No documents uploaded.",
+      "reviewDocument": "Review document",
+      "approveDoc": "Approve",
+      "rejectDoc": "Reject",
+      "rejectionReason": "Rejection reason",
+      "rejectionPlaceholder": "Explain the reason for rejection..."
+    },
+    "docRejectModal": {
+      "title": "Reject document",
+      "reasonLabel": "Rejection reason",
+      "reasonPlaceholder": "Explain the reason for rejecting the document...",
+      "cancel": "Cancel",
+      "confirm": "Reject"
+    },
+    "team": {
+      "title": "Team",
+      "workers": "Workers",
+      "inviteWorker": "Invite worker",
+      "noWorkers": "No workers registered.",
+      "activateWorker": "Activate",
+      "rating": "Rating",
+      "jobs": "jobs",
+      "personalityTest": "Personality test",
+      "documents": "Documents",
+      "noDocuments": "No documents uploaded.",
+      "missingPhoto": "Missing profile photo"
+    },
+    "rejectModal": {
+      "title": "Reject company",
+      "reasonLabel": "Rejection reason",
+      "reasonPlaceholder": "Explain the reason for rejection...",
+      "cancel": "Cancel",
+      "confirm": "Reject"
+    },
+    "suspendModal": {
+      "title": "Suspend company",
+      "reasonLabel": "Suspension reason",
+      "reasonPlaceholder": "Explain the reason for suspension...",
+      "cancel": "Cancel",
+      "confirm": "Suspend"
+    },
+    "editModal": {
+      "title": "Edit company profile",
+      "companyName": "Company name",
+      "contactEmail": "Contact email",
+      "contactPhone": "Contact phone",
+      "description": "Description",
+      "cancel": "Cancel",
+      "save": "Save"
+    },
+    "personality": {
+      "title": "Personality test"
+    },
+    "anaf": {
+      "title": "Tax ID Verification"
+    }
+  },
+  "bookings": {
+    "title": "Bookings",
+    "subtitle": "Manage all bookings on the platform.",
+    "exportCsv": "Export CSV",
+    "searchPlaceholder": "Search by reference code, client, company...",
+    "allStatuses": "All statuses",
+    "allCompanies": "All companies",
+    "allServices": "All services",
+    "resetFilters": "Reset filters",
+    "statusLabels": {
+      "PENDING": "Pending",
+      "ASSIGNED": "Assigned",
+      "CONFIRMED": "Confirmed",
+      "IN_PROGRESS": "In Progress",
+      "COMPLETED": "Completed",
+      "CANCELLED": "Cancelled",
+      "CANCELLED_BY_CLIENT": "Cancelled by client",
+      "CANCELLED_BY_COMPANY": "Cancelled by company",
+      "CANCELLED_BY_ADMIN": "Cancelled by admin"
+    },
+    "csvColumns": {
+      "code": "Code",
+      "service": "Service",
+      "date": "Date",
+      "time": "Time",
+      "client": "Client",
+      "company": "Company",
+      "price": "Price (RON)",
+      "status": "Status",
+      "payment": "Payment"
+    },
+    "empty": "No bookings found.",
+    "noun": "bookings"
+  },
+  "bookingDetail": {
+    "notFound": "Booking not found.",
+    "backToBookings": "Back to bookings",
+    "reschedule": "Reschedule",
+    "cancelBooking": "Cancel booking",
+    "recurringBadge": "Recurring schedule",
+    "recurringSession": "Session #{{number}}",
+    "recurringDescription": "This booking is part of a recurring series.",
+    "sections": {
+      "bookingDetails": "Booking details",
+      "address": "Address",
+      "timeSlots": "Time slots",
+      "pricing": "Pricing",
+      "timeline": "Timeline",
+      "client": "Client",
+      "company": "Company",
+      "worker": "Cleaner"
+    },
+    "fields": {
+      "scheduledDate": "Scheduled date",
+      "timeAndDuration": "Time / Duration",
+      "property": "Property",
+      "areaPets": "Area / Pets",
+      "specialInstructions": "Special instructions",
+      "floor": "Floor",
+      "apartment": "Apt.",
+      "rooms": "rooms",
+      "bathrooms": "bathrooms",
+      "sqm": "sqm",
+      "hasPets": "Yes, pets",
+      "noPets": "No pets"
+    },
+    "pricing": {
+      "hourlyRate": "Hourly rate",
+      "estimatedTotal": "Estimated total",
+      "finalTotal": "Final total",
+      "platformCommission": "Platform commission",
+      "paymentStatus": "Payment status",
+      "markAsPaid": "Mark as paid"
+    },
+    "timeline": {
+      "created": "Created",
+      "paidConfirmed": "Paid & Confirmed",
+      "inProgress": "In Progress",
+      "completed": "Completed",
+      "cancellationReason": "Cancellation reason"
+    },
+    "slots": {
+      "selected": "Selected",
+      "proposed": "Proposed"
+    },
+    "worker": {
+      "noWorker": "No cleaner assigned",
+      "assignWorker": "Assign worker",
+      "jobs": "jobs"
+    },
+    "cancelModal": {
+      "title": "Cancel booking",
+      "confirmText": "Are you sure you want to cancel booking",
+      "reasonLabel": "Cancellation reason",
+      "reasonPlaceholder": "Explain the reason for cancellation...",
+      "back": "Back",
+      "confirm": "Cancel booking"
+    },
+    "assignModal": {
+      "title": "Assign worker",
+      "searchPlaceholder": "Search by name, company, email...",
+      "noWorker": "No worker found.",
+      "noCompany": "No company",
+      "select": "Select"
+    }
+  },
+  "subscriptions": {
+    "title": "Subscriptions",
+    "subtitle": "Manage all subscriptions on the platform.",
+    "searchPlaceholder": "Search by client, company, worker...",
+    "allStatuses": "All statuses",
+    "statusLabels": {
+      "ACTIVE": "Active",
+      "PAUSED": "Paused",
+      "PAST_DUE": "Past due",
+      "CANCELLED": "Cancelled"
+    },
+    "recurrenceLabels": {
+      "WEEKLY": "Weekly",
+      "BIWEEKLY": "Biweekly",
+      "MONTHLY": "Monthly"
+    },
+    "metrics": {
+      "active": "Active",
+      "paused": "Paused",
+      "pastDue": "Past due",
+      "mrr": "MRR"
+    },
+    "perMonth": "{{amount}}/month",
+    "cancelTitle": "Cancel subscription",
+    "empty": "No subscriptions found.",
+    "errorLoading": "Error loading subscriptions. Please try again.",
+    "cancelModal": {
+      "title": "Cancel subscription",
+      "warning": "Are you sure you want to cancel this subscription? This action cannot be undone.",
+      "reasonLabel": "Cancellation reason (optional)",
+      "reasonPlaceholder": "Describe the reason for cancellation...",
+      "cancel": "Go back",
+      "confirm": "Cancel subscription"
+    },
+    "noun": "subscriptions"
+  },
+  "subscriptionDetail": {
+    "notFound": "Subscription not found.",
+    "errorLoading": "Error loading subscription.",
+    "backToSubscriptions": "Back to subscriptions",
+    "sessionsPerMonth": "{{count}} sessions/month",
+    "actions": {
+      "pause": "Pause",
+      "resume": "Resume",
+      "cancel": "Cancel"
+    },
+    "banners": {
+      "cancellationReason": "Cancellation reason",
+      "cancelledOn": "Cancelled on {{date}}",
+      "pausedSince": "Subscription has been paused since {{date}}",
+      "workerChanged": "Worker was successfully changed. All future sessions have been updated.",
+      "workerChangePending": "Worker change request pending",
+      "workerChangeReason": "Reason: {{reason}}",
+      "workerChangeRequestedOn": "Requested on {{date}}",
+      "assignNewWorker": "Assign new worker"
+    },
+    "sections": {
+      "pricing": "Pricing",
+      "serviceDetails": "Service details",
+      "address": "Address",
+      "upcomingBookings": "Upcoming sessions ({{count}})",
+      "bookingHistory": "Booking history ({{count}})",
+      "client": "Client",
+      "company": "Company",
+      "worker": "Worker",
+      "currentPeriod": "Current period",
+      "progress": "Progress",
+      "extras": "Extra services",
+      "info": "Information"
+    },
+    "pricing": {
+      "hourlyRate": "Hourly rate",
+      "estimatedDuration": "Estimated duration",
+      "pricePerSessionOriginal": "Price per session (original)",
+      "subscriptionDiscount": "Subscription discount",
+      "pricePerSession": "Price per session",
+      "sessionsPerMonth": "Sessions per month",
+      "monthlyTotal": "Monthly total",
+      "platformCommission": "Platform commission",
+      "stripeId": "Stripe ID",
+      "hour_one": "hour",
+      "hour_other": "hours"
+    },
+    "serviceDetails": {
+      "propertyType": "Property type",
+      "rooms": "Rooms",
+      "bathrooms": "Bathrooms",
+      "area": "Area",
+      "pets": "Pets",
+      "hasPets": "Yes",
+      "specialInstructions": "Special instructions",
+      "sqm": "sqm",
+      "room_one": "room",
+      "room_other": "rooms",
+      "bathroom_one": "bathroom",
+      "bathroom_other": "bathrooms",
+      "propertyTypes": {
+        "APARTMENT": "Apartment",
+        "HOUSE": "House",
+        "OFFICE": "Office",
+        "STUDIO": "Studio"
+      }
+    },
+    "period": {
+      "start": "Start",
+      "end": "End"
+    },
+    "progress": {
+      "completed": "Completed"
+    },
+    "worker": {
+      "noWorker": "No worker assigned",
+      "changeWorker": "Change worker"
+    },
+    "meta": {
+      "createdOn": "Created on",
+      "serviceType": "Service type",
+      "preferredDay": "Preferred day",
+      "id": "ID"
+    },
+    "dayNames": {
+      "0": "Sunday",
+      "1": "Monday",
+      "2": "Tuesday",
+      "3": "Wednesday",
+      "4": "Thursday",
+      "5": "Friday",
+      "6": "Saturday"
+    },
+    "cancelModal": {
+      "title": "Cancel subscription",
+      "warning": "Are you sure you want to cancel this subscription? This action cannot be undone. All future sessions will be cancelled.",
+      "reasonLabel": "Cancellation reason (optional)",
+      "reasonPlaceholder": "Describe the reason for cancellation...",
+      "cancel": "Go back",
+      "confirm": "Cancel subscription"
+    }
+  },
+  "users": {
+    "title": "Users",
+    "subtitle": "Manage platform users.",
+    "searchPlaceholder": "Search by name, email or phone...",
+    "allRoles": "All roles",
+    "allStatuses": "All statuses",
+    "roleLabels": {
+      "CLIENT": "Client",
+      "COMPANY_ADMIN": "Company Admin",
+      "WORKER": "Cleaner",
+      "GLOBAL_ADMIN": "Global Admin"
+    },
+    "statusLabels": {
+      "ACTIVE": "Active",
+      "SUSPENDED": "Suspended"
+    },
+    "tableHeaders": {
+      "user": "User",
+      "email": "Email",
+      "phone": "Phone",
+      "role": "Role",
+      "status": "Status",
+      "registered": "Registered"
+    },
+    "empty": {
+      "title": "No users found",
+      "description": "Try adjusting your search criteria or applied filters."
+    },
+    "noun": "users"
+  },
+  "userDetail": {
+    "notFound": "User not found.",
+    "backToUsers": "Back to users",
+    "sections": {
+      "userInfo": "User information",
+      "workerInfo": "Worker information",
+      "personalityTest": "Personality test",
+      "mandatoryDocs": "Mandatory documents",
+      "role": "Role",
+      "accountStatus": "Account status"
+    },
+    "fields": {
+      "fullName": "Full name",
+      "email": "Email",
+      "phone": "Phone",
+      "preferredLanguage": "Preferred language",
+      "registeredOn": "Registered on",
+      "company": "Company",
+      "rating": "Rating",
+      "completedJobs": "Completed jobs",
+      "bio": "Bio"
+    },
+    "languageLabels": {
+      "ro": "Romanian",
+      "en": "English"
+    },
+    "workerStatusLabels": {
+      "ACTIVE": "Active",
+      "PENDING_REVIEW": "Pending review",
+      "INACTIVE": "Inactive",
+      "INVITED": "Invited"
+    },
+    "docTypeLabels": {
+      "cazier_judiciar": "Criminal Record",
+      "contract_munca": "Employment Contract"
+    },
+    "actions": {
+      "saveRole": "Save role",
+      "suspend": "Suspend",
+      "reactivate": "Reactivate"
+    },
+    "noDocuments": "No documents uploaded.",
+    "suspendModal": {
+      "title": "Suspend user",
+      "reasonLabel": "Suspension reason",
+      "reasonPlaceholder": "Explain the reason for suspension...",
+      "cancel": "Cancel",
+      "confirm": "Suspend"
+    }
+  },
+  "payments": {
+    "title": "Payments & Revenue",
+    "subtitle": "Financial report and platform transactions.",
+    "tabs": {
+      "summary": "Transaction summary",
+      "payouts": "Company payouts",
+      "refunds": "Refunds"
+    },
+    "presets": {
+      "thisMonth": "This month",
+      "lastMonth": "Last month",
+      "3months": "3 Months",
+      "6months": "6 Months"
+    },
+    "metrics": {
+      "totalRevenue": "Total revenue",
+      "platformCommission": "Platform commission",
+      "companyPayouts": "Company payouts",
+      "pending": "Pending",
+      "refunds": "Refunds"
+    },
+    "allStatuses": "All statuses",
+    "exportCsv": "Export CSV",
+    "statusLabels": {
+      "PENDING": "Pending",
+      "PROCESSING": "Processing",
+      "SUCCEEDED": "Succeeded",
+      "FAILED": "Failed",
+      "REFUNDED": "Refunded",
+      "PARTIALLY_REFUNDED": "Partially refunded"
+    },
+    "csvColumns": {
+      "transactionId": "Transaction ID",
+      "bookingCode": "Booking Code",
+      "service": "Service",
+      "company": "Company",
+      "totalAmount": "Total Amount (RON)",
+      "commission": "Commission (RON)",
+      "companyAmount": "Company Amount (RON)",
+      "status": "Status",
+      "date": "Date"
+    },
+    "empty": "No transactions found.",
+    "noun": "transactions"
+  },
+  "payouts": {
+    "title": "Payouts",
+    "subtitle": "Manage payments to partner companies.",
+    "allStatuses": "All statuses",
+    "exportCsv": "Export CSV",
+    "createPayout": "Create payout",
+    "statusLabels": {
+      "PENDING": "Pending",
+      "PROCESSING": "Processing",
+      "PAID": "Paid",
+      "FAILED": "Failed",
+      "CANCELLED": "Cancelled"
+    },
+    "statusActions": {
+      "PROCESSING": "Processing",
+      "PAID": "Mark as paid",
+      "FAILED": "Failed",
+      "CANCELLED": "Cancel"
+    },
+    "confirmMessages": {
+      "markPaid": "Confirm that the payment has been made?",
+      "cancel": "Are you sure you want to cancel this payout?"
+    },
+    "paidOn": "Paid: {{date}}",
+    "bookings": "bkgs.",
+    "empty": "No payouts found.",
+    "createModal": {
+      "title": "Create monthly payout",
+      "companyLabel": "Company",
+      "companyPlaceholder": "Search company by name or tax ID...",
+      "selectedCompany": "Selected: {{name}} (Tax ID: {{cui}})",
+      "searching": "Searching...",
+      "noResults": "No results found.",
+      "periodFrom": "Period from",
+      "periodTo": "Period to",
+      "cancel": "Cancel",
+      "confirm": "Create payout"
+    },
+    "csvColumns": {
+      "company": "Company",
+      "periodFrom": "Period From",
+      "periodTo": "Period To",
+      "amount": "Amount (RON)",
+      "bookingCount": "Booking Count",
+      "status": "Status",
+      "paidAt": "Paid At",
+      "createdAt": "Created At"
+    },
+    "noun": "payouts"
+  },
+  "refunds": {
+    "searchPlaceholder": "Search by booking code...",
+    "directRefund": "Direct refund",
+    "tabs": {
+      "REQUESTED": "Requested",
+      "APPROVED": "Approved",
+      "PROCESSED": "Processed",
+      "REJECTED": "Rejected"
+    },
+    "statusLabels": {
+      "REQUESTED": "Requested",
+      "APPROVED": "Approved",
+      "PROCESSED": "Processed",
+      "REJECTED": "Rejected"
+    },
+    "actions": {
+      "approve": "Approve",
+      "reject": "Reject",
+      "process": "Process"
+    },
+    "empty": "No {{tab}} refunds.",
+    "emptySearch": "No refunds found for this search.",
+    "searching": "Searching...",
+    "noBookingFound": "No booking found.",
+    "directModal": {
+      "title": "Direct refund",
+      "bookingLabel": "Booking",
+      "bookingSearchPlaceholder": "Search by booking code...",
+      "amountLabel": "Amount (RON)",
+      "amountPlaceholder": "e.g. 150.00",
+      "reasonLabel": "Reason",
+      "reasonPlaceholder": "Describe the reason for the refund...",
+      "cancel": "Cancel",
+      "confirm": "Issue refund"
+    },
+    "noun": "refunds"
+  },
+  "invoices": {
+    "title": "Invoices",
+    "subtitle": "Manage all invoices issued on the platform.",
+    "allStatuses": "All statuses",
+    "allTypes": "All types",
+    "statusLabels": {
+      "DRAFT": "Draft",
+      "ISSUED": "Issued",
+      "SENT": "Sent",
+      "TRANSMITTED": "Transmitted e-Invoice",
+      "PAID": "Paid",
+      "CANCELLED": "Cancelled",
+      "CREDIT_NOTE": "Credit note"
+    },
+    "typeLabels": {
+      "CLIENT_SERVICE": "Client service",
+      "PLATFORM_COMMISSION": "Platform commission"
+    },
+    "efacturaStatusLabels": {
+      "NOT_SENT": "Not sent",
+      "transmitted": "Transmitted",
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "error": "Error"
+    },
+    "metrics": {
+      "totalIssued": "Invoices issued",
+      "totalAmount": "Total amount",
+      "totalVat": "Total VAT",
+      "totalPlatform": "Platform total",
+      "invoiceCount": "{{count}} invoices"
+    },
+    "actions": {
+      "creditNote": "Credit note",
+      "commissionInvoice": "Commission invoice",
+      "downloadPdf": "Download PDF",
+      "transmitEfactura": "Transmit to e-Invoice",
+      "refreshEfactura": "Refresh e-Invoice status",
+      "markAsPaid": "Mark as paid",
+      "cancelInvoice": "Cancel invoice"
+    },
+    "efPrefix": "eI:",
+    "empty": "No invoices found.",
+    "noun": "invoices",
+    "cancelModal": {
+      "title": "Confirm cancellation",
+      "warning": "Are you sure you want to cancel this invoice? This action cannot be undone.",
+      "cancel": "Go back",
+      "confirm": "Cancel invoice"
+    },
+    "commissionModal": {
+      "title": "Generate commission invoice",
+      "payoutIdLabel": "Payout ID (monthly payout)",
+      "payoutIdPlaceholder": "e.g. uuid-payout",
+      "description": "A commission invoice will be generated based on the selected monthly payout.",
+      "cancel": "Cancel",
+      "confirm": "Generate invoice"
+    },
+    "creditNoteModal": {
+      "title": "Issue credit note",
+      "invoiceIdLabel": "Original invoice ID",
+      "invoiceIdPlaceholder": "e.g. uuid-invoice",
+      "amountLabel": "Amount (RON)",
+      "amountPlaceholder": "e.g. 150.00",
+      "reasonLabel": "Reason",
+      "reasonPlaceholder": "Describe the reason for the credit note...",
+      "cancel": "Cancel",
+      "confirm": "Issue credit note"
+    },
+    "companyLabel": "Company",
+    "companyPlaceholder": "Search company...",
+    "clearFilter": "Clear filter",
+    "searching": "Searching...",
+    "noResults": "No results"
+  },
+  "reports": {
+    "title": "Financial Reports",
+    "subtitle": "Revenue and platform performance analysis.",
+    "exportCsv": "Export CSV",
+    "presets": {
+      "thisMonth": "This month",
+      "lastMonth": "Last month",
+      "3months": "3 Months",
+      "6months": "6 Months",
+      "1year": "1 Year"
+    },
+    "metrics": {
+      "completed": "Completed",
+      "totalBookings": "Total bookings",
+      "totalRevenue": "Total revenue",
+      "totalCommission": "Total commission",
+      "uniqueClients": "Unique clients",
+      "activeCompanies": "Active companies"
+    },
+    "charts": {
+      "revenueEvolution": "Revenue Evolution",
+      "revenueByService": "Revenue by Service Type",
+      "noData": "No data available for the selected period",
+      "revenueLabel": "Revenue",
+      "commissionLabel": "Commission",
+      "bookings": "Bookings: {{count}}"
+    },
+    "topCompanies": {
+      "title": "Top Companies by Revenue",
+      "bookings": "bkgs.",
+      "commission": "Com.",
+      "noData": "No data available for the selected period."
+    },
+    "heatmap": {
+      "title": "Demand by Day and Hour",
+      "subtitle": "(all bookings in period)",
+      "less": "Less",
+      "more": "More",
+      "noData": "No data available for the selected period"
+    },
+    "serviceTypeLabels": {
+      "STANDARD": "Standard",
+      "DEEP": "Deep Clean",
+      "POST_CONSTRUCTION": "Post-Construction",
+      "OFFICE": "Office",
+      "MOVE_IN_OUT": "Move In/Out"
+    },
+    "days": {
+      "0": "Sun",
+      "1": "Mon",
+      "2": "Tue",
+      "3": "Wed",
+      "4": "Thu",
+      "5": "Fri",
+      "6": "Sat"
+    },
+    "csvColumns": {
+      "date": "Date",
+      "bookings": "Bookings",
+      "revenue": "Revenue (RON)",
+      "commission": "Commission (RON)"
+    }
+  },
+  "reviews": {
+    "title": "Reviews",
+    "subtitle": "Moderate platform reviews.",
+    "countBadge": "{{count}} reviews",
+    "allRatings": "All",
+    "allTypes": "All types",
+    "allStatuses": "All statuses",
+    "ratingOptions": {
+      "1": "1 star",
+      "2": "2 stars",
+      "3": "3 stars",
+      "4": "4 stars",
+      "5": "5 stars"
+    },
+    "typeLabels": {
+      "CLIENT_REVIEW": "Client",
+      "COMPANY_REVIEW": "Company"
+    },
+    "statusLabels": {
+      "PUBLISHED": "Published",
+      "PENDING": "Pending",
+      "REJECTED": "Rejected"
+    },
+    "tableHeaders": {
+      "rating": "Rating",
+      "bookingCode": "Booking Code",
+      "type": "Type",
+      "status": "Status",
+      "reviewer": "Reviewer",
+      "date": "Date",
+      "actions": "Actions"
+    },
+    "empty": {
+      "title": "No reviews found.",
+      "description": "Reviews will appear here after clients rate services."
+    },
+    "detail": {
+      "title": "Review details",
+      "categories": "Categories",
+      "punctuality": "Punctuality",
+      "quality": "Quality",
+      "communication": "Communication",
+      "valueForMoney": "Value for money",
+      "comment": "Comment",
+      "photos": "Photos",
+      "photoAlt": "Review photo",
+      "reviewer": "Reviewer",
+      "date": "Date",
+      "bookingCode": "Booking Code",
+      "close": "Close",
+      "publish": "Publish",
+      "reject": "Reject",
+      "delete": "Delete"
+    },
+    "deleteModal": {
+      "title": "Delete review",
+      "confirmText": "Are you sure you want to delete this review?",
+      "cancel": "Cancel",
+      "confirm": "Delete"
+    },
+    "noun": "reviews"
+  },
+  "promoCodes": {
+    "title": "Promotional codes",
+    "subtitle": "Manage discount codes for campaigns",
+    "createNew": "New code",
+    "tableHeaders": {
+      "code": "Code",
+      "discount": "Discount",
+      "minOrder": "Min. order",
+      "uses": "Uses",
+      "validUntil": "Valid until",
+      "status": "Status",
+      "actions": ""
+    },
+    "noLimit": "No limit",
+    "statusLabels": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "toggleTitles": {
+      "deactivate": "Deactivate",
+      "activate": "Activate"
+    },
+    "empty": "No promotional codes created yet",
+    "loading": "Loading...",
+    "pagination": {
+      "total": "Total: {{count}}",
+      "previous": "Previous",
+      "next": "Next"
+    },
+    "createModal": {
+      "title": "New promotional code",
+      "codeLabel": "Code *",
+      "codePlaceholder": "e.g. SPRING25",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Spring 2025 campaign",
+      "discountTypeLabel": "Discount type",
+      "discountTypePercent": "Percentage (%)",
+      "discountTypeFixed": "Fixed amount (RON)",
+      "discountValueLabel": "Value *",
+      "minOrderLabel": "Minimum order (RON)",
+      "maxUsesLabel": "Max. total uses",
+      "maxUsesPlaceholder": "Unlimited",
+      "activateFrom": "Valid from",
+      "activeUntil": "Valid until",
+      "cancel": "Cancel",
+      "creating": "Creating...",
+      "create": "Create code"
+    }
+  },
+  "disputes": {
+    "title": "Disputes & complaints",
+    "subtitle": "Manage disputes opened by clients on the platform.",
+    "statusTabs": {
+      "ALL": "All",
+      "OPEN": "Open",
+      "COMPANY_RESPONDED": "Response received",
+      "UNDER_REVIEW": "Under review",
+      "RESOLVED_REFUND_FULL": "Full refund",
+      "RESOLVED_REFUND_PARTIAL": "Partial refund",
+      "RESOLVED_NO_REFUND": "Rejected",
+      "AUTO_CLOSED": "Auto-closed"
+    },
+    "statusLabels": {
+      "OPEN": "Open",
+      "COMPANY_RESPONDED": "Response received",
+      "UNDER_REVIEW": "Under review",
+      "RESOLVED_REFUND_FULL": "Full refund",
+      "RESOLVED_REFUND_PARTIAL": "Partial refund",
+      "RESOLVED_NO_REFUND": "Rejected",
+      "AUTO_CLOSED": "Auto-closed"
+    },
+    "reasonLabels": {
+      "POOR_QUALITY": "Poor quality",
+      "NO_SHOW": "Worker no-show",
+      "PROPERTY_DAMAGE": "Property damage",
+      "INCOMPLETE_JOB": "Incomplete job",
+      "OVERCHARGE": "Overcharged",
+      "OTHER": "Other"
+    },
+    "tableHeaders": {
+      "bookingRef": "Booking ref.",
+      "reason": "Reason",
+      "client": "Client",
+      "status": "Status",
+      "openedAt": "Opened at",
+      "actions": "Actions"
+    },
+    "row": {
+      "details": "Details",
+      "resolve": "Resolve",
+      "claimDescription": "Claim description",
+      "evidence": "Evidence ({{count}})",
+      "evidenceLink": "Evidence {{number}}",
+      "companyResponse": "Company response",
+      "resolution": "Resolution",
+      "resolvedBy": "by {{name}}",
+      "refund": "Refund: {{amount}} RON",
+      "autoClose": "Dispute will auto-close on {{date}}"
+    },
+    "empty": "No disputes for the selected filter.",
+    "resolveModal": {
+      "title": "Resolve dispute",
+      "order": "Order:",
+      "reason": "Reason:",
+      "resolutionType": "Resolution type",
+      "refundAmount": "Refund amount (RON)",
+      "refundPlaceholder": "e.g. 50.00",
+      "notesLabel": "Resolution notes",
+      "notesRequired": "*",
+      "notesPlaceholder": "Describe the decision made and reasons...",
+      "notesRequiredError": "Resolution notes are required.",
+      "cancel": "Cancel",
+      "confirm": "Confirm resolution",
+      "resolveOptions": {
+        "RESOLVED_REFUND_FULL": "Full refund",
+        "RESOLVED_REFUND_PARTIAL": "Partial refund",
+        "RESOLVED_NO_REFUND": "Rejected — no refund"
+      }
+    },
+    "noun": "disputes"
+  },
+  "settings": {
+    "title": "Platform settings",
+    "subtitle": "General platform configuration.",
+    "tabs": {
+      "general": "General Settings",
+      "services": "Services",
+      "extras": "Extras",
+      "cities": "Cities",
+      "categories": "Categories",
+      "discounts": "Subscription discounts",
+      "audit": "Price Audit Log",
+      "platform": "Platform"
+    },
+    "general": {
+      "groups": {
+        "business": "Business",
+        "cancelReschedule": "Cancellation / Rescheduling",
+        "contact": "Contact",
+        "policies": "Policies"
+      },
+      "settingLabels": {
+        "platform_commission_pct": "Platform commission (%)",
+        "vat_rate_pct": "VAT rate (%)",
+        "min_booking_hours": "Minimum booking hours",
+        "max_booking_hours": "Maximum booking hours",
+        "default_hourly_rate": "Default hourly rate (RON)",
+        "booking_auto_cancel_hours": "Booking auto-cancel (hours)",
+        "require_company_approval": "Company approval required",
+        "cancel_free_hours_before": "Free cancellation before (hours)",
+        "cancel_late_refund_pct": "Late cancellation refund (%)",
+        "reschedule_free_hours_before": "Free rescheduling before (hours)",
+        "reschedule_max_per_booking": "Max reschedules per booking",
+        "support_email": "Support email",
+        "support_phone": "Support phone",
+        "privacy_url": "Privacy policy URL",
+        "terms_url": "Terms and conditions URL"
+      },
+      "unset": "not set",
+      "saved": "Saved"
+    },
+    "services": {
+      "count": "{{count}} services defined",
+      "addService": "Add service",
+      "empty": "No services defined.",
+      "tableHeaders": {
+        "nameRo": "Name RO",
+        "nameEn": "Name EN",
+        "category": "Category",
+        "model": "Model",
+        "pricePerHour": "Price/Hour",
+        "pricePerSqm": "Price/sqm",
+        "minHours": "Min Hours",
+        "hoursPerRoom": "h/Room",
+        "hoursPerBath": "h/Bath",
+        "houseMultiplier": "House x",
+        "active": "Active"
+      },
+      "includedItems": "What the service includes",
+      "addItemPlaceholder": "Add item and press Enter",
+      "noCategory": "--",
+      "noPricePerSqm": "--",
+      "pricingModels": {
+        "HOURLY": "Hourly",
+        "PER_SQM": "Per sqm"
+      },
+      "serviceTypes": {
+        "STANDARD": "Standard",
+        "DEEP": "Deep clean",
+        "POST_CONSTRUCTION": "Post-construction",
+        "OFFICE": "Office",
+        "MOVE_IN_OUT": "Move in/out"
+      },
+      "modal": {
+        "title": "Add service",
+        "serviceTypeLabel": "Service type",
+        "categoryLabel": "Category",
+        "nameRoLabel": "Name RO",
+        "nameEnLabel": "Name EN",
+        "pricingModelLabel": "Pricing model",
+        "pricePerHourLabel": "Price/Hour (RON)",
+        "pricePerSqmLabel": "Price/sqm (RON)",
+        "minHoursLabel": "Minimum hours",
+        "durationConfig": "Estimated duration configuration",
+        "hoursPerRoomLabel": "h/Room",
+        "hoursPerBathLabel": "h/Bath",
+        "hoursPer100SqmLabel": "h/100sqm",
+        "houseMultiplierLabel": "House multiplier",
+        "petMinutesLabel": "Pet minutes",
+        "includedItems": "What the service includes",
+        "addItemPlaceholder": "Add item and press Enter",
+        "isActive": "Active",
+        "cancel": "Cancel",
+        "create": "Create",
+        "noCategoryOption": "-- No category --"
+      }
+    },
+    "extras": {
+      "count": "{{count}} extras defined",
+      "addExtra": "Add extra",
+      "empty": "No extras defined.",
+      "tableHeaders": {
+        "nameRo": "Name RO",
+        "nameEn": "Name EN",
+        "price": "Price (RON)",
+        "duration": "Duration (min)",
+        "category": "Category",
+        "type": "Type",
+        "active": "Active"
+      },
+      "global": "Global",
+      "toggle": "Toggle",
+      "multiple": "Multiple",
+      "unitPlaceholder": "e.g. wardrobe",
+      "modal": {
+        "title": "Add extra",
+        "categoryLabel": "Category",
+        "nameRoLabel": "Name RO",
+        "nameEnLabel": "Name EN",
+        "priceLabel": "Price (RON)",
+        "durationLabel": "Duration (min)",
+        "allowMultipleLabel": "Allow multiple quantity",
+        "unitLabel": "Unit (e.g. wardrobe, window)",
+        "unitPlaceholder": "e.g. wardrobe",
+        "isActive": "Active",
+        "cancel": "Cancel",
+        "create": "Create",
+        "globalCategoryOption": "Global (all categories)"
+      }
+    },
+    "cities": {
+      "title": "Active cities",
+      "addCity": "Add city",
+      "empty": "No cities configured.",
+      "multiplier": "Price multiplier",
+      "editMultiplierTitle": "Edit multiplier",
+      "addAreaTitle": "Add area",
+      "deleteAreaTitle": "Delete area",
+      "addCityModal": {
+        "title": "Add city",
+        "cityNameLabel": "City name",
+        "cityNamePlaceholder": "e.g. Cluj-Napoca",
+        "countyLabel": "County",
+        "countyPlaceholder": "e.g. Cluj",
+        "cancel": "Cancel",
+        "create": "Add"
+      },
+      "addAreaModal": {
+        "title": "Add area",
+        "areaNameLabel": "Area name",
+        "areaNamePlaceholder": "e.g. Centre, Mănăștur, Mărăști",
+        "cancel": "Cancel",
+        "create": "Add"
+      }
+    },
+    "categories": {
+      "count": "{{count}} categories",
+      "addCategory": "Add category",
+      "empty": "No categories defined.",
+      "tableHeaders": {
+        "name": "Name",
+        "slug": "Slug",
+        "commission": "Commission",
+        "services": "Services",
+        "active": "Active"
+      },
+      "modal": {
+        "title": "Add category",
+        "slugLabel": "Slug",
+        "slugPlaceholder": "e.g. cleaning",
+        "nameRoLabel": "Name RO",
+        "nameEnLabel": "Name EN",
+        "descRoLabel": "Description RO",
+        "descEnLabel": "Description EN",
+        "iconLabel": "Icon",
+        "iconPlaceholder": "e.g. sparkles",
+        "imageUrlLabel": "Image URL",
+        "commissionLabel": "Commission (%)",
+        "sortOrderLabel": "Sort order",
+        "formFieldsLabel": "Form fields (JSON)",
+        "formFieldsPlaceholder": "[{\"key\":\"areaSqm\",\"type\":\"number\",\"labelRo\":\"Suprafata\",\"labelEn\":\"Area\",\"required\":true}]",
+        "isActive": "Active",
+        "cancel": "Cancel",
+        "create": "Create"
+      }
+    },
+    "discounts": {
+      "title": "Subscription discounts",
+      "subtitle": "Configure discounts for recurring subscriptions.",
+      "recurrenceLabels": {
+        "WEEKLY": "Weekly",
+        "BIWEEKLY": "Biweekly",
+        "MONTHLY": "Monthly"
+      },
+      "discountPct": "Discount (%)",
+      "active": "Active",
+      "save": "Save"
+    },
+    "audit": {
+      "title": "Price change audit log",
+      "entityTypeLabel": "Entity type",
+      "allTypes": "All",
+      "entityTypeLabels": {
+        "service_definition": "Service",
+        "service_extra": "Extra",
+        "service_category": "Category",
+        "platform_setting": "Platform setting",
+        "city_pricing": "City pricing",
+        "company_commission": "Company commission"
+      },
+      "tableHeaders": {
+        "entityType": "Type",
+        "entityId": "ID",
+        "field": "Field",
+        "oldValue": "Old value",
+        "newValue": "New value",
+        "changedBy": "Changed by",
+        "changedAt": "Date"
+      },
+      "empty": "No changes recorded.",
+      "noun": "records"
+    },
+    "platform": {
+      "title": "Platform mode",
+      "currentMode": "Current mode:",
+      "liveMode": "LIVE",
+      "preReleaseMode": "PRE-RELEASE",
+      "switchToPreRelease": "Switch to PRE-RELEASE",
+      "switchToLive": "Switch to LIVE",
+      "waitlistTitle": "Waitlist",
+      "waitlistStats": {
+        "clients": "Clients registered",
+        "companies": "Companies registered",
+        "total": "Total leads"
+      },
+      "waitlistEmpty": "No leads in the waitlist.",
+      "waitlistTableHeaders": {
+        "name": "Name",
+        "email": "Email",
+        "phone": "Phone",
+        "type": "Type",
+        "city": "City",
+        "date": "Date"
+      },
+      "leadTypes": {
+        "client": "Client",
+        "company": "Company"
+      },
+      "confirmModal": {
+        "title": "Confirm mode change",
+        "toPreRelease": "Are you sure you want to switch the platform to PRE-RELEASE mode? Users will no longer be able to make bookings.",
+        "toLive": "Are you sure you want to switch the platform to LIVE mode? Users will be able to make bookings.",
+        "cancel": "Cancel",
+        "confirm": "Confirm"
+      }
+    }
+  }
+}

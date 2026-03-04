@@ -105,8 +105,8 @@ describe('OrdersPage', () => {
     renderPage();
     expect(screen.getByText('#ABC123')).toBeInTheDocument();
     expect(screen.getByText('150 lei')).toBeInTheDocument();
-    // "Confirmata" appears in both dropdown option and badge
-    expect(screen.getAllByText('Confirmata').length).toBeGreaterThanOrEqual(1);
+    // "Confirmat" appears in both dropdown option and badge
+    expect(screen.getAllByText('Confirmat').length).toBeGreaterThanOrEqual(1);
   });
 
 });

@@ -38,6 +38,12 @@ import roCompanies from '../../public/locales/ro/companies.json';
 import roBlog from '../../public/locales/ro/blog.json';
 import roLegal from '../../public/locales/ro/legal.json';
 import roAuth from '../../public/locales/ro/auth.json';
+// Dashboard namespaces
+import roDashboard from '../../public/locales/ro/dashboard.json';
+import roClient from '../../public/locales/ro/client.json';
+import roCompany from '../../public/locales/ro/company.json';
+import roWorker from '../../public/locales/ro/worker.json';
+import roAdmin from '../../public/locales/ro/admin.json';
 
 // Initialise i18next synchronously so all tests get real Romanian translations
 // without needing to mock useTranslation in every test file.
@@ -56,6 +62,11 @@ i18n.use(initReactI18next).init({
       blog: roBlog,
       legal: roLegal,
       auth: roAuth,
+      dashboard: roDashboard,
+      client: roClient,
+      company: roCompany,
+      worker: roWorker,
+      admin: roAdmin,
     },
   },
   interpolation: { escapeValue: false },

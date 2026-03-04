@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Building2, CheckCircle, XCircle, MapPin, Star, Search, ChevronRight } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -24,34 +25,12 @@ type Tab = 'pending' | 'approved' | 'all' | 'performance';
 
 const PAGE_SIZE = 20;
 
-const tabOptions = [
-  { value: 'pending', label: 'In asteptare' },
-  { value: 'approved', label: 'Aprobate' },
-  { value: 'all', label: 'Toate' },
-  { value: 'performance', label: 'Performanta' },
-];
-
 const statusDotColor: Record<string, string> = {
   PENDING_REVIEW: 'bg-amber-400',
   APPROVED: 'bg-emerald-500',
   SUSPENDED: 'bg-red-400',
   REJECTED: 'bg-red-400',
 };
-
-const statusLabel: Record<string, string> = {
-  PENDING_REVIEW: 'In asteptare',
-  APPROVED: 'Aprobat',
-  SUSPENDED: 'Suspendat',
-  REJECTED: 'Respins',
-};
-
-const statusFilterOptions = [
-  { value: '', label: 'Toate statusurile' },
-  { value: 'PENDING_REVIEW', label: 'In asteptare' },
-  { value: 'APPROVED', label: 'Aprobat' },
-  { value: 'SUSPENDED', label: 'Suspendat' },
-  { value: 'REJECTED', label: 'Respins' },
-];
 
 const companyTypeLabel: Record<string, string> = {
   SRL: 'SRL',
@@ -67,20 +46,6 @@ function areDocsReady(documents: { documentType: string; status: string }[]): bo
   return REQUIRED_DOCS.every((type) =>
     documents.some((d) => d.documentType === type && d.status === 'APPROVED'),
   );
-}
-
-function getDocHint(documents: { documentType: string; status: string }[]): string | null {
-  const missing = REQUIRED_DOCS.filter((type) => !documents.some((d) => d.documentType === type));
-  if (missing.length > 0) return 'Documente lipsă';
-  const pending = REQUIRED_DOCS.filter((type) =>
-    documents.some((d) => d.documentType === type && d.status === 'PENDING'),
-  );
-  if (pending.length > 0) return 'Documente în așteptare';
-  const rejected = REQUIRED_DOCS.filter((type) =>
-    documents.some((d) => d.documentType === type && d.status === 'REJECTED'),
-  );
-  if (rejected.length > 0) return 'Documente respinse';
-  return null;
 }
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -135,6 +100,37 @@ interface PendingApp {
 
 export default function CompaniesPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation(['dashboard', 'admin']);
+
+  const tabOptions = [
+    { value: 'pending', label: t('admin:companies.tabs.pending') },
+    { value: 'approved', label: t('admin:companies.tabs.approved') },
+    { value: 'all', label: t('admin:companies.tabs.all') },
+    { value: 'performance', label: t('admin:companies.tabs.performance') },
+  ];
+
+  const statusFilterOptions = [
+    { value: '', label: t('admin:companies.statusFilter.allStatuses') },
+    { value: 'PENDING_REVIEW', label: t('admin:companies.statusFilter.pendingReview') },
+    { value: 'APPROVED', label: t('admin:companies.statusFilter.approved') },
+    { value: 'SUSPENDED', label: t('admin:companies.statusFilter.suspended') },
+    { value: 'REJECTED', label: t('admin:companies.statusFilter.rejected') },
+  ];
+
+  function getDocHint(documents: { documentType: string; status: string }[]): string | null {
+    const missing = REQUIRED_DOCS.filter((type) => !documents.some((d) => d.documentType === type));
+    if (missing.length > 0) return t('admin:companies.docsHints.missing');
+    const pending = REQUIRED_DOCS.filter((type) =>
+      documents.some((d) => d.documentType === type && d.status === 'PENDING'),
+    );
+    if (pending.length > 0) return t('admin:companies.docsHints.pending');
+    const rejected = REQUIRED_DOCS.filter((type) =>
+      documents.some((d) => d.documentType === type && d.status === 'REJECTED'),
+    );
+    if (rejected.length > 0) return t('admin:companies.docsHints.rejected');
+    return null;
+  }
+
   const [activeTab, setActiveTab] = useState<Tab>('pending');
   const [rejectModal, setRejectModal] = useState<{ open: boolean; companyId: string }>({
     open: false,
@@ -149,7 +145,6 @@ export default function CompaniesPage() {
 
   const debouncedSearch = useDebounce(searchQuery, 300);
 
-  // Reset pagination when search or status filter changes
   const prevSearchRef = useRef(debouncedSearch);
   const prevStatusRef = useRef(statusFilter);
   useEffect(() => {
@@ -161,10 +156,8 @@ export default function CompaniesPage() {
     }
   }, [debouncedSearch, statusFilter]);
 
-  // Pending applications (no search/pagination)
   const { data: pendingData, loading: pendingLoading } = useQuery(PENDING_COMPANY_APPLICATIONS);
 
-  // Approved companies via SEARCH_COMPANIES
   const { data: approvedData, loading: approvedLoading } = useQuery(SEARCH_COMPANIES, {
     variables: {
       query: debouncedSearch || undefined,
@@ -174,7 +167,6 @@ export default function CompaniesPage() {
     },
   });
 
-  // All companies via SEARCH_COMPANIES (with optional status filter)
   const { data: allData, loading: allLoading } = useQuery(SEARCH_COMPANIES, {
     variables: {
       query: debouncedSearch || undefined,
@@ -184,7 +176,6 @@ export default function CompaniesPage() {
     },
   });
 
-  // Company scorecards (performance tab)
   const { data: scorecardsData, loading: scorecardsLoading } = useQuery(COMPANY_SCORECARDS, {
     variables: { limit: 50 },
     skip: activeTab !== 'performance',
@@ -261,12 +252,18 @@ export default function CompaniesPage() {
           ? scorecardsLoading
           : allLoading;
 
+  const sortOptions = [
+    { value: 'revenue', label: t('admin:companies.performance.sortRevenue') },
+    { value: 'rating', label: t('admin:companies.performance.sortRating') },
+    { value: 'completion', label: t('admin:companies.performance.sortCompletion') },
+  ] as const;
+
   return (
     <div>
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Companii</h1>
-        <p className="text-gray-500 mt-1">Gestioneaza companiile de pe platforma.</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('admin:companies.title')}</h1>
+        <p className="text-gray-500 mt-1">{t('admin:companies.subtitle')}</p>
       </div>
 
       {/* Filter Bar */}
@@ -275,7 +272,7 @@ export default function CompaniesPage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <input
             type="text"
-            placeholder="Cauta dupa nume companie sau CUI..."
+            placeholder={t('admin:companies.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full rounded-xl border border-gray-300 bg-white pl-10 pr-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
@@ -312,80 +309,77 @@ export default function CompaniesPage() {
               ))}
             </div>
           ) : pendingApps.length === 0 ? (
-            <p className="text-center text-gray-400 py-16">Nu exista aplicatii in asteptare.</p>
+            <p className="text-center text-gray-400 py-16">{t('admin:companies.empty.noPending')}</p>
           ) : (
             <div className="divide-y divide-gray-100">
-              {pendingApps.map((app) => (
-                <div key={app.id} className="flex items-center gap-3 px-4 py-3.5">
-                  {/* Clickable info area */}
-                  <div
-                    className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer hover:opacity-80 transition-opacity"
-                    onClick={() => navigate(`/admin/companii/${app.id}`)}
-                  >
-                    <div className="h-9 w-9 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
-                      <Building2 className="h-4.5 w-4.5 text-amber-600" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-gray-900 truncate">{app.companyName}</span>
-                        <span className="text-xs text-gray-400 shrink-0">{companyTypeLabel[app.companyType] ?? app.companyType}</span>
+              {pendingApps.map((app) => {
+                const docHint = getDocHint(app.documents);
+                return (
+                  <div key={app.id} className="flex items-center gap-3 px-4 py-3.5">
+                    <div
+                      className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer hover:opacity-80 transition-opacity"
+                      onClick={() => navigate(`/admin/companii/${app.id}`)}
+                    >
+                      <div className="h-9 w-9 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
+                        <Building2 className="h-4.5 w-4.5 text-amber-600" />
                       </div>
-                      <div className="flex items-center gap-3 text-xs text-gray-400 mt-0.5">
-                        <span>CUI: {app.cui}</span>
-                        <span className="hidden sm:flex items-center gap-1">
-                          <MapPin className="h-3 w-3" />{app.city}, {app.county}
-                        </span>
-                        <span className="hidden md:inline">{app.legalRepresentative}</span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold text-gray-900 truncate">{app.companyName}</span>
+                          <span className="text-xs text-gray-400 shrink-0">{companyTypeLabel[app.companyType] ?? app.companyType}</span>
+                        </div>
+                        <div className="flex items-center gap-3 text-xs text-gray-400 mt-0.5">
+                          <span>CUI: {app.cui}</span>
+                          <span className="hidden sm:flex items-center gap-1">
+                            <MapPin className="h-3 w-3" />{app.city}, {app.county}
+                          </span>
+                          <span className="hidden md:inline">{app.legalRepresentative}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Date */}
-                  <span className="text-xs text-gray-400 shrink-0 hidden md:block">
-                    {formatDate(app.createdAt)}
-                  </span>
-
-                  {/* Docs hint */}
-                  {getDocHint(app.documents) && (
-                    <span className={`text-xs shrink-0 hidden lg:block ${
-                      getDocHint(app.documents) === 'Documente lipsă' ? 'text-red-500' :
-                      getDocHint(app.documents) === 'Documente respinse' ? 'text-red-500' :
-                      'text-amber-500'
-                    }`}>
-                      {getDocHint(app.documents)}
+                    <span className="text-xs text-gray-400 shrink-0 hidden md:block">
+                      {formatDate(app.createdAt)}
                     </span>
-                  )}
 
-                  {/* Actions */}
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      onClick={() => handleApprove(app.id)}
-                      loading={approving}
-                      disabled={!areDocsReady(app.documents)}
-                      title={!areDocsReady(app.documents) ? 'Toate documentele trebuie aprobate' : undefined}
-                    >
-                      <CheckCircle className="h-3.5 w-3.5" />
-                      <span className="hidden sm:inline">Aproba</span>
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="danger"
-                      onClick={() => setRejectModal({ open: true, companyId: app.id })}
-                    >
-                      <XCircle className="h-3.5 w-3.5" />
-                      <span className="hidden sm:inline">Respinge</span>
-                    </Button>
+                    {docHint && (
+                      <span className={`text-xs shrink-0 hidden lg:block ${
+                        docHint === t('admin:companies.docsHints.missing') || docHint === t('admin:companies.docsHints.rejected') ? 'text-red-500' : 'text-amber-500'
+                      }`}>
+                        {docHint}
+                      </span>
+                    )}
+
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => handleApprove(app.id)}
+                        loading={approving}
+                        disabled={!areDocsReady(app.documents)}
+                        title={!areDocsReady(app.documents) ? t('admin:companies.actions.approveDisabledTitle') : undefined}
+                      >
+                        <CheckCircle className="h-3.5 w-3.5" />
+                        <span className="hidden sm:inline">{t('admin:companies.actions.approve')}</span>
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="danger"
+                        onClick={() => setRejectModal({ open: true, companyId: app.id })}
+                      >
+                        <XCircle className="h-3.5 w-3.5" />
+                        <span className="hidden sm:inline">{t('admin:companies.actions.reject')}</span>
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </Card>
       )}
 
-      {/* Approved Tab — List */}
+      {/* Approved Tab */}
       {activeTab === 'approved' && (
         <>
           <Card padding={false}>
@@ -393,10 +387,10 @@ export default function CompaniesPage() {
               <ListSkeleton />
             ) : approvedCompanies.length === 0 ? (
               <p className="text-center text-gray-400 py-16">
-                {debouncedSearch ? 'Nicio companie găsită.' : 'Nu exista companii aprobate.'}
+                {debouncedSearch ? t('admin:companies.empty.noFound') : t('admin:companies.empty.noApproved')}
               </p>
             ) : (
-              <CompanyList companies={approvedCompanies} onRowClick={(id) => navigate(`/admin/companii/${id}`)} showStatus={false} />
+              <CompanyList companies={approvedCompanies} onRowClick={(id) => navigate(`/admin/companii/${id}`)} showStatus={false} statusLabel={(s) => t(`admin:companies.statusLabels.${s}`, { defaultValue: s })} />
             )}
           </Card>
           {!loading && approvedTotalCount > 0 && (
@@ -405,13 +399,13 @@ export default function CompaniesPage() {
               totalCount={approvedTotalCount}
               pageSize={PAGE_SIZE}
               onPageChange={setApprovedPage}
-              noun="companii"
+              noun={t('admin:nav.companies').toLowerCase()}
             />
           )}
         </>
       )}
 
-      {/* All Tab — List */}
+      {/* All Tab */}
       {activeTab === 'all' && (
         <>
           <Card padding={false}>
@@ -419,10 +413,10 @@ export default function CompaniesPage() {
               <ListSkeleton />
             ) : allCompanies.length === 0 ? (
               <p className="text-center text-gray-400 py-16">
-                {debouncedSearch || statusFilter ? 'Nicio companie găsită.' : 'Nu exista companii.'}
+                {debouncedSearch || statusFilter ? t('admin:companies.empty.noFound') : t('admin:companies.empty.noCompanies')}
               </p>
             ) : (
-              <CompanyList companies={allCompanies} onRowClick={(id) => navigate(`/admin/companii/${id}`)} showStatus />
+              <CompanyList companies={allCompanies} onRowClick={(id) => navigate(`/admin/companii/${id}`)} showStatus statusLabel={(s) => t(`admin:companies.statusLabels.${s}`, { defaultValue: s })} />
             )}
           </Card>
           {!loading && allTotalCount > 0 && (
@@ -431,7 +425,7 @@ export default function CompaniesPage() {
               totalCount={allTotalCount}
               pageSize={PAGE_SIZE}
               onPageChange={setAllPage}
-              noun="companii"
+              noun={t('admin:nav.companies').toLowerCase()}
             />
           )}
         </>
@@ -440,14 +434,9 @@ export default function CompaniesPage() {
       {/* Performance Tab */}
       {activeTab === 'performance' && (
         <div>
-          {/* Sort controls */}
           <div className="flex items-center gap-2 mb-4">
-            <span className="text-sm text-gray-500">Sortare:</span>
-            {([
-              { value: 'revenue', label: 'Venit' },
-              { value: 'rating', label: 'Rating' },
-              { value: 'completion', label: 'Finalizare' },
-            ] as const).map((opt) => (
+            <span className="text-sm text-gray-500">{t('admin:companies.performance.sortBy')}</span>
+            {sortOptions.map((opt) => (
               <button
                 key={opt.value}
                 onClick={() => setSortBy(opt.value)}
@@ -487,9 +476,10 @@ export default function CompaniesPage() {
                         <p className="text-sm font-semibold text-gray-900 truncate max-w-[180px]">
                           {sc.companyName}
                         </p>
-                        <p className="text-xs text-gray-400 mt-0.5">{sc.totalBookings} rezervari total</p>
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          {t('admin:companies.performance.totalBookings', { count: sc.totalBookings })}
+                        </p>
                       </div>
-                      {/* Rating badge */}
                       <div className="flex items-center gap-1 bg-amber-50 px-2 py-1 rounded-lg">
                         <Star className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
                         <span className="text-sm font-semibold text-amber-700">
@@ -498,10 +488,9 @@ export default function CompaniesPage() {
                       </div>
                     </div>
 
-                    {/* Completion rate bar */}
                     <div className="mb-2">
                       <div className="flex justify-between text-xs mb-1">
-                        <span className="text-gray-500">Finalizare</span>
+                        <span className="text-gray-500">{t('admin:companies.performance.completionRate')}</span>
                         <span className="font-medium text-gray-700">{sc.completionRate.toFixed(0)}%</span>
                       </div>
                       <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
@@ -512,15 +501,14 @@ export default function CompaniesPage() {
                       </div>
                     </div>
 
-                    {/* Cancellation rate */}
                     <div className="mb-3">
                       <div className="flex justify-between text-xs mb-1">
-                        <span className="text-gray-500">Anulare</span>
+                        <span className="text-gray-500">{t('admin:companies.performance.cancellationRate')}</span>
                         <span
                           className={`font-medium ${sc.cancellationRate > 10 ? 'text-red-600' : 'text-gray-700'}`}
                         >
                           {sc.cancellationRate.toFixed(0)}%
-                          {sc.cancellationRate > 10 && ' ⚠'}
+                          {sc.cancellationRate > 10 && ` ${t('admin:companies.performance.highCancellation')}`}
                         </span>
                       </div>
                       <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
@@ -532,7 +520,9 @@ export default function CompaniesPage() {
                     </div>
 
                     <div className="flex justify-between items-center pt-2 border-t border-gray-100">
-                      <span className="text-xs text-gray-400">{sc.reviewCount} recenzii</span>
+                      <span className="text-xs text-gray-400">
+                        {t('admin:companies.performance.reviews', { count: sc.reviewCount })}
+                      </span>
                       <span className="text-sm font-semibold text-gray-900">
                         {(sc.totalRevenue / 100).toFixed(0)} RON
                       </span>
@@ -551,12 +541,12 @@ export default function CompaniesPage() {
           setRejectModal({ open: false, companyId: '' });
           setRejectReason('');
         }}
-        title="Respinge aplicatia"
+        title={t('admin:companies.rejectModal.title')}
       >
         <div className="space-y-4">
           <Input
-            label="Motivul respingerii"
-            placeholder="Explica motivul respingerii..."
+            label={t('admin:companies.rejectModal.reasonLabel')}
+            placeholder={t('admin:companies.rejectModal.reasonPlaceholder')}
             value={rejectReason}
             onChange={(e) => setRejectReason(e.target.value)}
           />
@@ -568,7 +558,7 @@ export default function CompaniesPage() {
                 setRejectReason('');
               }}
             >
-              Anuleaza
+              {t('admin:companies.rejectModal.cancel')}
             </Button>
             <Button
               variant="danger"
@@ -576,7 +566,7 @@ export default function CompaniesPage() {
               loading={rejecting}
               disabled={!rejectReason.trim()}
             >
-              Respinge
+              {t('admin:companies.rejectModal.confirm')}
             </Button>
           </div>
         </div>
@@ -607,11 +597,14 @@ function CompanyList({
   companies,
   onRowClick,
   showStatus,
+  statusLabel,
 }: {
   companies: CompanyEdge[];
   onRowClick: (id: string) => void;
   showStatus: boolean;
+  statusLabel: (s: string) => string;
 }) {
+  const { t } = useTranslation('admin');
   return (
     <div className="divide-y divide-gray-100">
       {companies.map((company) => (
@@ -620,31 +613,25 @@ function CompanyList({
           onClick={() => onRowClick(company.id)}
           className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors"
         >
-          {/* Status dot */}
           {showStatus && (
             <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${statusDotColor[company.status] ?? 'bg-gray-300'}`} />
           )}
 
-          {/* Company name */}
           <span className="text-sm font-semibold text-gray-900 truncate min-w-0">
             {company.companyName}
           </span>
 
-          {/* Type badge */}
           <span className="text-xs text-gray-400 shrink-0">
             {companyTypeLabel[company.companyType] ?? company.companyType}
           </span>
 
-          {/* Spacer */}
           <span className="flex-1" />
 
-          {/* Location — desktop */}
           <span className="hidden md:flex items-center gap-1 text-xs text-gray-400 shrink-0">
             <MapPin className="h-3 w-3" />
             <span className="max-w-[120px] truncate">{company.city}, {company.county}</span>
           </span>
 
-          {/* Rating — desktop */}
           {company.ratingAvg != null ? (
             <span className="hidden md:flex items-center gap-1 text-xs text-gray-500 shrink-0">
               <Star className="h-3 w-3 text-accent fill-accent" />
@@ -654,15 +641,13 @@ function CompanyList({
             <span className="hidden md:block text-xs text-gray-300 shrink-0 w-8 text-center">—</span>
           )}
 
-          {/* Jobs count */}
           <span className="text-xs text-gray-400 shrink-0 w-16 text-right">
-            {company.totalJobsCompleted} lucrari
+            {company.totalJobsCompleted} {t('companies.table.jobs')}
           </span>
 
-          {/* Status label */}
           {showStatus && (
             <span className="text-xs text-gray-500 shrink-0 w-20 text-right hidden sm:block">
-              {statusLabel[company.status] ?? company.status}
+              {statusLabel(company.status)}
             </span>
           )}
 

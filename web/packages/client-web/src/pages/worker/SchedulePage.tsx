@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   ChevronLeft, ChevronRight, Calendar, Clock, MapPin, User,
   Plus, Check, X, Loader2,
@@ -47,33 +48,12 @@ interface DateOverride {
   endTime: string;
 }
 
-// ─── Constants ──────────────────────────────────────────────────────────────
-
-const STATUS_BADGE: Record<string, { label: string; variant: 'default' | 'success' | 'warning' | 'danger' | 'info' }> = {
-  ASSIGNED: { label: 'Asignata', variant: 'info' },
-  CONFIRMED: { label: 'Confirmata', variant: 'warning' },
-  IN_PROGRESS: { label: 'In lucru', variant: 'success' },
-  COMPLETED: { label: 'Finalizata', variant: 'default' },
-};
-
-// dayOfWeek: 0=Sunday, 1=Monday, ..., 6=Saturday  (DB convention)
-const DAY_NAMES: Record<number, string> = {
-  0: 'Duminica', 1: 'Luni', 2: 'Marti', 3: 'Miercuri', 4: 'Joi', 5: 'Vineri', 6: 'Sambata',
-};
-
-const DAY_NAMES_SHORT: Record<number, string> = {
-  0: 'Dum', 1: 'Lun', 2: 'Mar', 3: 'Mie', 4: 'Joi', 5: 'Vin', 6: 'Sam',
-};
-
-// Monday-start ordering for display
-const WEEK_DAY_ORDER = [1, 2, 3, 4, 5, 6, 0]; // Mon..Sun
-
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 function getWeekStart(date: Date): Date {
   const d = new Date(date);
-  const day = d.getDay(); // 0=Sun
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Monday
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
   d.setDate(diff);
   d.setHours(0, 0, 0, 0);
   return d;
@@ -95,25 +75,22 @@ function formatDateISO(d: Date): string {
   return d.toISOString().split('T')[0];
 }
 
-function formatWeekRange(start: Date, end: Date): string {
-  const monthsRo = ['Ian', 'Feb', 'Mar', 'Apr', 'Mai', 'Iun', 'Iul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const s = `${start.getDate()} ${monthsRo[start.getMonth()]}`;
-  const e = `${end.getDate()} ${monthsRo[end.getMonth()]} ${end.getFullYear()}`;
-  return `${s} - ${e}`;
-}
-
 function isToday(d: Date): boolean {
   const now = new Date();
   return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
 }
 
 function jsDayOfWeek(d: Date): number {
-  return d.getDay(); // 0=Sun, 1=Mon, ...
+  return d.getDay();
 }
+
+// Monday-start ordering for display
+const WEEK_DAY_ORDER = [1, 2, 3, 4, 5, 6, 0]; // Mon..Sun
 
 // ─── Component ──────────────────────────────────────────────────────────────
 
 export default function SchedulePage() {
+  const { t } = useTranslation(['dashboard', 'worker']);
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'program' | 'disponibilitate'>('program');
   const [weekStart, setWeekStart] = useState(() => getWeekStart(new Date()));
@@ -139,7 +116,6 @@ export default function SchedulePage() {
   });
   const overrides: DateOverride[] = overridesData?.myWorkerDateOverrides ?? [];
 
-  // For the overrides management tab (next 30 days)
   const overrides30From = formatDateISO(new Date());
   const overrides30To = formatDateISO(addDays(new Date(), 30));
   const { data: overrides30Data, refetch: refetchOverrides30 } = useQuery(MY_WORKER_DATE_OVERRIDES, {
@@ -169,7 +145,6 @@ export default function SchedulePage() {
 
   // ─── Derived Data ──────────────────────────────────────────────────
 
-  // Map: dateISO -> jobs[]
   const jobsByDate = useMemo(() => {
     const map: Record<string, Job[]> = {};
     for (const job of jobs) {
@@ -179,14 +154,12 @@ export default function SchedulePage() {
         map[key].push(job);
       }
     }
-    // Sort jobs within each day by start time
     for (const key of Object.keys(map)) {
       map[key].sort((a, b) => a.scheduledStartTime.localeCompare(b.scheduledStartTime));
     }
     return map;
   }, [jobs]);
 
-  // Map: dateISO -> override
   const overridesByDate = useMemo(() => {
     const map: Record<string, DateOverride> = {};
     for (const o of overrides) {
@@ -196,7 +169,6 @@ export default function SchedulePage() {
     return map;
   }, [overrides]);
 
-  // Map: dayOfWeek -> AvailabilitySlot
   const availByDay = useMemo(() => {
     const map: Record<number, AvailabilitySlot> = {};
     for (const slot of availabilitySlots) {
@@ -204,8 +176,6 @@ export default function SchedulePage() {
     }
     return map;
   }, [availabilitySlots]);
-
-  // ─── Week days array ───────────────────────────────────────────────
 
   const weekDays = useMemo(() => {
     return Array.from({ length: 7 }, (_, i) => {
@@ -220,14 +190,30 @@ export default function SchedulePage() {
     });
   }, [weekStart, availByDay, overridesByDate, jobsByDate]);
 
+  // ─── Format week range ─────────────────────────────────────────────
+
+  const formatWeekRange = (start: Date, end: Date): string => {
+    const monthKeys: Record<number, string> = {
+      0: t('worker:schedule.months.0'), 1: t('worker:schedule.months.1'),
+      2: t('worker:schedule.months.2'), 3: t('worker:schedule.months.3'),
+      4: t('worker:schedule.months.4'), 5: t('worker:schedule.months.5'),
+      6: t('worker:schedule.months.6'), 7: t('worker:schedule.months.7'),
+      8: t('worker:schedule.months.8'), 9: t('worker:schedule.months.9'),
+      10: t('worker:schedule.months.10'), 11: t('worker:schedule.months.11'),
+    };
+    const s = `${start.getDate()} ${monthKeys[start.getMonth()]}`;
+    const e = `${end.getDate()} ${monthKeys[end.getMonth()]} ${end.getFullYear()}`;
+    return `${s} - ${e}`;
+  };
+
   // ─── Render ─────────────────────────────────────────────────────────
 
   return (
     <div>
       {/* Page Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Program</h1>
-        <p className="text-gray-500 mt-1">Programul tau saptamanal si disponibilitatea</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('worker:schedule.pageTitle')}</h1>
+        <p className="text-gray-500 mt-1">{t('worker:schedule.pageSubtitle')}</p>
       </div>
 
       {/* Tabs */}
@@ -242,7 +228,7 @@ export default function SchedulePage() {
           )}
         >
           <Calendar className="h-4 w-4 inline-block mr-1.5 -mt-0.5" />
-          Program
+          {t('worker:schedule.tabSchedule')}
         </button>
         <button
           onClick={() => setActiveTab('disponibilitate')}
@@ -254,7 +240,7 @@ export default function SchedulePage() {
           )}
         >
           <Clock className="h-4 w-4 inline-block mr-1.5 -mt-0.5" />
-          Disponibilitate
+          {t('worker:schedule.tabAvailability')}
         </button>
       </div>
 
@@ -269,6 +255,7 @@ export default function SchedulePage() {
           onNextWeek={goToNextWeek}
           onToday={goToCurrentWeek}
           onJobClick={(id) => navigate(`/worker/job/${id}`)}
+          formatWeekRange={formatWeekRange}
         />
       ) : (
         <AvailabilityManager
@@ -306,12 +293,15 @@ interface WeekCalendarProps {
   onNextWeek: () => void;
   onToday: () => void;
   onJobClick: (id: string) => void;
+  formatWeekRange: (start: Date, end: Date) => string;
 }
 
 function WeekCalendarView({
   weekStart, weekEnd, weekDays, loading,
-  onPrevWeek, onNextWeek, onToday, onJobClick,
+  onPrevWeek, onNextWeek, onToday, onJobClick, formatWeekRange,
 }: WeekCalendarProps) {
+  const { t } = useTranslation(['dashboard', 'worker']);
+
   return (
     <div>
       {/* Week navigation header */}
@@ -320,7 +310,7 @@ function WeekCalendarView({
           <button
             onClick={onPrevWeek}
             className="p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
-            aria-label="Saptamana anterioara"
+            aria-label={t('worker:schedule.prevWeek')}
           >
             <ChevronLeft className="h-5 w-5 text-gray-600" />
           </button>
@@ -332,13 +322,13 @@ function WeekCalendarView({
               onClick={onToday}
               className="px-3 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer"
             >
-              Azi
+              {t('worker:schedule.today')}
             </button>
           </div>
           <button
             onClick={onNextWeek}
             className="p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
-            aria-label="Saptamana urmatoare"
+            aria-label={t('worker:schedule.nextWeek')}
           >
             <ChevronRight className="h-5 w-5 text-gray-600" />
           </button>
@@ -381,8 +371,21 @@ function WeekCalendarView({
 // ─── Day Column (desktop) ───────────────────────────────────────────────────
 
 function DayColumn({ day, onJobClick }: { day: WeekDay; onJobClick: (id: string) => void }) {
+  const { t } = useTranslation(['dashboard', 'worker']);
   const today = isToday(day.date);
   const hasOverrideOff = day.override && !day.override.isAvailable;
+  const dayNameShort = t(`days.short.${day.dayOfWeek}`);
+
+  const statusLabels: Record<string, string> = {
+    ASSIGNED: t('worker:schedule.statusLabels.ASSIGNED'),
+    CONFIRMED: t('worker:schedule.statusLabels.CONFIRMED'),
+    IN_PROGRESS: t('worker:schedule.statusLabels.IN_PROGRESS'),
+    COMPLETED: t('worker:schedule.statusLabels.COMPLETED'),
+  };
+
+  const statusVariants: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
+    ASSIGNED: 'info', CONFIRMED: 'warning', IN_PROGRESS: 'success', COMPLETED: 'default',
+  };
 
   return (
     <div
@@ -402,7 +405,7 @@ function DayColumn({ day, onJobClick }: { day: WeekDay; onJobClick: (id: string)
               today ? 'text-blue-600' : 'text-gray-500',
             )}
           >
-            {DAY_NAMES_SHORT[day.dayOfWeek]}
+            {dayNameShort}
           </span>
           <span
             className={cn(
@@ -421,7 +424,7 @@ function DayColumn({ day, onJobClick }: { day: WeekDay; onJobClick: (id: string)
             'w-2 h-2 rounded-full shrink-0',
             day.available ? 'bg-emerald-400' : 'bg-gray-300',
           )}
-          title={day.available ? 'Disponibil' : 'Indisponibil'}
+          title={day.available ? t('worker:schedule.available') : t('worker:schedule.unavailable')}
         />
       </div>
 
@@ -429,7 +432,7 @@ function DayColumn({ day, onJobClick }: { day: WeekDay; onJobClick: (id: string)
       {hasOverrideOff && (
         <div className="mb-2">
           <span className="text-[10px] font-medium text-red-600 bg-red-50 px-1.5 py-0.5 rounded">
-            Zi libera
+            {t('worker:schedule.dayOff')}
           </span>
         </div>
       )}
@@ -437,10 +440,11 @@ function DayColumn({ day, onJobClick }: { day: WeekDay; onJobClick: (id: string)
       {/* Jobs */}
       <div className="flex-1 space-y-1.5">
         {day.dayJobs.length === 0 && !hasOverrideOff && (
-          <p className="text-[10px] text-gray-300 mt-2">Nicio comanda</p>
+          <p className="text-[10px] text-gray-300 mt-2">{t('worker:schedule.noOrders')}</p>
         )}
         {day.dayJobs.map((job) => {
-          const badge = STATUS_BADGE[job.status] ?? { label: job.status, variant: 'default' as const };
+          const variant = statusVariants[job.status] ?? 'default';
+          const label = statusLabels[job.status] ?? job.status;
           return (
             <button
               key={job.id}
@@ -455,8 +459,8 @@ function DayColumn({ day, onJobClick }: { day: WeekDay; onJobClick: (id: string)
                 </span>
               </div>
               <div className="mt-1">
-                <Badge variant={badge.variant} className="text-[10px] px-1.5 py-0">
-                  {badge.label}
+                <Badge variant={variant} className="text-[10px] px-1.5 py-0">
+                  {label}
                 </Badge>
               </div>
             </button>
@@ -470,8 +474,21 @@ function DayColumn({ day, onJobClick }: { day: WeekDay; onJobClick: (id: string)
 // ─── Day Card (mobile) ──────────────────────────────────────────────────────
 
 function DayCard({ day, onJobClick }: { day: WeekDay; onJobClick: (id: string) => void }) {
+  const { t } = useTranslation(['dashboard', 'worker']);
   const today = isToday(day.date);
   const hasOverrideOff = day.override && !day.override.isAvailable;
+  const dayName = t(`days.${day.dayOfWeek}`);
+
+  const statusLabels: Record<string, string> = {
+    ASSIGNED: t('worker:schedule.statusLabels.ASSIGNED'),
+    CONFIRMED: t('worker:schedule.statusLabels.CONFIRMED'),
+    IN_PROGRESS: t('worker:schedule.statusLabels.IN_PROGRESS'),
+    COMPLETED: t('worker:schedule.statusLabels.COMPLETED'),
+  };
+
+  const statusVariants: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
+    ASSIGNED: 'info', CONFIRMED: 'warning', IN_PROGRESS: 'success', COMPLETED: 'default',
+  };
 
   // Skip days with no jobs and no override (keeps mobile view clean)
   if (day.dayJobs.length === 0 && !hasOverrideOff && !today) return null;
@@ -497,15 +514,15 @@ function DayCard({ day, onJobClick }: { day: WeekDay; onJobClick: (id: string) =
           </span>
           <div>
             <span className={cn('text-sm font-semibold', today ? 'text-blue-600' : 'text-gray-900')}>
-              {DAY_NAMES[day.dayOfWeek]}
+              {dayName}
             </span>
-            {today && <span className="text-xs text-blue-500 ml-2">Azi</span>}
+            {today && <span className="text-xs text-blue-500 ml-2">{t('worker:schedule.today')}</span>}
           </div>
         </div>
         <div className="flex items-center gap-2">
           {hasOverrideOff && (
             <span className="text-xs font-medium text-red-600 bg-red-50 px-2 py-0.5 rounded-lg">
-              Zi libera
+              {t('worker:schedule.dayOff')}
             </span>
           )}
           <span
@@ -519,11 +536,12 @@ function DayCard({ day, onJobClick }: { day: WeekDay; onJobClick: (id: string) =
 
       {/* Jobs */}
       {day.dayJobs.length === 0 ? (
-        <p className="text-sm text-gray-400">Nicio comanda programata</p>
+        <p className="text-sm text-gray-400">{t('worker:schedule.noOrdersScheduled')}</p>
       ) : (
         <div className="space-y-2">
           {day.dayJobs.map((job) => {
-            const badge = STATUS_BADGE[job.status] ?? { label: job.status, variant: 'default' as const };
+            const variant = statusVariants[job.status] ?? 'default';
+            const label = statusLabels[job.status] ?? job.status;
             return (
               <button
                 key={job.id}
@@ -532,7 +550,7 @@ function DayCard({ day, onJobClick }: { day: WeekDay; onJobClick: (id: string) =
               >
                 <div className="flex items-start justify-between mb-1.5">
                   <h4 className="text-sm font-semibold text-gray-900">{job.serviceName}</h4>
-                  <Badge variant={badge.variant}>{badge.label}</Badge>
+                  <Badge variant={variant}>{label}</Badge>
                 </div>
                 <div className="space-y-1">
                   <div className="flex items-center gap-1.5 text-xs text-gray-500">
@@ -618,9 +636,9 @@ interface EditableSlot {
 }
 
 function WeeklyScheduleEditor({ slots, loading, onSave, saving }: WeeklyScheduleEditorProps) {
+  const { t } = useTranslation(['dashboard', 'worker']);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  // Build editable state from slots
   const initialState = useMemo((): EditableSlot[] => {
     return WEEK_DAY_ORDER.map((dow) => {
       const existing = slots.find((s) => s.dayOfWeek === dow);
@@ -635,7 +653,6 @@ function WeeklyScheduleEditor({ slots, loading, onSave, saving }: WeeklySchedule
 
   const [editSlots, setEditSlots] = useState<EditableSlot[]>(initialState);
 
-  // Re-sync when server data changes
   const slotsKey = slots.map((s) => `${s.dayOfWeek}-${s.isAvailable}-${s.startTime}-${s.endTime}`).join(',');
   const [lastKey, setLastKey] = useState(slotsKey);
   if (slotsKey !== lastKey) {
@@ -672,10 +689,10 @@ function WeeklyScheduleEditor({ slots, loading, onSave, saving }: WeeklySchedule
           })),
         },
       });
-      setToast({ type: 'success', message: 'Program salvat cu succes!' });
+      setToast({ type: 'success', message: t('worker:schedule.savedSchedule') });
       setTimeout(() => setToast(null), 3000);
     } catch {
-      setToast({ type: 'error', message: 'Eroare la salvarea programului.' });
+      setToast({ type: 'error', message: t('worker:schedule.errorSaveSchedule') });
     }
   };
 
@@ -696,66 +713,69 @@ function WeeklyScheduleEditor({ slots, loading, onSave, saving }: WeeklySchedule
     <Card>
       <div className="flex items-center gap-2 mb-5">
         <Calendar className="h-5 w-5 text-blue-600" />
-        <h2 className="font-semibold text-gray-900">Program saptamanal</h2>
+        <h2 className="font-semibold text-gray-900">{t('worker:schedule.weeklySchedule')}</h2>
       </div>
 
       <div className="space-y-2">
-        {editSlots.map((slot) => (
-          <div
-            key={slot.dayOfWeek}
-            className={cn(
-              'flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors',
-              slot.isAvailable ? 'bg-emerald-50/50' : 'bg-gray-50',
-            )}
-          >
-            {/* Toggle */}
-            <button
-              type="button"
-              onClick={() => updateSlot(slot.dayOfWeek, 'isAvailable', !slot.isAvailable)}
+        {editSlots.map((slot) => {
+          const dayName = t(`days.${slot.dayOfWeek}`);
+          return (
+            <div
+              key={slot.dayOfWeek}
               className={cn(
-                'relative w-10 h-5 rounded-full transition-colors shrink-0 cursor-pointer',
-                slot.isAvailable ? 'bg-emerald-500' : 'bg-gray-300',
+                'flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors',
+                slot.isAvailable ? 'bg-emerald-50/50' : 'bg-gray-50',
               )}
-              aria-label={`${DAY_NAMES[slot.dayOfWeek]} disponibil`}
             >
-              <span
+              {/* Toggle */}
+              <button
+                type="button"
+                onClick={() => updateSlot(slot.dayOfWeek, 'isAvailable', !slot.isAvailable)}
                 className={cn(
-                  'absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform shadow-sm',
-                  slot.isAvailable && 'translate-x-5',
+                  'relative w-10 h-5 rounded-full transition-colors shrink-0 cursor-pointer',
+                  slot.isAvailable ? 'bg-emerald-500' : 'bg-gray-300',
                 )}
-              />
-            </button>
-
-            {/* Day name */}
-            <span className={cn(
-              'text-sm font-medium w-20 shrink-0',
-              slot.isAvailable ? 'text-gray-900' : 'text-gray-400',
-            )}>
-              {DAY_NAMES[slot.dayOfWeek]}
-            </span>
-
-            {/* Time inputs */}
-            {slot.isAvailable ? (
-              <div className="flex items-center gap-2 flex-1 min-w-0">
-                <input
-                  type="time"
-                  value={slot.startTime}
-                  onChange={(e) => updateSlot(slot.dayOfWeek, 'startTime', e.target.value)}
-                  className="border border-gray-200 rounded-lg px-2 py-1 text-sm text-gray-700 w-[110px] bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 outline-none"
+                aria-label={t('worker:schedule.ariaAvailableDay', { day: dayName })}
+              >
+                <span
+                  className={cn(
+                    'absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform shadow-sm',
+                    slot.isAvailable && 'translate-x-5',
+                  )}
                 />
-                <span className="text-gray-400 text-xs">-</span>
-                <input
-                  type="time"
-                  value={slot.endTime}
-                  onChange={(e) => updateSlot(slot.dayOfWeek, 'endTime', e.target.value)}
-                  className="border border-gray-200 rounded-lg px-2 py-1 text-sm text-gray-700 w-[110px] bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 outline-none"
-                />
-              </div>
-            ) : (
-              <span className="text-xs text-gray-400 italic">Indisponibil</span>
-            )}
-          </div>
-        ))}
+              </button>
+
+              {/* Day name */}
+              <span className={cn(
+                'text-sm font-medium w-20 shrink-0',
+                slot.isAvailable ? 'text-gray-900' : 'text-gray-400',
+              )}>
+                {dayName}
+              </span>
+
+              {/* Time inputs */}
+              {slot.isAvailable ? (
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <input
+                    type="time"
+                    value={slot.startTime}
+                    onChange={(e) => updateSlot(slot.dayOfWeek, 'startTime', e.target.value)}
+                    className="border border-gray-200 rounded-lg px-2 py-1 text-sm text-gray-700 w-[110px] bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 outline-none"
+                  />
+                  <span className="text-gray-400 text-xs">-</span>
+                  <input
+                    type="time"
+                    value={slot.endTime}
+                    onChange={(e) => updateSlot(slot.dayOfWeek, 'endTime', e.target.value)}
+                    className="border border-gray-200 rounded-lg px-2 py-1 text-sm text-gray-700 w-[110px] bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 outline-none"
+                  />
+                </div>
+              ) : (
+                <span className="text-xs text-gray-400 italic">{t('worker:schedule.unavailableLabel')}</span>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {/* Toast + Save */}
@@ -774,7 +794,7 @@ function WeeklyScheduleEditor({ slots, loading, onSave, saving }: WeeklySchedule
           )}
         </div>
         <Button onClick={handleSave} loading={saving} size="sm">
-          Salveaza programul
+          {t('worker:schedule.saveSchedule')}
         </Button>
       </div>
     </Card>
@@ -790,6 +810,7 @@ interface DateOverridesManagerProps {
 }
 
 function DateOverridesManager({ overrides, onSetOverride, saving }: DateOverridesManagerProps) {
+  const { t, i18n } = useTranslation(['dashboard', 'worker']);
   const [showForm, setShowForm] = useState(false);
   const [formDate, setFormDate] = useState('');
   const [isFullDay, setIsFullDay] = useState(true);
@@ -819,10 +840,10 @@ function DateOverridesManager({ overrides, onSetOverride, saving }: DateOverride
       setIsFullDay(true);
       setFormStart('08:00');
       setFormEnd('20:00');
-      setToast({ type: 'success', message: 'Zi libera adaugata!' });
+      setToast({ type: 'success', message: t('worker:schedule.addedDayOff') });
       setTimeout(() => setToast(null), 3000);
     } catch {
-      setToast({ type: 'error', message: 'Eroare la adaugarea zilei libere.' });
+      setToast({ type: 'error', message: t('worker:schedule.errorAddDayOff') });
     }
   };
 
@@ -832,26 +853,27 @@ function DateOverridesManager({ overrides, onSetOverride, saving }: DateOverride
       await onSetOverride({
         variables: { date, isAvailable: true, startTime: '08:00', endTime: '20:00' },
       });
-      setToast({ type: 'success', message: 'Zi libera anulata.' });
+      setToast({ type: 'success', message: t('worker:schedule.cancelledDayOff') });
       setTimeout(() => setToast(null), 3000);
     } catch {
-      setToast({ type: 'error', message: 'Eroare la anularea zilei libere.' });
+      setToast({ type: 'error', message: t('worker:schedule.errorCancelDayOff') });
     }
   };
 
   const minDate = formatDateISO(new Date());
+  const locale = i18n.language === 'en' ? 'en-GB' : 'ro-RO';
 
   return (
     <Card>
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2">
           <Calendar className="h-5 w-5 text-blue-600" />
-          <h2 className="font-semibold text-gray-900">Zile libere</h2>
+          <h2 className="font-semibold text-gray-900">{t('worker:schedule.daysOff')}</h2>
         </div>
         {!showForm && (
           <Button variant="outline" size="sm" onClick={() => setShowForm(true)}>
             <Plus className="h-4 w-4" />
-            Adauga zi libera
+            {t('worker:schedule.addDayOff')}
           </Button>
         )}
       </div>
@@ -871,7 +893,7 @@ function DateOverridesManager({ overrides, onSetOverride, saving }: DateOverride
         <div className="border border-gray-200 rounded-xl p-4 mb-4 bg-gray-50">
           <div className="space-y-3">
             <div>
-              <label className="text-xs font-medium text-gray-600 mb-1 block">Data</label>
+              <label className="text-xs font-medium text-gray-600 mb-1 block">{t('worker:schedule.date')}</label>
               <input
                 type="date"
                 value={formDate}
@@ -897,13 +919,13 @@ function DateOverridesManager({ overrides, onSetOverride, saving }: DateOverride
                   )}
                 />
               </button>
-              <span className="text-sm text-gray-700">Toata ziua</span>
+              <span className="text-sm text-gray-700">{t('worker:schedule.allDay')}</span>
             </div>
 
             {!isFullDay && (
               <div className="flex items-center gap-2">
                 <div className="flex-1">
-                  <label className="text-xs font-medium text-gray-600 mb-1 block">De la</label>
+                  <label className="text-xs font-medium text-gray-600 mb-1 block">{t('worker:schedule.timeFrom')}</label>
                   <input
                     type="time"
                     value={formStart}
@@ -912,7 +934,7 @@ function DateOverridesManager({ overrides, onSetOverride, saving }: DateOverride
                   />
                 </div>
                 <div className="flex-1">
-                  <label className="text-xs font-medium text-gray-600 mb-1 block">Pana la</label>
+                  <label className="text-xs font-medium text-gray-600 mb-1 block">{t('worker:schedule.timeTo')}</label>
                   <input
                     type="time"
                     value={formEnd}
@@ -926,11 +948,11 @@ function DateOverridesManager({ overrides, onSetOverride, saving }: DateOverride
             <div className="flex items-center gap-2 pt-1">
               <Button size="sm" onClick={handleAdd} loading={saving} disabled={!formDate}>
                 <Check className="h-4 w-4" />
-                Salveaza
+                {t('worker:schedule.save')}
               </Button>
               <Button variant="ghost" size="sm" onClick={() => { setShowForm(false); setFormDate(''); }}>
                 <X className="h-4 w-4" />
-                Anuleaza
+                {t('worker:schedule.cancel')}
               </Button>
             </div>
           </div>
@@ -941,14 +963,14 @@ function DateOverridesManager({ overrides, onSetOverride, saving }: DateOverride
       {sortedOverrides.length === 0 ? (
         <div className="text-center py-6">
           <Calendar className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-          <p className="text-sm text-gray-400">Nu ai zile libere programate in urmatoarele 30 de zile.</p>
+          <p className="text-sm text-gray-400">{t('worker:schedule.noDaysOff')}</p>
         </div>
       ) : (
         <div className="space-y-2">
           {sortedOverrides.map((override) => {
             const dateStr = override.date?.split('T')[0] ?? override.date;
             const dateObj = new Date(dateStr + 'T00:00:00');
-            const dayName = DAY_NAMES[dateObj.getDay()] ?? '';
+            const dayName = t(`days.${dateObj.getDay()}`);
             const isFullDayOff = override.startTime === '00:00' && (override.endTime === '23:59' || override.endTime === '23:59:00');
             return (
               <div
@@ -961,10 +983,12 @@ function DateOverridesManager({ overrides, onSetOverride, saving }: DateOverride
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-gray-900">
-                      {dayName}, {dateObj.toLocaleDateString('ro-RO', { day: 'numeric', month: 'long' })}
+                      {dayName}, {dateObj.toLocaleDateString(locale, { day: 'numeric', month: 'long' })}
                     </p>
                     <p className="text-xs text-gray-500">
-                      {isFullDayOff ? 'Zi libera completa' : `Liber: ${override.startTime} - ${override.endTime}`}
+                      {isFullDayOff
+                        ? t('worker:schedule.fullDayOff')
+                        : t('worker:schedule.partialDayOff', { start: override.startTime, end: override.endTime })}
                     </p>
                   </div>
                 </div>
@@ -973,7 +997,7 @@ function DateOverridesManager({ overrides, onSetOverride, saving }: DateOverride
                   disabled={saving}
                   className="text-xs font-medium text-red-600 hover:text-red-700 hover:bg-red-100 px-2 py-1 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
                 >
-                  {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Anuleaza'}
+                  {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : t('worker:schedule.cancelDayOff')}
                 </button>
               </div>
             );

@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation } from '@apollo/client';
-import { Building2, Save, FileText, MapPin, Clock, ChevronDown, ChevronRight, CheckSquare, Square, CreditCard, ExternalLink, CheckCircle2, AlertCircle, Loader2, Layers } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { Building2, Save, FileText, MapPin, Clock, ChevronDown, ChevronRight, CheckSquare, Square, CreditCard, ExternalLink, CheckCircle2, AlertCircle, Loader2, Layers, Globe } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
@@ -14,6 +15,7 @@ import { cn } from '@go2fix/shared';
 import {
   MY_COMPANY,
   UPDATE_COMPANY_PROFILE,
+  UPDATE_PROFILE,
   MY_COMPANY_WORK_SCHEDULE,
   ACTIVE_CITIES,
   MY_COMPANY_SERVICE_AREAS,
@@ -39,13 +41,6 @@ const companyStatusVariant: Record<string, StatusVariant> = {
   SUSPENDED: 'danger',
 };
 
-const companyStatusLabel: Record<string, string> = {
-  APPROVED: 'Aprobata',
-  PENDING_REVIEW: 'In curs de verificare',
-  REJECTED: 'Respinsa',
-  SUSPENDED: 'Suspendata',
-};
-
 interface CompanyDocument {
   id: string;
   documentType: string;
@@ -56,12 +51,6 @@ interface CompanyDocument {
   reviewedAt?: string;
   rejectionReason?: string;
 }
-
-const REQUIRED_COMPANY_DOCS: { type: string; label: string }[] = [
-  { type: 'certificat_constatator', label: 'Certificat Constatator' },
-  { type: 'asigurare_raspundere_civila', label: 'Asigurare Raspundere Civila' },
-  { type: 'cui_document', label: 'Document CUI' },
-];
 
 // ─── Service Area Types ──────────────────────────────────────────────────────
 
@@ -101,16 +90,6 @@ interface ServiceCategory {
 /** Display order: Mon(1)..Sun(0) */
 const DAY_DISPLAY_ORDER = [1, 2, 3, 4, 5, 6, 0] as const;
 
-const DAY_NAMES: Record<number, string> = {
-  0: 'Duminica',
-  1: 'Luni',
-  2: 'Marti',
-  3: 'Miercuri',
-  4: 'Joi',
-  5: 'Vineri',
-  6: 'Sambata',
-};
-
 function buildDefaultSchedule(): WorkScheduleDay[] {
   return DAY_DISPLAY_ORDER.map((dow) => ({
     dayOfWeek: dow,
@@ -123,6 +102,32 @@ function buildDefaultSchedule(): WorkScheduleDay[] {
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function SettingsPage() {
+  const { t, i18n } = useTranslation('company');
+
+  // ─── Translated constants (inside component for i18n) ─────────────────────
+  const companyStatusLabel: Record<string, string> = {
+    APPROVED: t('settings.companyStatus.approved'),
+    PENDING_REVIEW: t('settings.companyStatus.pending'),
+    REJECTED: t('settings.companyStatus.rejected'),
+    SUSPENDED: t('settings.companyStatus.suspended'),
+  };
+
+  const REQUIRED_COMPANY_DOCS: { type: string; label: string }[] = [
+    { type: 'certificat_constatator', label: t('settings.documents.docs.certificat_constatator') },
+    { type: 'asigurare_raspundere_civila', label: t('settings.documents.docs.asigurare_raspundere_civila') },
+    { type: 'cui_document', label: t('settings.documents.docs.cui_document') },
+  ];
+
+  const DAY_NAMES: Record<number, string> = {
+    0: t('settings.schedule.days.0'),
+    1: t('settings.schedule.days.1'),
+    2: t('settings.schedule.days.2'),
+    3: t('settings.schedule.days.3'),
+    4: t('settings.schedule.days.4'),
+    5: t('settings.schedule.days.5'),
+    6: t('settings.schedule.days.6'),
+  };
+
   const [searchParams, setSearchParams] = useSearchParams();
   const { data, loading } = useQuery(MY_COMPANY);
   const [updateCompany, { loading: saving }] = useMutation(UPDATE_COMPANY_PROFILE);
@@ -134,6 +139,12 @@ export default function SettingsPage() {
   const [refreshOnboarding, { loading: refreshingOnboarding }] = useMutation(REFRESH_CONNECT_ONBOARDING);
   const [connectError, setConnectError] = useState('');
   const [connectSuccess, setConnectSuccess] = useState('');
+
+  // Language preference
+  const [updateProfile] = useMutation(UPDATE_PROFILE);
+  const [selectedLanguage, setSelectedLanguage] = useState(i18n.language === 'en' ? 'en' : 'ro');
+  const [langSuccess, setLangSuccess] = useState('');
+  const [savingLang, setSavingLang] = useState(false);
 
   const connectStatus = connectData?.myConnectStatus;
 
@@ -185,12 +196,12 @@ export default function SettingsPage() {
   useEffect(() => {
     const stripeParam = searchParams.get('stripe');
     if (stripeParam === 'complete') {
-      setConnectSuccess('Inregistrarea Stripe a fost finalizata cu succes! Statusul va fi actualizat in cateva momente.');
+      setConnectSuccess(t('settings.stripe.successMsg'));
       refetchConnect();
       setSearchParams({}, { replace: true });
       setTimeout(() => setConnectSuccess(''), 6000);
     } else if (stripeParam === 'refresh') {
-      setConnectError('Sesiunea de inregistrare a expirat. Apasa butonul de mai jos pentru a reincerca.');
+      setConnectError(t('settings.stripe.sessionExpired'));
       setSearchParams({}, { replace: true });
       setTimeout(() => setConnectError(''), 8000);
     }
@@ -205,7 +216,7 @@ export default function SettingsPage() {
         window.location.href = url;
       }
     } catch {
-      setConnectError('Nu am putut initia inregistrarea Stripe. Incearca din nou.');
+      setConnectError(t('settings.stripe.errorInitiate'));
     }
   };
 
@@ -218,7 +229,7 @@ export default function SettingsPage() {
         window.location.href = url;
       }
     } catch {
-      setConnectError('Nu am putut reinitia inregistrarea Stripe. Incearca din nou.');
+      setConnectError(t('settings.stripe.errorRefresh'));
     }
   };
 
@@ -325,7 +336,7 @@ export default function SettingsPage() {
           },
         },
       });
-      setSuccessMessage('Setările au fost salvate cu succes.');
+      setSuccessMessage(t('settings.profile.saveSuccess'));
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch {
       // Error handled by Apollo
@@ -354,7 +365,7 @@ export default function SettingsPage() {
           },
         },
       });
-      setScheduleSuccessMessage('Programul de lucru a fost salvat cu succes.');
+      setScheduleSuccessMessage(t('settings.schedule.saveSuccess'));
       setTimeout(() => setScheduleSuccessMessage(''), 3000);
     } catch {
       // Error handled by Apollo
@@ -418,10 +429,10 @@ export default function SettingsPage() {
           areaIds: Array.from(selectedAreaIds),
         },
       });
-      setAreasSuccessMessage('Zonele de acoperire au fost salvate cu succes.');
+      setAreasSuccessMessage(t('settings.areas.saveSuccess'));
       setTimeout(() => setAreasSuccessMessage(''), 3000);
     } catch {
-      setAreasErrorMessage('Eroare la salvarea zonelor. Incearca din nou.');
+      setAreasErrorMessage(t('settings.areas.saveError'));
       setTimeout(() => setAreasErrorMessage(''), 4000);
     }
   };
@@ -457,11 +468,28 @@ export default function SettingsPage() {
           categoryIds: Array.from(selectedCategoryIds),
         },
       });
-      setCategoriesSuccessMessage('Categoriile de servicii au fost salvate cu succes.');
+      setCategoriesSuccessMessage(t('settings.categories.saveSuccess'));
       setTimeout(() => setCategoriesSuccessMessage(''), 3000);
     } catch {
-      setCategoriesErrorMessage('Eroare la salvarea categoriilor. Incearca din nou.');
+      setCategoriesErrorMessage(t('settings.categories.saveError'));
       setTimeout(() => setCategoriesErrorMessage(''), 4000);
+    }
+  };
+
+  // ─── Language Handler ──────────────────────────────────────────────────────
+
+  const handleSaveLanguage = async () => {
+    setSavingLang(true);
+    setLangSuccess('');
+    try {
+      await updateProfile({ variables: { input: { preferredLanguage: selectedLanguage } } });
+      await i18n.changeLanguage(selectedLanguage);
+      setLangSuccess(t('settings.language.saveSuccess'));
+      setTimeout(() => setLangSuccess(''), 3000);
+    } catch {
+      // Error handled by Apollo
+    } finally {
+      setSavingLang(false);
     }
   };
 
@@ -470,7 +498,7 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-8">Setări</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-8">{t('settings.title')}</h1>
         <div className="animate-pulse space-y-6">
           <div className="h-48 bg-gray-200 rounded-xl" />
           <div className="h-64 bg-gray-200 rounded-xl" />
@@ -484,12 +512,12 @@ export default function SettingsPage() {
   if (!company) {
     return (
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-8">Setări</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-8">{t('settings.title')}</h1>
         <Card>
           <div className="text-center py-12">
             <Building2 className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-1">Nicio firma inregistrata</h3>
-            <p className="text-gray-500">Nu ai o firma inregistrata inca.</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-1">{t('settings.noCompany')}</h3>
+            <p className="text-gray-500">{t('settings.noCompanyDesc')}</p>
           </div>
         </Card>
       </div>
@@ -500,16 +528,16 @@ export default function SettingsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-8">Setări</h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-8">{t('settings.title')}</h1>
 
       {/* Logo Upload */}
       <Card className="mb-6">
         <div className="flex items-center gap-2 mb-4">
           <Building2 className="h-5 w-5 text-gray-500" />
-          <h2 className="text-lg font-semibold text-gray-900">Logo firma</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{t('settings.logo.title')}</h2>
         </div>
         <p className="text-sm text-gray-500 mb-5">
-          Logo-ul firmei va fi afisat in profilul public si pe facturile generate.
+          {t('settings.logo.subtitle')}
         </p>
 
         <div className="flex items-center gap-8">
@@ -521,10 +549,10 @@ export default function SettingsPage() {
           />
           <div className="flex-1">
             <p className="text-sm text-gray-600 mb-2">
-              Incarca logo-ul companiei tale
+              {t('settings.logo.uploadLabel')}
             </p>
             <p className="text-xs text-gray-400">
-              Recomandat: 800x600 pixeli. Formate acceptate: JPG, PNG, WEBP. Max 10MB
+              {t('settings.logo.uploadHint')}
             </p>
           </div>
         </div>
@@ -535,7 +563,7 @@ export default function SettingsPage() {
         <div className="flex items-start justify-between mb-6">
           <div>
             <h2 className="text-lg font-semibold text-gray-900">{company.companyName}</h2>
-            <p className="text-sm text-gray-500 mt-1">CUI: {company.cui}</p>
+            <p className="text-sm text-gray-500 mt-1">{t('settings.companyInfo.cuiLabel', { cui: company.cui })}</p>
           </div>
           <Badge variant={companyStatusVariant[company.status] || 'default'}>
             {companyStatusLabel[company.status] || company.status}
@@ -543,15 +571,15 @@ export default function SettingsPage() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <div>
-            <p className="text-gray-500">Tip firma</p>
+            <p className="text-gray-500">{t('settings.companyInfo.typeLabel')}</p>
             <p className="font-medium">{company.companyType || '--'}</p>
           </div>
           <div>
-            <p className="text-gray-500">Reprezentant legal</p>
+            <p className="text-gray-500">{t('settings.companyInfo.representativeLabel')}</p>
             <p className="font-medium">{company.legalRepresentative || '--'}</p>
           </div>
           <div>
-            <p className="text-gray-500">Adresa</p>
+            <p className="text-gray-500">{t('settings.companyInfo.addressLabel')}</p>
             <p className="font-medium">
               {[company.city, company.county].filter(Boolean).join(', ') || '--'}
             </p>
@@ -559,7 +587,7 @@ export default function SettingsPage() {
         </div>
         {company.rejectionReason && (
           <div className="mt-4 p-4 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">
-            <p className="font-medium mb-1">Motiv respingere:</p>
+            <p className="font-medium mb-1">{t('settings.companyInfo.rejectionReasonLabel')}</p>
             <p>{company.rejectionReason}</p>
           </div>
         )}
@@ -569,25 +597,27 @@ export default function SettingsPage() {
       <Card className="mb-6">
         <div className="flex items-center gap-2 mb-4">
           <CreditCard className="h-5 w-5 text-gray-500" />
-          <h2 className="text-lg font-semibold text-gray-900">Integrare Stripe</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{t('settings.stripe.title')}</h2>
         </div>
         <p className="text-sm text-gray-500 mb-5">
-          Conecteaza-ti contul Stripe pentru a primi plati de la clienti. Stripe proceseaza platile in mod sigur si transfera fondurile in contul tau bancar.
+          {t('settings.stripe.subtitle')}
         </p>
 
         {connectLoading ? (
           <div className="flex items-center gap-3 py-4">
             <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
-            <span className="text-sm text-gray-500">Se incarca statusul Stripe...</span>
+            <span className="text-sm text-gray-500">{t('settings.stripe.loading')}</span>
           </div>
         ) : connectStatus?.onboardingStatus === 'COMPLETE' ? (
           <div className="space-y-4">
             <div className="flex items-center gap-3 p-4 rounded-xl bg-emerald-50 border border-emerald-200">
               <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
               <div>
-                <p className="text-sm font-medium text-emerald-800">Cont Stripe conectat</p>
+                <p className="text-sm font-medium text-emerald-800">{t('settings.stripe.connected')}</p>
                 <p className="text-xs text-emerald-600 mt-0.5">
-                  {connectStatus.accountId ? `ID: ${connectStatus.accountId}` : 'Integrat cu succes'}
+                  {connectStatus.accountId
+                    ? t('settings.stripe.connectedId', { id: connectStatus.accountId })
+                    : t('settings.stripe.connectedDesc')}
                 </p>
               </div>
             </div>
@@ -603,7 +633,7 @@ export default function SettingsPage() {
                 ) : (
                   <AlertCircle className="h-4 w-4" />
                 )}
-                Plati {connectStatus.chargesEnabled ? 'active' : 'inactive'}
+                {connectStatus.chargesEnabled ? t('settings.stripe.paymentsActive') : t('settings.stripe.paymentsInactive')}
               </div>
               <div className={cn(
                 'flex items-center gap-2 p-3 rounded-xl border text-sm',
@@ -616,7 +646,7 @@ export default function SettingsPage() {
                 ) : (
                   <AlertCircle className="h-4 w-4" />
                 )}
-                Transferuri {connectStatus.payoutsEnabled ? 'active' : 'inactive'}
+                {connectStatus.payoutsEnabled ? t('settings.stripe.payoutsActive') : t('settings.stripe.payoutsInactive')}
               </div>
             </div>
           </div>
@@ -625,9 +655,9 @@ export default function SettingsPage() {
             <div className="flex items-center gap-3 p-4 rounded-xl bg-amber-50 border border-amber-200">
               <AlertCircle className="h-5 w-5 text-amber-600 shrink-0" />
               <div>
-                <p className="text-sm font-medium text-amber-800">Inregistrare in curs</p>
+                <p className="text-sm font-medium text-amber-800">{t('settings.stripe.incomplete')}</p>
                 <p className="text-xs text-amber-600 mt-0.5">
-                  Finalizeaza inregistrarea in Stripe pentru a primi plati.
+                  {t('settings.stripe.incompleteDesc')}
                 </p>
               </div>
             </div>
@@ -636,7 +666,7 @@ export default function SettingsPage() {
               loading={refreshingOnboarding}
             >
               <ExternalLink className="h-4 w-4" />
-              Finalizeaza inregistrarea
+              {t('settings.stripe.finalize')}
             </Button>
           </div>
         ) : (
@@ -645,7 +675,7 @@ export default function SettingsPage() {
             loading={initiatingOnboarding}
           >
             <ExternalLink className="h-4 w-4" />
-            Conecteaza cu Stripe
+            {t('settings.stripe.connect')}
           </Button>
         )}
 
@@ -663,10 +693,10 @@ export default function SettingsPage() {
 
       {/* Editable profile settings */}
       <Card className="mb-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-6">Editeaza profilul firmei</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-6">{t('settings.profile.title')}</h2>
         <form onSubmit={handleSave} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Descriere firma</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('settings.profile.descriptionLabel')}</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -676,13 +706,13 @@ export default function SettingsPage() {
                 'placeholder:text-gray-400 transition-colors',
                 'focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600',
               )}
-              placeholder="Descrierea firmei tale..."
+              placeholder={t('settings.profile.descriptionPlaceholder')}
             />
           </div>
-          <Input label="Email contact" type="email" value={contactEmail}
-            onChange={(e) => setContactEmail(e.target.value)} placeholder="contact@firma.ro" />
-          <Input label="Telefon contact" value={contactPhone}
-            onChange={(e) => setContactPhone(e.target.value)} placeholder="+40 7XX XXX XXX" />
+          <Input label={t('settings.profile.emailLabel')} type="email" value={contactEmail}
+            onChange={(e) => setContactEmail(e.target.value)} placeholder={t('settings.profile.emailPlaceholder')} />
+          <Input label={t('settings.profile.phoneLabel')} value={contactPhone}
+            onChange={(e) => setContactPhone(e.target.value)} placeholder={t('settings.profile.phonePlaceholder')} />
           {successMessage && (
             <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-700">
               {successMessage}
@@ -690,7 +720,7 @@ export default function SettingsPage() {
           )}
           <Button type="submit" loading={saving}>
             <Save className="h-4 w-4" />
-            Salveaza modificarile
+            {t('settings.profile.saveBtn')}
           </Button>
         </form>
       </Card>
@@ -699,10 +729,10 @@ export default function SettingsPage() {
       <Card className="mb-6">
         <div className="flex items-center gap-2 mb-4">
           <Clock className="h-5 w-5 text-gray-500" />
-          <h2 className="text-lg font-semibold text-gray-900">Program implicit de lucru</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{t('settings.schedule.title')}</h2>
         </div>
         <p className="text-sm text-gray-500 mb-5">
-          Seteaza orele implicite de lucru ale firmei. Acestea vor fi folosite ca baza la programarea curateniilor.
+          {t('settings.schedule.subtitle')}
         </p>
         <div className="space-y-3">
           {schedule.map((day) => (
@@ -751,7 +781,7 @@ export default function SettingsPage() {
         <div className="mt-5">
           <Button onClick={handleSaveSchedule} loading={savingSchedule}>
             <Save className="h-4 w-4" />
-            Salveaza programul
+            {t('settings.schedule.saveBtn')}
           </Button>
         </div>
       </Card>
@@ -760,10 +790,10 @@ export default function SettingsPage() {
       <Card className="mb-6">
         <div className="flex items-center gap-2 mb-4">
           <FileText className="h-5 w-5 text-gray-500" />
-          <h2 className="text-lg font-semibold text-gray-900">Documente firma</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{t('settings.documents.title')}</h2>
         </div>
         <p className="text-sm text-gray-500 mb-5">
-          Incarca documentele necesare pentru aprobarea firmei tale. Toate documentele vor fi verificate de administrator.
+          {t('settings.documents.subtitle')}
         </p>
 
         <div className="space-y-4">
@@ -791,7 +821,7 @@ export default function SettingsPage() {
                       onFileSelect={(file) => handleUploadDocument(file, reqDoc.type)}
                       loading={uploading && uploadingType === reqDoc.type}
                       disabled={uploading}
-                      label={`Incarca ${reqDoc.label}`}
+                      label={t('settings.documents.uploadLabel', { docLabel: reqDoc.label })}
                     />
                   </div>
                 )}
@@ -803,7 +833,7 @@ export default function SettingsPage() {
         {/* Show any extra docs not in required list */}
         {documents.filter((d) => !REQUIRED_COMPANY_DOCS.some((r) => r.type === d.documentType)).length > 0 && (
           <div className="mt-6 pt-4 border-t border-gray-200">
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Alte documente</h3>
+            <h3 className="text-sm font-medium text-gray-700 mb-3">{t('settings.documents.otherDocs')}</h3>
             <div className="space-y-3">
               {documents
                 .filter((d) => !REQUIRED_COMPANY_DOCS.some((r) => r.type === d.documentType))
@@ -829,10 +859,10 @@ export default function SettingsPage() {
       <Card className="mb-6">
         <div className="flex items-center gap-2 mb-2">
           <Layers className="h-5 w-5 text-gray-500" />
-          <h2 className="text-lg font-semibold text-gray-900">Categorii de servicii</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{t('settings.categories.title')}</h2>
         </div>
         <p className="text-sm text-gray-500 mb-5">
-          Selecteaza categoriile de servicii pe care firma ta le ofera. Clientii vor putea gasi firma ta in functie de aceste categorii.
+          {t('settings.categories.subtitle')}
         </p>
 
         {categoriesLoading ? (
@@ -844,7 +874,7 @@ export default function SettingsPage() {
         ) : allCategories.length === 0 ? (
           <div className="text-center py-8">
             <Layers className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-            <p className="text-sm text-gray-500">Nu exista categorii de servicii disponibile momentan.</p>
+            <p className="text-sm text-gray-500">{t('settings.categories.empty')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -885,8 +915,10 @@ export default function SettingsPage() {
             <Layers className="h-4 w-4" />
             <span>
               {selectedCategoryIds.size === 0
-                ? 'Nicio categorie selectata'
-                : `${selectedCategoryIds.size} ${selectedCategoryIds.size === 1 ? 'categorie selectata' : 'categorii selectate'}`}
+                ? t('settings.categories.noneSelected')
+                : selectedCategoryIds.size === 1
+                  ? t('settings.categories.selected', { count: selectedCategoryIds.size })
+                  : t('settings.categories.selectedPlural', { count: selectedCategoryIds.size })}
             </span>
           </div>
         )}
@@ -908,7 +940,7 @@ export default function SettingsPage() {
           <div className="mt-5">
             <Button onClick={handleSaveCategories} loading={savingCategories}>
               <Save className="h-4 w-4" />
-              Salveaza categoriile
+              {t('settings.categories.saveBtn')}
             </Button>
           </div>
         )}
@@ -918,10 +950,10 @@ export default function SettingsPage() {
       <Card>
         <div className="flex items-center gap-2 mb-2">
           <MapPin className="h-5 w-5 text-gray-500" />
-          <h2 className="text-lg font-semibold text-gray-900">Zone de acoperire</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{t('settings.areas.title')}</h2>
         </div>
         <p className="text-sm text-gray-500 mb-5">
-          Selecteaza zonele in care firma ta ofera servicii de curatenie. Clientii din aceste zone vor putea solicita serviciile tale.
+          {t('settings.areas.subtitle')}
         </p>
 
         {citiesLoading || areasLoading ? (
@@ -933,7 +965,7 @@ export default function SettingsPage() {
         ) : cities.length === 0 ? (
           <div className="text-center py-8">
             <MapPin className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-            <p className="text-sm text-gray-500">Nu exista orase active momentan.</p>
+            <p className="text-sm text-gray-500">{t('settings.areas.empty')}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -973,7 +1005,7 @@ export default function SettingsPage() {
                       )}
                       {selectedCount === 0 && totalCount > 0 && (
                         <span className="text-xs text-gray-400">
-                          {totalCount} {totalCount === 1 ? 'zona' : 'zone'}
+                          {totalCount} {totalCount === 1 ? t('settings.areas.zoneNoun') : t('settings.areas.zonesNoun')}
                         </span>
                       )}
                     </div>
@@ -997,7 +1029,7 @@ export default function SettingsPage() {
                             )}
                           >
                             <CheckSquare className="h-3.5 w-3.5" />
-                            Selecteaza toate
+                            {t('settings.areas.selectAll')}
                           </button>
                           <span className="text-gray-200">|</span>
                           <button
@@ -1012,13 +1044,13 @@ export default function SettingsPage() {
                             )}
                           >
                             <Square className="h-3.5 w-3.5" />
-                            Deselecteaza toate
+                            {t('settings.areas.deselectAll')}
                           </button>
                         </div>
                       )}
 
                       {totalCount === 0 ? (
-                        <p className="text-xs text-gray-400 py-2">Nicio zona definita pentru acest oras.</p>
+                        <p className="text-xs text-gray-400 py-2">{t('settings.areas.noZonesForCity')}</p>
                       ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                           {city.areas.map((area) => {
@@ -1064,8 +1096,10 @@ export default function SettingsPage() {
             <MapPin className="h-4 w-4" />
             <span>
               {selectedAreaIds.size === 0
-                ? 'Nicio zona selectata'
-                : `${selectedAreaIds.size} ${selectedAreaIds.size === 1 ? 'zona selectata' : 'zone selectate'}`}
+                ? t('settings.areas.noneSelected')
+                : selectedAreaIds.size === 1
+                  ? t('settings.areas.selected', { count: selectedAreaIds.size })
+                  : t('settings.areas.selectedPlural', { count: selectedAreaIds.size })}
             </span>
           </div>
         )}
@@ -1087,8 +1121,66 @@ export default function SettingsPage() {
           <div className="mt-5">
             <Button onClick={handleSaveAreas} loading={savingAreas}>
               <Save className="h-4 w-4" />
-              Salveaza zonele
+              {t('settings.areas.saveBtn')}
             </Button>
+          </div>
+        )}
+      </Card>
+
+      {/* Language Preference */}
+      <Card className="mt-6">
+        <div className="flex items-center gap-2 mb-2">
+          <Globe className="h-5 w-5 text-gray-500" />
+          <h2 className="text-lg font-semibold text-gray-900">{t('settings.language.title')}</h2>
+        </div>
+        <p className="text-sm text-gray-500 mb-5">
+          {t('settings.language.subtitle')}
+        </p>
+
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <div className="flex gap-3">
+            <label className={cn(
+              'flex items-center gap-2.5 px-4 py-2.5 rounded-xl cursor-pointer border transition-all text-sm',
+              selectedLanguage === 'ro'
+                ? 'border-blue-200 bg-blue-50 text-blue-900 font-medium'
+                : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-700',
+            )}>
+              <input
+                type="radio"
+                name="language"
+                value="ro"
+                checked={selectedLanguage === 'ro'}
+                onChange={() => setSelectedLanguage('ro')}
+                className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-600/30"
+              />
+              {t('settings.language.ro')}
+            </label>
+            <label className={cn(
+              'flex items-center gap-2.5 px-4 py-2.5 rounded-xl cursor-pointer border transition-all text-sm',
+              selectedLanguage === 'en'
+                ? 'border-blue-200 bg-blue-50 text-blue-900 font-medium'
+                : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-700',
+            )}>
+              <input
+                type="radio"
+                name="language"
+                value="en"
+                checked={selectedLanguage === 'en'}
+                onChange={() => setSelectedLanguage('en')}
+                className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-600/30"
+              />
+              {t('settings.language.en')}
+            </label>
+          </div>
+          <Button onClick={handleSaveLanguage} loading={savingLang} variant="secondary">
+            <Save className="h-4 w-4" />
+            {t('settings.language.saveBtn')}
+          </Button>
+        </div>
+
+        {langSuccess && (
+          <div className="mt-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-700">
+            {langSuccess}
           </div>
         )}
       </Card>

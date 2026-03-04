@@ -159,6 +159,6 @@ describe('Admin DashboardPage', () => {
 
   it('shows pending worker documents count', () => {
     renderDashboard();
-    expect(screen.getByText('1 documente lucratori')).toBeInTheDocument();
+    expect(screen.getByText('1 document lucratori')).toBeInTheDocument();
   });
 });

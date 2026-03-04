@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@apollo/client';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   TrendingUp,
   Calendar,
@@ -94,14 +95,6 @@ interface BookingDemandHeatmapData {
 
 type DatePreset = 'this_month' | 'last_month' | '3_months' | '6_months' | '1_year';
 
-const presetOptions = [
-  { value: 'this_month', label: 'Luna aceasta' },
-  { value: 'last_month', label: 'Luna trecuta' },
-  { value: '3_months', label: '3 Luni' },
-  { value: '6_months', label: '6 Luni' },
-  { value: '1_year', label: '1 An' },
-];
-
 function formatDate(d: Date): string {
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, '0');
@@ -137,14 +130,6 @@ function getDateRange(preset: DatePreset): { from: string; to: string } {
     }
   }
 }
-
-const serviceTypeLabels: Record<string, string> = {
-  STANDARD: 'Standard',
-  DEEP: 'Curatenie Profunda',
-  POST_CONSTRUCTION: 'Post-Constructie',
-  OFFICE: 'Birouri',
-  MOVE_IN_OUT: 'Mutare',
-};
 
 // ─── Skeleton Components ────────────────────────────────────────────────────
 
@@ -192,6 +177,8 @@ function RevenueTooltip({
   payload?: TooltipPayloadEntry[];
   label?: string;
 }) {
+  const { t } = useTranslation(['dashboard', 'admin']);
+
   if (!active || !payload || payload.length === 0) return null;
 
   const bookingCount = payload[0]?.payload?.bookingCount;
@@ -205,7 +192,9 @@ function RevenueTooltip({
         </p>
       ))}
       {bookingCount != null && (
-        <p className="text-sm text-gray-500 mt-1">Rezervari: {bookingCount}</p>
+        <p className="text-sm text-gray-500 mt-1">
+          {t('admin:reports.charts.bookings', { count: bookingCount })}
+        </p>
       )}
     </div>
   );
@@ -214,7 +203,17 @@ function RevenueTooltip({
 // ─── Demand Heatmap ─────────────────────────────────────────────────────────
 
 function DemandHeatmap({ slots }: { slots: HeatmapSlot[] }) {
-  const days = ['Dum', 'Lun', 'Mar', 'Mie', 'Joi', 'Vin', 'Sam'];
+  const { t } = useTranslation(['dashboard', 'admin']);
+
+  const days = [
+    t('admin:reports.days.0'),
+    t('admin:reports.days.1'),
+    t('admin:reports.days.2'),
+    t('admin:reports.days.3'),
+    t('admin:reports.days.4'),
+    t('admin:reports.days.5'),
+    t('admin:reports.days.6'),
+  ];
   const hours = Array.from({ length: 15 }, (_, i) => i + 7); // 7:00 - 21:00
 
   const lookup = new Map<string, number>();
@@ -264,13 +263,13 @@ function DemandHeatmap({ slots }: { slots: HeatmapSlot[] }) {
         ))}
         {/* Legend */}
         <div className="flex items-center gap-1 mt-3 justify-end">
-          <span className="text-xs text-gray-400 mr-1">Mai putin</span>
+          <span className="text-xs text-gray-400 mr-1">{t('admin:reports.heatmap.less')}</span>
           {['bg-gray-100', 'bg-blue-100', 'bg-blue-200', 'bg-blue-400', 'bg-blue-600', 'bg-blue-800'].map(
             (c) => (
               <div key={c} className={`w-4 h-4 rounded-sm ${c}`} />
             ),
           )}
-          <span className="text-xs text-gray-400 ml-1">Mai mult</span>
+          <span className="text-xs text-gray-400 ml-1">{t('admin:reports.heatmap.more')}</span>
         </div>
       </div>
     </div>
@@ -280,8 +279,17 @@ function DemandHeatmap({ slots }: { slots: HeatmapSlot[] }) {
 // ─── Main Component ─────────────────────────────────────────────────────────
 
 export default function ReportsPage() {
+  const { t } = useTranslation(['dashboard', 'admin']);
   const navigate = useNavigate();
   const [activePreset, setActivePreset] = useState<DatePreset>('this_month');
+
+  const presetOptions = [
+    { value: 'this_month', label: t('admin:reports.presets.thisMonth') },
+    { value: 'last_month', label: t('admin:reports.presets.lastMonth') },
+    { value: '3_months', label: t('admin:reports.presets.3months') },
+    { value: '6_months', label: t('admin:reports.presets.6months') },
+    { value: '1_year', label: t('admin:reports.presets.1year') },
+  ];
 
   const { from, to } = useMemo(() => getDateRange(activePreset), [activePreset]);
 
@@ -319,10 +327,12 @@ export default function ReportsPage() {
   const revenueByService = serviceData?.revenueByServiceType ?? [];
   const topCompanies = companiesData?.topCompaniesByRevenue ?? [];
 
-  // Map service types to Romanian labels for bar chart
+  // Map service types to translated labels for bar chart
   const serviceChartData = revenueByService.map((entry) => ({
     ...entry,
-    label: serviceTypeLabels[entry.serviceType] ?? entry.serviceType,
+    label: t(`admin:reports.serviceTypeLabels.${entry.serviceType}`, {
+      defaultValue: entry.serviceType,
+    }),
   }));
 
   return (
@@ -330,8 +340,8 @@ export default function ReportsPage() {
       {/* Header + Date Selector */}
       <div className="mb-6 flex flex-wrap items-end gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Rapoarte Financiare</h1>
-          <p className="text-gray-500 mt-1">Analiza veniturilor si performantei platformei.</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('admin:reports.title')}</h1>
+          <p className="text-gray-500 mt-1">{t('admin:reports.subtitle')}</p>
         </div>
         <div className="flex-1" />
         <div className="w-44">
@@ -344,17 +354,17 @@ export default function ReportsPage() {
         <button
           onClick={() => {
             const rows = revenueByDate.map((d) => ({
-              'Data': d.date,
-              'Rezervări': d.bookingCount,
-              'Venit (RON)': (d.revenue / 100).toFixed(2),
-              'Comision (RON)': (d.commission / 100).toFixed(2),
+              [t('admin:reports.csvColumns.date')]: d.date,
+              [t('admin:reports.csvColumns.bookings')]: d.bookingCount,
+              [t('admin:reports.csvColumns.revenue')]: (d.revenue / 100).toFixed(2),
+              [t('admin:reports.csvColumns.commission')]: (d.commission / 100).toFixed(2),
             }));
             exportToCSV(rows, `raport-${from}-${to}.csv`);
           }}
           className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:border-gray-300 hover:text-gray-900 transition-colors"
         >
           <Download className="h-4 w-4" />
-          Exporta CSV
+          {t('admin:reports.exportCsv')}
         </button>
       </div>
 
@@ -377,12 +387,12 @@ export default function ReportsPage() {
         <Card className="mb-6">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-x-6 gap-y-1 divide-y md:divide-y-0 md:divide-x divide-gray-100">
             {[
-              { icon: ClipboardList, label: 'Finalizate', value: String(totals.totalCompleted) },
-              { icon: Calendar, label: 'Total rezervari', value: String(totals.totalBookings) },
-              { icon: TrendingUp, label: 'Venit total', value: formatCurrency(totals.totalRevenue) },
-              { icon: Percent, label: 'Comision total', value: formatCurrency(totals.totalCommission) },
-              { icon: Users, label: 'Clienti unici', value: String(totals.uniqueClients) },
-              { icon: Building2, label: 'Companii active', value: String(totals.activeCompanies) },
+              { icon: ClipboardList, label: t('admin:reports.metrics.completed'), value: String(totals.totalCompleted) },
+              { icon: Calendar, label: t('admin:reports.metrics.totalBookings'), value: String(totals.totalBookings) },
+              { icon: TrendingUp, label: t('admin:reports.metrics.totalRevenue'), value: formatCurrency(totals.totalRevenue) },
+              { icon: Percent, label: t('admin:reports.metrics.totalCommission'), value: formatCurrency(totals.totalCommission) },
+              { icon: Users, label: t('admin:reports.metrics.uniqueClients'), value: String(totals.uniqueClients) },
+              { icon: Building2, label: t('admin:reports.metrics.activeCompanies'), value: String(totals.activeCompanies) },
             ].map((item, idx) => (
               <div key={idx} className={`flex items-center gap-3 py-3 ${idx > 0 ? 'md:pl-6' : ''}`}>
                 <div className="h-9 w-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
@@ -407,7 +417,9 @@ export default function ReportsPage() {
           <Card>
             <div className="flex items-center gap-2 mb-4">
               <BarChart3 className="h-5 w-5 text-primary" />
-              <h3 className="text-lg font-semibold text-gray-900">Evolutie Venituri</h3>
+              <h3 className="text-lg font-semibold text-gray-900">
+                {t('admin:reports.charts.revenueEvolution')}
+              </h3>
             </div>
             {revenueByDate.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
@@ -428,7 +440,7 @@ export default function ReportsPage() {
                   <Line
                     type="monotone"
                     dataKey="revenue"
-                    name="Venit"
+                    name={t('admin:reports.charts.revenueLabel')}
                     stroke="#2563EB"
                     strokeWidth={2}
                     dot={{ r: 3, fill: '#2563EB' }}
@@ -437,7 +449,7 @@ export default function ReportsPage() {
                   <Line
                     type="monotone"
                     dataKey="commission"
-                    name="Comision"
+                    name={t('admin:reports.charts.commissionLabel')}
                     stroke="#10B981"
                     strokeWidth={2}
                     dot={{ r: 3, fill: '#10B981' }}
@@ -447,7 +459,7 @@ export default function ReportsPage() {
               </ResponsiveContainer>
             ) : (
               <div className="flex items-center justify-center h-[300px] text-gray-400">
-                Nu exista date pentru perioada selectata
+                {t('admin:reports.charts.noData')}
               </div>
             )}
           </Card>
@@ -460,7 +472,9 @@ export default function ReportsPage() {
           <Card>
             <div className="flex items-center gap-2 mb-4">
               <BarChart3 className="h-5 w-5 text-secondary" />
-              <h3 className="text-lg font-semibold text-gray-900">Venituri pe Tip Serviciu</h3>
+              <h3 className="text-lg font-semibold text-gray-900">
+                {t('admin:reports.charts.revenueByService')}
+              </h3>
             </div>
             {serviceChartData.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
@@ -482,7 +496,7 @@ export default function ReportsPage() {
                   />
                   <Bar
                     dataKey="revenue"
-                    name="Venit"
+                    name={t('admin:reports.charts.revenueLabel')}
                     fill="#2563EB"
                     radius={[6, 6, 0, 0]}
                   />
@@ -490,7 +504,7 @@ export default function ReportsPage() {
               </ResponsiveContainer>
             ) : (
               <div className="flex items-center justify-center h-[300px] text-gray-400">
-                Nu exista date pentru perioada selectata
+                {t('admin:reports.charts.noData')}
               </div>
             )}
           </Card>
@@ -505,7 +519,9 @@ export default function ReportsPage() {
           <>
             <div className="flex items-center gap-2 mb-3">
               <Building2 className="h-4.5 w-4.5 text-gray-500" />
-              <h3 className="text-sm font-semibold text-gray-900">Top Companii dupa Venit</h3>
+              <h3 className="text-sm font-semibold text-gray-900">
+                {t('admin:reports.topCompanies.title')}
+              </h3>
             </div>
             <Card padding={false}>
               {topCompanies.length > 0 ? (
@@ -524,10 +540,10 @@ export default function ReportsPage() {
                       </span>
                       <span className="flex-1" />
                       <span className="text-xs text-gray-400 shrink-0">
-                        {company.bookingCount} rez.
+                        {company.bookingCount} {t('admin:reports.topCompanies.bookings')}
                       </span>
                       <span className="hidden sm:block text-xs text-gray-400 shrink-0 w-24 text-right">
-                        Com. {formatCurrency(company.commission)}
+                        {t('admin:reports.topCompanies.commission')} {formatCurrency(company.commission)}
                       </span>
                       <span className="text-sm font-medium text-gray-900 shrink-0 w-24 text-right">
                         {formatCurrency(company.revenue)}
@@ -537,7 +553,7 @@ export default function ReportsPage() {
                 </div>
               ) : (
                 <p className="text-center text-gray-400 py-12">
-                  Nu exista date pentru perioada selectata.
+                  {t('admin:reports.topCompanies.noData')}
                 </p>
               )}
             </Card>
@@ -549,8 +565,12 @@ export default function ReportsPage() {
       <Card className="mt-6">
         <div className="flex items-center gap-2 mb-4">
           <BarChart3 className="h-5 w-5 text-primary" />
-          <h3 className="text-lg font-semibold text-gray-900">Cerere dupa Zi si Ora</h3>
-          <span className="text-sm text-gray-400 ml-1">(toate rezervarile din perioada)</span>
+          <h3 className="text-lg font-semibold text-gray-900">
+            {t('admin:reports.heatmap.title')}
+          </h3>
+          <span className="text-sm text-gray-400 ml-1">
+            {t('admin:reports.heatmap.subtitle')}
+          </span>
         </div>
         {heatmapLoading ? (
           <div className="h-[300px] bg-gray-100 animate-pulse rounded-xl" />
@@ -558,7 +578,7 @@ export default function ReportsPage() {
           <DemandHeatmap slots={heatmapData!.bookingDemandHeatmap} />
         ) : (
           <div className="flex items-center justify-center h-[200px] text-gray-400">
-            Nu exista date pentru perioada selectata
+            {t('admin:reports.heatmap.noData')}
           </div>
         )}
       </Card>

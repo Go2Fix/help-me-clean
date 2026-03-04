@@ -302,6 +302,26 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://go2fix.ro/blog/curatenie-sezoniera-primavara"/>
   </url>
 
+  <!-- Blog post: Bucharest cleaning guide by district -->
+  <url>
+    <loc>https://go2fix.ro/blog/ghid-curatenie-bucuresti-pe-sectoare</loc>
+    <lastmod>2026-03-04</lastmod>
+    <priority>0.7</priority>
+    <changefreq>monthly</changefreq>
+    <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/blog/ghid-curatenie-bucuresti-pe-sectoare"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://go2fix.ro/en/blog/bucharest-cleaning-guide-by-district"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://go2fix.ro/blog/ghid-curatenie-bucuresti-pe-sectoare"/>
+  </url>
+  <url>
+    <loc>https://go2fix.ro/en/blog/bucharest-cleaning-guide-by-district</loc>
+    <lastmod>2026-03-04</lastmod>
+    <priority>0.7</priority>
+    <changefreq>monthly</changefreq>
+    <xhtml:link rel="alternate" hreflang="ro" href="https://go2fix.ro/blog/ghid-curatenie-bucuresti-pe-sectoare"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://go2fix.ro/en/blog/bucharest-cleaning-guide-by-district"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://go2fix.ro/blog/ghid-curatenie-bucuresti-pe-sectoare"/>
+  </url>
+
   <!-- VS comparison pages -->
   <url>
     <loc>https://go2fix.ro/vs/homerun</loc>

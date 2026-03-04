@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@apollo/client';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Star, MessageSquare, BarChart3, Trophy, Clock, Sparkles, Scale } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
@@ -14,15 +15,6 @@ import { COMPANY_WORKER_REVIEWS } from '@/graphql/operations';
 // ─── Constants ──────────────────────────────────────────────────────────────
 
 const PAGE_SIZE = 20;
-
-const ratingOptions = [
-  { value: '', label: 'Toate' },
-  { value: '1', label: '1 stea' },
-  { value: '2', label: '2 stele' },
-  { value: '3', label: '3 stele' },
-  { value: '4', label: '4 stele' },
-  { value: '5', label: '5 stele' },
-];
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -74,9 +66,19 @@ function StarRatingFull({ rating }: { rating: number }) {
 
 export default function CompanyReviewsPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation(['dashboard', 'company']);
   const [page, setPage] = useState(0);
   const [ratingFilter, setRatingFilter] = useState('');
   const [detailReview, setDetailReview] = useState<Review | null>(null);
+
+  const ratingOptions = [
+    { value: '', label: t('company:reviews.filter.all') },
+    { value: '1', label: t('company:reviews.filter.star1') },
+    { value: '2', label: t('company:reviews.filter.star2') },
+    { value: '3', label: t('company:reviews.filter.star3') },
+    { value: '4', label: t('company:reviews.filter.star4') },
+    { value: '5', label: t('company:reviews.filter.star5') },
+  ];
 
   const variables = {
     limit: PAGE_SIZE,
@@ -110,11 +112,11 @@ export default function CompanyReviewsPage() {
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Recenzii</h1>
-            <p className="text-gray-500 mt-1">Recenziile clientilor pentru echipa ta.</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('company:reviews.title')}</h1>
+            <p className="text-gray-500 mt-1">{t('company:reviews.subtitle')}</p>
           </div>
           {totalCount > 0 && (
-            <Badge variant="info">{totalCount} recenzii</Badge>
+            <Badge variant="info">{t('company:reviews.count', { count: totalCount })}</Badge>
           )}
         </div>
       </div>
@@ -128,7 +130,7 @@ export default function CompanyReviewsPage() {
                 <MessageSquare className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-xs font-medium text-gray-500">Total recenzii</p>
+                <p className="text-xs font-medium text-gray-500">{t('company:reviews.kpi.total')}</p>
                 <p className="text-xl font-bold text-gray-900">{totalCount}</p>
               </div>
             </div>
@@ -139,7 +141,7 @@ export default function CompanyReviewsPage() {
                 <BarChart3 className="h-5 w-5 text-accent" />
               </div>
               <div>
-                <p className="text-xs font-medium text-gray-500">Rating mediu</p>
+                <p className="text-xs font-medium text-gray-500">{t('company:reviews.kpi.avgRating')}</p>
                 <div className="flex items-center gap-1.5">
                   <p className="text-xl font-bold text-gray-900">{kpis.avg}</p>
                   <Star className="h-4 w-4 fill-accent text-accent" />
@@ -153,7 +155,7 @@ export default function CompanyReviewsPage() {
                 <Trophy className="h-5 w-5 text-emerald-500" />
               </div>
               <div>
-                <p className="text-xs font-medium text-gray-500">Recenzii 5 stele</p>
+                <p className="text-xs font-medium text-gray-500">{t('company:reviews.kpi.fiveStar')}</p>
                 <p className="text-xl font-bold text-gray-900">{kpis.fiveStarCount}</p>
               </div>
             </div>
@@ -190,8 +192,8 @@ export default function CompanyReviewsPage() {
         ) : reviews.length === 0 ? (
           <div className="text-center py-16">
             <MessageSquare className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Nu exista recenzii.</h3>
-            <p className="text-gray-500">Recenziile vor aparea aici dupa ce clientii evalueaza serviciile echipei tale.</p>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('company:reviews.empty')}</h3>
+            <p className="text-gray-500">{t('company:reviews.emptyDesc')}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -199,19 +201,19 @@ export default function CompanyReviewsPage() {
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50">
                   <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 sm:px-6 py-3">
-                    Rating
+                    {t('company:reviews.colRating')}
                   </th>
                   <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 sm:px-6 py-3">
-                    Lucrator
+                    {t('company:reviews.colWorker')}
                   </th>
                   <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 sm:px-6 py-3">
-                    Cod Rezervare
+                    {t('company:reviews.colBooking')}
                   </th>
                   <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 sm:px-6 py-3 hidden md:table-cell">
-                    Recenzor
+                    {t('company:reviews.colReviewer')}
                   </th>
                   <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 sm:px-6 py-3 hidden md:table-cell">
-                    Data
+                    {t('company:reviews.colDate')}
                   </th>
                 </tr>
               </thead>
@@ -279,7 +281,7 @@ export default function CompanyReviewsPage() {
           totalCount={totalCount}
           pageSize={PAGE_SIZE}
           onPageChange={setPage}
-          noun="recenzii"
+          noun={t('company:reviews.title').toLowerCase()}
         />
       )}
 
@@ -287,7 +289,7 @@ export default function CompanyReviewsPage() {
       <Modal
         open={!!detailReview}
         onClose={() => setDetailReview(null)}
-        title="Detalii recenzie"
+        title={t('company:reviews.modal.title')}
       >
         {detailReview && (
           <div className="space-y-4">
@@ -296,10 +298,10 @@ export default function CompanyReviewsPage() {
             {(detailReview.ratingPunctuality || detailReview.ratingQuality || detailReview.ratingCommunication || detailReview.ratingValue) && (
               <div className="space-y-2 bg-gray-50 rounded-xl p-3">
                 {[
-                  { label: 'Punctualitate', icon: Clock, value: detailReview.ratingPunctuality },
-                  { label: 'Calitate', icon: Sparkles, value: detailReview.ratingQuality },
-                  { label: 'Comunicare', icon: MessageSquare, value: detailReview.ratingCommunication },
-                  { label: 'Raport calitate-pret', icon: Scale, value: detailReview.ratingValue },
+                  { label: t('company:reviews.modal.punctuality'), icon: Clock, value: detailReview.ratingPunctuality },
+                  { label: t('company:reviews.modal.quality'), icon: Sparkles, value: detailReview.ratingQuality },
+                  { label: t('company:reviews.modal.communication'), icon: MessageSquare, value: detailReview.ratingCommunication },
+                  { label: t('company:reviews.modal.value'), icon: Scale, value: detailReview.ratingValue },
                 ].filter(r => r.value).map(r => (
                   <div key={r.label} className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -318,30 +320,30 @@ export default function CompanyReviewsPage() {
 
             {detailReview.comment && (
               <div>
-                <p className="text-xs font-medium text-gray-500 mb-1">Comentariu</p>
+                <p className="text-xs font-medium text-gray-500 mb-1">{t('company:reviews.modal.comment')}</p>
                 <p className="text-sm text-gray-900">{detailReview.comment}</p>
               </div>
             )}
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-xs font-medium text-gray-500 mb-1">Recenzor</p>
+                <p className="text-xs font-medium text-gray-500 mb-1">{t('company:reviews.modal.reviewer')}</p>
                 <p className="text-sm text-gray-900">{detailReview.reviewer?.fullName ?? '-'}</p>
               </div>
               <div>
-                <p className="text-xs font-medium text-gray-500 mb-1">Lucrator</p>
+                <p className="text-xs font-medium text-gray-500 mb-1">{t('company:reviews.modal.worker')}</p>
                 <p className="text-sm text-gray-900">{detailReview.worker?.fullName ?? '-'}</p>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-xs font-medium text-gray-500 mb-1">Data</p>
+                <p className="text-xs font-medium text-gray-500 mb-1">{t('company:reviews.modal.date')}</p>
                 <p className="text-sm text-gray-900">{formatDate(detailReview.createdAt)}</p>
               </div>
               {detailReview.booking && (
                 <div>
-                  <p className="text-xs font-medium text-gray-500 mb-1">Cod Rezervare</p>
+                  <p className="text-xs font-medium text-gray-500 mb-1">{t('company:reviews.modal.bookingCode')}</p>
                   <button
                     onClick={() => {
                       setDetailReview(null);
@@ -356,7 +358,7 @@ export default function CompanyReviewsPage() {
             </div>
 
             <div className="flex justify-end pt-2 border-t border-gray-100">
-              <Button variant="ghost" onClick={() => setDetailReview(null)}>Inchide</Button>
+              <Button variant="ghost" onClick={() => setDetailReview(null)}>{t('company:reviews.modal.close')}</Button>
             </div>
           </div>
         )}

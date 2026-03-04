@@ -31,6 +31,10 @@ var eventToSlackChannel = map[Event]string{
 	EventDocumentApproved:           "companies",
 	EventDocumentRejected:           "companies",
 
+	// Disputes
+	EventDisputeOpened:   "companies",
+	EventDisputeResolved: "companies",
+
 	// Workers
 	EventWorkerInvited:  "workers",
 	EventWorkerAccepted: "workers",
@@ -49,6 +53,7 @@ var eventToSlackChannel = map[Event]string{
 	EventWaitlistJoined:      "growth",
 	EventAccountSuspended:    "growth",
 	EventAccountReactivated:  "growth",
+	EventContactMessage:      "growth",
 }
 
 // slackEventLabels provides a human-readable label and emoji for each event.
@@ -68,6 +73,11 @@ var slackEventLabels = map[Event][2]string{
 	EventCompanySuspended:           {"⚠️", "Company Suspended"},
 	EventDocumentApproved:           {"📄", "Document Approved"},
 	EventDocumentRejected:           {"📄", "Document Rejected"},
+
+	EventDisputeOpened:   {"⚖️", "Dispute Opened"},
+	EventDisputeResolved: {"⚖️", "Dispute Resolved"},
+
+	EventContactMessage: {"✉️", "Contact Form"},
 
 	EventWorkerInvited:   {"📨", "Worker Invited"},
 	EventWorkerAccepted:  {"🤝", "Worker Accepted"},
@@ -148,8 +158,18 @@ func (s *SlackChannel) Send(_ context.Context, event Event, payload Payload, tar
 	return postSlack(webhookURL, text)
 }
 
-// buildSlackMessage formats a concise one-liner for the given event.
+// buildSlackMessage formats a Slack message for the given event.
+// Contact form messages get a multi-line format; all others get a concise one-liner.
 func buildSlackMessage(event Event, payload Payload, targets []Target) string {
+	// Contact form: rich multi-line message.
+	if event == EventContactMessage {
+		name := fmt.Sprintf("%v", payload["name"])
+		email := fmt.Sprintf("%v", payload["email"])
+		subject := fmt.Sprintf("%v", payload["subject"])
+		message := fmt.Sprintf("%v", payload["message"])
+		return fmt.Sprintf("✉️ *Contact Form* — %s <%s>\n*Subiect:* %s\n*Mesaj:* %s", name, email, subject, message)
+	}
+
 	emoji := "🔔"
 	label := string(event)
 	if parts, ok := slackEventLabels[event]; ok {
@@ -168,7 +188,7 @@ func buildSlackMessage(event Event, payload Payload, targets []Target) string {
 // payloadDetail extracts a human-readable summary from the payload and targets.
 func payloadDetail(payload Payload, targets []Target) string {
 	// Try common payload keys in priority order.
-	for _, key := range []string{"referenceCode", "companyName", "invoiceNumber", "city"} {
+	for _, key := range []string{"referenceCode", "companyName", "invoiceNumber", "city", "subject"} {
 		if v, ok := payload[key]; ok && v != "" && v != nil {
 			if name := targetName(targets); name != "" {
 				return fmt.Sprintf("%v · %v", name, v)

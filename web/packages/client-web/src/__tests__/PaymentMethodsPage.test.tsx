@@ -86,7 +86,7 @@ describe('PaymentMethodsPage', () => {
   it('shows loading spinner when loading', () => {
     mockQueries({ loading: true });
     renderPage();
-    expect(screen.getByText('Se incarca metodele de plata...')).toBeInTheDocument();
+    expect(screen.getByText('Se încarcă metodele de plată...')).toBeInTheDocument();
   });
 
   it('renders saved cards list with brand and last four digits', () => {
@@ -107,7 +107,7 @@ describe('PaymentMethodsPage', () => {
   it('renders "Adauga card" button', () => {
     mockQueries({ methods: [] });
     renderPage();
-    const buttons = screen.getAllByText('Adauga card');
+    const buttons = screen.getAllByText('Adaugă card');
     expect(buttons.length).toBeGreaterThanOrEqual(1);
   });
 
@@ -118,7 +118,7 @@ describe('PaymentMethodsPage', () => {
     // Click the delete button (Trash icon button with title "Sterge")
     const deleteButton = screen.getByTitle('Sterge');
     await user.click(deleteButton);
-    expect(screen.getByText('Stergi acest card?')).toBeInTheDocument();
-    expect(screen.getByText('Anuleaza')).toBeInTheDocument();
+    expect(screen.getByText('Ștergi acest card?')).toBeInTheDocument();
+    expect(screen.getByText('Anulează')).toBeInTheDocument();
   });
 });

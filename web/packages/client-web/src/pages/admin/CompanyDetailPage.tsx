@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation } from '@apollo/client';
+import { useTranslation } from 'react-i18next';
 import {
   ArrowLeft,
   Building2,
@@ -61,13 +62,6 @@ const statusVariant: Record<string, 'default' | 'success' | 'warning' | 'danger'
   REJECTED: 'danger',
 };
 
-const statusLabel: Record<string, string> = {
-  PENDING_REVIEW: 'In asteptare',
-  APPROVED: 'Aprobat',
-  SUSPENDED: 'Suspendat',
-  REJECTED: 'Respins',
-};
-
 const bookingStatusDotColor: Record<string, string> = {
   PENDING: 'bg-amber-400',
   ASSIGNED: 'bg-blue-400',
@@ -77,38 +71,11 @@ const bookingStatusDotColor: Record<string, string> = {
   CANCELLED: 'bg-red-400',
 };
 
-const bookingStatusLabel: Record<string, string> = {
-  PENDING: 'In asteptare',
-  CONFIRMED: 'Confirmat',
-  ASSIGNED: 'Asignat',
-  IN_PROGRESS: 'In desfasurare',
-  COMPLETED: 'Finalizat',
-  CANCELLED: 'Anulat',
-};
-
-const companyDocTypeLabel: Record<string, string> = {
-  certificat_constatator: 'Certificat Constatator',
-  asigurare_raspundere_civila: 'Asigurare Raspundere Civila',
-  cui_document: 'Document CUI',
-};
-
-const workerDocTypeLabel: Record<string, string> = {
-  cazier_judiciar: 'Cazier Judiciar',
-  contract_munca: 'Contract de Munca',
-};
-
 const workerStatusVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
   ACTIVE: 'success',
   PENDING_REVIEW: 'warning',
   INACTIVE: 'default',
   INVITED: 'info',
-};
-
-const workerStatusLabel: Record<string, string> = {
-  ACTIVE: 'Activ',
-  PENDING_REVIEW: 'In asteptare',
-  INACTIVE: 'Inactiv',
-  INVITED: 'Invitat',
 };
 
 interface CompanyDocument {
@@ -185,14 +152,17 @@ interface BookingEdge {
 const REQUIRED_DOCS = ['certificat_constatator', 'asigurare_raspundere_civila', 'cui_document'];
 
 // Helper function to check if all required documents are uploaded and approved
-function getDocumentCompletionStatus(documents: CompanyDocument[]) {
+function getDocumentCompletionStatus(
+  documents: CompanyDocument[],
+  getDocLabel: (type: string) => string,
+) {
   const missing: string[] = [];
   const pending: string[] = [];
   const rejected: string[] = [];
 
   REQUIRED_DOCS.forEach((type) => {
     const doc = documents.find((d) => d.documentType === type);
-    const label = companyDocTypeLabel[type] ?? type;
+    const label = getDocLabel(type);
 
     if (!doc) {
       missing.push(label);
@@ -211,6 +181,7 @@ function getDocumentCompletionStatus(documents: CompanyDocument[]) {
 export default function CompanyDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation(['dashboard', 'admin']);
 
   const [activeTab, setActiveTab] = useState<DetailTab>('detalii');
   const [rejectModal, setRejectModal] = useState(false);
@@ -294,6 +265,12 @@ export default function CompanyDetailPage() {
 
   const company = data?.company;
 
+  const getDocLabel = (type: string) =>
+    t(`admin:companyDetail.docTypeLabels.${type}`, { defaultValue: type });
+
+  const getWorkerDocLabel = (type: string) =>
+    t(`admin:companyDetail.workerDocTypeLabels.${type}`, { defaultValue: type });
+
   if (loading) {
     return (
       <div>
@@ -308,9 +285,9 @@ export default function CompanyDetailPage() {
   if (!company) {
     return (
       <div className="text-center py-20">
-        <p className="text-gray-400">Compania nu a fost găsită.</p>
+        <p className="text-gray-400">{t('admin:companyDetail.notFound')}</p>
         <Button variant="ghost" className="mt-4" onClick={() => navigate('/admin/companii')}>
-          Inapoi la companii
+          {t('admin:companyDetail.backToCompanies')}
         </Button>
       </div>
     );
@@ -433,14 +410,14 @@ export default function CompanyDetailPage() {
   const companyWorkers: WorkerWithDocs[] = company?.workers ?? [];
 
   // Check document completion status for approval
-  const docStatus = getDocumentCompletionStatus(companyDocuments);
+  const docStatus = getDocumentCompletionStatus(companyDocuments, getDocLabel);
 
   const tabOptions = [
-    { value: 'detalii', label: 'Detalii' },
-    { value: 'financiar', label: 'Financiar' },
-    { value: 'comenzi', label: 'Comenzi' },
-    { value: 'documente', label: 'Documente' },
-    { value: 'echipa', label: 'Echipa' },
+    { value: 'detalii', label: t('admin:companyDetail.tabs.details') },
+    { value: 'financiar', label: t('admin:companyDetail.tabs.financial') },
+    { value: 'comenzi', label: t('admin:companyDetail.tabs.bookings') },
+    { value: 'documente', label: t('admin:companyDetail.tabs.documents') },
+    { value: 'echipa', label: t('admin:companyDetail.tabs.team') },
   ];
 
   const financial = financialData?.companyFinancialSummary;
@@ -460,7 +437,7 @@ export default function CompanyDetailPage() {
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold text-gray-900">{company.companyName}</h1>
             <Badge variant={statusVariant[company.status] ?? 'default'}>
-              {statusLabel[company.status] ?? company.status}
+              {t(`admin:companyDetail.statusLabels.${company.status}`, { defaultValue: company.status })}
             </Badge>
           </div>
           <p className="text-gray-500 mt-0.5">CUI: {company.cui}</p>
@@ -490,11 +467,13 @@ export default function CompanyDetailPage() {
             />
 
             <Card>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Informatii companie</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                {t('admin:companyDetail.details.infoTitle')}
+              </h3>
               <div className="grid grid-cols-2 gap-4">
                 <EditableInfoItem
                   icon={Building2}
-                  label="Nume companie"
+                  label={t('admin:companyDetail.details.companyName')}
                   value={company.companyName}
                   fieldKey="companyName"
                   editingField={editingField}
@@ -505,11 +484,19 @@ export default function CompanyDetailPage() {
                   onSaveEdit={handleSaveEdit}
                   onEditValueChange={setEditValue}
                 />
-                <InfoItem icon={Building2} label="Tip companie" value={company.companyType} />
-                <InfoItem icon={Building2} label="Reprezentant legal" value={company.legalRepresentative} />
+                <InfoItem
+                  icon={Building2}
+                  label={t('admin:companyDetail.details.companyType')}
+                  value={company.companyType}
+                />
+                <InfoItem
+                  icon={Building2}
+                  label={t('admin:companyDetail.details.legalRep')}
+                  value={company.legalRepresentative}
+                />
                 <EditableInfoItem
                   icon={Mail}
-                  label="Email contact"
+                  label={t('admin:companyDetail.details.email')}
                   value={company.contactEmail}
                   fieldKey="contactEmail"
                   editingField={editingField}
@@ -522,7 +509,7 @@ export default function CompanyDetailPage() {
                 />
                 <EditableInfoItem
                   icon={Phone}
-                  label="Telefon"
+                  label={t('admin:companyDetail.details.phone')}
                   value={company.contactPhone}
                   fieldKey="contactPhone"
                   editingField={editingField}
@@ -535,7 +522,7 @@ export default function CompanyDetailPage() {
                 />
                 <EditableInfoItem
                   icon={MapPin}
-                  label="Adresa"
+                  label={t('admin:companyDetail.details.address')}
                   value={company.address}
                   fieldKey="address"
                   editingField={editingField}
@@ -546,19 +533,27 @@ export default function CompanyDetailPage() {
                   onSaveEdit={handleSaveEdit}
                   onEditValueChange={setEditValue}
                 />
-                <InfoItem icon={MapPin} label="Localitate" value={`${company.city}, ${company.county}`} />
+                <InfoItem
+                  icon={MapPin}
+                  label={`${t('admin:companyDetail.details.city')} / ${t('admin:companyDetail.details.county')}`}
+                  value={`${company.city}, ${company.county}`}
+                />
               </div>
               {company.description && (
                 <div className="mt-4 pt-4 border-t border-gray-200">
-                  <p className="text-sm font-medium text-gray-700 mb-1">Descriere</p>
+                  <p className="text-sm font-medium text-gray-700 mb-1">
+                    {t('admin:companyDetail.details.description')}
+                  </p>
                   <p className="text-sm text-gray-600">{company.description}</p>
                 </div>
               )}
             </Card>
 
-            {/* Zone de serviciu */}
+            {/* Service Zones */}
             <Card>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Zone de serviciu</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                {t('admin:companyDetail.serviceZones.title')}
+              </h3>
               <div className="flex flex-wrap gap-2 mb-3">
                 {company.city && (
                   <Badge variant="info">{company.city}</Badge>
@@ -569,11 +564,11 @@ export default function CompanyDetailPage() {
               </div>
               {!company.city && !company.county && (
                 <p className="text-sm text-gray-400 mb-3">
-                  Nu exista informatii despre zona de serviciu.
+                  {t('admin:companyDetail.serviceZones.noInfo')}
                 </p>
               )}
               <p className="text-xs text-gray-400">
-                Zonele de serviciu sunt gestionate de administratorul firmei.
+                {t('admin:companyDetail.serviceZones.managedBy')}
               </p>
             </Card>
 
@@ -581,7 +576,9 @@ export default function CompanyDetailPage() {
             <Card>
               <div className="flex items-center gap-2 mb-4">
                 <Layers className="h-5 w-5 text-primary" />
-                <h3 className="text-lg font-semibold text-gray-900">Categorii servicii</h3>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  {t('admin:companyDetail.serviceCategories.title')}
+                </h3>
               </div>
               {company.serviceCategories && company.serviceCategories.length > 0 ? (
                 <div className="flex flex-wrap gap-2">
@@ -594,11 +591,11 @@ export default function CompanyDetailPage() {
                 </div>
               ) : (
                 <p className="text-sm text-gray-400">
-                  Nicio categorie de servicii configurata.
+                  {t('admin:companyDetail.serviceCategories.noCategories')}
                 </p>
               )}
               <p className="text-xs text-gray-400 mt-3">
-                Categoriile sunt gestionate de administratorul firmei.
+                {t('admin:companyDetail.serviceCategories.managedBy')}
               </p>
             </Card>
 
@@ -610,7 +607,7 @@ export default function CompanyDetailPage() {
                     <Star className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Rating</p>
+                    <p className="text-sm text-gray-500">{t('admin:companyDetail.stats.rating')}</p>
                     <p className="text-xl font-bold text-gray-900">
                       {company.ratingAvg ? Number(company.ratingAvg).toFixed(1) : '--'}
                     </p>
@@ -623,7 +620,7 @@ export default function CompanyDetailPage() {
                     <ClipboardList className="h-5 w-5 text-secondary" />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Lucrari</p>
+                    <p className="text-sm text-gray-500">{t('admin:companyDetail.stats.jobs')}</p>
                     <p className="text-xl font-bold text-gray-900">{company.totalJobsCompleted}</p>
                   </div>
                 </div>
@@ -638,27 +635,39 @@ export default function CompanyDetailPage() {
               <Card>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                   <FileCheck className="h-5 w-5" />
-                  Status documente obligatorii
+                  {t('admin:companyDetail.docSummary.title')}
                 </h3>
 
                 <div className="space-y-3 mb-4">
                   {REQUIRED_DOCS.map((type) => {
                     const doc = companyDocuments.find((d) => d.documentType === type);
-                    const label = companyDocTypeLabel[type] ?? type;
+                    const label = getDocLabel(type);
 
                     return (
                       <div key={type} className="flex items-center justify-between p-3 rounded-lg border border-gray-200">
                         <span className="text-sm font-medium text-gray-700">{label}</span>
 
-                        {!doc && <Badge variant="default">Neîncarcat</Badge>}
-                        {doc?.status === 'PENDING' && <Badge variant="warning">În așteptare</Badge>}
+                        {!doc && (
+                          <Badge variant="default">
+                            {t('admin:companyDetail.docSummary.notUploaded')}
+                          </Badge>
+                        )}
+                        {doc?.status === 'PENDING' && (
+                          <Badge variant="warning">
+                            {t('admin:companyDetail.docStatusLabels.PENDING')}
+                          </Badge>
+                        )}
                         {doc?.status === 'APPROVED' && (
                           <Badge variant="success">
                             <CheckCircle className="h-3 w-3 mr-1" />
-                            Aprobat
+                            {t('admin:companyDetail.docStatusLabels.APPROVED')}
                           </Badge>
                         )}
-                        {doc?.status === 'REJECTED' && <Badge variant="danger">Respins</Badge>}
+                        {doc?.status === 'REJECTED' && (
+                          <Badge variant="danger">
+                            {t('admin:companyDetail.docStatusLabels.REJECTED')}
+                          </Badge>
+                        )}
                       </div>
                     );
                   })}
@@ -668,7 +677,9 @@ export default function CompanyDetailPage() {
                   <div className="p-3 rounded-lg bg-green-50 border border-green-200">
                     <div className="flex items-center gap-2 text-sm text-green-800">
                       <CheckCircle className="h-5 w-5 flex-shrink-0" />
-                      <span className="font-medium">Toate documentele sunt aprobate. Compania poate fi aprobată.</span>
+                      <span className="font-medium">
+                        {t('admin:companyDetail.docSummary.allApproved')}
+                      </span>
                     </div>
                   </div>
                 ) : (
@@ -676,20 +687,25 @@ export default function CompanyDetailPage() {
                     <div className="flex items-start gap-2 text-sm text-amber-800">
                       <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
                       <div>
-                        <p className="font-medium mb-1">Compania nu poate fi aprobată încă</p>
+                        <p className="font-medium mb-1">
+                          {t('admin:companyDetail.docSummary.cannotApprove')}
+                        </p>
                         {docStatus.missing.length > 0 && (
                           <p className="text-xs mb-1">
-                            <strong>Lipsă:</strong> {docStatus.missing.join(', ')}
+                            <strong>{t('admin:companyDetail.docSummary.missing')}:</strong>{' '}
+                            {docStatus.missing.join(', ')}
                           </p>
                         )}
                         {docStatus.pending.length > 0 && (
                           <p className="text-xs mb-1">
-                            <strong>În așteptare:</strong> {docStatus.pending.join(', ')}
+                            <strong>{t('admin:companyDetail.docSummary.pending')}:</strong>{' '}
+                            {docStatus.pending.join(', ')}
                           </p>
                         )}
                         {docStatus.rejected.length > 0 && (
-                            <p className="text-xs">
-                            <strong>Respinse:</strong> {docStatus.rejected.join(', ')}
+                          <p className="text-xs">
+                            <strong>{t('admin:companyDetail.docSummary.rejected')}:</strong>{' '}
+                            {docStatus.rejected.join(', ')}
                           </p>
                         )}
                       </div>
@@ -700,7 +716,9 @@ export default function CompanyDetailPage() {
             )}
 
             <Card>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Actiuni</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                {t('admin:companyDetail.actionsCard.title')}
+              </h3>
               <div className="space-y-3">
                 {company.status === 'PENDING_REVIEW' && (
                   <>
@@ -710,16 +728,20 @@ export default function CompanyDetailPage() {
                       onClick={handleApprove}
                       loading={approving}
                       disabled={!docStatus.ready}
-                      title={!docStatus.ready ? 'Încarcă toate documentele obligatorii înainte de aprobare' : undefined}
+                      title={
+                        !docStatus.ready
+                          ? t('admin:companyDetail.actionsCard.approveDisabledTitle')
+                          : undefined
+                      }
                     >
-                      Aprobă compania
+                      {t('admin:companyDetail.actionsCard.approveCompany')}
                     </Button>
                     <Button
                       variant="danger"
                       className="w-full"
                       onClick={() => setRejectModal(true)}
                     >
-                      Respinge compania
+                      {t('admin:companyDetail.actionsCard.rejectCompany')}
                     </Button>
                   </>
                 )}
@@ -730,10 +752,12 @@ export default function CompanyDetailPage() {
                       className="w-full"
                       onClick={() => setSuspendModal(true)}
                     >
-                      Suspenda compania
+                      {t('admin:companyDetail.actionsCard.suspendCompany')}
                     </Button>
                     <div className="pt-2 border-t border-gray-200">
-                      <p className="text-xs text-gray-400 mb-2">Schimba status</p>
+                      <p className="text-xs text-gray-400 mb-2">
+                        {t('admin:companyDetail.actionsCard.changeStatus')}
+                      </p>
                       <Button
                         variant="outline"
                         size="sm"
@@ -741,7 +765,7 @@ export default function CompanyDetailPage() {
                         onClick={() => handleStatusChange('SUSPENDED')}
                         loading={updatingStatus}
                       >
-                        Trece la Suspendat
+                        {t('admin:companyDetail.actionsCard.moveToSuspended')}
                       </Button>
                     </div>
                   </>
@@ -754,10 +778,12 @@ export default function CompanyDetailPage() {
                       onClick={handleApprove}
                       loading={approving}
                     >
-                      Reactiveaza compania
+                      {t('admin:companyDetail.actionsCard.reactivateCompany')}
                     </Button>
                     <div className="pt-2 border-t border-gray-200">
-                      <p className="text-xs text-gray-400 mb-2">Schimba status</p>
+                      <p className="text-xs text-gray-400 mb-2">
+                        {t('admin:companyDetail.actionsCard.changeStatus')}
+                      </p>
                       <Button
                         variant="outline"
                         size="sm"
@@ -765,17 +791,18 @@ export default function CompanyDetailPage() {
                         onClick={() => handleStatusChange('APPROVED')}
                         loading={updatingStatus}
                       >
-                        Trece la Aprobat
+                        {t('admin:companyDetail.actionsCard.moveToApproved')}
                       </Button>
                     </div>
                   </>
                 )}
                 {company.status === 'REJECTED' && (
                   <p className="text-sm text-gray-500">
-                    Compania a fost respinsa.
+                    {t('admin:companyDetail.actionsCard.rejectedNote')}
                     {company.rejectionReason && (
                       <span className="block mt-1 text-danger">
-                        Motiv: {company.rejectionReason}
+                        {t('admin:companyDetail.actionsCard.rejectionReasonLabel')}:{' '}
+                        {company.rejectionReason}
                       </span>
                     )}
                   </p>
@@ -784,7 +811,9 @@ export default function CompanyDetailPage() {
             </Card>
 
             <Card>
-              <h3 className="text-sm font-medium text-gray-500 mb-2">Inregistrata pe</h3>
+              <h3 className="text-sm font-medium text-gray-500 mb-2">
+                {t('admin:companyDetail.details.registeredAt')}
+              </h3>
               <div className="flex items-center gap-2 text-gray-900">
                 <Calendar className="h-4 w-4 text-gray-400" />
                 {formatDate(company.createdAt)}
@@ -819,8 +848,12 @@ export default function CompanyDetailPage() {
                     <ClipboardList className="h-4.5 w-4.5 text-gray-500" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 leading-tight">Rezervări finalizate</p>
-                    <p className="text-lg font-semibold text-gray-900 leading-tight">{financial.completedBookings}</p>
+                    <p className="text-xs text-gray-500 leading-tight">
+                      {t('admin:companyDetail.financial.completedBookings')}
+                    </p>
+                    <p className="text-lg font-semibold text-gray-900 leading-tight">
+                      {financial.completedBookings}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 py-3 md:pl-6">
@@ -828,8 +861,12 @@ export default function CompanyDetailPage() {
                     <TrendingUp className="h-4.5 w-4.5 text-gray-500" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 leading-tight">Venit total</p>
-                    <p className="text-lg font-semibold text-gray-900 leading-tight">{formatCurrency(financial.totalRevenue)}</p>
+                    <p className="text-xs text-gray-500 leading-tight">
+                      {t('admin:companyDetail.financial.totalRevenue')}
+                    </p>
+                    <p className="text-lg font-semibold text-gray-900 leading-tight">
+                      {formatCurrency(financial.totalRevenue)}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 py-3 md:pl-6">
@@ -837,8 +874,12 @@ export default function CompanyDetailPage() {
                     <Percent className="h-4.5 w-4.5 text-gray-500" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 leading-tight">Comision total</p>
-                    <p className="text-lg font-semibold text-gray-900 leading-tight">{formatCurrency(financial.totalCommission)}</p>
+                    <p className="text-xs text-gray-500 leading-tight">
+                      {t('admin:companyDetail.financial.totalCommission')}
+                    </p>
+                    <p className="text-lg font-semibold text-gray-900 leading-tight">
+                      {formatCurrency(financial.totalCommission)}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 py-3 md:pl-6">
@@ -846,8 +887,12 @@ export default function CompanyDetailPage() {
                     <Wallet className="h-4.5 w-4.5 text-gray-500" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 leading-tight">Plata neta</p>
-                    <p className="text-lg font-semibold text-gray-900 leading-tight">{formatCurrency(financial.netPayout)}</p>
+                    <p className="text-xs text-gray-500 leading-tight">
+                      {t('admin:companyDetail.financial.netPayout')}
+                    </p>
+                    <p className="text-lg font-semibold text-gray-900 leading-tight">
+                      {formatCurrency(financial.netPayout)}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -855,7 +900,7 @@ export default function CompanyDetailPage() {
           ) : (
             <Card>
               <p className="text-center text-gray-400 py-8">
-                Nu exista date financiare disponibile.
+                {t('admin:companyDetail.financial.noData')}
               </p>
             </Card>
           )}
@@ -865,7 +910,7 @@ export default function CompanyDetailPage() {
             <div className="flex items-center justify-between mb-1">
               <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                 <Percent className="h-5 w-5" />
-                Comision platforma
+                {t('admin:companyDetail.commission.title')}
               </h3>
               {!editingCommission && (
                 <button
@@ -880,7 +925,9 @@ export default function CompanyDetailPage() {
             {editingCommission ? (
               <div className="mt-3 space-y-3">
                 <div>
-                  <label className="text-sm text-gray-500 mb-1 block">Comision personalizat (%)</label>
+                  <label className="text-sm text-gray-500 mb-1 block">
+                    {t('admin:companyDetail.commission.label')}
+                  </label>
                   <input
                     type="number"
                     min={0}
@@ -903,9 +950,14 @@ export default function CompanyDetailPage() {
                     size="sm"
                     onClick={handleSaveCommission}
                     loading={settingCommission}
-                    disabled={commissionValue.trim() === '' || isNaN(parseFloat(commissionValue)) || parseFloat(commissionValue) < 0 || parseFloat(commissionValue) > 100}
+                    disabled={
+                      commissionValue.trim() === '' ||
+                      isNaN(parseFloat(commissionValue)) ||
+                      parseFloat(commissionValue) < 0 ||
+                      parseFloat(commissionValue) > 100
+                    }
                   >
-                    Salveaza
+                    {t('admin:companyDetail.commission.save')}
                   </Button>
                   <Button
                     variant="outline"
@@ -913,22 +965,22 @@ export default function CompanyDetailPage() {
                     onClick={handleResetCommission}
                     loading={settingCommission}
                   >
-                    Reseteaza la implicit
+                    {t('admin:companyDetail.commission.resetToDefault')}
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={handleCancelEditCommission}
                   >
-                    Anuleaza
+                    {t('admin:companyDetail.commission.cancel')}
                   </Button>
                 </div>
               </div>
             ) : (
               <p className="text-sm text-gray-600 mt-1">
                 {company.commissionOverridePct != null
-                  ? `${company.commissionOverridePct}% (personalizat)`
-                  : '25% (implicit)'}
+                  ? `${company.commissionOverridePct}% (${t('admin:companyDetail.commission.custom')})`
+                  : `25% (${t('admin:companyDetail.commission.default')})`}
               </p>
             )}
           </Card>
@@ -951,7 +1003,9 @@ export default function CompanyDetailPage() {
               ))}
             </div>
           ) : bookings.length === 0 ? (
-            <p className="text-center text-gray-400 py-12">Aceasta companie nu are comenzi.</p>
+            <p className="text-center text-gray-400 py-12">
+              {t('admin:companyDetail.bookingsTab.noBookings')}
+            </p>
           ) : (
             <div className="divide-y divide-gray-100">
               {bookings.map((booking) => (
@@ -960,7 +1014,9 @@ export default function CompanyDetailPage() {
                   onClick={() => navigate(`/admin/comenzi/${booking.id}`)}
                   className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors"
                 >
-                  <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${bookingStatusDotColor[booking.status] ?? 'bg-gray-300'}`} />
+                  <span
+                    className={`h-2.5 w-2.5 rounded-full shrink-0 ${bookingStatusDotColor[booking.status] ?? 'bg-gray-300'}`}
+                  />
                   <span className="text-sm font-semibold text-gray-900 w-20 shrink-0">
                     {booking.referenceCode}
                   </span>
@@ -987,7 +1043,9 @@ export default function CompanyDetailPage() {
                     {formatCurrency(booking.estimatedTotal)}
                   </span>
                   <span className="text-xs text-gray-500 shrink-0 w-24 text-right hidden sm:block">
-                    {bookingStatusLabel[booking.status] ?? booking.status}
+                    {t(`admin:companyDetail.bookingStatusLabels.${booking.status}`, {
+                      defaultValue: booking.status,
+                    })}
                   </span>
                 </div>
               ))}
@@ -1002,7 +1060,9 @@ export default function CompanyDetailPage() {
           {/* Section A - Company Documents */}
           <div>
             {companyDocuments.length === 0 ? (
-              <p className="text-sm text-gray-400">Niciun document incarcat.</p>
+              <p className="text-sm text-gray-400">
+                {t('admin:companyDetail.documents.noDocuments')}
+              </p>
             ) : (
               <div className="space-y-3">
                 {companyDocuments.map((doc) => (
@@ -1010,7 +1070,7 @@ export default function CompanyDetailPage() {
                     key={doc.id}
                     id={doc.id}
                     documentType={doc.documentType}
-                    documentTypeLabel={companyDocTypeLabel[doc.documentType] ?? doc.documentType}
+                    documentTypeLabel={getDocLabel(doc.documentType)}
                     fileName={doc.fileName}
                     fileUrl={doc.fileUrl}
                     status={doc.status}
@@ -1031,7 +1091,9 @@ export default function CompanyDetailPage() {
       {activeTab === 'echipa' && (
         <div>
           {companyWorkers.length === 0 ? (
-            <p className="text-sm text-gray-400">Niciun angajat inregistrat.</p>
+            <p className="text-sm text-gray-400">
+              {t('admin:companyDetail.team.noWorkers')}
+            </p>
           ) : (
             <div className="space-y-4">
               {companyWorkers.map((worker) => {
@@ -1072,19 +1134,17 @@ export default function CompanyDetailPage() {
                                 {worker.fullName}
                               </h4>
                             )}
-                            <Badge
-                              variant={
-                                workerStatusVariant[worker.status] ?? 'default'
-                              }
-                            >
-                              {workerStatusLabel[worker.status] ?? worker.status}
+                            <Badge variant={workerStatusVariant[worker.status] ?? 'default'}>
+                              {t(`admin:companyDetail.workerStatusLabels.${worker.status}`, {
+                                defaultValue: worker.status,
+                              })}
                             </Badge>
                           </div>
                           <p className="text-sm text-gray-500">{worker.email}</p>
                           {!worker.user?.avatarUrl && worker.status === 'PENDING_REVIEW' && (
                             <p className="text-xs text-amber-600 flex items-center gap-1 mt-0.5">
                               <AlertCircle className="h-3 w-3" />
-                              Lipsă fotografie profil
+                              {t('admin:companyDetail.team.missingPhoto')}
                             </p>
                           )}
                         </div>
@@ -1097,14 +1157,16 @@ export default function CompanyDetailPage() {
                           loading={activatingWorker}
                         >
                           <ShieldCheck className="h-4 w-4 mr-1.5" />
-                          Activeaza
+                          {t('admin:companyDetail.team.activateWorker')}
                         </Button>
                       )}
                     </div>
 
                     {/* Personality Assessment */}
                     <div className="mb-4">
-                      <h5 className="text-sm font-semibold text-gray-700 mb-2">Test de personalitate</h5>
+                      <h5 className="text-sm font-semibold text-gray-700 mb-2">
+                        {t('admin:companyDetail.team.personalityTest')}
+                      </h5>
                       <PersonalityScoreCard
                         assessment={worker.personalityAssessment}
                         compact={false}
@@ -1115,10 +1177,12 @@ export default function CompanyDetailPage() {
 
                     {/* Documents */}
                     <div>
-                      <h5 className="text-sm font-semibold text-gray-700 mb-2">Documente</h5>
+                      <h5 className="text-sm font-semibold text-gray-700 mb-2">
+                        {t('admin:companyDetail.team.documents')}
+                      </h5>
                       {worker.documents.length === 0 ? (
                         <p className="text-sm text-gray-400">
-                          Niciun document incarcat.
+                          {t('admin:companyDetail.team.noDocuments')}
                         </p>
                       ) : (
                         <div className="space-y-3">
@@ -1127,9 +1191,7 @@ export default function CompanyDetailPage() {
                               key={doc.id}
                               id={doc.id}
                               documentType={doc.documentType}
-                              documentTypeLabel={
-                                workerDocTypeLabel[doc.documentType] ?? doc.documentType
-                              }
+                              documentTypeLabel={getWorkerDocLabel(doc.documentType)}
                               fileName={doc.fileName}
                               fileUrl={doc.fileUrl}
                               status={doc.status}
@@ -1154,22 +1216,28 @@ export default function CompanyDetailPage() {
       {/* Document Reject Modal */}
       <Modal
         open={docRejectModal.open}
-        onClose={() => { setDocRejectModal({ open: false, docId: '', docType: 'company' }); setDocRejectReason(''); }}
-        title="Respinge document"
+        onClose={() => {
+          setDocRejectModal({ open: false, docId: '', docType: 'company' });
+          setDocRejectReason('');
+        }}
+        title={t('admin:companyDetail.docRejectModal.title')}
       >
         <div className="space-y-4">
           <Input
-            label="Motivul respingerii"
-            placeholder="Explica motivul respingerii documentului..."
+            label={t('admin:companyDetail.docRejectModal.reasonLabel')}
+            placeholder={t('admin:companyDetail.docRejectModal.reasonPlaceholder')}
             value={docRejectReason}
             onChange={(e) => setDocRejectReason(e.target.value)}
           />
           <div className="flex justify-end gap-3">
             <Button
               variant="ghost"
-              onClick={() => { setDocRejectModal({ open: false, docId: '', docType: 'company' }); setDocRejectReason(''); }}
+              onClick={() => {
+                setDocRejectModal({ open: false, docId: '', docType: 'company' });
+                setDocRejectReason('');
+              }}
             >
-              Anuleaza
+              {t('admin:companyDetail.docRejectModal.cancel')}
             </Button>
             <Button
               variant="danger"
@@ -1177,7 +1245,7 @@ export default function CompanyDetailPage() {
               loading={reviewingCompanyDoc || reviewingWorkerDoc}
               disabled={!docRejectReason.trim()}
             >
-              Respinge
+              {t('admin:companyDetail.docRejectModal.confirm')}
             </Button>
           </div>
         </div>
@@ -1186,22 +1254,36 @@ export default function CompanyDetailPage() {
       {/* Reject Modal */}
       <Modal
         open={rejectModal}
-        onClose={() => { setRejectModal(false); setReason(''); }}
-        title="Respinge compania"
+        onClose={() => {
+          setRejectModal(false);
+          setReason('');
+        }}
+        title={t('admin:companyDetail.rejectModal.title')}
       >
         <div className="space-y-4">
           <Input
-            label="Motivul respingerii"
-            placeholder="Explica motivul respingerii..."
+            label={t('admin:companyDetail.rejectModal.reasonLabel')}
+            placeholder={t('admin:companyDetail.rejectModal.reasonPlaceholder')}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
           />
           <div className="flex justify-end gap-3">
-            <Button variant="ghost" onClick={() => { setRejectModal(false); setReason(''); }}>
-              Anuleaza
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setRejectModal(false);
+                setReason('');
+              }}
+            >
+              {t('admin:companyDetail.rejectModal.cancel')}
             </Button>
-            <Button variant="danger" onClick={handleReject} loading={rejecting} disabled={!reason.trim()}>
-              Respinge
+            <Button
+              variant="danger"
+              onClick={handleReject}
+              loading={rejecting}
+              disabled={!reason.trim()}
+            >
+              {t('admin:companyDetail.rejectModal.confirm')}
             </Button>
           </div>
         </div>
@@ -1210,22 +1292,36 @@ export default function CompanyDetailPage() {
       {/* Suspend Modal */}
       <Modal
         open={suspendModal}
-        onClose={() => { setSuspendModal(false); setReason(''); }}
-        title="Suspenda compania"
+        onClose={() => {
+          setSuspendModal(false);
+          setReason('');
+        }}
+        title={t('admin:companyDetail.suspendModal.title')}
       >
         <div className="space-y-4">
           <Input
-            label="Motivul suspendarii"
-            placeholder="Explica motivul suspendarii..."
+            label={t('admin:companyDetail.suspendModal.reasonLabel')}
+            placeholder={t('admin:companyDetail.suspendModal.reasonPlaceholder')}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
           />
           <div className="flex justify-end gap-3">
-            <Button variant="ghost" onClick={() => { setSuspendModal(false); setReason(''); }}>
-              Anuleaza
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setSuspendModal(false);
+                setReason('');
+              }}
+            >
+              {t('admin:companyDetail.suspendModal.cancel')}
             </Button>
-            <Button variant="danger" onClick={handleSuspend} loading={suspending} disabled={!reason.trim()}>
-              Suspenda
+            <Button
+              variant="danger"
+              onClick={handleSuspend}
+              loading={suspending}
+              disabled={!reason.trim()}
+            >
+              {t('admin:companyDetail.suspendModal.confirm')}
             </Button>
           </div>
         </div>
@@ -1328,4 +1424,3 @@ function EditableInfoItem({
     </div>
   );
 }
-

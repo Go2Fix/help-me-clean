@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate, Navigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@apollo/client';
+import { useTranslation } from 'react-i18next';
 import {
   ArrowLeft,
   Calendar,
@@ -131,39 +132,16 @@ interface Subscription {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-const RECURRENCE_LABELS: Record<string, string> = {
-  WEEKLY: 'Saptamanal',
-  BIWEEKLY: 'Bisaptamanal',
-  MONTHLY: 'Lunar',
+const STATUS_CLASSES: Record<string, string> = {
+  ACTIVE: 'bg-emerald-50 text-emerald-700',
+  PAUSED: 'bg-amber-50 text-amber-700',
+  CANCELLED: 'bg-red-50 text-red-700',
+  PAST_DUE: 'bg-red-50 text-red-700',
 };
 
-const DAY_NAMES: Record<number, string> = {
-  0: 'Duminica',
-  1: 'Luni',
-  2: 'Marti',
-  3: 'Miercuri',
-  4: 'Joi',
-  5: 'Vineri',
-  6: 'Sambata',
-};
-
-const PROPERTY_TYPE_LABELS: Record<string, string> = {
-  APARTMENT: 'Apartament',
-  HOUSE: 'Casa',
-  OFFICE: 'Birou',
-  STUDIO: 'Garsoniera',
-};
-
-const STATUS_CONFIG: Record<string, { label: string; classes: string }> = {
-  ACTIVE: { label: 'Activ', classes: 'bg-emerald-50 text-emerald-700' },
-  PAUSED: { label: 'In pauza', classes: 'bg-amber-50 text-amber-700' },
-  CANCELLED: { label: 'Anulat', classes: 'bg-red-50 text-red-700' },
-  PAST_DUE: { label: 'Plata restanta', classes: 'bg-red-50 text-red-700' },
-};
-
-function formatDate(dateStr: string): string {
+function formatDate(dateStr: string, locale: string): string {
   try {
-    return new Date(dateStr).toLocaleDateString('ro-RO', {
+    return new Date(dateStr).toLocaleDateString(locale === 'en' ? 'en-GB' : 'ro-RO', {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
@@ -182,10 +160,10 @@ function formatCurrency(amount: number): string {
   return amount.toFixed(2) + ' RON';
 }
 
-function formatAddress(address: SubscriptionAddress): string {
+function formatAddress(address: SubscriptionAddress, t: (key: string, opts?: Record<string, unknown>) => string): string {
   const parts = [address.streetAddress];
-  if (address.floor) parts.push(`Etaj ${address.floor}`);
-  if (address.apartment) parts.push(`Ap. ${address.apartment}`);
+  if (address.floor) parts.push(t('client:addresses.floor', { floor: address.floor }));
+  if (address.apartment) parts.push(t('client:addresses.apartment', { apt: address.apartment }));
   parts.push(`${address.city}, ${address.county}`);
   return parts.join(', ');
 }
@@ -196,6 +174,7 @@ export default function SubscriptionDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { isAuthenticated, loading: authLoading } = useAuth();
+  const { t, i18n } = useTranslation(['dashboard', 'client']);
 
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
@@ -243,7 +222,7 @@ export default function SubscriptionDetailPage() {
       },
       onError: (err) => {
         setWorkerChangeError(
-          err.message || 'A aparut o eroare. Te rugam sa incerci din nou.',
+          err.message || t('client:subscriptionDetail.error.workerChange'),
         );
       },
     },
@@ -252,7 +231,7 @@ export default function SubscriptionDetailPage() {
   // ─── Auth guard ──────────────────────────────────────────────────────────
 
   if (authLoading) {
-    return <LoadingSpinner text="Se verifica autentificarea..." />;
+    return <LoadingSpinner text={t('client:subscriptionDetail.verifyingAuth')} />;
   }
 
   if (!isAuthenticated) {
@@ -320,22 +299,20 @@ export default function SubscriptionDetailPage() {
       <div className="py-8 text-center max-w-4xl mx-auto">
         <p className="text-danger mb-4">
           {error
-            ? 'Nu am putut incarca detaliile abonamentului.'
-            : 'Abonamentul nu a fost gasit.'}
+            ? t('client:subscriptionDetail.error.loadFailed')
+            : t('client:subscriptionDetail.error.notFound')}
         </p>
         <Button variant="outline" onClick={() => navigate('/cont/abonamente')}>
           <ArrowLeft className="h-4 w-4" />
-          Inapoi la abonamente
+          {t('client:subscriptionDetail.backToSubscriptions')}
         </Button>
       </div>
     );
   }
 
   const sub = data.serviceSubscription;
-  const statusInfo = STATUS_CONFIG[sub.status] ?? {
-    label: sub.status,
-    classes: 'bg-gray-100 text-gray-800',
-  };
+  const statusClasses = STATUS_CLASSES[sub.status] ?? 'bg-gray-100 text-gray-800';
+  const statusLabel = t(`client:subscriptionDetail.status.${sub.status}`, { defaultValue: sub.status });
   const isActive = sub.status === 'ACTIVE';
   const isPaused = sub.status === 'PAUSED';
   const isCancelled = sub.status === 'CANCELLED';
@@ -364,7 +341,7 @@ export default function SubscriptionDetailPage() {
           className="flex items-center gap-2 text-gray-500 hover:text-gray-700 mb-6 transition-colors cursor-pointer"
         >
           <ArrowLeft className="h-4 w-4" />
-          <span className="text-sm font-medium">Inapoi la abonamente</span>
+          <span className="text-sm font-medium">{t('client:subscriptionDetail.backToSubscriptions')}</span>
         </button>
 
         {/* PAST_DUE payment failure banner */}
@@ -372,16 +349,15 @@ export default function SubscriptionDetailPage() {
           <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
             <div className="flex-1">
-              <p className="font-semibold text-amber-900">Plata abonamentului a eșuat</p>
+              <p className="font-semibold text-amber-900">{t('client:subscriptionDetail.pastDueBanner.title')}</p>
               <p className="text-sm text-amber-700 mt-1">
-                Ultima plată automată nu a putut fi procesată. Actualizează metoda de plată
-                pentru a evita anularea abonamentului.
+                {t('client:subscriptionDetail.pastDueBanner.description')}
               </p>
               <button
                 onClick={() => navigate('/cont/plati')}
                 className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-amber-600 text-white text-sm font-medium rounded-lg hover:bg-amber-700 transition-colors"
               >
-                Actualizează metoda de plată
+                {t('client:subscriptionDetail.pastDueBanner.updatePayment')}
               </button>
             </div>
             <button
@@ -403,20 +379,20 @@ export default function SubscriptionDetailPage() {
               <span
                 className={cn(
                   'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold',
-                  statusInfo.classes,
+                  statusClasses,
                 )}
               >
-                {statusInfo.label}
+                {statusLabel}
               </span>
             </div>
             <div className="flex items-center gap-4 text-sm text-gray-500">
               <span className="flex items-center gap-1.5">
                 <Repeat className="h-4 w-4" />
-                {RECURRENCE_LABELS[sub.recurrenceType] || sub.recurrenceType}
+                {t(`client:subscriptionDetail.recurrence.${sub.recurrenceType}`, { defaultValue: sub.recurrenceType })}
               </span>
               <span className="flex items-center gap-1.5">
                 <Calendar className="h-4 w-4" />
-                {DAY_NAMES[sub.dayOfWeek] ?? ''}, ora {formatTime(sub.preferredTime)}
+                {t(`client:subscriptionDetail.days.${sub.dayOfWeek}`, { defaultValue: '' })}, {formatTime(sub.preferredTime)}
               </span>
             </div>
           </div>
@@ -432,7 +408,7 @@ export default function SubscriptionDetailPage() {
                   onClick={() => pauseSubscription({ variables: { id: sub.id } })}
                 >
                   <Pause className="h-4 w-4" />
-                  Pauza
+                  {t('client:subscriptionDetail.actions.pause')}
                 </Button>
                 <Button
                   variant="outline"
@@ -441,7 +417,7 @@ export default function SubscriptionDetailPage() {
                   className="text-red-600 border-red-200 hover:bg-red-50"
                 >
                   <XCircle className="h-4 w-4" />
-                  Anuleaza
+                  {t('client:subscriptionDetail.actions.cancel')}
                 </Button>
               </>
             )}
@@ -453,7 +429,7 @@ export default function SubscriptionDetailPage() {
                   onClick={() => resumeSubscription({ variables: { id: sub.id } })}
                 >
                   <Play className="h-4 w-4" />
-                  Reia
+                  {t('client:subscriptionDetail.actions.resume')}
                 </Button>
                 <Button
                   variant="outline"
@@ -462,15 +438,17 @@ export default function SubscriptionDetailPage() {
                   className="text-red-600 border-red-200 hover:bg-red-50"
                 >
                   <XCircle className="h-4 w-4" />
-                  Anuleaza
+                  {t('client:subscriptionDetail.actions.cancel')}
                 </Button>
               </>
             )}
             {(isCancelled || isPastDue) && (
               <div className="text-sm text-gray-500 italic">
                 {isCancelled
-                  ? `Anulat${sub.cancelledAt ? ' pe ' + formatDate(sub.cancelledAt) : ''}`
-                  : 'Plata restanta'}
+                  ? t('client:subscriptionDetail.actions.cancelledOn', {
+                      date: sub.cancelledAt ? formatDate(sub.cancelledAt, i18n.language) : '',
+                    })
+                  : t('client:subscriptionDetail.actions.pastDue')}
               </div>
             )}
           </div>
@@ -481,7 +459,7 @@ export default function SubscriptionDetailPage() {
           <div className="flex items-start gap-3 px-4 py-3 rounded-xl bg-red-50 border border-red-100 mb-6">
             <XCircle className="h-4 w-4 text-red-600 shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-red-800">Motiv anulare</p>
+              <p className="text-sm font-medium text-red-800">{t('client:subscriptionDetail.cancellationReason')}</p>
               <p className="text-sm text-red-700 mt-0.5">{sub.cancellationReason}</p>
             </div>
           </div>
@@ -492,7 +470,7 @@ export default function SubscriptionDetailPage() {
           <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-amber-50 border border-amber-100 mb-6">
             <Pause className="h-4 w-4 text-amber-600 shrink-0" />
             <p className="text-sm text-amber-800">
-              Abonamentul este in pauza din {formatDate(sub.pausedAt)}
+              {t('client:subscriptionDetail.pausedSince', { date: formatDate(sub.pausedAt, i18n.language) })}
             </p>
           </div>
         )}
@@ -502,7 +480,7 @@ export default function SubscriptionDetailPage() {
           <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-100 mb-6">
             <RefreshCw className="h-4 w-4 text-emerald-600 shrink-0" />
             <p className="text-sm text-emerald-800">
-              Cererea ta de schimbare a fost trimisa. Vei fi contactat in curand.
+              {t('client:subscriptionDetail.workerChangeSuccess')}
             </p>
           </div>
         )}
@@ -513,14 +491,14 @@ export default function SubscriptionDetailPage() {
             <RefreshCw className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
             <div>
               <p className="text-sm font-medium text-amber-800">
-                Cerere de schimbare lucrator in asteptare
+                {t('client:subscriptionDetail.workerChangePending.title')}
               </p>
               <p className="text-sm text-amber-700 mt-0.5">
-                Echipa noastra te va contacta in scurt timp pentru a rezolva cererea ta.
+                {t('client:subscriptionDetail.workerChangePending.description')}
               </p>
               {sub.workerChangeReason && (
                 <p className="text-xs text-amber-600 mt-1">
-                  Motiv: {sub.workerChangeReason}
+                  {t('client:subscriptionDetail.workerChangePending.reason', { reason: sub.workerChangeReason })}
                 </p>
               )}
             </div>
@@ -533,7 +511,7 @@ export default function SubscriptionDetailPage() {
             {/* Pricing card */}
             <Card>
               <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                Detalii pret
+                {t('client:subscriptionDetail.pricing.title')}
               </h2>
               <div className="space-y-3">
                 <div className="flex items-center justify-between py-2">
@@ -541,7 +519,7 @@ export default function SubscriptionDetailPage() {
                     <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                       <Clock className="h-5 w-5 text-primary" />
                     </div>
-                    <span className="text-sm text-gray-600">Tarif orar</span>
+                    <span className="text-sm text-gray-600">{t('client:subscriptionDetail.pricing.hourlyRate')}</span>
                   </div>
                   <span className="text-sm font-semibold text-gray-900">
                     {formatCurrency(sub.hourlyRate)}
@@ -552,15 +530,15 @@ export default function SubscriptionDetailPage() {
                     <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                       <CalendarRange className="h-5 w-5 text-primary" />
                     </div>
-                    <span className="text-sm text-gray-600">Durată estimată</span>
+                    <span className="text-sm text-gray-600">{t('client:subscriptionDetail.pricing.estimatedDuration')}</span>
                   </div>
                   <span className="text-sm font-semibold text-gray-900">
-                    {sub.estimatedDurationHours} {sub.estimatedDurationHours === 1 ? 'ora' : 'ore'}
+                    {sub.estimatedDurationHours} {t('client:subscriptionDetail.serviceDetails.duration_one', { count: sub.estimatedDurationHours })}
                   </span>
                 </div>
                 <div className="border-t border-gray-100 pt-3">
                   <div className="flex items-center justify-between py-1.5">
-                    <span className="text-sm text-gray-500">Pret per sesiune (original)</span>
+                    <span className="text-sm text-gray-500">{t('client:subscriptionDetail.pricing.originalPrice')}</span>
                     <span className="text-sm text-gray-500">
                       {formatCurrency(sub.perSessionOriginal)}
                     </span>
@@ -570,7 +548,7 @@ export default function SubscriptionDetailPage() {
                       <div className="flex items-center gap-2">
                         <TrendingDown className="h-4 w-4 text-emerald-600" />
                         <span className="text-sm text-emerald-600 font-medium">
-                          Reducere abonament
+                          {t('client:subscriptionDetail.pricing.subscriptionDiscount')}
                         </span>
                       </div>
                       <span className="text-sm font-medium text-emerald-600">
@@ -580,7 +558,7 @@ export default function SubscriptionDetailPage() {
                   )}
                   <div className="flex items-center justify-between py-1.5">
                     <span className="text-sm text-gray-600 font-medium">
-                      Pret per sesiune {sub.discountPct > 0 ? '(cu reducere)' : ''}
+                      {t('client:subscriptionDetail.pricing.pricePerSession')}{sub.discountPct > 0 ? ` ${t('client:subscriptionDetail.pricing.withDiscount')}` : ''}
                     </span>
                     <span className="text-sm font-bold text-gray-900">
                       {formatCurrency(sub.perSessionDiscounted)}
@@ -590,7 +568,7 @@ export default function SubscriptionDetailPage() {
                 <div className="border-t border-gray-100 pt-3">
                   <div className="flex items-center justify-between py-1.5">
                     <span className="text-sm text-gray-500">
-                      Sesiuni pe luna
+                      {t('client:subscriptionDetail.pricing.sessionsPerMonth')}
                     </span>
                     <span className="text-sm text-gray-900 font-medium">
                       {sub.sessionsPerMonth}
@@ -598,7 +576,7 @@ export default function SubscriptionDetailPage() {
                   </div>
                   <div className="flex items-center justify-between py-2 bg-primary/5 rounded-xl px-3 -mx-1">
                     <span className="text-base font-semibold text-gray-900">
-                      Total lunar
+                      {t('client:subscriptionDetail.pricing.monthlyTotal')}
                     </span>
                     <span className="text-lg font-bold text-primary">
                       {formatCurrency(sub.monthlyAmount)}
@@ -611,7 +589,7 @@ export default function SubscriptionDetailPage() {
             {/* Service details card */}
             <Card>
               <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                Detalii serviciu
+                {t('client:subscriptionDetail.serviceDetails.title')}
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {sub.propertyType && (
@@ -620,9 +598,9 @@ export default function SubscriptionDetailPage() {
                       <Home className="h-5 w-5 text-secondary" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-400">Tip proprietate</div>
+                      <div className="text-xs text-gray-400">{t('client:subscriptionDetail.serviceDetails.propertyType')}</div>
                       <div className="text-sm font-medium text-gray-900">
-                        {PROPERTY_TYPE_LABELS[sub.propertyType] ?? sub.propertyType}
+                        {t(`client:subscriptionDetail.propertyTypes.${sub.propertyType}`, { defaultValue: sub.propertyType })}
                       </div>
                     </div>
                   </div>
@@ -632,9 +610,9 @@ export default function SubscriptionDetailPage() {
                     <Home className="h-5 w-5 text-secondary" />
                   </div>
                   <div>
-                    <div className="text-xs text-gray-400">Camere</div>
+                    <div className="text-xs text-gray-400">{t('client:subscriptionDetail.serviceDetails.rooms')}</div>
                     <div className="text-sm font-medium text-gray-900">
-                      {sub.numRooms} {sub.numRooms === 1 ? 'camera' : 'camere'}
+                      {sub.numRooms} {t('client:subscriptionDetail.serviceDetails.rooms_one', { count: sub.numRooms })}
                     </div>
                   </div>
                 </div>
@@ -643,9 +621,9 @@ export default function SubscriptionDetailPage() {
                     <Bath className="h-5 w-5 text-secondary" />
                   </div>
                   <div>
-                    <div className="text-xs text-gray-400">Bai</div>
+                    <div className="text-xs text-gray-400">{t('client:subscriptionDetail.serviceDetails.bathrooms')}</div>
                     <div className="text-sm font-medium text-gray-900">
-                      {sub.numBathrooms} {sub.numBathrooms === 1 ? 'baie' : 'bai'}
+                      {sub.numBathrooms} {t('client:subscriptionDetail.serviceDetails.bathrooms_one', { count: sub.numBathrooms })}
                     </div>
                   </div>
                 </div>
@@ -655,7 +633,7 @@ export default function SubscriptionDetailPage() {
                       <Ruler className="h-5 w-5 text-accent" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-400">Suprafață</div>
+                      <div className="text-xs text-gray-400">{t('client:subscriptionDetail.serviceDetails.area')}</div>
                       <div className="text-sm font-medium text-gray-900">
                         {sub.areaSqm} mp
                       </div>
@@ -668,9 +646,9 @@ export default function SubscriptionDetailPage() {
                       <PawPrint className="h-5 w-5 text-amber-600" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-400">Animale</div>
+                      <div className="text-xs text-gray-400">{t('client:subscriptionDetail.serviceDetails.pets')}</div>
                       <div className="text-sm font-medium text-gray-900">
-                        Da, exista animale de companie
+                        {t('client:subscriptionDetail.serviceDetails.hasPets')}
                       </div>
                     </div>
                   </div>
@@ -683,7 +661,7 @@ export default function SubscriptionDetailPage() {
                       <FileText className="h-5 w-5 text-gray-500" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-400">Instructiuni speciale</div>
+                      <div className="text-xs text-gray-400">{t('client:subscriptionDetail.serviceDetails.specialInstructions')}</div>
                       <p className="text-sm text-gray-700 mt-0.5 whitespace-pre-wrap">
                         {sub.specialInstructions}
                       </p>
@@ -697,7 +675,7 @@ export default function SubscriptionDetailPage() {
             {sub.upcomingBookings.length > 0 && (
               <Card>
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                  Programari viitoare ({sub.upcomingBookings.length})
+                  {t('client:subscriptionDetail.upcomingBookings', { count: sub.upcomingBookings.length })}
                 </h2>
                 <div className="space-y-3">
                   {sub.upcomingBookings.map((booking) => (
@@ -712,7 +690,7 @@ export default function SubscriptionDetailPage() {
                         </div>
                         <div className="min-w-0">
                           <div className="text-sm font-medium text-gray-900">
-                            {formatDate(booking.scheduledDate)}
+                            {formatDate(booking.scheduledDate, i18n.language)}
                           </div>
                           <div className="flex items-center gap-2 text-xs text-gray-500">
                             <span className="flex items-center gap-1">
@@ -734,7 +712,7 @@ export default function SubscriptionDetailPage() {
             {sub.bookings.length > 0 && (
               <Card>
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                  Istoric programari ({sub.bookings.length})
+                  {t('client:subscriptionDetail.bookingHistory', { count: sub.bookings.length })}
                 </h2>
                 <div className="space-y-3">
                   {sub.bookings.map((booking) => (
@@ -748,14 +726,14 @@ export default function SubscriptionDetailPage() {
                           <Badge status={booking.status} />
                           {booking.paymentStatus === 'paid' && (
                             <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
-                              Platit
+                              {t('client:subscriptionDetail.paid')}
                             </span>
                           )}
                         </div>
                         <div className="flex flex-wrap gap-3 text-sm text-gray-600">
                           <span className="flex items-center gap-1">
                             <Calendar className="h-3.5 w-3.5" />
-                            {formatDate(booking.scheduledDate)}
+                            {formatDate(booking.scheduledDate, i18n.language)}
                           </span>
                           <span className="flex items-center gap-1">
                             <Clock className="h-3.5 w-3.5" />
@@ -790,7 +768,7 @@ export default function SubscriptionDetailPage() {
             {(sub.currentPeriodStart || sub.currentPeriodEnd) && (
               <Card>
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                  Perioada curenta
+                  {t('client:subscriptionDetail.currentPeriod')}
                 </h2>
                 <div className="space-y-3">
                   {sub.currentPeriodStart && (
@@ -799,9 +777,9 @@ export default function SubscriptionDetailPage() {
                         <Calendar className="h-5 w-5 text-primary" />
                       </div>
                       <div>
-                        <div className="text-xs text-gray-400">Inceput</div>
+                        <div className="text-xs text-gray-400">{t('client:subscriptionDetail.periodStart')}</div>
                         <div className="text-sm font-medium text-gray-900">
-                          {formatDate(sub.currentPeriodStart)}
+                          {formatDate(sub.currentPeriodStart, i18n.language)}
                         </div>
                       </div>
                     </div>
@@ -812,9 +790,9 @@ export default function SubscriptionDetailPage() {
                         <CalendarRange className="h-5 w-5 text-primary" />
                       </div>
                       <div>
-                        <div className="text-xs text-gray-400">Sfarsit</div>
+                        <div className="text-xs text-gray-400">{t('client:subscriptionDetail.periodEnd')}</div>
                         <div className="text-sm font-medium text-gray-900">
-                          {formatDate(sub.currentPeriodEnd)}
+                          {formatDate(sub.currentPeriodEnd, i18n.language)}
                         </div>
                       </div>
                     </div>
@@ -826,10 +804,10 @@ export default function SubscriptionDetailPage() {
             {/* Progress */}
             <Card>
               <h2 className="text-lg font-semibold text-gray-900 mb-3">
-                Progres
+                {t('client:subscriptionDetail.progress.title')}
               </h2>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-500">Programari finalizate</span>
+                <span className="text-sm text-gray-500">{t('client:subscriptionDetail.progress.completedBookings')}</span>
                 <span className="text-sm font-semibold text-gray-900">
                   {sub.completedBookings} / {sub.totalBookings}
                 </span>
@@ -848,7 +826,7 @@ export default function SubscriptionDetailPage() {
             {sub.address && (
               <Card>
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                  Adresa
+                  {t('client:subscriptionDetail.address')}
                 </h2>
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center shrink-0">
@@ -856,7 +834,7 @@ export default function SubscriptionDetailPage() {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-900">
-                      {formatAddress(sub.address)}
+                      {formatAddress(sub.address, t)}
                     </p>
                   </div>
                 </div>
@@ -867,7 +845,7 @@ export default function SubscriptionDetailPage() {
             {sub.worker && (
               <Card>
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                  Echipa
+                  {t('client:subscriptionDetail.team')}
                 </h2>
                 <div className="flex flex-col items-center text-center">
                   {sub.worker.user?.avatarUrl ? (
@@ -903,7 +881,7 @@ export default function SubscriptionDetailPage() {
                       className="w-full"
                     >
                       <RefreshCw className="h-4 w-4" />
-                      Solicita schimbare lucrator
+                      {t('client:subscriptionDetail.requestWorkerChange')}
                     </Button>
                   </div>
                 )}
@@ -914,7 +892,7 @@ export default function SubscriptionDetailPage() {
             {sub.extras.length > 0 && (
               <Card>
                 <h2 className="text-lg font-semibold text-gray-900 mb-3">
-                  Servicii suplimentare
+                  {t('client:subscriptionDetail.extras')}
                 </h2>
                 <ul className="space-y-1.5">
                   {sub.extras.map((item, i) => (
@@ -929,29 +907,29 @@ export default function SubscriptionDetailPage() {
             {/* Subscription meta */}
             <Card>
               <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                Informatii
+                {t('client:subscriptionDetail.info.title')}
               </h2>
               <div className="space-y-3 text-sm">
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-500">Creat pe</span>
+                  <span className="text-gray-500">{t('client:subscriptionDetail.info.createdOn')}</span>
                   <span className="text-gray-900 font-medium">
-                    {formatDate(sub.createdAt)}
+                    {formatDate(sub.createdAt, i18n.language)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-500">Tip serviciu</span>
+                  <span className="text-gray-500">{t('client:subscriptionDetail.info.serviceType')}</span>
                   <span className="text-gray-900 font-medium">{sub.serviceType}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-500">Recurenta</span>
+                  <span className="text-gray-500">{t('client:subscriptionDetail.info.recurrence')}</span>
                   <span className="text-gray-900 font-medium">
-                    {RECURRENCE_LABELS[sub.recurrenceType] || sub.recurrenceType}
+                    {t(`client:subscriptionDetail.recurrence.${sub.recurrenceType}`, { defaultValue: sub.recurrenceType })}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-500">Ziua preferata</span>
+                  <span className="text-gray-500">{t('client:subscriptionDetail.info.preferredDay')}</span>
                   <span className="text-gray-900 font-medium">
-                    {DAY_NAMES[sub.dayOfWeek] ?? sub.dayOfWeek}
+                    {t(`client:subscriptionDetail.days.${sub.dayOfWeek}`, { defaultValue: String(sub.dayOfWeek) })}
                   </span>
                 </div>
               </div>
@@ -963,20 +941,19 @@ export default function SubscriptionDetailPage() {
         <Modal
           open={showCancelModal}
           onClose={() => setShowCancelModal(false)}
-          title="Anuleaza abonamentul"
+          title={t('client:subscriptionDetail.cancelModal.title')}
         >
           <p className="text-sm text-gray-600 mb-4">
-            Esti sigur ca vrei sa anulezi acest abonament? Toate programarile viitoare
-            vor fi anulate. Programarile deja finalizate nu sunt afectate.
+            {t('client:subscriptionDetail.cancelModal.description')}
           </p>
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Motiv anulare (optional)
+              {t('client:subscriptionDetail.cancelModal.reasonLabel')}
             </label>
             <textarea
               className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary resize-none"
               rows={3}
-              placeholder="Spune-ne de ce anulezi..."
+              placeholder={t('client:subscriptionDetail.cancelModal.reasonPlaceholder')}
               value={cancelReason}
               onChange={(e) => setCancelReason(e.target.value)}
             />
@@ -986,14 +963,14 @@ export default function SubscriptionDetailPage() {
               variant="ghost"
               onClick={() => setShowCancelModal(false)}
             >
-              Renunta
+              {t('client:subscriptionDetail.cancelModal.cancel')}
             </Button>
             <Button
               variant="danger"
               loading={cancelling}
               onClick={handleCancel}
             >
-              Confirma anularea
+              {t('client:subscriptionDetail.cancelModal.confirm')}
             </Button>
           </div>
         </Modal>
@@ -1002,19 +979,19 @@ export default function SubscriptionDetailPage() {
         <Modal
           open={showWorkerChangeModal}
           onClose={() => setShowWorkerChangeModal(false)}
-          title="Solicita schimbare lucrator"
+          title={t('client:subscriptionDetail.workerChangeModal.title')}
         >
           <p className="text-sm text-gray-600 mb-4">
-            Descrie motivul pentru care doresti schimbarea lucratorului. Echipa noastra va analiza cererea si te va contacta.
+            {t('client:subscriptionDetail.workerChangeModal.description')}
           </p>
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Motiv (optional)
+              {t('client:subscriptionDetail.workerChangeModal.reasonLabel')}
             </label>
             <textarea
               className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary resize-none"
               rows={3}
-              placeholder="De ce doresti schimbarea lucratorului?"
+              placeholder={t('client:subscriptionDetail.workerChangeModal.reasonPlaceholder')}
               value={workerChangeReason}
               onChange={(e) => setWorkerChangeReason(e.target.value)}
             />
@@ -1030,13 +1007,13 @@ export default function SubscriptionDetailPage() {
               variant="ghost"
               onClick={() => setShowWorkerChangeModal(false)}
             >
-              Renunta
+              {t('client:subscriptionDetail.workerChangeModal.cancel')}
             </Button>
             <Button
               loading={changingWorker}
               onClick={handleWorkerChange}
             >
-              Trimite cererea
+              {t('client:subscriptionDetail.workerChangeModal.submit')}
             </Button>
           </div>
         </Modal>

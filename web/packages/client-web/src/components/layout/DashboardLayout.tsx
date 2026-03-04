@@ -8,6 +8,7 @@ import {
   PanelLeftOpen,
   type LucideIcon,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@go2fix/shared';
 import { useAuth } from '@/context/AuthContext';
 import { useSidebar } from '@/hooks/useSidebar';
@@ -42,6 +43,7 @@ export default function DashboardLayout({
 }: DashboardLayoutProps) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation('dashboard');
   const { isCollapsed, isMobileOpen, toggleCollapse, toggleMobile, closeMobile } =
     useSidebar();
 
@@ -118,14 +120,14 @@ export default function DashboardLayout({
                 'flex items-center gap-3 w-full py-2.5 rounded-xl text-sm font-medium text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition-colors cursor-pointer',
                 collapsed ? 'justify-center px-2' : 'px-4',
               )}
-              title={collapsed ? 'Extinde meniul' : 'Restrânge meniul'}
+              title={collapsed ? t('nav.expandMenu') : t('nav.collapseMenu')}
             >
               {collapsed ? (
                 <PanelLeftOpen className="h-5 w-5 shrink-0" />
               ) : (
                 <>
                   <PanelLeftClose className="h-5 w-5 shrink-0" />
-                  Restrânge
+                  {t('nav.collapseMenu')}
                 </>
               )}
             </button>
@@ -146,14 +148,14 @@ export default function DashboardLayout({
           )}
           <button
             onClick={handleLogout}
-            title={collapsed ? 'Deconectare' : undefined}
+            title={collapsed ? t('nav.logout') : undefined}
             className={cn(
               'flex items-center gap-3 w-full py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-red-50 hover:text-danger transition-colors cursor-pointer',
               collapsed ? 'justify-center px-2' : 'px-4',
             )}
           >
             <LogOut className="h-5 w-5 shrink-0" />
-            {!collapsed && 'Deconectare'}
+            {!collapsed && t('nav.logout')}
           </button>
         </div>
       </>

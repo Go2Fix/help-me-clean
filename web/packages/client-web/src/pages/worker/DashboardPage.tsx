@@ -1,4 +1,5 @@
 import { useQuery } from '@apollo/client';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import {
   Star, Briefcase, Clock, MapPin, Calendar,
@@ -16,19 +17,7 @@ import {
   MY_WORKER_REVIEWS, MY_WORKER_PROFILE, MY_WORKER_AVAILABILITY,
 } from '@/graphql/operations';
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
-
-const statusLabel: Record<string, string> = {
-  ASSIGNED: 'Asignata', CONFIRMED: 'Confirmata',
-  IN_PROGRESS: 'In lucru', COMPLETED: 'Finalizata',
-  CANCELLED_BY_CLIENT: 'Anulata', CANCELLED_BY_COMPANY: 'Anulata', CANCELLED_BY_ADMIN: 'Anulata',
-};
-
-const statusVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
-  ASSIGNED: 'info', CONFIRMED: 'warning', IN_PROGRESS: 'info',
-  COMPLETED: 'success',
-  CANCELLED_BY_CLIENT: 'danger', CANCELLED_BY_COMPANY: 'danger', CANCELLED_BY_ADMIN: 'danger',
-};
+// ─── Constants ──────────────────────────────────────────────────────────────
 
 const REQUIRED_DOC_TYPES = ['cazier_judiciar', 'contract_munca'];
 
@@ -76,6 +65,7 @@ function Metric({ icon: Icon, label, value, sub }: { icon: React.ElementType; la
 // ─── Component ──────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
+  const { t, i18n } = useTranslation(['dashboard', 'worker']);
   const { user } = useAuth();
   const { data: profileData, loading: profileLoading } = useQuery(MY_WORKER_PROFILE);
   const { data: statsData, loading: statsLoading } = useQuery(MY_WORKER_STATS);
@@ -94,11 +84,12 @@ export default function DashboardPage() {
   const personalityDone = !!profile?.personalityAssessment?.completedAt;
   const docs: WorkerDoc[] = profile?.documents ?? [];
   const approvedDocTypes = new Set(docs.filter((d) => d.status === 'APPROVED').map((d) => d.documentType));
-  const hasAllDocs = REQUIRED_DOC_TYPES.every((t) => approvedDocTypes.has(t));
+  const hasAllDocs = REQUIRED_DOC_TYPES.every((docType) => approvedDocTypes.has(docType));
   const availabilitySet = availabilityData?.myWorkerAvailability?.some((d: { isAvailable: boolean }) => d.isAvailable) ?? false;
 
   const firstName = profile?.fullName?.split(' ')[0] ?? '';
-  const todayStr = new Date().toLocaleDateString('ro-RO', {
+  const locale = i18n.language === 'en' ? 'en-GB' : 'ro-RO';
+  const todayStr = new Date().toLocaleDateString(locale, {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
@@ -107,13 +98,26 @@ export default function DashboardPage() {
 
   const isKpiLoading = statsLoading || profileLoading;
 
+  const statusVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
+    ASSIGNED: 'info', CONFIRMED: 'warning', IN_PROGRESS: 'info',
+    COMPLETED: 'success',
+    CANCELLED_BY_CLIENT: 'danger', CANCELLED_BY_COMPANY: 'danger', CANCELLED_BY_ADMIN: 'danger',
+  };
+
   const checklistItems: SetupItem[] = [
-    { key: 'avatar', label: 'Adaugă o fotografie de profil', done: !!profile?.user?.avatarUrl, to: '/worker/profil', icon: Camera },
-    { key: 'bio', label: 'Completează bio-ul', description: 'Prezintă-te clienților', done: !!profile?.bio?.trim(), to: '/worker/profil', icon: AlignLeft },
-    { key: 'phone', label: 'Verifică numărul de telefon', description: 'Via WhatsApp', done: !!user?.phoneVerified, to: '/worker/profil', icon: MessageCircle },
-    { key: 'personality', label: 'Test de personalitate', done: personalityDone, to: '/worker/test-personalitate', icon: Brain },
-    { key: 'docs', label: 'Încarcă documentele obligatorii', description: 'Cazier judiciar și contract de muncă', done: hasAllDocs, to: '/worker/documente-obligatorii', icon: FileText },
-    { key: 'availability', label: 'Setează disponibilitatea', description: 'Zilele și orele în care poți lucra', done: availabilitySet, to: '/worker/program', icon: CalendarDays },
+    { key: 'avatar', label: t('worker:dashboard.setupItems.avatar'), done: !!profile?.user?.avatarUrl, to: '/worker/profil', icon: Camera },
+    { key: 'bio', label: t('worker:dashboard.setupItems.bio'), description: t('worker:dashboard.setupItems.bioDesc'), done: !!profile?.bio?.trim(), to: '/worker/profil', icon: AlignLeft },
+    { key: 'phone', label: t('worker:dashboard.setupItems.phone'), description: t('worker:dashboard.setupItems.phoneDesc'), done: !!user?.phoneVerified, to: '/worker/profil', icon: MessageCircle },
+    { key: 'personality', label: t('worker:dashboard.setupItems.personality'), done: personalityDone, to: '/worker/test-personalitate', icon: Brain },
+    { key: 'docs', label: t('worker:dashboard.setupItems.docs'), description: t('worker:dashboard.setupItems.docsDesc'), done: hasAllDocs, to: '/worker/documente-obligatorii', icon: FileText },
+    { key: 'availability', label: t('worker:dashboard.setupItems.availability'), description: t('worker:dashboard.setupItems.availabilityDesc'), done: availabilitySet, to: '/worker/program', icon: CalendarDays },
+  ];
+
+  const quickActions = [
+    { to: '/worker/comenzi', icon: ClipboardList, label: t('worker:dashboard.quickActions.myOrders'), color: 'bg-blue-50 text-blue-600' },
+    { to: '/worker/program', icon: CalendarDays, label: t('worker:dashboard.quickActions.mySchedule'), color: 'bg-emerald-50 text-emerald-600' },
+    { to: '/worker/mesaje', icon: MessageSquare, label: t('worker:dashboard.quickActions.messages'), color: 'bg-violet-50 text-violet-600' },
+    { to: '/worker/profil', icon: User, label: t('worker:dashboard.quickActions.profileSettings'), color: 'bg-amber-50 text-amber-600' },
   ];
 
   // ─── Render ─────────────────────────────────────────────────────────────────
@@ -123,7 +127,7 @@ export default function DashboardPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">
-          {firstName ? `Bun venit, ${firstName}!` : 'Dashboard'}
+          {firstName ? t('worker:dashboard.welcome', { name: firstName }) : t('worker:dashboard.welcomeDefault')}
         </h1>
         <p className="text-sm text-gray-500 mt-1 capitalize">{todayStr}</p>
       </div>
@@ -147,15 +151,15 @@ export default function DashboardPage() {
         <Card>
           <div className="grid grid-cols-2 gap-x-6 gap-y-1 divide-x divide-gray-100">
             <Metric
-              icon={Star} label="Rating"
+              icon={Star} label={t('worker:dashboard.rating')}
               value={stats?.averageRating ? Number(stats.averageRating).toFixed(1) : '--'}
-              sub={`${stats?.totalReviews ?? 0} recenzii`}
+              sub={t('worker:dashboard.reviewsCount', { count: stats?.totalReviews ?? 0 })}
             />
             <div className="pl-6">
               <Metric
-                icon={Briefcase} label="Joburi finalizate"
+                icon={Briefcase} label={t('worker:dashboard.jobsCompleted')}
                 value={stats?.totalJobsCompleted ?? 0}
-                sub={`${stats?.thisMonthJobs ?? 0} luna aceasta`}
+                sub={t('worker:dashboard.thisMonth', { count: stats?.thisMonthJobs ?? 0 })}
               />
             </div>
           </div>
@@ -166,19 +170,14 @@ export default function DashboardPage() {
       {profile && (
         <ProfileSetupChecklist
           items={checklistItems}
-          title="Primii pași"
-          subtitle="Completează profilul pentru a primi comenzi"
+          title={t('worker:dashboard.setupTitle')}
+          subtitle={t('worker:dashboard.setupSubtitle')}
         />
       )}
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {[
-          { to: '/worker/comenzi', icon: ClipboardList, label: 'Comenzile mele', color: 'bg-blue-50 text-blue-600' },
-          { to: '/worker/program', icon: CalendarDays, label: 'Programul meu', color: 'bg-emerald-50 text-emerald-600' },
-          { to: '/worker/mesaje', icon: MessageSquare, label: 'Mesaje', color: 'bg-violet-50 text-violet-600' },
-          { to: '/worker/profil', icon: User, label: 'Profil & Setări', color: 'bg-amber-50 text-amber-600' },
-        ].map((item) => (
+        {quickActions.map((item) => (
           <Link
             key={item.to}
             to={item.to}
@@ -195,9 +194,9 @@ export default function DashboardPage() {
       {/* Today's Jobs */}
       <Card>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold text-gray-900">Joburile de azi</h2>
+          <h2 className="font-semibold text-gray-900">{t('worker:dashboard.todaysJobs')}</h2>
           <Link to="/worker/comenzi" className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1">
-            Toate comenzile <ChevronRight className="h-3 w-3" />
+            {t('worker:dashboard.allOrders')} <ChevronRight className="h-3 w-3" />
           </Link>
         </div>
         {jobsLoading ? (
@@ -212,13 +211,15 @@ export default function DashboardPage() {
               <Calendar className="h-6 w-6 text-gray-300" />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-700">Niciun job programat azi</p>
+              <p className="text-sm font-medium text-gray-700">{t('worker:dashboard.noJobsToday')}</p>
               <p className="text-xs text-gray-500 mt-0.5">
-                Verifica{' '}
-                <Link to="/worker/program" className="text-blue-600 hover:text-blue-700">
-                  programul tau
-                </Link>{' '}
-                pentru urmatoarele zile.
+                {t('worker:dashboard.noJobsTodayDesc', {
+                  scheduleLink: (
+                    <Link key="link" to="/worker/program" className="text-blue-600 hover:text-blue-700">
+                      {t('worker:dashboard.scheduleLink')}
+                    </Link>
+                  ),
+                })}
               </p>
             </div>
           </div>
@@ -244,11 +245,11 @@ export default function DashboardPage() {
                   <div className="flex items-center gap-2 mb-0.5">
                     <p className="text-sm font-semibold text-gray-900 truncate">{job.serviceName}</p>
                     <Badge variant={statusVariant[job.status] ?? 'default'} className="shrink-0">
-                      {statusLabel[job.status] ?? job.status}
+                      {t(`worker:jobDetail.statusLabels.${job.status}`, { defaultValue: job.status })}
                     </Badge>
                     {job.category && (
                       <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-medium shrink-0">
-                        {job.category.icon} {job.category.nameRo}
+                        {job.category.icon} {i18n.language === 'en' ? job.category.nameEn : job.category.nameRo}
                       </span>
                     )}
                   </div>
@@ -275,9 +276,9 @@ export default function DashboardPage() {
       {/* Recent Reviews */}
       <Card>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-semibold text-gray-900">Recenzii recente</h2>
+          <h2 className="font-semibold text-gray-900">{t('worker:dashboard.recentReviews')}</h2>
           <Link to="/worker/profil" className="text-xs text-blue-600 hover:text-blue-700 font-medium">
-            Toate &rarr;
+            {t('worker:dashboard.allReviews')} &rarr;
           </Link>
         </div>
         {reviewsLoading ? (
@@ -292,8 +293,8 @@ export default function DashboardPage() {
               <Star className="h-5 w-5 text-gray-300" />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-700">Nicio recenzie inca</p>
-              <p className="text-xs text-gray-500 mt-0.5">Recenziile vor aparea dupa finalizarea primelor comenzi.</p>
+              <p className="text-sm font-medium text-gray-700">{t('worker:dashboard.noReviewsYet')}</p>
+              <p className="text-xs text-gray-500 mt-0.5">{t('worker:dashboard.noReviewsYetDesc')}</p>
             </div>
           </div>
         ) : (
@@ -313,10 +314,10 @@ export default function DashboardPage() {
                     ))}
                   </div>
                   <span className="text-[11px] text-gray-400">
-                    {new Date(review.createdAt).toLocaleDateString('ro-RO', { day: '2-digit', month: 'short' })}
+                    {new Date(review.createdAt).toLocaleDateString(locale, { day: '2-digit', month: 'short' })}
                   </span>
                 </div>
-                <p className="text-xs font-medium text-gray-700">{review.reviewer?.fullName ?? 'Client'}</p>
+                <p className="text-xs font-medium text-gray-700">{review.reviewer?.fullName ?? t('worker:dashboard.reviewerFallback')}</p>
                 {review.comment && (
                   <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{review.comment}</p>
                 )}

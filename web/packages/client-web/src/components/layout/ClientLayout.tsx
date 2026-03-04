@@ -1,4 +1,6 @@
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   LayoutDashboard,
   ClipboardList,
@@ -15,31 +17,35 @@ import {
 import DashboardLayout from './DashboardLayout';
 import Button from '@/components/ui/Button';
 
-const navItems = [
-  { to: '/cont', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/cont/comenzi', icon: ClipboardList, label: 'Comenzile mele' },
-  { to: '/cont/abonamente', icon: Repeat, label: 'Abonamente' },
-  { to: '/cont/mesaje', icon: MessageCircle, label: 'Contact Suport' },
-  { to: '/cont/adrese', icon: MapPin, label: 'Adresele mele' },
-  { to: '/cont/plati', icon: CreditCard, label: 'Plăți' },
-  { to: '/cont/facturi', icon: FileText, label: 'Facturi' },
-  { to: '/cont/setari', icon: Settings, label: 'Profil & Setări' },
-  { to: '/cont/ajutor', icon: LifeBuoy, label: 'Ajutor' },
-];
-
 export default function ClientLayout() {
   const navigate = useNavigate();
+  const { t } = useTranslation('client');
+
+  const navItems = useMemo(
+    () => [
+      { to: '/cont', icon: LayoutDashboard, label: t('nav.dashboard') },
+      { to: '/cont/comenzi', icon: ClipboardList, label: t('nav.bookings') },
+      { to: '/cont/abonamente', icon: Repeat, label: t('nav.subscriptions') },
+      { to: '/cont/mesaje', icon: MessageCircle, label: t('nav.chat') },
+      { to: '/cont/adrese', icon: MapPin, label: t('nav.addresses') },
+      { to: '/cont/plati', icon: CreditCard, label: t('nav.payments') },
+      { to: '/cont/facturi', icon: FileText, label: t('nav.invoices') },
+      { to: '/cont/setari', icon: Settings, label: t('nav.settings') },
+      { to: '/cont/ajutor', icon: LifeBuoy, label: t('nav.help') },
+    ],
+    [t],
+  );
 
   return (
     <DashboardLayout
       navItems={navItems}
       logoIcon={User}
-      subtitle="Contul meu"
+      subtitle={t('nav.subtitle')}
       homeRoute="/cont"
       ctaButton={
         <Button onClick={() => navigate('/rezervare')} className="w-full" size="md">
           <Sparkles className="h-4 w-4" />
-          Rezervare noua
+          {t('nav.newBooking')}
         </Button>
       }
     />

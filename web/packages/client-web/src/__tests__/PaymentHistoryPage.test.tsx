@@ -86,7 +86,7 @@ describe('PaymentHistoryPage', () => {
   it('shows loading spinner when loading', () => {
     mockQuery({ loading: true });
     renderPage();
-    expect(screen.getByText('Se incarca istoricul platilor...')).toBeInTheDocument();
+    expect(screen.getByText('Se încarcă istoricul plăților...')).toBeInTheDocument();
   });
 
   it('renders payment history table with mock data', () => {
@@ -94,7 +94,7 @@ describe('PaymentHistoryPage', () => {
     renderPage();
     expect(screen.getByText('G2F-001')).toBeInTheDocument();
     expect(screen.getByText('Curatenie standard')).toBeInTheDocument();
-    expect(screen.getByText('Istoric plati')).toBeInTheDocument();
+    expect(screen.getByText('Istoric plăți')).toBeInTheDocument();
   });
 
   it('shows correct status badges for SUCCEEDED, FAILED, and PENDING', () => {
@@ -105,11 +105,11 @@ describe('PaymentHistoryPage', () => {
     ];
     mockQuery({ data: makePaymentHistoryData(payments, 3) });
     renderPage();
-    expect(screen.getByText('Platita')).toBeInTheDocument();
-    // "Esuata" and "In asteptare" appear in both the status filter dropdown and the badges
-    const esuataElements = screen.getAllByText('Esuata');
+    expect(screen.getByText('Plătită')).toBeInTheDocument();
+    // "Eșuată" and "În așteptare" appear in both the status filter dropdown and the badges
+    const esuataElements = screen.getAllByText('Eșuată');
     expect(esuataElements.length).toBeGreaterThanOrEqual(1);
-    const inAsteptareElements = screen.getAllByText('In asteptare');
+    const inAsteptareElements = screen.getAllByText('În așteptare');
     expect(inAsteptareElements.length).toBeGreaterThanOrEqual(1);
   });
 
@@ -123,6 +123,6 @@ describe('PaymentHistoryPage', () => {
   it('shows empty state when no payments exist', () => {
     mockQuery({ data: makePaymentHistoryData([]) });
     renderPage();
-    expect(screen.getByText('Nicio plata inregistrata')).toBeInTheDocument();
+    expect(screen.getByText('Nicio plată înregistrată')).toBeInTheDocument();
   });
 });

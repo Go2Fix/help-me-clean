@@ -1,0 +1,1363 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "companies": "Companii",
+    "bookings": "Comenzi",
+    "subscriptions": "Abonamente",
+    "users": "Utilizatori",
+    "payments": "Plăți",
+    "payouts": "Viramente",
+    "refunds": "Rambursări",
+    "invoices": "Facturi",
+    "reports": "Rapoarte",
+    "reviews": "Recenzii",
+    "promoCodes": "Coduri promo",
+    "disputes": "Dispute",
+    "settings": "Setări",
+    "subtitle": "Admin Panel"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Statistici și date despre platforma Go2Fix.",
+    "metrics": {
+      "clients": "Clienti",
+      "newThisMonth": "Noi luna aceasta",
+      "companies": "Companii",
+      "averageRating": "Rating mediu",
+      "bookings": "Rezervări",
+      "thisMonth": "Luna aceasta",
+      "totalRevenue": "Venit total",
+      "revenueThisMonth": "Venit luna aceasta",
+      "activeSubscriptions": "Abonamente active",
+      "mrr": "MRR"
+    },
+    "alerts": {
+      "newApplication_one": "{{count}} aplicație nouă",
+      "newApplication_few": "{{count}} aplicații noi",
+      "newApplication_other": "{{count}} aplicații noi",
+      "companyDocs_one": "{{count}} document companie",
+      "companyDocs_few": "{{count}} documente companie",
+      "companyDocs_other": "{{count}} documente companie",
+      "workerDocs_one": "{{count}} document lucratori",
+      "workerDocs_few": "{{count}} documente lucratori",
+      "workerDocs_other": "{{count}} documente lucratori"
+    },
+    "charts": {
+      "revenueByMonth": "Venit pe luni",
+      "bookingsByStatus": "Rezervări după status",
+      "noChartData": "Nu există date pentru grafic",
+      "noData": "Nu există date",
+      "revenueBarLabel": "Venit",
+      "commissionBarLabel": "Comision"
+    },
+    "pendingApplications": {
+      "title": "Aplicații în așteptare",
+      "viewAll": "Vezi toate"
+    },
+    "quickLinks": {
+      "companies": "Companii",
+      "bookings": "Comenzi",
+      "payments": "Plăți"
+    },
+    "statusLabels": {
+      "ASSIGNED": "Asignate",
+      "CONFIRMED": "Confirmate",
+      "IN_PROGRESS": "În desfășurare",
+      "COMPLETED": "Finalizate",
+      "CANCELLED": "Anulate"
+    }
+  },
+  "companies": {
+    "title": "Companii",
+    "subtitle": "Gestionează companiile de pe platformă.",
+    "searchPlaceholder": "Caută după nume companie sau CUI...",
+    "tabs": {
+      "pending": "În așteptare",
+      "approved": "Aprobate",
+      "all": "Toate",
+      "performance": "Performanță"
+    },
+    "statusFilter": {
+      "allStatuses": "Toate statusurile",
+      "pendingReview": "În așteptare",
+      "approved": "Aprobat",
+      "suspended": "Suspendat",
+      "rejected": "Respins"
+    },
+    "statusLabels": {
+      "PENDING_REVIEW": "În așteptare",
+      "APPROVED": "Aprobat",
+      "SUSPENDED": "Suspendat",
+      "REJECTED": "Respins"
+    },
+    "docsHints": {
+      "missing": "Documente lipsă",
+      "pending": "Documente în așteptare",
+      "rejected": "Documente respinse"
+    },
+    "actions": {
+      "approve": "Aprobă",
+      "reject": "Respinge",
+      "approveDisabledTitle": "Toate documentele trebuie aprobate"
+    },
+    "empty": {
+      "noPending": "Nu există aplicații în așteptare.",
+      "noFound": "Nicio companie găsită.",
+      "noApproved": "Nu există companii aprobate.",
+      "noCompanies": "Nu există companii."
+    },
+    "performance": {
+      "sortBy": "Sortare:",
+      "sortRevenue": "Venit",
+      "sortRating": "Rating",
+      "sortCompletion": "Finalizare",
+      "totalBookings": "{{count}} rezervări total",
+      "completionRate": "Finalizare",
+      "cancellationRate": "Anulare",
+      "highCancellation": "⚠",
+      "reviews_one": "{{count}} recenzie",
+      "reviews_other": "{{count}} recenzii"
+    },
+    "rejectModal": {
+      "title": "Respinge aplicația",
+      "reasonLabel": "Motivul respingerii",
+      "reasonPlaceholder": "Explică motivul respingerii...",
+      "cancel": "Anulează",
+      "confirm": "Respinge"
+    },
+    "table": {
+      "jobs": "lucrări"
+    }
+  },
+  "companyDetail": {
+    "tabs": {
+      "details": "Detalii",
+      "financial": "Financiar",
+      "bookings": "Comenzi",
+      "documents": "Documente",
+      "team": "Echipă"
+    },
+    "statusLabels": {
+      "PENDING_REVIEW": "În așteptare",
+      "APPROVED": "Aprobat",
+      "SUSPENDED": "Suspendat",
+      "REJECTED": "Respins"
+    },
+    "docStatusLabels": {
+      "PENDING": "În așteptare",
+      "APPROVED": "Aprobat",
+      "REJECTED": "Respins"
+    },
+    "docTypeLabels": {
+      "certificat_constatator": "Certificat Constatator",
+      "asigurare_raspundere_civila": "Asigurare Răspundere Civilă",
+      "cui_document": "Document CUI"
+    },
+    "workerDocTypeLabels": {
+      "cazier_judiciar": "Cazier Judiciar",
+      "contract_munca": "Contract de Muncă"
+    },
+    "workerStatusLabels": {
+      "ACTIVE": "Activ",
+      "PENDING_REVIEW": "În așteptare",
+      "INACTIVE": "Inactiv",
+      "INVITED": "Invitat"
+    },
+    "bookingStatusLabels": {
+      "PENDING": "În așteptare",
+      "ASSIGNED": "Asignat",
+      "CONFIRMED": "Confirmat",
+      "IN_PROGRESS": "În desfășurare",
+      "COMPLETED": "Finalizat",
+      "CANCELLED": "Anulat"
+    },
+    "notFound": "Compania nu a fost găsită.",
+    "backToCompanies": "Înapoi la companii",
+    "editProfile": "Editează profilul",
+    "actions": {
+      "approve": "Aprobă",
+      "reject": "Respinge",
+      "suspend": "Suspendă",
+      "activate": "Activează",
+      "verifyANAF": "Verifică ANAF"
+    },
+    "details": {
+      "title": "Detalii companie",
+      "infoTitle": "Informații companie",
+      "companyName": "Nume companie",
+      "cui": "CUI",
+      "companyType": "Tip firmă",
+      "legalRep": "Reprezentant legal",
+      "email": "Email contact",
+      "phone": "Telefon",
+      "address": "Adresă",
+      "city": "Oraș",
+      "county": "Județ",
+      "description": "Descriere",
+      "commissionOverride": "Comision personalizat (%)",
+      "commissionPlaceholder": "ex: 15",
+      "setCommission": "Setează comision",
+      "registeredAt": "Înregistrat pe",
+      "status": "Status"
+    },
+    "serviceZones": {
+      "title": "Zone de serviciu",
+      "noInfo": "Nu există informații despre zona de serviciu.",
+      "managedBy": "Zonele de serviciu sunt gestionate de administratorul firmei."
+    },
+    "serviceCategories": {
+      "title": "Categorii servicii",
+      "noCategories": "Nicio categorie de servicii configurată.",
+      "managedBy": "Categoriile sunt gestionate de administratorul firmei."
+    },
+    "stats": {
+      "rating": "Rating",
+      "jobs": "Lucrări"
+    },
+    "docSummary": {
+      "title": "Status documente obligatorii",
+      "notUploaded": "Neîncărcat",
+      "allApproved": "Toate documentele sunt aprobate. Compania poate fi aprobată.",
+      "cannotApprove": "Compania nu poate fi aprobată încă",
+      "missing": "Lipsă",
+      "pending": "În așteptare",
+      "rejected": "Respinse"
+    },
+    "actionsCard": {
+      "title": "Acțiuni",
+      "approveCompany": "Aprobă compania",
+      "rejectCompany": "Respinge compania",
+      "suspendCompany": "Suspendă compania",
+      "reactivateCompany": "Reactivează compania",
+      "changeStatus": "Schimbă status",
+      "moveToSuspended": "Trece la Suspendat",
+      "moveToApproved": "Trece la Aprobat",
+      "rejectedNote": "Compania a fost respinsă.",
+      "rejectionReasonLabel": "Motiv",
+      "approveDisabledTitle": "Încarcă toate documentele obligatorii înainte de aprobare"
+    },
+    "commission": {
+      "title": "Comision platformă",
+      "label": "Comision personalizat (%)",
+      "save": "Salvează",
+      "resetToDefault": "Resetează la implicit",
+      "cancel": "Anulează",
+      "custom": "personalizat",
+      "default": "implicit"
+    },
+    "financial": {
+      "title": "Sumar financiar",
+      "totalRevenue": "Venit total",
+      "totalCommission": "Comision total",
+      "totalPayouts": "Viramente totale",
+      "pendingPayouts": "În așteptare",
+      "totalBookings": "Total rezervări",
+      "completedBookings": "Rezervări finalizate",
+      "netPayout": "Plată netă",
+      "completionRate": "Rată finalizare",
+      "averageBookingValue": "Valoare medie",
+      "noData": "Nu există date financiare disponibile."
+    },
+    "bookingsTab": {
+      "title": "Comenzi companie",
+      "noBookings": "Această companie nu are comenzi."
+    },
+    "documents": {
+      "title": "Documente",
+      "required": "Documente obligatorii",
+      "optional": "Documente opționale",
+      "noDocuments": "Niciun document încărcat.",
+      "reviewDocument": "Revizuiește documentul",
+      "approveDoc": "Aprobă",
+      "rejectDoc": "Respinge",
+      "rejectionReason": "Motiv respingere",
+      "rejectionPlaceholder": "Explică motivul respingerii..."
+    },
+    "docRejectModal": {
+      "title": "Respinge document",
+      "reasonLabel": "Motivul respingerii",
+      "reasonPlaceholder": "Explică motivul respingerii documentului...",
+      "cancel": "Anulează",
+      "confirm": "Respinge"
+    },
+    "team": {
+      "title": "Echipă",
+      "workers": "Lucrători",
+      "inviteWorker": "Invită lucrător",
+      "noWorkers": "Niciun angajat înregistrat.",
+      "activateWorker": "Activează",
+      "rating": "Rating",
+      "jobs": "joburi",
+      "personalityTest": "Test de personalitate",
+      "documents": "Documente",
+      "noDocuments": "Niciun document încărcat.",
+      "missingPhoto": "Lipsă fotografie profil"
+    },
+    "rejectModal": {
+      "title": "Respinge compania",
+      "reasonLabel": "Motivul respingerii",
+      "reasonPlaceholder": "Explică motivul respingerii...",
+      "cancel": "Anulează",
+      "confirm": "Respinge"
+    },
+    "suspendModal": {
+      "title": "Suspendă compania",
+      "reasonLabel": "Motivul suspendării",
+      "reasonPlaceholder": "Explică motivul suspendării...",
+      "cancel": "Anulează",
+      "confirm": "Suspendă"
+    },
+    "editModal": {
+      "title": "Editează profilul companiei",
+      "companyName": "Nume companie",
+      "contactEmail": "Email contact",
+      "contactPhone": "Telefon contact",
+      "description": "Descriere",
+      "cancel": "Anulează",
+      "save": "Salvează"
+    },
+    "personality": {
+      "title": "Test personalitate"
+    },
+    "anaf": {
+      "title": "Verificare ANAF"
+    }
+  },
+  "bookings": {
+    "title": "Comenzi",
+    "subtitle": "Gestionează toate comenzile de pe platformă.",
+    "exportCsv": "Exportă CSV",
+    "searchPlaceholder": "Caută după cod referință, client, companie...",
+    "allStatuses": "Toate statusurile",
+    "allCompanies": "Toate companiile",
+    "allServices": "Toate serviciile",
+    "resetFilters": "Resetează filtre",
+    "statusLabels": {
+      "PENDING": "În așteptare",
+      "ASSIGNED": "Asignat",
+      "CONFIRMED": "Confirmat",
+      "IN_PROGRESS": "În desfășurare",
+      "COMPLETED": "Finalizat",
+      "CANCELLED": "Anulat",
+      "CANCELLED_BY_CLIENT": "Anulat de client",
+      "CANCELLED_BY_COMPANY": "Anulat de companie",
+      "CANCELLED_BY_ADMIN": "Anulat de admin"
+    },
+    "csvColumns": {
+      "code": "Cod",
+      "service": "Serviciu",
+      "date": "Data",
+      "time": "Ora",
+      "client": "Client",
+      "company": "Companie",
+      "price": "Preț (RON)",
+      "status": "Status",
+      "payment": "Plată"
+    },
+    "empty": "Nu există comenzi.",
+    "noun": "comenzi"
+  },
+  "bookingDetail": {
+    "notFound": "Comanda nu a fost găsită.",
+    "backToBookings": "Înapoi la comenzi",
+    "reschedule": "Reprogramează",
+    "cancelBooking": "Anulează comanda",
+    "recurringBadge": "Programare recurentă",
+    "recurringSession": "Sesiunea #{{number}}",
+    "recurringDescription": "Această comandă face parte dintr-o serie recurentă.",
+    "sections": {
+      "bookingDetails": "Detalii rezervare",
+      "address": "Adresă",
+      "timeSlots": "Intervale de timp",
+      "pricing": "Prețuri",
+      "timeline": "Timeline",
+      "client": "Client",
+      "company": "Companie",
+      "worker": "Curățător"
+    },
+    "fields": {
+      "scheduledDate": "Data programată",
+      "timeAndDuration": "Ora / Durata",
+      "property": "Proprietate",
+      "areaPets": "Suprafață / Animale",
+      "specialInstructions": "Instrucțiuni speciale",
+      "floor": "Etaj",
+      "apartment": "Ap.",
+      "rooms": "camere",
+      "bathrooms": "băi",
+      "sqm": "mp",
+      "hasPets": "Da, animale",
+      "noPets": "Fără animale"
+    },
+    "pricing": {
+      "hourlyRate": "Tarif orar",
+      "estimatedTotal": "Total estimat",
+      "finalTotal": "Total final",
+      "platformCommission": "Comision platformă",
+      "paymentStatus": "Status plată",
+      "markAsPaid": "Marchează ca plătit"
+    },
+    "timeline": {
+      "created": "Creată",
+      "paidConfirmed": "Plătită & Confirmată",
+      "inProgress": "În desfășurare",
+      "completed": "Finalizată",
+      "cancellationReason": "Motiv anulare"
+    },
+    "slots": {
+      "selected": "Selectat",
+      "proposed": "Propus"
+    },
+    "worker": {
+      "noWorker": "Niciun curățător asignat",
+      "assignWorker": "Asignează lucrător",
+      "jobs": "joburi"
+    },
+    "cancelModal": {
+      "title": "Anulează comanda",
+      "confirmText": "Ești sigur că vrei să anulezi comanda",
+      "reasonLabel": "Motivul anulării",
+      "reasonPlaceholder": "Explică motivul anulării...",
+      "back": "Înapoi",
+      "confirm": "Anulează comanda"
+    },
+    "assignModal": {
+      "title": "Asignează lucrător",
+      "searchPlaceholder": "Caută după nume, companie, email...",
+      "noWorker": "Niciun lucrător găsit.",
+      "noCompany": "Fără companie",
+      "select": "Selectează"
+    }
+  },
+  "subscriptions": {
+    "title": "Abonamente",
+    "subtitle": "Gestionează toate abonamentele de pe platformă.",
+    "searchPlaceholder": "Caută după client, companie, lucrător...",
+    "allStatuses": "Toate statusurile",
+    "statusLabels": {
+      "ACTIVE": "Activ",
+      "PAUSED": "Pauzat",
+      "PAST_DUE": "Restant",
+      "CANCELLED": "Anulat"
+    },
+    "recurrenceLabels": {
+      "WEEKLY": "Săptămânal",
+      "BIWEEKLY": "La 2 săpt.",
+      "MONTHLY": "Lunar"
+    },
+    "metrics": {
+      "active": "Active",
+      "paused": "Pauzate",
+      "pastDue": "Restante",
+      "mrr": "MRR"
+    },
+    "perMonth": "{{amount}}/lună",
+    "cancelTitle": "Anulează abonamentul",
+    "empty": "Nu există abonamente.",
+    "errorLoading": "Eroare la încărcarea abonamentelor. Încearcă din nou.",
+    "cancelModal": {
+      "title": "Anulează abonamentul",
+      "warning": "Ești sigur că dorești să anulezi acest abonament? Această acțiune nu poate fi anulată.",
+      "reasonLabel": "Motiv anulare (opțional)",
+      "reasonPlaceholder": "Descrie motivul anulării...",
+      "cancel": "Renunță",
+      "confirm": "Anulează abonamentul"
+    },
+    "noun": "abonamente"
+  },
+  "subscriptionDetail": {
+    "notFound": "Abonamentul nu a fost găsit.",
+    "errorLoading": "Eroare la încărcarea abonamentului.",
+    "backToSubscriptions": "Înapoi la abonamente",
+    "sessionsPerMonth": "{{count}} ședințe/lună",
+    "actions": {
+      "pause": "Pauză",
+      "resume": "Reia",
+      "cancel": "Anulează"
+    },
+    "banners": {
+      "cancellationReason": "Motiv anulare",
+      "cancelledOn": "Anulat pe {{date}}",
+      "pausedSince": "Abonamentul este în pauză din {{date}}",
+      "workerChanged": "Lucrătorul a fost schimbat cu succes. Toate programările viitoare au fost actualizate.",
+      "workerChangePending": "Cerere de schimbare lucrător în așteptare",
+      "workerChangeReason": "Motiv: {{reason}}",
+      "workerChangeRequestedOn": "Solicitat pe {{date}}",
+      "assignNewWorker": "Atribuie lucrător nou"
+    },
+    "sections": {
+      "pricing": "Prețuri",
+      "serviceDetails": "Detalii serviciu",
+      "address": "Adresă",
+      "upcomingBookings": "Programări viitoare ({{count}})",
+      "bookingHistory": "Istoric programări ({{count}})",
+      "client": "Client",
+      "company": "Companie",
+      "worker": "Lucrător",
+      "currentPeriod": "Perioada curentă",
+      "progress": "Progres",
+      "extras": "Servicii suplimentare",
+      "info": "Informații"
+    },
+    "pricing": {
+      "hourlyRate": "Tarif orar",
+      "estimatedDuration": "Durată estimată",
+      "pricePerSessionOriginal": "Preț per sesiune (original)",
+      "subscriptionDiscount": "Reducere abonament",
+      "pricePerSession": "Preț per sesiune",
+      "sessionsPerMonth": "Sesiuni pe lună",
+      "monthlyTotal": "Total lunar",
+      "platformCommission": "Comision platformă",
+      "stripeId": "Stripe ID",
+      "hour_one": "oră",
+      "hour_other": "ore"
+    },
+    "serviceDetails": {
+      "propertyType": "Tip proprietate",
+      "rooms": "Camere",
+      "bathrooms": "Băi",
+      "area": "Suprafață",
+      "pets": "Animale",
+      "hasPets": "Da",
+      "specialInstructions": "Instrucțiuni speciale",
+      "sqm": "mp",
+      "room_one": "cameră",
+      "room_other": "camere",
+      "bathroom_one": "baie",
+      "bathroom_other": "băi",
+      "propertyTypes": {
+        "APARTMENT": "Apartament",
+        "HOUSE": "Casă",
+        "OFFICE": "Birou",
+        "STUDIO": "Garsonieră"
+      }
+    },
+    "period": {
+      "start": "Început",
+      "end": "Sfârșit"
+    },
+    "progress": {
+      "completed": "Finalizate"
+    },
+    "worker": {
+      "noWorker": "Niciun lucrător asignat",
+      "changeWorker": "Schimbă lucrătorul"
+    },
+    "meta": {
+      "createdOn": "Creat pe",
+      "serviceType": "Tip serviciu",
+      "preferredDay": "Ziua preferată",
+      "id": "ID"
+    },
+    "dayNames": {
+      "0": "Duminică",
+      "1": "Luni",
+      "2": "Marți",
+      "3": "Miercuri",
+      "4": "Joi",
+      "5": "Vineri",
+      "6": "Sâmbătă"
+    },
+    "cancelModal": {
+      "title": "Anulează abonamentul",
+      "warning": "Ești sigur că dorești să anulezi acest abonament? Această acțiune nu poate fi anulată. Toate programările viitoare vor fi anulate.",
+      "reasonLabel": "Motiv anulare (opțional)",
+      "reasonPlaceholder": "Descrie motivul anulării...",
+      "cancel": "Renunță",
+      "confirm": "Anulează abonamentul"
+    }
+  },
+  "users": {
+    "title": "Utilizatori",
+    "subtitle": "Gestionează utilizatorii platformei.",
+    "searchPlaceholder": "Caută după nume, email sau telefon...",
+    "allRoles": "Toate rolurile",
+    "allStatuses": "Toate statusurile",
+    "roleLabels": {
+      "CLIENT": "Client",
+      "COMPANY_ADMIN": "Admin Companie",
+      "WORKER": "Curățător",
+      "GLOBAL_ADMIN": "Admin Global"
+    },
+    "statusLabels": {
+      "ACTIVE": "Activ",
+      "SUSPENDED": "Suspendat"
+    },
+    "tableHeaders": {
+      "user": "Utilizator",
+      "email": "Email",
+      "phone": "Telefon",
+      "role": "Rol",
+      "status": "Status",
+      "registered": "Înregistrat"
+    },
+    "empty": {
+      "title": "Niciun utilizator găsit",
+      "description": "Încearcă să modifici criteriile de căutare sau filtrele aplicate."
+    },
+    "emptyTitle": "Niciun utilizator găsit",
+    "emptySubtitle": "Încearcă să modifici criteriile de căutare sau filtrele aplicate.",
+    "noun": "utilizatori"
+  },
+  "userDetail": {
+    "notFound": "Utilizatorul nu a fost găsit.",
+    "backToUsers": "Înapoi la utilizatori",
+    "sections": {
+      "userInfo": "Informații utilizator",
+      "workerInfo": "Informații curățător",
+      "personalityTest": "Test de personalitate",
+      "mandatoryDocs": "Documente obligatorii",
+      "role": "Rol",
+      "accountStatus": "Status cont"
+    },
+    "fields": {
+      "fullName": "Nume complet",
+      "email": "Email",
+      "phone": "Telefon",
+      "preferredLanguage": "Limbă preferată",
+      "registeredOn": "Înregistrat pe",
+      "company": "Companie",
+      "rating": "Rating",
+      "completedJobs": "Lucrări finalizate",
+      "bio": "Bio"
+    },
+    "languageLabels": {
+      "ro": "Română",
+      "en": "Engleză"
+    },
+    "workerStatusLabels": {
+      "ACTIVE": "Activ",
+      "PENDING_REVIEW": "În așteptare",
+      "INACTIVE": "Inactiv",
+      "INVITED": "Invitat"
+    },
+    "docTypeLabels": {
+      "cazier_judiciar": "Cazier Judiciar",
+      "contract_munca": "Contract de Muncă"
+    },
+    "actions": {
+      "saveRole": "Salvează rolul",
+      "suspend": "Suspendă",
+      "reactivate": "Reactivează"
+    },
+    "noDocuments": "Niciun document încărcat.",
+    "suspendModal": {
+      "title": "Suspendă utilizatorul",
+      "reasonLabel": "Motivul suspendării",
+      "reasonPlaceholder": "Explică motivul suspendării...",
+      "cancel": "Anulează",
+      "confirm": "Suspendă"
+    }
+  },
+  "payments": {
+    "title": "Plăți și Venituri",
+    "subtitle": "Raport financiar și tranzacții pe platformă.",
+    "tabs": {
+      "summary": "Sumar tranzacții",
+      "payouts": "Plăți companii",
+      "refunds": "Rambursări"
+    },
+    "presets": {
+      "thisMonth": "Luna aceasta",
+      "lastMonth": "Luna trecută",
+      "3months": "3 Luni",
+      "6months": "6 Luni"
+    },
+    "metrics": {
+      "totalRevenue": "Venit total",
+      "platformCommission": "Comision platformă",
+      "companyPayouts": "Plăți companii",
+      "pending": "În așteptare",
+      "refunds": "Rambursări"
+    },
+    "allStatuses": "Toate statusurile",
+    "exportCsv": "Export CSV",
+    "statusLabels": {
+      "PENDING": "În așteptare",
+      "PROCESSING": "Se procesează",
+      "SUCCEEDED": "Reușită",
+      "FAILED": "Eșuată",
+      "REFUNDED": "Rambursată",
+      "PARTIALLY_REFUNDED": "Rambursată parțial"
+    },
+    "csvColumns": {
+      "transactionId": "ID Tranzacție",
+      "bookingCode": "Cod Rezervare",
+      "service": "Serviciu",
+      "company": "Companie",
+      "totalAmount": "Sumă Totală (lei)",
+      "commission": "Comision (lei)",
+      "companyAmount": "Sumă Companie (lei)",
+      "status": "Status",
+      "date": "Data"
+    },
+    "empty": "Nu există tranzacții.",
+    "noun": "tranzacții"
+  },
+  "payouts": {
+    "title": "Viramente",
+    "subtitle": "Gestionează plățile către companii partenere.",
+    "allStatuses": "Toate statusurile",
+    "exportCsv": "Export CSV",
+    "createPayout": "Creează plată",
+    "statusLabels": {
+      "PENDING": "În așteptare",
+      "PROCESSING": "Se procesează",
+      "PAID": "Plătit",
+      "FAILED": "Eșuat",
+      "CANCELLED": "Anulat"
+    },
+    "statusActions": {
+      "PROCESSING": "Se procesează",
+      "PAID": "Marchează plătit",
+      "FAILED": "Eșuat",
+      "CANCELLED": "Anulează"
+    },
+    "confirmMessages": {
+      "markPaid": "Confirmi că plata a fost efectuată?",
+      "cancel": "Ești sigur că vrei să anulezi această plată?"
+    },
+    "paidOn": "Plătit: {{date}}",
+    "bookings": "rez.",
+    "empty": "Nu există plăți.",
+    "createModal": {
+      "title": "Creează plată lunară",
+      "companyLabel": "Companie",
+      "companyPlaceholder": "Caută companie după nume sau CUI...",
+      "selectedCompany": "Selectat: {{name}} (CUI: {{cui}})",
+      "searching": "Se caută...",
+      "noResults": "Niciun rezultat găsit.",
+      "periodFrom": "Perioada de la",
+      "periodTo": "Perioada până la",
+      "cancel": "Anulează",
+      "confirm": "Creează plată"
+    },
+    "csvColumns": {
+      "company": "Companie",
+      "periodFrom": "Perioada De La",
+      "periodTo": "Perioada Până La",
+      "amount": "Sumă (lei)",
+      "bookingCount": "Nr Rezervări",
+      "status": "Status",
+      "paidAt": "Data Plată",
+      "createdAt": "Data Creare"
+    },
+    "noun": "plăți"
+  },
+  "refunds": {
+    "searchPlaceholder": "Caută după cod rezervare...",
+    "directRefund": "Rambursare directă",
+    "directRefundButton": "Rambursare directă",
+    "tabs": {
+      "REQUESTED": "Solicitate",
+      "APPROVED": "Aprobate",
+      "PROCESSED": "Procesate",
+      "REJECTED": "Respinse"
+    },
+    "statusLabels": {
+      "REQUESTED": "Solicitată",
+      "APPROVED": "Aprobată",
+      "PROCESSED": "Procesată",
+      "REJECTED": "Respinsă"
+    },
+    "actions": {
+      "approve": "Aprobă",
+      "reject": "Respinge",
+      "process": "Procesează"
+    },
+    "empty": "Nu există rambursări {{tab}}.",
+    "emptyTab": "Nu există rambursări {{tab}}.",
+    "emptySearch": "Nu s-au găsit rambursări pentru această căutare.",
+    "searching": "Se caută...",
+    "noBookingFound": "Nicio rezervare găsită.",
+    "directModal": {
+      "title": "Rambursare directă",
+      "bookingLabel": "Rezervare",
+      "bookingSearchPlaceholder": "Caută după cod rezervare...",
+      "amountLabel": "Sumă (lei)",
+      "amountPlaceholder": "ex. 150.00",
+      "reasonLabel": "Motiv",
+      "reasonPlaceholder": "Descrie motivul rambursării...",
+      "cancel": "Anulează",
+      "confirm": "Emite rambursare"
+    },
+    "noun": "rambursări"
+  },
+  "invoices": {
+    "title": "Facturi",
+    "subtitle": "Gestionează toate facturile emise pe platformă.",
+    "allStatuses": "Toate statusurile",
+    "allTypes": "Toate tipurile",
+    "statusLabels": {
+      "DRAFT": "Ciornă",
+      "ISSUED": "Emisă",
+      "SENT": "Trimisă",
+      "TRANSMITTED": "Transmisă e-Factura",
+      "PAID": "Plătită",
+      "CANCELLED": "Anulată",
+      "CREDIT_NOTE": "Notă de credit"
+    },
+    "typeLabels": {
+      "CLIENT_SERVICE": "Serviciu client",
+      "PLATFORM_COMMISSION": "Comision platformă"
+    },
+    "efacturaStatusLabels": {
+      "NOT_SENT": "Netransmisă",
+      "transmitted": "Transmisă",
+      "accepted": "Acceptată",
+      "rejected": "Respinsă",
+      "error": "Eroare"
+    },
+    "metrics": {
+      "totalIssued": "Facturi emise",
+      "totalAmount": "Valoare totală",
+      "totalVat": "TVA total",
+      "totalPlatform": "Total platformă",
+      "invoiceCount": "{{count}} facturi"
+    },
+    "actions": {
+      "creditNote": "Notă de credit",
+      "commissionInvoice": "Factură comision",
+      "downloadPdf": "Descarcă PDF",
+      "transmitEfactura": "Transmite la e-Factura",
+      "refreshEfactura": "Actualizează status e-Factura",
+      "markAsPaid": "Marchează plătită",
+      "cancelInvoice": "Anulează factura"
+    },
+    "efPrefix": "eF:",
+    "empty": "Nu există facturi.",
+    "noun": "facturi",
+    "cancelModal": {
+      "title": "Confirmă anularea",
+      "warning": "Ești sigur că dorești să anulezi această factură? Această acțiune nu poate fi anulată.",
+      "cancel": "Renunță",
+      "confirm": "Anulează factura"
+    },
+    "commissionModal": {
+      "title": "Generează factură comision",
+      "payoutIdLabel": "ID Payout (plată lunară)",
+      "payoutIdPlaceholder": "ex. uuid-payout",
+      "description": "Se va genera o factură de comision pe baza plății lunare selectate.",
+      "cancel": "Anulează",
+      "confirm": "Generează factura"
+    },
+    "creditNoteModal": {
+      "title": "Emite notă de credit",
+      "invoiceIdLabel": "ID Factură originală",
+      "invoiceIdPlaceholder": "ex. uuid-factura",
+      "amountLabel": "Sumă (lei)",
+      "amountPlaceholder": "ex. 150.00",
+      "reasonLabel": "Motiv",
+      "reasonPlaceholder": "Descrie motivul notei de credit...",
+      "cancel": "Anulează",
+      "confirm": "Emite notă de credit"
+    },
+    "companyLabel": "Companie",
+    "companyPlaceholder": "Caută companie...",
+    "clearFilter": "Șterge filtrul",
+    "searching": "Se caută...",
+    "noResults": "Niciun rezultat"
+  },
+  "reports": {
+    "title": "Rapoarte Financiare",
+    "subtitle": "Analiză a veniturilor și performanței platformei.",
+    "exportCsv": "Exportă CSV",
+    "presets": {
+      "thisMonth": "Luna aceasta",
+      "lastMonth": "Luna trecută",
+      "3months": "3 Luni",
+      "6months": "6 Luni",
+      "1year": "1 An"
+    },
+    "metrics": {
+      "completed": "Finalizate",
+      "totalBookings": "Total rezervări",
+      "totalRevenue": "Venit total",
+      "totalCommission": "Comision total",
+      "uniqueClients": "Clienți unici",
+      "activeCompanies": "Companii active"
+    },
+    "charts": {
+      "revenueEvolution": "Evoluție Venituri",
+      "revenueByService": "Venituri pe Tip Serviciu",
+      "noData": "Nu există date pentru perioada selectată",
+      "revenueLabel": "Venit",
+      "commissionLabel": "Comision",
+      "bookings": "Rezervări: {{count}}"
+    },
+    "topCompanies": {
+      "title": "Top Companii după Venit",
+      "bookings": "rez.",
+      "commission": "Com.",
+      "noData": "Nu există date pentru perioada selectată."
+    },
+    "heatmap": {
+      "title": "Cerere după Zi și Oră",
+      "subtitle": "(toate rezervările din perioadă)",
+      "less": "Mai puțin",
+      "more": "Mai mult",
+      "noData": "Nu există date pentru perioada selectată"
+    },
+    "serviceTypeLabels": {
+      "STANDARD": "Standard",
+      "DEEP": "Curățenie Profundă",
+      "POST_CONSTRUCTION": "Post-Construcție",
+      "OFFICE": "Birouri",
+      "MOVE_IN_OUT": "Mutare"
+    },
+    "days": {
+      "0": "Dum",
+      "1": "Lun",
+      "2": "Mar",
+      "3": "Mie",
+      "4": "Joi",
+      "5": "Vin",
+      "6": "Sam"
+    },
+    "csvColumns": {
+      "date": "Data",
+      "bookings": "Rezervări",
+      "revenue": "Venit (RON)",
+      "commission": "Comision (RON)"
+    }
+  },
+  "reviews": {
+    "title": "Recenzii",
+    "subtitle": "Moderare recenzii ale platformei.",
+    "countBadge": "{{count}} recenzii",
+    "allRatings": "Toate",
+    "allTypes": "Toate tipurile",
+    "allStatuses": "Toate statusurile",
+    "ratingOptions": {
+      "1": "1 stea",
+      "2": "2 stele",
+      "3": "3 stele",
+      "4": "4 stele",
+      "5": "5 stele"
+    },
+    "typeLabels": {
+      "CLIENT_REVIEW": "Client",
+      "COMPANY_REVIEW": "Companie"
+    },
+    "statusLabels": {
+      "PUBLISHED": "Publicată",
+      "PENDING": "În așteptare",
+      "REJECTED": "Respinsă"
+    },
+    "tableHeaders": {
+      "rating": "Rating",
+      "bookingCode": "Cod Rezervare",
+      "type": "Tip",
+      "status": "Status",
+      "reviewer": "Recenzor",
+      "date": "Data",
+      "actions": "Acțiuni"
+    },
+    "empty": {
+      "title": "Nu există recenzii.",
+      "description": "Recenziile vor apărea aici după ce clienții evaluează serviciile."
+    },
+    "detail": {
+      "title": "Detalii recenzie",
+      "categories": "Categorii",
+      "punctuality": "Punctualitate",
+      "quality": "Calitate",
+      "communication": "Comunicare",
+      "valueForMoney": "Raport calitate-preț",
+      "comment": "Comentariu",
+      "photos": "Poze",
+      "photoAlt": "Poză recenzie",
+      "reviewer": "Recenzor",
+      "date": "Data",
+      "bookingCode": "Cod Rezervare",
+      "close": "Închide",
+      "publish": "Publică",
+      "reject": "Respinge",
+      "delete": "Șterge"
+    },
+    "deleteModal": {
+      "title": "Șterge recenzie",
+      "confirmText": "Ești sigur că vrei să ștergi această recenzie?",
+      "cancel": "Anulează",
+      "confirm": "Șterge"
+    },
+    "noun": "recenzii"
+  },
+  "promoCodes": {
+    "title": "Coduri promoționale",
+    "subtitle": "Gestionează codurile de reducere pentru campanii",
+    "createNew": "Cod nou",
+    "tableHeaders": {
+      "code": "Cod",
+      "discount": "Reducere",
+      "minOrder": "Min. comandă",
+      "uses": "Utilizări",
+      "validUntil": "Valabil până",
+      "status": "Status",
+      "actions": ""
+    },
+    "noLimit": "Fără limită",
+    "statusLabels": {
+      "active": "Activ",
+      "inactive": "Inactiv"
+    },
+    "toggleTitles": {
+      "deactivate": "Dezactivează",
+      "activate": "Activează"
+    },
+    "empty": "Niciun cod promoțional creat încă",
+    "loading": "Se încarcă...",
+    "pagination": {
+      "total": "Total: {{count}}",
+      "previous": "Anterior",
+      "next": "Următor"
+    },
+    "createModal": {
+      "title": "Cod promoțional nou",
+      "codeLabel": "Cod *",
+      "codePlaceholder": "ex: SPRING25",
+      "descriptionLabel": "Descriere",
+      "descriptionPlaceholder": "Campanie primăvară 2025",
+      "discountTypeLabel": "Tip reducere",
+      "discountTypePercent": "Procent (%)",
+      "discountTypeFixed": "Sumă fixă (RON)",
+      "discountValueLabel": "Valoare *",
+      "minOrderLabel": "Comandă minimă (RON)",
+      "maxUsesLabel": "Max. utilizări totale",
+      "maxUsesPlaceholder": "Nelimitat",
+      "activateFrom": "Valabil de la",
+      "activeUntil": "Valabil până la",
+      "cancel": "Anulează",
+      "creating": "Se creează...",
+      "create": "Creează cod"
+    }
+  },
+  "disputes": {
+    "title": "Dispute & reclamații",
+    "subtitle": "Gestionează disputele deschise de clienți pe platformă.",
+    "statusTabs": {
+      "ALL": "Toate",
+      "OPEN": "Deschise",
+      "COMPANY_RESPONDED": "Răspuns primit",
+      "UNDER_REVIEW": "În analiză",
+      "RESOLVED_REFUND_FULL": "Refund integral",
+      "RESOLVED_REFUND_PARTIAL": "Refund parțial",
+      "RESOLVED_NO_REFUND": "Respinse",
+      "AUTO_CLOSED": "Închise auto"
+    },
+    "statusLabels": {
+      "OPEN": "Deschisă",
+      "COMPANY_RESPONDED": "Răspuns primit",
+      "UNDER_REVIEW": "În analiză",
+      "RESOLVED_REFUND_FULL": "Refund integral",
+      "RESOLVED_REFUND_PARTIAL": "Refund parțial",
+      "RESOLVED_NO_REFUND": "Respinsă",
+      "AUTO_CLOSED": "Închisă automat"
+    },
+    "reasonLabels": {
+      "POOR_QUALITY": "Calitate slabă",
+      "NO_SHOW": "Lucrătorul absent",
+      "PROPERTY_DAMAGE": "Daune proprietate",
+      "INCOMPLETE_JOB": "Job nefinalizat",
+      "OVERCHARGE": "Supratarifat",
+      "OTHER": "Altele"
+    },
+    "tableHeaders": {
+      "bookingRef": "Ref. comandă",
+      "reason": "Motiv",
+      "client": "Client",
+      "status": "Status",
+      "openedAt": "Deschisă la",
+      "actions": "Acțiuni"
+    },
+    "row": {
+      "details": "Detalii",
+      "resolve": "Rezolvă",
+      "claimDescription": "Descriere reclamație",
+      "evidence": "Dovezi ({{count}})",
+      "evidenceLink": "Dovadă {{number}}",
+      "companyResponse": "Răspuns companie",
+      "resolution": "Rezoluție",
+      "resolvedBy": "de {{name}}",
+      "refund": "Refund: {{amount}} RON",
+      "autoClose": "Disputa se va închide automat pe {{date}}"
+    },
+    "empty": "Nu există dispute pentru filtrul selectat.",
+    "resolveModal": {
+      "title": "Rezolvă disputa",
+      "order": "Comandă:",
+      "reason": "Motiv:",
+      "resolutionType": "Tip rezoluție",
+      "refundAmount": "Sumă refund (RON)",
+      "refundPlaceholder": "ex: 50.00",
+      "notesLabel": "Note rezoluție",
+      "notesRequired": "*",
+      "notesPlaceholder": "Descrie decizia luată și motivele...",
+      "notesRequiredError": "Notele de rezoluție sunt obligatorii.",
+      "cancel": "Anulează",
+      "confirm": "Confirmă rezoluția",
+      "resolveOptions": {
+        "RESOLVED_REFUND_FULL": "Refund integral",
+        "RESOLVED_REFUND_PARTIAL": "Refund parțial",
+        "RESOLVED_NO_REFUND": "Respins — fără refund"
+      }
+    },
+    "noun": "dispute"
+  },
+  "settings": {
+    "title": "Setări platformă",
+    "subtitle": "Configurare generală a platformei.",
+    "tabs": {
+      "general": "Setări Generale",
+      "services": "Servicii",
+      "extras": "Extra-uri",
+      "cities": "Orașe",
+      "categories": "Categorii",
+      "discounts": "Reduceri abonamente",
+      "audit": "Jurnal Prețuri",
+      "platform": "Platformă"
+    },
+    "general": {
+      "groups": {
+        "business": "Business",
+        "cancelReschedule": "Anulare / Reprogramare",
+        "contact": "Contact",
+        "policies": "Politici"
+      },
+      "settingLabels": {
+        "platform_commission_pct": "Comision platformă (%)",
+        "vat_rate_pct": "Cota TVA (%)",
+        "min_booking_hours": "Ore minime rezervare",
+        "max_booking_hours": "Ore maxime rezervare",
+        "default_hourly_rate": "Tarif orar implicit (RON)",
+        "booking_auto_cancel_hours": "Anulare automată rezervare (ore)",
+        "require_company_approval": "Aprobare companie necesară",
+        "cancel_free_hours_before": "Anulare gratuită înainte de (ore)",
+        "cancel_late_refund_pct": "Rambursare anulare târzie (%)",
+        "reschedule_free_hours_before": "Reprogramare gratuită înainte de (ore)",
+        "reschedule_max_per_booking": "Max reprogramări per rezervare",
+        "support_email": "Email suport",
+        "support_phone": "Telefon suport",
+        "privacy_url": "URL Politică confidențialitate",
+        "terms_url": "URL Termeni și condiții"
+      },
+      "unset": "nesetat",
+      "saved": "Salvat"
+    },
+    "services": {
+      "count": "{{count}} servicii definite",
+      "addService": "Adaugă serviciu",
+      "empty": "Niciun serviciu definit.",
+      "tableHeaders": {
+        "nameRo": "Nume RO",
+        "nameEn": "Nume EN",
+        "category": "Categorie",
+        "model": "Model",
+        "pricePerHour": "Preț/Oră",
+        "pricePerSqm": "Preț/mp",
+        "minHours": "Ore Min.",
+        "hoursPerRoom": "h/Cam",
+        "hoursPerBath": "h/Baie",
+        "houseMultiplier": "Casă x",
+        "active": "Activ"
+      },
+      "includedItems": "Ce include serviciul",
+      "addItemPlaceholder": "Adaugă element și apasă Enter",
+      "noCategory": "--",
+      "noPricePerSqm": "--",
+      "pricingModels": {
+        "HOURLY": "Orar",
+        "PER_SQM": "Pe mp"
+      },
+      "serviceTypes": {
+        "STANDARD": "Standard",
+        "DEEP": "Curățenie generală",
+        "POST_CONSTRUCTION": "Post-construcție",
+        "OFFICE": "Birou",
+        "MOVE_IN_OUT": "Mutare"
+      },
+      "modal": {
+        "title": "Adaugă serviciu",
+        "serviceTypeLabel": "Tip serviciu",
+        "categoryLabel": "Categorie",
+        "nameRoLabel": "Nume RO",
+        "nameEnLabel": "Nume EN",
+        "pricingModelLabel": "Model preț",
+        "pricePerHourLabel": "Preț/Oră (RON)",
+        "pricePerSqmLabel": "Preț/mp (RON)",
+        "minHoursLabel": "Ore minime",
+        "durationConfig": "Configurare durată estimată",
+        "hoursPerRoomLabel": "h/Cameră",
+        "hoursPerBathLabel": "h/Baie",
+        "hoursPer100SqmLabel": "h/100mp",
+        "houseMultiplierLabel": "Multiplicator casă",
+        "petMinutesLabel": "Min. animale",
+        "includedItems": "Ce include serviciul",
+        "addItemPlaceholder": "Adaugă element și apasă Enter",
+        "isActive": "Activ",
+        "cancel": "Anulează",
+        "create": "Creează",
+        "noCategoryOption": "-- Fără categorie --"
+      }
+    },
+    "extras": {
+      "count": "{{count}} extra-uri definite",
+      "addExtra": "Adaugă extra",
+      "empty": "Niciun extra definit.",
+      "tableHeaders": {
+        "nameRo": "Nume RO",
+        "nameEn": "Nume EN",
+        "price": "Preț (RON)",
+        "duration": "Durată(min)",
+        "category": "Categorie",
+        "type": "Tip",
+        "active": "Activ"
+      },
+      "global": "Global",
+      "toggle": "Toggle",
+      "multiple": "Multiple",
+      "unitPlaceholder": "ex: dulap",
+      "modal": {
+        "title": "Adaugă extra",
+        "categoryLabel": "Categorie",
+        "nameRoLabel": "Nume RO",
+        "nameEnLabel": "Nume EN",
+        "priceLabel": "Preț (RON)",
+        "durationLabel": "Durată (min)",
+        "allowMultipleLabel": "Permite cantitate multiplă",
+        "unitLabel": "Unitate (ex: dulap, geam)",
+        "unitPlaceholder": "ex: dulap",
+        "isActive": "Activ",
+        "cancel": "Anulează",
+        "create": "Creează",
+        "globalCategoryOption": "Global (toate categoriile)"
+      }
+    },
+    "cities": {
+      "title": "Orașe active",
+      "addCity": "Adaugă oraș",
+      "empty": "Niciun oraș configurat.",
+      "multiplier": "Multiplicator preț",
+      "editMultiplierTitle": "Editează multiplicator",
+      "addAreaTitle": "Adaugă zonă",
+      "deleteAreaTitle": "Șterge zona",
+      "addCityModal": {
+        "title": "Adaugă oraș",
+        "cityNameLabel": "Nume oraș",
+        "cityNamePlaceholder": "ex: Cluj-Napoca",
+        "countyLabel": "Județ",
+        "countyPlaceholder": "ex: Cluj",
+        "cancel": "Anulează",
+        "create": "Adaugă"
+      },
+      "addAreaModal": {
+        "title": "Adaugă zonă",
+        "areaNameLabel": "Nume zonă",
+        "areaNamePlaceholder": "ex: Centru, Mănăștur, Mărăști",
+        "cancel": "Anulează",
+        "create": "Adaugă"
+      }
+    },
+    "categories": {
+      "count": "{{count}} categorii",
+      "addCategory": "Adaugă categorie",
+      "empty": "Nicio categorie definită.",
+      "tableHeaders": {
+        "name": "Nume",
+        "slug": "Slug",
+        "commission": "Comision",
+        "services": "Servicii",
+        "active": "Activ"
+      },
+      "modal": {
+        "title": "Adaugă categorie",
+        "slugLabel": "Slug",
+        "slugPlaceholder": "ex: curatenie",
+        "nameRoLabel": "Nume RO",
+        "nameEnLabel": "Nume EN",
+        "descRoLabel": "Descriere RO",
+        "descEnLabel": "Descriere EN",
+        "iconLabel": "Icon",
+        "iconPlaceholder": "ex: sparkles",
+        "imageUrlLabel": "URL imagine",
+        "commissionLabel": "Comision (%)",
+        "sortOrderLabel": "Ordine sortare",
+        "formFieldsLabel": "Câmpuri formular (JSON)",
+        "formFieldsPlaceholder": "[{\"key\":\"areaSqm\",\"type\":\"number\",\"labelRo\":\"Suprafata\",\"labelEn\":\"Area\",\"required\":true}]",
+        "isActive": "Activ",
+        "cancel": "Anulează",
+        "create": "Creează"
+      }
+    },
+    "discounts": {
+      "title": "Reduceri abonamente",
+      "subtitle": "Configurează discounturile pentru abonamentele recurente.",
+      "recurrenceLabels": {
+        "WEEKLY": "Săptămânal",
+        "BIWEEKLY": "Bisăptămânal",
+        "MONTHLY": "Lunar"
+      },
+      "discountPct": "Reducere (%)",
+      "active": "Activ",
+      "save": "Salvează"
+    },
+    "audit": {
+      "title": "Jurnal modificări prețuri",
+      "entityTypeLabel": "Tip entitate",
+      "allTypes": "Toate",
+      "entityTypeLabels": {
+        "service_definition": "Serviciu",
+        "service_extra": "Extra",
+        "service_category": "Categorie",
+        "platform_setting": "Setare platformă",
+        "city_pricing": "Preț oraș",
+        "company_commission": "Comision companie"
+      },
+      "tableHeaders": {
+        "entityType": "Tip",
+        "entityId": "ID",
+        "field": "Câmp",
+        "oldValue": "Valoare veche",
+        "newValue": "Valoare nouă",
+        "changedBy": "Modificat de",
+        "changedAt": "Data"
+      },
+      "empty": "Nicio modificare înregistrată.",
+      "noun": "înregistrări"
+    },
+    "platform": {
+      "title": "Mod platformă",
+      "currentMode": "Mod curent:",
+      "liveMode": "LIVE",
+      "preReleaseMode": "PRE-LANSARE",
+      "switchToPreRelease": "Treci la PRE-LANSARE",
+      "switchToLive": "Treci la LIVE",
+      "waitlistTitle": "Lista de așteptare",
+      "waitlistStats": {
+        "clients": "Clienți înscriși",
+        "companies": "Firme înscrise",
+        "total": "Total leads"
+      },
+      "waitlistEmpty": "Niciun lead în lista de așteptare.",
+      "waitlistTableHeaders": {
+        "name": "Nume",
+        "email": "Email",
+        "phone": "Telefon",
+        "type": "Tip",
+        "city": "Oraș",
+        "date": "Data"
+      },
+      "leadTypes": {
+        "client": "Client",
+        "company": "Firmă"
+      },
+      "confirmModal": {
+        "title": "Confirmare schimbare mod",
+        "toPreRelease": "Ești sigur că vrei să treci platforma în modul PRE-LANSARE? Utilizatorii nu vor mai putea face rezervări.",
+        "toLive": "Ești sigur că vrei să treci platforma în modul LIVE? Utilizatorii vor putea face rezervări.",
+        "cancel": "Anulează",
+        "confirm": "Confirmă"
+      }
+    }
+  }
+}

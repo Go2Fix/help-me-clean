@@ -257,6 +257,17 @@ func (r *mutationResolver) AcceptInvitation(ctx context.Context, token string) (
 		}); nErr != nil {
 			log.Printf("acceptInvitation: failed to notify company admin: %v", nErr)
 		}
+		// Email + Slack to company admin.
+		adminEmail, adminName := r.loadCompanyAdminEmail(bgCtx, company)
+		if adminEmail != "" {
+			r.NotifSvc.Dispatch(notification.EventWorkerAccepted,
+				notification.Payload{
+					"companyName": company.CompanyName,
+					"workerName":  claims.Email,
+				},
+				[]notification.Target{{Email: adminEmail, Name: adminName}},
+			)
+		}
 	}(worker)
 
 	return r.workerWithCompany(ctx, worker)

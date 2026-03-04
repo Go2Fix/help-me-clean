@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import {
   Phone, FileText, Building2, Star, Briefcase, Camera, Loader2,
   Check, MapPin, Info, Brain, MessageSquare, Calendar, Layers,
-  CheckCircle, XCircle,
+  CheckCircle, XCircle, Globe,
 } from 'lucide-react';
 import { cn } from '@go2fix/shared';
 import Card from '@/components/ui/Card';
@@ -24,32 +25,20 @@ import {
   UPLOAD_WORKER_DOCUMENT,
   DELETE_WORKER_DOCUMENT,
   UPLOAD_WORKER_AVATAR,
+  UPDATE_PROFILE,
 } from '@/graphql/operations';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 type StatusVariant = 'default' | 'success' | 'warning' | 'danger' | 'info';
 
-const statusVariant: Record<string, StatusVariant> = {
+const STATUS_VARIANT: Record<string, StatusVariant> = {
   ACTIVE: 'success',
   INVITED: 'warning',
   PENDING_REVIEW: 'warning',
   SUSPENDED: 'danger',
   INACTIVE: 'default',
 };
-
-const statusLabel: Record<string, string> = {
-  ACTIVE: 'Activ',
-  INVITED: 'Invitat',
-  PENDING_REVIEW: 'In asteptare',
-  SUSPENDED: 'Suspendat',
-  INACTIVE: 'Inactiv',
-};
-
-const REQUIRED_WORKER_DOCS: { type: string; label: string }[] = [
-  { type: 'cazier_judiciar', label: 'Cazier Judiciar' },
-  { type: 'contract_munca', label: 'Contract de Munca' },
-];
 
 interface WorkerDocument {
   id: string;
@@ -71,24 +60,6 @@ interface Review {
   reviewer: { id: string; fullName: string } | null;
 }
 
-function formatMemberSince(dateStr: string): string {
-  try {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('ro-RO', { month: 'long', year: 'numeric' });
-  } catch {
-    return '';
-  }
-}
-
-function formatReviewDate(dateStr: string): string {
-  try {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('ro-RO', { day: 'numeric', month: 'short', year: 'numeric' });
-  } catch {
-    return '';
-  }
-}
-
 function renderStars(rating: number): string {
   const full = Math.round(rating);
   return '\u2605'.repeat(full) + '\u2606'.repeat(5 - full);
@@ -97,6 +68,7 @@ function renderStars(rating: number): string {
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function SettingsPage() {
+  const { t, i18n } = useTranslation(['dashboard', 'worker']);
   const { data: profileData, loading: profileLoading } = useQuery(MY_WORKER_PROFILE);
   const { data: statsData, loading: statsLoading } = useQuery(MY_WORKER_STATS);
   const { data: areasData, loading: areasLoading } = useQuery(MY_WORKER_SERVICE_AREAS);
@@ -111,6 +83,26 @@ export default function SettingsPage() {
   const reviews: Review[] = reviewsData?.myWorkerReviews?.reviews ?? [];
   const totalReviews: number = reviewsData?.myWorkerReviews?.totalCount ?? 0;
   const loading = profileLoading || statsLoading;
+
+  const locale = i18n.language === 'en' ? 'en-GB' : 'ro-RO';
+
+  function formatMemberSince(dateStr: string): string {
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString(locale, { month: 'long', year: 'numeric' });
+    } catch {
+      return '';
+    }
+  }
+
+  function formatReviewDate(dateStr: string): string {
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' });
+    } catch {
+      return '';
+    }
+  }
 
   // ─── Editable form state ────────────────────────────────────────────────
   const [phone, setPhone] = useState('');
@@ -138,20 +130,40 @@ export default function SettingsPage() {
     setPhoneError('');
 
     if (!phone.trim()) {
-      setPhoneError('Numărul de telefon este obligatoriu.');
+      setPhoneError(t('worker:settings.profileInfo.phoneRequired'));
       return;
     }
     if (!phone.startsWith('+')) {
-      setPhoneError('Formatul trebuie sa fie +40...');
+      setPhoneError(t('worker:settings.profileInfo.phoneFormat'));
       return;
     }
 
     try {
       await updateProfile({ variables: { input: { phone, bio } } });
-      setSaveSuccess('Profil actualizat cu succes!');
+      setSaveSuccess(t('worker:settings.profileInfo.saveSuccess'));
       setTimeout(() => setSaveSuccess(''), 3000);
     } catch {
-      setSaveError('Eroare la salvare. Incearca din nou.');
+      setSaveError(t('worker:settings.profileInfo.saveError'));
+    }
+  };
+
+  // ─── Language preference state ────────────────────────────────────────
+  const [selectedLang, setSelectedLang] = useState(i18n.language === 'en' ? 'en' : 'ro');
+  const [langSuccess, setLangSuccess] = useState('');
+  const [langError, setLangError] = useState('');
+
+  const [updateUserProfile, { loading: savingLang }] = useMutation(UPDATE_PROFILE);
+
+  const handleLangSave = async () => {
+    setLangSuccess('');
+    setLangError('');
+    try {
+      await updateUserProfile({ variables: { input: { preferredLanguage: selectedLang } } });
+      await i18n.changeLanguage(selectedLang);
+      setLangSuccess(t('worker:settings.language.saveSuccess'));
+      setTimeout(() => setLangSuccess(''), 3000);
+    } catch {
+      setLangError(t('worker:settings.language.saveError'));
     }
   };
 
@@ -208,22 +220,29 @@ export default function SettingsPage() {
     }
   };
 
+  const REQUIRED_WORKER_DOCS: { type: string; label: string }[] = [
+    { type: 'cazier_judiciar', label: t('worker:settings.documents.requiredDocs.cazier_judiciar') },
+    { type: 'contract_munca', label: t('worker:settings.documents.requiredDocs.contract_munca') },
+  ];
+
   // ─── Loading ───────────────────────────────────────────────────────────
   if (loading) {
     return (
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-8">Profil & Setări</h1>
-        <LoadingSpinner text="Se incarca profilul..." />
+        <h1 className="text-2xl font-bold text-gray-900 mb-8">{t('worker:settings.pageTitle')}</h1>
+        <LoadingSpinner text={t('worker:settings.loadingProfile')} />
       </div>
     );
   }
 
   const initial = profile?.fullName?.[0]?.toUpperCase() ?? '?';
   const personalityDone = !!profile?.personalityAssessment?.completedAt;
+  const workerStatusLabel = t(`worker:settings.workerStatus.${profile?.status}`, { defaultValue: profile?.status || '--' });
+  const workerStatusVariant = STATUS_VARIANT[profile?.status] || 'default';
 
   return (
     <div className="max-w-2xl">
-      <h1 className="text-2xl font-bold text-gray-900 mb-8">Profil & Setări</h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-8">{t('worker:settings.pageTitle')}</h1>
 
       {/* ── 1. Profile Header ─────────────────────────────────────────── */}
       <Card className="mb-6">
@@ -269,8 +288,8 @@ export default function SettingsPage() {
             <h2 className="text-lg font-bold text-gray-900">{profile?.fullName ?? '--'}</h2>
             <p className="text-sm text-gray-400">{profile?.email ?? '--'}</p>
             <div className="flex flex-wrap items-center gap-2 mt-2">
-              <Badge variant={statusVariant[profile?.status] || 'default'}>
-                {statusLabel[profile?.status] || profile?.status || '--'}
+              <Badge variant={workerStatusVariant}>
+                {workerStatusLabel}
               </Badge>
               {profile?.company?.companyName && (
                 <span className="inline-flex items-center gap-1 text-xs text-gray-500">
@@ -281,7 +300,7 @@ export default function SettingsPage() {
               {profile?.createdAt && (
                 <span className="inline-flex items-center gap-1 text-xs text-gray-400">
                   <Calendar className="h-3.5 w-3.5" />
-                  Membru din {formatMemberSince(profile.createdAt)}
+                  {t('worker:settings.memberSince', { date: formatMemberSince(profile.createdAt) })}
                 </span>
               )}
             </div>
@@ -298,12 +317,12 @@ export default function SettingsPage() {
                 <Star className="h-5 w-5 text-amber-500" />
               </div>
               <div>
-                <p className="text-xs text-gray-500">Rating</p>
+                <p className="text-xs text-gray-500">{t('worker:settings.stats.rating')}</p>
                 <p className="text-xl font-bold text-gray-900">
                   {stats.averageRating ? `${Number(stats.averageRating).toFixed(1)} / 5` : '-- / 5'}
                 </p>
                 <p className="text-[11px] text-gray-400">
-                  {stats.totalReviews ?? 0} recenzii
+                  {t('worker:settings.stats.reviewsCount', { count: stats.totalReviews ?? 0 })}
                 </p>
               </div>
             </div>
@@ -314,10 +333,10 @@ export default function SettingsPage() {
                 <Briefcase className="h-5 w-5 text-blue-600" />
               </div>
               <div>
-                <p className="text-xs text-gray-500">Joburi finalizate</p>
+                <p className="text-xs text-gray-500">{t('worker:settings.stats.jobsCompleted')}</p>
                 <p className="text-xl font-bold text-gray-900">{stats.totalJobsCompleted ?? 0}</p>
                 <p className="text-[11px] text-gray-400">
-                  {stats.thisMonthJobs ?? 0} luna aceasta
+                  {t('worker:settings.stats.thisMonth', { count: stats.thisMonthJobs ?? 0 })}
                 </p>
               </div>
             </div>
@@ -332,23 +351,23 @@ export default function SettingsPage() {
             <Brain className={cn('h-5 w-5', personalityDone ? 'text-emerald-500' : 'text-amber-500')} />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-gray-900">Test de personalitate</p>
+            <p className="text-sm font-semibold text-gray-900">{t('worker:settings.personalityTest.title')}</p>
             {personalityDone ? (
               <p className="text-xs text-emerald-600 flex items-center gap-1 mt-0.5">
                 <Check className="h-3 w-3" />
-                Completat{profile?.personalityAssessment?.completedAt
-                  ? ` pe ${formatReviewDate(profile.personalityAssessment.completedAt)}`
-                  : ''}
+                {profile?.personalityAssessment?.completedAt
+                  ? t('worker:settings.personalityTest.completed', { date: formatReviewDate(profile.personalityAssessment.completedAt) })
+                  : t('worker:settings.personalityTest.completedNoDate')}
               </p>
             ) : (
               <p className="text-xs text-amber-600 mt-0.5">
-                Necesar pentru activare
+                {t('worker:settings.personalityTest.pendingActivation')}
               </p>
             )}
           </div>
           {!personalityDone && (
             <Link to="/worker/test-personalitate">
-              <Button size="sm" variant="outline">Completeaza</Button>
+              <Button size="sm" variant="outline">{t('worker:settings.personalityTest.complete')}</Button>
             </Link>
           )}
         </div>
@@ -358,9 +377,11 @@ export default function SettingsPage() {
       <Card className="mb-6">
         <div className="flex items-center gap-2 mb-4">
           <MessageSquare className="h-5 w-5 text-blue-600" />
-          <h2 className="text-lg font-semibold text-gray-900">Recenzii recente</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{t('worker:settings.reviews.title')}</h2>
           {totalReviews > 0 && (
-            <span className="text-xs text-gray-400 ml-auto">{totalReviews} total</span>
+            <span className="text-xs text-gray-400 ml-auto">
+              {t('worker:settings.reviews.totalCount', { count: totalReviews })}
+            </span>
           )}
         </div>
 
@@ -369,8 +390,8 @@ export default function SettingsPage() {
             <div className="p-3 rounded-full bg-gray-100 mb-3">
               <MessageSquare className="h-6 w-6 text-gray-400" />
             </div>
-            <p className="text-sm text-gray-500">Nicio recenzie inca.</p>
-            <p className="text-xs text-gray-400 mt-1">Recenziile vor aparea dupa finalizarea comenzilor.</p>
+            <p className="text-sm text-gray-500">{t('worker:settings.reviews.noReviews')}</p>
+            <p className="text-xs text-gray-400 mt-1">{t('worker:settings.reviews.noReviewsDesc')}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -380,7 +401,7 @@ export default function SettingsPage() {
                   <div className="flex items-center gap-2">
                     <span className="text-amber-500 text-sm tracking-wider">{renderStars(review.rating)}</span>
                     <span className="text-xs font-medium text-gray-700">
-                      {review.reviewer?.fullName ?? 'Client'}
+                      {review.reviewer?.fullName ?? t('worker:settings.reviews.reviewerFallback')}
                     </span>
                   </div>
                   <span className="text-[11px] text-gray-400">{formatReviewDate(review.createdAt)}</span>
@@ -401,24 +422,24 @@ export default function SettingsPage() {
       <Card className="mb-6">
         <div className="flex items-center gap-2 mb-4">
           <MapPin className="h-5 w-5 text-blue-600" />
-          <h2 className="text-lg font-semibold text-gray-900">Zonele mele de lucru</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{t('worker:settings.workAreas.title')}</h2>
         </div>
 
         {areasLoading ? (
-          <p className="text-sm text-gray-400">Se incarca zonele...</p>
+          <p className="text-sm text-gray-400">{t('worker:settings.workAreas.loading')}</p>
         ) : serviceAreas.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-8 text-center">
             <div className="p-3 rounded-full bg-gray-100 mb-3">
               <MapPin className="h-6 w-6 text-gray-400" />
             </div>
-            <p className="text-sm text-gray-500">Nicio zona atribuita inca.</p>
+            <p className="text-sm text-gray-500">{t('worker:settings.workAreas.noAreas')}</p>
           </div>
         ) : (
           <div className="space-y-4">
             {Object.entries(
               serviceAreas.reduce<Record<string, { id: string; name: string }[]>>(
                 (acc, area) => {
-                  const city = area.cityName || 'Necunoscut';
+                  const city = area.cityName || t('worker:settings.workAreas.unknownCity');
                   if (!acc[city]) acc[city] = [];
                   acc[city].push({ id: area.id, name: area.name });
                   return acc;
@@ -443,7 +464,7 @@ export default function SettingsPage() {
         <div className="flex items-start gap-2 mt-4 p-3 rounded-xl bg-blue-50 border border-blue-100">
           <Info className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" />
           <p className="text-xs text-blue-700">
-            Zonele de lucru sunt gestionate de administratorul firmei tale.
+            {t('worker:settings.workAreas.managedBy')}
           </p>
         </div>
       </Card>
@@ -452,24 +473,24 @@ export default function SettingsPage() {
       <Card className="mb-6">
         <div className="flex items-center gap-2 mb-4">
           <Layers className="h-5 w-5 text-blue-600" />
-          <h2 className="text-lg font-semibold text-gray-900">Categoriile mele de servicii</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{t('worker:settings.categories.title')}</h2>
         </div>
 
         {profileLoading ? (
-          <p className="text-sm text-gray-400">Se incarca categoriile...</p>
+          <p className="text-sm text-gray-400">{t('worker:settings.categories.loading')}</p>
         ) : !profile?.serviceCategories || profile.serviceCategories.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-8 text-center">
             <div className="p-3 rounded-full bg-gray-100 mb-3">
               <Layers className="h-6 w-6 text-gray-400" />
             </div>
-            <p className="text-sm text-gray-500">Nicio categorie atribuita inca.</p>
+            <p className="text-sm text-gray-500">{t('worker:settings.categories.noCategories')}</p>
           </div>
         ) : (
           <div className="flex flex-wrap gap-2">
-            {profile.serviceCategories.map((cat: { id: string; nameRo: string; icon?: string }) => (
+            {profile.serviceCategories.map((cat: { id: string; nameRo: string; nameEn?: string; icon?: string }) => (
               <Badge key={cat.id} variant="info">
                 {cat.icon && <span className="mr-1">{cat.icon}</span>}
-                {cat.nameRo}
+                {i18n.language === 'en' ? (cat.nameEn || cat.nameRo) : cat.nameRo}
               </Badge>
             ))}
           </div>
@@ -478,7 +499,7 @@ export default function SettingsPage() {
         <div className="flex items-start gap-2 mt-4 p-3 rounded-xl bg-blue-50 border border-blue-100">
           <Info className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" />
           <p className="text-xs text-blue-700">
-            Categoriile de servicii sunt gestionate de administratorul firmei tale.
+            {t('worker:settings.categories.managedBy')}
           </p>
         </div>
       </Card>
@@ -488,11 +509,11 @@ export default function SettingsPage() {
         <Card className="mb-6">
           <div className="flex items-center gap-2 mb-4">
             <FileText className="h-5 w-5 text-blue-600" />
-            <h2 className="text-lg font-semibold text-gray-900">Documentele mele</h2>
+            <h2 className="text-lg font-semibold text-gray-900">{t('worker:settings.documents.title')}</h2>
           </div>
           {profile.status === 'PENDING_REVIEW' && (
             <div className="mb-4 p-3 rounded-xl bg-amber-50 border border-amber-200 text-sm text-amber-700">
-              Incarca documentele necesare pentru a fi activat de administrator.
+              {t('worker:settings.documents.pendingReviewNotice')}
             </div>
           )}
           <div className="space-y-4">
@@ -521,7 +542,7 @@ export default function SettingsPage() {
                         onFileSelect={(file) => handleUploadDoc(file, reqDoc.type)}
                         loading={uploading && uploadingType === reqDoc.type}
                         disabled={uploading}
-                        label={`Incarca ${reqDoc.label}`}
+                        label={t('worker:settings.documents.uploadLabel', { label: reqDoc.label })}
                       />
                     </div>
                   )}
@@ -533,20 +554,20 @@ export default function SettingsPage() {
       )}
 
       {/* ── 7. Editable Profile Form ──────────────────────────────────── */}
-      <Card>
-        <h2 className="text-lg font-semibold text-gray-900 mb-6">Informatii profil</h2>
+      <Card className="mb-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-6">{t('worker:settings.profileInfo.title')}</h2>
         <form onSubmit={handleSave} className="space-y-5">
           <div className="space-y-2">
             <div className="relative">
               <Phone className="absolute left-3 top-[38px] h-4 w-4 text-gray-400" />
               <Input
-                label="Telefon *"
+                label={t('worker:settings.profileInfo.phoneLabel')}
                 value={phone}
                 onChange={(e) => {
                   setPhone(e.target.value);
                   setPhoneError('');
                 }}
-                placeholder="+40 7XX XXX XXX"
+                placeholder={t('worker:settings.profileInfo.phonePlaceholder')}
                 className="pl-10"
                 error={phoneError}
               />
@@ -555,14 +576,14 @@ export default function SettingsPage() {
             {profile?.phoneVerified && (
               <div className="flex items-center gap-1.5 text-sm text-emerald-700 font-medium">
                 <CheckCircle className="h-4 w-4" />
-                Verificat via WhatsApp
+                {t('worker:settings.profileInfo.verifiedPhone')}
               </div>
             )}
             {profile?.phone && !profile?.phoneVerified && (
               <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-1.5 text-sm text-amber-600 font-medium">
                   <XCircle className="h-4 w-4" />
-                  Neverificat
+                  {t('worker:settings.profileInfo.unverifiedPhone')}
                 </div>
                 <Button
                   type="button"
@@ -570,7 +591,9 @@ export default function SettingsPage() {
                   variant="outline"
                   onClick={() => setShowVerifyWidget((v) => !v)}
                 >
-                  {showVerifyWidget ? 'Ascunde' : 'Verifica acum'}
+                  {showVerifyWidget
+                    ? t('worker:settings.profileInfo.hideVerify')
+                    : t('worker:settings.profileInfo.verifyNow')}
                 </Button>
               </div>
             )}
@@ -586,13 +609,13 @@ export default function SettingsPage() {
             )}
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Bio</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('worker:settings.profileInfo.bioLabel')}</label>
             <div className="relative">
               <FileText className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <textarea
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
-                placeholder="Descrie-te pe scurt..."
+                placeholder={t('worker:settings.profileInfo.bioPlaceholder')}
                 rows={4}
                 className={cn(
                   'w-full rounded-xl border border-gray-300 bg-white pl-10 pr-4 py-2.5 text-sm text-gray-900',
@@ -614,9 +637,59 @@ export default function SettingsPage() {
             </div>
           )}
           <Button type="submit" loading={saving}>
-            Salveaza modificarile
+            {t('worker:settings.profileInfo.saveButton')}
           </Button>
         </form>
+      </Card>
+
+      {/* ── 8. Language Preference ────────────────────────────────────── */}
+      <Card>
+        <div className="flex items-center gap-2 mb-5">
+          <Globe className="h-5 w-5 text-blue-600" />
+          <h2 className="text-lg font-semibold text-gray-900">{t('worker:settings.language.title')}</h2>
+        </div>
+        <div className="space-y-4">
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => setSelectedLang('ro')}
+              className={cn(
+                'flex-1 py-2.5 px-4 rounded-xl border-2 text-sm font-medium transition-all',
+                selectedLang === 'ro'
+                  ? 'border-blue-600 bg-blue-50 text-blue-700'
+                  : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300',
+              )}
+            >
+              {t('language.ro')}
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedLang('en')}
+              className={cn(
+                'flex-1 py-2.5 px-4 rounded-xl border-2 text-sm font-medium transition-all',
+                selectedLang === 'en'
+                  ? 'border-blue-600 bg-blue-50 text-blue-700'
+                  : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300',
+              )}
+            >
+              {t('language.en')}
+            </button>
+          </div>
+          {langSuccess && (
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-700">
+              <Check className="h-4 w-4 shrink-0" />
+              {langSuccess}
+            </div>
+          )}
+          {langError && (
+            <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">
+              {langError}
+            </div>
+          )}
+          <Button onClick={handleLangSave} loading={savingLang} variant="outline" className="w-full">
+            {t('worker:settings.language.saveButton')}
+          </Button>
+        </div>
       </Card>
     </div>
   );

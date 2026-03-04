@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useLazyQuery } from '@apollo/client';
+import { useTranslation } from 'react-i18next';
 import { Plus, Search, Calendar, Download } from 'lucide-react';
 import AdminPagination from '@/components/admin/AdminPagination';
 import { formatCents, formatDate, exportToCSV } from '@/utils/format';
@@ -54,38 +55,34 @@ const payoutStatusDotColor: Record<string, string> = {
   CANCELLED: 'bg-gray-400',
 };
 
-const payoutStatusLabel: Record<string, string> = {
-  PENDING: 'In asteptare',
-  PROCESSING: 'Se proceseaza',
-  PAID: 'Platit',
-  FAILED: 'Esuat',
-  CANCELLED: 'Anulat',
-};
-
-const statusOptions = [
-  { value: '', label: 'Toate statusurile' },
-  { value: 'PENDING', label: 'In asteptare' },
-  { value: 'PROCESSING', label: 'Se proceseaza' },
-  { value: 'PAID', label: 'Platit' },
-  { value: 'FAILED', label: 'Esuat' },
-  { value: 'CANCELLED', label: 'Anulat' },
-];
-
-// Allowed status transitions: current status -> available next statuses
-const payoutStatusTransitions: Record<string, { status: string; label: string; variant: 'primary' | 'secondary' | 'outline' | 'danger' | 'ghost'; confirm?: string }[]> = {
-  PENDING: [
-    { status: 'PROCESSING', label: 'Se proceseaza', variant: 'outline' },
-    { status: 'CANCELLED', label: 'Anuleaza', variant: 'ghost', confirm: 'Esti sigur ca vrei sa anulezi aceasta plata?' },
-  ],
-  PROCESSING: [
-    { status: 'PAID', label: 'Marcheaza platit', variant: 'primary', confirm: 'Confirmi ca plata a fost efectuata?' },
-    { status: 'FAILED', label: 'Esuat', variant: 'danger' },
-  ],
-};
-
 // ─── Component ──────────────────────────────────────────────────────────────
 
 export default function AdminPayoutsPage() {
+  const { t, i18n } = useTranslation(['dashboard', 'admin']);
+
+  const locale = i18n.language === 'en' ? 'en-GB' : 'ro-RO';
+
+  const statusOptions = [
+    { value: '', label: t('admin:payouts.allStatuses') },
+    { value: 'PENDING', label: t('admin:payouts.statusLabels.PENDING') },
+    { value: 'PROCESSING', label: t('admin:payouts.statusLabels.PROCESSING') },
+    { value: 'PAID', label: t('admin:payouts.statusLabels.PAID') },
+    { value: 'FAILED', label: t('admin:payouts.statusLabels.FAILED') },
+    { value: 'CANCELLED', label: t('admin:payouts.statusLabels.CANCELLED') },
+  ];
+
+  // Allowed status transitions: current status -> available next statuses
+  const payoutStatusTransitions: Record<string, { status: string; label: string; variant: 'primary' | 'secondary' | 'outline' | 'danger' | 'ghost'; confirm?: string }[]> = {
+    PENDING: [
+      { status: 'PROCESSING', label: t('admin:payouts.statusLabels.PROCESSING'), variant: 'outline' },
+      { status: 'CANCELLED', label: t('admin:payouts.actions.cancel'), variant: 'ghost', confirm: t('admin:payouts.confirmCancel') },
+    ],
+    PROCESSING: [
+      { status: 'PAID', label: t('admin:payouts.actions.markPaid'), variant: 'primary', confirm: t('admin:payouts.confirmMarkPaid') },
+      { status: 'FAILED', label: t('admin:payouts.statusLabels.FAILED'), variant: 'danger' },
+    ],
+  };
+
   const [statusFilter, setStatusFilter] = useState('');
   const [page, setPage] = useState(0);
   const [modalOpen, setModalOpen] = useState(false);
@@ -212,8 +209,8 @@ export default function AdminPayoutsPage() {
     <div>
       {/* Page header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Viramente</h1>
-        <p className="text-gray-500 mt-1">Gestionează plățile către companii partenere.</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('admin:payouts.title')}</h1>
+        <p className="text-gray-500 mt-1">{t('admin:payouts.subtitle')}</p>
       </div>
 
       {/* Filter + Create button */}
@@ -231,24 +228,24 @@ export default function AdminPayoutsPage() {
           size="sm"
           onClick={() => exportToCSV(
             payouts.map((p: Payout) => ({
-              'Companie': p.company?.companyName ?? '',
-              'Perioada De La': p.periodFrom,
-              'Perioada Pana La': p.periodTo,
-              'Suma (lei)': (p.amount / 100).toFixed(2),
-              'Nr Rezervări': p.bookingCount,
-              'Status': p.status,
-              'Data Plata': p.paidAt ? new Date(p.paidAt).toLocaleDateString('ro-RO') : '',
-              'Data Creare': new Date(p.createdAt).toLocaleDateString('ro-RO'),
+              [t('admin:payouts.csvColumns.company')]: p.company?.companyName ?? '',
+              [t('admin:payouts.csvColumns.periodFrom')]: p.periodFrom,
+              [t('admin:payouts.csvColumns.periodTo')]: p.periodTo,
+              [t('admin:payouts.csvColumns.amount')]: (p.amount / 100).toFixed(2),
+              [t('admin:payouts.csvColumns.bookingCount')]: p.bookingCount,
+              [t('admin:payouts.csvColumns.status')]: p.status,
+              [t('admin:payouts.csvColumns.paidAt')]: p.paidAt ? new Date(p.paidAt).toLocaleDateString(locale) : '',
+              [t('admin:payouts.csvColumns.createdAt')]: new Date(p.createdAt).toLocaleDateString(locale),
             })),
             `plati-companii-${new Date().toISOString().slice(0, 10)}.csv`
           )}
         >
           <Download className="h-4 w-4" />
-          Export CSV
+          {t('admin:payouts.exportCsv')}
         </Button>
         <Button onClick={() => setModalOpen(true)} size="sm">
           <Plus className="h-4 w-4" />
-          Creeaza plata
+          {t('admin:payouts.createButton')}
         </Button>
       </div>
 
@@ -266,7 +263,7 @@ export default function AdminPayoutsPage() {
             ))}
           </div>
         ) : payouts.length === 0 ? (
-          <p className="text-center text-gray-400 py-12">Nu exista plati.</p>
+          <p className="text-center text-gray-400 py-12">{t('admin:payouts.empty')}</p>
         ) : (
           <>
             <div className="divide-y divide-gray-100">
@@ -284,19 +281,19 @@ export default function AdminPayoutsPage() {
                     {formatDate(payout.periodFrom)} – {formatDate(payout.periodTo)}
                   </span>
                   <span className="text-xs text-gray-400 shrink-0">
-                    {payout.bookingCount} rez.
+                    {payout.bookingCount} {t('admin:payouts.bookingsAbbr')}
                   </span>
                   <span className="flex-1" />
                   {payout.paidAt && (
                     <span className="hidden md:block text-xs text-gray-400 shrink-0">
-                      Platit: {formatDate(payout.paidAt)}
+                      {t('admin:payouts.paidLabel')}: {formatDate(payout.paidAt)}
                     </span>
                   )}
                   <span className="text-sm font-medium text-gray-900 shrink-0 w-20 text-right">
                     {formatCents(payout.amount)}
                   </span>
                   <span className="text-xs text-gray-500 shrink-0 w-24 text-right hidden sm:block">
-                    {payoutStatusLabel[payout.status] ?? payout.status}
+                    {t(`admin:payouts.statusLabels.${payout.status}`, { defaultValue: payout.status })}
                   </span>
                   {payoutStatusTransitions[payout.status] && (
                     <span className="flex items-center gap-1.5 shrink-0 ml-2">
@@ -326,7 +323,7 @@ export default function AdminPayoutsPage() {
                 totalCount={totalCount}
                 pageSize={PAGE_SIZE}
                 onPageChange={setPage}
-                noun="plati"
+                noun={t('admin:payouts.noun')}
               />
             </div>
           </>
@@ -340,13 +337,13 @@ export default function AdminPayoutsPage() {
           setModalOpen(false);
           resetModal();
         }}
-        title="Creeaza plata lunara"
+        title={t('admin:payouts.createModal.title')}
       >
         <div className="space-y-4">
           {/* Searchable company dropdown */}
           <div ref={dropdownRef} className="relative">
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Companie
+              {t('admin:payouts.createModal.companyLabel')}
             </label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
@@ -359,7 +356,7 @@ export default function AdminPayoutsPage() {
                     setShowDropdown(true);
                   }
                 }}
-                placeholder="Cauta companie dupa nume sau CUI..."
+                placeholder={t('admin:payouts.createModal.companyPlaceholder')}
                 className="w-full rounded-xl border border-gray-300 bg-white pl-9 pr-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
               />
             </div>
@@ -367,7 +364,7 @@ export default function AdminPayoutsPage() {
             {/* Selected company indicator */}
             {selectedCompany && (
               <p className="mt-1 text-xs text-emerald-600">
-                Selectat: {selectedCompany.companyName} (CUI: {selectedCompany.cui})
+                {t('admin:payouts.createModal.selectedCompany')}: {selectedCompany.companyName} (CUI: {selectedCompany.cui})
               </p>
             )}
 
@@ -375,10 +372,10 @@ export default function AdminPayoutsPage() {
             {showDropdown && (
               <div className="absolute z-20 mt-1 w-full rounded-xl border border-gray-200 bg-white shadow-lg max-h-48 overflow-y-auto">
                 {searchingCompanies ? (
-                  <div className="px-4 py-3 text-sm text-gray-400">Se cauta...</div>
+                  <div className="px-4 py-3 text-sm text-gray-400">{t('admin:payouts.createModal.searching')}</div>
                 ) : companyResults.length === 0 ? (
                   <div className="px-4 py-3 text-sm text-gray-400">
-                    Niciun rezultat gasit.
+                    {t('admin:payouts.createModal.noResults')}
                   </div>
                 ) : (
                   companyResults.map((company) => (
@@ -400,13 +397,13 @@ export default function AdminPayoutsPage() {
           </div>
 
           <Input
-            label="Perioada de la"
+            label={t('admin:payouts.createModal.periodFrom')}
             type="date"
             value={periodFrom}
             onChange={(e) => setPeriodFrom(e.target.value)}
           />
           <Input
-            label="Perioada pana la"
+            label={t('admin:payouts.createModal.periodTo')}
             type="date"
             value={periodTo}
             onChange={(e) => setPeriodTo(e.target.value)}
@@ -419,14 +416,14 @@ export default function AdminPayoutsPage() {
                 resetModal();
               }}
             >
-              Anuleaza
+              {t('admin:payouts.createModal.dismiss')}
             </Button>
             <Button
               onClick={handleCreate}
               loading={creating}
               disabled={!selectedCompany || !periodFrom || !periodTo}
             >
-              Creeaza plata
+              {t('admin:payouts.createModal.confirm')}
             </Button>
           </div>
         </div>

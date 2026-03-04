@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useLazyQuery } from '@apollo/client';
+import { useTranslation } from 'react-i18next';
 import {
   Plus,
   Check,
@@ -62,13 +63,6 @@ interface BookingSearchResult {
 
 type StatusTab = 'REQUESTED' | 'APPROVED' | 'PROCESSED' | 'REJECTED';
 
-const tabOptions = [
-  { value: 'REQUESTED', label: 'Solicitate' },
-  { value: 'APPROVED', label: 'Aprobate' },
-  { value: 'PROCESSED', label: 'Procesate' },
-  { value: 'REJECTED', label: 'Respinse' },
-];
-
 const refundStatusDotColor: Record<string, string> = {
   REQUESTED: 'bg-amber-400',
   APPROVED: 'bg-blue-400',
@@ -76,16 +70,18 @@ const refundStatusDotColor: Record<string, string> = {
   REJECTED: 'bg-red-400',
 };
 
-const refundStatusLabel: Record<string, string> = {
-  REQUESTED: 'Solicitata',
-  APPROVED: 'Aprobata',
-  PROCESSED: 'Procesata',
-  REJECTED: 'Respinsa',
-};
-
 // ─── Component ──────────────────────────────────────────────────────────────
 
 export default function RefundsPage() {
+  const { t } = useTranslation(['dashboard', 'admin']);
+
+  const tabOptions = [
+    { value: 'REQUESTED', label: t('admin:refunds.statusLabels.REQUESTED') },
+    { value: 'APPROVED', label: t('admin:refunds.statusLabels.APPROVED') },
+    { value: 'PROCESSED', label: t('admin:refunds.statusLabels.PROCESSED') },
+    { value: 'REJECTED', label: t('admin:refunds.statusLabels.REJECTED') },
+  ];
+
   const [activeTab, setActiveTab] = useState<StatusTab>('REQUESTED');
   const [page, setPage] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
@@ -233,6 +229,8 @@ export default function RefundsPage() {
   // Does this tab show action buttons?
   const showActions = activeTab === 'REQUESTED' || activeTab === 'APPROVED';
 
+  const currentTabLabel = tabOptions.find((opt) => opt.value === activeTab)?.label ?? '';
+
   return (
     <div>
       {/* Filter bar */}
@@ -253,14 +251,14 @@ export default function RefundsPage() {
               setSearchQuery(e.target.value);
               setPage(0);
             }}
-            placeholder="Cauta dupa cod rezervare..."
+            placeholder={t('admin:refunds.searchPlaceholder')}
             className="w-full rounded-xl border border-gray-300 bg-white pl-9 pr-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
           />
         </div>
         <div className="flex-1" />
         <Button onClick={() => setDirectModalOpen(true)} size="sm">
           <Plus className="h-4 w-4" />
-          Rambursare directa
+          {t('admin:refunds.directRefundButton')}
         </Button>
       </div>
 
@@ -281,8 +279,8 @@ export default function RefundsPage() {
         ) : paginatedRefunds.length === 0 ? (
           <p className="text-center text-gray-400 py-12">
             {searchQuery.trim()
-              ? 'Nu s-au gasit rambursari pentru aceasta cautare.'
-              : `Nu exista rambursari ${tabOptions.find((t) => t.value === activeTab)?.label.toLowerCase()}.`}
+              ? t('admin:refunds.emptySearch')
+              : t('admin:refunds.emptyTab', { tab: currentTabLabel.toLowerCase() })}
           </p>
         ) : (
           <>
@@ -321,7 +319,7 @@ export default function RefundsPage() {
                         disabled={processing}
                       >
                         <Check className="h-3.5 w-3.5" />
-                        <span className="hidden sm:inline">Aproba</span>
+                        <span className="hidden sm:inline">{t('admin:refunds.actions.approve')}</span>
                       </Button>
                       <Button
                         size="sm"
@@ -330,7 +328,7 @@ export default function RefundsPage() {
                         disabled={processing}
                       >
                         <X className="h-3.5 w-3.5" />
-                        <span className="hidden sm:inline">Respinge</span>
+                        <span className="hidden sm:inline">{t('admin:refunds.actions.reject')}</span>
                       </Button>
                     </div>
                   )}
@@ -342,12 +340,12 @@ export default function RefundsPage() {
                       disabled={processing}
                     >
                       <CreditCard className="h-3.5 w-3.5" />
-                      <span className="hidden sm:inline">Proceseaza</span>
+                      <span className="hidden sm:inline">{t('admin:refunds.actions.process')}</span>
                     </Button>
                   )}
                   {!showActions && (
                     <span className="text-xs text-gray-500 shrink-0 w-20 text-right hidden sm:block">
-                      {refundStatusLabel[refund.status] ?? refund.status}
+                      {t(`admin:refunds.statusLabels.${refund.status}`, { defaultValue: refund.status })}
                     </span>
                   )}
                 </div>
@@ -359,7 +357,7 @@ export default function RefundsPage() {
                 totalCount={totalCount}
                 pageSize={PAGE_SIZE}
                 onPageChange={setPage}
-                noun="rambursari"
+                noun={t('admin:refunds.noun')}
               />
             </div>
           </>
@@ -370,13 +368,13 @@ export default function RefundsPage() {
       <Modal
         open={directModalOpen}
         onClose={handleCloseModal}
-        title="Rambursare directa"
+        title={t('admin:refunds.directModal.title')}
       >
         <div className="space-y-4">
           {/* Booking search */}
           <div className="relative" ref={bookingDropdownRef}>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Rezervare
+              {t('admin:refunds.directModal.bookingLabel')}
             </label>
 
             {directBookingId ? (
@@ -408,7 +406,7 @@ export default function RefundsPage() {
                         setShowBookingDropdown(true);
                       }
                     }}
-                    placeholder="Cauta dupa cod rezervare..."
+                    placeholder={t('admin:refunds.directModal.bookingPlaceholder')}
                     className="w-full rounded-xl border border-gray-300 bg-white pl-9 pr-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
                   />
                 </div>
@@ -417,11 +415,11 @@ export default function RefundsPage() {
                   <div className="absolute z-20 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
                     {bookingSearchLoading ? (
                       <div className="px-4 py-3 text-sm text-gray-400 text-center">
-                        Se cauta...
+                        {t('admin:refunds.directModal.searching')}
                       </div>
                     ) : bookingResults.length === 0 ? (
                       <div className="px-4 py-3 text-sm text-gray-400 text-center">
-                        Nicio rezervare găsită.
+                        {t('admin:refunds.directModal.noBookings')}
                       </div>
                     ) : (
                       bookingResults.map((booking) => (
@@ -447,38 +445,38 @@ export default function RefundsPage() {
           </div>
 
           <Input
-            label="Suma (lei)"
+            label={t('admin:refunds.directModal.amountLabel')}
             type="number"
             step="0.01"
             min="0"
             value={directAmount}
             onChange={(e) => setDirectAmount(e.target.value)}
-            placeholder="ex. 150.00"
+            placeholder={t('admin:refunds.directModal.amountPlaceholder')}
           />
 
           <div className="w-full">
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Motiv
+              {t('admin:refunds.directModal.reasonLabel')}
             </label>
             <textarea
               value={directReason}
               onChange={(e) => setDirectReason(e.target.value)}
               rows={3}
-              placeholder="Descrie motivul rambursarii..."
+              placeholder={t('admin:refunds.directModal.reasonPlaceholder')}
               className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary resize-none"
             />
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
             <Button variant="ghost" onClick={handleCloseModal}>
-              Anuleaza
+              {t('admin:refunds.directModal.dismiss')}
             </Button>
             <Button
               onClick={handleDirectRefund}
               loading={issuing}
               disabled={!directBookingId || !directAmount || !directReason}
             >
-              Emite rambursare
+              {t('admin:refunds.directModal.confirm')}
             </Button>
           </div>
         </div>

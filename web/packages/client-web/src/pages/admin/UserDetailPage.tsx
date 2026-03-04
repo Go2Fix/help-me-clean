@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation } from '@apollo/client';
+import { useTranslation } from 'react-i18next';
 import {
   ArrowLeft,
   Shield,
@@ -36,13 +37,6 @@ import { formatDate } from '@/utils/format';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
-const roleLabel: Record<string, string> = {
-  CLIENT: 'Client',
-  COMPANY_ADMIN: 'Admin Companie',
-  WORKER: 'Curatator',
-  GLOBAL_ADMIN: 'Admin Global',
-};
-
 const roleVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
   CLIENT: 'default',
   COMPANY_ADMIN: 'info',
@@ -50,45 +44,16 @@ const roleVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' |
   GLOBAL_ADMIN: 'warning',
 };
 
-const statusLabel: Record<string, string> = {
-  ACTIVE: 'Activ',
-  SUSPENDED: 'Suspendat',
-};
-
 const statusVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
   ACTIVE: 'success',
   SUSPENDED: 'danger',
 };
-
-const languageLabel: Record<string, string> = {
-  ro: 'Romana',
-  en: 'Engleza',
-};
-
-const roleOptions = [
-  { value: 'CLIENT', label: 'Client' },
-  { value: 'COMPANY_ADMIN', label: 'Admin Companie' },
-  { value: 'WORKER', label: 'Curatator' },
-  { value: 'GLOBAL_ADMIN', label: 'Admin Global' },
-];
 
 const workerStatusVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
   ACTIVE: 'success',
   PENDING_REVIEW: 'warning',
   INACTIVE: 'default',
   INVITED: 'info',
-};
-
-const workerStatusLabel: Record<string, string> = {
-  ACTIVE: 'Activ',
-  PENDING_REVIEW: 'In asteptare',
-  INACTIVE: 'Inactiv',
-  INVITED: 'Invitat',
-};
-
-const workerDocTypeLabel: Record<string, string> = {
-  cazier_judiciar: 'Cazier Judiciar',
-  contract_munca: 'Contract de Munca',
 };
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -174,6 +139,7 @@ function getInitials(name: string): string {
 export default function UserDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation(['dashboard', 'admin']);
 
   // Editing state
   const [editingName, setEditingName] = useState(false);
@@ -183,6 +149,13 @@ export default function UserDetailPage() {
   const [selectedRole, setSelectedRole] = useState('');
   const [suspendModal, setSuspendModal] = useState(false);
   const [suspendReason, setSuspendReason] = useState('');
+
+  const roleOptions = [
+    { value: 'CLIENT', label: t('admin:users.roleLabels.CLIENT') },
+    { value: 'COMPANY_ADMIN', label: t('admin:users.roleLabels.COMPANY_ADMIN') },
+    { value: 'WORKER', label: t('admin:users.roleLabels.WORKER') },
+    { value: 'GLOBAL_ADMIN', label: t('admin:users.roleLabels.GLOBAL_ADMIN') },
+  ];
 
   // Queries
   const { data, loading } = useQuery(GET_USER_WITH_WORKER, {
@@ -318,9 +291,9 @@ export default function UserDetailPage() {
     return (
       <div className="text-center py-20">
         <User className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-        <p className="text-gray-400">Utilizatorul nu a fost gasit.</p>
+        <p className="text-gray-400">{t('admin:userDetail.notFound')}</p>
         <Button variant="ghost" className="mt-4" onClick={() => navigate('/admin/utilizatori')}>
-          Inapoi la utilizatori
+          {t('admin:userDetail.backToList')}
         </Button>
       </div>
     );
@@ -355,10 +328,10 @@ export default function UserDetailPage() {
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-bold text-gray-900">{user.fullName}</h1>
               <Badge variant={roleVariant[user.role] ?? 'default'}>
-                {roleLabel[user.role] ?? user.role}
+                {t(`admin:users.roleLabels.${user.role}`, { defaultValue: user.role })}
               </Badge>
               <Badge variant={statusVariant[user.status] ?? 'default'}>
-                {statusLabel[user.status] ?? user.status}
+                {t(`admin:users.statusLabels.${user.status}`, { defaultValue: user.status })}
               </Badge>
             </div>
             <p className="text-gray-500 text-sm mt-0.5">{user.email}</p>
@@ -370,13 +343,13 @@ export default function UserDetailPage() {
         {/* Left Column - User Info */}
         <div className="lg:col-span-2">
           <Card>
-            <h3 className="text-lg font-semibold text-gray-900 mb-6">Informatii utilizator</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-6">{t('admin:userDetail.userInfo.title')}</h3>
             <div className="space-y-5">
               {/* Full Name - Editable */}
               <div className="flex items-start gap-3">
                 <User className="h-4 w-4 text-gray-400 mt-2.5 shrink-0" />
                 <div className="flex-1">
-                  <p className="text-xs text-gray-400 mb-1">Nume complet</p>
+                  <p className="text-xs text-gray-400 mb-1">{t('admin:userDetail.userInfo.fullName')}</p>
                   {editingName ? (
                     <div className="flex items-center gap-2">
                       <input
@@ -421,7 +394,7 @@ export default function UserDetailPage() {
               <div className="flex items-start gap-3">
                 <Mail className="h-4 w-4 text-gray-400 mt-0.5 shrink-0" />
                 <div>
-                  <p className="text-xs text-gray-400">Email</p>
+                  <p className="text-xs text-gray-400">{t('admin:userDetail.userInfo.email')}</p>
                   <p className="text-sm text-gray-900">{user.email}</p>
                 </div>
               </div>
@@ -430,7 +403,7 @@ export default function UserDetailPage() {
               <div className="flex items-start gap-3">
                 <Phone className="h-4 w-4 text-gray-400 mt-2.5 shrink-0" />
                 <div className="flex-1">
-                  <p className="text-xs text-gray-400 mb-1">Telefon</p>
+                  <p className="text-xs text-gray-400 mb-1">{t('admin:userDetail.userInfo.phone')}</p>
                   {editingPhone ? (
                     <div className="flex items-center gap-2">
                       <input
@@ -476,9 +449,9 @@ export default function UserDetailPage() {
               <div className="flex items-start gap-3">
                 <Shield className="h-4 w-4 text-gray-400 mt-0.5 shrink-0" />
                 <div>
-                  <p className="text-xs text-gray-400">Limba preferata</p>
+                  <p className="text-xs text-gray-400">{t('admin:userDetail.userInfo.language')}</p>
                   <p className="text-sm text-gray-900">
-                    {languageLabel[user.preferredLanguage] ?? user.preferredLanguage ?? '--'}
+                    {t(`admin:userDetail.languageLabels.${user.preferredLanguage}`, { defaultValue: user.preferredLanguage ?? '--' })}
                   </p>
                 </div>
               </div>
@@ -487,7 +460,7 @@ export default function UserDetailPage() {
               <div className="flex items-start gap-3">
                 <Calendar className="h-4 w-4 text-gray-400 mt-0.5 shrink-0" />
                 <div>
-                  <p className="text-xs text-gray-400">Inregistrat pe</p>
+                  <p className="text-xs text-gray-400">{t('admin:userDetail.userInfo.registeredAt')}</p>
                   <p className="text-sm text-gray-900">
                     {formatDate(user.createdAt)}
                   </p>
@@ -502,14 +475,14 @@ export default function UserDetailPage() {
               {/* Worker Info Card */}
               <Card>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  Informatii curator
+                  {t('admin:userDetail.workerInfo.title')}
                 </h3>
                 <div className="space-y-3">
                   {user.workerProfile.company && (
                     <div className="flex items-start gap-3">
                       <Building2 className="h-4 w-4 text-gray-400 mt-0.5 shrink-0" />
                       <div>
-                        <p className="text-xs text-gray-400">Companie</p>
+                        <p className="text-xs text-gray-400">{t('admin:userDetail.workerInfo.company')}</p>
                         <Link
                           to={`/admin/companii/${user.workerProfile.company.id}`}
                           className="text-sm text-primary hover:underline font-medium"
@@ -522,7 +495,7 @@ export default function UserDetailPage() {
                   <div className="flex items-start gap-3">
                     <Star className="h-4 w-4 text-gray-400 mt-0.5 shrink-0" />
                     <div>
-                      <p className="text-xs text-gray-400">Rating</p>
+                      <p className="text-xs text-gray-400">{t('admin:userDetail.workerInfo.rating')}</p>
                       <p className="text-sm text-gray-900">
                         {user.workerProfile.ratingAvg
                           ? Number(user.workerProfile.ratingAvg).toFixed(1)
@@ -533,7 +506,7 @@ export default function UserDetailPage() {
                   <div className="flex items-start gap-3">
                     <ClipboardList className="h-4 w-4 text-gray-400 mt-0.5 shrink-0" />
                     <div>
-                      <p className="text-xs text-gray-400">Lucrari finalizate</p>
+                      <p className="text-xs text-gray-400">{t('admin:userDetail.workerInfo.completedJobs')}</p>
                       <p className="text-sm text-gray-900">
                         {user.workerProfile.totalJobsCompleted}
                       </p>
@@ -543,7 +516,7 @@ export default function UserDetailPage() {
                     <div className="flex items-start gap-3">
                       <User className="h-4 w-4 text-gray-400 mt-0.5 shrink-0" />
                       <div>
-                        <p className="text-xs text-gray-400">Bio</p>
+                        <p className="text-xs text-gray-400">{t('admin:userDetail.workerInfo.bio')}</p>
                         <p className="text-sm text-gray-900">{user.workerProfile.bio}</p>
                       </div>
                     </div>
@@ -554,8 +527,7 @@ export default function UserDetailPage() {
                         workerStatusVariant[user.workerProfile.status] ?? 'default'
                       }
                     >
-                      {workerStatusLabel[user.workerProfile.status] ??
-                        user.workerProfile.status}
+                      {t(`admin:userDetail.workerStatusLabels.${user.workerProfile.status}`, { defaultValue: user.workerProfile.status })}
                     </Badge>
                   </div>
                 </div>
@@ -565,7 +537,7 @@ export default function UserDetailPage() {
               {user.workerProfile.personalityAssessment && (
                 <Card>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                    Test de personalitate
+                    {t('admin:userDetail.personalityTest.title')}
                   </h3>
                   <PersonalityScoreCard
                     assessment={user.workerProfile.personalityAssessment}
@@ -581,10 +553,10 @@ export default function UserDetailPage() {
               {/* Documents Card */}
               <Card>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  Documente obligatorii
+                  {t('admin:userDetail.documents.title')}
                 </h3>
                 {user.workerProfile.documents.length === 0 ? (
-                  <p className="text-sm text-gray-400">Niciun document incarcat.</p>
+                  <p className="text-sm text-gray-400">{t('admin:userDetail.documents.empty')}</p>
                 ) : (
                   <div className="space-y-3">
                     {user.workerProfile.documents.map((doc) => (
@@ -593,7 +565,7 @@ export default function UserDetailPage() {
                         id={doc.id}
                         documentType={doc.documentType}
                         documentTypeLabel={
-                          workerDocTypeLabel[doc.documentType] ?? doc.documentType
+                          t(`admin:userDetail.docTypeLabels.${doc.documentType}`, { defaultValue: doc.documentType })
                         }
                         fileName={doc.fileName}
                         fileUrl={doc.fileUrl}
@@ -613,7 +585,7 @@ export default function UserDetailPage() {
         <div className="space-y-6">
           {/* Role Card */}
           <Card>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Rol</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('admin:userDetail.roleCard.title')}</h3>
             <div className="space-y-3">
               <Select
                 options={roleOptions}
@@ -628,17 +600,17 @@ export default function UserDetailPage() {
                 loading={savingRole}
                 disabled={selectedRole === user.role}
               >
-                Salveaza rolul
+                {t('admin:userDetail.roleCard.saveRole')}
               </Button>
             </div>
           </Card>
 
           {/* Status Card */}
           <Card>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Status cont</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('admin:userDetail.statusCard.title')}</h3>
             <div className="flex items-center gap-2 mb-4">
               <Badge variant={statusVariant[user.status] ?? 'default'}>
-                {statusLabel[user.status] ?? user.status}
+                {t(`admin:users.statusLabels.${user.status}`, { defaultValue: user.status })}
               </Badge>
             </div>
             {user.status === 'ACTIVE' && (
@@ -648,7 +620,7 @@ export default function UserDetailPage() {
                 className="w-full"
                 onClick={() => setSuspendModal(true)}
               >
-                Suspenda
+                {t('admin:userDetail.statusCard.suspend')}
               </Button>
             )}
             {user.status === 'SUSPENDED' && (
@@ -659,7 +631,7 @@ export default function UserDetailPage() {
                 onClick={handleReactivate}
                 loading={reactivating}
               >
-                Reactiveaza
+                {t('admin:userDetail.statusCard.reactivate')}
               </Button>
             )}
           </Card>
@@ -673,12 +645,12 @@ export default function UserDetailPage() {
           setSuspendModal(false);
           setSuspendReason('');
         }}
-        title="Suspenda utilizatorul"
+        title={t('admin:userDetail.suspendModal.title')}
       >
         <div className="space-y-4">
           <Input
-            label="Motivul suspendarii"
-            placeholder="Explica motivul suspendarii..."
+            label={t('admin:userDetail.suspendModal.reasonLabel')}
+            placeholder={t('admin:userDetail.suspendModal.reasonPlaceholder')}
             value={suspendReason}
             onChange={(e) => setSuspendReason(e.target.value)}
           />
@@ -690,7 +662,7 @@ export default function UserDetailPage() {
                 setSuspendReason('');
               }}
             >
-              Anuleaza
+              {t('admin:userDetail.suspendModal.dismiss')}
             </Button>
             <Button
               variant="danger"
@@ -698,7 +670,7 @@ export default function UserDetailPage() {
               loading={suspending}
               disabled={!suspendReason.trim()}
             >
-              Suspenda
+              {t('admin:userDetail.suspendModal.confirm')}
             </Button>
           </div>
         </div>

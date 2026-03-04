@@ -1,0 +1,401 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "jobs": "Comenzi",
+    "schedule": "Program",
+    "documents": "Contact Suport",
+    "personalityTest": "Test personalitate",
+    "settings": "Profil",
+    "subtitle": "Worker Dashboard"
+  },
+  "dashboard": {
+    "welcome": "Bun venit, {{name}}!",
+    "welcomeDefault": "Dashboard",
+    "rating": "Rating",
+    "reviewsCount": "{{count}} recenzii",
+    "jobsCompleted": "Joburi finalizate",
+    "thisMonth": "{{count}} luna aceasta",
+    "setupTitle": "Primii pași",
+    "setupSubtitle": "Completează profilul pentru a primi comenzi",
+    "setupItems": {
+      "avatar": "Adaugă o fotografie de profil",
+      "bio": "Completează bio-ul",
+      "bioDesc": "Prezintă-te clienților",
+      "phone": "Verifică numărul de telefon",
+      "phoneDesc": "Via WhatsApp",
+      "personality": "Test de personalitate",
+      "docs": "Încarcă documentele obligatorii",
+      "docsDesc": "Cazier judiciar și contract de muncă",
+      "availability": "Setează disponibilitatea",
+      "availabilityDesc": "Zilele și orele în care poți lucra"
+    },
+    "quickActions": {
+      "myOrders": "Comenzile mele",
+      "mySchedule": "Programul meu",
+      "messages": "Mesaje",
+      "profileSettings": "Profil & Setări"
+    },
+    "todaysJobs": "Joburile de azi",
+    "allOrders": "Toate comenzile",
+    "noJobsToday": "Niciun job programat azi",
+    "noJobsTodayDesc": "Verifică {{scheduleLink}} pentru urmatoarele zile.",
+    "scheduleLink": "programul tau",
+    "recentReviews": "Recenzii recente",
+    "allReviews": "Toate",
+    "noReviewsYet": "Nicio recenzie inca",
+    "noReviewsYetDesc": "Recenziile vor aparea dupa finalizarea primelor comenzi.",
+    "reviewerFallback": "Client"
+  },
+  "personalityTest": {
+    "loading": "Se incarca testul...",
+    "alreadyCompleted": {
+      "title": "Test finalizat",
+      "description": "Ai completat deja testul de personalitate. Contul tău este în așteptarea activării de către administrator.",
+      "backToDashboard": "Înapoi la dashboard"
+    },
+    "intro": {
+      "title": "Test de personalitate",
+      "p1": "Bine ai venit! Pentru a finaliza procesul de înregistrare, trebuie să completezi un scurt chestionar de personalitate.",
+      "p2": "Acest test ne ajută să înțelegem mai bine personalitatea ta și să asigurăm o potrivire bună între tine și clienții noștri.",
+      "infoTitle": "Câteva detalii importante:",
+      "detail1": "28 de întrebări, ~5 minute",
+      "detail2": "Nu există răspunsuri corecte sau greșite",
+      "detail3": "Răspunde sincer și spontan",
+      "detail4": "Poți reveni la întrebări anterioare",
+      "startButton": "Începe testul"
+    },
+    "progress": {
+      "questionOf": "Întrebarea {{current}} din {{total}}",
+      "percentCompleted": "{{percent}}% completat",
+      "allAnswered": "Toate răspunsurile completate",
+      "remaining": "{{count}} răspunsuri rămase"
+    },
+    "likert": {
+      "1": "Dezacord total",
+      "2": "Dezacord",
+      "3": "Nici acord, nici dezacord",
+      "4": "Acord",
+      "5": "Acord total"
+    },
+    "back": "Înapoi",
+    "submit": "Trimite"
+  },
+  "documents": {
+    "pageTitle": "Documente Obligatorii",
+    "pageSubtitle": "Încarcă documentele necesare pentru activarea contului de curățitor",
+    "steps": {
+      "invitation": "Invitație",
+      "test": "Test",
+      "documents": "Documente",
+      "review": "Verificare",
+      "active": "Activ"
+    },
+    "gdpr": "Documentele tale sunt stocate securizat și procesate conform {{gdprLink}}. Accesul este restricționat exclusiv echipei de verificare Go2Fix.",
+    "gdprLink": "Notei de Informare GDPR",
+    "progressStart": "Începe cu fotografia de profil",
+    "progressCount": "{{uploaded}} din {{total}} documente încărcate",
+    "progressHint": "Odată ce toate documentele sunt încărcate, profilul tău va fi trimis spre verificare.",
+    "allUploaded": "Toate documentele au fost încărcate!",
+    "allUploadedHint": "Profilul tău este acum în curs de verificare. Vei fi notificat când este activat.",
+    "requiredDocs": {
+      "cazier_judiciar": {
+        "label": "Cazier Judiciar",
+        "description": "Cazierul judiciar (PDF, max 10MB)"
+      },
+      "contract_munca": {
+        "label": "Contract de Muncă",
+        "description": "Contract de muncă semnat (PDF, max 10MB)"
+      }
+    },
+    "avatar": {
+      "title": "Fotografie de Profil",
+      "titleUpload": "Încarcă Fotografie de Profil",
+      "description": "Fotografie portret clară (JPG/PNG, max 10MB)",
+      "uploaded": "Încărcat",
+      "changePhoto": "Schimbă fotografia",
+      "uploadPhoto": "Încarcă fotografie",
+      "uploading": "Se încarcă...",
+      "errorType": "Doar imagini (JPG, PNG, WEBP) sunt permise",
+      "errorSize": "Imaginea depășește 10MB",
+      "errorGeneric": "Eroare la încărcarea imaginii"
+    },
+    "documentCard": {
+      "pending": "În așteptare",
+      "approved": "Aprobat",
+      "rejected": "Respins",
+      "rejectionReason": "Motiv: {{reason}}",
+      "uploading": "Se încarcă...",
+      "reupload": "Reîncarcă",
+      "upload": "Încarcă",
+      "deleting": "Se șterge...",
+      "delete": "Șterge",
+      "errorType": "Doar fișiere PDF sunt permise",
+      "errorSize": "Fișierul depășește 10MB",
+      "errorUpload": "Eroare la încărcarea documentului",
+      "errorDelete": "Eroare la ștergere",
+      "confirmDelete": "Ștergi documentul {{label}}?"
+    },
+    "backToDashboard": "Înapoi la Dashboard",
+    "continue": "Continuă"
+  },
+  "orders": {
+    "pageTitle": "Comenzile mele",
+    "pageSubtitle": "Gestioneaza comenzile asignate tie.",
+    "filterByStatus": "Filtrează după status",
+    "searchPlaceholder": "Cauta dupa cod referinta...",
+    "dateFrom": "De la",
+    "dateTo": "Pana la",
+    "loading": "Se incarca comenzile...",
+    "noOrders": "Nicio comanda",
+    "noOrdersDesc": "Nu exista comenzi pentru filtrul selectat.",
+    "tableHeaders": {
+      "code": "Cod",
+      "date": "Data",
+      "client": "Client",
+      "status": "Status"
+    },
+    "recurring": "Recurent",
+    "dateAt": "la {{time}}",
+    "statusOptions": {
+      "all": "Toate statusurile",
+      "confirmed": "Confirmata",
+      "inProgress": "In desfasurare",
+      "completed": "Finalizata",
+      "cancelled": "Anulata"
+    },
+    "statusLabels": {
+      "ASSIGNED": "Asignata",
+      "CONFIRMED": "Confirmata",
+      "IN_PROGRESS": "In desfasurare",
+      "COMPLETED": "Finalizata",
+      "CANCELLED_BY_CLIENT": "Anulata de client",
+      "CANCELLED_BY_COMPANY": "Anulata de firma",
+      "CANCELLED_BY_ADMIN": "Anulata de admin"
+    },
+    "pagination": {
+      "orderCount_one": "{{count}} comanda",
+      "orderCount_other": "{{count}} comenzi",
+      "pageInfo": "Pagina {{page}} din {{total}}",
+      "previous": "Anterior",
+      "next": "Urmator"
+    }
+  },
+  "jobDetail": {
+    "backToOrders": "Înapoi la comenzi",
+    "notFound": "Comanda nu a fost găsită",
+    "notFoundDesc": "Aceasta comanda nu exista sau nu ai acces.",
+    "ref": "Ref: {{code}}",
+    "recurring": "Recurenta",
+    "recurringNum": "Recurenta #{{num}}",
+    "timeline": {
+      "title": "Progresul comenzii",
+      "assigned": "Asignata",
+      "confirmed": "Confirmata",
+      "inProgress": "In lucru",
+      "completed": "Finalizata",
+      "cancelled": "Anulata"
+    },
+    "jobDetails": {
+      "title": "Detalii job",
+      "date": "Data",
+      "timeAndDuration": "Ora & Durata",
+      "property": "Proprietate",
+      "surfaceAndPets": "Suprafață & Animale",
+      "sqm": "{{area}} mp",
+      "withPets": "Cu animale",
+      "noPets": "Fara animale",
+      "rooms": "{{count}} cam.",
+      "bathrooms": "{{count}} bai"
+    },
+    "propertyTypes": {
+      "APARTMENT": "Apartament",
+      "HOUSE": "Casa",
+      "OFFICE": "Birou",
+      "STUDIO": "Garsoniera"
+    },
+    "checklist": {
+      "title": "Ce trebuie sa faci",
+      "progress": "Progres: {{checked}}/{{total}} finalizate",
+      "extras": "Suplimentare"
+    },
+    "specialInstructions": "Instructiuni speciale",
+    "address": {
+      "title": "Adresa",
+      "floor": "Etaj {{floor}}",
+      "apartment": "Ap. {{apt}}",
+      "openMaps": "Deschide în Google Maps",
+      "entryCode": "Cod intrare",
+      "notes": "Note adresa"
+    },
+    "photos": {
+      "title": "Poze lucrare",
+      "phaseBefore": "Inainte",
+      "phaseAfter": "Dupa",
+      "phaseDuring": "Lucru",
+      "addPhoto": "Adauga poza",
+      "deleteConfirm": "Stergi aceasta poza?",
+      "phaseOptions": {
+        "before": "Inainte",
+        "during": "In lucru",
+        "after": "Dupa"
+      }
+    },
+    "client": {
+      "title": "Client",
+      "call": "Suna"
+    },
+    "company": {
+      "title": "Firma"
+    },
+    "review": {
+      "title": "Recenzie client"
+    },
+    "actions": {
+      "startCleaning": "Incepe curatenia",
+      "completeCleaning": "Finalizeaza curatenia",
+      "checkAllTasks": "Bifeaza toate sarcinile pentru a finaliza",
+      "errorUpdate": "Nu s-a putut actualiza statusul. Te rugam sa incerci din nou."
+    },
+    "statusLabels": {
+      "ASSIGNED": "Asignata",
+      "CONFIRMED": "Confirmata",
+      "IN_PROGRESS": "In lucru",
+      "COMPLETED": "Finalizata",
+      "CANCELLED_BY_CLIENT": "Anulata de client",
+      "CANCELLED_BY_COMPANY": "Anulata de companie",
+      "CANCELLED_BY_ADMIN": "Anulata de admin"
+    }
+  },
+  "schedule": {
+    "pageTitle": "Program",
+    "pageSubtitle": "Programul tau saptamanal si disponibilitatea",
+    "tabSchedule": "Program",
+    "tabAvailability": "Disponibilitate",
+    "today": "Azi",
+    "prevWeek": "Saptamana anterioara",
+    "nextWeek": "Saptamana urmatoare",
+    "noOrders": "Nicio comanda",
+    "noOrdersScheduled": "Nicio comanda programata",
+    "available": "Disponibil",
+    "unavailable": "Indisponibil",
+    "dayOff": "Zi libera",
+    "weeklySchedule": "Program saptamanal",
+    "unavailableLabel": "Indisponibil",
+    "saveSchedule": "Salveaza programul",
+    "savedSchedule": "Program salvat cu succes!",
+    "errorSaveSchedule": "Eroare la salvarea programului.",
+    "ariaAvailableDay": "{{day}} disponibil",
+    "daysOff": "Zile libere",
+    "addDayOff": "Adauga zi libera",
+    "date": "Data",
+    "allDay": "Toata ziua",
+    "timeFrom": "De la",
+    "timeTo": "Pana la",
+    "save": "Salveaza",
+    "cancel": "Anuleaza",
+    "cancelDayOff": "Anuleaza",
+    "noDaysOff": "Nu ai zile libere programate in urmatoarele 30 de zile.",
+    "fullDayOff": "Zi libera completa",
+    "partialDayOff": "Liber: {{start}} - {{end}}",
+    "addedDayOff": "Zi libera adaugata!",
+    "errorAddDayOff": "Eroare la adaugarea zilei libere.",
+    "cancelledDayOff": "Zi libera anulata.",
+    "errorCancelDayOff": "Eroare la anularea zilei libere.",
+    "months": {
+      "0": "Ian",
+      "1": "Feb",
+      "2": "Mar",
+      "3": "Apr",
+      "4": "Mai",
+      "5": "Iun",
+      "6": "Iul",
+      "7": "Aug",
+      "8": "Sep",
+      "9": "Oct",
+      "10": "Nov",
+      "11": "Dec"
+    },
+    "statusLabels": {
+      "ASSIGNED": "Asignata",
+      "CONFIRMED": "Confirmata",
+      "IN_PROGRESS": "In lucru",
+      "COMPLETED": "Finalizata"
+    }
+  },
+  "settings": {
+    "pageTitle": "Profil & Setări",
+    "loadingProfile": "Se incarca profilul...",
+    "memberSince": "Membru din {{date}}",
+    "stats": {
+      "rating": "Rating",
+      "reviewsCount": "{{count}} recenzii",
+      "jobsCompleted": "Joburi finalizate",
+      "thisMonth": "{{count}} luna aceasta"
+    },
+    "personalityTest": {
+      "title": "Test de personalitate",
+      "completed": "Completat pe {{date}}",
+      "completedNoDate": "Completat",
+      "pendingActivation": "Necesar pentru activare",
+      "complete": "Completeaza"
+    },
+    "reviews": {
+      "title": "Recenzii recente",
+      "totalCount": "{{count}} total",
+      "noReviews": "Nicio recenzie inca.",
+      "noReviewsDesc": "Recenziile vor aparea dupa finalizarea comenzilor.",
+      "reviewerFallback": "Client"
+    },
+    "workAreas": {
+      "title": "Zonele mele de lucru",
+      "loading": "Se incarca zonele...",
+      "noAreas": "Nicio zona atribuita inca.",
+      "managedBy": "Zonele de lucru sunt gestionate de administratorul firmei tale.",
+      "unknownCity": "Necunoscut"
+    },
+    "categories": {
+      "title": "Categoriile mele de servicii",
+      "loading": "Se incarca categoriile...",
+      "noCategories": "Nicio categorie atribuita inca.",
+      "managedBy": "Categoriile de servicii sunt gestionate de administratorul firmei tale."
+    },
+    "documents": {
+      "title": "Documentele mele",
+      "pendingReviewNotice": "Incarca documentele necesare pentru a fi activat de administrator.",
+      "uploadLabel": "Incarca {{label}}",
+      "requiredDocs": {
+        "cazier_judiciar": "Cazier Judiciar",
+        "contract_munca": "Contract de Munca"
+      }
+    },
+    "profileInfo": {
+      "title": "Informatii profil",
+      "phoneLabel": "Telefon *",
+      "phonePlaceholder": "+40 7XX XXX XXX",
+      "phoneRequired": "Numărul de telefon este obligatoriu.",
+      "phoneFormat": "Formatul trebuie sa fie +40...",
+      "bioLabel": "Bio",
+      "bioPlaceholder": "Descrie-te pe scurt...",
+      "verifiedPhone": "Verificat via WhatsApp",
+      "unverifiedPhone": "Neverificat",
+      "verifyNow": "Verifica acum",
+      "hideVerify": "Ascunde",
+      "saveButton": "Salveaza modificarile",
+      "saveSuccess": "Profil actualizat cu succes!",
+      "saveError": "Eroare la salvare. Incearca din nou."
+    },
+    "language": {
+      "title": "Limbă preferată",
+      "saveButton": "Salvează preferința",
+      "saveSuccess": "Preferința de limbă a fost salvată",
+      "saveError": "Eroare la salvarea preferinței"
+    },
+    "workerStatus": {
+      "ACTIVE": "Activ",
+      "INVITED": "Invitat",
+      "PENDING_REVIEW": "In asteptare",
+      "SUSPENDED": "Suspendat",
+      "INACTIVE": "Inactiv"
+    }
+  }
+}

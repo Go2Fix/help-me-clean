@@ -1,0 +1,152 @@
+{
+  "nav": {
+    "logout": "Deconectare",
+    "collapseMenu": "Restrânge",
+    "expandMenu": "Extinde",
+    "toggleMenu": "Meniu"
+  },
+  "status": {
+    "active": "Activ",
+    "inactive": "Inactiv",
+    "paused": "În pauză",
+    "pastDue": "Restant",
+    "cancelled": "Anulat",
+    "confirmed": "Confirmat",
+    "assigned": "Asignat",
+    "inProgress": "În desfășurare",
+    "completed": "Finalizat",
+    "pending": "În așteptare",
+    "pendingAssignment": "În așteptare alocare",
+    "suspended": "Suspendat",
+    "invited": "Invitat",
+    "noShow": "Neprezentare",
+    "open": "Deschis",
+    "resolved": "Rezolvat",
+    "unknown": "Necunoscut"
+  },
+  "actions": {
+    "save": "Salvează",
+    "saving": "Se salvează...",
+    "saved": "Salvat",
+    "cancel": "Anulează",
+    "delete": "Șterge",
+    "confirm": "Confirmă",
+    "edit": "Editează",
+    "back": "Înapoi",
+    "view": "Vizualizează",
+    "viewAll": "Vezi toate",
+    "close": "Închide",
+    "add": "Adaugă",
+    "upload": "Încarcă",
+    "download": "Descarcă",
+    "submit": "Trimite",
+    "approve": "Aprobă",
+    "reject": "Respinge",
+    "refresh": "Reîncarcă",
+    "copy": "Copiază",
+    "copied": "Copiat!",
+    "send": "Trimite",
+    "search": "Caută",
+    "filter": "Filtrează",
+    "reset": "Resetează",
+    "select": "Selectează",
+    "remove": "Elimină",
+    "update": "Actualizează",
+    "manage": "Gestionează",
+    "details": "Detalii",
+    "continue": "Continuă"
+  },
+  "recurrence": {
+    "oneTime": "O singură dată",
+    "weekly": "Săptămânal",
+    "biweekly": "La 2 săptămâni",
+    "monthly": "Lunar"
+  },
+  "pagination": {
+    "previous": "Anterior",
+    "next": "Următor",
+    "page": "Pagina {{current}} din {{total}}",
+    "showing": "Afișând {{from}}-{{to}} din {{total}}"
+  },
+  "empty": {
+    "noData": "Nu există date disponibile",
+    "noResults": "Niciun rezultat găsit",
+    "noItems": "Niciun element"
+  },
+  "error": {
+    "generic": "A apărut o eroare. Te rugăm să reîncerci.",
+    "loadFailed": "Nu s-au putut încărca datele.",
+    "saveFailed": "Salvarea a eșuat. Te rugăm să reîncerci.",
+    "unauthorized": "Nu ești autorizat să efectuezi această acțiune."
+  },
+  "loading": "Se încarcă...",
+  "language": {
+    "label": "Limbă preferată",
+    "ro": "Română",
+    "en": "English",
+    "save": "Salvează preferința",
+    "saved": "Preferința a fost salvată"
+  },
+  "date": {
+    "today": "Azi",
+    "yesterday": "Ieri",
+    "tomorrow": "Mâine",
+    "at": "la"
+  },
+  "bookingStatus": {
+    "PENDING_ASSIGNMENT": "În așteptare",
+    "CONFIRMED": "Confirmat",
+    "ASSIGNED": "Asignat",
+    "IN_PROGRESS": "În desfășurare",
+    "COMPLETED": "Finalizat",
+    "CANCELLED": "Anulat",
+    "NO_SHOW": "Neprezentare"
+  },
+  "subscriptionStatus": {
+    "ACTIVE": "Activ",
+    "PAUSED": "În pauză",
+    "PAST_DUE": "Restant",
+    "CANCELLED": "Anulat"
+  },
+  "userRole": {
+    "CLIENT": "Client",
+    "COMPANY_ADMIN": "Administrator firmă",
+    "WORKER": "Lucrător",
+    "GLOBAL_ADMIN": "Administrator"
+  },
+  "userStatus": {
+    "ACTIVE": "Activ",
+    "INACTIVE": "Inactiv",
+    "SUSPENDED": "Suspendat",
+    "PENDING": "În așteptare"
+  },
+  "documentStatus": {
+    "PENDING": "În verificare",
+    "APPROVED": "Aprobat",
+    "REJECTED": "Respins"
+  },
+  "days": {
+    "0": "Duminică",
+    "1": "Luni",
+    "2": "Marți",
+    "3": "Miercuri",
+    "4": "Joi",
+    "5": "Vineri",
+    "6": "Sâmbătă",
+    "short": {
+      "0": "Dum",
+      "1": "Lun",
+      "2": "Mar",
+      "3": "Mie",
+      "4": "Joi",
+      "5": "Vin",
+      "6": "Sâm"
+    }
+  },
+  "notification": {
+    "success": "Succes",
+    "error": "Eroare",
+    "info": "Informație",
+    "warning": "Atenție"
+  }
+}

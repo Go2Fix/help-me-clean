@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useQuery } from '@apollo/client';
+import { useTranslation } from 'react-i18next';
 import { Receipt, ChevronRight, ChevronLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -63,33 +64,34 @@ function formatAmount(amount: number): string {
   return (amount / 100).toFixed(2) + ' lei';
 }
 
-function formatDate(iso: string): string {
+const STATUS_VARIANTS: Record<string, 'success' | 'warning' | 'danger' | 'default'> = {
+  SUCCEEDED: 'success',
+  PENDING: 'warning',
+  FAILED: 'danger',
+  REFUNDED: 'default',
+};
+
+const REFUND_DOT_COLORS: Record<RefundStatus, string> = {
+  REQUESTED: 'bg-amber-500',
+  APPROVED: 'bg-blue-500',
+  PROCESSED: 'bg-emerald-500',
+  REJECTED: 'bg-red-500',
+};
+
+function formatDate(iso: string, locale: string): string {
   const d = new Date(iso);
-  return d.toLocaleDateString('ro-RO', {
+  return d.toLocaleDateString(locale === 'en' ? 'en-GB' : 'ro-RO', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
   });
 }
 
-const STATUS_CONFIG: Record<string, { label: string; variant: 'success' | 'warning' | 'danger' | 'default' }> = {
-  SUCCEEDED: { label: 'Platita', variant: 'success' },
-  PENDING: { label: 'In asteptare', variant: 'warning' },
-  FAILED: { label: 'Esuata', variant: 'danger' },
-  REFUNDED: { label: 'Rambursata', variant: 'default' },
-};
-
-const REFUND_STATUS_CONFIG: Record<RefundStatus, { label: string; dotColor: string }> = {
-  REQUESTED: { label: 'Solicitata', dotColor: 'bg-amber-500' },
-  APPROVED: { label: 'Aprobata', dotColor: 'bg-blue-500' },
-  PROCESSED: { label: 'Finalizata', dotColor: 'bg-emerald-500' },
-  REJECTED: { label: 'Respinsa', dotColor: 'bg-red-500' },
-};
-
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function PaymentHistoryPage() {
   const { isAuthenticated } = useAuth();
+  const { t, i18n } = useTranslation(['dashboard', 'client']);
   const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState('');
   const [page, setPage] = useState(0);
@@ -135,15 +137,15 @@ export default function PaymentHistoryPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Istoric plati</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t('client:paymentHistory.title')}</h1>
           <p className="text-gray-500 mt-1">
-            Toate platile efectuate pentru rezervarile tale.
+            {t('client:paymentHistory.subtitle')}
           </p>
         </div>
       </div>
 
       {/* Loading State */}
-      {loading && !data && <LoadingSpinner text="Se incarca istoricul platilor..." />}
+      {loading && !data && <LoadingSpinner text={t('client:paymentHistory.loading')} />}
 
       {/* Status Filter */}
       {payments.length > 0 && (
@@ -153,11 +155,11 @@ export default function PaymentHistoryPage() {
             onChange={(e) => setStatusFilter(e.target.value)}
             className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/30"
           >
-            <option value="">Toate platile</option>
-            <option value="SUCCEEDED">Reusita</option>
-            <option value="PENDING">In asteptare</option>
-            <option value="FAILED">Esuata</option>
-            <option value="REFUNDED">Rambursata</option>
+            <option value="">{t('client:paymentHistory.filter.all')}</option>
+            <option value="SUCCEEDED">{t('client:paymentHistory.filter.succeeded')}</option>
+            <option value="PENDING">{t('client:paymentHistory.filter.pending')}</option>
+            <option value="FAILED">{t('client:paymentHistory.filter.failed')}</option>
+            <option value="REFUNDED">{t('client:paymentHistory.filter.refunded')}</option>
           </select>
         </div>
       )}
@@ -169,19 +171,17 @@ export default function PaymentHistoryPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-200">
-                  <th className="text-left px-3 md:px-6 py-3 font-medium text-gray-500">Data</th>
-                  <th className="text-left px-3 md:px-6 py-3 font-medium text-gray-500">Referinta</th>
-                  <th className="text-right px-3 md:px-6 py-3 font-medium text-gray-500">Suma (RON)</th>
-                  <th className="text-center px-3 md:px-6 py-3 font-medium text-gray-500">Status</th>
+                  <th className="text-left px-3 md:px-6 py-3 font-medium text-gray-500">{t('client:paymentHistory.table.date')}</th>
+                  <th className="text-left px-3 md:px-6 py-3 font-medium text-gray-500">{t('client:paymentHistory.table.reference')}</th>
+                  <th className="text-right px-3 md:px-6 py-3 font-medium text-gray-500">{t('client:paymentHistory.table.amount')}</th>
+                  <th className="text-center px-3 md:px-6 py-3 font-medium text-gray-500">{t('client:paymentHistory.table.status')}</th>
                   <th className="px-3 md:px-6 py-3 w-10" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {filteredPayments.map((payment) => {
-                  const cfg = STATUS_CONFIG[payment.status] ?? {
-                    label: payment.status,
-                    variant: 'default' as const,
-                  };
+                  const statusVariant = STATUS_VARIANTS[payment.status] ?? 'default';
+                  const statusLabel = t(`client:paymentHistory.status.${payment.status}`, { defaultValue: payment.status });
 
                   return (
                     <tr
@@ -194,7 +194,7 @@ export default function PaymentHistoryPage() {
                       }
                     >
                       <td className="px-3 md:px-6 py-4 text-gray-900 whitespace-nowrap">
-                        {formatDate(payment.createdAt)}
+                        {formatDate(payment.createdAt, i18n.language)}
                       </td>
                       <td className="px-3 md:px-6 py-4 whitespace-nowrap">
                         {payment.booking ? (
@@ -214,7 +214,7 @@ export default function PaymentHistoryPage() {
                         {formatAmount(payment.amount)}
                       </td>
                       <td className="px-3 md:px-6 py-4 text-center">
-                        <Badge variant={cfg.variant}>{cfg.label}</Badge>
+                        <Badge variant={statusVariant}>{statusLabel}</Badge>
                       </td>
                       <td className="px-3 md:px-6 py-4">
                         {payment.booking && (
@@ -237,10 +237,10 @@ export default function PaymentHistoryPage() {
             <Receipt className="h-8 w-8 text-gray-400" />
           </div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            Nicio plata inregistrata
+            {t('client:paymentHistory.empty.title')}
           </h3>
           <p className="text-gray-500">
-            Istoricul platilor va aparea aici dupa prima ta rezervare platita.
+            {t('client:paymentHistory.empty.description')}
           </p>
         </div>
       )}
@@ -249,7 +249,7 @@ export default function PaymentHistoryPage() {
       {totalCount > 0 && (
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mt-6">
           <span className="text-sm text-gray-500">
-            {totalCount} {totalCount === 1 ? 'tranzactie' : 'tranzactii'} &middot; Pagina {page + 1} din {totalPages}
+            {totalCount} {t('client:paymentHistory.pagination.transaction', { count: totalCount })} &middot; {t('pagination.page', { current: page + 1, total: totalPages })}
           </span>
           {totalPages > 1 && (
             <div className="flex items-center gap-3">
@@ -260,7 +260,7 @@ export default function PaymentHistoryPage() {
                 onClick={() => setPage((p) => p - 1)}
               >
                 <ChevronLeft className="h-4 w-4" />
-                <span className="hidden sm:inline">Anterior</span>
+                <span className="hidden sm:inline">{t('pagination.previous')}</span>
               </Button>
               <span className="text-sm text-gray-700">
                 {page + 1} / {totalPages}
@@ -271,7 +271,7 @@ export default function PaymentHistoryPage() {
                 disabled={page + 1 >= totalPages}
                 onClick={() => setPage((p) => p + 1)}
               >
-                <span className="hidden sm:inline">Urmator</span>
+                <span className="hidden sm:inline">{t('pagination.next')}</span>
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
@@ -283,20 +283,21 @@ export default function PaymentHistoryPage() {
       {!refundLoading && (
         <div className="mt-10">
           <h2 className="text-xl font-bold text-gray-900 mb-4">
-            Cererile mele de rambursare
+            {t('client:paymentHistory.refunds.title')}
           </h2>
 
           {refundRequests.length === 0 ? (
             <Card>
               <p className="text-gray-500 text-sm text-center py-4">
-                Nu aveti cereri de rambursare.
+                {t('client:paymentHistory.refunds.empty')}
               </p>
             </Card>
           ) : (
             <Card padding={false}>
               <ul className="divide-y divide-gray-100">
                 {refundRequests.map((refund) => {
-                  const cfg = REFUND_STATUS_CONFIG[refund.status];
+                  const dotColor = REFUND_DOT_COLORS[refund.status];
+                  const refundStatusLabel = t(`client:paymentHistory.refunds.status.${refund.status}`, { defaultValue: refund.status });
 
                   return (
                     <li
@@ -306,7 +307,7 @@ export default function PaymentHistoryPage() {
                       {/* Left: status dot + booking info */}
                       <div className="flex items-center gap-3 min-w-0">
                         <span
-                          className={`shrink-0 h-2.5 w-2.5 rounded-full ${cfg.dotColor}`}
+                          className={`shrink-0 h-2.5 w-2.5 rounded-full ${dotColor}`}
                           aria-hidden="true"
                         />
                         <div className="min-w-0">
@@ -341,10 +342,10 @@ export default function PaymentHistoryPage() {
                                   : 'text-red-600'
                           }`}
                         >
-                          {cfg.label}
+                          {refundStatusLabel}
                         </span>
                         <span className="text-xs text-gray-400 whitespace-nowrap hidden sm:inline">
-                          {formatDate(refund.createdAt)}
+                          {formatDate(refund.createdAt, i18n.language)}
                         </span>
                       </div>
                     </li>

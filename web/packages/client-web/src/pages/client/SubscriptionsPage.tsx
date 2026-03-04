@@ -54,36 +54,27 @@ interface SubscriptionsData {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-const RECURRENCE_LABELS: Record<string, string> = {
-  WEEKLY: 'Saptamanal',
-  BIWEEKLY: 'Bi-saptamanal',
-  MONTHLY: 'Lunar',
-};
-
-const STATUS_CONFIG: Record<
-  string,
-  { label: string; variant: 'success' | 'warning' | 'danger' | 'default' }
-> = {
-  ACTIVE: { label: 'Activ', variant: 'success' },
-  PAUSED: { label: 'In pauza', variant: 'warning' },
-  PAST_DUE: { label: 'Restanta', variant: 'danger' },
-  CANCELLED: { label: 'Anulat', variant: 'default' },
+const STATUS_VARIANTS: Record<string, 'success' | 'warning' | 'danger' | 'default'> = {
+  ACTIVE: 'success',
+  PAUSED: 'warning',
+  PAST_DUE: 'danger',
+  CANCELLED: 'default',
 };
 
 function formatAmount(amount: number): string {
   return amount.toFixed(2);
 }
 
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('ro-RO', {
+function formatDate(iso: string, locale: string): string {
+  return new Date(iso).toLocaleDateString(locale === 'en' ? 'en-GB' : 'ro-RO', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
   });
 }
 
-function formatDateLong(iso: string): string {
-  return new Date(iso).toLocaleDateString('ro-RO', {
+function formatDateLong(iso: string, locale: string): string {
+  return new Date(iso).toLocaleDateString(locale === 'en' ? 'en-GB' : 'ro-RO', {
     weekday: 'short',
     day: 'numeric',
     month: 'long',
@@ -115,7 +106,7 @@ function SkeletonCard() {
 export default function SubscriptionsPage() {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const { t: _t } = useTranslation();
+  const { t, i18n } = useTranslation(['dashboard', 'client']);
 
   // ─── Query ──────────────────────────────────────────────────────────────
 
@@ -144,9 +135,9 @@ export default function SubscriptionsPage() {
     <div>
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Abonamentele mele</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t('client:subscriptions.title')}</h1>
         <p className="text-gray-500 mt-1">
-          Gestioneaza abonamentele tale recurente pentru servicii de curatenie.
+          {t('client:subscriptions.subtitle')}
         </p>
       </div>
 
@@ -166,16 +157,16 @@ export default function SubscriptionsPage() {
             <Repeat className="h-8 w-8 text-red-400" />
           </div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            Eroare la incarcarea abonamentelor
+            {t('client:subscriptions.error.title')}
           </h3>
           <p className="text-gray-500 mb-4">
-            Nu am putut incarca abonamentele tale. Te rugam sa incerci din nou.
+            {t('client:subscriptions.error.description')}
           </p>
           <Button
             variant="outline"
             onClick={() => window.location.reload()}
           >
-            Reincearca
+            {t('client:subscriptions.error.retry')}
           </Button>
         </Card>
       )}
@@ -187,14 +178,14 @@ export default function SubscriptionsPage() {
             <Repeat className="h-8 w-8 text-gray-400" />
           </div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            Niciun abonament activ
+            {t('client:subscriptions.empty.title')}
           </h3>
           <p className="text-gray-500 mb-6">
-            Nu ai inca niciun abonament. Creeaza o rezervare recurenta pentru a beneficia de reduceri.
+            {t('client:subscriptions.empty.description')}
           </p>
           <Button onClick={() => navigate('/rezervare')}>
             <Sparkles className="h-4 w-4" />
-            Creeaza o rezervare
+            {t('client:subscriptions.empty.create')}
           </Button>
         </div>
       )}
@@ -203,12 +194,9 @@ export default function SubscriptionsPage() {
       {!error && subscriptions.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {subscriptions.map((sub) => {
-            const statusCfg = STATUS_CONFIG[sub.status] ?? {
-              label: sub.status,
-              variant: 'default' as const,
-            };
-            const recurrenceLabel =
-              RECURRENCE_LABELS[sub.recurrenceType] ?? sub.recurrenceType;
+            const statusVariant = STATUS_VARIANTS[sub.status] ?? 'default';
+            const statusLabel = t(`client:subscriptions.status.${sub.status}`, { defaultValue: sub.status });
+            const recurrenceLabel = t(`client:subscriptions.recurrence.${sub.recurrenceType}`, { defaultValue: sub.recurrenceType });
             const nextBooking =
               sub.upcomingBookings.length > 0 ? sub.upcomingBookings[0] : null;
             const progressPct =
@@ -230,7 +218,7 @@ export default function SubscriptionsPage() {
                       {recurrenceLabel}
                     </span>
                   </div>
-                  <Badge variant={statusCfg.variant}>{statusCfg.label}</Badge>
+                  <Badge variant={statusVariant}>{statusLabel}</Badge>
                 </div>
 
                 {/* Service name */}
@@ -243,7 +231,7 @@ export default function SubscriptionsPage() {
                   <span className="text-2xl font-bold text-blue-600">
                     {formatAmount(sub.monthlyAmount)}
                   </span>
-                  <span className="text-sm text-gray-500">RON/luna</span>
+                  <span className="text-sm text-gray-500">{t('client:subscriptions.perMonth')}</span>
                   {sub.discountPct > 0 && (
                     <Badge variant="success" className="ml-1">
                       -{sub.discountPct}%
@@ -274,10 +262,7 @@ export default function SubscriptionsPage() {
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <Calendar className="h-4 w-4 text-gray-400 shrink-0" />
                       <span>
-                        Urmatoarea programare:{' '}
-                        <span className="font-medium text-gray-900">
-                          {formatDateLong(nextBooking.scheduledDate)}
-                        </span>
+                        {t('client:subscriptions.nextAppointment', { date: formatDateLong(nextBooking.scheduledDate, i18n.language) })}
                       </span>
                     </div>
                   )}
@@ -287,10 +272,10 @@ export default function SubscriptionsPage() {
                     <CalendarCheck className="h-4 w-4 text-gray-400 shrink-0" />
                     <span>
                       {sub.sessionsPerMonth}{' '}
-                      {sub.sessionsPerMonth === 1 ? 'sedinta' : 'sedinte'}/luna
+                      {t('client:subscriptions.sessions', { count: sub.sessionsPerMonth })}/luna
                       {' '}
                       &middot;{' '}
-                      {formatAmount(sub.perSessionDiscounted)} RON/sedinta
+                      {formatAmount(sub.perSessionDiscounted)} {t('client:subscriptions.perSession')}
                     </span>
                   </div>
                 </div>
@@ -300,7 +285,7 @@ export default function SubscriptionsPage() {
                   <div className="mb-3">
                     <div className="flex items-center justify-between mb-1.5">
                       <span className="text-xs text-gray-500">
-                        {sub.completedBookings} din {sub.totalBookings} programari completate
+                        {t('client:subscriptions.completedOf', { completed: sub.completedBookings, total: sub.totalBookings })}
                       </span>
                       <span className="text-xs font-medium text-gray-700">
                         {progressPct}%
@@ -318,8 +303,10 @@ export default function SubscriptionsPage() {
                 {/* Period info + chevron */}
                 <div className="flex items-center justify-between pt-3 border-t border-gray-100">
                   <span className="text-xs text-gray-400">
-                    Perioada: {formatDate(sub.currentPeriodStart)} -{' '}
-                    {formatDate(sub.currentPeriodEnd)}
+                    {t('client:subscriptions.period', {
+                      start: formatDate(sub.currentPeriodStart, i18n.language),
+                      end: formatDate(sub.currentPeriodEnd, i18n.language),
+                    })}
                   </span>
                   <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-blue-600 transition-colors" />
                 </div>

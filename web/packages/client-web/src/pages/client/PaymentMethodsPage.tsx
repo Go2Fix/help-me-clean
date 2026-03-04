@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
+import { useTranslation } from 'react-i18next';
 import { CreditCard, Plus, Star, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -51,6 +52,7 @@ function formatExpiry(month?: number, year?: number): string {
 
 export default function PaymentMethodsPage() {
   const { isAuthenticated } = useAuth();
+  const { t } = useTranslation(['dashboard', 'client']);
   const [showAddModal, setShowAddModal] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
@@ -102,26 +104,26 @@ export default function PaymentMethodsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Metode de plată</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t('client:payments.title')}</h1>
           <p className="text-gray-500 mt-1">
-            Gestioneaza cardurile salvate pentru plati rapide.
+            {t('client:payments.subtitle')}
           </p>
         </div>
         <div className="flex items-center gap-3">
           <Link to="/cont/plati/istoric">
             <Button variant="outline" size="sm">
-              Istoric plati
+              {t('client:payments.paymentHistory')}
             </Button>
           </Link>
           <Button onClick={() => setShowAddModal(true)}>
             <Plus className="h-4 w-4" />
-            Adauga card
+            {t('client:payments.addCard')}
           </Button>
         </div>
       </div>
 
       {/* Loading State */}
-      {loading && !data && <LoadingSpinner text="Se incarca metodele de plata..." />}
+      {loading && !data && <LoadingSpinner text={t('client:payments.loading')} />}
 
       {/* Payment Methods List */}
       {!loading && methods.length > 0 && (
@@ -133,7 +135,7 @@ export default function PaymentMethodsPage() {
                 <div className="absolute inset-0 bg-white/95 rounded-xl flex items-center justify-center z-10">
                   <div className="text-center">
                     <p className="text-sm font-medium text-gray-900 mb-3">
-                      Stergi acest card?
+                      {t('client:payments.deleteConfirm')}
                     </p>
                     <div className="flex gap-2 justify-center">
                       <Button
@@ -141,7 +143,7 @@ export default function PaymentMethodsPage() {
                         variant="outline"
                         onClick={() => setDeleteConfirmId(null)}
                       >
-                        Anuleaza
+                        {t('client:payments.cancel')}
                       </Button>
                       <Button
                         size="sm"
@@ -150,7 +152,7 @@ export default function PaymentMethodsPage() {
                         onClick={() => handleDelete(pm.id)}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
-                        Sterge
+                        {t('client:payments.delete')}
                       </Button>
                     </div>
                   </div>
@@ -169,7 +171,7 @@ export default function PaymentMethodsPage() {
                     {pm.isDefault && (
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary/10 text-xs font-semibold text-secondary">
                         <Star className="h-3 w-3" />
-                        Implicit
+                        {t('client:payments.default')}
                       </span>
                     )}
                   </div>
@@ -190,7 +192,7 @@ export default function PaymentMethodsPage() {
                       type="button"
                       onClick={() => handleSetDefault(pm.id)}
                       className="p-2 rounded-lg text-gray-400 hover:bg-amber-50 hover:text-amber-500 transition cursor-pointer"
-                      title="Seteaza ca implicit"
+                      title={t('client:payments.setDefault')}
                     >
                       <Star className="h-4 w-4" />
                     </button>
@@ -217,14 +219,14 @@ export default function PaymentMethodsPage() {
             <CreditCard className="h-8 w-8 text-gray-400" />
           </div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            Nu ai niciun card salvat
+            {t('client:payments.empty.title')}
           </h3>
           <p className="text-gray-500 mb-6">
-            Adauga un card pentru a plati rezervarile rapid si sigur.
+            {t('client:payments.empty.description')}
           </p>
           <Button onClick={() => setShowAddModal(true)}>
             <Plus className="h-4 w-4" />
-            Adauga card
+            {t('client:payments.empty.addButton')}
           </Button>
         </div>
       )}

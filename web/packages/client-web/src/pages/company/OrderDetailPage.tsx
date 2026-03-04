@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { downloadClientInvoicePDF } from '@/components/invoice/ClientInvoicePDF';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation } from '@apollo/client';
+import { useTranslation } from 'react-i18next';
 import {
   ArrowLeft, MapPin, Phone, Mail, Clock, Calendar, Search, Loader2,
   Star, Check, Repeat, FileText, CheckCircle, XCircle, AlertCircle, Home,
@@ -31,8 +32,8 @@ import {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('ro-RO', {
+function formatCurrency(value: number, locale: string): string {
+  return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency: 'RON',
     minimumFractionDigits: 2,
@@ -40,16 +41,16 @@ function formatCurrency(value: number): string {
   }).format(value);
 }
 
-function formatDate(date: string): string {
-  return new Date(date).toLocaleDateString('ro-RO', {
+function formatDate(date: string, locale: string): string {
+  return new Date(date).toLocaleDateString(locale, {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   });
 }
 
-function formatDateTime(date: string): string {
-  return new Date(date).toLocaleString('ro-RO', {
+function formatDateTime(date: string, locale: string): string {
+  return new Date(date).toLocaleString(locale, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -70,30 +71,6 @@ const statusBadgeVariant: Record<string, 'default' | 'success' | 'warning' | 'da
   CANCELLED_BY_ADMIN: 'danger',
 };
 
-const statusLabel: Record<string, string> = {
-  ASSIGNED: 'Asignat',
-  CONFIRMED: 'Confirmata',
-  IN_PROGRESS: 'In desfasurare',
-  COMPLETED: 'Finalizata',
-  CANCELLED: 'Anulata',
-  CANCELLED_BY_CLIENT: 'Anulat de client',
-  CANCELLED_BY_COMPANY: 'Anulat de companie',
-  CANCELLED_BY_ADMIN: 'Anulat de admin',
-};
-
-const paymentStatusLabel: Record<string, string> = {
-  PAID: 'Plătită',
-  paid: 'Plătită',
-  PENDING: 'In asteptare',
-  pending: 'In asteptare',
-  FAILED: 'Esuata',
-  failed: 'Esuata',
-  REFUNDED: 'Rambursata',
-  refunded: 'Rambursata',
-  SUCCEEDED: 'Reusita',
-  succeeded: 'Reusita',
-};
-
 const paymentBadgeVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
   PAID: 'success',
   paid: 'success',
@@ -107,25 +84,11 @@ const paymentBadgeVariant: Record<string, 'default' | 'success' | 'warning' | 'd
   succeeded: 'success',
 };
 
-const invoiceStatusLabel: Record<string, string> = {
-  DRAFT: 'Ciorna',
-  ISSUED: 'Emisa',
-  CANCELLED: 'Anulata',
-  PAID: 'Plătită',
-};
-
 const invoiceBadgeVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
   DRAFT: 'default',
   ISSUED: 'info',
   CANCELLED: 'danger',
   PAID: 'success',
-};
-
-const propertyTypeLabel: Record<string, string> = {
-  APARTMENT: 'Apartament',
-  HOUSE: 'Casa',
-  OFFICE: 'Birou',
-  STUDIO: 'Garsoniera',
 };
 
 // ─── Avatar ──────────────────────────────────────────────────────────────────
@@ -232,6 +195,46 @@ interface TimelineStep {
 export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation('company');
+  const locale = i18n.language === 'en' ? 'en-GB' : 'ro-RO';
+
+  const statusLabel: Record<string, string> = {
+    ASSIGNED: t('orderDetail.bookingStatuses.assigned'),
+    CONFIRMED: t('orderDetail.bookingStatuses.confirmed'),
+    IN_PROGRESS: t('orderDetail.bookingStatuses.inProgress'),
+    COMPLETED: t('orderDetail.bookingStatuses.completed'),
+    CANCELLED: t('orderDetail.bookingStatuses.cancelled'),
+    CANCELLED_BY_CLIENT: t('orderDetail.bookingStatuses.cancelledByClient'),
+    CANCELLED_BY_COMPANY: t('orderDetail.bookingStatuses.cancelledByCompany'),
+    CANCELLED_BY_ADMIN: t('orderDetail.bookingStatuses.cancelledByAdmin'),
+  };
+
+  const paymentStatusLabel: Record<string, string> = {
+    PAID: t('orderDetail.paymentStatuses.paid'),
+    paid: t('orderDetail.paymentStatuses.paid'),
+    PENDING: t('orderDetail.paymentStatuses.pending'),
+    pending: t('orderDetail.paymentStatuses.pending'),
+    FAILED: t('orderDetail.paymentStatuses.failed'),
+    failed: t('orderDetail.paymentStatuses.failed'),
+    REFUNDED: t('orderDetail.paymentStatuses.refunded'),
+    refunded: t('orderDetail.paymentStatuses.refunded'),
+    SUCCEEDED: t('orderDetail.paymentStatuses.succeeded'),
+    succeeded: t('orderDetail.paymentStatuses.succeeded'),
+  };
+
+  const invoiceStatusLabel: Record<string, string> = {
+    DRAFT: t('orderDetail.invoiceStatuses.draft'),
+    ISSUED: t('orderDetail.invoiceStatuses.issued'),
+    CANCELLED: t('orderDetail.invoiceStatuses.cancelled'),
+    PAID: t('orderDetail.invoiceStatuses.paid'),
+  };
+
+  const propertyTypeLabel: Record<string, string> = {
+    APARTMENT: t('orderDetail.propertyTypes.APARTMENT'),
+    HOUSE: t('orderDetail.propertyTypes.HOUSE'),
+    OFFICE: t('orderDetail.propertyTypes.OFFICE'),
+    STUDIO: t('orderDetail.propertyTypes.STUDIO'),
+  };
 
   // Modal state
   const [assignModal, setAssignModal] = useState(false);
@@ -380,7 +383,7 @@ export default function OrderDetailPage() {
           className="flex items-center gap-2 text-gray-500 hover:text-gray-900 mb-6 transition-colors cursor-pointer"
         >
           <ArrowLeft className="h-4 w-4" />
-          Înapoi la comenzi
+          {t('orderDetail.backToOrders')}
         </button>
         <div className="animate-pulse space-y-6">
           <div className="h-8 bg-gray-200 rounded w-64" />
@@ -409,12 +412,12 @@ export default function OrderDetailPage() {
           className="flex items-center gap-2 text-gray-500 hover:text-gray-900 mb-6 transition-colors cursor-pointer"
         >
           <ArrowLeft className="h-4 w-4" />
-          Înapoi la comenzi
+          {t('orderDetail.backToOrders')}
         </button>
         <Card>
           <div className="text-center py-12">
-            <h3 className="text-lg font-medium text-gray-900 mb-1">Comanda nu a fost găsită</h3>
-            <p className="text-gray-500">Aceasta comanda nu exista sau nu ai acces.</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-1">{t('orderDetail.notFound')}</h3>
+            <p className="text-gray-500">{t('orderDetail.notFoundDesc')}</p>
           </div>
         </Card>
       </div>
@@ -448,21 +451,21 @@ export default function OrderDetailPage() {
 
   // Timeline
   const timelineSteps: TimelineStep[] = [
-    { label: 'Creata', date: booking.createdAt, icon: FileText, done: true },
+    { label: t('orderDetail.timeline.created'), date: booking.createdAt, icon: FileText, done: true },
     {
-      label: 'Plătită & Confirmată',
+      label: t('orderDetail.timeline.paidConfirmed'),
       date: booking.paidAt,
       icon: CheckCircle,
       done: ['CONFIRMED', 'IN_PROGRESS', 'COMPLETED'].includes(booking.status),
     },
     {
-      label: 'In desfasurare',
+      label: t('orderDetail.timeline.inProgress'),
       date: booking.startedAt,
       icon: Clock,
       done: ['IN_PROGRESS', 'COMPLETED'].includes(booking.status),
     },
     {
-      label: 'Finalizata',
+      label: t('orderDetail.timeline.completed'),
       date: booking.completedAt,
       icon: CheckCircle,
       done: booking.status === 'COMPLETED',
@@ -470,7 +473,7 @@ export default function OrderDetailPage() {
   ];
   if (isCancelled) {
     timelineSteps.push({
-      label: statusLabel[booking.status] || 'Anulata',
+      label: statusLabel[booking.status] || t('orderDetail.timeline.cancelled'),
       date: booking.cancelledAt,
       icon: XCircle,
       done: true,
@@ -487,7 +490,7 @@ export default function OrderDetailPage() {
         className="flex items-center gap-2 text-gray-500 hover:text-gray-900 mb-4 transition-colors cursor-pointer"
       >
         <ArrowLeft className="h-4 w-4" />
-        Înapoi la comenzi
+        {t('orderDetail.backToOrders')}
       </button>
 
       {/* Header */}
@@ -495,7 +498,7 @@ export default function OrderDetailPage() {
         <div>
           <div className="flex flex-wrap items-center gap-3">
             <h1 className="text-2xl font-bold text-gray-900">
-              Comanda #{booking.referenceCode}
+              {t('orderDetail.orderPrefix')}{booking.referenceCode}
             </h1>
             <Badge variant={statusBadgeVariant[booking.status] || 'default'}>
               {statusLabel[booking.status] || booking.status}
@@ -503,13 +506,13 @@ export default function OrderDetailPage() {
             {booking.recurringGroupId && (
               <Badge variant="info">
                 <Repeat className="h-3 w-3 mr-1" />
-                Recurenta{booking.occurrenceNumber ? ` #${booking.occurrenceNumber}` : ''}
+                {t('orderDetail.recurring')}{booking.occurrenceNumber ? ` #${booking.occurrenceNumber}` : ''}
               </Badge>
             )}
           </div>
           <div className="flex flex-wrap items-center gap-2 mt-1">
             <p className="text-sm text-gray-500">
-              {booking.serviceName} &middot; Creata pe {formatDateTime(booking.createdAt)}
+              {booking.serviceName} &middot; {t('orderDetail.createdAt')} {formatDateTime(booking.createdAt, locale)}
             </p>
             {booking.category && (
               <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-medium">
@@ -522,7 +525,7 @@ export default function OrderDetailPage() {
           <Link to="/firma/mesaje">
             <Button variant="ghost" size="sm">
               <MessageSquare className="h-4 w-4" />
-              Mesaje
+              {t('orderDetail.messages')}
             </Button>
           </Link>
           {(booking.status === 'ASSIGNED' || booking.status === 'CONFIRMED') && (
@@ -533,12 +536,12 @@ export default function OrderDetailPage() {
               onClick={() => canReschedule && setRescheduleModal(true)}
             >
               <CalendarClock className="h-4 w-4" />
-              Reprogrameaza
+              {t('orderDetail.reschedule')}
             </Button>
           )}
           {canCancel && (
             <Button variant="danger" size="sm" onClick={() => setCancelModal(true)}>
-              Anuleaza
+              {t('orderDetail.cancel')}
             </Button>
           )}
         </div>
@@ -551,7 +554,7 @@ export default function OrderDetailPage() {
 
           {/* Status Timeline */}
           <Card>
-            <h2 className="font-semibold text-gray-900 mb-4">Progresul comenzii</h2>
+            <h2 className="font-semibold text-gray-900 mb-4">{t('orderDetail.history')}</h2>
             <div className="relative">
               {timelineSteps.map((step, idx) => {
                 const IconComp = step.icon;
@@ -585,7 +588,7 @@ export default function OrderDetailPage() {
                         {step.label}
                       </p>
                       {step.date && (
-                        <p className="text-xs text-gray-500 mt-0.5">{formatDateTime(step.date)}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{formatDateTime(step.date, locale)}</p>
                       )}
                     </div>
                   </div>
@@ -596,7 +599,7 @@ export default function OrderDetailPage() {
               <div className="mt-4 pt-4 border-t border-gray-100 flex items-start gap-2 bg-red-50 -mx-4 sm:-mx-6 -mb-4 sm:-mb-6 px-4 sm:px-6 py-4 rounded-b-xl">
                 <AlertCircle className="h-4 w-4 text-red-500 mt-0.5 shrink-0" />
                 <div>
-                  <p className="text-sm font-medium text-red-700">Motiv anulare</p>
+                  <p className="text-sm font-medium text-red-700">{t('orderDetail.cancellationReason')}</p>
                   <p className="text-sm text-red-600 mt-0.5">{booking.cancellationReason}</p>
                 </div>
               </div>
@@ -605,15 +608,15 @@ export default function OrderDetailPage() {
 
           {/* Order Details */}
           <Card>
-            <h2 className="font-semibold text-gray-900 mb-4">Detalii comanda</h2>
+            <h2 className="font-semibold text-gray-900 mb-4">{t('orderDetail.orderDetails')}</h2>
             <div className="grid grid-cols-2 gap-4">
               <div className="flex items-center gap-3">
                 <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-blue-50">
                   <Calendar className="h-4 w-4 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Data</p>
-                  <p className="text-sm font-medium">{formatDate(booking.scheduledDate)}</p>
+                  <p className="text-xs text-gray-500">{t('orderDetail.date')}</p>
+                  <p className="text-sm font-medium">{formatDate(booking.scheduledDate, locale)}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -621,7 +624,7 @@ export default function OrderDetailPage() {
                   <Clock className="h-4 w-4 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Ora & Durata</p>
+                  <p className="text-xs text-gray-500">{t('orderDetail.timeAndDuration')}</p>
                   <p className="text-sm font-medium">
                     {booking.scheduledStartTime?.slice(0, 5)} &middot; {booking.estimatedDurationHours}h
                   </p>
@@ -632,7 +635,7 @@ export default function OrderDetailPage() {
                   <Home className="h-4 w-4 text-gray-600" />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Proprietate</p>
+                  <p className="text-xs text-gray-500">{t('orderDetail.property')}</p>
                   <p className="text-sm font-medium">
                     {propertyTypeLabel[booking.propertyType] || booking.propertyType}
                     {booking.numRooms != null && ` \u00b7 ${booking.numRooms} cam.`}
@@ -645,18 +648,18 @@ export default function OrderDetailPage() {
                   <Home className="h-4 w-4 text-gray-600" />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Suprafață & Animale</p>
+                  <p className="text-xs text-gray-500">{t('orderDetail.areaAndPets')}</p>
                   <p className="text-sm font-medium">
                     {booking.areaSqm != null ? `${booking.areaSqm} mp` : '-'}
                     {' \u00b7 '}
-                    {booking.hasPets ? 'Cu animale' : 'Fara animale'}
+                    {booking.hasPets ? t('orderDetail.withPets') : t('orderDetail.withoutPets')}
                   </p>
                 </div>
               </div>
             </div>
             {booking.specialInstructions && (
               <div className="mt-4 pt-4 border-t border-gray-100">
-                <p className="text-xs text-gray-500 mb-1">Instructiuni speciale</p>
+                <p className="text-xs text-gray-500 mb-1">{t('orderDetail.specialInstructions')}</p>
                 <p className="text-sm text-gray-700">{booking.specialInstructions}</p>
               </div>
             )}
@@ -666,11 +669,11 @@ export default function OrderDetailPage() {
           {((booking.includedItems && booking.includedItems.length > 0) ||
             (booking.extras && booking.extras.length > 0)) && (
             <Card>
-              <h2 className="font-semibold text-gray-900 mb-4">Servicii & Extra</h2>
+              <h2 className="font-semibold text-gray-900 mb-4">{t('orderDetail.serviceAndExtras')}</h2>
               {booking.includedItems && booking.includedItems.length > 0 && (
                 <div className="mb-4">
                   <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
-                    Servicii incluse
+                    {t('orderDetail.includedServices')}
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                     {booking.includedItems.map((item: string, idx: number) => (
@@ -688,7 +691,7 @@ export default function OrderDetailPage() {
                     <div className="border-t border-gray-100 my-4" />
                   )}
                   <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
-                    Extra
+                    {t('orderDetail.extras')}
                   </p>
                   <div className="space-y-2">
                     {booking.extras.map(
@@ -708,7 +711,7 @@ export default function OrderDetailPage() {
                             )}
                           </span>
                           <span className="font-medium text-gray-900">
-                            {formatCurrency(extraItem.price * extraItem.quantity)}
+                            {formatCurrency(extraItem.price * extraItem.quantity, locale)}
                           </span>
                         </div>
                       ),
@@ -722,7 +725,7 @@ export default function OrderDetailPage() {
           {/* Address */}
           {booking.address && (
             <Card>
-              <h2 className="font-semibold text-gray-900 mb-3">Adresa</h2>
+              <h2 className="font-semibold text-gray-900 mb-3">{t('orderDetail.address')}</h2>
               <div className="flex items-start gap-3">
                 <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-gray-50 shrink-0">
                   <MapPin className="h-4 w-4 text-gray-600" />
@@ -734,9 +737,9 @@ export default function OrderDetailPage() {
                   </p>
                   {(booking.address.floor || booking.address.apartment) && (
                     <p className="text-sm text-gray-500">
-                      {booking.address.floor ? `Etaj ${booking.address.floor}` : ''}
+                      {booking.address.floor ? `${t('subscriptionDetail.floor')} ${booking.address.floor}` : ''}
                       {booking.address.floor && booking.address.apartment ? ', ' : ''}
-                      {booking.address.apartment ? `Ap. ${booking.address.apartment}` : ''}
+                      {booking.address.apartment ? `${t('subscriptionDetail.apartment')} ${booking.address.apartment}` : ''}
                     </p>
                   )}
                 </div>
@@ -747,7 +750,7 @@ export default function OrderDetailPage() {
           {/* Time Slots */}
           {booking.timeSlots && booking.timeSlots.length > 0 && (
             <Card>
-              <h2 className="font-semibold text-gray-900 mb-4">Intervale de timp</h2>
+              <h2 className="font-semibold text-gray-900 mb-4">{t('orderDetail.timeSlots')}</h2>
               <div className="space-y-2">
                 {booking.timeSlots.map(
                   (slot: {
@@ -774,7 +777,7 @@ export default function OrderDetailPage() {
                         />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-gray-900">
-                            {new Date(slot.slotDate).toLocaleDateString('ro-RO', {
+                            {new Date(slot.slotDate).toLocaleDateString(locale, {
                               weekday: 'long',
                               day: 'numeric',
                               month: 'long',
@@ -787,7 +790,7 @@ export default function OrderDetailPage() {
                         {slot.isSelected ? (
                           <div className="flex items-center gap-1.5 text-blue-600">
                             <Check className="h-4 w-4" />
-                            <span className="text-xs font-semibold">Selectat</span>
+                            <span className="text-xs font-semibold">{t('orderDetail.selectedSlot')}</span>
                           </div>
                         ) : canSelect ? (
                           <Button
@@ -800,7 +803,7 @@ export default function OrderDetailPage() {
                               })
                             }
                           >
-                            Selecteaza
+                            {t('orderDetail.selectSlotBtn')}
                           </Button>
                         ) : null}
                       </div>
@@ -814,7 +817,7 @@ export default function OrderDetailPage() {
           {/* Review */}
           {booking.review && (
             <Card>
-              <h2 className="font-semibold text-gray-900 mb-3">Recenzie client</h2>
+              <h2 className="font-semibold text-gray-900 mb-3">{t('orderDetail.clientReview')}</h2>
               <div className="flex items-center gap-1 mb-2">
                 {[1, 2, 3, 4, 5].map((n) => (
                   <Star
@@ -834,7 +837,7 @@ export default function OrderDetailPage() {
                 <p className="text-sm text-gray-600 italic">&ldquo;{booking.review.comment}&rdquo;</p>
               )}
               <p className="text-xs text-gray-400 mt-2">
-                {formatDate(booking.review.createdAt)}
+                {formatDate(booking.review.createdAt, locale)}
               </p>
             </Card>
           )}
@@ -847,52 +850,52 @@ export default function OrderDetailPage() {
           <Card>
             <h2 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <Receipt className="h-4 w-4 text-gray-400" />
-              Sumar financiar
+              {t('orderDetail.financialSummary')}
             </h2>
             <div className="space-y-2 text-sm">
               {booking.hourlyRate != null && (
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Tarif orar</span>
-                  <span className="font-medium">{formatCurrency(booking.hourlyRate)}/h</span>
+                  <span className="text-gray-500">{t('orderDetail.hourlyRate')}</span>
+                  <span className="font-medium">{formatCurrency(booking.hourlyRate, locale)}/h</span>
                 </div>
               )}
               <div className="flex justify-between">
-                <span className="text-gray-500">Durată estimată</span>
+                <span className="text-gray-500">{t('orderDetail.estimatedDuration')}</span>
                 <span className="font-medium">{booking.estimatedDurationHours}h</span>
               </div>
               <div className="border-t border-gray-100 my-2" />
               <div className="flex justify-between">
-                <span className="text-gray-500">Total estimat</span>
-                <span className="font-medium">{formatCurrency(booking.estimatedTotal || 0)}</span>
+                <span className="text-gray-500">{t('orderDetail.estimatedTotal')}</span>
+                <span className="font-medium">{formatCurrency(booking.estimatedTotal || 0, locale)}</span>
               </div>
               {booking.finalTotal != null && booking.finalTotal > 0 && (
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Total final</span>
-                  <span className="font-bold text-base">{formatCurrency(booking.finalTotal)}</span>
+                  <span className="text-gray-500">{t('orderDetail.finalTotal')}</span>
+                  <span className="font-bold text-base">{formatCurrency(booking.finalTotal, locale)}</span>
                 </div>
               )}
               <div className="border-t border-gray-100 my-2" />
               <div className="flex justify-between">
                 <span className="text-gray-500">
-                  Comision platforma ({commissionPct}%)
+                  {t('orderDetail.commission')} ({commissionPct}%)
                 </span>
-                <span className="text-red-600 font-medium">-{formatCurrency(commissionAmount)}</span>
+                <span className="text-red-600 font-medium">-{formatCurrency(commissionAmount, locale)}</span>
               </div>
               <div className="flex justify-between bg-emerald-50 -mx-4 sm:-mx-6 px-4 sm:px-6 py-2 rounded">
-                <span className="font-bold text-gray-900">Castigul tau net</span>
-                <span className="font-bold text-emerald-600">{formatCurrency(netEarnings)}</span>
+                <span className="font-bold text-gray-900">{t('orderDetail.netEarnings')}</span>
+                <span className="font-bold text-emerald-600">{formatCurrency(netEarnings, locale)}</span>
               </div>
               <div className="border-t border-gray-100 my-2" />
               <div className="flex items-center justify-between">
-                <span className="text-gray-500">Status plata</span>
+                <span className="text-gray-500">{t('orderDetail.paymentStatus')}</span>
                 <Badge variant={paymentBadgeVariant[booking.paymentStatus] || 'warning'}>
-                  {paymentStatusLabel[booking.paymentStatus] || booking.paymentStatus || 'In asteptare'}
+                  {paymentStatusLabel[booking.paymentStatus] || booking.paymentStatus || t('orderDetail.paymentStatuses.pending')}
                 </Badge>
               </div>
               {booking.paidAt && (
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Platita la</span>
-                  <span className="text-xs text-gray-600">{formatDateTime(booking.paidAt)}</span>
+                  <span className="text-gray-500">{t('orderDetail.paidAt')}</span>
+                  <span className="text-xs text-gray-600">{formatDateTime(booking.paidAt, locale)}</span>
                 </div>
               )}
             </div>
@@ -901,7 +904,7 @@ export default function OrderDetailPage() {
           {/* Client */}
           {booking.client && (
             <Card>
-              <h2 className="font-semibold text-gray-900 mb-3">Client</h2>
+              <h2 className="font-semibold text-gray-900 mb-3">{t('orderDetail.client')}</h2>
               <div className="flex items-center gap-3 mb-3">
                 <Avatar src={booking.client.avatarUrl} name={booking.client.fullName} color="blue" />
                 <div className="min-w-0">
@@ -933,7 +936,7 @@ export default function OrderDetailPage() {
                     className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors"
                   >
                     <Phone className="h-3.5 w-3.5" />
-                    Suna
+                    {t('orderDetail.callBtn')}
                   </a>
                 )}
                 {booking.client.email && (
@@ -942,7 +945,7 @@ export default function OrderDetailPage() {
                     className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors"
                   >
                     <Mail className="h-3.5 w-3.5" />
-                    Email
+                    {t('orderDetail.emailBtn')}
                   </a>
                 )}
               </div>
@@ -951,7 +954,7 @@ export default function OrderDetailPage() {
 
           {/* Worker */}
           <Card>
-            <h2 className="font-semibold text-gray-900 mb-3">Lucrator asignat</h2>
+            <h2 className="font-semibold text-gray-900 mb-3">{t('orderDetail.workerCard')}</h2>
             {booking.worker ? (
               <div>
                 <Link
@@ -963,7 +966,7 @@ export default function OrderDetailPage() {
                     <p className="text-sm font-medium text-gray-900 truncate group-hover:text-blue-600 transition-colors">
                       {booking.worker.fullName}
                     </p>
-                    <p className="text-xs text-gray-400">Vezi profil &rarr;</p>
+                    <p className="text-xs text-gray-400">{t('orderDetail.viewProfile')} &rarr;</p>
                   </div>
                 </Link>
                 {(booking.worker.phone || booking.worker.email) && (
@@ -989,7 +992,7 @@ export default function OrderDetailPage() {
                       className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors"
                     >
                       <Phone className="h-3.5 w-3.5" />
-                      Suna
+                      {t('orderDetail.callBtn')}
                     </a>
                   )}
                   {booking.worker.email && (
@@ -998,17 +1001,17 @@ export default function OrderDetailPage() {
                       className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors"
                     >
                       <Mail className="h-3.5 w-3.5" />
-                      Email
+                      {t('orderDetail.emailBtn')}
                     </a>
                   )}
                 </div>
               </div>
             ) : (
               <div>
-                <p className="text-sm text-gray-500 mb-3">Niciun lucrator asignat</p>
+                <p className="text-sm text-gray-500 mb-3">{t('orderDetail.noWorker')}</p>
                 <Button size="sm" className="w-full" onClick={() => setAssignModal(true)}>
                   <UserPlus className="h-4 w-4" />
-                  Asigneaza lucrator
+                  {t('orderDetail.assignWorker')}
                 </Button>
               </div>
             )}
@@ -1018,7 +1021,7 @@ export default function OrderDetailPage() {
           <Card>
             <h2 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
               <FileText className="h-4 w-4 text-gray-400" />
-              Factura
+              {t('orderDetail.invoiceCard')}
             </h2>
             {loadingInvoice ? (
               <div className="flex items-center justify-center py-4">
@@ -1033,13 +1036,13 @@ export default function OrderDetailPage() {
                   </Badge>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Total</span>
-                  <span className="font-medium">{formatCurrency(invoice.totalAmount / 100)}</span>
+                  <span className="text-gray-500">{t('orderDetail.invoiceTotal')}</span>
+                  <span className="font-medium">{formatCurrency(invoice.totalAmount / 100, locale)}</span>
                 </div>
                 {invoice.issuedAt && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Emisa</span>
-                    <span className="text-xs text-gray-600">{formatDate(invoice.issuedAt)}</span>
+                    <span className="text-gray-500">{t('orderDetail.invoiceIssuedAt')}</span>
+                    <span className="text-xs text-gray-600">{formatDate(invoice.issuedAt, locale)}</span>
                   </div>
                 )}
                 <div className="flex gap-2 pt-1">
@@ -1048,7 +1051,7 @@ export default function OrderDetailPage() {
                     className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 font-medium cursor-pointer"
                   >
                     <Eye className="h-3.5 w-3.5" />
-                    {invoiceExpanded ? 'Ascunde detalii' : 'Vezi factura'}
+                    {invoiceExpanded ? t('orderDetail.invoiceHideDetails') : t('orderDetail.invoiceViewDetails')}
                     <ChevronDown className={`h-3.5 w-3.5 transition-transform ${invoiceExpanded ? 'rotate-180' : ''}`} />
                   </button>
                   <button
@@ -1089,7 +1092,7 @@ export default function OrderDetailPage() {
                     className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700"
                   >
                     <ExternalLink className="h-3.5 w-3.5" />
-                    Toate
+                    {t('orderDetail.invoiceAllLink')}
                   </Link>
                 </div>
 
@@ -1099,12 +1102,12 @@ export default function OrderDetailPage() {
                     {/* Seller & Buyer */}
                     <div className="grid grid-cols-2 gap-3 text-xs">
                       <div>
-                        <p className="font-medium text-gray-500 uppercase tracking-wide mb-1">Furnizor</p>
+                        <p className="font-medium text-gray-500 uppercase tracking-wide mb-1">{t('orderDetail.invoiceSeller')}</p>
                         <p className="font-medium text-gray-900">{invoice.sellerCompanyName}</p>
                         <p className="text-gray-500">CUI: {invoice.sellerCui}</p>
                       </div>
                       <div>
-                        <p className="font-medium text-gray-500 uppercase tracking-wide mb-1">Client</p>
+                        <p className="font-medium text-gray-500 uppercase tracking-wide mb-1">{t('orderDetail.client')}</p>
                         <p className="font-medium text-gray-900">{invoice.buyerName}</p>
                         {invoice.buyerCui && <p className="text-gray-500">CUI: {invoice.buyerCui}</p>}
                       </div>
@@ -1113,7 +1116,7 @@ export default function OrderDetailPage() {
                     {/* Line items */}
                     {invoice.lineItems && invoice.lineItems.length > 0 && (
                       <div>
-                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Articole</p>
+                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">{t('orderDetail.invoiceItems')}</p>
                         <div className="space-y-1.5">
                           {invoice.lineItems.map((item: {
                             id: string;
@@ -1129,12 +1132,12 @@ export default function OrderDetailPage() {
                               <div className="flex-1 min-w-0">
                                 <p className="text-gray-700">{item.descriptionRo}</p>
                                 <p className="text-gray-400">
-                                  {item.quantity} x {formatCurrency(item.unitPrice / 100)}
+                                  {item.quantity} x {formatCurrency(item.unitPrice / 100, locale)}
                                   {item.vatRate > 0 && ` (TVA ${item.vatRate}%)`}
                                 </p>
                               </div>
                               <span className="font-medium text-gray-900 ml-2 shrink-0">
-                                {formatCurrency(item.lineTotalWithVat / 100)}
+                                {formatCurrency(item.lineTotalWithVat / 100, locale)}
                               </span>
                             </div>
                           ))}
@@ -1145,29 +1148,29 @@ export default function OrderDetailPage() {
                     {/* Totals */}
                     <div className="border-t border-gray-100 pt-2 space-y-1 text-xs">
                       <div className="flex justify-between">
-                        <span className="text-gray-500">Subtotal</span>
-                        <span className="text-gray-700">{formatCurrency(invoice.subtotalAmount / 100)}</span>
+                        <span className="text-gray-500">{t('orderDetail.invoiceSubtotal')}</span>
+                        <span className="text-gray-700">{formatCurrency(invoice.subtotalAmount / 100, locale)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-500">TVA ({invoice.vatRate}%)</span>
-                        <span className="text-gray-700">{formatCurrency(invoice.vatAmount / 100)}</span>
+                        <span className="text-gray-700">{formatCurrency(invoice.vatAmount / 100, locale)}</span>
                       </div>
                       <div className="flex justify-between font-bold text-sm pt-1">
-                        <span className="text-gray-900">Total</span>
-                        <span className="text-gray-900">{formatCurrency(invoice.totalAmount / 100)}</span>
+                        <span className="text-gray-900">{t('orderDetail.invoiceTotal')}</span>
+                        <span className="text-gray-900">{formatCurrency(invoice.totalAmount / 100, locale)}</span>
                       </div>
                     </div>
 
                     {/* Due date & notes */}
                     {invoice.dueDate && (
                       <div className="flex justify-between text-xs">
-                        <span className="text-gray-500">Scadenta</span>
-                        <span className="text-gray-700">{formatDate(invoice.dueDate)}</span>
+                        <span className="text-gray-500">{t('orderDetail.invoiceDueDate')}</span>
+                        <span className="text-gray-700">{formatDate(invoice.dueDate, locale)}</span>
                       </div>
                     )}
                     {invoice.notes && (
                       <div className="text-xs">
-                        <p className="text-gray-500 mb-0.5">Note</p>
+                        <p className="text-gray-500 mb-0.5">{t('orderDetail.invoiceNotes')}</p>
                         <p className="text-gray-600 italic">{invoice.notes}</p>
                       </div>
                     )}
@@ -1187,7 +1190,7 @@ export default function OrderDetailPage() {
             ) : booking.status === 'COMPLETED' && isPaid ? (
               <div>
                 <p className="text-sm text-gray-500 mb-3">
-                  Nicio factura generata inca.
+                  {t('orderDetail.invoiceNoYet')}
                 </p>
                 <Button
                   size="sm"
@@ -1196,12 +1199,12 @@ export default function OrderDetailPage() {
                   loading={generatingInvoice}
                 >
                   <FileText className="h-4 w-4" />
-                  Genereaza factura
+                  {t('orderDetail.generateInvoice')}
                 </Button>
               </div>
             ) : (
               <p className="text-sm text-gray-500">
-                Factura va fi disponibila dupa finalizare.
+                {t('orderDetail.invoiceAfterComplete')}
               </p>
             )}
           </Card>
@@ -1211,7 +1214,7 @@ export default function OrderDetailPage() {
             <Card>
               <h2 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                 <CreditCard className="h-4 w-4 text-gray-400" />
-                Detalii plata
+                {t('orderDetail.paymentCard')}
               </h2>
               {loadingPayment ? (
                 <div className="flex items-center justify-center py-4">
@@ -1220,39 +1223,39 @@ export default function OrderDetailPage() {
               ) : payment ? (
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Total</span>
-                    <span className="font-medium">{formatCurrency(payment.amountTotal / 100)}</span>
+                    <span className="text-gray-500">{t('orderDetail.paymentTotal')}</span>
+                    <span className="font-medium">{formatCurrency(payment.amountTotal / 100, locale)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Suma companie</span>
+                    <span className="text-gray-500">{t('orderDetail.paymentCompany')}</span>
                     <span className="font-medium text-emerald-600">
-                      {formatCurrency(payment.amountCompany / 100)}
+                      {formatCurrency(payment.amountCompany / 100, locale)}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Comision platforma</span>
+                    <span className="text-gray-500">{t('orderDetail.paymentCommission')}</span>
                     <span className="text-red-600">
-                      -{formatCurrency(payment.amountPlatformFee / 100)}
+                      -{formatCurrency(payment.amountPlatformFee / 100, locale)}
                     </span>
                   </div>
                   {payment.refundAmount > 0 && (
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Rambursare</span>
+                      <span className="text-gray-500">{t('orderDetail.paymentRefund')}</span>
                       <span className="text-amber-600">
-                        {formatCurrency(payment.refundAmount / 100)}
+                        {formatCurrency(payment.refundAmount / 100, locale)}
                       </span>
                     </div>
                   )}
                   <div className="border-t border-gray-100 my-2" />
                   <div className="flex items-center justify-between">
-                    <span className="text-gray-500">Status</span>
+                    <span className="text-gray-500">{t('orderDetail.paymentStatus')}</span>
                     <Badge variant={paymentBadgeVariant[payment.status] || 'default'}>
                       {paymentStatusLabel[payment.status] || payment.status}
                     </Badge>
                   </div>
                   {payment.stripePaymentIntentId && (
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Stripe ID</span>
+                      <span className="text-gray-500">{t('orderDetail.paymentStripeId')}</span>
                       <span className="text-xs text-gray-400 font-mono">
                         {payment.stripePaymentIntentId.length > 20
                           ? `${payment.stripePaymentIntentId.slice(0, 20)}...`
@@ -1268,7 +1271,7 @@ export default function OrderDetailPage() {
                   )}
                 </div>
               ) : (
-                <p className="text-sm text-gray-500">Detaliile platii nu sunt disponibile.</p>
+                <p className="text-sm text-gray-500">{t('orderDetail.paymentNotAvailable')}</p>
               )}
             </Card>
           )}
@@ -1282,7 +1285,7 @@ export default function OrderDetailPage() {
           setAssignModal(false);
           setWorkerSearch('');
         }}
-        title="Asigneaza lucrator"
+        title={t('orderDetail.assignModal.title')}
       >
         <div className="space-y-4">
           {/* Suggestions Section */}
@@ -1290,7 +1293,7 @@ export default function OrderDetailPage() {
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <Star className="h-4 w-4 text-accent" />
-                <h4 className="text-sm font-semibold text-gray-900">Recomandari</h4>
+                <h4 className="text-sm font-semibold text-gray-900">{t('orderDetail.assignModal.recommendations')}</h4>
                 <span className="text-xs text-gray-400">({booking.address?.city})</span>
               </div>
               {loadingSuggestions ? (
@@ -1318,7 +1321,7 @@ export default function OrderDetailPage() {
                                 : '--'}
                             </span>
                             <span className="text-xs text-gray-400">
-                              {suggestion.worker.totalJobsCompleted} joburi
+                              {suggestion.worker.totalJobsCompleted} {t('orderDetail.assignModal.jobs')}
                             </span>
                             <Badge
                               variant={
@@ -1327,8 +1330,8 @@ export default function OrderDetailPage() {
                               className="text-[10px] px-1.5 py-0"
                             >
                               {suggestion.availabilityStatus === 'AVAILABLE'
-                                ? 'Disponibil'
-                                : 'Partial'}
+                                ? t('orderDetail.assignModal.available')
+                                : t('orderDetail.assignModal.partial')}
                             </Badge>
                           </div>
                         </div>
@@ -1339,7 +1342,7 @@ export default function OrderDetailPage() {
                         loading={assigning}
                         className="shrink-0 ml-3"
                       >
-                        Selecteaza
+                        {t('orderDetail.assignModal.select')}
                       </Button>
                     </div>
                   ))}
@@ -1347,7 +1350,7 @@ export default function OrderDetailPage() {
               )}
               <div className="border-t border-gray-200 pt-3 mb-1">
                 <p className="text-xs text-gray-400 mb-2">
-                  Sau cauta manual din toti lucratorii tai:
+                  {t('orderDetail.assignModal.manualSearch')}
                 </p>
               </div>
             </div>
@@ -1357,7 +1360,7 @@ export default function OrderDetailPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Cauta dupa nume sau email..."
+              placeholder={t('orderDetail.assignModal.searchPlaceholder')}
               value={workerSearch}
               onChange={(e) => setWorkerSearch(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
@@ -1369,7 +1372,7 @@ export default function OrderDetailPage() {
               <Loader2 className="h-6 w-6 animate-spin text-primary" />
             </div>
           ) : filteredWorkers.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-6">Niciun lucrator gasit.</p>
+            <p className="text-sm text-gray-400 text-center py-6">{t('orderDetail.assignModal.noResults')}</p>
           ) : (
             <div className="max-h-80 overflow-y-auto space-y-2">
               {filteredWorkers.map((worker) => (
@@ -1390,7 +1393,7 @@ export default function OrderDetailPage() {
                         </p>
                         {suggestedWorkerIds.has(worker.id) && (
                           <Badge variant="info" className="text-[10px] px-1.5 py-0">
-                            Recomandat
+                            {t('orderDetail.assignModal.recommended')}
                           </Badge>
                         )}
                       </div>
@@ -1400,7 +1403,7 @@ export default function OrderDetailPage() {
                           {worker.ratingAvg > 0 ? worker.ratingAvg.toFixed(1) : '--'}
                         </span>
                         <span className="text-xs text-gray-400">
-                          {worker.totalJobsCompleted} joburi
+                          {worker.totalJobsCompleted} {t('orderDetail.assignModal.jobs')}
                         </span>
                       </div>
                     </div>
@@ -1411,7 +1414,7 @@ export default function OrderDetailPage() {
                     loading={assigning}
                     className="shrink-0 ml-3"
                   >
-                    Selecteaza
+                    {t('orderDetail.assignModal.select')}
                   </Button>
                 </div>
               ))}
@@ -1427,7 +1430,7 @@ export default function OrderDetailPage() {
           setCancelModal(false);
           setCancelReason('');
         }}
-        title="Anuleaza comanda"
+        title={t('orderDetail.cancelTitle')}
       >
         <div className="space-y-4">
           {(() => {
@@ -1436,11 +1439,11 @@ export default function OrderDetailPage() {
             const hoursUntil = hoursUntilBooking;
             let msg: string;
             if (hoursUntil >= policy.cancelFreeHoursBefore) {
-              msg = 'Clientul va primi o rambursare completa (100%).';
+              msg = t('orderDetail.cancelRefundFull');
             } else if (hoursUntil >= 24) {
-              msg = `Clientul va primi o rambursare partiala (${policy.cancelLateRefundPct}%).`;
+              msg = t('orderDetail.cancelRefundPartial', { pct: policy.cancelLateRefundPct });
             } else {
-              msg = 'Nu se acorda rambursare pentru anulari cu mai putin de 24 de ore inainte.';
+              msg = t('orderDetail.cancelRefundNone');
             }
             return (
               <div className="flex items-start gap-3 p-3 mb-4 rounded-xl bg-blue-50 border border-blue-100">
@@ -1450,19 +1453,18 @@ export default function OrderDetailPage() {
             );
           })()}
           <p className="text-sm text-gray-600">
-            Esti sigur ca vrei sa anulezi comanda <strong>#{booking.referenceCode}</strong>? Aceasta
-            actiune nu poate fi reversata.
+            {t('orderDetail.cancelConfirm', { code: booking.referenceCode })}
           </p>
           <div>
             <label
               htmlFor="cancel-reason"
               className="block text-sm font-medium text-gray-700 mb-1.5"
             >
-              Motivul anularii
+              {t('orderDetail.cancelReasonLabel')}
             </label>
             <textarea
               id="cancel-reason"
-              placeholder="Explica motivul anularii..."
+              placeholder={t('orderDetail.cancelReasonPlaceholder')}
               value={cancelReason}
               onChange={(e) => setCancelReason(e.target.value)}
               rows={3}
@@ -1477,7 +1479,7 @@ export default function OrderDetailPage() {
                 setCancelReason('');
               }}
             >
-              Inapoi
+              {t('orderDetail.cancelBack')}
             </Button>
             <Button
               variant="danger"
@@ -1485,7 +1487,7 @@ export default function OrderDetailPage() {
               loading={cancelling}
               disabled={!cancelReason.trim()}
             >
-              Anuleaza comanda
+              {t('orderDetail.cancelConfirmBtn')}
             </Button>
           </div>
         </div>

@@ -1,8 +1,10 @@
+import { useTranslation } from 'react-i18next';
 import { MessageCircle, Phone, Clock, Shield } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { usePlatform } from '@/context/PlatformContext';
 
 export default function SupportWhatsAppPage() {
+  const { t } = useTranslation(['dashboard', 'client']);
   const { user } = useAuth();
   const { buildWhatsAppUrl } = usePlatform();
 
@@ -13,8 +15,8 @@ export default function SupportWhatsAppPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Contact Suport</h1>
-        <p className="text-gray-500 mt-1">Suntem aici sa te ajutam</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('client:chat.title')}</h1>
+        <p className="text-gray-500 mt-1">{t('client:chat.subtitle')}</p>
       </div>
 
       <div className="max-w-lg">
@@ -25,13 +27,13 @@ export default function SupportWhatsAppPage() {
               <MessageCircle className="h-6 w-6 text-[#25D366]" />
             </div>
             <div>
-              <h2 className="text-base font-semibold text-gray-900">Chat cu echipa Go2Fix</h2>
-              <p className="text-sm text-gray-500">via WhatsApp</p>
+              <h2 className="text-base font-semibold text-gray-900">{t('client:chat.chatTitle')}</h2>
+              <p className="text-sm text-gray-500">{t('client:chat.chatSubtitle')}</p>
             </div>
           </div>
 
           <p className="text-sm text-gray-600 mb-6">
-            Suportul nostru este disponibil direct pe WhatsApp. Trimite-ne un mesaj si iti vom raspunde in cel mai scurt timp.
+            {t('client:chat.chatDescription')}
           </p>
 
           <a
@@ -42,7 +44,7 @@ export default function SupportWhatsAppPage() {
             style={{ backgroundColor: '#25D366' }}
           >
             <MessageCircle className="h-4 w-4" />
-            Deschide WhatsApp
+            {t('client:chat.openWhatsApp')}
           </a>
         </div>
 
@@ -51,22 +53,28 @@ export default function SupportWhatsAppPage() {
           <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-start gap-3">
             <Clock className="h-4 w-4 text-primary mt-0.5 shrink-0" />
             <div>
-              <p className="text-xs font-semibold text-gray-900">Program suport</p>
-              <p className="text-xs text-gray-500 mt-0.5">Luni–Vineri<br />9:00–18:00</p>
+              <p className="text-xs font-semibold text-gray-900">{t('client:chat.supportHours')}</p>
+              <p className="text-xs text-gray-500 mt-0.5" style={{ whiteSpace: 'pre-line' }}>
+                {t('client:chat.supportHoursValue')}
+              </p>
             </div>
           </div>
           <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-start gap-3">
             <Phone className="h-4 w-4 text-primary mt-0.5 shrink-0" />
             <div>
-              <p className="text-xs font-semibold text-gray-900">Timp raspuns</p>
-              <p className="text-xs text-gray-500 mt-0.5">De obicei<br />sub 2 ore</p>
+              <p className="text-xs font-semibold text-gray-900">{t('client:chat.responseTime')}</p>
+              <p className="text-xs text-gray-500 mt-0.5" style={{ whiteSpace: 'pre-line' }}>
+                {t('client:chat.responseTimeValue')}
+              </p>
             </div>
           </div>
           <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-start gap-3">
             <Shield className="h-4 w-4 text-primary mt-0.5 shrink-0" />
             <div>
-              <p className="text-xs font-semibold text-gray-900">Confidential</p>
-              <p className="text-xs text-gray-500 mt-0.5">Datele tale sunt<br />protejate</p>
+              <p className="text-xs font-semibold text-gray-900">{t('client:chat.confidential')}</p>
+              <p className="text-xs text-gray-500 mt-0.5" style={{ whiteSpace: 'pre-line' }}>
+                {t('client:chat.confidentialDesc')}
+              </p>
             </div>
           </div>
         </div>

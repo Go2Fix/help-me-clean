@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery } from '@apollo/client';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -34,27 +35,10 @@ import {
   MY_REFERRAL_STATUS,
 } from '@/graphql/operations';
 
-// ─── Schema ──────────────────────────────────────────────────────────────────
-
-const profileSchema = z.object({
-  fullName: z.string().min(2, 'Numele trebuie sa aiba cel putin 2 caractere'),
-  phone: z
-    .string()
-    .min(1, 'Numărul de telefon este obligatoriu')
-    .regex(/^\+/, 'Formatul trebuie sa fie +40...'),
-  preferredLanguage: z.string().optional(),
-});
-
-type ProfileFormValues = {
-  fullName: string;
-  phone: string;
-  preferredLanguage?: string;
-};
-
 // ─── Language options ────────────────────────────────────────────────────────
 
 const LANGUAGE_OPTIONS = [
-  { value: 'ro', label: 'Romana' },
+  { value: 'ro', label: 'Română' },
   { value: 'en', label: 'English' },
 ];
 
@@ -62,7 +46,25 @@ const LANGUAGE_OPTIONS = [
 
 export default function ProfilePage() {
   const { user, isAuthenticated, loading: authLoading, logout, refetchUser } = useAuth();
+  const { t, i18n } = useTranslation(['dashboard', 'client']);
   const [showVerifyWidget, setShowVerifyWidget] = useState(false);
+
+  // ─── Schema (built inside component so t() is available) ────────────────
+
+  const profileSchema = z.object({
+    fullName: z.string().min(2, t('client:profile.schema.nameMin')),
+    phone: z
+      .string()
+      .min(1, t('client:profile.schema.phoneRequired'))
+      .regex(/^\+/, t('client:profile.schema.phoneFormat')),
+    preferredLanguage: z.string().optional(),
+  });
+
+  type ProfileFormValues = {
+    fullName: string;
+    phone: string;
+    preferredLanguage?: string;
+  };
 
   const {
     register,
@@ -117,7 +119,7 @@ export default function ProfilePage() {
 
   // Auth guard
   if (authLoading) {
-    return <LoadingSpinner text="Se verifica autentificarea..." />;
+    return <LoadingSpinner text={t('client:profile.verifyingAuth')} />;
   }
 
   if (!isAuthenticated) {
@@ -134,6 +136,10 @@ export default function ProfilePage() {
         },
       },
     });
+    // Apply language change immediately
+    if (values.preferredLanguage && values.preferredLanguage !== i18n.language) {
+      void i18n.changeLanguage(values.preferredLanguage);
+    }
     refetchUser();
   };
 
@@ -153,9 +159,9 @@ export default function ProfilePage() {
       <div className="max-w-2xl mx-auto sm:px-2">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Profilul meu</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{t('client:profile.title')}</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Gestioneaza informatiile contului tau.
+            {t('client:profile.subtitle')}
           </p>
         </div>
 
@@ -171,13 +177,13 @@ export default function ProfilePage() {
               />
               <div className="flex-1 text-center sm:text-left">
                 <h2 className="text-lg font-semibold text-gray-900">
-                  Poza de profil
+                  {t('client:profile.avatar.title')}
                 </h2>
                 <p className="text-sm text-gray-500 mt-1">
-                  Incarca o imagine pentru profilul tau. Recomandat: 400x400 pixeli.
+                  {t('client:profile.avatar.description')}
                 </p>
                 <p className="text-xs text-gray-400 mt-2">
-                  Formate acceptate: JPG, PNG, WEBP. Marime maxima: 10MB
+                  {t('client:profile.avatar.formats')}
                 </p>
               </div>
             </div>
@@ -191,7 +197,7 @@ export default function ProfilePage() {
               </div>
               <div className="min-w-0">
                 <h2 className="text-base sm:text-lg font-semibold text-gray-900">
-                  Informatii personale
+                  {t('client:profile.personalInfo.title')}
                 </h2>
                 <p className="text-sm text-gray-500 truncate">{user?.email}</p>
               </div>
@@ -199,17 +205,17 @@ export default function ProfilePage() {
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               <Input
-                label="Nume complet"
-                placeholder="Numele tau complet"
+                label={t('client:profile.personalInfo.fullName')}
+                placeholder={t('client:profile.personalInfo.fullNamePlaceholder')}
                 error={errors.fullName?.message}
                 {...register('fullName')}
               />
 
               <div className="space-y-2">
                 <Input
-                  label="Numar de telefon *"
+                  label={t('client:profile.personalInfo.phone')}
                   type="tel"
-                  placeholder="+40 7XX XXX XXX"
+                  placeholder={t('client:profile.personalInfo.phonePlaceholder')}
                   error={errors.phone?.message}
                   {...register('phone')}
                 />
@@ -217,14 +223,14 @@ export default function ProfilePage() {
                 {user?.phone && user.phoneVerified && (
                   <div className="flex items-center gap-1.5 text-sm text-emerald-700 font-medium">
                     <CheckCircle className="h-4 w-4" />
-                    Verificat via WhatsApp
+                    {t('client:profile.personalInfo.phoneVerified')}
                   </div>
                 )}
                 {user?.phone && !user.phoneVerified && (
                   <div className="flex flex-wrap items-center gap-3">
                     <div className="flex items-center gap-1.5 text-sm text-amber-600 font-medium">
                       <XCircle className="h-4 w-4" />
-                      Neverificat
+                      {t('client:profile.personalInfo.phoneUnverified')}
                     </div>
                     <Button
                       type="button"
@@ -232,7 +238,9 @@ export default function ProfilePage() {
                       variant="outline"
                       onClick={() => setShowVerifyWidget((v) => !v)}
                     >
-                      {showVerifyWidget ? 'Ascunde' : 'Verifica acum'}
+                      {showVerifyWidget
+                        ? t('client:profile.personalInfo.hideVerify')
+                        : t('client:profile.personalInfo.verifyNow')}
                     </Button>
                   </div>
                 )}
@@ -247,7 +255,7 @@ export default function ProfilePage() {
               </div>
 
               <Select
-                label="Limba preferata"
+                label={t('client:profile.personalInfo.preferredLanguage')}
                 options={LANGUAGE_OPTIONS}
                 error={errors.preferredLanguage?.message}
                 {...register('preferredLanguage')}
@@ -260,12 +268,12 @@ export default function ProfilePage() {
                   disabled={!isDirty && !updating}
                 >
                   <Save className="h-4 w-4" />
-                  Salveaza modificarile
+                  {t('client:profile.personalInfo.saveChanges')}
                 </Button>
                 {saved && !isDirty && (
                   <span className="flex items-center gap-1.5 text-sm text-secondary font-medium">
                     <Check className="h-4 w-4" />
-                    Salvat cu succes
+                    {t('client:profile.personalInfo.savedSuccess')}
                   </span>
                 )}
               </div>
@@ -283,10 +291,10 @@ export default function ProfilePage() {
               </div>
               <div className="min-w-0">
                 <h2 className="text-base sm:text-lg font-semibold text-gray-900">
-                  Sterge contul
+                  {t('client:profile.deleteAccount.title')}
                 </h2>
                 <p className="text-sm text-gray-500">
-                  Actiune permanenta si ireversibila.
+                  {t('client:profile.deleteAccount.subtitle')}
                 </p>
               </div>
             </div>
@@ -294,7 +302,7 @@ export default function ProfilePage() {
             {!showDeleteConfirm ? (
               <div>
                 <p className="text-sm text-gray-600 mb-4">
-                  Odata sters, contul tau nu va mai putea fi recuperat. Toate datele personale vor fi sterse definitiv.
+                  {t('client:profile.deleteAccount.description')}
                 </p>
                 <Button
                   variant="outline"
@@ -302,18 +310,18 @@ export default function ProfilePage() {
                   onClick={() => setShowDeleteConfirm(true)}
                 >
                   <Trash2 className="h-4 w-4" />
-                  Sterge contul meu
+                  {t('client:profile.deleteAccount.deleteButton')}
                 </Button>
               </div>
             ) : (
               <div className="p-4 rounded-xl bg-red-50 border border-red-200">
                 <p className="text-sm font-medium text-red-800 mb-3">
-                  Scrie <span className="font-bold">STERGE</span> pentru a confirma stergerea contului:
+                  {t('client:profile.deleteAccount.confirmPrompt')}
                 </p>
                 <Input
                   value={deleteConfirmText}
                   onChange={(e) => setDeleteConfirmText(e.target.value)}
-                  placeholder="Scrie STERGE aici"
+                  placeholder={t('client:profile.deleteAccount.confirmPlaceholder')}
                   className="mb-3"
                 />
                 <div className="flex flex-wrap gap-2">
@@ -325,7 +333,7 @@ export default function ProfilePage() {
                       setDeleteConfirmText('');
                     }}
                   >
-                    Anuleaza
+                    {t('client:profile.deleteAccount.cancel')}
                   </Button>
                   <Button
                     className="bg-red-600 hover:bg-red-700 text-white"
@@ -335,7 +343,7 @@ export default function ProfilePage() {
                     onClick={() => deleteMyAccount()}
                   >
                     <Trash2 className="h-4 w-4" />
-                    Confirma stergerea
+                    {t('client:profile.deleteAccount.confirmButton')}
                   </Button>
                 </div>
               </div>
@@ -358,6 +366,7 @@ interface ReferralStatus {
 }
 
 function ReferralCard() {
+  const { t } = useTranslation(['dashboard', 'client']);
   const { data, loading } = useQuery<{ myReferralStatus: ReferralStatus }>(
     MY_REFERRAL_STATUS,
     { fetchPolicy: 'cache-and-network' },
@@ -406,10 +415,10 @@ function ReferralCard() {
         </div>
         <div className="min-w-0">
           <h2 className="text-base sm:text-lg font-semibold text-gray-900">
-            Codul tău de recomandare
+            {t('client:profile.referral.title')}
           </h2>
           <p className="text-sm text-gray-500">
-            Recomandă Go2Fix și obține reduceri la comenzi
+            {t('client:profile.referral.subtitle')}
           </p>
         </div>
       </div>
@@ -437,7 +446,9 @@ function ReferralCard() {
               ) : (
                 <Copy className="h-4 w-4" />
               )}
-              {copied ? 'Copiat!' : 'Copiază'}
+              {copied
+                ? t('client:profile.referral.copied', { defaultValue: 'Copiat!' })
+                : t('client:profile.referral.copy', { defaultValue: 'Copiază' })}
             </Button>
 
             <Button
@@ -464,7 +475,9 @@ function ReferralCard() {
 
           {/* Progress */}
           <div className="space-y-3">
-            <p className="text-sm font-medium text-gray-700">Progres ciclu curent:</p>
+            <p className="text-sm font-medium text-gray-700">
+              {t('client:profile.referral.progressTitle')}
+            </p>
 
             <div className="flex items-center gap-3">
               <div className="flex-1 bg-gray-100 rounded-full h-2 overflow-hidden">
@@ -474,7 +487,7 @@ function ReferralCard() {
                 />
               </div>
               <span className="text-sm text-gray-600 shrink-0">
-                {completedCount}/{requiredCount} rezervări
+                {t('client:profile.referral.bookings', { count: requiredCount, completedCount })}
               </span>
             </div>
 
@@ -484,14 +497,16 @@ function ReferralCard() {
                 {completedCount > 0 ? (
                   <span>
                     <span className="font-semibold text-gray-900">{completedCount}</span>
-                    {' '}persoane au folosit codul tău
+                    {' '}{t('client:profile.referral.usedCode')}
                   </span>
                 ) : (
-                  <span className="text-gray-400">Nicio persoană nu a folosit codul tău încă</span>
+                  <span className="text-gray-400">
+                    {t('client:profile.referral.noUsersYet')}
+                  </span>
                 )}
               </div>
               <p className="text-xs text-gray-400 pl-6">
-                Ai nevoie de {requiredCount} rezervări finalizate pentru a câștiga o reducere.
+                {t('client:profile.referral.needMore', { required: requiredCount })}
               </p>
             </div>
           </div>
@@ -505,14 +520,14 @@ function ReferralCard() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <p className="text-sm font-semibold text-emerald-800">
-                    Reduceri disponibile
+                    {t('client:profile.referral.availableDiscounts')}
                   </p>
                   <Badge variant="success">
-                    {availableDiscounts} reducere{availableDiscounts !== 1 ? 'ri' : ''} disponibil{availableDiscounts !== 1 ? 'e' : 'ă'}
+                    {t('client:profile.referral.discount', { count: availableDiscounts })}
                   </Badge>
                 </div>
                 <p className="text-xs text-emerald-700 mt-0.5">
-                  Taxa platformei va fi eliminată — compania primește plata integrală.
+                  {t('client:profile.referral.discountNote')}
                 </p>
               </div>
             </div>
@@ -520,8 +535,7 @@ function ReferralCard() {
             <div className="flex items-center gap-2 text-xs text-gray-400">
               <Gift className="h-4 w-4 shrink-0" />
               <span>
-                Când acumulezi {requiredCount} rezervări finalizate prin codul tău, câștigi o reducere —
-                taxa platformei va fi eliminată din următoarea ta comandă.
+                {t('client:profile.referral.noDiscountsYet', { required: requiredCount })}
               </span>
             </div>
           )}
@@ -530,7 +544,7 @@ function ReferralCard() {
         <div className="flex items-start gap-3 p-4 rounded-xl bg-gray-50 border border-gray-100">
           <Gift className="h-5 w-5 text-gray-400 shrink-0 mt-0.5" />
           <p className="text-sm text-gray-500">
-            Finalizează prima rezervare pentru a obține codul tău de recomandare.
+            {t('client:profile.referral.noCode')}
           </p>
         </div>
       )}

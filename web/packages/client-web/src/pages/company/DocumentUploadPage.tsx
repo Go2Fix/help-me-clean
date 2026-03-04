@@ -2,6 +2,7 @@ import { useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ROUTE_MAP } from '@/i18n/routes';
 import { useMutation } from '@apollo/client';
+import { useTranslation } from 'react-i18next';
 import {
   Upload,
   Trash2,
@@ -42,39 +43,20 @@ interface RequiredDoc {
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const REQUIRED_DOCS: RequiredDoc[] = [
-  {
-    type: 'certificat_constatator',
-    label: 'Certificat Constatator',
-    description: 'Certificatul constatator al firmei (PDF, max 10MB)',
-  },
-  {
-    type: 'asigurare_raspundere_civila',
-    label: 'Asigurare RCA',
-    description: 'Polita de asigurare de raspundere civila (PDF, max 10MB)',
-  },
-  {
-    type: 'cui_document',
-    label: 'Document CUI',
-    description: 'Certificat de inregistrare fiscala (PDF, max 10MB)',
-  },
-];
-
-const STEPS = [
-  { label: 'Inregistrare', index: 0 },
-  { label: 'Documente', index: 1 },
-  { label: 'Verificare', index: 2 },
-  { label: 'Activ', index: 3 },
+const REQUIRED_DOC_TYPES = [
+  'certificat_constatator',
+  'asigurare_raspundere_civila',
+  'cui_document',
 ];
 
 const ACTIVE_STEP = 1;
 
 // ─── Stepper ─────────────────────────────────────────────────────────────────
 
-function OnboardingStepper() {
+function OnboardingStepper({ steps }: { steps: { label: string; index: number }[] }) {
   return (
     <div className="flex items-center justify-center mb-10">
-      {STEPS.map((step, i) => {
+      {steps.map((step, i) => {
         const isCompleted = i < ACTIVE_STEP;
         const isActive = i === ACTIVE_STEP;
         return (
@@ -101,7 +83,7 @@ function OnboardingStepper() {
                 {step.label}
               </span>
             </div>
-            {i < STEPS.length - 1 && (
+            {i < steps.length - 1 && (
               <div
                 className={[
                   'h-px w-16 sm:w-24 mx-2 mb-5 transition-all',
@@ -175,6 +157,12 @@ interface DocumentCardProps {
   onDelete: () => void;
   uploading: boolean;
   deleting: boolean;
+  uploadLabel: string;
+  reuploadLabel: string;
+  pendingLabel: string;
+  approvedLabel: string;
+  rejectedLabel: string;
+  rejectionPrefix: string;
 }
 
 function DocumentCard({
@@ -185,6 +173,12 @@ function DocumentCard({
   onDelete,
   uploading,
   deleting,
+  uploadLabel,
+  reuploadLabel,
+  pendingLabel,
+  approvedLabel,
+  rejectedLabel,
+  rejectionPrefix,
 }: DocumentCardProps) {
   const status = uploaded?.status;
 
@@ -240,17 +234,17 @@ function DocumentCard({
                 {uploaded.fileName}
               </span>
               {status === 'PENDING' && (
-                <Badge variant="warning">In asteptare</Badge>
+                <Badge variant="warning">{pendingLabel}</Badge>
               )}
               {status === 'APPROVED' && (
-                <Badge variant="success">Aprobat</Badge>
+                <Badge variant="success">{approvedLabel}</Badge>
               )}
               {status === 'REJECTED' && (
                 <>
-                  <Badge variant="danger">Respins</Badge>
+                  <Badge variant="danger">{rejectedLabel}</Badge>
                   {uploaded.rejectionReason && (
                     <p className="w-full text-xs text-red-600 mt-1">
-                      Motiv: {uploaded.rejectionReason}
+                      {rejectionPrefix} {uploaded.rejectionReason}
                     </p>
                   )}
                 </>
@@ -278,7 +272,7 @@ function DocumentCard({
             <FileInputButton
               onFileSelect={onUpload}
               disabled={uploading}
-              label={uploaded ? 'Incarca din nou' : 'Incarca'}
+              label={uploaded ? reuploadLabel : uploadLabel}
               variant={uploaded ? 'outline' : 'primary'}
               icon={<Upload className="w-3.5 h-3.5" />}
             />
@@ -294,6 +288,20 @@ function DocumentCard({
 export default function DocumentUploadPage() {
   const { company } = useCompany();
   const navigate = useNavigate();
+  const { t } = useTranslation(['dashboard', 'company']);
+
+  const REQUIRED_DOCS: RequiredDoc[] = REQUIRED_DOC_TYPES.map((type) => ({
+    type,
+    label: t(`company:documents.docs.${type}.label`),
+    description: t(`company:documents.docs.${type}.description`),
+  }));
+
+  const STEPS = [
+    { label: t('company:documents.steps.register'), index: 0 },
+    { label: t('company:documents.steps.documents'), index: 1 },
+    { label: t('company:documents.steps.verification'), index: 2 },
+    { label: t('company:documents.steps.active'), index: 3 },
+  ];
 
   const [uploadDocument, { loading: uploading }] = useMutation(UPLOAD_COMPANY_DOCUMENT, {
     refetchQueries: [{ query: MY_COMPANY }],
@@ -338,12 +346,22 @@ export default function DocumentUploadPage() {
     }
   };
 
+  const remaining = REQUIRED_DOCS.length - uploadedCount;
+  const submitLabel = allDocsUploaded
+    ? t('company:documents.submitBtn')
+    : t('company:documents.submitBtnPending', {
+        remaining,
+        plural: remaining === 1 ? '' : 'e',
+      });
+
+  const whatHappensItems: string[] = t('company:documents.whatHappensItems', { returnObjects: true }) as string[];
+
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4">
       <div className="max-w-2xl mx-auto">
 
         {/* Stepper */}
-        <OnboardingStepper />
+        <OnboardingStepper steps={STEPS} />
 
         {/* Company name pill + heading */}
         <div className="text-center mb-8">
@@ -354,11 +372,10 @@ export default function DocumentUploadPage() {
             </span>
           )}
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            Incarca documentele obligatorii
+            {t('company:documents.pageTitle')}
           </h1>
           <p className="text-sm text-gray-500 max-w-md mx-auto">
-            Pentru aprobare, avem nevoie de urmatoarele documente in format PDF.
-            Echipa noastra le va verifica in 1–2 zile lucratoare.
+            {t('company:documents.pageSubtitle')}
           </p>
         </div>
 
@@ -366,11 +383,11 @@ export default function DocumentUploadPage() {
         <div className="flex items-start gap-2 p-3 rounded-xl bg-blue-50 border border-blue-100 text-xs text-blue-700 mb-6">
           <Info className="w-4 h-4 shrink-0 mt-0.5" />
           <span>
-            Documentele tale sunt stocate securizat și procesate conform{' '}
+            {t('company:documents.gdprNotice')}{' '}
             <Link to={ROUTE_MAP.gdpr.ro} target="_blank" rel="noopener noreferrer" className="underline font-medium">
-              Notei de Informare GDPR
+              {t('company:documents.gdprLink')}
             </Link>
-            . Accesul este restricționat exclusiv echipei de verificare Go2Fix.
+            {t('company:documents.gdprSuffix')}
           </span>
         </div>
 
@@ -378,7 +395,7 @@ export default function DocumentUploadPage() {
         <div className="mb-7">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-medium text-gray-500">
-              {uploadedCount} din {REQUIRED_DOCS.length} documente incarcate
+              {t('company:documents.progress', { uploaded: uploadedCount, total: REQUIRED_DOCS.length })}
             </span>
             <span className="text-xs font-bold text-blue-600">{progressPercent}%</span>
           </div>
@@ -406,6 +423,12 @@ export default function DocumentUploadPage() {
                 onDelete={() => uploaded && handleDelete(uploaded.id)}
                 uploading={uploading}
                 deleting={deleting}
+                uploadLabel={t('company:documents.uploadBtn')}
+                reuploadLabel={t('company:documents.reuploadBtn')}
+                pendingLabel={t('company:documents.statusPending')}
+                approvedLabel={t('company:documents.statusApproved')}
+                rejectedLabel={t('company:documents.statusRejected')}
+                rejectionPrefix={t('company:documents.rejectionReason', { reason: '' }).replace(/\s*$/, '')}
               />
             );
           })}
@@ -421,15 +444,15 @@ export default function DocumentUploadPage() {
           >
             {allDocsUploaded ? (
               <>
-                Trimite pentru verificare
+                {submitLabel}
                 <ArrowRight className="w-5 h-5" />
               </>
             ) : (
-              `Trimite pentru verificare (${REQUIRED_DOCS.length - uploadedCount} ramas${REQUIRED_DOCS.length - uploadedCount === 1 ? '' : 'e'})`
+              submitLabel
             )}
           </Button>
           <p className="text-xs text-gray-400">
-            Vei fi notificat prin email in 1–2 zile lucratoare
+            {t('company:documents.emailNotice')}
           </p>
         </div>
 
@@ -438,14 +461,10 @@ export default function DocumentUploadPage() {
           <Info className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
           <div>
             <p className="text-sm font-semibold text-blue-900 mb-2">
-              Ce se intampla dupa ce trimiti documentele?
+              {t('company:documents.whatHappensTitle')}
             </p>
             <ul className="space-y-1.5">
-              {[
-                'Echipa noastra revizuieste documentele in 1–2 zile lucratoare',
-                'Primesti confirmare pe email la fiecare etapa',
-                'Obtii acces complet la platforma dupa aprobare',
-              ].map((item) => (
+              {whatHappensItems.map((item) => (
                 <li key={item} className="flex items-start gap-2 text-sm text-blue-800">
                   <CheckCircle2 className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
                   {item}

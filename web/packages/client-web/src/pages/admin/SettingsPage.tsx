@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
+import { useTranslation } from 'react-i18next';
 import { Pencil, Check, X, Plus, ChevronDown, ChevronRight } from 'lucide-react';
 import { cn } from '@go2fix/shared';
 import Card from '@/components/ui/Card';
@@ -140,77 +141,50 @@ interface WaitlistLead {
   createdAt: string;
 }
 
-// ─── Constants ───────────────────────────────────────────────────────────────
+// ─── Static sets / arrays (no translated strings) ────────────────────────────
 
-const tabs: { key: TabKey; label: string }[] = [
-  { key: 'general', label: 'Setări Generale' },
-  { key: 'services', label: 'Servicii' },
-  { key: 'extras', label: 'Extra-uri' },
-  { key: 'cities', label: 'Orase' },
-  { key: 'categories', label: 'Categorii' },
-  { key: 'discounts', label: 'Reduceri abonamente' },
-  { key: 'audit', label: 'Jurnal Preturi' },
-  { key: 'platform', label: 'Platforma' },
+const NUMBER_KEYS = new Set([
+  'platform_commission_pct',
+  'vat_rate_pct',
+  'min_booking_hours',
+  'max_booking_hours',
+  'default_hourly_rate',
+  'booking_auto_cancel_hours',
+  'cancel_free_hours_before',
+  'cancel_late_refund_pct',
+  'reschedule_free_hours_before',
+  'reschedule_max_per_booking',
+]);
+
+const SETTING_GROUPS_KEYS: { titleKey: string; keys: string[] }[] = [
+  {
+    titleKey: 'settings.general.groups.business',
+    keys: [
+      'platform_commission_pct',
+      'vat_rate_pct',
+      'min_booking_hours',
+      'max_booking_hours',
+      'default_hourly_rate',
+      'booking_auto_cancel_hours',
+      'require_company_approval',
+    ],
+  },
+  {
+    titleKey: 'settings.general.groups.cancelReschedule',
+    keys: [
+      'cancel_free_hours_before',
+      'cancel_late_refund_pct',
+      'reschedule_free_hours_before',
+      'reschedule_max_per_booking',
+    ],
+  },
+  { titleKey: 'settings.general.groups.contact', keys: ['support_email', 'support_phone'] },
+  { titleKey: 'settings.general.groups.policies', keys: ['privacy_url', 'terms_url'] },
 ];
 
-const SETTING_GROUPS: { title: string; keys: string[] }[] = [
-  { title: 'Business', keys: ['platform_commission_pct', 'vat_rate_pct', 'min_booking_hours', 'max_booking_hours', 'default_hourly_rate', 'booking_auto_cancel_hours', 'require_company_approval'] },
-  { title: 'Anulare / Reprogramare', keys: ['cancel_free_hours_before', 'cancel_late_refund_pct', 'reschedule_free_hours_before', 'reschedule_max_per_booking'] },
-  { title: 'Contact', keys: ['support_email', 'support_phone'] },
-  { title: 'Politici', keys: ['privacy_url', 'terms_url'] },
-];
+const RECURRENCE_ORDER: RecurringDiscount['recurrenceType'][] = ['WEEKLY', 'BIWEEKLY', 'MONTHLY'];
 
-const SETTING_LABELS: Record<string, string> = {
-  platform_commission_pct: 'Comision platforma (%)',
-  vat_rate_pct: 'Cota TVA (%)',
-  min_booking_hours: 'Ore minime rezervare',
-  max_booking_hours: 'Ore maxime rezervare',
-  default_hourly_rate: 'Tarif orar implicit (RON)',
-  booking_auto_cancel_hours: 'Anulare automata rezervare (ore)',
-  require_company_approval: 'Aprobare companie necesara',
-  cancel_free_hours_before: 'Anulare gratuita inainte de (ore)',
-  cancel_late_refund_pct: 'Rambursare anulare tarzie (%)',
-  reschedule_free_hours_before: 'Reprogramare gratuita inainte de (ore)',
-  reschedule_max_per_booking: 'Max reprogramari per rezervare',
-  support_email: 'Email suport',
-  support_phone: 'Telefon suport',
-  privacy_url: 'URL Politica confidentialitate',
-  terms_url: 'URL Termeni si conditii',
-};
-
-const NUMBER_KEYS = new Set(['platform_commission_pct', 'vat_rate_pct', 'min_booking_hours', 'max_booking_hours', 'default_hourly_rate', 'booking_auto_cancel_hours', 'cancel_free_hours_before', 'cancel_late_refund_pct', 'reschedule_free_hours_before', 'reschedule_max_per_booking']);
-
-const SERVICE_TYPE_OPTIONS = [
-  { value: 'STANDARD', label: 'Standard' },
-  { value: 'DEEP', label: 'Curatenie generala' },
-  { value: 'POST_CONSTRUCTION', label: 'Post-constructie' },
-  { value: 'OFFICE', label: 'Birou' },
-  { value: 'MOVE_IN_OUT', label: 'Mutare' },
-];
-
-const PRICING_MODEL_OPTIONS = [
-  { value: 'HOURLY', label: 'Orar' },
-  { value: 'PER_SQM', label: 'Pe mp' },
-];
-
-const AUDIT_ENTITY_TYPE_OPTIONS = [
-  { value: '', label: 'Toate' },
-  { value: 'service_definition', label: 'Serviciu' },
-  { value: 'service_extra', label: 'Extra' },
-  { value: 'service_category', label: 'Categorie' },
-  { value: 'platform_setting', label: 'Setare platforma' },
-  { value: 'city_pricing', label: 'Pret oras' },
-  { value: 'company_commission', label: 'Comision companie' },
-];
-
-const AUDIT_ENTITY_LABELS: Record<string, string> = {
-  service_definition: 'Serviciu',
-  service_extra: 'Extra',
-  service_category: 'Categorie',
-  platform_setting: 'Setare platforma',
-  city_pricing: 'Pret oras',
-  company_commission: 'Comision companie',
-};
+const AUDIT_PAGE_SIZE = 20;
 
 // ─── Skeleton ────────────────────────────────────────────────────────────────
 
@@ -278,6 +252,7 @@ function Toggle({ checked, onChange, disabled }: { checked: boolean; onChange: (
 // ─── Tab: Setari Generale ────────────────────────────────────────────────────
 
 function GeneralTab() {
+  const { t } = useTranslation(['dashboard', 'admin']);
   const { data, loading } = useQuery<{ platformSettings: PlatformSetting[] }>(PLATFORM_SETTINGS);
   const [updateSetting] = useMutation(UPDATE_PLATFORM_SETTING, {
     refetchQueries: [{ query: PLATFORM_SETTINGS }],
@@ -317,9 +292,11 @@ function GeneralTab() {
 
   return (
     <div className="space-y-6">
-      {SETTING_GROUPS.map((group) => (
-        <Card key={group.title}>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">{group.title}</h3>
+      {SETTING_GROUPS_KEYS.map((group) => (
+        <Card key={group.titleKey}>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            {t(`admin:${group.titleKey}`)}
+          </h3>
           <div className="divide-y divide-gray-100">
             {group.keys.map((key) => {
               const setting = settingsMap.get(key);
@@ -330,7 +307,9 @@ function GeneralTab() {
               return (
                 <div key={key} className="flex items-center justify-between py-3 gap-4">
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-gray-700">{SETTING_LABELS[key] ?? key}</p>
+                    <p className="text-sm font-medium text-gray-700">
+                      {t(`admin:settings.general.settingLabels.${key}`, { defaultValue: key })}
+                    </p>
                     {setting?.description && (
                       <p className="text-xs text-gray-400 mt-0.5">{setting.description}</p>
                     )}
@@ -366,10 +345,14 @@ function GeneralTab() {
                     ) : (
                       <>
                         {savedKey === key && (
-                          <Badge variant="success">Salvat</Badge>
+                          <Badge variant="success">{t('admin:settings.general.saved')}</Badge>
                         )}
                         <span className="text-sm text-gray-900 font-medium max-w-[200px] truncate">
-                          {value || <span className="text-gray-300 italic">nesetat</span>}
+                          {value || (
+                            <span className="text-gray-300 italic">
+                              {t('admin:settings.general.unset')}
+                            </span>
+                          )}
                         </span>
                         <button
                           onClick={() => handleEdit(key, value)}
@@ -393,6 +376,7 @@ function GeneralTab() {
 // ─── Tab: Servicii ───────────────────────────────────────────────────────────
 
 function ServicesTab() {
+  const { t } = useTranslation(['dashboard', 'admin']);
   const { data, loading } = useQuery<{ allServices: ServiceDef[] }>(ALL_SERVICES);
   const { data: categoriesData } = useQuery<{ allServiceCategories: ServiceCategory[] }>(ALL_SERVICE_CATEGORIES);
   const [updateService] = useMutation(UPDATE_SERVICE_DEFINITION, {
@@ -401,6 +385,19 @@ function ServicesTab() {
   const [createService] = useMutation(CREATE_SERVICE_DEFINITION, {
     refetchQueries: [{ query: ALL_SERVICES }],
   });
+
+  const serviceTypeOptions = [
+    { value: 'STANDARD', label: t('admin:settings.services.serviceTypes.STANDARD') },
+    { value: 'DEEP', label: t('admin:settings.services.serviceTypes.DEEP') },
+    { value: 'POST_CONSTRUCTION', label: t('admin:settings.services.serviceTypes.POST_CONSTRUCTION') },
+    { value: 'OFFICE', label: t('admin:settings.services.serviceTypes.OFFICE') },
+    { value: 'MOVE_IN_OUT', label: t('admin:settings.services.serviceTypes.MOVE_IN_OUT') },
+  ];
+
+  const pricingModelOptions = [
+    { value: 'HOURLY', label: t('admin:settings.services.pricingModels.HOURLY') },
+    { value: 'PER_SQM', label: t('admin:settings.services.pricingModels.PER_SQM') },
+  ];
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editFields, setEditFields] = useState({ nameRo: '', nameEn: '', basePricePerHour: 0, minHours: 0, hoursPerRoom: 0.5, hoursPerBathroom: 0.5, hoursPer100Sqm: 1.0, houseMultiplier: 1.3, petDurationMinutes: 15, includedItems: [] as string[], categoryId: '' as string, pricingModel: 'HOURLY' as string, pricePerSqm: 0 });
@@ -412,7 +409,10 @@ function ServicesTab() {
 
   const services = data?.allServices ?? [];
   const categories = categoriesData?.allServiceCategories ?? [];
-  const categoryOptions = [{ value: '', label: '-- Fara categorie --' }, ...categories.map((c) => ({ value: c.id, label: c.nameRo }))];
+  const categoryOptions = [
+    { value: '', label: t('admin:settings.services.modal.noCategoryOption') },
+    ...categories.map((c) => ({ value: c.id, label: c.nameRo })),
+  ];
 
   const startEdit = (s: ServiceDef) => {
     setEditingId(s.id);
@@ -450,10 +450,12 @@ function ServicesTab() {
   return (
     <>
       <div className="flex items-center justify-between mb-4">
-        <p className="text-sm text-gray-500">{services.length} servicii definite</p>
+        <p className="text-sm text-gray-500">
+          {t('admin:settings.services.count', { count: services.length })}
+        </p>
         <Button size="sm" onClick={() => setShowModal(true)}>
           <Plus className="h-4 w-4" />
-          Adauga serviciu
+          {t('admin:settings.services.addService')}
         </Button>
       </div>
 
@@ -461,23 +463,23 @@ function ServicesTab() {
         {loading ? (
           <TableSkeleton />
         ) : services.length === 0 ? (
-          <p className="text-center text-gray-400 py-12">Niciun serviciu definit.</p>
+          <p className="text-center text-gray-400 py-12">{t('admin:settings.services.empty')}</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50/50">
-                  <th className="text-left font-medium text-gray-500 px-4 py-3">Nume RO</th>
-                  <th className="text-left font-medium text-gray-500 px-4 py-3">Nume EN</th>
-                  <th className="text-left font-medium text-gray-500 px-4 py-3">Categorie</th>
-                  <th className="text-center font-medium text-gray-500 px-4 py-3">Model</th>
-                  <th className="text-right font-medium text-gray-500 px-4 py-3">Pret/Ora</th>
-                  <th className="text-right font-medium text-gray-500 px-4 py-3">Pret/mp</th>
-                  <th className="text-right font-medium text-gray-500 px-4 py-3">Ore Min.</th>
-                  <th className="text-right font-medium text-gray-500 px-4 py-3" title="Ore per camera">h/Cam</th>
-                  <th className="text-right font-medium text-gray-500 px-4 py-3" title="Ore per baie">h/Baie</th>
-                  <th className="text-right font-medium text-gray-500 px-4 py-3" title="Multiplicator casa">Casa x</th>
-                  <th className="text-center font-medium text-gray-500 px-4 py-3">Activ</th>
+                  <th className="text-left font-medium text-gray-500 px-4 py-3">{t('admin:settings.services.tableHeaders.nameRo')}</th>
+                  <th className="text-left font-medium text-gray-500 px-4 py-3">{t('admin:settings.services.tableHeaders.nameEn')}</th>
+                  <th className="text-left font-medium text-gray-500 px-4 py-3">{t('admin:settings.services.tableHeaders.category')}</th>
+                  <th className="text-center font-medium text-gray-500 px-4 py-3">{t('admin:settings.services.tableHeaders.model')}</th>
+                  <th className="text-right font-medium text-gray-500 px-4 py-3">{t('admin:settings.services.tableHeaders.pricePerHour')}</th>
+                  <th className="text-right font-medium text-gray-500 px-4 py-3">{t('admin:settings.services.tableHeaders.pricePerSqm')}</th>
+                  <th className="text-right font-medium text-gray-500 px-4 py-3">{t('admin:settings.services.tableHeaders.minHours')}</th>
+                  <th className="text-right font-medium text-gray-500 px-4 py-3" title={t('admin:settings.services.tableHeaders.hoursPerRoom')}>{t('admin:settings.services.tableHeaders.hoursPerRoom')}</th>
+                  <th className="text-right font-medium text-gray-500 px-4 py-3" title={t('admin:settings.services.tableHeaders.hoursPerBath')}>{t('admin:settings.services.tableHeaders.hoursPerBath')}</th>
+                  <th className="text-right font-medium text-gray-500 px-4 py-3" title={t('admin:settings.services.tableHeaders.houseMultiplier')}>{t('admin:settings.services.tableHeaders.houseMultiplier')}</th>
+                  <th className="text-center font-medium text-gray-500 px-4 py-3">{t('admin:settings.services.tableHeaders.active')}</th>
                   <th className="px-4 py-3 w-10" />
                 </tr>
               </thead>
@@ -524,7 +526,11 @@ function ServicesTab() {
                             ))}
                           </select>
                         ) : (
-                          <span className="text-gray-600 text-xs">{getCategoryName(s.categoryId) ?? <span className="text-gray-300 italic">--</span>}</span>
+                          <span className="text-gray-600 text-xs">
+                            {getCategoryName(s.categoryId) ?? (
+                              <span className="text-gray-300 italic">{t('admin:settings.services.noCategory')}</span>
+                            )}
+                          </span>
                         )}
                       </td>
                       <td className="px-4 py-3 text-center">
@@ -534,13 +540,13 @@ function ServicesTab() {
                             onChange={(e) => setEditFields((f) => ({ ...f, pricingModel: e.target.value }))}
                             className="w-20 rounded-lg border border-gray-300 px-1 py-1 text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer"
                           >
-                            {PRICING_MODEL_OPTIONS.map((opt) => (
+                            {pricingModelOptions.map((opt) => (
                               <option key={opt.value} value={opt.value}>{opt.label}</option>
                             ))}
                           </select>
                         ) : (
                           <Badge variant={s.pricingModel === 'PER_SQM' ? 'info' : 'default'}>
-                            {s.pricingModel === 'PER_SQM' ? 'Pe mp' : 'Orar'}
+                            {t(`admin:settings.services.pricingModels.${s.pricingModel}`, { defaultValue: s.pricingModel })}
                           </Badge>
                         )}
                       </td>
@@ -568,7 +574,11 @@ function ServicesTab() {
                             className="w-20 rounded-lg border border-gray-300 px-2 py-1 text-sm text-right focus:outline-none focus:ring-2 focus:ring-primary/30"
                           />
                         ) : (
-                          <span className="text-gray-600">{s.pricingModel === 'PER_SQM' && s.pricePerSqm ? `${s.pricePerSqm} RON` : <span className="text-gray-300">--</span>}</span>
+                          <span className="text-gray-600">
+                            {s.pricingModel === 'PER_SQM' && s.pricePerSqm
+                              ? `${s.pricePerSqm} RON`
+                              : <span className="text-gray-300">{t('admin:settings.services.noPricePerSqm')}</span>}
+                          </span>
                         )}
                       </td>
                       <td className="px-4 py-3 text-right">
@@ -628,7 +638,9 @@ function ServicesTab() {
                     {isEditing && (
                       <tr className="bg-blue-50/50 border-b border-blue-100">
                         <td colSpan={12} className="px-4 py-3">
-                          <p className="text-xs font-medium text-gray-500 mb-2">Ce include serviciul</p>
+                          <p className="text-xs font-medium text-gray-500 mb-2">
+                            {t('admin:settings.services.includedItems')}
+                          </p>
                           <div className="flex flex-wrap gap-1.5 mb-2">
                             {editFields.includedItems.map((item, idx) => (
                               <span key={idx} className="flex items-center gap-1 text-xs bg-white border border-blue-200 text-blue-700 rounded-full px-2.5 py-0.5">
@@ -653,7 +665,7 @@ function ServicesTab() {
                                 e.preventDefault();
                               }
                             }}
-                            placeholder="Adauga element si apasa Enter"
+                            placeholder={t('admin:settings.services.addItemPlaceholder')}
                             className="max-w-xs rounded-lg border border-gray-300 px-2.5 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                           />
                         </td>
@@ -668,46 +680,46 @@ function ServicesTab() {
         )}
       </Card>
 
-      <Modal open={showModal} onClose={() => setShowModal(false)} title="Adauga serviciu">
+      <Modal open={showModal} onClose={() => setShowModal(false)} title={t('admin:settings.services.modal.title')}>
         <div className="space-y-4">
           <Select
-            label="Tip serviciu"
-            options={SERVICE_TYPE_OPTIONS}
+            label={t('admin:settings.services.modal.serviceTypeLabel')}
+            options={serviceTypeOptions}
             value={newService.serviceType}
             onChange={(e) => setNewService((s) => ({ ...s, serviceType: e.target.value }))}
           />
           <Select
-            label="Categorie"
+            label={t('admin:settings.services.modal.categoryLabel')}
             options={categoryOptions}
             value={newService.categoryId}
             onChange={(e) => setNewService((s) => ({ ...s, categoryId: e.target.value }))}
           />
           <Input
-            label="Nume RO"
+            label={t('admin:settings.services.modal.nameRoLabel')}
             value={newService.nameRo}
             onChange={(e) => setNewService((s) => ({ ...s, nameRo: e.target.value }))}
           />
           <Input
-            label="Nume EN"
+            label={t('admin:settings.services.modal.nameEnLabel')}
             value={newService.nameEn}
             onChange={(e) => setNewService((s) => ({ ...s, nameEn: e.target.value }))}
           />
           <Select
-            label="Model pret"
-            options={PRICING_MODEL_OPTIONS}
+            label={t('admin:settings.services.modal.pricingModelLabel')}
+            options={pricingModelOptions}
             value={newService.pricingModel}
             onChange={(e) => setNewService((s) => ({ ...s, pricingModel: e.target.value }))}
           />
           <div className="grid grid-cols-2 gap-4">
             <Input
-              label="Pret/Ora (RON)"
+              label={t('admin:settings.services.modal.pricePerHourLabel')}
               type="number"
               value={newService.basePricePerHour}
               onChange={(e) => setNewService((s) => ({ ...s, basePricePerHour: Number(e.target.value) }))}
             />
             {newService.pricingModel === 'PER_SQM' && (
               <Input
-                label="Pret/mp (RON)"
+                label={t('admin:settings.services.modal.pricePerSqmLabel')}
                 type="number"
                 step={0.1}
                 value={newService.pricePerSqm}
@@ -715,30 +727,32 @@ function ServicesTab() {
               />
             )}
             <Input
-              label="Ore minime"
+              label={t('admin:settings.services.modal.minHoursLabel')}
               type="number"
               value={newService.minHours}
               onChange={(e) => setNewService((s) => ({ ...s, minHours: Number(e.target.value) }))}
             />
           </div>
-          <p className="text-xs font-medium text-gray-500 mt-2">Configurare durata estimata</p>
+          <p className="text-xs font-medium text-gray-500 mt-2">
+            {t('admin:settings.services.modal.durationConfig')}
+          </p>
           <div className="grid grid-cols-3 gap-3">
             <Input
-              label="h/Camera"
+              label={t('admin:settings.services.modal.hoursPerRoomLabel')}
               type="number"
               step={0.05}
               value={newService.hoursPerRoom}
               onChange={(e) => setNewService((s) => ({ ...s, hoursPerRoom: Number(e.target.value) }))}
             />
             <Input
-              label="h/Baie"
+              label={t('admin:settings.services.modal.hoursPerBathLabel')}
               type="number"
               step={0.05}
               value={newService.hoursPerBathroom}
               onChange={(e) => setNewService((s) => ({ ...s, hoursPerBathroom: Number(e.target.value) }))}
             />
             <Input
-              label="h/100mp"
+              label={t('admin:settings.services.modal.hoursPer100SqmLabel')}
               type="number"
               step={0.1}
               value={newService.hoursPer100Sqm}
@@ -747,21 +761,23 @@ function ServicesTab() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <Input
-              label="Multiplicator casa"
+              label={t('admin:settings.services.modal.houseMultiplierLabel')}
               type="number"
               step={0.05}
               value={newService.houseMultiplier}
               onChange={(e) => setNewService((s) => ({ ...s, houseMultiplier: Number(e.target.value) }))}
             />
             <Input
-              label="Min. animale"
+              label={t('admin:settings.services.modal.petMinutesLabel')}
               type="number"
               value={newService.petDurationMinutes}
               onChange={(e) => setNewService((s) => ({ ...s, petDurationMinutes: Number(e.target.value) }))}
             />
           </div>
           <div>
-            <p className="text-xs font-medium text-gray-500 mb-2">Ce include serviciul</p>
+            <p className="text-xs font-medium text-gray-500 mb-2">
+              {t('admin:settings.services.modal.includedItems')}
+            </p>
             <div className="flex flex-wrap gap-1.5 mb-2">
               {newService.includedItems.map((item, idx) => (
                 <span key={idx} className="flex items-center gap-1 text-xs bg-blue-50 border border-blue-200 text-blue-700 rounded-full px-2.5 py-0.5">
@@ -786,7 +802,7 @@ function ServicesTab() {
                   e.preventDefault();
                 }
               }}
-              placeholder="Adauga element si apasa Enter"
+              placeholder={t('admin:settings.services.modal.addItemPlaceholder')}
               className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
           </div>
@@ -797,16 +813,18 @@ function ServicesTab() {
               onChange={(e) => setNewService((s) => ({ ...s, isActive: e.target.checked }))}
               className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary/30"
             />
-            <span className="text-sm text-gray-700">Activ</span>
+            <span className="text-sm text-gray-700">{t('admin:settings.services.modal.isActive')}</span>
           </label>
           <div className="flex justify-end gap-3 pt-2">
-            <Button variant="ghost" onClick={() => setShowModal(false)}>Anuleaza</Button>
+            <Button variant="ghost" onClick={() => setShowModal(false)}>
+              {t('admin:settings.services.modal.cancel')}
+            </Button>
             <Button
               onClick={handleCreate}
               loading={creating}
               disabled={!newService.nameRo.trim() || !newService.nameEn.trim()}
             >
-              Creeaza
+              {t('admin:settings.services.modal.create')}
             </Button>
           </div>
         </div>
@@ -818,6 +836,7 @@ function ServicesTab() {
 // ─── Tab: Extra-uri ──────────────────────────────────────────────────────────
 
 function ExtrasTab() {
+  const { t } = useTranslation(['dashboard', 'admin']);
   const { data, loading } = useQuery<{ allExtras: ExtraDef[] }>(ALL_EXTRAS);
   const { data: categoriesData } = useQuery<{ allServiceCategories: ServiceCategory[] }>(ALL_SERVICE_CATEGORIES);
   const [updateExtra] = useMutation(UPDATE_SERVICE_EXTRA, {
@@ -835,7 +854,10 @@ function ExtrasTab() {
 
   const extras = data?.allExtras ?? [];
   const categories = categoriesData?.allServiceCategories ?? [];
-  const categoryOptions = [{ value: '', label: 'Global (toate categoriile)' }, ...categories.map((c) => ({ value: c.id, label: c.nameRo }))];
+  const categoryOptions = [
+    { value: '', label: t('admin:settings.extras.modal.globalCategoryOption') },
+    ...categories.map((c) => ({ value: c.id, label: c.nameRo })),
+  ];
 
   const getCategoryName = (categoryId?: string | null) => {
     if (!categoryId) return null;
@@ -871,10 +893,12 @@ function ExtrasTab() {
   return (
     <>
       <div className="flex items-center justify-between mb-4">
-        <p className="text-sm text-gray-500">{extras.length} extra-uri definite</p>
+        <p className="text-sm text-gray-500">
+          {t('admin:settings.extras.count', { count: extras.length })}
+        </p>
         <Button size="sm" onClick={() => setShowModal(true)}>
           <Plus className="h-4 w-4" />
-          Adauga extra
+          {t('admin:settings.extras.addExtra')}
         </Button>
       </div>
 
@@ -882,19 +906,19 @@ function ExtrasTab() {
         {loading ? (
           <TableSkeleton />
         ) : extras.length === 0 ? (
-          <p className="text-center text-gray-400 py-12">Niciun extra definit.</p>
+          <p className="text-center text-gray-400 py-12">{t('admin:settings.extras.empty')}</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50/50">
-                  <th className="text-left font-medium text-gray-500 px-4 py-3">Nume RO</th>
-                  <th className="text-left font-medium text-gray-500 px-4 py-3">Nume EN</th>
-                  <th className="text-right font-medium text-gray-500 px-4 py-3">Pret (RON)</th>
-                  <th className="text-right font-medium text-gray-500 px-4 py-3" title="Durata adaugata (minute)">Durata(min)</th>
-                  <th className="text-left font-medium text-gray-500 px-4 py-3">Categorie</th>
-                  <th className="text-center font-medium text-gray-500 px-4 py-3">Tip</th>
-                  <th className="text-center font-medium text-gray-500 px-4 py-3">Activ</th>
+                  <th className="text-left font-medium text-gray-500 px-4 py-3">{t('admin:settings.extras.tableHeaders.nameRo')}</th>
+                  <th className="text-left font-medium text-gray-500 px-4 py-3">{t('admin:settings.extras.tableHeaders.nameEn')}</th>
+                  <th className="text-right font-medium text-gray-500 px-4 py-3">{t('admin:settings.extras.tableHeaders.price')}</th>
+                  <th className="text-right font-medium text-gray-500 px-4 py-3" title={t('admin:settings.extras.tableHeaders.duration')}>{t('admin:settings.extras.tableHeaders.duration')}</th>
+                  <th className="text-left font-medium text-gray-500 px-4 py-3">{t('admin:settings.extras.tableHeaders.category')}</th>
+                  <th className="text-center font-medium text-gray-500 px-4 py-3">{t('admin:settings.extras.tableHeaders.type')}</th>
+                  <th className="text-center font-medium text-gray-500 px-4 py-3">{t('admin:settings.extras.tableHeaders.active')}</th>
                   <th className="px-4 py-3 w-10" />
                 </tr>
               </thead>
@@ -966,7 +990,11 @@ function ExtrasTab() {
                             ))}
                           </select>
                         ) : (
-                          <span className="text-gray-600 text-xs">{getCategoryName(ex.categoryId) ?? <span className="text-gray-300 italic">Global</span>}</span>
+                          <span className="text-gray-600 text-xs">
+                            {getCategoryName(ex.categoryId) ?? (
+                              <span className="text-gray-300 italic">{t('admin:settings.extras.global')}</span>
+                            )}
+                          </span>
                         )}
                       </td>
                       <td className="px-4 py-3 text-center">
@@ -979,13 +1007,13 @@ function ExtrasTab() {
                                 onChange={(e) => setEditFields((f) => ({ ...f, allowMultiple: e.target.checked, unitLabel: e.target.checked ? f.unitLabel : '' }))}
                                 className="h-3.5 w-3.5 rounded border-gray-300 text-primary"
                               />
-                              <span className="text-xs text-gray-600">Multiple</span>
+                              <span className="text-xs text-gray-600">{t('admin:settings.extras.multiple')}</span>
                             </label>
                             {editFields.allowMultiple && (
                               <input
                                 value={editFields.unitLabel}
                                 onChange={(e) => setEditFields((f) => ({ ...f, unitLabel: e.target.value }))}
-                                placeholder="ex: dulap"
+                                placeholder={t('admin:settings.extras.unitPlaceholder')}
                                 className="w-20 rounded border border-gray-300 px-1.5 py-0.5 text-xs focus:outline-none focus:ring-1 focus:ring-primary/30"
                               />
                             )}
@@ -997,7 +1025,7 @@ function ExtrasTab() {
                             </span>
                           ) : (
                             <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
-                              Toggle
+                              {t('admin:settings.extras.toggle')}
                             </span>
                           )
                         )}
@@ -1030,33 +1058,33 @@ function ExtrasTab() {
         )}
       </Card>
 
-      <Modal open={showModal} onClose={() => setShowModal(false)} title="Adauga extra">
+      <Modal open={showModal} onClose={() => setShowModal(false)} title={t('admin:settings.extras.modal.title')}>
         <div className="space-y-4">
           <Select
-            label="Categorie"
+            label={t('admin:settings.extras.modal.categoryLabel')}
             options={categoryOptions}
             value={newExtra.categoryId}
             onChange={(e) => setNewExtra((s) => ({ ...s, categoryId: e.target.value }))}
           />
           <Input
-            label="Nume RO"
+            label={t('admin:settings.extras.modal.nameRoLabel')}
             value={newExtra.nameRo}
             onChange={(e) => setNewExtra((s) => ({ ...s, nameRo: e.target.value }))}
           />
           <Input
-            label="Nume EN"
+            label={t('admin:settings.extras.modal.nameEnLabel')}
             value={newExtra.nameEn}
             onChange={(e) => setNewExtra((s) => ({ ...s, nameEn: e.target.value }))}
           />
           <div className="grid grid-cols-2 gap-4">
             <Input
-              label="Pret (RON)"
+              label={t('admin:settings.extras.modal.priceLabel')}
               type="number"
               value={newExtra.price}
               onChange={(e) => setNewExtra((s) => ({ ...s, price: Number(e.target.value) }))}
             />
             <Input
-              label="Durata (min)"
+              label={t('admin:settings.extras.modal.durationLabel')}
               type="number"
               value={newExtra.durationMinutes}
               onChange={(e) => setNewExtra((s) => ({ ...s, durationMinutes: Number(e.target.value) }))}
@@ -1070,14 +1098,14 @@ function ExtrasTab() {
                 onChange={(e) => setNewExtra((s) => ({ ...s, allowMultiple: e.target.checked, unitLabel: e.target.checked ? s.unitLabel : '' }))}
                 className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary/30"
               />
-              <span className="text-sm text-gray-700">Permite cantitate multipla</span>
+              <span className="text-sm text-gray-700">{t('admin:settings.extras.modal.allowMultipleLabel')}</span>
             </label>
             {newExtra.allowMultiple && (
               <Input
-                label="Unitate (ex: dulap, geam)"
+                label={t('admin:settings.extras.modal.unitLabel')}
                 value={newExtra.unitLabel}
                 onChange={(e) => setNewExtra((s) => ({ ...s, unitLabel: e.target.value }))}
-                placeholder="ex: dulap"
+                placeholder={t('admin:settings.extras.modal.unitPlaceholder')}
               />
             )}
           </div>
@@ -1088,16 +1116,18 @@ function ExtrasTab() {
               onChange={(e) => setNewExtra((s) => ({ ...s, isActive: e.target.checked }))}
               className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary/30"
             />
-            <span className="text-sm text-gray-700">Activ</span>
+            <span className="text-sm text-gray-700">{t('admin:settings.extras.modal.isActive')}</span>
           </label>
           <div className="flex justify-end gap-3 pt-2">
-            <Button variant="ghost" onClick={() => setShowModal(false)}>Anuleaza</Button>
+            <Button variant="ghost" onClick={() => setShowModal(false)}>
+              {t('admin:settings.extras.modal.cancel')}
+            </Button>
             <Button
               onClick={handleCreate}
               loading={creating}
               disabled={!newExtra.nameRo.trim() || !newExtra.nameEn.trim()}
             >
-              Creeaza
+              {t('admin:settings.extras.modal.create')}
             </Button>
           </div>
         </div>
@@ -1109,6 +1139,7 @@ function ExtrasTab() {
 // ─── Tab: Orase ─────────────────────────────────────────────────────────────
 
 function CitiesTab() {
+  const { t } = useTranslation(['dashboard', 'admin']);
   const { data, loading } = useQuery<{ allCities: City[] }>(ALL_CITIES);
   const [createCity] = useMutation(CREATE_CITY, {
     refetchQueries: [{ query: ALL_CITIES }],
@@ -1219,10 +1250,10 @@ function CitiesTab() {
   return (
     <>
       <div className="flex items-center justify-between mb-4">
-        <p className="text-sm text-gray-500">{cities.length} orase definite</p>
+        <p className="text-sm text-gray-500">{cities.length} {t('admin:settings.cities.title').toLowerCase()}</p>
         <Button size="sm" onClick={() => setShowCityModal(true)}>
           <Plus className="h-4 w-4" />
-          Adauga oras
+          {t('admin:settings.cities.addCity')}
         </Button>
       </div>
 
@@ -1230,18 +1261,18 @@ function CitiesTab() {
         {loading ? (
           <TableSkeleton />
         ) : cities.length === 0 ? (
-          <p className="text-center text-gray-400 py-12">Niciun oras definit.</p>
+          <p className="text-center text-gray-400 py-12">{t('admin:settings.cities.empty')}</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50/50">
                   <th className="text-left font-medium text-gray-500 px-4 py-3 w-10" />
-                  <th className="text-left font-medium text-gray-500 px-4 py-3">Oras</th>
-                  <th className="text-left font-medium text-gray-500 px-4 py-3">Judet</th>
-                  <th className="text-right font-medium text-gray-500 px-4 py-3">Multiplicator</th>
-                  <th className="text-center font-medium text-gray-500 px-4 py-3">Activ</th>
-                  <th className="text-center font-medium text-gray-500 px-4 py-3">Zone</th>
+                  <th className="text-left font-medium text-gray-500 px-4 py-3">{t('admin:settings.cities.title')}</th>
+                  <th className="text-left font-medium text-gray-500 px-4 py-3">{t('admin:settings.cities.addCityModal.countyLabel')}</th>
+                  <th className="text-right font-medium text-gray-500 px-4 py-3">{t('admin:settings.cities.multiplier')}</th>
+                  <th className="text-center font-medium text-gray-500 px-4 py-3">{t('admin:settings.services.tableHeaders.active')}</th>
+                  <th className="text-center font-medium text-gray-500 px-4 py-3">{t('admin:companyDetail.team.workers')}</th>
                   <th className="px-4 py-3 w-10" />
                 </tr>
               </thead>
@@ -1307,7 +1338,7 @@ function CitiesTab() {
                                 <button
                                   onClick={() => startEditMultiplier(city)}
                                   className="inline-flex items-center gap-1 text-sm text-gray-900 hover:text-primary transition cursor-pointer"
-                                  title="Editeaza multiplicator"
+                                  title={t('admin:settings.cities.editMultiplierTitle')}
                                 >
                                   {city.pricingMultiplier}x
                                   <Pencil className="h-3 w-3 text-gray-400" />
@@ -1326,7 +1357,7 @@ function CitiesTab() {
                               <button
                                 onClick={() => openAreaModal(city.id)}
                                 className="p-1 rounded-lg text-gray-400 hover:text-primary hover:bg-primary/5 transition cursor-pointer"
-                                title="Adauga zona"
+                                title={t('admin:settings.cities.addAreaTitle')}
                               >
                                 <Plus className="h-4 w-4" />
                               </button>
@@ -1337,7 +1368,7 @@ function CitiesTab() {
                           {isExpanded && (
                             <div className="px-14 pb-4 pt-1">
                               {city.areas.length === 0 ? (
-                                <p className="text-xs text-gray-400 italic">Nicio zona definita.</p>
+                                <p className="text-xs text-gray-400 italic">{t('admin:settings.cities.empty')}</p>
                               ) : (
                                 <div className="flex flex-wrap gap-2">
                                   {city.areas.map((area) => (
@@ -1353,21 +1384,21 @@ function CitiesTab() {
                                             disabled={deletingAreaId === area.id}
                                             className="text-red-600 hover:text-red-800 font-semibold transition cursor-pointer text-xs"
                                           >
-                                            Da
+                                            {t('dashboard:yes', { defaultValue: 'Da' })}
                                           </button>
                                           <span className="text-gray-400">/</span>
                                           <button
                                             onClick={() => setConfirmDeleteAreaId(null)}
                                             className="text-gray-500 hover:text-gray-700 font-semibold transition cursor-pointer text-xs"
                                           >
-                                            Nu
+                                            {t('dashboard:no', { defaultValue: 'Nu' })}
                                           </button>
                                         </span>
                                       ) : (
                                         <button
                                           onClick={() => setConfirmDeleteAreaId(area.id)}
                                           className="text-blue-400 hover:text-red-500 transition cursor-pointer"
-                                          title="Sterge zona"
+                                          title={t('admin:settings.cities.deleteAreaTitle')}
                                         >
                                           <X className="h-3 w-3" />
                                         </button>
@@ -1390,50 +1421,62 @@ function CitiesTab() {
       </Card>
 
       {/* Modal: Adauga oras */}
-      <Modal open={showCityModal} onClose={() => setShowCityModal(false)} title="Adauga oras">
+      <Modal
+        open={showCityModal}
+        onClose={() => setShowCityModal(false)}
+        title={t('admin:settings.cities.addCityModal.title')}
+      >
         <div className="space-y-4">
           <Input
-            label="Nume oras"
+            label={t('admin:settings.cities.addCityModal.cityNameLabel')}
             value={newCity.name}
             onChange={(e) => setNewCity((s) => ({ ...s, name: e.target.value }))}
-            placeholder="ex: Cluj-Napoca"
+            placeholder={t('admin:settings.cities.addCityModal.cityNamePlaceholder')}
           />
           <Input
-            label="Judet"
+            label={t('admin:settings.cities.addCityModal.countyLabel')}
             value={newCity.county}
             onChange={(e) => setNewCity((s) => ({ ...s, county: e.target.value }))}
-            placeholder="ex: Cluj"
+            placeholder={t('admin:settings.cities.addCityModal.countyPlaceholder')}
           />
           <div className="flex justify-end gap-3 pt-2">
-            <Button variant="ghost" onClick={() => setShowCityModal(false)}>Anuleaza</Button>
+            <Button variant="ghost" onClick={() => setShowCityModal(false)}>
+              {t('admin:settings.cities.addCityModal.cancel')}
+            </Button>
             <Button
               onClick={handleCreateCity}
               loading={creatingCity}
               disabled={!newCity.name.trim() || !newCity.county.trim()}
             >
-              Creeaza
+              {t('admin:settings.cities.addCityModal.create')}
             </Button>
           </div>
         </div>
       </Modal>
 
       {/* Modal: Adauga zona */}
-      <Modal open={showAreaModal} onClose={() => setShowAreaModal(false)} title="Adauga zona">
+      <Modal
+        open={showAreaModal}
+        onClose={() => setShowAreaModal(false)}
+        title={t('admin:settings.cities.addAreaModal.title')}
+      >
         <div className="space-y-4">
           <Input
-            label="Nume zona"
+            label={t('admin:settings.cities.addAreaModal.areaNameLabel')}
             value={newAreaName}
             onChange={(e) => setNewAreaName(e.target.value)}
-            placeholder="ex: Centru, Manastur, Marasti"
+            placeholder={t('admin:settings.cities.addAreaModal.areaNamePlaceholder')}
           />
           <div className="flex justify-end gap-3 pt-2">
-            <Button variant="ghost" onClick={() => setShowAreaModal(false)}>Anuleaza</Button>
+            <Button variant="ghost" onClick={() => setShowAreaModal(false)}>
+              {t('admin:settings.cities.addAreaModal.cancel')}
+            </Button>
             <Button
               onClick={handleCreateArea}
               loading={creatingArea}
               disabled={!newAreaName.trim()}
             >
-              Creeaza
+              {t('admin:settings.cities.addAreaModal.create')}
             </Button>
           </div>
         </div>
@@ -1445,6 +1488,7 @@ function CitiesTab() {
 // ─── Tab: Categorii ─────────────────────────────────────────────────────────
 
 function CategoriesTab() {
+  const { t } = useTranslation(['dashboard', 'admin']);
   const { data, loading } = useQuery<{ allServiceCategories: ServiceCategory[] }>(ALL_SERVICE_CATEGORIES);
   const [createCategory] = useMutation(CREATE_SERVICE_CATEGORY, {
     refetchQueries: [{ query: ALL_SERVICE_CATEGORIES }],
@@ -1545,13 +1589,17 @@ function CategoriesTab() {
     }
   };
 
+  const formFieldsPlaceholder = t('admin:settings.categories.modal.formFieldsPlaceholder');
+
   return (
     <>
       <div className="flex items-center justify-between mb-4">
-        <p className="text-sm text-gray-500">{categories.length} categorii definite</p>
+        <p className="text-sm text-gray-500">
+          {t('admin:settings.categories.count', { count: categories.length })}
+        </p>
         <Button size="sm" onClick={() => setShowModal(true)}>
           <Plus className="h-4 w-4" />
-          Adauga categorie
+          {t('admin:settings.categories.addCategory')}
         </Button>
       </div>
 
@@ -1559,19 +1607,19 @@ function CategoriesTab() {
         {loading ? (
           <TableSkeleton />
         ) : categories.length === 0 ? (
-          <p className="text-center text-gray-400 py-12">Nicio categorie definita.</p>
+          <p className="text-center text-gray-400 py-12">{t('admin:settings.categories.empty')}</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50/50">
-                  <th className="text-left font-medium text-gray-500 px-4 py-3">Slug</th>
-                  <th className="text-left font-medium text-gray-500 px-4 py-3">Nume RO</th>
-                  <th className="text-left font-medium text-gray-500 px-4 py-3">Nume EN</th>
-                  <th className="text-right font-medium text-gray-500 px-4 py-3">Comision (%)</th>
-                  <th className="text-right font-medium text-gray-500 px-4 py-3">Ordine</th>
-                  <th className="text-center font-medium text-gray-500 px-4 py-3">Servicii</th>
-                  <th className="text-center font-medium text-gray-500 px-4 py-3">Activ</th>
+                  <th className="text-left font-medium text-gray-500 px-4 py-3">{t('admin:settings.categories.tableHeaders.slug')}</th>
+                  <th className="text-left font-medium text-gray-500 px-4 py-3">{t('admin:settings.categories.tableHeaders.name')} RO</th>
+                  <th className="text-left font-medium text-gray-500 px-4 py-3">{t('admin:settings.categories.tableHeaders.name')} EN</th>
+                  <th className="text-right font-medium text-gray-500 px-4 py-3">{t('admin:settings.categories.tableHeaders.commission')} (%)</th>
+                  <th className="text-right font-medium text-gray-500 px-4 py-3">{t('admin:settings.categories.modal.sortOrderLabel')}</th>
+                  <th className="text-center font-medium text-gray-500 px-4 py-3">{t('admin:settings.categories.tableHeaders.services')}</th>
+                  <th className="text-center font-medium text-gray-500 px-4 py-3">{t('admin:settings.categories.tableHeaders.active')}</th>
                   <th className="px-4 py-3 w-10" />
                 </tr>
               </thead>
@@ -1664,11 +1712,13 @@ function CategoriesTab() {
                     {isEditing && (
                       <tr className="bg-blue-50/30">
                         <td colSpan={8} className="px-4 py-3">
-                          <label className="block text-xs font-medium text-gray-500 mb-1">Câmpuri formular (JSON)</label>
+                          <label className="block text-xs font-medium text-gray-500 mb-1">
+                            {t('admin:settings.categories.modal.formFieldsLabel')}
+                          </label>
                           <textarea
                             value={editFields.formFields}
                             onChange={(e) => setEditFields((f) => ({ ...f, formFields: e.target.value }))}
-                            placeholder='[{"key":"areaSqm","type":"number","labelRo":"Suprafata","labelEn":"Area","required":true}]'
+                            placeholder={formFieldsPlaceholder}
                             rows={3}
                             className="w-full rounded-xl border border-gray-200 px-3 py-2 text-xs font-mono resize-y focus:outline-none focus:ring-2 focus:ring-primary/30"
                           />
@@ -1684,72 +1734,78 @@ function CategoriesTab() {
         )}
       </Card>
 
-      <Modal open={showModal} onClose={() => setShowModal(false)} title="Adauga categorie">
+      <Modal
+        open={showModal}
+        onClose={() => setShowModal(false)}
+        title={t('admin:settings.categories.modal.title')}
+      >
         <div className="space-y-4">
           <Input
-            label="Slug"
+            label={t('admin:settings.categories.modal.slugLabel')}
             value={newCategory.slug}
             onChange={(e) => setNewCategory((s) => ({ ...s, slug: e.target.value }))}
-            placeholder="ex: curatenie"
+            placeholder={t('admin:settings.categories.modal.slugPlaceholder')}
           />
           <div className="grid grid-cols-2 gap-4">
             <Input
-              label="Nume RO"
+              label={t('admin:settings.categories.modal.nameRoLabel')}
               value={newCategory.nameRo}
               onChange={(e) => setNewCategory((s) => ({ ...s, nameRo: e.target.value }))}
             />
             <Input
-              label="Nume EN"
+              label={t('admin:settings.categories.modal.nameEnLabel')}
               value={newCategory.nameEn}
               onChange={(e) => setNewCategory((s) => ({ ...s, nameEn: e.target.value }))}
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <Input
-              label="Descriere RO"
+              label={t('admin:settings.categories.modal.descRoLabel')}
               value={newCategory.descriptionRo}
               onChange={(e) => setNewCategory((s) => ({ ...s, descriptionRo: e.target.value }))}
             />
             <Input
-              label="Descriere EN"
+              label={t('admin:settings.categories.modal.descEnLabel')}
               value={newCategory.descriptionEn}
               onChange={(e) => setNewCategory((s) => ({ ...s, descriptionEn: e.target.value }))}
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <Input
-              label="Icon"
+              label={t('admin:settings.categories.modal.iconLabel')}
               value={newCategory.icon}
               onChange={(e) => setNewCategory((s) => ({ ...s, icon: e.target.value }))}
-              placeholder="ex: sparkles"
+              placeholder={t('admin:settings.categories.modal.iconPlaceholder')}
             />
             <Input
-              label="URL imagine"
+              label={t('admin:settings.categories.modal.imageUrlLabel')}
               value={newCategory.imageUrl}
               onChange={(e) => setNewCategory((s) => ({ ...s, imageUrl: e.target.value }))}
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <Input
-              label="Comision (%)"
+              label={t('admin:settings.categories.modal.commissionLabel')}
               type="number"
               step={0.1}
               value={newCategory.commissionPct}
               onChange={(e) => setNewCategory((s) => ({ ...s, commissionPct: Number(e.target.value) }))}
             />
             <Input
-              label="Ordine sortare"
+              label={t('admin:settings.categories.modal.sortOrderLabel')}
               type="number"
               value={newCategory.sortOrder}
               onChange={(e) => setNewCategory((s) => ({ ...s, sortOrder: Number(e.target.value) }))}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Câmpuri formular (JSON)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {t('admin:settings.categories.modal.formFieldsLabel')}
+            </label>
             <textarea
               value={newCategory.formFields}
               onChange={(e) => setNewCategory((s) => ({ ...s, formFields: e.target.value }))}
-              placeholder='[{"key":"areaSqm","type":"number","labelRo":"Suprafata","labelEn":"Area","required":true}]'
+              placeholder={formFieldsPlaceholder}
               rows={4}
               className="w-full rounded-xl border border-gray-200 px-3 py-2 text-xs font-mono resize-y focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
@@ -1761,16 +1817,18 @@ function CategoriesTab() {
               onChange={(e) => setNewCategory((s) => ({ ...s, isActive: e.target.checked }))}
               className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary/30"
             />
-            <span className="text-sm text-gray-700">Activ</span>
+            <span className="text-sm text-gray-700">{t('admin:settings.categories.modal.isActive')}</span>
           </label>
           <div className="flex justify-end gap-3 pt-2">
-            <Button variant="ghost" onClick={() => setShowModal(false)}>Anuleaza</Button>
+            <Button variant="ghost" onClick={() => setShowModal(false)}>
+              {t('admin:settings.categories.modal.cancel')}
+            </Button>
             <Button
               onClick={handleCreate}
               loading={creating}
               disabled={!newCategory.slug.trim() || !newCategory.nameRo.trim() || !newCategory.nameEn.trim()}
             >
-              Creeaza
+              {t('admin:settings.categories.modal.create')}
             </Button>
           </div>
         </div>
@@ -1781,15 +1839,8 @@ function CategoriesTab() {
 
 // ─── Tab: Reduceri abonamente ────────────────────────────────────────────────
 
-const RECURRENCE_LABELS: Record<string, string> = {
-  WEEKLY: 'Saptamanal',
-  BIWEEKLY: 'Bi-saptamanal',
-  MONTHLY: 'Lunar',
-};
-
-const RECURRENCE_ORDER: RecurringDiscount['recurrenceType'][] = ['WEEKLY', 'BIWEEKLY', 'MONTHLY'];
-
 function RecurringDiscountsTab() {
+  const { t } = useTranslation(['dashboard', 'admin']);
   const { data, loading } = useQuery<{ recurringDiscounts: RecurringDiscount[] }>(RECURRING_DISCOUNTS);
   const [updateDiscount] = useMutation(UPDATE_RECURRING_DISCOUNT, {
     refetchQueries: [{ query: RECURRING_DISCOUNTS }],
@@ -1827,8 +1878,10 @@ function RecurringDiscountsTab() {
 
   return (
     <Card>
-      <h3 className="text-lg font-semibold text-gray-900 mb-1">Reduceri abonamente</h3>
-      <p className="text-sm text-gray-500 mb-5">Configureaza reducerile pentru abonamentele recurente</p>
+      <h3 className="text-lg font-semibold text-gray-900 mb-1">
+        {t('admin:settings.discounts.title')}
+      </h3>
+      <p className="text-sm text-gray-500 mb-5">{t('admin:settings.discounts.subtitle')}</p>
 
       <div className="divide-y divide-gray-100">
         {RECURRENCE_ORDER.map((type) => {
@@ -1842,15 +1895,17 @@ function RecurringDiscountsTab() {
           return (
             <div key={type} className="flex items-center justify-between py-4 gap-4">
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-gray-700">{RECURRENCE_LABELS[type]}</p>
+                <p className="text-sm font-medium text-gray-700">
+                  {t(`admin:settings.discounts.recurrenceLabels.${type}`, { defaultValue: type })}
+                </p>
                 <p className="text-xs text-gray-400 mt-0.5">
-                  Reducere curenta: <span className="font-medium text-gray-600">{currentPct}%</span>
+                  {t('admin:settings.discounts.discountPct')}: <span className="font-medium text-gray-600">{currentPct}%</span>
                 </p>
               </div>
 
               <div className="flex items-center gap-3 shrink-0">
                 {isSaved && (
-                  <Badge variant="success">Salvat</Badge>
+                  <Badge variant="success">{t('admin:settings.general.saved')}</Badge>
                 )}
                 <div className="relative">
                   <input
@@ -1874,7 +1929,7 @@ function RecurringDiscountsTab() {
                   disabled={!hasEdit || isSaving}
                 >
                   <Check className="h-4 w-4" />
-                  Salveaza
+                  {t('admin:settings.discounts.save')}
                 </Button>
               </div>
             </div>
@@ -1887,9 +1942,20 @@ function RecurringDiscountsTab() {
 
 // ─── Tab: Jurnal Preturi ────────────────────────────────────────────────────
 
-const AUDIT_PAGE_SIZE = 20;
-
 function AuditLogTab() {
+  const { t, i18n } = useTranslation(['dashboard', 'admin']);
+  const locale = i18n.language === 'en' ? 'en-GB' : 'ro-RO';
+
+  const auditEntityTypeOptions = [
+    { value: '', label: t('admin:settings.audit.allTypes') },
+    { value: 'service_definition', label: t('admin:settings.audit.entityTypeLabels.service_definition') },
+    { value: 'service_extra', label: t('admin:settings.audit.entityTypeLabels.service_extra') },
+    { value: 'service_category', label: t('admin:settings.audit.entityTypeLabels.service_category') },
+    { value: 'platform_setting', label: t('admin:settings.audit.entityTypeLabels.platform_setting') },
+    { value: 'city_pricing', label: t('admin:settings.audit.entityTypeLabels.city_pricing') },
+    { value: 'company_commission', label: t('admin:settings.audit.entityTypeLabels.company_commission') },
+  ];
+
   const [entityTypeFilter, setEntityTypeFilter] = useState('');
   const [page, setPage] = useState(0);
 
@@ -1916,10 +1982,12 @@ function AuditLogTab() {
   return (
     <>
       <div className="flex items-center justify-between mb-4">
-        <p className="text-sm text-gray-500">{totalCount} inregistrari</p>
+        <p className="text-sm text-gray-500">
+          {totalCount} {t('admin:settings.audit.noun')}
+        </p>
         <div className="w-56">
           <Select
-            options={AUDIT_ENTITY_TYPE_OPTIONS}
+            options={auditEntityTypeOptions}
             value={entityTypeFilter}
             onChange={(e) => handleFilterChange(e.target.value)}
           />
@@ -1930,17 +1998,17 @@ function AuditLogTab() {
         {loading && entries.length === 0 ? (
           <TableSkeleton />
         ) : entries.length === 0 ? (
-          <p className="text-center text-gray-400 py-12">Nicio înregistrare găsită.</p>
+          <p className="text-center text-gray-400 py-12">{t('admin:settings.audit.empty')}</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50/50">
-                  <th className="text-left font-medium text-gray-500 px-4 py-3">Data</th>
-                  <th className="text-left font-medium text-gray-500 px-4 py-3">Tip Entitate</th>
-                  <th className="text-left font-medium text-gray-500 px-4 py-3">Camp</th>
-                  <th className="text-left font-medium text-gray-500 px-4 py-3">Modificare</th>
-                  <th className="text-left font-medium text-gray-500 px-4 py-3">Modificat de</th>
+                  <th className="text-left font-medium text-gray-500 px-4 py-3">{t('admin:settings.audit.tableHeaders.changedAt')}</th>
+                  <th className="text-left font-medium text-gray-500 px-4 py-3">{t('admin:settings.audit.tableHeaders.entityType')}</th>
+                  <th className="text-left font-medium text-gray-500 px-4 py-3">{t('admin:settings.audit.tableHeaders.field')}</th>
+                  <th className="text-left font-medium text-gray-500 px-4 py-3">{t('admin:settings.audit.tableHeaders.oldValue')} → {t('admin:settings.audit.tableHeaders.newValue')}</th>
+                  <th className="text-left font-medium text-gray-500 px-4 py-3">{t('admin:settings.audit.tableHeaders.changedBy')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -1948,7 +2016,7 @@ function AuditLogTab() {
                   <tr key={entry.id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-4 py-3 whitespace-nowrap">
                       <span className="text-gray-600 text-xs">
-                        {new Date(entry.changedAt).toLocaleString('ro-RO', {
+                        {new Date(entry.changedAt).toLocaleString(locale, {
                           day: '2-digit',
                           month: '2-digit',
                           year: 'numeric',
@@ -1959,7 +2027,9 @@ function AuditLogTab() {
                     </td>
                     <td className="px-4 py-3">
                       <Badge variant="default">
-                        {AUDIT_ENTITY_LABELS[entry.entityType] ?? entry.entityType}
+                        {t(`admin:settings.audit.entityTypeLabels.${entry.entityType}`, {
+                          defaultValue: entry.entityType,
+                        })}
                       </Badge>
                     </td>
                     <td className="px-4 py-3">
@@ -2003,7 +2073,7 @@ function AuditLogTab() {
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-4">
           <p className="text-sm text-gray-500">
-            Pagina {page + 1} din {totalPages}
+            {t('dashboard:pagination.page', { defaultValue: 'Pagina' })} {page + 1} / {totalPages}
           </p>
           <div className="flex items-center gap-2">
             <Button
@@ -2012,7 +2082,7 @@ function AuditLogTab() {
               onClick={() => setPage((p) => Math.max(0, p - 1))}
               disabled={page === 0}
             >
-              Inapoi
+              {t('admin:promoCodes.pagination.previous')}
             </Button>
             <Button
               variant="ghost"
@@ -2020,7 +2090,7 @@ function AuditLogTab() {
               onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
               disabled={page >= totalPages - 1}
             >
-              Inainte
+              {t('admin:promoCodes.pagination.next')}
             </Button>
           </div>
         </div>
@@ -2032,6 +2102,9 @@ function AuditLogTab() {
 // ─── Tab: Platforma ──────────────────────────────────────────────────────────
 
 function PlatformTab() {
+  const { t, i18n } = useTranslation(['dashboard', 'admin']);
+  const locale = i18n.language === 'en' ? 'en-GB' : 'ro-RO';
+
   const { data: modeData, loading: modeLoading, refetch: refetchMode } = useQuery(PLATFORM_MODE);
   const { data: statsData } = useQuery(WAITLIST_STATS);
   const { data: leadsData, loading: leadsLoading } = useQuery<{ waitlistLeads: WaitlistLead[] }>(WAITLIST_LEADS, {
@@ -2060,11 +2133,11 @@ function PlatformTab() {
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="font-semibold text-gray-900 text-lg">Modul platformei</h3>
+            <h3 className="font-semibold text-gray-900 text-lg">{t('admin:settings.platform.title')}</h3>
             <p className="text-sm text-gray-500 mt-1">
               {isLive
-                ? 'Platforma este LIVE — clienții pot face rezervări normale.'
-                : 'Platforma este în PRE-LANSARE — se colectează înscrieri în lista de așteptare.'}
+                ? t('admin:settings.platform.confirmModal.toLive')
+                : t('admin:settings.platform.confirmModal.toPreRelease')}
             </p>
           </div>
           <div className="flex items-center gap-4">
@@ -2073,7 +2146,7 @@ function PlatformTab() {
                 isLive ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
               }`}
             >
-              {isLive ? 'LIVE' : 'PRE-LANSARE'}
+              {isLive ? t('admin:settings.platform.liveMode') : t('admin:settings.platform.preReleaseMode')}
             </span>
             <button
               onClick={() => setShowConfirm(true)}
@@ -2095,9 +2168,9 @@ function PlatformTab() {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
         {[
-          { label: 'Clienti inscrisi', value: statsData?.waitlistStats.clientCount ?? 0, color: 'blue' },
-          { label: 'Firme inscrise', value: statsData?.waitlistStats.companyCount ?? 0, color: 'emerald' },
-          { label: 'Total leads', value: statsData?.waitlistStats.totalCount ?? 0, color: 'purple' },
+          { label: t('admin:settings.platform.waitlistStats.clients'), value: statsData?.waitlistStats.clientCount ?? 0, color: 'blue' },
+          { label: t('admin:settings.platform.waitlistStats.companies'), value: statsData?.waitlistStats.companyCount ?? 0, color: 'emerald' },
+          { label: t('admin:settings.platform.waitlistStats.total'), value: statsData?.waitlistStats.totalCount ?? 0, color: 'purple' },
         ].map(({ label, value, color }) => (
           <div key={label} className="bg-white rounded-xl border border-gray-200 p-5 text-center">
             <div className={`text-3xl font-bold text-${color}-600`}>{value}</div>
@@ -2109,18 +2182,27 @@ function PlatformTab() {
       {/* Leads table */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
-          <h3 className="font-semibold text-gray-900">Lista de asteptare</h3>
+          <h3 className="font-semibold text-gray-900">{t('admin:settings.platform.waitlistTitle')}</h3>
         </div>
         {leadsLoading ? (
-          <div className="p-8 text-center text-gray-500">Se incarca...</div>
+          <div className="p-8 text-center text-gray-500">
+            {t('admin:promoCodes.loading')}
+          </div>
         ) : !leadsData?.waitlistLeads?.length ? (
-          <div className="p-8 text-center text-gray-500">Nu exista inscrieri inca.</div>
+          <div className="p-8 text-center text-gray-500">{t('admin:settings.platform.waitlistEmpty')}</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  {['Tip', 'Nume', 'Email', 'Telefon', 'Oras/Firma', 'Data'].map((h) => (
+                  {[
+                    t('admin:settings.platform.waitlistTableHeaders.type'),
+                    t('admin:settings.platform.waitlistTableHeaders.name'),
+                    t('admin:settings.platform.waitlistTableHeaders.email'),
+                    t('admin:settings.platform.waitlistTableHeaders.phone'),
+                    t('admin:settings.platform.waitlistTableHeaders.city'),
+                    t('admin:settings.platform.waitlistTableHeaders.date'),
+                  ].map((h) => (
                     <th
                       key={h}
                       className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
@@ -2141,7 +2223,9 @@ function PlatformTab() {
                             : 'bg-emerald-100 text-emerald-700'
                         }`}
                       >
-                        {lead.leadType === 'CLIENT' ? 'Client' : 'Firma'}
+                        {lead.leadType === 'CLIENT'
+                          ? t('admin:settings.platform.leadTypes.client')
+                          : t('admin:settings.platform.leadTypes.company')}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-900">{lead.name}</td>
@@ -2149,7 +2233,7 @@ function PlatformTab() {
                     <td className="px-4 py-3 text-sm text-gray-600">{lead.phone ?? '--'}</td>
                     <td className="px-4 py-3 text-sm text-gray-600">{lead.companyName ?? lead.city ?? '--'}</td>
                     <td className="px-4 py-3 text-sm text-gray-500">
-                      {new Date(lead.createdAt).toLocaleDateString('ro-RO')}
+                      {new Date(lead.createdAt).toLocaleDateString(locale)}
                     </td>
                   </tr>
                 ))}
@@ -2160,21 +2244,29 @@ function PlatformTab() {
       </div>
 
       {/* Confirmation Modal for platform mode toggle */}
-      <Modal open={showConfirm} onClose={() => setShowConfirm(false)} title="Confirmare schimbare mod">
+      <Modal
+        open={showConfirm}
+        onClose={() => setShowConfirm(false)}
+        title={t('admin:settings.platform.confirmModal.title')}
+      >
         <div className="space-y-4">
           <p className="text-sm text-gray-600">
             {isLive
-              ? 'Esti sigur ca vrei sa treci platforma in modul PRE-LANSARE? Utilizatorii nu vor mai putea face rezervari.'
-              : 'Esti sigur ca vrei sa treci platforma in modul LIVE? Utilizatorii vor putea face rezervari.'}
+              ? t('admin:settings.platform.confirmModal.toPreRelease')
+              : t('admin:settings.platform.confirmModal.toLive')}
           </p>
           <div className="flex justify-end gap-3">
-            <Button variant="ghost" onClick={() => setShowConfirm(false)}>Anuleaza</Button>
+            <Button variant="ghost" onClick={() => setShowConfirm(false)}>
+              {t('admin:settings.platform.confirmModal.cancel')}
+            </Button>
             <Button
               variant={isLive ? 'danger' : 'primary'}
               onClick={handleToggle}
               loading={saving}
             >
-              {isLive ? 'Treci la Pre-Lansare' : 'Treci la Live'}
+              {isLive
+                ? t('admin:settings.platform.switchToPreRelease')
+                : t('admin:settings.platform.switchToLive')}
             </Button>
           </div>
         </div>
@@ -2186,13 +2278,25 @@ function PlatformTab() {
 // ─── Main Component ──────────────────────────────────────────────────────────
 
 export default function SettingsPage() {
+  const { t } = useTranslation(['dashboard', 'admin']);
   const [activeTab, setActiveTab] = useState<TabKey>('general');
+
+  const tabs: { key: TabKey; label: string }[] = [
+    { key: 'general', label: t('admin:settings.tabs.general') },
+    { key: 'services', label: t('admin:settings.tabs.services') },
+    { key: 'extras', label: t('admin:settings.tabs.extras') },
+    { key: 'cities', label: t('admin:settings.tabs.cities') },
+    { key: 'categories', label: t('admin:settings.tabs.categories') },
+    { key: 'discounts', label: t('admin:settings.tabs.discounts') },
+    { key: 'audit', label: t('admin:settings.tabs.audit') },
+    { key: 'platform', label: t('admin:settings.tabs.platform') },
+  ];
 
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Setări Platformă</h1>
-        <p className="text-gray-500 mt-1">Configuratii generale, servicii, extra-uri si orase.</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('admin:settings.title')}</h1>
+        <p className="text-gray-500 mt-1">{t('admin:settings.subtitle')}</p>
       </div>
 
       {/* Tab Selector */}

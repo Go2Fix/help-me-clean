@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ChevronLeft, CheckCircle, ClipboardList, Info } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -13,14 +14,6 @@ import {
   MY_WORKER_PROFILE,
 } from '@/graphql/operations';
 
-const LIKERT_OPTIONS = [
-  { value: 1, label: 'Dezacord total' },
-  { value: 2, label: 'Dezacord' },
-  { value: 3, label: 'Nici acord, nici dezacord' },
-  { value: 4, label: 'Acord' },
-  { value: 5, label: 'Acord total' },
-];
-
 interface Question {
   number: number;
   facetCode: string;
@@ -28,6 +21,7 @@ interface Question {
 }
 
 export default function PersonalityTestPage() {
+  const { t } = useTranslation(['dashboard', 'worker']);
   const navigate = useNavigate();
   const { data: questionsData, loading: questionsLoading } = useQuery(PERSONALITY_QUESTIONS, {
     fetchPolicy: 'cache-first',
@@ -37,7 +31,7 @@ export default function PersonalityTestPage() {
     SUBMIT_PERSONALITY_ASSESSMENT,
     {
       refetchQueries: [{ query: MY_WORKER_PROFILE }],
-      awaitRefetchQueries: true, // Wait for refetch before mutation resolves
+      awaitRefetchQueries: true,
     },
   );
 
@@ -52,17 +46,23 @@ export default function PersonalityTestPage() {
   const allAnswered = Object.keys(answers).length === questions.length;
   const isLastQuestion = currentIndex === questions.length - 1;
 
+  const likertOptions = [
+    { value: 1, label: t('worker:personalityTest.likert.1') },
+    { value: 2, label: t('worker:personalityTest.likert.2') },
+    { value: 3, label: t('worker:personalityTest.likert.3') },
+    { value: 4, label: t('worker:personalityTest.likert.4') },
+    { value: 5, label: t('worker:personalityTest.likert.5') },
+  ];
+
   const handleAnswer = (response: number) => {
     if (!currentQuestion) return;
 
-    // Save the answer
     setAnswers({ ...answers, [currentQuestion.number]: response });
 
-    // Auto-advance to next question (except on last question)
     if (currentIndex < questions.length - 1) {
       setTimeout(() => {
         setCurrentIndex(currentIndex + 1);
-      }, 400); // 400ms delay for visual feedback
+      }, 400);
     }
   };
 
@@ -103,13 +103,13 @@ export default function PersonalityTestPage() {
           <div className="text-center py-8">
             <CheckCircle className="h-16 w-16 text-emerald-500 mx-auto mb-4" />
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              Test finalizat
+              {t('worker:personalityTest.alreadyCompleted.title')}
             </h1>
             <p className="text-gray-600 mb-6">
-              Ai completat deja testul de personalitate. Contul tău este în așteptarea activării de către administrator.
+              {t('worker:personalityTest.alreadyCompleted.description')}
             </p>
             <Button onClick={() => navigate('/worker')}>
-              Înapoi la dashboard
+              {t('worker:personalityTest.alreadyCompleted.backToDashboard')}
             </Button>
           </div>
         </Card>
@@ -124,32 +124,28 @@ export default function PersonalityTestPage() {
           <div className="py-8 px-4">
             <ClipboardList className="h-16 w-16 text-blue-600 mx-auto mb-4" />
             <h1 className="text-2xl font-bold text-gray-900 mb-4 text-center">
-              Test de personalitate
+              {t('worker:personalityTest.intro.title')}
             </h1>
             <div className="space-y-4 text-gray-600 mb-8">
-              <p>
-                Bine ai venit! Pentru a finaliza procesul de înregistrare, trebuie să completezi un scurt chestionar de personalitate.
-              </p>
-              <p>
-                Acest test ne ajută să înțelegem mai bine personalitatea ta și să asigurăm o potrivire bună între tine și clienții noștri.
-              </p>
+              <p>{t('worker:personalityTest.intro.p1')}</p>
+              <p>{t('worker:personalityTest.intro.p2')}</p>
               <div className="p-4 rounded-xl bg-blue-50 border border-blue-200">
                 <div className="flex gap-2">
                   <Info className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
                   <div className="text-sm text-blue-800">
-                    <p className="font-medium mb-1">Câteva detalii importante:</p>
+                    <p className="font-medium mb-1">{t('worker:personalityTest.intro.infoTitle')}</p>
                     <ul className="space-y-1 list-disc list-inside">
-                      <li>28 de întrebări, ~5 minute</li>
-                      <li>Nu există răspunsuri corecte sau greșite</li>
-                      <li>Răspunde sincer și spontan</li>
-                      <li>Poți reveni la întrebări anterioare</li>
+                      <li>{t('worker:personalityTest.intro.detail1')}</li>
+                      <li>{t('worker:personalityTest.intro.detail2')}</li>
+                      <li>{t('worker:personalityTest.intro.detail3')}</li>
+                      <li>{t('worker:personalityTest.intro.detail4')}</li>
                     </ul>
                   </div>
                 </div>
               </div>
             </div>
             <Button onClick={() => setShowIntro(false)} size="lg" className="w-full">
-              Începe testul
+              {t('worker:personalityTest.intro.startButton')}
             </Button>
           </div>
         </Card>
@@ -167,10 +163,15 @@ export default function PersonalityTestPage() {
       <div className="mb-6">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium text-gray-600">
-            Întrebarea {currentIndex + 1} din {questions.length}
+            {t('worker:personalityTest.progress.questionOf', {
+              current: currentIndex + 1,
+              total: questions.length,
+            })}
           </span>
           <span className="text-sm text-gray-500">
-            {Math.round(progress)}% completat
+            {t('worker:personalityTest.progress.percentCompleted', {
+              percent: Math.round(progress),
+            })}
           </span>
         </div>
         <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
@@ -189,7 +190,7 @@ export default function PersonalityTestPage() {
           </p>
 
           <div className="space-y-3 max-w-md mx-auto">
-            {LIKERT_OPTIONS.map((option) => {
+            {likertOptions.map((option) => {
               const isSelected = answers[currentQuestion.number] === option.value;
               return (
                 <button
@@ -219,16 +220,20 @@ export default function PersonalityTestPage() {
           disabled={currentIndex === 0}
         >
           <ChevronLeft className="h-4 w-4 mr-1" />
-          Înapoi
+          {t('worker:personalityTest.back')}
         </Button>
 
         <div className="text-sm text-gray-500">
-          {allAnswered ? 'Toate răspunsurile completate' : `${questions.length - Object.keys(answers).length} răspunsuri rămase`}
+          {allAnswered
+            ? t('worker:personalityTest.progress.allAnswered')
+            : t('worker:personalityTest.progress.remaining', {
+                count: questions.length - Object.keys(answers).length,
+              })}
         </div>
 
         {isLastQuestion && allAnswered && (
           <Button onClick={handleSubmit} loading={submitting}>
-            Trimite
+            {t('worker:personalityTest.submit')}
             <CheckCircle className="h-4 w-4 ml-1" />
           </Button>
         )}

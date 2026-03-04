@@ -47,12 +47,19 @@ const (
 	EventSubscriptionConfirmed Event = "subscription_confirmed"
 	EventSubscriptionCancelled Event = "subscription_cancelled"
 
+	// Disputes
+	EventDisputeOpened   Event = "dispute_opened"
+	EventDisputeResolved Event = "dispute_resolved"
+
 	// Account
 	EventAccountSuspended   Event = "account_suspended"
 	EventAccountReactivated Event = "account_reactivated"
 
 	// Waitlist
 	EventWaitlistJoined Event = "waitlist_joined"
+
+	// Contact form
+	EventContactMessage Event = "contact_message"
 )
 
 // Target is a notification recipient.
@@ -89,18 +96,21 @@ func NewService(channels ...Channel) *Service {
 }
 
 // Dispatch sends the event to all channels asynchronously.
-// In non-production it only logs — no actual sends occur.
+// Email is suppressed in non-production to avoid sending real emails during development/staging.
+// Slack and in-app channels always fire so the admin gets real-time visibility.
 func (s *Service) Dispatch(event Event, payload Payload, targets []Target) {
-	if !s.isProd {
-		emails := make([]string, len(targets))
-		for i, t := range targets {
-			emails[i] = t.Email
-		}
-		log.Printf("[notification:dev] event=%s targets=%v payload=%v", event, emails, payload)
-		return
-	}
 	for _, ch := range s.channels {
 		ch := ch
+		// Suppress email in non-production to avoid sending real emails during development/staging.
+		// Slack and in-app channels always fire so the admin gets real-time visibility.
+		if !s.isProd && ch.Name() == "email" {
+			emails := make([]string, len(targets))
+			for i, t := range targets {
+				emails[i] = t.Email
+			}
+			log.Printf("[notification:dev] suppressed email event=%s targets=%v payload=%v", event, emails, payload)
+			continue
+		}
 		go func() {
 			if err := ch.Send(context.Background(), event, payload, targets); err != nil {
 				log.Printf("[notification] channel=%s event=%s error: %v", ch.Name(), event, err)

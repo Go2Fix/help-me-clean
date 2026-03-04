@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation } from '@apollo/client';
+import { useTranslation } from 'react-i18next';
 import {
   ArrowLeft,
   Calendar,
@@ -138,46 +139,14 @@ interface WorkerOption {
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-const RECURRENCE_LABELS: Record<string, string> = {
-  WEEKLY: 'Saptamanal',
-  BIWEEKLY: 'Bisaptamanal',
-  MONTHLY: 'Lunar',
-};
-
-const DAY_NAMES: Record<number, string> = {
-  0: 'Duminica', 1: 'Luni', 2: 'Marti', 3: 'Miercuri',
-  4: 'Joi', 5: 'Vineri', 6: 'Sambata',
-};
-
-const PROPERTY_TYPE_LABELS: Record<string, string> = {
-  APARTMENT: 'Apartament', HOUSE: 'Casa', OFFICE: 'Birou', STUDIO: 'Garsoniera',
-};
-
 const statusBadgeVariant: Record<string, 'success' | 'warning' | 'danger' | 'default'> = {
   ACTIVE: 'success', PAUSED: 'warning', PAST_DUE: 'danger', CANCELLED: 'default',
-};
-
-const statusLabel: Record<string, string> = {
-  ACTIVE: 'Activ', PAUSED: 'Pauzat', PAST_DUE: 'Restant', CANCELLED: 'Anulat',
 };
 
 const bookingStatusVariant: Record<string, 'success' | 'warning' | 'danger' | 'default' | 'info'> = {
   PENDING: 'warning', ASSIGNED: 'info', CONFIRMED: 'info', IN_PROGRESS: 'info',
   COMPLETED: 'success', CANCELLED: 'danger',
 };
-
-const bookingStatusLabel: Record<string, string> = {
-  PENDING: 'In asteptare', ASSIGNED: 'Asignat', CONFIRMED: 'Confirmat',
-  IN_PROGRESS: 'In desfasurare', COMPLETED: 'Finalizat', CANCELLED: 'Anulat',
-};
-
-function fmtDate(dateStr: string): string {
-  try {
-    return new Date(dateStr).toLocaleDateString('ro-RO', {
-      day: 'numeric', month: 'long', year: 'numeric',
-    });
-  } catch { return dateStr; }
-}
 
 function fmtTime(timeStr: string): string {
   return timeStr ? timeStr.slice(0, 5) : '';
@@ -187,10 +156,10 @@ function fmtCurrency(amount: number): string {
   return amount.toFixed(2) + ' RON';
 }
 
-function fmtAddress(address: SubscriptionAddress): string {
+function fmtAddress(address: SubscriptionAddress, floorLabel: string, aptLabel: string): string {
   const parts = [address.streetAddress];
-  if (address.floor) parts.push(`Etaj ${address.floor}`);
-  if (address.apartment) parts.push(`Ap. ${address.apartment}`);
+  if (address.floor) parts.push(`${floorLabel} ${address.floor}`);
+  if (address.apartment) parts.push(`${aptLabel} ${address.apartment}`);
   parts.push(`${address.city}, ${address.county}`);
   return parts.join(', ');
 }
@@ -200,6 +169,9 @@ function fmtAddress(address: SubscriptionAddress): string {
 export default function AdminSubscriptionDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation(['dashboard', 'admin']);
+
+  const locale = i18n.language === 'en' ? 'en-GB' : 'ro-RO';
 
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
@@ -228,6 +200,14 @@ export default function AdminSubscriptionDetailPage() {
     skip: !workerChangeModal,
   });
 
+  const fmtDate = (dateStr: string): string => {
+    try {
+      return new Date(dateStr).toLocaleDateString(locale, {
+        day: 'numeric', month: 'long', year: 'numeric',
+      });
+    } catch { return dateStr; }
+  };
+
   // Loading
   if (loading) {
     return (
@@ -242,11 +222,13 @@ export default function AdminSubscriptionDetailPage() {
     return (
       <div className="text-center py-20">
         <p className="text-gray-400 mb-4">
-          {error ? 'Eroare la incarcarea abonamentului.' : 'Abonamentul nu a fost gasit.'}
+          {error
+            ? t('admin:subscriptionDetail.errorLoading')
+            : t('admin:subscriptionDetail.notFound')}
         </p>
         <Button variant="ghost" onClick={() => navigate('/admin/abonamente')}>
           <ArrowLeft className="h-4 w-4" />
-          Inapoi la abonamente
+          {t('admin:subscriptionDetail.backToList')}
         </Button>
       </div>
     );
@@ -275,15 +257,15 @@ export default function AdminSubscriptionDetailPage() {
           <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-2xl font-bold text-gray-900">{sub.serviceName}</h1>
             <Badge variant={statusBadgeVariant[sub.status] ?? 'default'}>
-              {statusLabel[sub.status] ?? sub.status}
+              {t(`admin:subscriptions.statusLabels.${sub.status}`, { defaultValue: sub.status })}
             </Badge>
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 text-xs font-medium text-blue-600">
               <Repeat className="h-3 w-3" />
-              {RECURRENCE_LABELS[sub.recurrenceType] || sub.recurrenceType}
+              {t(`admin:subscriptions.recurrenceLabels.${sub.recurrenceType}`, { defaultValue: sub.recurrenceType })}
             </span>
           </div>
           <p className="text-gray-500 mt-0.5">
-            {DAY_NAMES[sub.dayOfWeek] ?? ''}, ora {fmtTime(sub.preferredTime)} &middot; {sub.sessionsPerMonth} sedinte/luna
+            {t(`admin:subscriptionDetail.dayNames.${sub.dayOfWeek}`, { defaultValue: String(sub.dayOfWeek) })}, {t('admin:subscriptionDetail.timePrefix')} {fmtTime(sub.preferredTime)} &middot; {sub.sessionsPerMonth} {t('admin:subscriptionDetail.sessionsPerMonth')}
           </p>
         </div>
 
@@ -293,11 +275,11 @@ export default function AdminSubscriptionDetailPage() {
             <>
               <Button variant="outline" size="sm" loading={pausing} onClick={() => pauseSub({ variables: { id: sub.id } })}>
                 <Pause className="h-4 w-4" />
-                Pauza
+                {t('admin:subscriptionDetail.actions.pause')}
               </Button>
               <Button variant="danger" size="sm" onClick={() => setCancelModalOpen(true)}>
                 <XCircle className="h-4 w-4" />
-                Anuleaza
+                {t('admin:subscriptionDetail.actions.cancel')}
               </Button>
             </>
           )}
@@ -305,11 +287,11 @@ export default function AdminSubscriptionDetailPage() {
             <>
               <Button size="sm" loading={resuming} onClick={() => resumeSub({ variables: { id: sub.id } })}>
                 <Play className="h-4 w-4" />
-                Reia
+                {t('admin:subscriptionDetail.actions.resume')}
               </Button>
               <Button variant="danger" size="sm" onClick={() => setCancelModalOpen(true)}>
                 <XCircle className="h-4 w-4" />
-                Anuleaza
+                {t('admin:subscriptionDetail.actions.cancel')}
               </Button>
             </>
           )}
@@ -322,10 +304,12 @@ export default function AdminSubscriptionDetailPage() {
           <div className="flex items-start gap-3">
             <XCircle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-red-800">Motiv anulare</p>
+              <p className="text-sm font-medium text-red-800">{t('admin:subscriptionDetail.banners.cancelReason')}</p>
               <p className="text-sm text-red-700 mt-0.5">{sub.cancellationReason}</p>
               {sub.cancelledAt && (
-                <p className="text-xs text-red-500 mt-1">Anulat pe {fmtDate(sub.cancelledAt)}</p>
+                <p className="text-xs text-red-500 mt-1">
+                  {t('admin:subscriptionDetail.banners.cancelledOn')} {fmtDate(sub.cancelledAt)}
+                </p>
               )}
             </div>
           </div>
@@ -337,7 +321,7 @@ export default function AdminSubscriptionDetailPage() {
           <div className="flex items-center gap-3">
             <Pause className="h-5 w-5 text-amber-500 shrink-0" />
             <p className="text-sm text-amber-800">
-              Abonamentul este in pauza din {fmtDate(sub.pausedAt)}
+              {t('admin:subscriptionDetail.banners.pausedSince')} {fmtDate(sub.pausedAt)}
             </p>
           </div>
         </Card>
@@ -348,7 +332,7 @@ export default function AdminSubscriptionDetailPage() {
           <div className="flex items-center gap-3">
             <RefreshCw className="h-5 w-5 text-emerald-500 shrink-0" />
             <p className="text-sm text-emerald-800">
-              Lucratorul a fost schimbat cu succes. Toate programarile viitoare au fost actualizate.
+              {t('admin:subscriptionDetail.banners.workerChangeSuccess')}
             </p>
           </div>
         </Card>
@@ -360,15 +344,15 @@ export default function AdminSubscriptionDetailPage() {
             <RefreshCw className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
             <div className="flex-1">
               <p className="text-sm font-medium text-amber-800">
-                Cerere de schimbare lucrator in asteptare
+                {t('admin:subscriptionDetail.banners.workerChangeRequested')}
               </p>
               {sub.workerChangeReason && (
                 <p className="text-sm text-amber-700 mt-0.5">
-                  Motiv: {sub.workerChangeReason}
+                  {t('admin:subscriptionDetail.banners.reason')}: {sub.workerChangeReason}
                 </p>
               )}
               <p className="text-xs text-amber-600 mt-1">
-                Solicitat pe {fmtDate(sub.workerChangeRequestedAt)}
+                {t('admin:subscriptionDetail.banners.requestedOn')} {fmtDate(sub.workerChangeRequestedAt)}
               </p>
               <Button
                 size="sm"
@@ -376,7 +360,7 @@ export default function AdminSubscriptionDetailPage() {
                 onClick={() => setWorkerChangeModal(true)}
               >
                 <RefreshCw className="h-4 w-4" />
-                Atribuie lucrator nou
+                {t('admin:subscriptionDetail.banners.assignNewWorker')}
               </Button>
             </div>
           </div>
@@ -388,46 +372,50 @@ export default function AdminSubscriptionDetailPage() {
         <div className="lg:col-span-2 space-y-6">
           {/* Pricing */}
           <Card>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Preturi</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('admin:subscriptionDetail.pricing.title')}</h3>
             <div className="space-y-3">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Tarif orar</span>
+                <span className="text-gray-500">{t('admin:subscriptionDetail.pricing.hourlyRate')}</span>
                 <span className="text-gray-900">{fmtCurrency(sub.hourlyRate)}/h</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Durata estimata</span>
-                <span className="text-gray-900">{sub.estimatedDurationHours} {sub.estimatedDurationHours === 1 ? 'ora' : 'ore'}</span>
+                <span className="text-gray-500">{t('admin:subscriptionDetail.pricing.estimatedDuration')}</span>
+                <span className="text-gray-900">
+                  {sub.estimatedDurationHours} {sub.estimatedDurationHours === 1
+                    ? t('admin:subscriptionDetail.pricing.hour')
+                    : t('admin:subscriptionDetail.pricing.hours')}
+                </span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Pret per sesiune (original)</span>
+                <span className="text-gray-500">{t('admin:subscriptionDetail.pricing.perSessionOriginal')}</span>
                 <span className="text-gray-900">{fmtCurrency(sub.perSessionOriginal)}</span>
               </div>
               {sub.discountPct > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="flex items-center gap-1 text-emerald-600">
                     <TrendingDown className="h-3.5 w-3.5" />
-                    Reducere abonament
+                    {t('admin:subscriptionDetail.pricing.subscriptionDiscount')}
                   </span>
                   <span className="text-emerald-600 font-medium">-{sub.discountPct}%</span>
                 </div>
               )}
               <div className="flex justify-between text-sm font-semibold">
-                <span className="text-gray-700">Pret per sesiune</span>
+                <span className="text-gray-700">{t('admin:subscriptionDetail.pricing.perSessionDiscounted')}</span>
                 <span className="text-gray-900">{fmtCurrency(sub.perSessionDiscounted)}</span>
               </div>
               <div className="border-t border-gray-100 pt-3">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Sesiuni pe luna</span>
+                  <span className="text-gray-500">{t('admin:subscriptionDetail.pricing.sessionsPerMonth')}</span>
                   <span className="text-gray-900">{sub.sessionsPerMonth}</span>
                 </div>
                 <div className="flex justify-between text-sm font-bold mt-2 p-3 bg-primary/5 rounded-xl -mx-1">
-                  <span className="text-gray-900">Total lunar</span>
+                  <span className="text-gray-900">{t('admin:subscriptionDetail.pricing.monthlyTotal')}</span>
                   <span className="text-primary">{fmtCurrency(sub.monthlyAmount)}</span>
                 </div>
               </div>
               <div className="border-t border-gray-100 pt-3">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Comision platforma</span>
+                  <span className="text-gray-500">{t('admin:subscriptionDetail.pricing.platformCommission')}</span>
                   <span className="text-gray-900">{sub.platformCommissionPct}%</span>
                 </div>
                 {sub.stripeSubscriptionId && (
@@ -445,37 +433,47 @@ export default function AdminSubscriptionDetailPage() {
 
           {/* Service Details */}
           <Card>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Detalii serviciu</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('admin:subscriptionDetail.serviceDetails.title')}</h3>
             <div className="grid grid-cols-2 gap-4">
               {sub.propertyType && (
                 <div className="flex items-start gap-3">
                   <Home className="h-4 w-4 text-gray-400 mt-0.5" />
                   <div>
-                    <p className="text-xs text-gray-400">Tip proprietate</p>
-                    <p className="text-sm text-gray-900">{PROPERTY_TYPE_LABELS[sub.propertyType] ?? sub.propertyType}</p>
+                    <p className="text-xs text-gray-400">{t('admin:subscriptionDetail.serviceDetails.propertyType')}</p>
+                    <p className="text-sm text-gray-900">
+                      {t(`admin:subscriptionDetail.propertyTypeLabels.${sub.propertyType}`, { defaultValue: sub.propertyType })}
+                    </p>
                   </div>
                 </div>
               )}
               <div className="flex items-start gap-3">
                 <Home className="h-4 w-4 text-gray-400 mt-0.5" />
                 <div>
-                  <p className="text-xs text-gray-400">Camere</p>
-                  <p className="text-sm text-gray-900">{sub.numRooms} {sub.numRooms === 1 ? 'camera' : 'camere'}</p>
+                  <p className="text-xs text-gray-400">{t('admin:subscriptionDetail.serviceDetails.rooms')}</p>
+                  <p className="text-sm text-gray-900">
+                    {sub.numRooms} {sub.numRooms === 1
+                      ? t('admin:subscriptionDetail.serviceDetails.room')
+                      : t('admin:subscriptionDetail.serviceDetails.roomsPlural')}
+                  </p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <Bath className="h-4 w-4 text-gray-400 mt-0.5" />
                 <div>
-                  <p className="text-xs text-gray-400">Bai</p>
-                  <p className="text-sm text-gray-900">{sub.numBathrooms} {sub.numBathrooms === 1 ? 'baie' : 'bai'}</p>
+                  <p className="text-xs text-gray-400">{t('admin:subscriptionDetail.serviceDetails.bathrooms')}</p>
+                  <p className="text-sm text-gray-900">
+                    {sub.numBathrooms} {sub.numBathrooms === 1
+                      ? t('admin:subscriptionDetail.serviceDetails.bathroom')
+                      : t('admin:subscriptionDetail.serviceDetails.bathroomsPlural')}
+                  </p>
                 </div>
               </div>
               {sub.areaSqm != null && sub.areaSqm > 0 && (
                 <div className="flex items-start gap-3">
                   <Ruler className="h-4 w-4 text-gray-400 mt-0.5" />
                   <div>
-                    <p className="text-xs text-gray-400">Suprafata</p>
-                    <p className="text-sm text-gray-900">{sub.areaSqm} mp</p>
+                    <p className="text-xs text-gray-400">{t('admin:subscriptionDetail.serviceDetails.area')}</p>
+                    <p className="text-sm text-gray-900">{sub.areaSqm} {t('admin:subscriptionDetail.serviceDetails.sqm')}</p>
                   </div>
                 </div>
               )}
@@ -483,8 +481,8 @@ export default function AdminSubscriptionDetailPage() {
                 <div className="flex items-start gap-3">
                   <PawPrint className="h-4 w-4 text-amber-500 mt-0.5" />
                   <div>
-                    <p className="text-xs text-gray-400">Animale</p>
-                    <p className="text-sm text-gray-900">Da</p>
+                    <p className="text-xs text-gray-400">{t('admin:subscriptionDetail.serviceDetails.pets')}</p>
+                    <p className="text-sm text-gray-900">{t('admin:subscriptionDetail.serviceDetails.petsYes')}</p>
                   </div>
                 </div>
               )}
@@ -494,7 +492,7 @@ export default function AdminSubscriptionDetailPage() {
                 <div className="flex items-start gap-3">
                   <FileText className="h-4 w-4 text-gray-400 mt-0.5" />
                   <div>
-                    <p className="text-xs text-gray-400 mb-1">Instructiuni speciale</p>
+                    <p className="text-xs text-gray-400 mb-1">{t('admin:subscriptionDetail.serviceDetails.specialInstructions')}</p>
                     <p className="text-sm text-gray-600 whitespace-pre-wrap">{sub.specialInstructions}</p>
                   </div>
                 </div>
@@ -505,10 +503,16 @@ export default function AdminSubscriptionDetailPage() {
           {/* Address */}
           {sub.address && (
             <Card>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Adresa</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('admin:subscriptionDetail.address.title')}</h3>
               <div className="flex items-start gap-3">
                 <MapPin className="h-4 w-4 text-gray-400 mt-0.5" />
-                <p className="text-sm text-gray-900">{fmtAddress(sub.address)}</p>
+                <p className="text-sm text-gray-900">
+                  {fmtAddress(
+                    sub.address,
+                    t('admin:subscriptionDetail.address.floor'),
+                    t('admin:subscriptionDetail.address.apt'),
+                  )}
+                </p>
               </div>
             </Card>
           )}
@@ -517,7 +521,7 @@ export default function AdminSubscriptionDetailPage() {
           {sub.upcomingBookings.length > 0 && (
             <Card>
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Programari viitoare ({sub.upcomingBookings.length})
+                {t('admin:subscriptionDetail.upcomingBookings.title', { count: sub.upcomingBookings.length })}
               </h3>
               <div className="space-y-2">
                 {sub.upcomingBookings.map((b) => (
@@ -536,7 +540,7 @@ export default function AdminSubscriptionDetailPage() {
                       </div>
                     </div>
                     <Badge variant={bookingStatusVariant[b.status] ?? 'default'}>
-                      {bookingStatusLabel[b.status] ?? b.status}
+                      {t(`admin:bookings.statusLabels.${b.status}`, { defaultValue: b.status })}
                     </Badge>
                   </div>
                 ))}
@@ -548,7 +552,7 @@ export default function AdminSubscriptionDetailPage() {
           {sub.bookings.length > 0 && (
             <Card>
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Istoric programari ({sub.bookings.length})
+                {t('admin:subscriptionDetail.bookingHistory.title', { count: sub.bookings.length })}
               </h3>
               <div className="space-y-2">
                 {sub.bookings.map((b) => (
@@ -559,7 +563,7 @@ export default function AdminSubscriptionDetailPage() {
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <Badge variant={bookingStatusVariant[b.status] ?? 'default'}>
-                        {bookingStatusLabel[b.status] ?? b.status}
+                        {t(`admin:bookings.statusLabels.${b.status}`, { defaultValue: b.status })}
                       </Badge>
                       <div className="min-w-0">
                         <p className="text-sm text-gray-900">{fmtDate(b.scheduledDate)}, {fmtTime(b.scheduledStartTime)}</p>
@@ -584,7 +588,7 @@ export default function AdminSubscriptionDetailPage() {
           {/* Client */}
           {sub.client && (
             <Card>
-              <h3 className="text-sm font-medium text-gray-500 mb-3">Client</h3>
+              <h3 className="text-sm font-medium text-gray-500 mb-3">{t('admin:subscriptionDetail.sidebar.client')}</h3>
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-xl bg-primary/10">
                   <User className="h-5 w-5 text-primary" />
@@ -608,7 +612,7 @@ export default function AdminSubscriptionDetailPage() {
           {/* Company */}
           {sub.company && (
             <Card>
-              <h3 className="text-sm font-medium text-gray-500 mb-3">Companie</h3>
+              <h3 className="text-sm font-medium text-gray-500 mb-3">{t('admin:subscriptionDetail.sidebar.company')}</h3>
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-xl bg-secondary/10">
                   <Building2 className="h-5 w-5 text-secondary" />
@@ -625,7 +629,7 @@ export default function AdminSubscriptionDetailPage() {
 
           {/* Worker */}
           <Card>
-            <h3 className="text-sm font-medium text-gray-500 mb-3">Lucrator</h3>
+            <h3 className="text-sm font-medium text-gray-500 mb-3">{t('admin:subscriptionDetail.sidebar.worker')}</h3>
             {sub.worker ? (
               <>
                 <div className="flex items-center gap-3">
@@ -660,29 +664,29 @@ export default function AdminSubscriptionDetailPage() {
                     onClick={() => setWorkerChangeModal(true)}
                   >
                     <RefreshCw className="h-4 w-4" />
-                    Schimba lucratorul
+                    {t('admin:subscriptionDetail.sidebar.changeWorker')}
                   </Button>
                 )}
               </>
             ) : (
-              <p className="text-sm text-gray-400">Niciun lucrator asignat</p>
+              <p className="text-sm text-gray-400">{t('admin:subscriptionDetail.sidebar.noWorker')}</p>
             )}
           </Card>
 
           {/* Period */}
           {(sub.currentPeriodStart || sub.currentPeriodEnd) && (
             <Card>
-              <h3 className="text-sm font-medium text-gray-500 mb-3">Perioada curenta</h3>
+              <h3 className="text-sm font-medium text-gray-500 mb-3">{t('admin:subscriptionDetail.sidebar.currentPeriod')}</h3>
               <div className="space-y-2 text-sm">
                 {sub.currentPeriodStart && (
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Inceput</span>
+                    <span className="text-gray-500">{t('admin:subscriptionDetail.sidebar.periodStart')}</span>
                     <span className="text-gray-900">{fmtDate(sub.currentPeriodStart)}</span>
                   </div>
                 )}
                 {sub.currentPeriodEnd && (
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Sfarsit</span>
+                    <span className="text-gray-500">{t('admin:subscriptionDetail.sidebar.periodEnd')}</span>
                     <span className="text-gray-900">{fmtDate(sub.currentPeriodEnd)}</span>
                   </div>
                 )}
@@ -692,9 +696,9 @@ export default function AdminSubscriptionDetailPage() {
 
           {/* Progress */}
           <Card>
-            <h3 className="text-sm font-medium text-gray-500 mb-3">Progres</h3>
+            <h3 className="text-sm font-medium text-gray-500 mb-3">{t('admin:subscriptionDetail.sidebar.progress')}</h3>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-500">Finalizate</span>
+              <span className="text-sm text-gray-500">{t('admin:subscriptionDetail.sidebar.completed')}</span>
               <span className="text-sm font-semibold text-gray-900">
                 {sub.completedBookings} / {sub.totalBookings}
               </span>
@@ -710,7 +714,7 @@ export default function AdminSubscriptionDetailPage() {
           {/* Extras */}
           {sub.extras.length > 0 && (
             <Card>
-              <h3 className="text-sm font-medium text-gray-500 mb-3">Servicii suplimentare</h3>
+              <h3 className="text-sm font-medium text-gray-500 mb-3">{t('admin:subscriptionDetail.sidebar.extras')}</h3>
               <ul className="space-y-1.5">
                 {sub.extras.map((item, i) => (
                   <li key={i} className="flex justify-between text-sm">
@@ -726,19 +730,21 @@ export default function AdminSubscriptionDetailPage() {
 
           {/* Meta Info */}
           <Card>
-            <h3 className="text-sm font-medium text-gray-500 mb-3">Informatii</h3>
+            <h3 className="text-sm font-medium text-gray-500 mb-3">{t('admin:subscriptionDetail.sidebar.info')}</h3>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-500">Creat pe</span>
+                <span className="text-gray-500">{t('admin:subscriptionDetail.sidebar.createdAt')}</span>
                 <span className="text-gray-900">{fmtDate(sub.createdAt)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Tip serviciu</span>
+                <span className="text-gray-500">{t('admin:subscriptionDetail.sidebar.serviceType')}</span>
                 <span className="text-gray-900">{sub.serviceType}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Ziua preferata</span>
-                <span className="text-gray-900">{DAY_NAMES[sub.dayOfWeek] ?? sub.dayOfWeek}</span>
+                <span className="text-gray-500">{t('admin:subscriptionDetail.sidebar.preferredDay')}</span>
+                <span className="text-gray-900">
+                  {t(`admin:subscriptionDetail.dayNames.${sub.dayOfWeek}`, { defaultValue: String(sub.dayOfWeek) })}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">ID</span>
@@ -753,35 +759,34 @@ export default function AdminSubscriptionDetailPage() {
       <Modal
         open={cancelModalOpen}
         onClose={() => { setCancelModalOpen(false); setCancelReason(''); }}
-        title="Anuleaza abonamentul"
+        title={t('admin:subscriptions.cancelModal.title')}
       >
         <div className="space-y-4">
           <div className="flex items-start gap-3 p-4 rounded-xl bg-red-50 border border-red-200">
             <AlertTriangle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
             <p className="text-sm text-red-700">
-              Esti sigur ca doresti sa anulezi acest abonament? Aceasta actiune nu poate fi anulata.
-              Toate programarile viitoare vor fi anulate.
+              {t('admin:subscriptionDetail.cancelModal.warning')}
             </p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Motiv anulare (optional)
+              {t('admin:subscriptions.cancelModal.reasonLabel')}
             </label>
             <textarea
               value={cancelReason}
               onChange={(e) => setCancelReason(e.target.value)}
               rows={3}
-              placeholder="Descrie motivul anularii..."
+              placeholder={t('admin:subscriptions.cancelModal.reasonPlaceholder')}
               className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary resize-none"
             />
           </div>
           <div className="flex justify-end gap-3 pt-2">
             <Button variant="ghost" onClick={() => { setCancelModalOpen(false); setCancelReason(''); }}>
-              Renunta
+              {t('admin:subscriptions.cancelModal.dismiss')}
             </Button>
             <Button variant="danger" onClick={handleCancel} loading={cancelling}>
               <XCircle className="h-4 w-4" />
-              Anuleaza abonamentul
+              {t('admin:subscriptions.cancelModal.confirm')}
             </Button>
           </div>
         </div>

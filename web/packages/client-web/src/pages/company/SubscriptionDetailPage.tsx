@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@apollo/client';
+import { useTranslation } from 'react-i18next';
 import {
   ArrowLeft,
   Calendar,
@@ -128,27 +129,8 @@ interface WorkerOption {
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-const RECURRENCE_LABELS: Record<string, string> = {
-  WEEKLY: 'Saptamanal',
-  BIWEEKLY: 'Bisaptamanal',
-  MONTHLY: 'Lunar',
-};
-
-const DAY_NAMES: Record<number, string> = {
-  0: 'Duminica', 1: 'Luni', 2: 'Marti', 3: 'Miercuri',
-  4: 'Joi', 5: 'Vineri', 6: 'Sambata',
-};
-
-const PROPERTY_TYPE_LABELS: Record<string, string> = {
-  APARTMENT: 'Apartament', HOUSE: 'Casa', OFFICE: 'Birou', STUDIO: 'Garsoniera',
-};
-
 const statusBadgeVariant: Record<string, 'success' | 'warning' | 'danger' | 'default'> = {
   ACTIVE: 'success', PAUSED: 'warning', PAST_DUE: 'danger', CANCELLED: 'default',
-};
-
-const statusLabel: Record<string, string> = {
-  ACTIVE: 'Activ', PAUSED: 'Pauzat', PAST_DUE: 'Restant', CANCELLED: 'Anulat',
 };
 
 const bookingStatusVariant: Record<string, 'success' | 'warning' | 'danger' | 'default' | 'info'> = {
@@ -156,14 +138,9 @@ const bookingStatusVariant: Record<string, 'success' | 'warning' | 'danger' | 'd
   COMPLETED: 'success', CANCELLED: 'danger',
 };
 
-const bookingStatusLabel: Record<string, string> = {
-  PENDING: 'In asteptare', ASSIGNED: 'Asignat', CONFIRMED: 'Confirmat',
-  IN_PROGRESS: 'In desfasurare', COMPLETED: 'Finalizat', CANCELLED: 'Anulat',
-};
-
-function fmtDate(dateStr: string): string {
+function fmtDate(dateStr: string, locale: string): string {
   try {
-    return new Date(dateStr).toLocaleDateString('ro-RO', {
+    return new Date(dateStr).toLocaleDateString(locale, {
       day: 'numeric', month: 'long', year: 'numeric',
     });
   } catch { return dateStr; }
@@ -177,10 +154,10 @@ function fmtCurrency(amount: number): string {
   return amount.toFixed(2) + ' RON';
 }
 
-function fmtAddress(address: SubscriptionAddress): string {
+function fmtAddress(address: SubscriptionAddress, floorLabel: string, aptLabel: string): string {
   const parts = [address.streetAddress];
-  if (address.floor) parts.push(`Etaj ${address.floor}`);
-  if (address.apartment) parts.push(`Ap. ${address.apartment}`);
+  if (address.floor) parts.push(`${floorLabel} ${address.floor}`);
+  if (address.apartment) parts.push(`${aptLabel} ${address.apartment}`);
   parts.push(`${address.city}, ${address.county}`);
   return parts.join(', ');
 }
@@ -190,6 +167,47 @@ function fmtAddress(address: SubscriptionAddress): string {
 export default function CompanySubscriptionDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation('company');
+  const locale = i18n.language === 'en' ? 'en-GB' : 'ro-RO';
+
+  const recurrenceLabels: Record<string, string> = {
+    WEEKLY: t('subscriptionDetail.recurrence.weekly', { defaultValue: t('subscriptions.recurrence.weekly') }),
+    BIWEEKLY: t('subscriptionDetail.recurrence.biweekly', { defaultValue: t('subscriptions.recurrence.biweekly') }),
+    MONTHLY: t('subscriptionDetail.recurrence.monthly', { defaultValue: t('subscriptions.recurrence.monthly') }),
+  };
+
+  const dayNames: Record<number, string> = {
+    0: t('subscriptionDetail.days.0'),
+    1: t('subscriptionDetail.days.1'),
+    2: t('subscriptionDetail.days.2'),
+    3: t('subscriptionDetail.days.3'),
+    4: t('subscriptionDetail.days.4'),
+    5: t('subscriptionDetail.days.5'),
+    6: t('subscriptionDetail.days.6'),
+  };
+
+  const propertyTypeLabels: Record<string, string> = {
+    APARTMENT: t('subscriptionDetail.serviceDetails.propertyTypes.APARTMENT'),
+    HOUSE: t('subscriptionDetail.serviceDetails.propertyTypes.HOUSE'),
+    OFFICE: t('subscriptionDetail.serviceDetails.propertyTypes.OFFICE'),
+    STUDIO: t('subscriptionDetail.serviceDetails.propertyTypes.STUDIO'),
+  };
+
+  const statusLabel: Record<string, string> = {
+    ACTIVE: t('subscriptions.status.active'),
+    PAUSED: t('subscriptions.status.paused'),
+    PAST_DUE: t('subscriptions.status.pastDue'),
+    CANCELLED: t('subscriptions.status.cancelled'),
+  };
+
+  const bookingStatusLabel: Record<string, string> = {
+    PENDING: t('subscriptionDetail.bookingStatus.pending'),
+    ASSIGNED: t('subscriptionDetail.bookingStatus.assigned'),
+    CONFIRMED: t('subscriptionDetail.bookingStatus.confirmed'),
+    IN_PROGRESS: t('subscriptionDetail.bookingStatus.inProgress'),
+    COMPLETED: t('subscriptionDetail.bookingStatus.completed'),
+    CANCELLED: t('subscriptionDetail.bookingStatus.cancelled'),
+  };
 
   const [workerChangeModal, setWorkerChangeModal] = useState(false);
   const [workerChangeSuccess, setWorkerChangeSuccess] = useState(false);
@@ -217,11 +235,11 @@ export default function CompanySubscriptionDetailPage() {
     return (
       <div className="text-center py-20">
         <p className="text-gray-400 mb-4">
-          {error ? 'Eroare la incarcarea abonamentului.' : 'Abonamentul nu a fost gasit.'}
+          {error ? t('subscriptionDetail.loadError') : t('subscriptionDetail.notFound')}
         </p>
         <Button variant="ghost" onClick={() => navigate('/firma/abonamente')}>
           <ArrowLeft className="h-4 w-4" />
-          Inapoi la abonamente
+          {t('subscriptionDetail.backToSubscriptions')}
         </Button>
       </div>
     );
@@ -248,11 +266,11 @@ export default function CompanySubscriptionDetailPage() {
             </Badge>
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 text-xs font-medium text-blue-600">
               <Repeat className="h-3 w-3" />
-              {RECURRENCE_LABELS[sub.recurrenceType] || sub.recurrenceType}
+              {recurrenceLabels[sub.recurrenceType] || sub.recurrenceType}
             </span>
           </div>
           <p className="text-gray-500 mt-0.5">
-            {DAY_NAMES[sub.dayOfWeek] ?? ''}, ora {fmtTime(sub.preferredTime)} &middot; {sub.sessionsPerMonth} sedinte/luna
+            {dayNames[sub.dayOfWeek] ?? ''}, ora {fmtTime(sub.preferredTime)} &middot; {t('subscriptionDetail.sessions', { count: sub.sessionsPerMonth })}
           </p>
         </div>
       </div>
@@ -263,10 +281,10 @@ export default function CompanySubscriptionDetailPage() {
           <div className="flex items-start gap-3">
             <XCircle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-red-800">Motiv anulare</p>
+              <p className="text-sm font-medium text-red-800">{t('subscriptionDetail.cancellationReason')}</p>
               <p className="text-sm text-red-700 mt-0.5">{sub.cancellationReason}</p>
               {sub.cancelledAt && (
-                <p className="text-xs text-red-500 mt-1">Anulat pe {fmtDate(sub.cancelledAt)}</p>
+                <p className="text-xs text-red-500 mt-1">{t('subscriptionDetail.cancelledAt', { date: fmtDate(sub.cancelledAt, locale) })}</p>
               )}
             </div>
           </div>
@@ -278,7 +296,7 @@ export default function CompanySubscriptionDetailPage() {
           <div className="flex items-center gap-3">
             <RefreshCw className="h-5 w-5 text-emerald-500 shrink-0" />
             <p className="text-sm text-emerald-800">
-              Lucratorul a fost schimbat cu succes. Toate programarile viitoare au fost actualizate.
+              {t('subscriptionDetail.workerChangeSuccess')}
             </p>
           </div>
         </Card>
@@ -290,15 +308,15 @@ export default function CompanySubscriptionDetailPage() {
             <RefreshCw className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
             <div className="flex-1">
               <p className="text-sm font-medium text-amber-800">
-                Cerere de schimbare lucrator in asteptare
+                {t('subscriptionDetail.workerChangePending')}
               </p>
               {sub.workerChangeReason && (
                 <p className="text-sm text-amber-700 mt-0.5">
-                  Motiv: {sub.workerChangeReason}
+                  {t('subscriptionDetail.workerChangeReason', { reason: sub.workerChangeReason })}
                 </p>
               )}
               <p className="text-xs text-amber-600 mt-1">
-                Solicitat pe {fmtDate(sub.workerChangeRequestedAt)}
+                {t('subscriptionDetail.workerChangeRequested', { date: fmtDate(sub.workerChangeRequestedAt!, locale) })}
               </p>
               <Button
                 size="sm"
@@ -306,7 +324,7 @@ export default function CompanySubscriptionDetailPage() {
                 onClick={() => setWorkerChangeModal(true)}
               >
                 <RefreshCw className="h-4 w-4" />
-                Atribuie lucrator nou
+                {t('subscriptionDetail.assignNewWorker')}
               </Button>
             </div>
           </div>
@@ -318,40 +336,40 @@ export default function CompanySubscriptionDetailPage() {
         <div className="lg:col-span-2 space-y-6">
           {/* Pricing */}
           <Card>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Preturi</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('subscriptionDetail.pricing.title')}</h3>
             <div className="space-y-3">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Tarif orar</span>
-                <span className="text-gray-900">{fmtCurrency(sub.hourlyRate)}/h</span>
+                <span className="text-gray-500">{t('subscriptionDetail.pricing.hourlyRate')}</span>
+                <span className="text-gray-900">{fmtCurrency(sub.hourlyRate)}{t('subscriptionDetail.pricing.perHour')}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Durată estimată</span>
-                <span className="text-gray-900">{sub.estimatedDurationHours} {sub.estimatedDurationHours === 1 ? 'ora' : 'ore'}</span>
+                <span className="text-gray-500">{t('subscriptionDetail.pricing.duration')}</span>
+                <span className="text-gray-900">{sub.estimatedDurationHours} {sub.estimatedDurationHours === 1 ? t('subscriptionDetail.pricing.hour') : t('subscriptionDetail.pricing.hours')}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Pret per sesiune (original)</span>
+                <span className="text-gray-500">{t('subscriptionDetail.pricing.perSessionOriginal')}</span>
                 <span className="text-gray-900">{fmtCurrency(sub.perSessionOriginal)}</span>
               </div>
               {sub.discountPct > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="flex items-center gap-1 text-emerald-600">
                     <TrendingDown className="h-3.5 w-3.5" />
-                    Reducere abonament
+                    {t('subscriptionDetail.pricing.discount')}
                   </span>
                   <span className="text-emerald-600 font-medium">-{sub.discountPct}%</span>
                 </div>
               )}
               <div className="flex justify-between text-sm font-semibold">
-                <span className="text-gray-700">Pret per sesiune</span>
+                <span className="text-gray-700">{t('subscriptionDetail.pricing.perSession')}</span>
                 <span className="text-gray-900">{fmtCurrency(sub.perSessionDiscounted)}</span>
               </div>
               <div className="border-t border-gray-100 pt-3">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Sesiuni pe luna</span>
+                  <span className="text-gray-500">{t('subscriptionDetail.pricing.sessionsPerMonth')}</span>
                   <span className="text-gray-900">{sub.sessionsPerMonth}</span>
                 </div>
                 <div className="flex justify-between text-sm font-bold mt-2 p-3 bg-primary/5 rounded-xl -mx-1">
-                  <span className="text-gray-900">Total lunar</span>
+                  <span className="text-gray-900">{t('subscriptionDetail.pricing.monthlyTotal')}</span>
                   <span className="text-primary">{fmtCurrency(sub.monthlyAmount)}</span>
                 </div>
               </div>
@@ -360,37 +378,37 @@ export default function CompanySubscriptionDetailPage() {
 
           {/* Service Details */}
           <Card>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Detalii serviciu</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('subscriptionDetail.serviceDetails.title')}</h3>
             <div className="grid grid-cols-2 gap-4">
               {sub.propertyType && (
                 <div className="flex items-start gap-3">
                   <Home className="h-4 w-4 text-gray-400 mt-0.5" />
                   <div>
-                    <p className="text-xs text-gray-400">Tip proprietate</p>
-                    <p className="text-sm text-gray-900">{PROPERTY_TYPE_LABELS[sub.propertyType] ?? sub.propertyType}</p>
+                    <p className="text-xs text-gray-400">{t('subscriptionDetail.serviceDetails.propertyType')}</p>
+                    <p className="text-sm text-gray-900">{propertyTypeLabels[sub.propertyType] ?? sub.propertyType}</p>
                   </div>
                 </div>
               )}
               <div className="flex items-start gap-3">
                 <Home className="h-4 w-4 text-gray-400 mt-0.5" />
                 <div>
-                  <p className="text-xs text-gray-400">Camere</p>
-                  <p className="text-sm text-gray-900">{sub.numRooms} {sub.numRooms === 1 ? 'camera' : 'camere'}</p>
+                  <p className="text-xs text-gray-400">{t('subscriptionDetail.serviceDetails.rooms')}</p>
+                  <p className="text-sm text-gray-900">{sub.numRooms} {sub.numRooms === 1 ? t('subscriptionDetail.serviceDetails.room') : t('subscriptionDetail.serviceDetails.roomsPlural')}</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <Bath className="h-4 w-4 text-gray-400 mt-0.5" />
                 <div>
-                  <p className="text-xs text-gray-400">Bai</p>
-                  <p className="text-sm text-gray-900">{sub.numBathrooms} {sub.numBathrooms === 1 ? 'baie' : 'bai'}</p>
+                  <p className="text-xs text-gray-400">{t('subscriptionDetail.serviceDetails.bathrooms')}</p>
+                  <p className="text-sm text-gray-900">{sub.numBathrooms} {sub.numBathrooms === 1 ? t('subscriptionDetail.serviceDetails.bathroom') : t('subscriptionDetail.serviceDetails.bathroomsPlural')}</p>
                 </div>
               </div>
               {sub.areaSqm != null && sub.areaSqm > 0 && (
                 <div className="flex items-start gap-3">
                   <Ruler className="h-4 w-4 text-gray-400 mt-0.5" />
                   <div>
-                    <p className="text-xs text-gray-400">Suprafață</p>
-                    <p className="text-sm text-gray-900">{sub.areaSqm} mp</p>
+                    <p className="text-xs text-gray-400">{t('subscriptionDetail.serviceDetails.area')}</p>
+                    <p className="text-sm text-gray-900">{sub.areaSqm} {t('subscriptionDetail.serviceDetails.sqm')}</p>
                   </div>
                 </div>
               )}
@@ -398,8 +416,8 @@ export default function CompanySubscriptionDetailPage() {
                 <div className="flex items-start gap-3">
                   <PawPrint className="h-4 w-4 text-amber-500 mt-0.5" />
                   <div>
-                    <p className="text-xs text-gray-400">Animale</p>
-                    <p className="text-sm text-gray-900">Da</p>
+                    <p className="text-xs text-gray-400">{t('subscriptionDetail.serviceDetails.pets')}</p>
+                    <p className="text-sm text-gray-900">{t('subscriptionDetail.serviceDetails.petsYes')}</p>
                   </div>
                 </div>
               )}
@@ -409,7 +427,7 @@ export default function CompanySubscriptionDetailPage() {
                 <div className="flex items-start gap-3">
                   <FileText className="h-4 w-4 text-gray-400 mt-0.5" />
                   <div>
-                    <p className="text-xs text-gray-400 mb-1">Instructiuni speciale</p>
+                    <p className="text-xs text-gray-400 mb-1">{t('subscriptionDetail.serviceDetails.instructions')}</p>
                     <p className="text-sm text-gray-600 whitespace-pre-wrap">{sub.specialInstructions}</p>
                   </div>
                 </div>
@@ -420,10 +438,10 @@ export default function CompanySubscriptionDetailPage() {
           {/* Address */}
           {sub.address && (
             <Card>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Adresa</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('subscriptionDetail.address')}</h3>
               <div className="flex items-start gap-3">
                 <MapPin className="h-4 w-4 text-gray-400 mt-0.5" />
-                <p className="text-sm text-gray-900">{fmtAddress(sub.address)}</p>
+                <p className="text-sm text-gray-900">{fmtAddress(sub.address, t('subscriptionDetail.floor'), t('subscriptionDetail.apartment'))}</p>
               </div>
             </Card>
           )}
@@ -432,7 +450,7 @@ export default function CompanySubscriptionDetailPage() {
           {sub.upcomingBookings.length > 0 && (
             <Card>
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Programari viitoare ({sub.upcomingBookings.length})
+                {t('subscriptionDetail.upcomingBookings', { count: sub.upcomingBookings.length })}
               </h3>
               <div className="space-y-2">
                 {sub.upcomingBookings.map((b) => (
@@ -444,7 +462,7 @@ export default function CompanySubscriptionDetailPage() {
                     <div className="flex items-center gap-3 min-w-0">
                       <Calendar className="h-4 w-4 text-blue-600 shrink-0" />
                       <div>
-                        <p className="text-sm font-medium text-gray-900">{fmtDate(b.scheduledDate)}</p>
+                        <p className="text-sm font-medium text-gray-900">{fmtDate(b.scheduledDate, locale)}</p>
                         <p className="text-xs text-gray-500">
                           {fmtTime(b.scheduledStartTime)} &middot; {b.referenceCode}
                         </p>
@@ -463,7 +481,7 @@ export default function CompanySubscriptionDetailPage() {
           {sub.bookings.length > 0 && (
             <Card>
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Istoric programari ({sub.bookings.length})
+                {t('subscriptionDetail.bookingHistory', { count: sub.bookings.length })}
               </h3>
               <div className="space-y-2">
                 {sub.bookings.map((b) => (
@@ -477,7 +495,7 @@ export default function CompanySubscriptionDetailPage() {
                         {bookingStatusLabel[b.status] ?? b.status}
                       </Badge>
                       <div className="min-w-0">
-                        <p className="text-sm text-gray-900">{fmtDate(b.scheduledDate)}, {fmtTime(b.scheduledStartTime)}</p>
+                        <p className="text-sm text-gray-900">{fmtDate(b.scheduledDate, locale)}, {fmtTime(b.scheduledStartTime)}</p>
                         <p className="text-xs text-gray-500">
                           {b.referenceCode}
                           {b.worker ? ` — ${b.worker.fullName}` : ''}
@@ -499,7 +517,7 @@ export default function CompanySubscriptionDetailPage() {
           {/* Client */}
           {sub.client && (
             <Card>
-              <h3 className="text-sm font-medium text-gray-500 mb-3">Client</h3>
+              <h3 className="text-sm font-medium text-gray-500 mb-3">{t('subscriptionDetail.client')}</h3>
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-xl bg-primary/10">
                   <User className="h-5 w-5 text-primary" />
@@ -520,7 +538,7 @@ export default function CompanySubscriptionDetailPage() {
           {/* Company */}
           {sub.company && (
             <Card>
-              <h3 className="text-sm font-medium text-gray-500 mb-3">Companie</h3>
+              <h3 className="text-sm font-medium text-gray-500 mb-3">{t('subscriptionDetail.company')}</h3>
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-xl bg-secondary/10">
                   <Building2 className="h-5 w-5 text-secondary" />
@@ -534,7 +552,7 @@ export default function CompanySubscriptionDetailPage() {
 
           {/* Worker */}
           <Card>
-            <h3 className="text-sm font-medium text-gray-500 mb-3">Lucrator</h3>
+            <h3 className="text-sm font-medium text-gray-500 mb-3">{t('subscriptionDetail.worker')}</h3>
             {sub.worker ? (
               <>
                 <div className="flex items-center gap-3">
@@ -569,30 +587,30 @@ export default function CompanySubscriptionDetailPage() {
                     onClick={() => setWorkerChangeModal(true)}
                   >
                     <RefreshCw className="h-4 w-4" />
-                    Schimba lucratorul
+                    {t('subscriptionDetail.changeWorker')}
                   </Button>
                 )}
               </>
             ) : (
-              <p className="text-sm text-gray-400">Niciun lucrator asignat</p>
+              <p className="text-sm text-gray-400">{t('subscriptionDetail.noWorker')}</p>
             )}
           </Card>
 
           {/* Period */}
           {(sub.currentPeriodStart || sub.currentPeriodEnd) && (
             <Card>
-              <h3 className="text-sm font-medium text-gray-500 mb-3">Perioada curenta</h3>
+              <h3 className="text-sm font-medium text-gray-500 mb-3">{t('subscriptionDetail.currentPeriod')}</h3>
               <div className="space-y-2 text-sm">
                 {sub.currentPeriodStart && (
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Inceput</span>
-                    <span className="text-gray-900">{fmtDate(sub.currentPeriodStart)}</span>
+                    <span className="text-gray-500">{t('subscriptionDetail.periodStart')}</span>
+                    <span className="text-gray-900">{fmtDate(sub.currentPeriodStart, locale)}</span>
                   </div>
                 )}
                 {sub.currentPeriodEnd && (
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Sfarsit</span>
-                    <span className="text-gray-900">{fmtDate(sub.currentPeriodEnd)}</span>
+                    <span className="text-gray-500">{t('subscriptionDetail.periodEnd')}</span>
+                    <span className="text-gray-900">{fmtDate(sub.currentPeriodEnd, locale)}</span>
                   </div>
                 )}
               </div>
@@ -601,9 +619,9 @@ export default function CompanySubscriptionDetailPage() {
 
           {/* Progress */}
           <Card>
-            <h3 className="text-sm font-medium text-gray-500 mb-3">Progres</h3>
+            <h3 className="text-sm font-medium text-gray-500 mb-3">{t('subscriptionDetail.progress.title')}</h3>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-500">Finalizate</span>
+              <span className="text-sm text-gray-500">{t('subscriptionDetail.progress.completed')}</span>
               <span className="text-sm font-semibold text-gray-900">
                 {sub.completedBookings} / {sub.totalBookings}
               </span>
@@ -619,7 +637,7 @@ export default function CompanySubscriptionDetailPage() {
           {/* Extras */}
           {sub.extras.length > 0 && (
             <Card>
-              <h3 className="text-sm font-medium text-gray-500 mb-3">Servicii suplimentare</h3>
+              <h3 className="text-sm font-medium text-gray-500 mb-3">{t('subscriptionDetail.extras')}</h3>
               <ul className="space-y-1.5">
                 {sub.extras.map((item, i) => (
                   <li key={i} className="flex justify-between text-sm">
@@ -635,19 +653,19 @@ export default function CompanySubscriptionDetailPage() {
 
           {/* Meta Info */}
           <Card>
-            <h3 className="text-sm font-medium text-gray-500 mb-3">Informatii</h3>
+            <h3 className="text-sm font-medium text-gray-500 mb-3">{t('subscriptionDetail.meta.title')}</h3>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-500">Creat pe</span>
-                <span className="text-gray-900">{fmtDate(sub.createdAt)}</span>
+                <span className="text-gray-500">{t('subscriptionDetail.meta.createdAt')}</span>
+                <span className="text-gray-900">{fmtDate(sub.createdAt, locale)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Tip serviciu</span>
+                <span className="text-gray-500">{t('subscriptionDetail.meta.serviceType')}</span>
                 <span className="text-gray-900">{sub.serviceType}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Ziua preferata</span>
-                <span className="text-gray-900">{DAY_NAMES[sub.dayOfWeek] ?? sub.dayOfWeek}</span>
+                <span className="text-gray-500">{t('subscriptionDetail.meta.preferredDay')}</span>
+                <span className="text-gray-900">{dayNames[sub.dayOfWeek] ?? sub.dayOfWeek}</span>
               </div>
             </div>
           </Card>

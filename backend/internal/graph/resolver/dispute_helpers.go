@@ -175,6 +175,16 @@ func (r *Resolver) dispatchDisputeOpenedNotifications(booking db.Booking, disput
 				}
 			}
 		}
+
+		// Platform-level Slack notification so the admin sees all disputes.
+		r.NotifSvc.Dispatch(notification.EventDisputeOpened,
+			notification.Payload{
+				"referenceCode": booking.ReferenceCode,
+				"clientName":    clientName,
+				"reason":        string(dispute.Reason),
+			},
+			[]notification.Target{{Name: "Admin"}},
+		)
 	}()
 }
 
@@ -266,6 +276,15 @@ func (r *Resolver) dispatchDisputeResolvedNotification(bookingID pgtype.UUID, di
 				"resolutionNotes": dispute.ResolutionNotes.String,
 			},
 			[]notification.Target{{UserID: uuidToString(clientUser.ID), Email: clientUser.Email, Name: clientUser.FullName}},
+		)
+
+		// Platform-level Slack notification so the admin sees dispute resolutions.
+		r.NotifSvc.Dispatch(notification.EventDisputeResolved,
+			notification.Payload{
+				"referenceCode": booking.ReferenceCode,
+				"disputeStatus": string(dispute.Status),
+			},
+			[]notification.Target{{Name: "Admin"}},
 		)
 	}()
 }

@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
+import { useTranslation } from 'react-i18next';
 import {
   Wallet,
   TrendingUp,
@@ -34,9 +35,9 @@ function formatRON(amountCents: number): string {
   return (amountCents / 100).toFixed(2) + ' lei';
 }
 
-function formatDate(dateStr: string): string {
+function formatDate(dateStr: string, locale: string): string {
   const d = new Date(dateStr);
-  return d.toLocaleDateString('ro-RO', {
+  return d.toLocaleDateString(locale, {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -68,21 +69,6 @@ const payoutStatusBadge: Record<PayoutStatus, 'warning' | 'info' | 'success' | '
   FAILED: 'danger',
 };
 
-const payoutStatusLabel: Record<PayoutStatus, string> = {
-  PENDING: 'In asteptare',
-  PROCESSING: 'In procesare',
-  PAID: 'Platit',
-  FAILED: 'Esuat',
-};
-
-const statusFilterOptions = [
-  { value: '', label: 'Toate statusurile' },
-  { value: 'PENDING', label: 'In asteptare' },
-  { value: 'PROCESSING', label: 'In procesare' },
-  { value: 'PAID', label: 'Platit' },
-  { value: 'FAILED', label: 'Esuat' },
-];
-
 // ─── Metric ──────────────────────────────────────────────────────────────────
 
 function Metric({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string | number }) {
@@ -102,6 +88,7 @@ function Metric({ icon: Icon, label, value }: { icon: React.ElementType; label: 
 // ─── Stripe Connect Card ──────────────────────────────────────────────────────
 
 function StripeConnectCard() {
+  const { t } = useTranslation('company');
   const { data, loading } = useQuery(MY_CONNECT_STATUS);
   const [initiateOnboarding, { loading: initiating }] = useMutation(INITIATE_CONNECT_ONBOARDING);
   const [refreshOnboarding, { loading: refreshing }] = useMutation(REFRESH_CONNECT_ONBOARDING);
@@ -155,24 +142,24 @@ function StripeConnectCard() {
             <CreditCard className="h-5 w-5 md:h-6 md:w-6 text-purple-600" />
           </div>
           <div className="min-w-0">
-            <p className="text-xs md:text-sm font-medium text-gray-500">Stripe Connect</p>
+            <p className="text-xs md:text-sm font-medium text-gray-500">{t('company:payouts.stripe.label')}</p>
             {onboardingStatus === 'COMPLETE' ? (
               <div className="flex items-center gap-2 mt-1">
                 <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0" />
-                <span className="text-sm font-semibold text-emerald-600">Stripe activ</span>
+                <span className="text-sm font-semibold text-emerald-600">{t('company:payouts.stripe.active')}</span>
                 {connectStatus?.chargesEnabled && (
-                  <Badge variant="success">Plati activate</Badge>
+                  <Badge variant="success">{t('company:payouts.stripe.paymentsEnabled')}</Badge>
                 )}
               </div>
             ) : onboardingStatus === 'PENDING' ? (
               <div className="flex items-center gap-2 mt-1">
                 <Clock className="h-4 w-4 text-amber-500 shrink-0" />
-                <span className="text-sm font-semibold text-amber-600">Inregistrare incompleta</span>
+                <span className="text-sm font-semibold text-amber-600">{t('company:payouts.stripe.incomplete')}</span>
               </div>
             ) : (
               <div className="flex items-center gap-2 mt-1">
                 <AlertCircle className="h-4 w-4 text-gray-400 shrink-0" />
-                <span className="text-sm text-gray-500">Neconectat</span>
+                <span className="text-sm text-gray-500">{t('company:payouts.stripe.notConnected')}</span>
               </div>
             )}
           </div>
@@ -182,17 +169,17 @@ function StripeConnectCard() {
           {onboardingStatus === 'NOT_STARTED' && (
             <Button onClick={handleInitiate} loading={initiating} size="sm">
               <ExternalLink className="h-4 w-4" />
-              Conecteaza cu Stripe
+              {t('company:payouts.stripe.connect')}
             </Button>
           )}
           {onboardingStatus === 'PENDING' && (
             <Button onClick={handleRefresh} loading={refreshing} size="sm" variant="outline">
               <ExternalLink className="h-4 w-4" />
-              Finalizeaza inregistrarea
+              {t('company:payouts.stripe.finalize')}
             </Button>
           )}
           {onboardingStatus === 'COMPLETE' && (
-            <Badge variant="success">Activ</Badge>
+            <Badge variant="success">{t('company:payouts.stripe.statusActive')}</Badge>
           )}
         </div>
       </div>
@@ -215,7 +202,8 @@ interface PayoutLineItem {
   };
 }
 
-function PayoutDetailPanel({ payoutId }: { payoutId: string }) {
+function PayoutDetailPanel({ payoutId, locale }: { payoutId: string; locale: string }) {
+  const { t } = useTranslation('company');
   const { data, loading } = useQuery(MY_PAYOUT_DETAIL, {
     variables: { id: payoutId },
   });
@@ -238,14 +226,14 @@ function PayoutDetailPanel({ payoutId }: { payoutId: string }) {
   if (lineItems.length === 0) {
     return (
       <div className="px-3 md:px-6 py-4 bg-gray-50 border-t border-gray-100">
-        <p className="text-sm text-gray-500">Nu exista detalii disponibile.</p>
+        <p className="text-sm text-gray-500">{t('company:payouts.detail.noDetails')}</p>
       </div>
     );
   }
 
   return (
     <div className="px-3 md:px-6 py-4 bg-gray-50 border-t border-gray-100">
-      <p className="text-xs font-semibold text-gray-500 uppercase mb-3">Detalii rezervari</p>
+      <p className="text-xs font-semibold text-gray-500 uppercase mb-3">{t('company:payouts.detail.bookingsHeader')}</p>
       <div className="space-y-2">
         {lineItems.map((item) => (
           <div
@@ -258,7 +246,7 @@ function PayoutDetailPanel({ payoutId }: { payoutId: string }) {
                 <p className="text-sm font-medium text-gray-900 truncate">
                   {item.booking.referenceCode} - {item.booking.serviceName}
                 </p>
-                <p className="text-xs text-gray-500">{formatDate(item.booking.scheduledDate)}</p>
+                <p className="text-xs text-gray-500">{formatDate(item.booking.scheduledDate, locale)}</p>
               </div>
             </div>
             <div className="flex items-center gap-3 sm:gap-4 shrink-0 ml-6 sm:ml-4 text-xs sm:text-sm">
@@ -287,6 +275,24 @@ interface Payout {
 }
 
 export default function PayoutsPage() {
+  const { t, i18n } = useTranslation(['dashboard', 'company']);
+  const locale = i18n.language === 'en' ? 'en-GB' : 'ro-RO';
+
+  const payoutStatusLabel: Record<PayoutStatus, string> = {
+    PENDING: t('company:payouts.status.pending'),
+    PROCESSING: t('company:payouts.status.processing'),
+    PAID: t('company:payouts.status.paid'),
+    FAILED: t('company:payouts.status.failed'),
+  };
+
+  const statusFilterOptions = [
+    { value: '', label: t('company:payouts.allStatuses') },
+    { value: 'PENDING', label: t('company:payouts.status.pending') },
+    { value: 'PROCESSING', label: t('company:payouts.status.processing') },
+    { value: 'PAID', label: t('company:payouts.status.paid') },
+    { value: 'FAILED', label: t('company:payouts.status.failed') },
+  ];
+
   const defaultRange = useMemo(getMonthRange, []);
   const [dateFrom, setDateFrom] = useState(defaultRange.from);
   const [dateTo, setDateTo] = useState(defaultRange.to);
@@ -319,9 +325,9 @@ export default function PayoutsPage() {
     <div className="max-w-full overflow-hidden">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Plăți și Câștiguri</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t('company:payouts.title')}</h1>
         <p className="text-gray-500 mt-1">
-          Gestioneaza castigurile, platile si contul Stripe Connect.
+          {t('company:payouts.subtitle')}
         </p>
       </div>
 
@@ -338,7 +344,7 @@ export default function PayoutsPage() {
               type="date"
               value={dateFrom}
               onChange={(e) => setDateFrom(e.target.value)}
-              label="De la"
+              label={t('company:payouts.dateFrom')}
               className="appearance-none px-2 sm:px-4"
             />
           </div>
@@ -347,7 +353,7 @@ export default function PayoutsPage() {
               type="date"
               value={dateTo}
               onChange={(e) => setDateTo(e.target.value)}
-              label="Pana la"
+              label={t('company:payouts.dateTo')}
               className="appearance-none px-2 sm:px-4"
             />
           </div>
@@ -372,15 +378,15 @@ export default function PayoutsPage() {
       ) : earnings ? (
         <Card className="mb-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-1 divide-y md:divide-y-0 md:divide-x divide-gray-100">
-            <Metric icon={TrendingUp} label="Venit brut" value={formatRON(earnings.totalGross ?? 0)} />
+            <Metric icon={TrendingUp} label={t('company:payouts.earnings.gross')} value={formatRON(earnings.totalGross ?? 0)} />
             <div className="pt-3 md:pt-0 md:pl-6">
-              <Metric icon={Receipt} label="Comision platforma" value={formatRON(earnings.totalCommission ?? 0)} />
+              <Metric icon={Receipt} label={t('company:payouts.earnings.commission')} value={formatRON(earnings.totalCommission ?? 0)} />
             </div>
             <div className="pt-3 md:pt-0 md:pl-6">
-              <Metric icon={Wallet} label="Venit net" value={formatRON(earnings.totalNet ?? 0)} />
+              <Metric icon={Wallet} label={t('company:payouts.earnings.net')} value={formatRON(earnings.totalNet ?? 0)} />
             </div>
             <div className="pt-3 md:pt-0 md:pl-6">
-              <Metric icon={Hash} label="Rezervări" value={earnings.bookingCount ?? 0} />
+              <Metric icon={Hash} label={t('company:payouts.earnings.bookings')} value={earnings.bookingCount ?? 0} />
             </div>
           </div>
         </Card>
@@ -393,7 +399,7 @@ export default function PayoutsPage() {
             options={statusFilterOptions}
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            label="Filtrează după status"
+            label={t('company:payouts.filterStatus')}
           />
         </div>
       </div>
@@ -401,13 +407,13 @@ export default function PayoutsPage() {
       {/* Payouts Table */}
       <Card padding={false}>
         {payoutsLoading ? (
-          <LoadingSpinner text="Se incarca platile..." />
+          <LoadingSpinner text={t('company:payouts.loading')} />
         ) : payouts.length === 0 ? (
           <div className="text-center py-12 px-6">
             <Wallet className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-1">Nicio plata</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-1">{t('company:payouts.empty')}</h3>
             <p className="text-gray-500">
-              Nu exista plati {statusFilter ? 'pentru filtrul selectat' : 'inregistrate inca'}.
+              {statusFilter ? t('company:payouts.emptyFilter') : t('company:payouts.emptyNone')}
             </p>
           </div>
         ) : (
@@ -416,19 +422,19 @@ export default function PayoutsPage() {
               <thead>
                 <tr className="border-y border-gray-100">
                   <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase">
-                    Perioada
+                    {t('company:payouts.table.period')}
                   </th>
                   <th className="text-right px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase">
-                    Suma
+                    {t('company:payouts.table.amount')}
                   </th>
                   <th className="text-right px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">
-                    Rezervări
+                    {t('company:payouts.table.bookings')}
                   </th>
                   <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase">
-                    Status
+                    {t('company:payouts.table.status')}
                   </th>
                   <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase hidden md:table-cell">
-                    Data platii
+                    {t('company:payouts.table.paidAt')}
                   </th>
                   <th className="px-2 md:px-6 py-3 w-8 md:w-10" />
                 </tr>
@@ -445,7 +451,7 @@ export default function PayoutsPage() {
                         >
                           <div className="px-3 md:px-6 py-3 md:py-4 flex-1 min-w-0">
                             <span className="text-xs md:text-sm font-medium text-gray-900">
-                              {formatDate(payout.periodFrom)} - {formatDate(payout.periodTo)}
+                              {formatDate(payout.periodFrom, locale)} - {formatDate(payout.periodTo, locale)}
                             </span>
                           </div>
                           <div className="px-3 md:px-6 py-3 md:py-4 text-right">
@@ -467,7 +473,7 @@ export default function PayoutsPage() {
                           </div>
                           <div className="px-3 md:px-6 py-3 md:py-4 hidden md:block">
                             <span className="text-sm text-gray-500">
-                              {payout.paidAt ? formatDate(payout.paidAt) : '--'}
+                              {payout.paidAt ? formatDate(payout.paidAt, locale) : '--'}
                             </span>
                           </div>
                           <div className="px-2 md:px-6 py-3 md:py-4">
@@ -479,7 +485,7 @@ export default function PayoutsPage() {
                           </div>
                         </div>
 
-                        {isExpanded && <PayoutDetailPanel payoutId={payout.id} />}
+                        {isExpanded && <PayoutDetailPanel payoutId={payout.id} locale={locale} />}
                       </td>
                     </tr>
                   );

@@ -1,0 +1,772 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "bookings": "My Bookings",
+    "subscriptions": "Subscriptions",
+    "chat": "Support Contact",
+    "addresses": "My Addresses",
+    "payments": "Payments",
+    "invoices": "Invoices",
+    "settings": "Profile & Settings",
+    "help": "Help",
+    "subtitle": "My Account",
+    "newBooking": "New Booking"
+  },
+  "dashboard": {
+    "welcomeBack": "Welcome back",
+    "accountOverview": "Here is an overview of your account.",
+    "newBooking": "New Booking",
+    "completeProfile": "Complete your profile",
+    "completeProfileSub": "A few steps to get the most out of the platform",
+    "leaveReviewFor": "Leave a review for {{name}}",
+    "upcomingBookings": "Upcoming Bookings",
+    "noUpcomingBookings": "No upcoming bookings",
+    "bookNow": "Book Now",
+    "viewAllBookings": "View all bookings",
+    "subscriptions": "Subscriptions",
+    "noActiveSubscriptions": "No active subscriptions",
+    "createSubscription": "Create a subscription",
+    "viewAll": "View all",
+    "quickActions": "Quick Actions",
+    "nextBilling": "Next billing: {{date}}",
+    "perMonth": "lei/month",
+    "kpi": {
+      "totalBookings": "Total bookings",
+      "active": "Active",
+      "subscriptions": "Subscriptions",
+      "unpaidInvoices": "Unpaid invoices"
+    },
+    "setup": {
+      "phone": "Verify your phone number",
+      "phoneDesc": "Required for WhatsApp support",
+      "avatar": "Add a profile photo",
+      "avatarDesc": "Helps cleaners recognise you",
+      "address": "Add an address",
+      "addressDesc": "Required for scheduling services",
+      "payment": "Add a payment method",
+      "paymentDesc": "Required to pay for services"
+    },
+    "quickLinks": {
+      "myBookings": "My Bookings",
+      "support": "Support Contact",
+      "addresses": "My Addresses",
+      "invoices": "Invoices",
+      "paymentMethods": "Payment Methods",
+      "profile": "Profile & Settings"
+    }
+  },
+  "bookings": {
+    "title": "My Bookings",
+    "subtitle": "History and status of your reservations.",
+    "newBooking": "New Booking",
+    "filter": {
+      "all": "All",
+      "confirmed": "Confirmed",
+      "inProgress": "In Progress",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "recurring": "Recurring"
+    },
+    "status": {
+      "PENDING": "Pending",
+      "ASSIGNED": "Assigned",
+      "CONFIRMED": "Confirmed",
+      "IN_PROGRESS": "In Progress",
+      "COMPLETED": "Completed",
+      "CANCELLED_BY_CLIENT": "Cancelled",
+      "CANCELLED_BY_COMPANY": "Cancelled",
+      "CANCELLED_BY_ADMIN": "Cancelled"
+    },
+    "recurring": "Recurring",
+    "perSession": "lei / session",
+    "nextOccurrence": "Next: {{date}}",
+    "completedOf": "{{completed}} of {{total}} completed",
+    "sessions": "sessions",
+    "booked": "Booked: {{date}}",
+    "error": "Could not load bookings. Please try again.",
+    "retry": "Retry",
+    "empty": {
+      "noBookings": "No bookings yet",
+      "noneInCategory": "No bookings in this category",
+      "noBookingsDesc": "Book your first cleaning service now.",
+      "noneCategoryDesc": "Change the filter or create a new booking.",
+      "bookNow": "Book a cleaning"
+    },
+    "pagination": {
+      "orders_one": "order",
+      "orders_other": "orders"
+    },
+    "recurringGroups": {
+      "empty": "No recurring series",
+      "emptyDesc": "Schedule a recurring cleaning to see it here.",
+      "bookNow": "Book a cleaning",
+      "statusActive": "Active",
+      "statusCancelled": "Cancelled",
+      "statusPaused": "Paused",
+      "weekly": "Weekly",
+      "biweekly": "Bi-weekly",
+      "monthly": "Monthly"
+    },
+    "verifyingAuth": "Verifying authentication..."
+  },
+  "bookingDetail": {
+    "backToBookings": "Back to bookings",
+    "recurringSeriesBanner": "Part of a recurring series",
+    "occurrence": "— Appointment #{{number}}",
+    "totalFinal": "Final total",
+    "totalEstimated": "Estimated total",
+    "dateLabel": "Date",
+    "timeLabel": "Time",
+    "addressLabel": "Address",
+    "orderProgress": "Order Progress",
+    "scheduleDetails": "Appointment Details",
+    "propertyType": "Property type",
+    "estimatedDuration": "Estimated duration",
+    "rooms": "Rooms",
+    "bathrooms": "Bathrooms",
+    "area": "Area",
+    "pets": "Pets",
+    "hasPets": "Yes, there are pets",
+    "propertyTypes": {
+      "APARTMENT": "Apartment",
+      "HOUSE": "House",
+      "OFFICE": "Office",
+      "STUDIO": "Studio"
+    },
+    "duration": {
+      "hour_one": "hour",
+      "hour_other": "hours"
+    },
+    "rooms_one": "room",
+    "rooms_other": "rooms",
+    "bathrooms_one": "bathroom",
+    "bathrooms_other": "bathrooms",
+    "serviceIncludes": "What the service includes",
+    "extras": "Additional Services",
+    "accessDetails": "Access Details",
+    "entryCode": "Entry code",
+    "addressNotes": "Address notes",
+    "specialInstructions": "Special Instructions",
+    "noShow": {
+      "title": "Worker did not show up?",
+      "description": "More than an hour has passed since the scheduled time. We want to know if your team arrived.",
+      "report": "Report no-show"
+    },
+    "yourWorker": "Your Worker",
+    "payment": {
+      "title": "Payment",
+      "paid": "Paid",
+      "pending": "Pending",
+      "paidOn": "Paid on {{date}}",
+      "payNow": "Pay Now",
+      "paymentError": "Could not initiate payment. Please try again."
+    },
+    "invoice": {
+      "title": "Invoice",
+      "viewInvoice": "View invoice"
+    },
+    "review": {
+      "yourReview": "Your Review",
+      "leaveReview": "Leave a Review",
+      "punctuality": "Punctuality",
+      "quality": "Quality",
+      "communication": "Communication",
+      "valueForMoney": "Value for money",
+      "overallRating": "Overall rating:",
+      "commentPlaceholder": "How was the experience? (optional)",
+      "addPhotos": "Add photos ({{count}}/3)",
+      "submitReview": "Submit Review",
+      "reviewPhoto": "Review photo",
+      "submittedOn": "Submitted on {{date}}"
+    },
+    "dispute": {
+      "problemWithService": "Problem with the service?",
+      "problemDesc": "You have 48 hours from completion to open a dispute. We will review and contact you.",
+      "openDispute": "Open a dispute",
+      "yourDispute": "Your Dispute",
+      "companyResponse": "Company response:",
+      "resolution": "Resolution:",
+      "refundApproved": "Refund approved: {{amount}} RON",
+      "openedOn": "Opened on {{date}}",
+      "statusOpen": "Open",
+      "statusResolved": "Resolved",
+      "statusRejected": "Rejected"
+    },
+    "refund": {
+      "title": "Refund",
+      "description": "The order was cancelled. You can request a refund.",
+      "requestRefund": "Request refund"
+    },
+    "actions": {
+      "title": "Actions",
+      "reschedule": "Reschedule",
+      "rescheduleLimit": "You have reached the limit of {{max}} reschedules",
+      "rescheduleTooLate": "Rescheduling is not allowed less than {{hours}}h before",
+      "cancelOrder": "Cancel order"
+    },
+    "whatsapp": {
+      "question": "Have an issue with this order?",
+      "description": "Contact us on WhatsApp and we will respond quickly.",
+      "button": "WhatsApp",
+      "addPhone": "Add phone number first"
+    },
+    "timeline": {
+      "orderPlaced": "Order placed",
+      "paidAndConfirmed": "Paid & Confirmed",
+      "inProgress": "In Progress",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "cancelModal": {
+      "title": "Cancel order",
+      "fullRefund": "You will receive a full refund (100%).",
+      "partialRefund": "You will receive a partial refund ({{pct}}%).",
+      "noRefund": "No refund is provided for cancellations less than 24 hours before.",
+      "confirmQuestion": "Are you sure you want to cancel this order? This action cannot be undone.",
+      "cancelReason": "Cancellation reason (optional)",
+      "cancelReasonPlaceholder": "Tell us why you are cancelling...",
+      "cancel": "Go back",
+      "confirm": "Confirm cancellation"
+    },
+    "refundModal": {
+      "title": "Request refund",
+      "description": "Describe the reason for your refund request. Our team will review it.",
+      "reasonLabel": "Refund reason",
+      "reasonPlaceholder": "Explain the reason...",
+      "cancel": "Go back",
+      "submit": "Submit request"
+    },
+    "noShowModal": {
+      "title": "Report worker absence",
+      "warning": "This action will open a no-show report. Our team will review and contact you as soon as possible.",
+      "confirm": "Do you confirm that the worker did not appear at the address at the scheduled time?",
+      "cancel": "Go back",
+      "confirmButton": "Confirm report",
+      "toast": "We have received your report. We will be in touch soon."
+    },
+    "disputeModal": {
+      "title": "Open a dispute",
+      "description": "Describe the issue with the service. We will review and contact you as soon as possible.",
+      "reasonLabel": "Reason",
+      "reasonPlaceholder": "Select a reason...",
+      "reasons": {
+        "POOR_QUALITY": "Poor service quality",
+        "NO_SHOW": "Worker did not show up",
+        "PROPERTY_DAMAGE": "Property damage",
+        "INCOMPLETE_JOB": "Incomplete service",
+        "OVERCHARGE": "Overcharge",
+        "OTHER": "Other"
+      },
+      "descriptionLabel": "Description",
+      "descriptionMinChars": "(minimum 20 characters)",
+      "descriptionPlaceholder": "Describe the issue in detail...",
+      "charCount": "{{count}} / 20 minimum characters",
+      "errorSelectReason": "Please select a reason.",
+      "errorMinChars": "Description must be at least 20 characters.",
+      "cancel": "Go back",
+      "submit": "Submit dispute"
+    },
+    "paymentModal": {
+      "title": "Pay order"
+    },
+    "error": {
+      "loadFailed": "Could not load order details.",
+      "notFound": "Order not found."
+    },
+    "verifyingAuth": "Verifying authentication..."
+  },
+  "recurringGroup": {
+    "backToBookings": "Back to bookings",
+    "statusActive": "Active",
+    "statusCancelled": "Cancelled",
+    "statusPaused": "Paused",
+    "recurrenceLabels": {
+      "WEEKLY": "Weekly",
+      "BIWEEKLY": "Bi-weekly",
+      "MONTHLY": "Monthly"
+    },
+    "preferredCleaner": "Preferred cleaner",
+    "company": "Company",
+    "address": "Address",
+    "pricePerSession": "Price per session",
+    "progress": "Progress",
+    "completedOf": "{{completed}} / {{total}} completed",
+    "allAppointments": "All appointments ({{count}})",
+    "paid": "Paid",
+    "substitute": "(Substitute)",
+    "pause": "Pause",
+    "cancelSeries": "Cancel series",
+    "resumeSeries": "Resume series",
+    "cancelModal": {
+      "title": "Cancel recurring series",
+      "description": "All future appointments will be cancelled. Already completed appointments are not affected.",
+      "reasonPlaceholder": "Cancellation reason (optional)",
+      "cancel": "Go back",
+      "confirm": "Confirm cancellation",
+      "cancelling": "Cancelling..."
+    },
+    "error": {
+      "loadFailed": "Could not load the recurring series.",
+      "backToBookings": "Back to bookings"
+    },
+    "verifyingAuth": "Verifying authentication...",
+    "loading": "Loading details..."
+  },
+  "subscriptions": {
+    "title": "My Subscriptions",
+    "subtitle": "Manage your recurring subscriptions for cleaning services.",
+    "recurrence": {
+      "WEEKLY": "Weekly",
+      "BIWEEKLY": "Bi-weekly",
+      "MONTHLY": "Monthly"
+    },
+    "status": {
+      "ACTIVE": "Active",
+      "PAUSED": "Paused",
+      "PAST_DUE": "Past Due",
+      "CANCELLED": "Cancelled"
+    },
+    "perMonth": "RON/month",
+    "perSession": "RON/session",
+    "nextAppointment": "Next appointment: {{date}}",
+    "sessions_one": "session",
+    "sessions_other": "sessions",
+    "completedOf": "{{completed}} of {{total}} bookings completed",
+    "period": "Period: {{start}} - {{end}}",
+    "error": {
+      "title": "Error loading subscriptions",
+      "description": "Could not load your subscriptions. Please try again.",
+      "retry": "Retry"
+    },
+    "empty": {
+      "title": "No active subscriptions",
+      "description": "You have no subscriptions yet. Create a recurring booking to benefit from discounts.",
+      "create": "Create a booking"
+    }
+  },
+  "subscriptionDetail": {
+    "backToSubscriptions": "Back to subscriptions",
+    "recurrence": {
+      "WEEKLY": "Weekly",
+      "BIWEEKLY": "Bi-weekly",
+      "MONTHLY": "Monthly"
+    },
+    "days": {
+      "0": "Sunday",
+      "1": "Monday",
+      "2": "Tuesday",
+      "3": "Wednesday",
+      "4": "Thursday",
+      "5": "Friday",
+      "6": "Saturday"
+    },
+    "propertyTypes": {
+      "APARTMENT": "Apartment",
+      "HOUSE": "House",
+      "OFFICE": "Office",
+      "STUDIO": "Studio"
+    },
+    "status": {
+      "ACTIVE": "Active",
+      "PAUSED": "Paused",
+      "CANCELLED": "Cancelled",
+      "PAST_DUE": "Payment overdue"
+    },
+    "pastDueBanner": {
+      "title": "Subscription payment failed",
+      "description": "The last automatic payment could not be processed. Update your payment method to avoid subscription cancellation.",
+      "updatePayment": "Update payment method"
+    },
+    "actions": {
+      "pause": "Pause",
+      "cancel": "Cancel",
+      "resume": "Resume",
+      "cancelledOn": "Cancelled on {{date}}",
+      "pastDue": "Payment overdue"
+    },
+    "cancellationReason": "Cancellation reason",
+    "pausedSince": "Subscription paused since {{date}}",
+    "workerChangeSuccess": "Your change request has been submitted. You will be contacted soon.",
+    "workerChangePending": {
+      "title": "Worker change request pending",
+      "description": "Our team will contact you shortly to resolve your request.",
+      "reason": "Reason: {{reason}}"
+    },
+    "pricing": {
+      "title": "Pricing Details",
+      "hourlyRate": "Hourly rate",
+      "estimatedDuration": "Estimated duration",
+      "originalPrice": "Price per session (original)",
+      "subscriptionDiscount": "Subscription discount",
+      "pricePerSession": "Price per session",
+      "withDiscount": "(with discount)",
+      "sessionsPerMonth": "Sessions per month",
+      "monthlyTotal": "Monthly total"
+    },
+    "serviceDetails": {
+      "title": "Service Details",
+      "propertyType": "Property type",
+      "rooms": "Rooms",
+      "bathrooms": "Bathrooms",
+      "area": "Area",
+      "pets": "Pets",
+      "hasPets": "Yes, there are pets",
+      "specialInstructions": "Special instructions",
+      "rooms_one": "room",
+      "rooms_other": "rooms",
+      "bathrooms_one": "bathroom",
+      "bathrooms_other": "bathrooms",
+      "duration_one": "hour",
+      "duration_other": "hours"
+    },
+    "upcomingBookings": "Upcoming bookings ({{count}})",
+    "bookingHistory": "Booking history ({{count}})",
+    "paid": "Paid",
+    "currentPeriod": "Current Period",
+    "periodStart": "Start",
+    "periodEnd": "End",
+    "progress": {
+      "title": "Progress",
+      "completedBookings": "Completed bookings"
+    },
+    "address": "Address",
+    "team": "Team",
+    "requestWorkerChange": "Request worker change",
+    "extras": "Additional Services",
+    "info": {
+      "title": "Information",
+      "createdOn": "Created on",
+      "serviceType": "Service type",
+      "recurrence": "Recurrence",
+      "preferredDay": "Preferred day"
+    },
+    "cancelModal": {
+      "title": "Cancel subscription",
+      "description": "Are you sure you want to cancel this subscription? All future bookings will be cancelled. Already completed bookings are not affected.",
+      "reasonLabel": "Cancellation reason (optional)",
+      "reasonPlaceholder": "Tell us why you are cancelling...",
+      "cancel": "Go back",
+      "confirm": "Confirm cancellation"
+    },
+    "workerChangeModal": {
+      "title": "Request worker change",
+      "description": "Describe why you want to change the worker. Our team will review the request and contact you.",
+      "reasonLabel": "Reason (optional)",
+      "reasonPlaceholder": "Why do you want to change the worker?",
+      "cancel": "Go back",
+      "submit": "Submit request"
+    },
+    "error": {
+      "loadFailed": "Could not load subscription details.",
+      "notFound": "Subscription not found.",
+      "workerChange": "An error occurred. Please try again."
+    },
+    "verifyingAuth": "Verifying authentication..."
+  },
+  "addresses": {
+    "title": "My Addresses",
+    "subtitle": "Manage your addresses for faster bookings.",
+    "addAddress": "Add address",
+    "form": {
+      "addTitle": "Add new address",
+      "editTitle": "Edit address",
+      "labelField": "Label (optional)",
+      "labelPlaceholder": "Home, Office, etc.",
+      "streetAddress": "Street address *",
+      "streetPlaceholder": "Search address or type manually...",
+      "city": "City *",
+      "cityPlaceholder": "Bucharest",
+      "county": "County *",
+      "countyPlaceholder": "Bucharest",
+      "postalCode": "Postal code (optional)",
+      "postalPlaceholder": "010101",
+      "floor": "Floor (optional)",
+      "floorPlaceholder": "2",
+      "apartment": "Apartment (optional)",
+      "apartmentPlaceholder": "12A",
+      "setDefault": "Set as default address",
+      "coordinates": "Coordinates: {{lat}}, {{lng}}",
+      "saveChanges": "Save changes",
+      "saveAddress": "Save address",
+      "cancel": "Cancel"
+    },
+    "validation": {
+      "required": "Street address, city and county are required."
+    },
+    "deleteConfirm": "Delete this address?",
+    "default": "Default",
+    "floor": "Floor {{floor}}",
+    "apartment": "Apt. {{apt}}",
+    "setDefault": "Set as default",
+    "edit": "Edit",
+    "delete": "Delete",
+    "loading": "Loading addresses...",
+    "empty": {
+      "title": "No saved addresses",
+      "description": "Add your first address for faster bookings.",
+      "addButton": "Add address"
+    },
+    "error": {
+      "saveFailed": "Could not save address. Please try again.",
+      "updateFailed": "Could not update address. Please try again."
+    }
+  },
+  "payments": {
+    "title": "Payment Methods",
+    "subtitle": "Manage your saved cards for faster payments.",
+    "paymentHistory": "Payment history",
+    "addCard": "Add card",
+    "loading": "Loading payment methods...",
+    "deleteConfirm": "Delete this card?",
+    "default": "Default",
+    "setDefault": "Set as default",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "empty": {
+      "title": "No saved cards",
+      "description": "Add a card to pay for bookings quickly and securely.",
+      "addButton": "Add card"
+    }
+  },
+  "paymentHistory": {
+    "title": "Payment History",
+    "subtitle": "All payments made for your bookings.",
+    "loading": "Loading payment history...",
+    "filter": {
+      "all": "All payments",
+      "succeeded": "Succeeded",
+      "pending": "Pending",
+      "failed": "Failed",
+      "refunded": "Refunded"
+    },
+    "table": {
+      "date": "Date",
+      "reference": "Reference",
+      "amount": "Amount (RON)",
+      "status": "Status"
+    },
+    "status": {
+      "SUCCEEDED": "Paid",
+      "PENDING": "Pending",
+      "FAILED": "Failed",
+      "REFUNDED": "Refunded"
+    },
+    "refunds": {
+      "title": "My Refund Requests",
+      "empty": "You have no refund requests.",
+      "status": {
+        "REQUESTED": "Requested",
+        "APPROVED": "Approved",
+        "PROCESSED": "Processed",
+        "REJECTED": "Rejected"
+      }
+    },
+    "pagination": {
+      "transaction_one": "transaction",
+      "transaction_other": "transactions"
+    },
+    "empty": {
+      "title": "No payments recorded",
+      "description": "Your payment history will appear here after your first paid booking."
+    }
+  },
+  "invoices": {
+    "title": "My Invoices",
+    "subtitle": "Download invoices and manage billing information.",
+    "billing": {
+      "title": "Billing Profile",
+      "modify": "Modify",
+      "configure": "Configure",
+      "loading": "Loading...",
+      "individual": "Individual (B2C)",
+      "company": "Company (B2B)",
+      "vatPayer": "VAT payer",
+      "noBilling": "You have not configured a billing profile yet. Click \"Configure\" to get started.",
+      "form": {
+        "individualTab": "Individual (B2C)",
+        "companyTab": "Company (B2B)",
+        "companyName": "Company name *",
+        "companyNamePlaceholder": "Example LLC",
+        "cui": "Tax ID *",
+        "cuiPlaceholder": "RO12345678",
+        "regNumber": "Company registration number",
+        "regNumberPlaceholder": "J40/1234/2024",
+        "address": "Registered address",
+        "addressPlaceholder": "Example Street no. 1",
+        "city": "City",
+        "cityPlaceholder": "Bucharest",
+        "county": "County",
+        "countyPlaceholder": "Bucharest",
+        "bank": "Bank",
+        "bankPlaceholder": "ING Bank",
+        "iban": "IBAN",
+        "ibanPlaceholder": "RO12INGB...",
+        "vatPayer": "VAT payer",
+        "individualNote": "Invoices will be issued in your name as an individual, based on the data in your account profile.",
+        "save": "Save",
+        "cancel": "Cancel"
+      },
+      "error": "Could not save billing data. Please try again.",
+      "validationB2B": "Company name and tax ID are required for B2B billing."
+    },
+    "issuedInvoices": "Issued Invoices",
+    "filter": {
+      "all": "All invoices",
+      "issued": "Issued",
+      "paid": "Paid",
+      "cancelled": "Cancelled",
+      "creditNote": "Credit note"
+    },
+    "loading": "Loading invoices...",
+    "table": {
+      "invoiceNumber": "Invoice no.",
+      "date": "Date",
+      "supplier": "Supplier",
+      "amount": "Amount (RON)",
+      "status": "Status",
+      "downloadPdf": "Download PDF"
+    },
+    "status": {
+      "ISSUED": "Issued",
+      "DRAFT": "Draft",
+      "SENT": "Sent",
+      "TRANSMITTED": "Transmitted e-Invoice",
+      "CANCELLED": "Cancelled",
+      "PAID": "Paid",
+      "CREDIT_NOTE": "Credit note"
+    },
+    "detail": {
+      "loading": "Loading details...",
+      "supplier": "Supplier",
+      "buyer": "Buyer",
+      "items": "Items",
+      "itemDescription": "Description",
+      "itemQty": "Qty.",
+      "itemUnitPrice": "Unit price",
+      "itemTotal": "Total",
+      "subtotal": "Subtotal:",
+      "vat": "VAT ({{rate}}%):",
+      "total": "Total:",
+      "booking": "Booking: ",
+      "dueDate": "Due date: ",
+      "downloadPdf": "Download PDF",
+      "viewBooking": "View booking"
+    },
+    "pagination": {
+      "invoice_one": "invoice",
+      "invoice_other": "invoices"
+    },
+    "empty": {
+      "title": "No invoices issued",
+      "description": "Invoices will be automatically generated after completion and payment of your bookings."
+    }
+  },
+  "chat": {
+    "title": "Support Contact",
+    "subtitle": "We are here to help",
+    "chatTitle": "Chat with the Go2Fix team",
+    "chatSubtitle": "via WhatsApp",
+    "chatDescription": "Our support is available directly on WhatsApp. Send us a message and we will reply as soon as possible.",
+    "openWhatsApp": "Open WhatsApp",
+    "supportHours": "Support hours",
+    "supportHoursValue": "Mon–Fri\n9:00–18:00",
+    "responseTime": "Response time",
+    "responseTimeValue": "Usually\nunder 2 hours",
+    "confidential": "Confidential",
+    "confidentialDesc": "Your data is\nprotected"
+  },
+  "support": {
+    "title": "Help & Support",
+    "subtitle": "We are here to help",
+    "whatsapp": {
+      "title": "WhatsApp",
+      "description": "We respond within minutes",
+      "button": "Message us on WhatsApp"
+    },
+    "email": {
+      "title": "Email",
+      "description": "We respond within 24 hours"
+    },
+    "phone": {
+      "label": "Phone: {{phone}}",
+      "hours": "Monday - Friday, 09:00 - 18:00"
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "items": [
+        {
+          "q": "How can I reschedule a booking?",
+          "a": "Go to \"My Bookings\" in the sidebar, select the desired booking and click \"Reschedule\". You can reschedule for free at least 24 hours in advance."
+        },
+        {
+          "q": "How can I cancel a subscription?",
+          "a": "From the \"Subscriptions\" section, select the subscription and click \"Cancel\". You can pause the subscription if you want to reactivate it later."
+        },
+        {
+          "q": "What should I do if I am not satisfied with the service?",
+          "a": "Contact us via WhatsApp or email within 24 hours of service completion. We will review the situation and offer an appropriate solution."
+        },
+        {
+          "q": "How can I change my payment method?",
+          "a": "Go to \"Payments\" in the sidebar to add or remove cards. The payment method can also be changed at the time of booking."
+        }
+      ]
+    }
+  },
+  "profile": {
+    "title": "My Profile",
+    "subtitle": "Manage your account information.",
+    "avatar": {
+      "title": "Profile photo",
+      "description": "Upload an image for your profile. Recommended: 400x400 pixels.",
+      "formats": "Accepted formats: JPG, PNG, WEBP. Maximum size: 10MB"
+    },
+    "personalInfo": {
+      "title": "Personal Information",
+      "fullName": "Full name",
+      "fullNamePlaceholder": "Your full name",
+      "phone": "Phone number *",
+      "phonePlaceholder": "+40 7XX XXX XXX",
+      "phoneVerified": "Verified via WhatsApp",
+      "phoneUnverified": "Unverified",
+      "verifyNow": "Verify now",
+      "hideVerify": "Hide",
+      "preferredLanguage": "Preferred language",
+      "saveChanges": "Save changes",
+      "savedSuccess": "Saved successfully"
+    },
+    "schema": {
+      "nameMin": "Name must be at least 2 characters",
+      "phoneRequired": "Phone number is required",
+      "phoneFormat": "Format must be +40..."
+    },
+    "referral": {
+      "title": "Your referral code",
+      "subtitle": "Refer Go2Fix and earn discounts on orders",
+      "progressTitle": "Current cycle progress:",
+      "bookings": "{{completedCount}}/{{count}} bookings",
+      "copy": "Copy",
+      "copied": "Copied!",
+      "usedCode": "people have used your code",
+      "noUsersYet": "No one has used your code yet",
+      "needMore": "You need {{required}} completed bookings to earn a discount.",
+      "availableDiscounts": "Available discounts",
+      "discount_one": "{{count}} discount available",
+      "discount_other": "{{count}} discounts available",
+      "discountNote": "The platform fee will be removed — the company receives the full payment.",
+      "noDiscountsYet": "When you accumulate {{required}} completed bookings through your code, you earn a discount — the platform fee will be removed from your next order.",
+      "noCode": "Complete your first booking to get your referral code."
+    },
+    "deleteAccount": {
+      "title": "Delete account",
+      "subtitle": "Permanent and irreversible action.",
+      "description": "Once deleted, your account cannot be recovered. All personal data will be permanently deleted.",
+      "deleteButton": "Delete my account",
+      "confirmPrompt": "Type DELETE to confirm account deletion:",
+      "confirmPlaceholder": "Type DELETE here",
+      "cancel": "Cancel",
+      "confirmButton": "Confirm deletion"
+    },
+    "verifyingAuth": "Verifying authentication..."
+  }
+}

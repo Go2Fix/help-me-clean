@@ -125,12 +125,12 @@ describe('UsersPage', () => {
       loading: false,
     } as ReturnType<typeof useQuery>);
     renderUsersPage();
-    expect(screen.getByText('Niciun utilizator gasit')).toBeInTheDocument();
+    expect(screen.getByText('Niciun utilizator găsit')).toBeInTheDocument();
   });
 
   it('shows search input with placeholder', () => {
     renderUsersPage();
-    expect(screen.getByPlaceholderText('Cauta dupa nume, email sau telefon...')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Caută după nume, email sau telefon...')).toBeInTheDocument();
   });
 
   it('hides pagination when results fit in one page', () => {

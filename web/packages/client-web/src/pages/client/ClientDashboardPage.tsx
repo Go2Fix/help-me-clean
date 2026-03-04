@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@apollo/client';
+import { useTranslation } from 'react-i18next';
 import {
   ClipboardList,
   MessageCircle,
@@ -35,24 +36,11 @@ const SERVICE_ICONS: Record<string, string> = {
   WINDOW_CLEANING: '\u{1FA9F}',
 };
 
-const recurrenceLabel: Record<string, string> = {
-  WEEKLY: 'Saptamanal',
-  BIWEEKLY: 'La 2 saptamani',
-  MONTHLY: 'Lunar',
-};
-
 const subscriptionStatusColor: Record<string, { bg: string; text: string }> = {
   ACTIVE: { bg: 'bg-emerald-100', text: 'text-emerald-700' },
   PAUSED: { bg: 'bg-amber-100', text: 'text-amber-700' },
   PAST_DUE: { bg: 'bg-red-100', text: 'text-red-700' },
   CANCELLED: { bg: 'bg-gray-100', text: 'text-gray-600' },
-};
-
-const subscriptionStatusLabel: Record<string, string> = {
-  ACTIVE: 'Activ',
-  PAUSED: 'In pauza',
-  PAST_DUE: 'Restant',
-  CANCELLED: 'Anulat',
 };
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -99,9 +87,9 @@ interface CompletedBookingEdge {
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-function formatDate(dateStr: string): string {
+function formatDate(dateStr: string, locale: string): string {
   try {
-    return new Date(dateStr).toLocaleDateString('ro-RO', {
+    return new Date(dateStr).toLocaleDateString(locale === 'en' ? 'en-GB' : 'ro-RO', {
       day: 'numeric',
       month: 'short',
       year: 'numeric',
@@ -121,6 +109,7 @@ function formatTime(timeStr: string): string {
 export default function ClientDashboardPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t, i18n } = useTranslation(['dashboard', 'client']);
 
   // ─── Queries ────────────────────────────────────────────────────────────
 
@@ -187,7 +176,7 @@ export default function ClientDashboardPage() {
 
   const kpiCards = [
     {
-      label: 'Total rezervari',
+      label: t('client:dashboard.kpi.totalBookings'),
       value: totalBookings,
       icon: ClipboardList,
       colorBg: 'bg-primary/10',
@@ -195,7 +184,7 @@ export default function ClientDashboardPage() {
       onClick: () => navigate('/cont/comenzi'),
     },
     {
-      label: 'Active',
+      label: t('client:dashboard.kpi.active'),
       value: activeCount,
       icon: TrendingUp,
       colorBg: 'bg-secondary/10',
@@ -204,7 +193,7 @@ export default function ClientDashboardPage() {
       onClick: () => navigate('/cont/comenzi'),
     },
     {
-      label: 'Abonamente',
+      label: t('client:dashboard.kpi.subscriptions'),
       value: activeSubscriptions.length,
       icon: Repeat,
       colorBg: 'bg-blue-50',
@@ -212,7 +201,7 @@ export default function ClientDashboardPage() {
       onClick: () => navigate('/cont/abonamente'),
     },
     {
-      label: 'Facturi neplatite',
+      label: t('client:dashboard.kpi.unpaidInvoices'),
       value: unpaidInvoiceCount,
       icon: FileText,
       colorBg: 'bg-accent/10',
@@ -223,19 +212,19 @@ export default function ClientDashboardPage() {
   ];
 
   const quickActions = [
-    { label: 'Comenzile mele', icon: ClipboardList, path: '/cont/comenzi' },
-    { label: 'Contact Suport', icon: MessageCircle, path: '/cont/mesaje' },
-    { label: 'Adresele mele', icon: MapPin, path: '/cont/adrese' },
-    { label: 'Facturi', icon: FileText, path: '/cont/facturi' },
-    { label: 'Metode de plată', icon: CreditCard, path: '/cont/plati' },
-    { label: 'Profil & Setări', icon: Settings, path: '/cont/setari' },
+    { label: t('client:dashboard.quickLinks.myBookings'), icon: ClipboardList, path: '/cont/comenzi' },
+    { label: t('client:dashboard.quickLinks.support'), icon: MessageCircle, path: '/cont/mesaje' },
+    { label: t('client:dashboard.quickLinks.addresses'), icon: MapPin, path: '/cont/adrese' },
+    { label: t('client:dashboard.quickLinks.invoices'), icon: FileText, path: '/cont/facturi' },
+    { label: t('client:dashboard.quickLinks.paymentMethods'), icon: CreditCard, path: '/cont/plati' },
+    { label: t('client:dashboard.quickLinks.profile'), icon: Settings, path: '/cont/setari' },
   ];
 
   const setupItems: SetupItem[] = [
-    { key: 'phone', label: 'Verifică numărul de telefon', description: 'Necesar pentru suport via WhatsApp', done: !!user?.phoneVerified, to: '/cont/setari', icon: MessageCircle },
-    { key: 'avatar', label: 'Adaugă o fotografie de profil', description: 'Ajută curățătorii să te recunoască', done: !!user?.avatarUrl, to: '/cont/setari', icon: UserCircle },
-    { key: 'address', label: 'Adaugă o adresă', description: 'Necesară pentru programarea serviciilor', done: (addressesData?.myAddresses?.length ?? 0) > 0, to: '/cont/adrese', icon: MapPin },
-    { key: 'payment', label: 'Adaugă o metodă de plată', description: 'Necesară pentru a plăti serviciile', done: (paymentMethodsData?.myPaymentMethods?.length ?? 0) > 0, to: '/cont/plati', icon: CreditCard },
+    { key: 'phone', label: t('client:dashboard.setup.phone'), description: t('client:dashboard.setup.phoneDesc'), done: !!user?.phoneVerified, to: '/cont/setari', icon: MessageCircle },
+    { key: 'avatar', label: t('client:dashboard.setup.avatar'), description: t('client:dashboard.setup.avatarDesc'), done: !!user?.avatarUrl, to: '/cont/setari', icon: UserCircle },
+    { key: 'address', label: t('client:dashboard.setup.address'), description: t('client:dashboard.setup.addressDesc'), done: (addressesData?.myAddresses?.length ?? 0) > 0, to: '/cont/adrese', icon: MapPin },
+    { key: 'payment', label: t('client:dashboard.setup.payment'), description: t('client:dashboard.setup.paymentDesc'), done: (paymentMethodsData?.myPaymentMethods?.length ?? 0) > 0, to: '/cont/plati', icon: CreditCard },
   ];
 
   // ─── Render ─────────────────────────────────────────────────────────────
@@ -246,15 +235,15 @@ export default function ClientDashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-            Bun venit{user ? `, ${user.fullName}` : ''}!
+            {t('client:dashboard.welcomeBack')}{user ? `, ${user.fullName}` : ''}!
           </h1>
           <p className="text-gray-500 mt-1">
-            Iata o privire de ansamblu asupra contului tau.
+            {t('client:dashboard.accountOverview')}
           </p>
         </div>
         <Button onClick={() => navigate('/rezervare')} className="shrink-0 w-full sm:w-auto">
           <Sparkles className="h-4 w-4" />
-          Rezervare noua
+          {t('client:dashboard.newBooking')}
         </Button>
       </div>
 
@@ -262,8 +251,8 @@ export default function ClientDashboardPage() {
       <div className="mb-8">
         <ProfileSetupChecklist
           items={setupItems}
-          title="Completează-ți profilul"
-          subtitle="Câțiva pași pentru a folosi platforma din plin"
+          title={t('client:dashboard.completeProfile')}
+          subtitle={t('client:dashboard.completeProfileSub')}
         />
       </div>
 
@@ -281,8 +270,8 @@ export default function ClientDashboardPage() {
                 <Star className="h-5 w-5 text-white fill-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-900">Lasă o recenzie pentru {booking.serviceName}</p>
-                <p className="text-xs text-gray-500">{formatDate(booking.scheduledDate)} · {booking.referenceCode}</p>
+                <p className="text-sm font-semibold text-gray-900">{t('client:dashboard.leaveReviewFor', { name: booking.serviceName })}</p>
+                <p className="text-xs text-gray-500">{formatDate(booking.scheduledDate, i18n.language)} · {booking.referenceCode}</p>
               </div>
               <ChevronRight className="h-4 w-4 text-amber-500 group-hover:translate-x-0.5 transition-transform shrink-0" />
             </button>
@@ -336,7 +325,7 @@ export default function ClientDashboardPage() {
           <Card padding={false}>
             <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-gray-100">
               <h2 className="text-lg font-semibold text-gray-900">
-                Urmatoarele comenzi
+                {t('client:dashboard.upcomingBookings')}
               </h2>
             </div>
 
@@ -356,10 +345,10 @@ export default function ClientDashboardPage() {
             ) : upcomingBookings.length === 0 ? (
               <div className="p-8 text-center">
                 <Calendar className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-                <p className="text-sm text-gray-500 mb-4">Nu ai comenzi viitoare</p>
+                <p className="text-sm text-gray-500 mb-4">{t('client:dashboard.noUpcomingBookings')}</p>
                 <Button size="sm" onClick={() => navigate('/rezervare')}>
                   <Sparkles className="h-4 w-4" />
-                  Rezerva acum
+                  {t('client:dashboard.bookNow')}
                 </Button>
               </div>
             ) : (
@@ -383,7 +372,7 @@ export default function ClientDashboardPage() {
                       </div>
                       <div className="flex items-center gap-1.5 text-xs text-gray-500">
                         <Calendar className="h-3 w-3" />
-                        {formatDate(booking.scheduledDate)} · {formatTime(booking.scheduledStartTime)}
+                        {formatDate(booking.scheduledDate, i18n.language)} · {formatTime(booking.scheduledStartTime)}
                       </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
@@ -404,7 +393,7 @@ export default function ClientDashboardPage() {
                   onClick={() => navigate('/cont/comenzi')}
                   className="text-sm font-medium text-primary hover:text-primary/80 transition-colors cursor-pointer"
                 >
-                  Vezi toate comenzile &rarr;
+                  {t('client:dashboard.viewAllBookings')} &rarr;
                 </button>
               </div>
             )}
@@ -419,7 +408,7 @@ export default function ClientDashboardPage() {
               <div className="flex items-center gap-2">
                 <Repeat className="h-4 w-4 text-blue-600" />
                 <h2 className="text-lg font-semibold text-gray-900">
-                  Abonamente
+                  {t('client:dashboard.subscriptions')}
                 </h2>
               </div>
             </div>
@@ -436,13 +425,13 @@ export default function ClientDashboardPage() {
             ) : allSubscriptions.length === 0 ? (
               <div className="p-4 sm:p-6 text-center">
                 <Repeat className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-                <p className="text-sm text-gray-500 mb-3">Niciun abonament activ</p>
+                <p className="text-sm text-gray-500 mb-3">{t('client:dashboard.noActiveSubscriptions')}</p>
                 <button
                   type="button"
                   onClick={() => navigate('/rezervare')}
                   className="text-sm font-medium text-primary hover:text-primary/80 transition-colors cursor-pointer"
                 >
-                  Creeaza un abonament &rarr;
+                  {t('client:dashboard.createSubscription')} &rarr;
                 </button>
               </div>
             ) : (
@@ -462,17 +451,17 @@ export default function ClientDashboardPage() {
                             {sub.serviceName}
                           </p>
                           <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold ${statusStyle.bg} ${statusStyle.text}`}>
-                            {subscriptionStatusLabel[sub.status] ?? sub.status}
+                            {t(`subscriptionStatus.${sub.status}`, { defaultValue: sub.status })}
                           </span>
                         </div>
                         <p className="text-xs text-gray-500 mt-0.5">
-                          {recurrenceLabel[sub.recurrenceType] ?? sub.recurrenceType}
+                          {t(`recurrence.${sub.recurrenceType.toLowerCase()}`, { defaultValue: sub.recurrenceType })}
                           {' · '}
-                          {(sub.monthlyAmount / 100).toFixed(0)} lei/luna
+                          {(sub.monthlyAmount / 100).toFixed(0)} {t('client:dashboard.perMonth')}
                         </p>
                         {sub.currentPeriodEnd && (
                           <p className="text-xs text-blue-600 mt-1">
-                            Urmatoarea facturare: {formatDate(sub.currentPeriodEnd)}
+                            {t('client:dashboard.nextBilling', { date: formatDate(sub.currentPeriodEnd, i18n.language) })}
                           </p>
                         )}
                       </div>
@@ -490,7 +479,7 @@ export default function ClientDashboardPage() {
                   onClick={() => navigate('/cont/abonamente')}
                   className="text-sm font-medium text-primary hover:text-primary/80 transition-colors cursor-pointer"
                 >
-                  Vezi toate &rarr;
+                  {t('client:dashboard.viewAll')} &rarr;
                 </button>
               </div>
             )}
@@ -500,7 +489,7 @@ export default function ClientDashboardPage() {
           <Card padding={false}>
             <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-gray-100">
               <h2 className="text-lg font-semibold text-gray-900">
-                Actiuni rapide
+                {t('client:dashboard.quickActions')}
               </h2>
             </div>
             <div className="divide-y divide-gray-100">

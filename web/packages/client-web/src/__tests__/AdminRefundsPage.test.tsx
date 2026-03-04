@@ -81,18 +81,18 @@ describe('RefundsPage (Admin)', () => {
   it('shows the direct refund action button', () => {
     mockQueries();
     renderPage();
-    expect(screen.getByText('Rambursare directa')).toBeInTheDocument();
+    expect(screen.getByText('Rambursare directă')).toBeInTheDocument();
   });
 
   it('renders tab navigation with all status tabs', () => {
     mockQueries();
     renderPage();
-    // "Solicitate" appears both as the tab label and as the Card heading text
-    const solicitateElements = screen.getAllByText('Solicitate');
+    // "Solicitată" appears both as the tab label and as the Card heading text
+    const solicitateElements = screen.getAllByText('Solicitată');
     expect(solicitateElements.length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText('Aprobate')).toBeInTheDocument();
-    expect(screen.getByText('Procesate')).toBeInTheDocument();
-    expect(screen.getByText('Respinse')).toBeInTheDocument();
+    expect(screen.getByText('Aprobată')).toBeInTheDocument();
+    expect(screen.getByText('Procesată')).toBeInTheDocument();
+    expect(screen.getByText('Respinsă')).toBeInTheDocument();
   });
 
   it('shows refund requests table with booking reference and user name', () => {
@@ -108,13 +108,13 @@ describe('RefundsPage (Admin)', () => {
   it('shows Aproba and Respinge buttons for REQUESTED status', () => {
     mockQueries({ refunds: [sampleRefund] });
     renderPage();
-    expect(screen.getByText('Aproba')).toBeInTheDocument();
+    expect(screen.getByText('Aprobă')).toBeInTheDocument();
     expect(screen.getByText('Respinge')).toBeInTheDocument();
   });
 
   it('shows empty state when no refund requests exist', () => {
     mockQueries({ refunds: [] });
     renderPage();
-    expect(screen.getByText(/nu exista rambursari/i)).toBeInTheDocument();
+    expect(screen.getByText(/nu există rambursări/i)).toBeInTheDocument();
   });
 });

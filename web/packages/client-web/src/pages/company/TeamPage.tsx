@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Users, UserPlus, ChevronRight, Search, Star, Copy, Check } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
@@ -40,17 +41,6 @@ interface Worker {
 const statusBadgeVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
   ACTIVE: 'success', INVITED: 'info', PENDING: 'warning', PENDING_REVIEW: 'warning', SUSPENDED: 'danger', INACTIVE: 'default',
 };
-const statusLabel: Record<string, string> = {
-  ACTIVE: 'Activ', INVITED: 'Invitat', PENDING: 'In asteptare', PENDING_REVIEW: 'In asteptare', SUSPENDED: 'Suspendat', INACTIVE: 'Inactiv',
-};
-
-const statusFilterOptions = [
-  { value: '', label: 'Toate statusurile' },
-  { value: 'ACTIVE', label: 'Activ' },
-  { value: 'INACTIVE', label: 'Inactiv' },
-  { value: 'INVITED', label: 'Invitat' },
-  { value: 'SUSPENDED', label: 'Suspendat' },
-];
 
 function Avatar({ src, name }: { src?: string | null; name: string }) {
   const [imgError, setImgError] = useState(false);
@@ -69,6 +59,24 @@ function Avatar({ src, name }: { src?: string | null; name: string }) {
 
 export default function TeamPage() {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation(['dashboard', 'company']);
+
+  const statusFilterOptions = [
+    { value: '', label: t('company:team.filterStatus') },
+    { value: 'ACTIVE', label: t('company:team.statusActive') },
+    { value: 'INACTIVE', label: t('company:team.statusInactive') },
+    { value: 'INVITED', label: t('company:team.statusInvited') },
+    { value: 'SUSPENDED', label: t('company:team.statusSuspended') },
+  ];
+
+  const statusLabel: Record<string, string> = {
+    ACTIVE: t('company:team.statusActive'),
+    INVITED: t('company:team.statusInvited'),
+    PENDING: t('company:team.statusPending'),
+    PENDING_REVIEW: t('company:team.statusPending'),
+    SUSPENDED: t('company:team.statusSuspended'),
+    INACTIVE: t('company:team.statusInactive'),
+  };
 
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -120,7 +128,7 @@ export default function TeamPage() {
     e.preventDefault();
     setInviteError('');
     if (!inviteEmail.trim() || !inviteName.trim()) {
-      setInviteError('Te rugam sa completezi toate campurile.');
+      setInviteError(t('company:team.inviteModal.validation'));
       return;
     }
     try {
@@ -138,7 +146,7 @@ export default function TeamPage() {
       }
     } catch (error: unknown) {
       const gqlErr = (error as { graphQLErrors?: Array<{ message: string }> }).graphQLErrors?.[0];
-      setInviteError(gqlErr?.message || 'Invitatia nu a putut fi trimisa. Te rugam sa incerci din nou.');
+      setInviteError(gqlErr?.message || t('company:team.inviteModal.error'));
     }
   };
 
@@ -147,12 +155,12 @@ export default function TeamPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Echipa mea</h1>
-          <p className="text-gray-500 mt-1">Gestionează angajații firmei tale.</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('company:team.title')}</h1>
+          <p className="text-gray-500 mt-1">{t('company:team.subtitle')}</p>
         </div>
         <Button onClick={() => setShowInvite(true)}>
           <UserPlus className="h-4 w-4" />
-          Invită lucrător
+          {t('company:team.inviteBtn')}
         </Button>
       </div>
 
@@ -163,7 +171,7 @@ export default function TeamPage() {
             options={statusFilterOptions}
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            label="Filtrează după status"
+            label={t('company:team.filterStatus')}
           />
         </div>
       </div>
@@ -174,7 +182,7 @@ export default function TeamPage() {
         <Input
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Cauta dupa nume sau email..."
+          placeholder={t('company:team.searchPlaceholder')}
           className="pl-9"
         />
       </div>
@@ -182,14 +190,14 @@ export default function TeamPage() {
       {/* Table Card */}
       <Card padding={false}>
         {loading ? (
-          <LoadingSpinner text="Se incarca echipa..." />
+          <LoadingSpinner text={t('company:team.loading')} />
         ) : filtered.length === 0 ? (
           <div className="text-center py-12 px-6">
             <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-1">Niciun lucrător</h3>
-            <p className="text-gray-500 mb-4">Nu ai adaugat inca niciun lucrator in echipa ta.</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-1">{t('company:team.empty')}</h3>
+            <p className="text-gray-500 mb-4">{t('company:team.emptyDesc')}</p>
             <Button onClick={() => setShowInvite(true)}>
-              <UserPlus className="h-4 w-4" /> Invită lucrător
+              <UserPlus className="h-4 w-4" /> {t('company:team.inviteBtn')}
             </Button>
           </div>
         ) : (
@@ -197,12 +205,12 @@ export default function TeamPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-y border-gray-100">
-                  <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Lucrator</th>
-                  <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase hidden md:table-cell">Email</th>
-                  <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase hidden lg:table-cell">Telefon</th>
-                  <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Status</th>
-                  <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">Rating</th>
-                  <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">Joburi</th>
+                  <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase">{t('company:team.colWorker')}</th>
+                  <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase hidden md:table-cell">{t('company:team.colEmail')}</th>
+                  <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase hidden lg:table-cell">{t('company:team.colPhone')}</th>
+                  <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase">{t('company:team.colStatus')}</th>
+                  <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">{t('company:team.colRating')}</th>
+                  <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">{t('company:team.colJobs')}</th>
                   <th className="px-2 md:px-6 py-3 w-8 md:w-10" />
                 </tr>
               </thead>
@@ -228,7 +236,7 @@ export default function TeamPage() {
                                   key={cat.id}
                                   className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700"
                                 >
-                                  {cat.icon} {cat.nameRo}
+                                  {cat.icon} {i18n.language === 'en' ? cat.nameEn : cat.nameRo}
                                 </span>
                               ))}
                             </div>
@@ -268,38 +276,38 @@ export default function TeamPage() {
       </Card>
 
       {/* Invite Modal */}
-      <Modal open={showInvite} onClose={() => setShowInvite(false)} title="Invită lucrător">
+      <Modal open={showInvite} onClose={() => setShowInvite(false)} title={t('company:team.inviteModal.title')}>
         <form onSubmit={handleInvite} className="space-y-4">
           <Input
-            label="Nume complet"
-            placeholder="Ion Popescu"
+            label={t('company:team.inviteModal.nameLabel')}
+            placeholder={t('company:team.inviteModal.namePlaceholder')}
             value={inviteName}
             onChange={(e) => setInviteName(e.target.value)}
           />
           <Input
-            label="Adresa de email"
+            label={t('company:team.inviteModal.emailLabel')}
             type="email"
-            placeholder="ion@email.com"
+            placeholder={t('company:team.inviteModal.emailPlaceholder')}
             value={inviteEmail}
             onChange={(e) => setInviteEmail(e.target.value)}
             error={inviteError}
           />
           <div className="flex gap-3 pt-2">
             <Button type="button" variant="ghost" onClick={() => setShowInvite(false)} className="flex-1">
-              Anuleaza
+              {t('company:team.inviteModal.cancel')}
             </Button>
             <Button type="submit" loading={inviting} className="flex-1">
-              Trimite invitatie
+              {t('company:team.inviteModal.submit')}
             </Button>
           </div>
         </form>
       </Modal>
 
       {/* Invite Link Result Modal */}
-      <Modal open={showToken} onClose={() => setShowToken(false)} title="Invitatie trimisa cu succes!">
+      <Modal open={showToken} onClose={() => setShowToken(false)} title={t('company:team.tokenModal.title')}>
         <div className="space-y-4">
           <p className="text-sm text-gray-600">
-            Trimite acest link lucratorului. Cand il acceseaza si se autentifica, va fi adaugat automat in echipa ta.
+            {t('company:team.tokenModal.desc')}
           </p>
           <div className="flex items-center gap-2">
             <div className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-800 break-all select-all">
@@ -309,15 +317,15 @@ export default function TeamPage() {
               type="button"
               onClick={handleCopyLink}
               className="p-3 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer shrink-0"
-              title="Copiaza linkul"
+              title={t('company:team.tokenModal.copyTitle')}
             >
               {copied
                 ? <Check className="h-5 w-5 text-secondary" />
                 : <Copy className="h-5 w-5 text-gray-500" />}
             </button>
           </div>
-          {copied && <p className="text-xs text-secondary">Linkul a fost copiat!</p>}
-          <Button onClick={() => setShowToken(false)} className="w-full">Am înțeles</Button>
+          {copied && <p className="text-xs text-secondary">{t('company:team.tokenModal.copied')}</p>}
+          <Button onClick={() => setShowToken(false)} className="w-full">{t('company:team.tokenModal.understood')}</Button>
         </div>
       </Modal>
     </div>

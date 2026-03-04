@@ -74,7 +74,7 @@ describe('Admin SettingsPage', () => {
 
   it('shows "Setări Platformă" title', () => {
     renderSettingsPage();
-    expect(screen.getByText('Setări Platformă')).toBeInTheDocument();
+    expect(screen.getByText('Setări platformă')).toBeInTheDocument();
   });
 
   it('shows 5 tab options', () => {
@@ -83,8 +83,8 @@ describe('Admin SettingsPage', () => {
     expect(screen.getAllByText('Setări Generale').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('Servicii').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('Extra-uri').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('Orase').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('Platforma').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Orașe').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Platformă').length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows loading skeletons when general tab is loading', () => {
@@ -102,7 +102,7 @@ describe('Admin SettingsPage', () => {
     renderSettingsPage();
     expect(screen.getByText('15')).toBeInTheDocument();
     expect(screen.getByText('contact@go2fix.ro')).toBeInTheDocument();
-    expect(screen.getByText('Comision platforma (%)')).toBeInTheDocument();
+    expect(screen.getByText('Comision platformă (%)')).toBeInTheDocument();
     expect(screen.getByText('Email suport')).toBeInTheDocument();
   });
 
@@ -117,7 +117,7 @@ describe('Admin SettingsPage', () => {
     renderSettingsPage();
     const select = screen.getByDisplayValue('Setări Generale');
     fireEvent.change(select, { target: { value: 'services' } });
-    expect(screen.getByText('Adauga serviciu')).toBeInTheDocument();
+    expect(screen.getByText('Adaugă serviciu')).toBeInTheDocument();
   });
 
   it('shows services table when Services tab is active', () => {
@@ -142,6 +142,6 @@ describe('Admin SettingsPage', () => {
     renderSettingsPage();
     const select = screen.getByDisplayValue('Setări Generale');
     fireEvent.change(select, { target: { value: 'extras' } });
-    expect(screen.getByText('Adauga extra')).toBeInTheDocument();
+    expect(screen.getByText('Adaugă extra')).toBeInTheDocument();
   });
 });

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
+import { useTranslation } from 'react-i18next';
 import { Plus, Tag, ToggleLeft, ToggleRight } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -48,6 +49,10 @@ const EMPTY_FORM: FormData = {
 };
 
 export default function PromoCodesPage() {
+  const { t, i18n } = useTranslation(['dashboard', 'admin']);
+
+  const locale = i18n.language === 'en' ? 'en-GB' : 'ro-RO';
+
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [page, setPage] = useState(0);
   const limit = 10;
@@ -105,35 +110,49 @@ export default function PromoCodesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Coduri promoționale</h1>
-          <p className="text-gray-500 mt-1">Gestionează codurile de reducere pentru campanii</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('admin:promoCodes.title')}</h1>
+          <p className="text-gray-500 mt-1">{t('admin:promoCodes.subtitle')}</p>
         </div>
         <Button onClick={() => setShowCreateModal(true)}>
           <Plus className="h-4 w-4 mr-1.5" />
-          Cod nou
+          {t('admin:promoCodes.createNew')}
         </Button>
       </div>
 
       <Card>
         {loading ? (
-          <div className="p-8 text-center text-gray-500">Se încarcă...</div>
+          <div className="p-8 text-center text-gray-500">{t('admin:promoCodes.loading')}</div>
         ) : promoCodes.length === 0 ? (
           <div className="p-8 text-center">
             <Tag className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500">Niciun cod promoțional creat încă</p>
+            <p className="text-gray-500">{t('admin:promoCodes.empty')}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100 text-left">
-                  <th className="px-4 py-3 font-medium text-gray-500">Cod</th>
-                  <th className="px-4 py-3 font-medium text-gray-500">Reducere</th>
-                  <th className="px-4 py-3 font-medium text-gray-500">Min. comandă</th>
-                  <th className="px-4 py-3 font-medium text-gray-500">Utilizări</th>
-                  <th className="px-4 py-3 font-medium text-gray-500">Valabil până</th>
-                  <th className="px-4 py-3 font-medium text-gray-500">Status</th>
-                  <th className="px-4 py-3 font-medium text-gray-500"></th>
+                  <th className="px-4 py-3 font-medium text-gray-500">
+                    {t('admin:promoCodes.tableHeaders.code')}
+                  </th>
+                  <th className="px-4 py-3 font-medium text-gray-500">
+                    {t('admin:promoCodes.tableHeaders.discount')}
+                  </th>
+                  <th className="px-4 py-3 font-medium text-gray-500">
+                    {t('admin:promoCodes.tableHeaders.minOrder')}
+                  </th>
+                  <th className="px-4 py-3 font-medium text-gray-500">
+                    {t('admin:promoCodes.tableHeaders.uses')}
+                  </th>
+                  <th className="px-4 py-3 font-medium text-gray-500">
+                    {t('admin:promoCodes.tableHeaders.validUntil')}
+                  </th>
+                  <th className="px-4 py-3 font-medium text-gray-500">
+                    {t('admin:promoCodes.tableHeaders.status')}
+                  </th>
+                  <th className="px-4 py-3 font-medium text-gray-500">
+                    {t('admin:promoCodes.tableHeaders.actions')}
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -156,19 +175,25 @@ export default function PromoCodesPage() {
                     </td>
                     <td className="px-4 py-3 text-gray-600">
                       {pc.activeUntil
-                        ? new Date(pc.activeUntil).toLocaleDateString('ro-RO')
-                        : 'Fără limită'}
+                        ? new Date(pc.activeUntil).toLocaleDateString(locale)
+                        : t('admin:promoCodes.noLimit')}
                     </td>
                     <td className="px-4 py-3">
                       <Badge variant={pc.isActive ? 'success' : 'default'}>
-                        {pc.isActive ? 'Activ' : 'Inactiv'}
+                        {pc.isActive
+                          ? t('admin:promoCodes.statusLabels.active')
+                          : t('admin:promoCodes.statusLabels.inactive')}
                       </Badge>
                     </td>
                     <td className="px-4 py-3">
                       <button
                         onClick={() => handleToggleActive(pc.id, pc.isActive)}
                         className="text-gray-400 hover:text-gray-600 transition-colors"
-                        title={pc.isActive ? 'Dezactivează' : 'Activează'}
+                        title={
+                          pc.isActive
+                            ? t('admin:promoCodes.toggleTitles.deactivate')
+                            : t('admin:promoCodes.toggleTitles.activate')
+                        }
                       >
                         {pc.isActive ? (
                           <ToggleRight className="h-5 w-5 text-green-500" />
@@ -187,7 +212,7 @@ export default function PromoCodesPage() {
         {/* Pagination */}
         {totalCount > limit && (
           <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-between text-sm text-gray-500">
-            <span>Total: {totalCount}</span>
+            <span>{t('admin:promoCodes.pagination.total', { count: totalCount })}</span>
             <div className="flex gap-2">
               <Button
                 size="sm"
@@ -195,7 +220,7 @@ export default function PromoCodesPage() {
                 disabled={page === 0}
                 onClick={() => setPage((p) => p - 1)}
               >
-                Anterior
+                {t('admin:promoCodes.pagination.previous')}
               </Button>
               <Button
                 size="sm"
@@ -203,7 +228,7 @@ export default function PromoCodesPage() {
                 disabled={(page + 1) * limit >= totalCount}
                 onClick={() => setPage((p) => p + 1)}
               >
-                Următor
+                {t('admin:promoCodes.pagination.next')}
               </Button>
             </div>
           </div>
@@ -214,45 +239,53 @@ export default function PromoCodesPage() {
       <Modal
         open={showCreateModal}
         onClose={() => setShowCreateModal(false)}
-        title="Cod promoțional nou"
+        title={t('admin:promoCodes.createModal.title')}
       >
         <div className="space-y-4">
           <div>
-            <label className="text-sm font-medium text-gray-700 block mb-1">Cod *</label>
+            <label className="text-sm font-medium text-gray-700 block mb-1">
+              {t('admin:promoCodes.createModal.codeLabel')}
+            </label>
             <input
               type="text"
               value={formData.code}
               onChange={(e) =>
                 setFormData((p) => ({ ...p, code: e.target.value.toUpperCase() }))
               }
-              placeholder="ex: SPRING25"
+              placeholder={t('admin:promoCodes.createModal.codePlaceholder')}
               className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 font-mono uppercase"
             />
           </div>
           <div>
-            <label className="text-sm font-medium text-gray-700 block mb-1">Descriere</label>
+            <label className="text-sm font-medium text-gray-700 block mb-1">
+              {t('admin:promoCodes.createModal.descriptionLabel')}
+            </label>
             <input
               type="text"
               value={formData.description}
               onChange={(e) => setFormData((p) => ({ ...p, description: e.target.value }))}
-              placeholder="Campanie primăvară 2025"
+              placeholder={t('admin:promoCodes.createModal.descriptionPlaceholder')}
               className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2"
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-sm font-medium text-gray-700 block mb-1">Tip reducere</label>
+              <label className="text-sm font-medium text-gray-700 block mb-1">
+                {t('admin:promoCodes.createModal.discountTypeLabel')}
+              </label>
               <select
                 value={formData.discountType}
                 onChange={(e) => setFormData((p) => ({ ...p, discountType: e.target.value }))}
                 className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2"
               >
-                <option value="percent">Procent (%)</option>
-                <option value="fixed_amount">Sumă fixă (RON)</option>
+                <option value="percent">{t('admin:promoCodes.createModal.discountTypePercent')}</option>
+                <option value="fixed_amount">{t('admin:promoCodes.createModal.discountTypeFixed')}</option>
               </select>
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700 block mb-1">Valoare *</label>
+              <label className="text-sm font-medium text-gray-700 block mb-1">
+                {t('admin:promoCodes.createModal.discountValueLabel')}
+              </label>
               <input
                 type="number"
                 min="0.01"
@@ -268,7 +301,7 @@ export default function PromoCodesPage() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-sm font-medium text-gray-700 block mb-1">
-                Comandă minimă (RON)
+                {t('admin:promoCodes.createModal.minOrderLabel')}
               </label>
               <input
                 type="number"
@@ -280,21 +313,23 @@ export default function PromoCodesPage() {
             </div>
             <div>
               <label className="text-sm font-medium text-gray-700 block mb-1">
-                Max. utilizări totale
+                {t('admin:promoCodes.createModal.maxUsesLabel')}
               </label>
               <input
                 type="number"
                 min="1"
                 value={formData.maxUses}
                 onChange={(e) => setFormData((p) => ({ ...p, maxUses: e.target.value }))}
-                placeholder="Nelimitat"
+                placeholder={t('admin:promoCodes.createModal.maxUsesPlaceholder')}
                 className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2"
               />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-sm font-medium text-gray-700 block mb-1">Valabil de la</label>
+              <label className="text-sm font-medium text-gray-700 block mb-1">
+                {t('admin:promoCodes.createModal.activateFrom')}
+              </label>
               <input
                 type="date"
                 value={formData.activeFrom}
@@ -304,7 +339,7 @@ export default function PromoCodesPage() {
             </div>
             <div>
               <label className="text-sm font-medium text-gray-700 block mb-1">
-                Valabil până la
+                {t('admin:promoCodes.createModal.activeUntil')}
               </label>
               <input
                 type="date"
@@ -320,14 +355,16 @@ export default function PromoCodesPage() {
               className="flex-1"
               onClick={() => setShowCreateModal(false)}
             >
-              Anulează
+              {t('admin:promoCodes.createModal.cancel')}
             </Button>
             <Button
               className="flex-1"
               onClick={handleCreate}
               disabled={creating || !formData.code || !formData.discountValue}
             >
-              {creating ? 'Se creează...' : 'Creează cod'}
+              {creating
+                ? t('admin:promoCodes.createModal.creating')
+                : t('admin:promoCodes.createModal.create')}
             </Button>
           </div>
         </div>

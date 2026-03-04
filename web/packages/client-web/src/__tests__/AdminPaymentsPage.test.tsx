@@ -102,7 +102,7 @@ describe('PaymentsPage (Admin)', () => {
   it('shows page title "Plati si Venituri"', () => {
     mockQueries();
     renderPage();
-    expect(screen.getByText('Plati si Venituri')).toBeInTheDocument();
+    expect(screen.getByText('Plăți și Venituri')).toBeInTheDocument();
   });
 
   it('renders revenue summary cards with formatted amounts', () => {
@@ -111,10 +111,10 @@ describe('PaymentsPage (Admin)', () => {
     expect(screen.getByText('Venit total')).toBeInTheDocument();
     // 1000000 cents = 10000.00 lei
     expect(screen.getByText('10000.00 lei')).toBeInTheDocument();
-    expect(screen.getByText('Comision platforma')).toBeInTheDocument();
+    expect(screen.getByText('Comision platformă')).toBeInTheDocument();
     expect(screen.getByText('1500.00 lei')).toBeInTheDocument();
-    // "Rambursari" appears both in the sub-nav tab option and the stat card label
-    const rambursariElements = screen.getAllByText('Rambursari');
+    // "Rambursări" appears both in the sub-nav tab option and the stat card label
+    const rambursariElements = screen.getAllByText('Rambursări');
     expect(rambursariElements.length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('500.00 lei')).toBeInTheDocument();
   });
@@ -126,15 +126,15 @@ describe('PaymentsPage (Admin)', () => {
     expect(screen.getByText('Clean Pro SRL')).toBeInTheDocument();
     // 25000 cents = 250.00 lei
     expect(screen.getByText('250.00 lei')).toBeInTheDocument();
-    // "Reusita" appears both in the status filter <option> and the badge
-    const reusitaElements = screen.getAllByText('Reusita');
+    // "Reușită" appears both in the status filter <option> and the badge
+    const reusitaElements = screen.getAllByText('Reușită');
     expect(reusitaElements.length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows empty state when no transactions exist', () => {
     mockQueries({ transactions: [] });
     renderPage();
-    expect(screen.getByText('Nu exista tranzactii.')).toBeInTheDocument();
+    expect(screen.getByText('Nu există tranzacții.')).toBeInTheDocument();
   });
 
   it('shows loading skeletons when revenue is loading', () => {

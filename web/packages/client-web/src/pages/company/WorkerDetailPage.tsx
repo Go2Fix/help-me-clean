@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useLazyQuery } from '@apollo/client';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   ArrowLeft, Mail, Phone, Star, Copy, Check, Users,
   Briefcase, TrendingUp, Calendar, DollarSign, ChevronDown,
@@ -126,20 +127,7 @@ const statusBadgeVariant: Record<string, 'default' | 'success' | 'warning' | 'da
   ACTIVE: 'success', INVITED: 'info', PENDING: 'warning', PENDING_REVIEW: 'warning', SUSPENDED: 'danger', INACTIVE: 'default',
 };
 
-const statusLabel: Record<string, string> = {
-  ACTIVE: 'Activ', INVITED: 'Invitat', PENDING: 'In asteptare', PENDING_REVIEW: 'In asteptare', SUSPENDED: 'Suspendat', INACTIVE: 'Inactiv',
-};
-
-const dayNames: Record<number, string> = {
-  0: 'Duminica', 1: 'Luni', 2: 'Marti', 3: 'Miercuri', 4: 'Joi', 5: 'Vineri', 6: 'Sambata',
-};
-
 const fmtCurrency = (n: number) => `${n.toFixed(0)} RON`;
-
-const DOC_TYPES: Record<string, { label: string; description: string }> = {
-  cazier_judiciar: { label: 'Cazier Judiciar', description: 'PDF, max 10MB' },
-  contract_munca: { label: 'Contract de Munca', description: 'PDF, max 10MB' },
-};
 
 const docStatusVariant: Record<string, 'default' | 'success' | 'warning' | 'danger'> = {
   PENDING: 'warning',
@@ -147,14 +135,8 @@ const docStatusVariant: Record<string, 'default' | 'success' | 'warning' | 'dang
   REJECTED: 'danger',
 };
 
-const docStatusLabel: Record<string, string> = {
-  PENDING: 'In asteptare',
-  APPROVED: 'Aprobat',
-  REJECTED: 'Respins',
-};
-
-function formatDate(date: string): string {
-  return new Date(date).toLocaleDateString('ro-RO', {
+function formatDate(date: string, locale: string): string {
+  return new Date(date).toLocaleDateString(locale, {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -196,8 +178,18 @@ function StatusBadge({
   onChange: (newStatus: MutableStatus) => void;
   disabled?: boolean;
 }) {
+  const { t } = useTranslation('company');
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const statusLabel: Record<string, string> = {
+    ACTIVE: t('team.statusActive'),
+    INVITED: t('team.statusInvited'),
+    PENDING: t('team.statusPending'),
+    PENDING_REVIEW: t('team.statusPending'),
+    SUSPENDED: t('team.statusSuspended'),
+    INACTIVE: t('team.statusInactive'),
+  };
 
   const mutableStatuses: MutableStatus[] = ['ACTIVE', 'INACTIVE', 'SUSPENDED'];
 
@@ -269,6 +261,39 @@ function StatusBadge({
 // ─── Component ──────────────────────────────────────────────────────────────
 
 export default function WorkerDetailPage() {
+  const { t, i18n } = useTranslation('company');
+  const locale = i18n.language === 'en' ? 'en-GB' : 'ro-RO';
+
+  const statusLabel: Record<string, string> = {
+    ACTIVE: t('team.statusActive'),
+    INVITED: t('team.statusInvited'),
+    PENDING: t('team.statusPending'),
+    PENDING_REVIEW: t('team.statusPending'),
+    SUSPENDED: t('team.statusSuspended'),
+    INACTIVE: t('team.statusInactive'),
+  };
+
+  const dayNames: Record<number, string> = {
+    0: t('workerDetail.days.0'),
+    1: t('workerDetail.days.1'),
+    2: t('workerDetail.days.2'),
+    3: t('workerDetail.days.3'),
+    4: t('workerDetail.days.4'),
+    5: t('workerDetail.days.5'),
+    6: t('workerDetail.days.6'),
+  };
+
+  const docStatusLabel: Record<string, string> = {
+    PENDING: t('documents.statusPending'),
+    APPROVED: t('documents.statusApproved'),
+    REJECTED: t('documents.statusRejected'),
+  };
+
+  const DOC_TYPES: Record<string, { label: string; description: string }> = {
+    cazier_judiciar: { label: t('workerDetail.documents.docTypes.cazier_judiciar'), description: 'PDF, max 10MB' },
+    contract_munca: { label: t('workerDetail.documents.docTypes.contract_munca'), description: 'PDF, max 10MB' },
+  };
+
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
@@ -461,7 +486,7 @@ export default function WorkerDetailPage() {
       setSaveCategoriesSuccess(true);
       setTimeout(() => setSaveCategoriesSuccess(false), 3000);
     } catch {
-      setSaveCategoriesError('Eroare la salvarea categoriilor. Incearca din nou.');
+      setSaveCategoriesError(t('workerDetail.categories.saveError'));
       setTimeout(() => setSaveCategoriesError(''), 4000);
     }
   };
@@ -515,9 +540,9 @@ export default function WorkerDetailPage() {
           onClick={() => navigate('/firma/echipa')}
           className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-6 cursor-pointer"
         >
-          <ArrowLeft className="h-4 w-4" /> Înapoi la echipă
+          <ArrowLeft className="h-4 w-4" /> {t('workerDetail.backToTeam')}
         </button>
-        <LoadingSpinner text="Se incarca profilul..." />
+        <LoadingSpinner text={t('workerDetail.loading')} />
       </div>
     );
   }
@@ -531,14 +556,14 @@ export default function WorkerDetailPage() {
           onClick={() => navigate('/firma/echipa')}
           className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-6 cursor-pointer"
         >
-          <ArrowLeft className="h-4 w-4" /> Înapoi la echipă
+          <ArrowLeft className="h-4 w-4" /> {t('workerDetail.backToTeam')}
         </button>
         <Card>
           <div className="text-center py-12">
             <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-1">Lucrator negasit</h3>
-            <p className="text-gray-500 mb-4">Lucratorul nu a fost gasit in echipa ta.</p>
-            <Button onClick={() => navigate('/firma/echipa')}>Înapoi la echipă</Button>
+            <h3 className="text-lg font-medium text-gray-900 mb-1">{t('workerDetail.notFound')}</h3>
+            <p className="text-gray-500 mb-4">{t('workerDetail.notFoundDesc')}</p>
+            <Button onClick={() => navigate('/firma/echipa')}>{t('workerDetail.backToTeam')}</Button>
           </div>
         </Card>
       </div>
@@ -551,14 +576,14 @@ export default function WorkerDetailPage() {
   const slots = (worker.availability ?? []).filter((s) => s.isAvailable).sort((a, b) => a.dayOfWeek - b.dayOfWeek);
   const requiredDocs = ['cazier_judiciar', 'contract_munca'];
   const uploadedDocTypes = new Set(worker.documents?.map((d) => d.documentType) ?? []);
-  const missingDocs = requiredDocs.filter((t) => !uploadedDocTypes.has(t));
+  const missingDocs = requiredDocs.filter((docType) => !uploadedDocTypes.has(docType));
 
   const stats = perf
     ? [
-        { bg: 'bg-blue-50', icon: Briefcase, iconCls: 'text-blue-600', label: 'Total joburi', value: perf.totalCompletedJobs, valCls: 'text-blue-900' },
-        { bg: 'bg-emerald-50', icon: Calendar, iconCls: 'text-emerald-600', label: 'Luna aceasta', value: perf.thisMonthCompleted, valCls: 'text-emerald-900' },
-        { bg: 'bg-amber-50', icon: DollarSign, iconCls: 'text-amber-600', label: 'Câștiguri totale', value: fmtCurrency(perf.totalEarnings), valCls: 'text-amber-900' },
-        { bg: 'bg-purple-50', icon: TrendingUp, iconCls: 'text-purple-600', label: 'Câștiguri luna', value: fmtCurrency(perf.thisMonthEarnings), valCls: 'text-purple-900' },
+        { bg: 'bg-blue-50', icon: Briefcase, iconCls: 'text-blue-600', label: t('workerDetail.stats.totalJobs'), value: perf.totalCompletedJobs, valCls: 'text-blue-900' },
+        { bg: 'bg-emerald-50', icon: Calendar, iconCls: 'text-emerald-600', label: t('workerDetail.stats.thisMonth'), value: perf.thisMonthCompleted, valCls: 'text-emerald-900' },
+        { bg: 'bg-amber-50', icon: DollarSign, iconCls: 'text-amber-600', label: t('workerDetail.stats.totalEarnings'), value: fmtCurrency(perf.totalEarnings), valCls: 'text-amber-900' },
+        { bg: 'bg-purple-50', icon: TrendingUp, iconCls: 'text-purple-600', label: t('workerDetail.stats.monthEarnings'), value: fmtCurrency(perf.thisMonthEarnings), valCls: 'text-purple-900' },
       ]
     : [];
 
@@ -571,7 +596,7 @@ export default function WorkerDetailPage() {
         onClick={() => navigate('/firma/echipa')}
         className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-6 cursor-pointer"
       >
-        <ArrowLeft className="h-4 w-4" /> Înapoi la echipă
+        <ArrowLeft className="h-4 w-4" /> {t('workerDetail.backToTeam')}
       </button>
 
       {/* 2. Header Card */}
@@ -601,7 +626,7 @@ export default function WorkerDetailPage() {
                 {worker.ratingAvg ? Number(worker.ratingAvg).toFixed(1) : '--'}
               </span>
               <span className="text-sm text-gray-400 ml-1">
-                ({worker.totalJobsCompleted} joburi completate)
+                {t('workerDetail.jobsCompleted', { count: worker.totalJobsCompleted })}
               </span>
             </div>
 
@@ -635,7 +660,7 @@ export default function WorkerDetailPage() {
             {/* Invite token (for INVITED status) */}
             {worker.status === 'INVITED' && worker.inviteToken && (
               <div className="mb-3">
-                <p className="text-xs text-gray-400 mb-1">Cod invitatie</p>
+                <p className="text-xs text-gray-400 mb-1">{t('workerDetail.inviteCode')}</p>
                 <div className="flex items-center gap-1.5 min-w-0">
                   <div className="flex-1 min-w-0 bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5 font-mono text-xs text-gray-700 truncate select-all">
                     {worker.inviteToken}
@@ -644,20 +669,20 @@ export default function WorkerDetailPage() {
                     type="button"
                     onClick={() => handleCopyToken(worker.inviteToken!)}
                     className="p-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer shrink-0"
-                    title="Copiaza codul"
+                    title={t('workerDetail.copyCode')}
                   >
                     {copiedToken
                       ? <Check className="h-3.5 w-3.5 text-secondary" />
                       : <Copy className="h-3.5 w-3.5 text-gray-400" />}
                   </button>
                 </div>
-                {copiedToken && <p className="text-xs text-secondary mt-1">Copiat!</p>}
+                {copiedToken && <p className="text-xs text-secondary mt-1">{t('workerDetail.copied')}</p>}
               </div>
             )}
 
             {/* Join date */}
             <p className="text-xs text-gray-400">
-              Membru din {formatDate(worker.createdAt)}
+              {t('workerDetail.memberSince', { date: formatDate(worker.createdAt, locale) })}
             </p>
           </div>
         </div>
@@ -687,7 +712,7 @@ export default function WorkerDetailPage() {
       <Card className="mb-6">
         <div className="flex items-center gap-2 mb-4">
           <Calendar className="h-5 w-5 text-primary" />
-          <h2 className="font-semibold text-gray-900">Program disponibilitate</h2>
+          <h2 className="font-semibold text-gray-900">{t('workerDetail.availability.title')}</h2>
         </div>
         {slots.length > 0 ? (
           <div className="space-y-2">
@@ -697,7 +722,7 @@ export default function WorkerDetailPage() {
                 className="flex items-center justify-between px-3 sm:px-4 py-2.5 bg-gray-50 rounded-xl gap-2"
               >
                 <span className="text-sm font-medium text-gray-700 truncate">
-                  {dayNames[slot.dayOfWeek] ?? `Ziua ${slot.dayOfWeek}`}
+                  {dayNames[slot.dayOfWeek] ?? t('workerDetail.availability.day', { num: slot.dayOfWeek })}
                 </span>
                 <span className="text-sm text-gray-500 shrink-0">{slot.startTime} - {slot.endTime}</span>
               </div>
@@ -706,7 +731,7 @@ export default function WorkerDetailPage() {
         ) : (
           <div className="text-center py-6">
             <Calendar className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-            <p className="text-sm text-gray-400">Niciun program de disponibilitate setat.</p>
+            <p className="text-sm text-gray-400">{t('workerDetail.availability.empty')}</p>
           </div>
         )}
       </Card>
@@ -715,7 +740,7 @@ export default function WorkerDetailPage() {
       <Card className="mb-6">
         <div className="flex items-center gap-2 mb-4">
           <MapPin className="h-5 w-5 text-primary" />
-          <h2 className="font-semibold text-gray-900">Zone de lucru</h2>
+          <h2 className="font-semibold text-gray-900">{t('workerDetail.areas.title')}</h2>
         </div>
 
         {loadingCompanyAreas || loadingWorkerAreas ? (
@@ -730,8 +755,8 @@ export default function WorkerDetailPage() {
         ) : companyAreas.length === 0 ? (
           <div className="text-center py-6 bg-gray-50 rounded-xl">
             <MapPin className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-            <p className="text-sm text-gray-500">Firma ta nu are zone de lucru configurate.</p>
-            <p className="text-xs text-gray-400 mt-1">Adauga zone in pagina de setari a firmei.</p>
+            <p className="text-sm text-gray-500">{t('workerDetail.areas.noCompanyAreas')}</p>
+            <p className="text-xs text-gray-400 mt-1">{t('workerDetail.areas.noCompanyAreasHint')}</p>
           </div>
         ) : (
           <>
@@ -812,7 +837,7 @@ export default function WorkerDetailPage() {
 
             {/* Summary */}
             <p className="text-xs text-gray-400 mt-3">
-              {selectedAreaIds.size} din {companyAreas.length} zone selectate
+              {t('workerDetail.areas.selected', { selected: selectedAreaIds.size, total: companyAreas.length })}
             </p>
 
             {/* Success message */}
@@ -820,7 +845,7 @@ export default function WorkerDetailPage() {
               <div className="flex items-center gap-2 px-3 py-2 bg-emerald-50 rounded-lg mt-3">
                 <CheckCircle className="h-4 w-4 text-secondary shrink-0" />
                 <p className="text-sm text-emerald-700 font-medium">
-                  Zonele de lucru au fost salvate cu succes!
+                  {t('workerDetail.areas.saveSuccess')}
                 </p>
               </div>
             )}
@@ -828,7 +853,7 @@ export default function WorkerDetailPage() {
             {/* Save button */}
             <div className="mt-4">
               <Button onClick={handleSaveAreas} loading={savingAreas}>
-                Salvează zonele
+                {t('workerDetail.areas.saveBtn')}
               </Button>
             </div>
           </>
@@ -839,7 +864,7 @@ export default function WorkerDetailPage() {
       <Card className="mb-6">
         <div className="flex items-center gap-2 mb-4">
           <Layers className="h-5 w-5 text-primary" />
-          <h2 className="font-semibold text-gray-900">Categorii servicii</h2>
+          <h2 className="font-semibold text-gray-900">{t('workerDetail.categories.title')}</h2>
         </div>
 
         {categoriesLoading ? (
@@ -853,12 +878,12 @@ export default function WorkerDetailPage() {
         ) : allCategories.length === 0 ? (
           <div className="text-center py-6 bg-gray-50 rounded-xl">
             <Layers className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-            <p className="text-sm text-gray-500">Nu exista categorii de servicii disponibile.</p>
+            <p className="text-sm text-gray-500">{t('workerDetail.categories.empty')}</p>
           </div>
         ) : (
           <>
             <p className="text-sm text-gray-500 mb-4">
-              Selecteaza categoriile de servicii pe care acest lucrator le poate efectua.
+              {t('workerDetail.categories.subtitle')}
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {allCategories.map((cat: ServiceCategory) => {
@@ -893,15 +918,17 @@ export default function WorkerDetailPage() {
 
             <p className="text-xs text-gray-400 mt-3">
               {selectedCategoryIds.size === 0
-                ? 'Nicio categorie selectata'
-                : `${selectedCategoryIds.size} ${selectedCategoryIds.size === 1 ? 'categorie selectata' : 'categorii selectate'}`}
+                ? t('workerDetail.categories.noneSelected')
+                : selectedCategoryIds.size === 1
+                  ? t('workerDetail.categories.selected', { count: selectedCategoryIds.size })
+                  : t('workerDetail.categories.selectedPlural', { count: selectedCategoryIds.size })}
             </p>
 
             {saveCategoriesSuccess && (
               <div className="flex items-center gap-2 px-3 py-2 bg-emerald-50 rounded-lg mt-3">
                 <CheckCircle className="h-4 w-4 text-secondary shrink-0" />
                 <p className="text-sm text-emerald-700 font-medium">
-                  Categoriile au fost salvate cu succes!
+                  {t('workerDetail.categories.saveSuccess')}
                 </p>
               </div>
             )}
@@ -914,7 +941,7 @@ export default function WorkerDetailPage() {
 
             <div className="mt-4">
               <Button onClick={handleSaveCategories} loading={savingCategories}>
-                Salvează categoriile
+                {t('workerDetail.categories.saveBtn')}
               </Button>
             </div>
           </>
@@ -923,8 +950,8 @@ export default function WorkerDetailPage() {
 
       {/* 5c. Max Daily Bookings Card */}
       <Card className="mb-6 p-5">
-        <h3 className="font-semibold text-gray-900 mb-1">Limita zilnica comenzi</h3>
-        <p className="text-sm text-gray-500 mb-3">Numărul maxim de comenzi pe zi. Lasa gol pentru nelimitat.</p>
+        <h3 className="font-semibold text-gray-900 mb-1">{t('workerDetail.maxDailyBookings.title')}</h3>
+        <p className="text-sm text-gray-500 mb-3">{t('workerDetail.maxDailyBookings.subtitle')}</p>
         <div className="flex gap-2">
           <input
             type="number"
@@ -932,14 +959,14 @@ export default function WorkerDetailPage() {
             max="20"
             value={maxDailyBookings}
             onChange={(e) => setMaxDailyBookings(e.target.value)}
-            placeholder="Nelimitat"
+            placeholder={t('workerDetail.maxDailyBookings.placeholder')}
             className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2"
           />
           <Button
             size="sm"
             onClick={() => handleUpdateMaxDailyBookings()}
           >
-            Salvează
+            {t('workerDetail.maxDailyBookings.saveBtn')}
           </Button>
         </div>
       </Card>
@@ -948,7 +975,7 @@ export default function WorkerDetailPage() {
       <Card className="mb-6">
         <div className="flex items-center gap-2 mb-4">
           <FileText className="h-5 w-5 text-primary" />
-          <h2 className="font-semibold text-gray-900">Documente</h2>
+          <h2 className="font-semibold text-gray-900">{t('workerDetail.documents.title')}</h2>
         </div>
 
         {/* Existing documents */}
@@ -979,7 +1006,7 @@ export default function WorkerDetailPage() {
             ))}
           </div>
         ) : (
-          <p className="text-sm text-gray-400 mb-4">Niciun document incarcat inca.</p>
+          <p className="text-sm text-gray-400 mb-4">{t('workerDetail.documents.noDocuments')}</p>
         )}
 
         {/* Upload button for missing docs */}
@@ -1005,14 +1032,14 @@ export default function WorkerDetailPage() {
               onClick={() => docInputRef.current?.click()}
             >
               <UploadIcon className="h-4 w-4" />
-              {uploadingDoc ? 'Se incarca...' : `Incarca document (${missingDocs.length} lipsa)`}
+              {uploadingDoc ? t('workerDetail.documents.uploading') : t('workerDetail.documents.uploadMissing', { count: missingDocs.length })}
             </button>
           </>
         )}
 
         {/* Avatar upload section */}
         <div className="pt-4 mt-4 border-t border-gray-100">
-          <p className="text-xs font-medium text-gray-500 mb-2">Fotografie profil</p>
+          <p className="text-xs font-medium text-gray-500 mb-2">{t('workerDetail.documents.profilePhoto')}</p>
           {worker.user?.avatarUrl ? (
             <div className="flex items-center gap-3">
               <img
@@ -1023,7 +1050,7 @@ export default function WorkerDetailPage() {
               <div>
                 <p className="text-xs text-emerald-600 font-medium flex items-center gap-1">
                   <CheckCircle className="h-3 w-3" />
-                  Incarcata
+                  {t('workerDetail.documents.photoUploaded')}
                 </p>
                 <input
                   ref={avatarInputRef}
@@ -1044,7 +1071,7 @@ export default function WorkerDetailPage() {
                   disabled={uploadingAvatar}
                   onClick={() => avatarInputRef.current?.click()}
                 >
-                  Schimba
+                  {t('workerDetail.documents.changePhoto')}
                 </button>
               </div>
             </div>
@@ -1070,7 +1097,7 @@ export default function WorkerDetailPage() {
                 onClick={() => avatarInputRef.current?.click()}
               >
                 <User className="h-4 w-4" />
-                {uploadingAvatar ? 'Se incarca...' : 'Incarca fotografie'}
+                {uploadingAvatar ? t('workerDetail.documents.uploading') : t('workerDetail.documents.uploadPhoto')}
               </button>
             </>
           )}
@@ -1081,7 +1108,7 @@ export default function WorkerDetailPage() {
       <Card className="mb-6">
         <div className="flex items-center gap-2 mb-4">
           <Brain className="h-5 w-5 text-primary" />
-          <h2 className="font-semibold text-gray-900">Test de personalitate</h2>
+          <h2 className="font-semibold text-gray-900">{t('workerDetail.personality.title')}</h2>
         </div>
         {worker.personalityAssessment ? (
           <div className="space-y-4">
@@ -1090,7 +1117,7 @@ export default function WorkerDetailPage() {
               <div className="p-3 rounded-xl bg-blue-50 border border-blue-100">
                 <div className="flex items-center gap-1.5 mb-1">
                   <Shield className="h-4 w-4 text-blue-600" />
-                  <span className="text-xs font-medium text-gray-600">Integritate</span>
+                  <span className="text-xs font-medium text-gray-600">{t('workerDetail.personality.integrity')}</span>
                 </div>
                 <p className="text-2xl font-bold text-blue-600">
                   {worker.personalityAssessment.integrityAvg.toFixed(1)}
@@ -1100,7 +1127,7 @@ export default function WorkerDetailPage() {
               <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-100">
                 <div className="flex items-center gap-1.5 mb-1">
                   <Sparkles className="h-4 w-4 text-emerald-600" />
-                  <span className="text-xs font-medium text-gray-600">Calitate munca</span>
+                  <span className="text-xs font-medium text-gray-600">{t('workerDetail.personality.workQuality')}</span>
                 </div>
                 <p className="text-2xl font-bold text-emerald-600">
                   {worker.personalityAssessment.workQualityAvg.toFixed(1)}
@@ -1112,7 +1139,7 @@ export default function WorkerDetailPage() {
             {/* Facet scores — compact grid */}
             {worker.personalityAssessment.facetScores.length > 0 && (
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Scoruri detaliate</p>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{t('workerDetail.personality.detailedScores')}</p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {worker.personalityAssessment.facetScores.map((facet) => (
                     <div
@@ -1141,22 +1168,25 @@ export default function WorkerDetailPage() {
               <div className="p-4 rounded-xl bg-gradient-to-br from-purple-50 to-blue-50 border border-purple-200">
                 <div className="flex items-center gap-2 mb-2">
                   <Sparkles className="h-4 w-4 text-purple-600" />
-                  <span className="text-sm font-semibold text-gray-900">Analiza AI</span>
+                  <span className="text-sm font-semibold text-gray-900">{t('workerDetail.personality.aiAnalysis')}</span>
                   <Badge
                     variant={
                       worker.personalityAssessment.insights.recommendedAction === 'approve' ? 'success' :
                       worker.personalityAssessment.insights.recommendedAction === 'reject' ? 'danger' : 'warning'
                     }
                   >
-                    {worker.personalityAssessment.insights.recommendedAction === 'approve' ? 'Recomandat' :
-                     worker.personalityAssessment.insights.recommendedAction === 'reject' ? 'Nu se recomanda' : 'Revizie atenta'}
+                    {worker.personalityAssessment.insights.recommendedAction === 'approve'
+                      ? t('workerDetail.personality.recommended')
+                      : worker.personalityAssessment.insights.recommendedAction === 'reject'
+                        ? t('workerDetail.personality.notRecommended')
+                        : t('workerDetail.personality.carefulReview')}
                   </Badge>
                 </div>
                 <p className="text-sm text-gray-700 mb-3">{worker.personalityAssessment.insights.summary}</p>
 
                 {worker.personalityAssessment.insights.strengths.length > 0 && (
                   <div className="mb-2">
-                    <p className="text-xs font-semibold text-emerald-800 mb-1">Puncte forte:</p>
+                    <p className="text-xs font-semibold text-emerald-800 mb-1">{t('workerDetail.personality.strengths')}</p>
                     <ul className="text-sm text-gray-700 space-y-0.5">
                       {worker.personalityAssessment.insights.strengths.map((s, i) => (
                         <li key={i} className="flex items-start gap-1.5">
@@ -1170,7 +1200,7 @@ export default function WorkerDetailPage() {
 
                 {worker.personalityAssessment.insights.concerns.length > 0 && (
                   <div className="mb-2">
-                    <p className="text-xs font-semibold text-amber-800 mb-1">Zone de atentie:</p>
+                    <p className="text-xs font-semibold text-amber-800 mb-1">{t('workerDetail.personality.concerns')}</p>
                     <ul className="text-sm text-gray-700 space-y-0.5">
                       {worker.personalityAssessment.insights.concerns.map((c, i) => (
                         <li key={i} className="flex items-start gap-1.5">
@@ -1184,13 +1214,13 @@ export default function WorkerDetailPage() {
 
                 {worker.personalityAssessment.insights.teamFitAnalysis && (
                   <div className="p-2.5 rounded-lg bg-white/60 border border-purple-100 mb-2">
-                    <p className="text-xs font-semibold text-gray-700 mb-0.5">Potrivire echipa:</p>
+                    <p className="text-xs font-semibold text-gray-700 mb-0.5">{t('workerDetail.personality.teamFit')}</p>
                     <p className="text-sm text-gray-600">{worker.personalityAssessment.insights.teamFitAnalysis}</p>
                   </div>
                 )}
 
                 <p className="text-xs text-gray-400">
-                  {worker.personalityAssessment.insights.aiModel} &bull; {new Date(worker.personalityAssessment.insights.generatedAt).toLocaleDateString('ro-RO')}
+                  {worker.personalityAssessment.insights.aiModel} &bull; {new Date(worker.personalityAssessment.insights.generatedAt).toLocaleDateString(locale)}
                 </p>
               </div>
             )}
@@ -1200,7 +1230,7 @@ export default function WorkerDetailPage() {
               <div className="flex items-start gap-2.5 p-3 rounded-xl bg-amber-50 border border-amber-200">
                 <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium text-amber-900">Scoruri scazute detectate</p>
+                  <p className="text-sm font-medium text-amber-900">{t('workerDetail.personality.lowScores')}</p>
                   <p className="text-xs text-amber-700">{worker.personalityAssessment.flaggedFacets.join(', ')}</p>
                 </div>
               </div>
@@ -1208,14 +1238,14 @@ export default function WorkerDetailPage() {
 
             {/* Completion date */}
             <p className="text-xs text-gray-400">
-              Completat: {new Date(worker.personalityAssessment.completedAt).toLocaleDateString('ro-RO', { year: 'numeric', month: 'short', day: 'numeric' })}
+              {t('workerDetail.personality.completed', { date: new Date(worker.personalityAssessment.completedAt).toLocaleDateString(locale, { year: 'numeric', month: 'short', day: 'numeric' }) })}
             </p>
           </div>
         ) : (
           <div className="text-center py-8">
             <Brain className="h-10 w-10 text-gray-300 mx-auto mb-3" />
             <p className="text-sm text-gray-400">
-              Testul de personalitate nu a fost completat inca.
+              {t('workerDetail.personality.empty')}
             </p>
           </div>
         )}
@@ -1225,23 +1255,21 @@ export default function WorkerDetailPage() {
       <Modal
         open={statusModal !== null}
         onClose={() => setStatusModal(null)}
-        title="Schimba status"
+        title={t('workerDetail.statusModal.title')}
       >
         <div className="space-y-4">
           <p className="text-sm text-gray-600">
-            Esti sigur ca vrei sa schimbi statusul lui{' '}
-            <span className="font-semibold text-gray-900">{worker.fullName}</span> in{' '}
-            <span className="font-semibold text-gray-900">
-              {statusModal ? statusLabel[statusModal.newStatus] : ''}
-            </span>
-            ?
+            {t('workerDetail.statusModal.confirm', {
+              name: worker.fullName,
+              status: statusModal ? statusLabel[statusModal.newStatus] : '',
+            })}
           </p>
           <div className="flex gap-3 pt-2">
             <Button variant="ghost" onClick={() => setStatusModal(null)} className="flex-1">
-              Anuleaza
+              {t('workerDetail.statusModal.cancel')}
             </Button>
             <Button onClick={handleStatusChange} loading={updatingStatus} className="flex-1">
-              Confirma
+              {t('workerDetail.statusModal.confirmBtn')}
             </Button>
           </div>
         </div>
@@ -1251,11 +1279,11 @@ export default function WorkerDetailPage() {
       <Modal
         open={docTypeModal !== null}
         onClose={() => setDocTypeModal(null)}
-        title="Selecteaza tipul de document"
+        title={t('workerDetail.docTypeModal.title')}
       >
         <div className="space-y-3">
           <p className="text-sm text-gray-600">
-            Alege tipul documentului pe care il incarci:
+            {t('workerDetail.docTypeModal.subtitle')}
           </p>
           <div className="space-y-2">
             {missingDocs.map((type) => (
@@ -1275,7 +1303,7 @@ export default function WorkerDetailPage() {
             ))}
           </div>
           <Button variant="ghost" onClick={() => setDocTypeModal(null)} className="w-full">
-            Anuleaza
+            {t('workerDetail.docTypeModal.cancel')}
           </Button>
         </div>
       </Modal>

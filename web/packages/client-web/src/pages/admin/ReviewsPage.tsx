@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Star, Trash2, MessageSquare, Clock, Sparkles, MessageCircle, Scale, CheckCircle, XCircle } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
@@ -15,38 +16,16 @@ import { ALL_REVIEWS, DELETE_REVIEW, APPROVE_REVIEW, REJECT_REVIEW } from '@/gra
 
 const PAGE_SIZE = 20;
 
-const reviewTypeBadge: Record<string, { label: string; variant: 'default' | 'info' }> = {
-  CLIENT_REVIEW: { label: 'Client', variant: 'info' },
-  COMPANY_REVIEW: { label: 'Companie', variant: 'default' },
+const reviewTypeVariant: Record<string, 'default' | 'info'> = {
+  CLIENT_REVIEW: 'info',
+  COMPANY_REVIEW: 'default',
 };
 
-const statusBadge: Record<string, { label: string; className: string }> = {
-  PUBLISHED: { label: 'Publicata', className: 'bg-green-100 text-green-800' },
-  PENDING: { label: 'In asteptare', className: 'bg-yellow-100 text-yellow-800' },
-  REJECTED: { label: 'Respinsa', className: 'bg-red-100 text-red-800' },
+const statusBadgeClass: Record<string, string> = {
+  PUBLISHED: 'bg-green-100 text-green-800',
+  PENDING: 'bg-yellow-100 text-yellow-800',
+  REJECTED: 'bg-red-100 text-red-800',
 };
-
-const ratingOptions = [
-  { value: '', label: 'Toate' },
-  { value: '1', label: '1 stea' },
-  { value: '2', label: '2 stele' },
-  { value: '3', label: '3 stele' },
-  { value: '4', label: '4 stele' },
-  { value: '5', label: '5 stele' },
-];
-
-const typeOptions = [
-  { value: '', label: 'Toate tipurile' },
-  { value: 'CLIENT_REVIEW', label: 'Client' },
-  { value: 'COMPANY_REVIEW', label: 'Companie' },
-];
-
-const statusOptions = [
-  { value: '', label: 'Toate statusurile' },
-  { value: 'PUBLISHED', label: 'Publicata' },
-  { value: 'PENDING', label: 'In asteptare' },
-  { value: 'REJECTED', label: 'Respinsa' },
-];
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -117,11 +96,11 @@ function CategoryRatingRow({ label, icon: Icon, value }: { label: string; icon: 
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const badge = statusBadge[status] ?? { label: status, className: 'bg-gray-100 text-gray-800' };
+function StatusBadge({ status, label }: { status: string; label: string }) {
+  const className = statusBadgeClass[status] ?? 'bg-gray-100 text-gray-800';
   return (
-    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${badge.className}`}>
-      {badge.label}
+    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${className}`}>
+      {label}
     </span>
   );
 }
@@ -130,6 +109,30 @@ function StatusBadge({ status }: { status: string }) {
 
 export default function ReviewsPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation(['dashboard', 'admin']);
+
+  const ratingOptions = [
+    { value: '', label: t('admin:reviews.allRatings') },
+    { value: '1', label: t('admin:reviews.star', { count: 1 }) },
+    { value: '2', label: t('admin:reviews.stars', { count: 2 }) },
+    { value: '3', label: t('admin:reviews.stars', { count: 3 }) },
+    { value: '4', label: t('admin:reviews.stars', { count: 4 }) },
+    { value: '5', label: t('admin:reviews.stars', { count: 5 }) },
+  ];
+
+  const typeOptions = [
+    { value: '', label: t('admin:reviews.allTypes') },
+    { value: 'CLIENT_REVIEW', label: t('admin:reviews.typeLabels.CLIENT_REVIEW') },
+    { value: 'COMPANY_REVIEW', label: t('admin:reviews.typeLabels.COMPANY_REVIEW') },
+  ];
+
+  const statusOptions = [
+    { value: '', label: t('admin:reviews.allStatuses') },
+    { value: 'PUBLISHED', label: t('admin:reviews.statusLabels.PUBLISHED') },
+    { value: 'PENDING', label: t('admin:reviews.statusLabels.PENDING') },
+    { value: 'REJECTED', label: t('admin:reviews.statusLabels.REJECTED') },
+  ];
+
   const [page, setPage] = useState(0);
   const [ratingFilter, setRatingFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
@@ -202,11 +205,11 @@ export default function ReviewsPage() {
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Recenzii</h1>
-            <p className="text-gray-500 mt-1">Moderare recenzii ale platformei.</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('admin:reviews.title')}</h1>
+            <p className="text-gray-500 mt-1">{t('admin:reviews.subtitle')}</p>
           </div>
           {totalCount > 0 && (
-            <Badge variant="info">{totalCount} recenzii</Badge>
+            <Badge variant="info">{t('admin:reviews.totalCount', { count: totalCount })}</Badge>
           )}
         </div>
       </div>
@@ -254,8 +257,8 @@ export default function ReviewsPage() {
         ) : reviews.length === 0 ? (
           <div className="text-center py-16">
             <MessageSquare className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Nu exista recenzii.</h3>
-            <p className="text-gray-500">Recenziile vor aparea aici dupa ce clientii evalueaza serviciile.</p>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('admin:reviews.emptyTitle')}</h3>
+            <p className="text-gray-500">{t('admin:reviews.emptySubtitle')}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -263,35 +266,30 @@ export default function ReviewsPage() {
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50">
                   <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 sm:px-6 py-3">
-                    Rating
+                    {t('admin:reviews.columns.rating')}
                   </th>
                   <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 sm:px-6 py-3">
-                    Cod Rezervare
+                    {t('admin:reviews.columns.bookingCode')}
                   </th>
                   <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 sm:px-6 py-3">
-                    Tip
+                    {t('admin:reviews.columns.type')}
                   </th>
                   <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 sm:px-6 py-3">
-                    Status
+                    {t('admin:reviews.columns.status')}
                   </th>
                   <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 sm:px-6 py-3 hidden md:table-cell">
-                    Recenzor
+                    {t('admin:reviews.columns.reviewer')}
                   </th>
                   <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 sm:px-6 py-3 hidden md:table-cell">
-                    Data
+                    {t('admin:reviews.columns.date')}
                   </th>
                   <th className="text-right text-xs font-medium text-gray-500 uppercase tracking-wider px-4 sm:px-6 py-3">
-                    Actiuni
+                    {t('admin:reviews.columns.actions')}
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {reviews.map((review) => {
-                  const typeBadge = reviewTypeBadge[review.reviewType] ?? {
-                    label: review.reviewType,
-                    variant: 'default' as const,
-                  };
-
                   return (
                     <tr
                       key={review.id}
@@ -303,7 +301,7 @@ export default function ReviewsPage() {
                         <StarRating rating={review.rating} />
                       </td>
 
-                      {/* Cod Rezervare */}
+                      {/* Booking Code */}
                       <td className="px-4 sm:px-6 py-4">
                         {review.booking ? (
                           <span className="text-sm font-medium text-primary">
@@ -314,31 +312,36 @@ export default function ReviewsPage() {
                         )}
                       </td>
 
-                      {/* Tip */}
+                      {/* Type */}
                       <td className="px-4 sm:px-6 py-4">
-                        <Badge variant={typeBadge.variant}>{typeBadge.label}</Badge>
+                        <Badge variant={reviewTypeVariant[review.reviewType] ?? 'default'}>
+                          {t(`admin:reviews.typeLabels.${review.reviewType}`, { defaultValue: review.reviewType })}
+                        </Badge>
                       </td>
 
                       {/* Status */}
                       <td className="px-4 sm:px-6 py-4">
-                        <StatusBadge status={review.status} />
+                        <StatusBadge
+                          status={review.status}
+                          label={t(`admin:reviews.statusLabels.${review.status}`, { defaultValue: review.status })}
+                        />
                       </td>
 
-                      {/* Recenzor (hidden on mobile) */}
+                      {/* Reviewer (hidden on mobile) */}
                       <td className="px-4 sm:px-6 py-4 hidden md:table-cell">
                         <span className="text-sm text-gray-900">
                           {review.reviewer?.fullName ?? '-'}
                         </span>
                       </td>
 
-                      {/* Data (hidden on mobile) */}
+                      {/* Date (hidden on mobile) */}
                       <td className="px-4 sm:px-6 py-4 hidden md:table-cell whitespace-nowrap">
                         <span className="text-sm text-gray-500">
                           {formatDate(review.createdAt)}
                         </span>
                       </td>
 
-                      {/* Actiuni */}
+                      {/* Actions */}
                       <td className="px-4 sm:px-6 py-4 text-right">
                         <Button
                           variant="ghost"
@@ -368,7 +371,7 @@ export default function ReviewsPage() {
           totalCount={totalCount}
           pageSize={PAGE_SIZE}
           onPageChange={setPage}
-          noun="recenzii"
+          noun={t('admin:reviews.noun')}
         />
       )}
 
@@ -376,16 +379,19 @@ export default function ReviewsPage() {
       <Modal
         open={!!detailReview}
         onClose={() => setDetailReview(null)}
-        title="Detalii recenzie"
+        title={t('admin:reviews.detailModal.title')}
       >
         {detailReview && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <StarRatingFull rating={detailReview.rating} />
               <div className="flex items-center gap-2">
-                <StatusBadge status={detailReview.status} />
-                <Badge variant={(reviewTypeBadge[detailReview.reviewType] ?? { variant: 'default' as const }).variant}>
-                  {(reviewTypeBadge[detailReview.reviewType] ?? { label: detailReview.reviewType }).label}
+                <StatusBadge
+                  status={detailReview.status}
+                  label={t(`admin:reviews.statusLabels.${detailReview.status}`, { defaultValue: detailReview.status })}
+                />
+                <Badge variant={reviewTypeVariant[detailReview.reviewType] ?? 'default'}>
+                  {t(`admin:reviews.typeLabels.${detailReview.reviewType}`, { defaultValue: detailReview.reviewType })}
                 </Badge>
               </div>
             </div>
@@ -393,17 +399,17 @@ export default function ReviewsPage() {
             {/* Category ratings */}
             {(detailReview.ratingPunctuality || detailReview.ratingQuality || detailReview.ratingCommunication || detailReview.ratingValue) && (
               <div className="space-y-2 p-3 bg-gray-50 rounded-xl">
-                <p className="text-xs font-medium text-gray-500 mb-2">Categorii</p>
-                <CategoryRatingRow label="Punctualitate" icon={Clock} value={detailReview.ratingPunctuality} />
-                <CategoryRatingRow label="Calitate" icon={Sparkles} value={detailReview.ratingQuality} />
-                <CategoryRatingRow label="Comunicare" icon={MessageCircle} value={detailReview.ratingCommunication} />
-                <CategoryRatingRow label="Raport calitate-pret" icon={Scale} value={detailReview.ratingValue} />
+                <p className="text-xs font-medium text-gray-500 mb-2">{t('admin:reviews.detailModal.categories')}</p>
+                <CategoryRatingRow label={t('admin:reviews.categoryLabels.punctuality')} icon={Clock} value={detailReview.ratingPunctuality} />
+                <CategoryRatingRow label={t('admin:reviews.categoryLabels.quality')} icon={Sparkles} value={detailReview.ratingQuality} />
+                <CategoryRatingRow label={t('admin:reviews.categoryLabels.communication')} icon={MessageCircle} value={detailReview.ratingCommunication} />
+                <CategoryRatingRow label={t('admin:reviews.categoryLabels.value')} icon={Scale} value={detailReview.ratingValue} />
               </div>
             )}
 
             {detailReview.comment && (
               <div>
-                <p className="text-xs font-medium text-gray-500 mb-1">Comentariu</p>
+                <p className="text-xs font-medium text-gray-500 mb-1">{t('admin:reviews.detailModal.comment')}</p>
                 <p className="text-sm text-gray-900">{detailReview.comment}</p>
               </div>
             )}
@@ -411,13 +417,13 @@ export default function ReviewsPage() {
             {/* Photos */}
             {detailReview.photos && detailReview.photos.length > 0 && (
               <div>
-                <p className="text-xs font-medium text-gray-500 mb-2">Poze</p>
+                <p className="text-xs font-medium text-gray-500 mb-2">{t('admin:reviews.detailModal.photos')}</p>
                 <div className="flex gap-2">
                   {detailReview.photos.map((photo) => (
                     <img
                       key={photo.id}
                       src={photo.photoUrl}
-                      alt="Poza recenzie"
+                      alt={t('admin:reviews.detailModal.photoAlt')}
                       className="h-20 w-20 rounded-lg object-cover border border-gray-200"
                     />
                   ))}
@@ -427,18 +433,18 @@ export default function ReviewsPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-xs font-medium text-gray-500 mb-1">Recenzor</p>
+                <p className="text-xs font-medium text-gray-500 mb-1">{t('admin:reviews.detailModal.reviewer')}</p>
                 <p className="text-sm text-gray-900">{detailReview.reviewer?.fullName ?? '-'}</p>
               </div>
               <div>
-                <p className="text-xs font-medium text-gray-500 mb-1">Data</p>
+                <p className="text-xs font-medium text-gray-500 mb-1">{t('admin:reviews.detailModal.date')}</p>
                 <p className="text-sm text-gray-900">{formatDate(detailReview.createdAt)}</p>
               </div>
             </div>
 
             {detailReview.booking && (
               <div>
-                <p className="text-xs font-medium text-gray-500 mb-1">Cod Rezervare</p>
+                <p className="text-xs font-medium text-gray-500 mb-1">{t('admin:reviews.detailModal.bookingCode')}</p>
                 <button
                   onClick={() => {
                     setDetailReview(null);
@@ -452,7 +458,7 @@ export default function ReviewsPage() {
             )}
 
             <div className="flex justify-end gap-3 pt-2 border-t border-gray-100">
-              <Button variant="ghost" onClick={() => setDetailReview(null)}>Inchide</Button>
+              <Button variant="ghost" onClick={() => setDetailReview(null)}>{t('admin:reviews.detailModal.close')}</Button>
               {detailReview.status !== 'PUBLISHED' && (
                 <Button
                   variant="secondary"
@@ -461,7 +467,7 @@ export default function ReviewsPage() {
                   onClick={() => handleApprove(detailReview.id)}
                 >
                   <CheckCircle className="h-4 w-4" />
-                  Publica
+                  {t('admin:reviews.detailModal.publish')}
                 </Button>
               )}
               {detailReview.status !== 'REJECTED' && (
@@ -472,7 +478,7 @@ export default function ReviewsPage() {
                   onClick={() => handleReject(detailReview.id)}
                 >
                   <XCircle className="h-4 w-4" />
-                  Respinge
+                  {t('admin:reviews.detailModal.reject')}
                 </Button>
               )}
               <Button
@@ -484,7 +490,7 @@ export default function ReviewsPage() {
                 }}
               >
                 <Trash2 className="h-4 w-4" />
-                Sterge
+                {t('admin:reviews.detailModal.delete')}
               </Button>
             </div>
           </div>
@@ -495,25 +501,25 @@ export default function ReviewsPage() {
       <Modal
         open={deleteModal.open}
         onClose={() => setDeleteModal({ open: false, reviewId: '' })}
-        title="Sterge recenzie"
+        title={t('admin:reviews.deleteModal.title')}
       >
         <div className="space-y-4">
           <p className="text-sm text-gray-600">
-            Esti sigur ca vrei sa stergi aceasta recenzie?
+            {t('admin:reviews.deleteModal.warning')}
           </p>
           <div className="flex justify-end gap-3">
             <Button
               variant="ghost"
               onClick={() => setDeleteModal({ open: false, reviewId: '' })}
             >
-              Anuleaza
+              {t('admin:reviews.deleteModal.dismiss')}
             </Button>
             <Button
               variant="danger"
               onClick={handleDelete}
               loading={deleting}
             >
-              Sterge
+              {t('admin:reviews.deleteModal.confirm')}
             </Button>
           </div>
         </div>

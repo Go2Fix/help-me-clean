@@ -1,0 +1,401 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "jobs": "My Orders",
+    "schedule": "Schedule",
+    "documents": "Documents",
+    "personalityTest": "Personality test",
+    "settings": "My Profile",
+    "subtitle": "Worker Panel"
+  },
+  "dashboard": {
+    "welcome": "Welcome, {{name}}!",
+    "welcomeDefault": "Dashboard",
+    "rating": "Rating",
+    "reviewsCount": "{{count}} reviews",
+    "jobsCompleted": "Completed jobs",
+    "thisMonth": "{{count}} this month",
+    "setupTitle": "Getting started",
+    "setupSubtitle": "Complete your profile to receive orders",
+    "setupItems": {
+      "avatar": "Add a profile photo",
+      "bio": "Complete your bio",
+      "bioDesc": "Introduce yourself to clients",
+      "phone": "Verify your phone number",
+      "phoneDesc": "Via WhatsApp",
+      "personality": "Personality test",
+      "docs": "Upload required documents",
+      "docsDesc": "Criminal record and employment contract",
+      "availability": "Set your availability",
+      "availabilityDesc": "The days and hours you can work"
+    },
+    "quickActions": {
+      "myOrders": "My orders",
+      "mySchedule": "My schedule",
+      "messages": "Messages",
+      "profileSettings": "Profile & Settings"
+    },
+    "todaysJobs": "Today's jobs",
+    "allOrders": "All orders",
+    "noJobsToday": "No jobs scheduled today",
+    "noJobsTodayDesc": "Check your {{scheduleLink}} for upcoming days.",
+    "scheduleLink": "schedule",
+    "recentReviews": "Recent reviews",
+    "allReviews": "All",
+    "noReviewsYet": "No reviews yet",
+    "noReviewsYetDesc": "Reviews will appear after completing your first orders.",
+    "reviewerFallback": "Client"
+  },
+  "personalityTest": {
+    "loading": "Loading test...",
+    "alreadyCompleted": {
+      "title": "Test completed",
+      "description": "You have already completed the personality test. Your account is awaiting activation by an administrator.",
+      "backToDashboard": "Back to dashboard"
+    },
+    "intro": {
+      "title": "Personality test",
+      "p1": "Welcome! To complete the registration process, you need to fill out a short personality questionnaire.",
+      "p2": "This test helps us better understand your personality and ensure a good match between you and our clients.",
+      "infoTitle": "A few important details:",
+      "detail1": "28 questions, ~5 minutes",
+      "detail2": "There are no right or wrong answers",
+      "detail3": "Answer honestly and spontaneously",
+      "detail4": "You can go back to previous questions",
+      "startButton": "Start the test"
+    },
+    "progress": {
+      "questionOf": "Question {{current}} of {{total}}",
+      "percentCompleted": "{{percent}}% completed",
+      "allAnswered": "All answers completed",
+      "remaining": "{{count}} answers remaining"
+    },
+    "likert": {
+      "1": "Strongly disagree",
+      "2": "Disagree",
+      "3": "Neither agree nor disagree",
+      "4": "Agree",
+      "5": "Strongly agree"
+    },
+    "back": "Back",
+    "submit": "Submit"
+  },
+  "documents": {
+    "pageTitle": "Required Documents",
+    "pageSubtitle": "Upload the documents required to activate your cleaner account",
+    "steps": {
+      "invitation": "Invitation",
+      "test": "Test",
+      "documents": "Documents",
+      "review": "Review",
+      "active": "Active"
+    },
+    "gdpr": "Your documents are stored securely and processed in accordance with {{gdprLink}}. Access is restricted exclusively to the Go2Fix verification team.",
+    "gdprLink": "the GDPR Information Notice",
+    "progressStart": "Start with your profile photo",
+    "progressCount": "{{uploaded}} of {{total}} documents uploaded",
+    "progressHint": "Once all documents are uploaded, your profile will be sent for review.",
+    "allUploaded": "All documents have been uploaded!",
+    "allUploadedHint": "Your profile is now under review. You will be notified when it is activated.",
+    "requiredDocs": {
+      "cazier_judiciar": {
+        "label": "Criminal Record",
+        "description": "Criminal record certificate (PDF, max 10MB)"
+      },
+      "contract_munca": {
+        "label": "Employment Contract",
+        "description": "Signed employment contract (PDF, max 10MB)"
+      }
+    },
+    "avatar": {
+      "title": "Profile Photo",
+      "titleUpload": "Upload Profile Photo",
+      "description": "Clear portrait photo (JPG/PNG, max 10MB)",
+      "uploaded": "Uploaded",
+      "changePhoto": "Change photo",
+      "uploadPhoto": "Upload photo",
+      "uploading": "Uploading...",
+      "errorType": "Only images (JPG, PNG, WEBP) are allowed",
+      "errorSize": "Image exceeds 10MB",
+      "errorGeneric": "Error uploading image"
+    },
+    "documentCard": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "rejectionReason": "Reason: {{reason}}",
+      "uploading": "Uploading...",
+      "reupload": "Re-upload",
+      "upload": "Upload",
+      "deleting": "Deleting...",
+      "delete": "Delete",
+      "errorType": "Only PDF files are allowed",
+      "errorSize": "File exceeds 10MB",
+      "errorUpload": "Error uploading document",
+      "errorDelete": "Error deleting document",
+      "confirmDelete": "Delete document {{label}}?"
+    },
+    "backToDashboard": "Back to Dashboard",
+    "continue": "Continue"
+  },
+  "orders": {
+    "pageTitle": "My orders",
+    "pageSubtitle": "Manage the orders assigned to you.",
+    "filterByStatus": "Filter by status",
+    "searchPlaceholder": "Search by reference code...",
+    "dateFrom": "From",
+    "dateTo": "To",
+    "loading": "Loading orders...",
+    "noOrders": "No orders",
+    "noOrdersDesc": "No orders found for the selected filter.",
+    "tableHeaders": {
+      "code": "Code",
+      "date": "Date",
+      "client": "Client",
+      "status": "Status"
+    },
+    "recurring": "Recurring",
+    "dateAt": "at {{time}}",
+    "statusOptions": {
+      "all": "All statuses",
+      "confirmed": "Confirmed",
+      "inProgress": "In progress",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "statusLabels": {
+      "ASSIGNED": "Assigned",
+      "CONFIRMED": "Confirmed",
+      "IN_PROGRESS": "In progress",
+      "COMPLETED": "Completed",
+      "CANCELLED_BY_CLIENT": "Cancelled by client",
+      "CANCELLED_BY_COMPANY": "Cancelled by company",
+      "CANCELLED_BY_ADMIN": "Cancelled by admin"
+    },
+    "pagination": {
+      "orderCount_one": "{{count}} order",
+      "orderCount_other": "{{count}} orders",
+      "pageInfo": "Page {{page}} of {{total}}",
+      "previous": "Previous",
+      "next": "Next"
+    }
+  },
+  "jobDetail": {
+    "backToOrders": "Back to orders",
+    "notFound": "Order not found",
+    "notFoundDesc": "This order does not exist or you do not have access.",
+    "ref": "Ref: {{code}}",
+    "recurring": "Recurring",
+    "recurringNum": "Recurring #{{num}}",
+    "timeline": {
+      "title": "Order progress",
+      "assigned": "Assigned",
+      "confirmed": "Confirmed",
+      "inProgress": "In progress",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "jobDetails": {
+      "title": "Job details",
+      "date": "Date",
+      "timeAndDuration": "Time & Duration",
+      "property": "Property",
+      "surfaceAndPets": "Area & Pets",
+      "sqm": "{{area}} sqm",
+      "withPets": "With pets",
+      "noPets": "No pets",
+      "rooms": "{{count}} rooms",
+      "bathrooms": "{{count}} bathrooms"
+    },
+    "propertyTypes": {
+      "APARTMENT": "Apartment",
+      "HOUSE": "House",
+      "OFFICE": "Office",
+      "STUDIO": "Studio"
+    },
+    "checklist": {
+      "title": "What you need to do",
+      "progress": "Progress: {{checked}}/{{total}} completed",
+      "extras": "Additional"
+    },
+    "specialInstructions": "Special instructions",
+    "address": {
+      "title": "Address",
+      "floor": "Floor {{floor}}",
+      "apartment": "Apt. {{apt}}",
+      "openMaps": "Open in Google Maps",
+      "entryCode": "Entry code",
+      "notes": "Address notes"
+    },
+    "photos": {
+      "title": "Job photos",
+      "phaseBefore": "Before",
+      "phaseAfter": "After",
+      "phaseDuring": "During",
+      "addPhoto": "Add photo",
+      "deleteConfirm": "Delete this photo?",
+      "phaseOptions": {
+        "before": "Before",
+        "during": "During",
+        "after": "After"
+      }
+    },
+    "client": {
+      "title": "Client",
+      "call": "Call"
+    },
+    "company": {
+      "title": "Company"
+    },
+    "review": {
+      "title": "Client review"
+    },
+    "actions": {
+      "startCleaning": "Start cleaning",
+      "completeCleaning": "Complete cleaning",
+      "checkAllTasks": "Check all tasks to complete",
+      "errorUpdate": "Could not update status. Please try again."
+    },
+    "statusLabels": {
+      "ASSIGNED": "Assigned",
+      "CONFIRMED": "Confirmed",
+      "IN_PROGRESS": "In progress",
+      "COMPLETED": "Completed",
+      "CANCELLED_BY_CLIENT": "Cancelled by client",
+      "CANCELLED_BY_COMPANY": "Cancelled by company",
+      "CANCELLED_BY_ADMIN": "Cancelled by admin"
+    }
+  },
+  "schedule": {
+    "pageTitle": "Schedule",
+    "pageSubtitle": "Your weekly schedule and availability",
+    "tabSchedule": "Schedule",
+    "tabAvailability": "Availability",
+    "today": "Today",
+    "prevWeek": "Previous week",
+    "nextWeek": "Next week",
+    "noOrders": "No orders",
+    "noOrdersScheduled": "No orders scheduled",
+    "available": "Available",
+    "unavailable": "Unavailable",
+    "dayOff": "Day off",
+    "weeklySchedule": "Weekly schedule",
+    "unavailableLabel": "Unavailable",
+    "saveSchedule": "Save schedule",
+    "savedSchedule": "Schedule saved successfully!",
+    "errorSaveSchedule": "Error saving schedule.",
+    "ariaAvailableDay": "{{day}} available",
+    "daysOff": "Days off",
+    "addDayOff": "Add day off",
+    "date": "Date",
+    "allDay": "All day",
+    "timeFrom": "From",
+    "timeTo": "To",
+    "save": "Save",
+    "cancel": "Cancel",
+    "cancelDayOff": "Cancel",
+    "noDaysOff": "No days off scheduled in the next 30 days.",
+    "fullDayOff": "Full day off",
+    "partialDayOff": "Off: {{start}} - {{end}}",
+    "addedDayOff": "Day off added!",
+    "errorAddDayOff": "Error adding day off.",
+    "cancelledDayOff": "Day off cancelled.",
+    "errorCancelDayOff": "Error cancelling day off.",
+    "months": {
+      "0": "Jan",
+      "1": "Feb",
+      "2": "Mar",
+      "3": "Apr",
+      "4": "May",
+      "5": "Jun",
+      "6": "Jul",
+      "7": "Aug",
+      "8": "Sep",
+      "9": "Oct",
+      "10": "Nov",
+      "11": "Dec"
+    },
+    "statusLabels": {
+      "ASSIGNED": "Assigned",
+      "CONFIRMED": "Confirmed",
+      "IN_PROGRESS": "In progress",
+      "COMPLETED": "Completed"
+    }
+  },
+  "settings": {
+    "pageTitle": "Profile & Settings",
+    "loadingProfile": "Loading profile...",
+    "memberSince": "Member since {{date}}",
+    "stats": {
+      "rating": "Rating",
+      "reviewsCount": "{{count}} reviews",
+      "jobsCompleted": "Completed jobs",
+      "thisMonth": "{{count}} this month"
+    },
+    "personalityTest": {
+      "title": "Personality test",
+      "completed": "Completed on {{date}}",
+      "completedNoDate": "Completed",
+      "pendingActivation": "Required for activation",
+      "complete": "Complete"
+    },
+    "reviews": {
+      "title": "Recent reviews",
+      "totalCount": "{{count}} total",
+      "noReviews": "No reviews yet.",
+      "noReviewsDesc": "Reviews will appear after completing orders.",
+      "reviewerFallback": "Client"
+    },
+    "workAreas": {
+      "title": "My work areas",
+      "loading": "Loading areas...",
+      "noAreas": "No areas assigned yet.",
+      "managedBy": "Work areas are managed by your company administrator.",
+      "unknownCity": "Unknown"
+    },
+    "categories": {
+      "title": "My service categories",
+      "loading": "Loading categories...",
+      "noCategories": "No categories assigned yet.",
+      "managedBy": "Service categories are managed by your company administrator."
+    },
+    "documents": {
+      "title": "My documents",
+      "pendingReviewNotice": "Upload the required documents to be activated by the administrator.",
+      "uploadLabel": "Upload {{label}}",
+      "requiredDocs": {
+        "cazier_judiciar": "Criminal Record",
+        "contract_munca": "Employment Contract"
+      }
+    },
+    "profileInfo": {
+      "title": "Profile information",
+      "phoneLabel": "Phone *",
+      "phonePlaceholder": "+40 7XX XXX XXX",
+      "phoneRequired": "Phone number is required.",
+      "phoneFormat": "Format must be +40...",
+      "bioLabel": "Bio",
+      "bioPlaceholder": "Describe yourself briefly...",
+      "verifiedPhone": "Verified via WhatsApp",
+      "unverifiedPhone": "Unverified",
+      "verifyNow": "Verify now",
+      "hideVerify": "Hide",
+      "saveButton": "Save changes",
+      "saveSuccess": "Profile updated successfully!",
+      "saveError": "Error saving. Please try again."
+    },
+    "language": {
+      "title": "Preferred language",
+      "saveButton": "Save preference",
+      "saveSuccess": "Language preference saved",
+      "saveError": "Error saving preference"
+    },
+    "workerStatus": {
+      "ACTIVE": "Active",
+      "INVITED": "Invited",
+      "PENDING_REVIEW": "Pending review",
+      "SUSPENDED": "Suspended",
+      "INACTIVE": "Inactive"
+    }
+  }
+}

@@ -1,0 +1,772 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "bookings": "Comenzile mele",
+    "subscriptions": "Abonamente",
+    "chat": "Contact Suport",
+    "addresses": "Adresele mele",
+    "payments": "Plăți",
+    "invoices": "Facturi",
+    "settings": "Profil & Setări",
+    "help": "Ajutor",
+    "subtitle": "Contul meu",
+    "newBooking": "Rezervare nouă"
+  },
+  "dashboard": {
+    "welcomeBack": "Bun venit",
+    "accountOverview": "Iată o privire de ansamblu asupra contului tău.",
+    "newBooking": "Rezervare nouă",
+    "completeProfile": "Completează-ți profilul",
+    "completeProfileSub": "Câțiva pași pentru a folosi platforma din plin",
+    "leaveReviewFor": "Lasă o recenzie pentru {{name}}",
+    "upcomingBookings": "Următoarele comenzi",
+    "noUpcomingBookings": "Nu ai comenzi viitoare",
+    "bookNow": "Rezervă acum",
+    "viewAllBookings": "Vezi toate comenzile",
+    "subscriptions": "Abonamente",
+    "noActiveSubscriptions": "Niciun abonament activ",
+    "createSubscription": "Creează un abonament",
+    "viewAll": "Vezi toate",
+    "quickActions": "Acțiuni rapide",
+    "nextBilling": "Următoarea facturare: {{date}}",
+    "perMonth": "lei/lună",
+    "kpi": {
+      "totalBookings": "Total rezervări",
+      "active": "Active",
+      "subscriptions": "Abonamente",
+      "unpaidInvoices": "Facturi neplatite"
+    },
+    "setup": {
+      "phone": "Verifică numărul de telefon",
+      "phoneDesc": "Necesar pentru suport via WhatsApp",
+      "avatar": "Adaugă o fotografie de profil",
+      "avatarDesc": "Ajută curățătorii să te recunoască",
+      "address": "Adaugă o adresă",
+      "addressDesc": "Necesară pentru programarea serviciilor",
+      "payment": "Adaugă o metodă de plată",
+      "paymentDesc": "Necesară pentru a plăti serviciile"
+    },
+    "quickLinks": {
+      "myBookings": "Comenzile mele",
+      "support": "Contact Suport",
+      "addresses": "Adresele mele",
+      "invoices": "Facturi",
+      "paymentMethods": "Metode de plată",
+      "profile": "Profil & Setări"
+    }
+  },
+  "bookings": {
+    "title": "Comenzile mele",
+    "subtitle": "Istoricul și starea rezervărilor tale.",
+    "newBooking": "Rezervare nouă",
+    "filter": {
+      "all": "Toate",
+      "confirmed": "Confirmate",
+      "inProgress": "În desfășurare",
+      "completed": "Finalizate",
+      "cancelled": "Anulate",
+      "recurring": "Recurente"
+    },
+    "status": {
+      "PENDING": "În așteptare",
+      "ASSIGNED": "Alocată",
+      "CONFIRMED": "Confirmată",
+      "IN_PROGRESS": "În desfășurare",
+      "COMPLETED": "Finalizată",
+      "CANCELLED_BY_CLIENT": "Anulată",
+      "CANCELLED_BY_COMPANY": "Anulată",
+      "CANCELLED_BY_ADMIN": "Anulată"
+    },
+    "recurring": "Recurent",
+    "perSession": "lei / sesiune",
+    "nextOccurrence": "Următoarea: {{date}}",
+    "completedOf": "{{completed}} din {{total}} finalizate",
+    "sessions": "ședințe",
+    "booked": "Rezervat: {{date}}",
+    "error": "Nu am putut încărca comenzile. Te rugăm să încerci din nou.",
+    "retry": "Reîncearcă",
+    "empty": {
+      "noBookings": "Nu ai nicio rezervare",
+      "noneInCategory": "Nicio rezervare în această categorie",
+      "noBookingsDesc": "Rezervă primul tău serviciu de curățenie acum.",
+      "noneCategoryDesc": "Schimbă filtrul sau creează o nouă rezervare.",
+      "bookNow": "Rezervă o curățenie"
+    },
+    "pagination": {
+      "orders_one": "comandă",
+      "orders_other": "comenzi"
+    },
+    "recurringGroups": {
+      "empty": "Nu ai serii recurente",
+      "emptyDesc": "Programează o curățenie recurentă pentru a o vedea aici.",
+      "bookNow": "Rezervă o curățenie",
+      "statusActive": "Activă",
+      "statusCancelled": "Anulată",
+      "statusPaused": "Pauză",
+      "weekly": "Săptămânal",
+      "biweekly": "Bi-săptămânal",
+      "monthly": "Lunar"
+    },
+    "verifyingAuth": "Se verifică autentificarea..."
+  },
+  "bookingDetail": {
+    "backToBookings": "Înapoi la comenzi",
+    "recurringSeriesBanner": "Parte din seria recurentă",
+    "occurrence": "— Programarea #{{number}}",
+    "totalFinal": "Total final",
+    "totalEstimated": "Total estimat",
+    "dateLabel": "Data",
+    "timeLabel": "Ora",
+    "addressLabel": "Adresa",
+    "orderProgress": "Progresul comenzii",
+    "scheduleDetails": "Detalii programare",
+    "propertyType": "Tip proprietate",
+    "estimatedDuration": "Durată estimată",
+    "rooms": "Camere",
+    "bathrooms": "Bai",
+    "area": "Suprafață",
+    "pets": "Animale",
+    "hasPets": "Da, există animale de companie",
+    "propertyTypes": {
+      "APARTMENT": "Apartament",
+      "HOUSE": "Casă",
+      "OFFICE": "Birou",
+      "STUDIO": "Garsonieră"
+    },
+    "duration": {
+      "hour_one": "oră",
+      "hour_other": "ore"
+    },
+    "rooms_one": "cameră",
+    "rooms_other": "camere",
+    "bathrooms_one": "baie",
+    "bathrooms_other": "băi",
+    "serviceIncludes": "Ce include serviciul",
+    "extras": "Servicii suplimentare",
+    "accessDetails": "Detalii acces",
+    "entryCode": "Cod acces",
+    "addressNotes": "Note adresă",
+    "specialInstructions": "Instrucțiuni speciale",
+    "noShow": {
+      "title": "Lucrătorul nu a ajuns?",
+      "description": "A trecut mai mult de o oră de la ora programată. Vrem să știm dacă echipa ta a ajuns.",
+      "report": "Raportează că nu a ajuns"
+    },
+    "yourWorker": "Lucrătorul tău",
+    "payment": {
+      "title": "Plata",
+      "paid": "Plătit",
+      "pending": "În așteptare",
+      "paidOn": "Plătit pe {{date}}",
+      "payNow": "Plătește acum",
+      "paymentError": "Nu am putut iniția plata. Încearcă din nou."
+    },
+    "invoice": {
+      "title": "Factură",
+      "viewInvoice": "Vezi factura"
+    },
+    "review": {
+      "yourReview": "Recenzia ta",
+      "leaveReview": "Lasă o recenzie",
+      "punctuality": "Punctualitate",
+      "quality": "Calitate",
+      "communication": "Comunicare",
+      "valueForMoney": "Raport calitate-preț",
+      "overallRating": "Notă generală:",
+      "commentPlaceholder": "Cum a fost experiența? (opțional)",
+      "addPhotos": "Adaugă poze ({{count}}/3)",
+      "submitReview": "Trimite recenzia",
+      "reviewPhoto": "Poză recenzie",
+      "submittedOn": "Trimisă pe {{date}}"
+    },
+    "dispute": {
+      "problemWithService": "Ai o problemă cu serviciul?",
+      "problemDesc": "Ai 48 de ore de la finalizare pentru a deschide o dispută. Vom analiza și te vom contacta.",
+      "openDispute": "Deschide o dispută",
+      "yourDispute": "Disputa ta",
+      "companyResponse": "Răspuns companie:",
+      "resolution": "Rezoluție:",
+      "refundApproved": "Rambursare aprobată: {{amount}} RON",
+      "openedOn": "Deschisă pe {{date}}",
+      "statusOpen": "Deschisă",
+      "statusResolved": "Rezolvată",
+      "statusRejected": "Respinsă"
+    },
+    "refund": {
+      "title": "Rambursare",
+      "description": "Comanda a fost anulată. Poți solicita o rambursare.",
+      "requestRefund": "Solicită rambursare"
+    },
+    "actions": {
+      "title": "Acțiuni",
+      "reschedule": "Reprogramează",
+      "rescheduleLimit": "Ai atins limita de {{max}} reprogramări",
+      "rescheduleTooLate": "Reprogramarea nu este permisă cu mai puțin de {{hours}}h înainte",
+      "cancelOrder": "Anulează comanda"
+    },
+    "whatsapp": {
+      "question": "Ai o problemă cu această comandă?",
+      "description": "Contactează-ne pe WhatsApp și îți răspundem rapid.",
+      "button": "WhatsApp",
+      "addPhone": "Adaugă telefon mai întâi"
+    },
+    "timeline": {
+      "orderPlaced": "Comandă plasată",
+      "paidAndConfirmed": "Plătită & Confirmată",
+      "inProgress": "În desfășurare",
+      "completed": "Finalizată",
+      "cancelled": "Anulată"
+    },
+    "cancelModal": {
+      "title": "Anulează comanda",
+      "fullRefund": "Vei primi o rambursare completă (100%).",
+      "partialRefund": "Vei primi o rambursare parțială ({{pct}}%).",
+      "noRefund": "Nu se acordă rambursare pentru anulări cu mai puțin de 24 de ore înainte.",
+      "confirmQuestion": "Ești sigur că vrei să anulezi această comandă? Această acțiune nu poate fi anulată.",
+      "cancelReason": "Motiv anulare (opțional)",
+      "cancelReasonPlaceholder": "Spune-ne de ce anulezi...",
+      "cancel": "Renunță",
+      "confirm": "Confirmă anularea"
+    },
+    "refundModal": {
+      "title": "Solicită rambursare",
+      "description": "Descrie motivul pentru care dorești o rambursare. Cererea va fi analizată de echipa noastră.",
+      "reasonLabel": "Motivul rambursării",
+      "reasonPlaceholder": "Explică motivul...",
+      "cancel": "Renunță",
+      "submit": "Trimite cererea"
+    },
+    "noShowModal": {
+      "title": "Raportează absența lucrătorului",
+      "warning": "Această acțiune va deschide o sesizare de tip \u201Eneprezentare\u201D. Echipa noastră va analiza și te va contacta în cel mai scurt timp.",
+      "confirm": "Confirmi că lucrătorul nu s-a prezentat la adresă în intervalul programat?",
+      "cancel": "Renunță",
+      "confirmButton": "Confirmă raportarea",
+      "toast": "Am primit sesizarea. O să fim în contact cu tine în curând."
+    },
+    "disputeModal": {
+      "title": "Deschide o dispută",
+      "description": "Descrie problema cu serviciul. Vom analiza și te vom contacta în cel mai scurt timp.",
+      "reasonLabel": "Motiv",
+      "reasonPlaceholder": "Selectează un motiv...",
+      "reasons": {
+        "POOR_QUALITY": "Calitate slabă a serviciului",
+        "NO_SHOW": "Lucrătorul nu s-a prezentat",
+        "PROPERTY_DAMAGE": "Daune la proprietate",
+        "INCOMPLETE_JOB": "Serviciu incomplet",
+        "OVERCHARGE": "Suprataxare",
+        "OTHER": "Altul"
+      },
+      "descriptionLabel": "Descriere",
+      "descriptionMinChars": "(minim 20 de caractere)",
+      "descriptionPlaceholder": "Descrie în detaliu problema întâmpinată...",
+      "charCount": "{{count}} / 20 caractere minime",
+      "errorSelectReason": "Selectează un motiv.",
+      "errorMinChars": "Descrierea trebuie să aibă cel puțin 20 de caractere.",
+      "cancel": "Renunță",
+      "submit": "Trimite disputa"
+    },
+    "paymentModal": {
+      "title": "Plătește comanda"
+    },
+    "error": {
+      "loadFailed": "Nu am putut încărca detaliile comenzii.",
+      "notFound": "Comanda nu a fost găsită."
+    },
+    "verifyingAuth": "Se verifică autentificarea..."
+  },
+  "recurringGroup": {
+    "backToBookings": "Înapoi la comenzi",
+    "statusActive": "Activă",
+    "statusCancelled": "Anulată",
+    "statusPaused": "Pauză",
+    "recurrenceLabels": {
+      "WEEKLY": "Săptămânal",
+      "BIWEEKLY": "Bisăptămânal",
+      "MONTHLY": "Lunar"
+    },
+    "preferredCleaner": "Curățător preferat",
+    "company": "Companie",
+    "address": "Adresă",
+    "pricePerSession": "Preț per sesiune",
+    "progress": "Progres",
+    "completedOf": "{{completed}} / {{total}} finalizate",
+    "allAppointments": "Toate programările ({{count}})",
+    "paid": "Plătit",
+    "substitute": "(Înlocuitor)",
+    "pause": "Pauză",
+    "cancelSeries": "Anulează seria",
+    "resumeSeries": "Reia seria",
+    "cancelModal": {
+      "title": "Anulează seria recurentă",
+      "description": "Toate programările viitoare vor fi anulate. Programările deja finalizate nu sunt afectate.",
+      "reasonPlaceholder": "Motivul anulării (opțional)",
+      "cancel": "Renunță",
+      "confirm": "Confirmă anularea",
+      "cancelling": "Se anulează..."
+    },
+    "error": {
+      "loadFailed": "Nu am putut încărca seria recurentă.",
+      "backToBookings": "Înapoi la comenzi"
+    },
+    "verifyingAuth": "Se verifică autentificarea...",
+    "loading": "Se încarcă detaliile..."
+  },
+  "subscriptions": {
+    "title": "Abonamentele mele",
+    "subtitle": "Gestionează abonamentele tale recurente pentru servicii de curățenie.",
+    "recurrence": {
+      "WEEKLY": "Săptămânal",
+      "BIWEEKLY": "Bi-săptămânal",
+      "MONTHLY": "Lunar"
+    },
+    "status": {
+      "ACTIVE": "Activ",
+      "PAUSED": "În pauză",
+      "PAST_DUE": "Restantă",
+      "CANCELLED": "Anulat"
+    },
+    "perMonth": "RON/lună",
+    "perSession": "RON/ședință",
+    "nextAppointment": "Următoarea programare: {{date}}",
+    "sessions_one": "ședință",
+    "sessions_other": "ședințe",
+    "completedOf": "{{completed}} din {{total}} programări completate",
+    "period": "Perioada: {{start}} - {{end}}",
+    "error": {
+      "title": "Eroare la încărcarea abonamentelor",
+      "description": "Nu am putut încărca abonamentele tale. Te rugăm să încerci din nou.",
+      "retry": "Reîncearcă"
+    },
+    "empty": {
+      "title": "Niciun abonament activ",
+      "description": "Nu ai încă niciun abonament. Creează o rezervare recurentă pentru a beneficia de reduceri.",
+      "create": "Creează o rezervare"
+    }
+  },
+  "subscriptionDetail": {
+    "backToSubscriptions": "Înapoi la abonamente",
+    "recurrence": {
+      "WEEKLY": "Săptămânal",
+      "BIWEEKLY": "Bisăptămânal",
+      "MONTHLY": "Lunar"
+    },
+    "days": {
+      "0": "Duminică",
+      "1": "Luni",
+      "2": "Marți",
+      "3": "Miercuri",
+      "4": "Joi",
+      "5": "Vineri",
+      "6": "Sâmbătă"
+    },
+    "propertyTypes": {
+      "APARTMENT": "Apartament",
+      "HOUSE": "Casă",
+      "OFFICE": "Birou",
+      "STUDIO": "Garsonieră"
+    },
+    "status": {
+      "ACTIVE": "Activ",
+      "PAUSED": "În pauză",
+      "CANCELLED": "Anulat",
+      "PAST_DUE": "Plată restantă"
+    },
+    "pastDueBanner": {
+      "title": "Plata abonamentului a eșuat",
+      "description": "Ultima plată automată nu a putut fi procesată. Actualizează metoda de plată pentru a evita anularea abonamentului.",
+      "updatePayment": "Actualizează metoda de plată"
+    },
+    "actions": {
+      "pause": "Pauză",
+      "cancel": "Anulează",
+      "resume": "Reia",
+      "cancelledOn": "Anulat pe {{date}}",
+      "pastDue": "Plată restantă"
+    },
+    "cancellationReason": "Motiv anulare",
+    "pausedSince": "Abonamentul este în pauză din {{date}}",
+    "workerChangeSuccess": "Cererea ta de schimbare a fost trimisă. Vei fi contactat în curând.",
+    "workerChangePending": {
+      "title": "Cerere de schimbare lucrător în așteptare",
+      "description": "Echipa noastră te va contacta în scurt timp pentru a rezolva cererea ta.",
+      "reason": "Motiv: {{reason}}"
+    },
+    "pricing": {
+      "title": "Detalii preț",
+      "hourlyRate": "Tarif orar",
+      "estimatedDuration": "Durată estimată",
+      "originalPrice": "Preț per sesiune (original)",
+      "subscriptionDiscount": "Reducere abonament",
+      "pricePerSession": "Preț per sesiune",
+      "withDiscount": "(cu reducere)",
+      "sessionsPerMonth": "Sesiuni pe lună",
+      "monthlyTotal": "Total lunar"
+    },
+    "serviceDetails": {
+      "title": "Detalii serviciu",
+      "propertyType": "Tip proprietate",
+      "rooms": "Camere",
+      "bathrooms": "Băi",
+      "area": "Suprafață",
+      "pets": "Animale",
+      "hasPets": "Da, există animale de companie",
+      "specialInstructions": "Instrucțiuni speciale",
+      "rooms_one": "cameră",
+      "rooms_other": "camere",
+      "bathrooms_one": "baie",
+      "bathrooms_other": "băi",
+      "duration_one": "oră",
+      "duration_other": "ore"
+    },
+    "upcomingBookings": "Programări viitoare ({{count}})",
+    "bookingHistory": "Istoric programări ({{count}})",
+    "paid": "Plătit",
+    "currentPeriod": "Perioada curentă",
+    "periodStart": "Început",
+    "periodEnd": "Sfârșit",
+    "progress": {
+      "title": "Progres",
+      "completedBookings": "Programări finalizate"
+    },
+    "address": "Adresă",
+    "team": "Echipă",
+    "requestWorkerChange": "Solicită schimbare lucrător",
+    "extras": "Servicii suplimentare",
+    "info": {
+      "title": "Informații",
+      "createdOn": "Creat pe",
+      "serviceType": "Tip serviciu",
+      "recurrence": "Recurență",
+      "preferredDay": "Ziua preferată"
+    },
+    "cancelModal": {
+      "title": "Anulează abonamentul",
+      "description": "Ești sigur că vrei să anulezi acest abonament? Toate programările viitoare vor fi anulate. Programările deja finalizate nu sunt afectate.",
+      "reasonLabel": "Motiv anulare (opțional)",
+      "reasonPlaceholder": "Spune-ne de ce anulezi...",
+      "cancel": "Renunță",
+      "confirm": "Confirmă anularea"
+    },
+    "workerChangeModal": {
+      "title": "Solicită schimbare lucrător",
+      "description": "Descrie motivul pentru care dorești schimbarea lucrătorului. Echipa noastră va analiza cererea și te va contacta.",
+      "reasonLabel": "Motiv (opțional)",
+      "reasonPlaceholder": "De ce dorești schimbarea lucrătorului?",
+      "cancel": "Renunță",
+      "submit": "Trimite cererea"
+    },
+    "error": {
+      "loadFailed": "Nu am putut încărca detaliile abonamentului.",
+      "notFound": "Abonamentul nu a fost găsit.",
+      "workerChange": "A apărut o eroare. Te rugăm să încerci din nou."
+    },
+    "verifyingAuth": "Se verifică autentificarea..."
+  },
+  "addresses": {
+    "title": "Adresele mele",
+    "subtitle": "Gestionează adresele tale pentru rezervări rapide.",
+    "addAddress": "Adaugă adresă",
+    "form": {
+      "addTitle": "Adaugă adresă nouă",
+      "editTitle": "Editează adresa",
+      "labelField": "Etichetă (opțional)",
+      "labelPlaceholder": "Acasă, Birou, etc.",
+      "streetAddress": "Adresă stradă *",
+      "streetPlaceholder": "Caută adresa sau scrie manual...",
+      "city": "Oraș *",
+      "cityPlaceholder": "București",
+      "county": "Județ *",
+      "countyPlaceholder": "București",
+      "postalCode": "Cod poștal (opțional)",
+      "postalPlaceholder": "010101",
+      "floor": "Etaj (opțional)",
+      "floorPlaceholder": "2",
+      "apartment": "Apartament (opțional)",
+      "apartmentPlaceholder": "12A",
+      "setDefault": "Setează ca adresă implicită",
+      "coordinates": "Coordonate: {{lat}}, {{lng}}",
+      "saveChanges": "Salvează modificările",
+      "saveAddress": "Salvează adresa",
+      "cancel": "Anulează"
+    },
+    "validation": {
+      "required": "Adresa, orașul și județul sunt obligatorii."
+    },
+    "deleteConfirm": "Ștergi această adresă?",
+    "default": "Implicită",
+    "floor": "Etaj {{floor}}",
+    "apartment": "Ap. {{apt}}",
+    "setDefault": "Setează ca implicită",
+    "edit": "Editează",
+    "delete": "Șterge",
+    "loading": "Se încarcă adresele...",
+    "empty": {
+      "title": "Nu ai nicio adresă salvată",
+      "description": "Adaugă prima ta adresă pentru rezervări mai rapide.",
+      "addButton": "Adaugă adresă"
+    },
+    "error": {
+      "saveFailed": "Nu am putut salva adresa. Te rugăm să încerci din nou.",
+      "updateFailed": "Nu am putut actualiza adresa. Te rugăm să încerci din nou."
+    }
+  },
+  "payments": {
+    "title": "Metode de plată",
+    "subtitle": "Gestionează cardurile salvate pentru plăți rapide.",
+    "paymentHistory": "Istoric plăți",
+    "addCard": "Adaugă card",
+    "loading": "Se încarcă metodele de plată...",
+    "deleteConfirm": "Ștergi acest card?",
+    "default": "Implicit",
+    "setDefault": "Setează ca implicit",
+    "delete": "Șterge",
+    "cancel": "Anulează",
+    "empty": {
+      "title": "Nu ai niciun card salvat",
+      "description": "Adaugă un card pentru a plăti rezervările rapid și sigur.",
+      "addButton": "Adaugă card"
+    }
+  },
+  "paymentHistory": {
+    "title": "Istoric plăți",
+    "subtitle": "Toate plățile efectuate pentru rezervările tale.",
+    "loading": "Se încarcă istoricul plăților...",
+    "filter": {
+      "all": "Toate plățile",
+      "succeeded": "Reușită",
+      "pending": "În așteptare",
+      "failed": "Eșuată",
+      "refunded": "Rambursată"
+    },
+    "table": {
+      "date": "Data",
+      "reference": "Referință",
+      "amount": "Sumă (RON)",
+      "status": "Status"
+    },
+    "status": {
+      "SUCCEEDED": "Plătită",
+      "PENDING": "În așteptare",
+      "FAILED": "Eșuată",
+      "REFUNDED": "Rambursată"
+    },
+    "refunds": {
+      "title": "Cererile mele de rambursare",
+      "empty": "Nu aveți cereri de rambursare.",
+      "status": {
+        "REQUESTED": "Solicitată",
+        "APPROVED": "Aprobată",
+        "PROCESSED": "Finalizată",
+        "REJECTED": "Respinsă"
+      }
+    },
+    "pagination": {
+      "transaction_one": "tranzacție",
+      "transaction_other": "tranzacții"
+    },
+    "empty": {
+      "title": "Nicio plată înregistrată",
+      "description": "Istoricul plăților va apărea aici după prima ta rezervare plătită."
+    }
+  },
+  "invoices": {
+    "title": "Facturile mele",
+    "subtitle": "Descarcă facturile și gestionează datele de facturare.",
+    "billing": {
+      "title": "Profil de facturare",
+      "modify": "Modifică",
+      "configure": "Configurează",
+      "loading": "Se încarcă...",
+      "individual": "Persoană fizică (B2C)",
+      "company": "Persoană juridică (B2B)",
+      "vatPayer": "Plătitor TVA",
+      "noBilling": "Nu ai configurat încă un profil de facturare. Apasă pe \"Configurează\" pentru a începe.",
+      "form": {
+        "individualTab": "Persoană fizică (B2C)",
+        "companyTab": "Persoană juridică (B2B)",
+        "companyName": "Nume companie *",
+        "companyNamePlaceholder": "SC Exemplu SRL",
+        "cui": "CUI *",
+        "cuiPlaceholder": "RO12345678",
+        "regNumber": "Nr. Reg. Comerțului",
+        "regNumberPlaceholder": "J40/1234/2024",
+        "address": "Adresă sediu",
+        "addressPlaceholder": "Str. Exemplu nr. 1",
+        "city": "Oraș",
+        "cityPlaceholder": "București",
+        "county": "Județ",
+        "countyPlaceholder": "București",
+        "bank": "Bancă",
+        "bankPlaceholder": "ING Bank",
+        "iban": "IBAN",
+        "ibanPlaceholder": "RO12INGB...",
+        "vatPayer": "Plătitor de TVA",
+        "individualNote": "Facturile vor fi emise pe numele tău de persoană fizică, conform datelor din profilul contului tău.",
+        "save": "Salvează",
+        "cancel": "Anulează"
+      },
+      "error": "Nu am putut salva datele de facturare. Te rugăm să încerci din nou.",
+      "validationB2B": "Numele companiei și CUI-ul sunt obligatorii pentru facturare B2B."
+    },
+    "issuedInvoices": "Facturi emise",
+    "filter": {
+      "all": "Toate facturile",
+      "issued": "Emise",
+      "paid": "Plătite",
+      "cancelled": "Anulate",
+      "creditNote": "Notă credit"
+    },
+    "loading": "Se încarcă facturile...",
+    "table": {
+      "invoiceNumber": "Nr. factură",
+      "date": "Data",
+      "supplier": "Furnizor",
+      "amount": "Sumă (RON)",
+      "status": "Status",
+      "downloadPdf": "Descarcă PDF"
+    },
+    "status": {
+      "ISSUED": "Emisă",
+      "DRAFT": "Ciornă",
+      "SENT": "Trimisă",
+      "TRANSMITTED": "Transmisă e-Factură",
+      "CANCELLED": "Anulată",
+      "PAID": "Plătită",
+      "CREDIT_NOTE": "Notă de credit"
+    },
+    "detail": {
+      "loading": "Se încarcă detaliile...",
+      "supplier": "Furnizor",
+      "buyer": "Cumpărător",
+      "items": "Articole",
+      "itemDescription": "Descriere",
+      "itemQty": "Cant.",
+      "itemUnitPrice": "Preț unit.",
+      "itemTotal": "Total",
+      "subtotal": "Subtotal:",
+      "vat": "TVA ({{rate}}%):",
+      "total": "Total:",
+      "booking": "Rezervare: ",
+      "dueDate": "Scadență: ",
+      "downloadPdf": "Descarcă PDF",
+      "viewBooking": "Vezi rezervarea"
+    },
+    "pagination": {
+      "invoice_one": "factură",
+      "invoice_other": "facturi"
+    },
+    "empty": {
+      "title": "Nicio factură emisă",
+      "description": "Facturile vor fi generate automat după finalizarea și plata rezervărilor."
+    }
+  },
+  "chat": {
+    "title": "Contact Suport",
+    "subtitle": "Suntem aici să te ajutăm",
+    "chatTitle": "Chat cu echipa Go2Fix",
+    "chatSubtitle": "via WhatsApp",
+    "chatDescription": "Suportul nostru este disponibil direct pe WhatsApp. Trimite-ne un mesaj și îți vom răspunde în cel mai scurt timp.",
+    "openWhatsApp": "Deschide WhatsApp",
+    "supportHours": "Program suport",
+    "supportHoursValue": "Luni–Vineri\n9:00–18:00",
+    "responseTime": "Timp răspuns",
+    "responseTimeValue": "De obicei\nsub 2 ore",
+    "confidential": "Confidențial",
+    "confidentialDesc": "Datele tale sunt\nprotejate"
+  },
+  "support": {
+    "title": "Ajutor & Suport",
+    "subtitle": "Suntem aici să te ajutăm",
+    "whatsapp": {
+      "title": "WhatsApp",
+      "description": "Răspundem în câteva minute",
+      "button": "Scrie-ne pe WhatsApp"
+    },
+    "email": {
+      "title": "Email",
+      "description": "Răspundem în maxim 24 de ore"
+    },
+    "phone": {
+      "label": "Telefon: {{phone}}",
+      "hours": "Luni - Vineri, 09:00 - 18:00"
+    },
+    "faq": {
+      "title": "Întrebări frecvente",
+      "items": [
+        {
+          "q": "Cum pot reprograma o comandă?",
+          "a": "Accesează \"Comenzile mele\" din meniul lateral, selectează comanda dorită și apasă butonul \"Reprogramează\". Poți reprograma gratuit cu cel puțin 24 de ore înainte."
+        },
+        {
+          "q": "Cum pot anula un abonament?",
+          "a": "Din secțiunea \"Abonamente\", selectează abonamentul și apasă \"Anulează\". Poți pune abonamentul pe pauză dacă dorești să îl reactivezi mai târziu."
+        },
+        {
+          "q": "Ce fac dacă nu sunt mulțumit de serviciu?",
+          "a": "Contactează-ne prin WhatsApp sau email în termen de 24 de ore de la finalizarea serviciului. Vom analiza situația și vom oferi o soluție adecvată."
+        },
+        {
+          "q": "Cum pot schimba metoda de plată?",
+          "a": "Accesează \"Plăți\" din meniul lateral pentru a adăuga sau șterge carduri. Metoda de plată poate fi schimbată și la momentul rezervării."
+        }
+      ]
+    }
+  },
+  "profile": {
+    "title": "Profilul meu",
+    "subtitle": "Gestionează informațiile contului tău.",
+    "avatar": {
+      "title": "Poză de profil",
+      "description": "Încarcă o imagine pentru profilul tău. Recomandat: 400x400 pixeli.",
+      "formats": "Formate acceptate: JPG, PNG, WEBP. Mărime maximă: 10MB"
+    },
+    "personalInfo": {
+      "title": "Informații personale",
+      "fullName": "Nume complet",
+      "fullNamePlaceholder": "Numele tău complet",
+      "phone": "Număr de telefon *",
+      "phonePlaceholder": "+40 7XX XXX XXX",
+      "phoneVerified": "Verificat via WhatsApp",
+      "phoneUnverified": "Neverificat",
+      "verifyNow": "Verifică acum",
+      "hideVerify": "Ascunde",
+      "preferredLanguage": "Limba preferată",
+      "saveChanges": "Salvează modificările",
+      "savedSuccess": "Salvat cu succes"
+    },
+    "schema": {
+      "nameMin": "Numele trebuie să aibă cel puțin 2 caractere",
+      "phoneRequired": "Numărul de telefon este obligatoriu",
+      "phoneFormat": "Formatul trebuie să fie +40..."
+    },
+    "referral": {
+      "title": "Codul tău de recomandare",
+      "subtitle": "Recomandă Go2Fix și obține reduceri la comenzi",
+      "progressTitle": "Progres ciclu curent:",
+      "bookings": "{{completedCount}}/{{count}} rezervări",
+      "copy": "Copiază",
+      "copied": "Copiat!",
+      "usedCode": "persoane au folosit codul tău",
+      "noUsersYet": "Nicio persoană nu a folosit codul tău încă",
+      "needMore": "Ai nevoie de {{required}} rezervări finalizate pentru a câștiga o reducere.",
+      "availableDiscounts": "Reduceri disponibile",
+      "discount_one": "{{count}} reducere disponibilă",
+      "discount_other": "{{count}} reduceri disponibile",
+      "discountNote": "Taxa platformei va fi eliminată — compania primește plata integrală.",
+      "noDiscountsYet": "Când acumulezi {{required}} rezervări finalizate prin codul tău, câștigi o reducere — taxa platformei va fi eliminată din următoarea ta comandă.",
+      "noCode": "Finalizează prima rezervare pentru a obține codul tău de recomandare."
+    },
+    "deleteAccount": {
+      "title": "Șterge contul",
+      "subtitle": "Acțiune permanentă și ireversibilă.",
+      "description": "Odată șters, contul tău nu va mai putea fi recuperat. Toate datele personale vor fi șterse definitiv.",
+      "deleteButton": "Șterge contul meu",
+      "confirmPrompt": "Scrie STERGE pentru a confirma ștergerea contului:",
+      "confirmPlaceholder": "Scrie STERGE aici",
+      "cancel": "Anulează",
+      "confirmButton": "Confirmă ștergerea"
+    },
+    "verifyingAuth": "Se verifică autentificarea..."
+  }
+}

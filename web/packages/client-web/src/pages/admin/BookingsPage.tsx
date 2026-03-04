@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@apollo/client';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Search, Repeat, Calendar, User, Building2, Download } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Select from '@/components/ui/Select';
@@ -15,16 +16,6 @@ const PAGE_SIZE = 20;
 
 type StatusFilter = 'ALL' | 'PENDING' | 'ASSIGNED' | 'CONFIRMED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
 
-const statusOptions = [
-  { value: 'ALL', label: 'Toate statusurile' },
-  { value: 'PENDING', label: 'In asteptare' },
-  { value: 'ASSIGNED', label: 'Asignate' },
-  { value: 'CONFIRMED', label: 'Confirmate' },
-  { value: 'IN_PROGRESS', label: 'In desfasurare' },
-  { value: 'COMPLETED', label: 'Finalizate' },
-  { value: 'CANCELLED', label: 'Anulate' },
-];
-
 const statusDotColor: Record<string, string> = {
   PENDING: 'bg-amber-400',
   ASSIGNED: 'bg-blue-400',
@@ -35,18 +26,6 @@ const statusDotColor: Record<string, string> = {
   CANCELLED_BY_CLIENT: 'bg-red-400',
   CANCELLED_BY_COMPANY: 'bg-red-400',
   CANCELLED_BY_ADMIN: 'bg-red-400',
-};
-
-const statusLabel: Record<string, string> = {
-  PENDING: 'In asteptare',
-  ASSIGNED: 'Asignat',
-  CONFIRMED: 'Confirmat',
-  IN_PROGRESS: 'In desfasurare',
-  COMPLETED: 'Finalizat',
-  CANCELLED: 'Anulat',
-  CANCELLED_BY_CLIENT: 'Anulat de client',
-  CANCELLED_BY_COMPANY: 'Anulat de companie',
-  CANCELLED_BY_ADMIN: 'Anulat de admin',
 };
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -73,6 +52,18 @@ interface BookingEdge {
 
 export default function BookingsPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation(['dashboard', 'admin']);
+
+  const statusOptions = [
+    { value: 'ALL', label: t('admin:bookings.allStatuses') },
+    { value: 'PENDING', label: t('admin:bookings.statusLabels.PENDING') },
+    { value: 'ASSIGNED', label: t('admin:bookings.statusLabels.ASSIGNED') },
+    { value: 'CONFIRMED', label: t('admin:bookings.statusLabels.CONFIRMED') },
+    { value: 'IN_PROGRESS', label: t('admin:bookings.statusLabels.IN_PROGRESS') },
+    { value: 'COMPLETED', label: t('admin:bookings.statusLabels.COMPLETED') },
+    { value: 'CANCELLED', label: t('admin:bookings.statusLabels.CANCELLED') },
+  ];
+
   const [filter, setFilter] = useState<StatusFilter>('ALL');
   const [searchInput, setSearchInput] = useState('');
   const [page, setPage] = useState(0);
@@ -83,13 +74,11 @@ export default function BookingsPage() {
 
   const debouncedQuery = useDebounce(searchInput, 300);
 
-  // Reset page when filter changes
   const handleFilterChange = (newFilter: StatusFilter) => {
     setFilter(newFilter);
     setPage(0);
   };
 
-  // Filter dropdown data
   const { data: servicesData } = useQuery(ALL_SERVICES);
   const { data: companiesFilterData } = useQuery(SEARCH_COMPANIES, {
     variables: { limit: 200 },
@@ -111,34 +100,37 @@ export default function BookingsPage() {
   const bookings: BookingEdge[] = data?.searchBookings?.edges ?? [];
   const totalCount: number = data?.searchBookings?.totalCount ?? 0;
 
+  const getStatusLabel = (status: string): string =>
+    t(`admin:bookings.statusLabels.${status}`, { defaultValue: status });
+
   return (
     <div>
       {/* Header */}
       <div className="mb-6 flex flex-wrap items-end gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Comenzi</h1>
-          <p className="text-gray-500 mt-1">Gestioneaza toate comenzile de pe platforma.</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('admin:bookings.title')}</h1>
+          <p className="text-gray-500 mt-1">{t('admin:bookings.subtitle')}</p>
         </div>
         <div className="flex-1" />
         <button
           onClick={() => {
             const rows = (data?.searchBookings?.edges ?? []).map((b: BookingEdge) => ({
-              'Cod': b.referenceCode,
-              'Serviciu': b.serviceName,
-              'Data': b.scheduledDate,
-              'Ora': b.scheduledStartTime,
-              'Client': b.client?.fullName ?? '',
-              'Companie': b.company?.companyName ?? '',
-              'Pret (RON)': (b.estimatedTotal / 100).toFixed(2),
-              'Status': statusLabel[b.status] ?? b.status,
-              'Plata': b.paymentStatus,
+              [t('admin:bookings.csvColumns.code')]: b.referenceCode,
+              [t('admin:bookings.csvColumns.service')]: b.serviceName,
+              [t('admin:bookings.csvColumns.date')]: b.scheduledDate,
+              [t('admin:bookings.csvColumns.time')]: b.scheduledStartTime,
+              [t('admin:bookings.csvColumns.client')]: b.client?.fullName ?? '',
+              [t('admin:bookings.csvColumns.company')]: b.company?.companyName ?? '',
+              [t('admin:bookings.csvColumns.price')]: (b.estimatedTotal / 100).toFixed(2),
+              [t('admin:bookings.csvColumns.status')]: getStatusLabel(b.status),
+              [t('admin:bookings.csvColumns.payment')]: b.paymentStatus,
             }));
             exportToCSV(rows, `comenzi-${new Date().toISOString().slice(0, 10)}.csv`);
           }}
           className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:border-gray-300 hover:text-gray-900 transition-colors"
         >
           <Download className="h-4 w-4" />
-          Exporta CSV
+          {t('admin:bookings.exportCsv')}
         </button>
       </div>
 
@@ -153,7 +145,7 @@ export default function BookingsPage() {
               setSearchInput(e.target.value);
               setPage(0);
             }}
-            placeholder="Cauta dupa cod referinta, client, companie..."
+            placeholder={t('admin:bookings.searchPlaceholder')}
             className="w-full rounded-xl border border-gray-300 bg-white pl-10 pr-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
           />
         </div>
@@ -180,7 +172,7 @@ export default function BookingsPage() {
         />
         <Select
           options={[
-            { value: '', label: 'Toate companiile' },
+            { value: '', label: t('admin:bookings.allCompanies') },
             ...(companiesFilterData?.searchCompanies?.edges ?? []).map(
               (c: { id: string; companyName: string }) => ({
                 value: c.id,
@@ -194,7 +186,7 @@ export default function BookingsPage() {
         />
         <Select
           options={[
-            { value: '', label: 'Toate serviciile' },
+            { value: '', label: t('admin:bookings.allServices') },
             ...(servicesData?.allServices ?? []).map(
               (s: { serviceType: string; nameRo: string }) => ({
                 value: s.serviceType,
@@ -217,7 +209,7 @@ export default function BookingsPage() {
             }}
             className="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 border border-gray-200 rounded-xl hover:border-gray-300 transition-colors"
           >
-            Reseteaza filtre
+            {t('admin:bookings.resetFilters')}
           </button>
         )}
       </div>
@@ -238,7 +230,7 @@ export default function BookingsPage() {
             ))}
           </div>
         ) : bookings.length === 0 ? (
-          <p className="text-center text-gray-400 py-16">Nu exista comenzi.</p>
+          <p className="text-center text-gray-400 py-16">{t('admin:bookings.empty')}</p>
         ) : (
           <div className="divide-y divide-gray-100">
             {bookings.map((booking) => (
@@ -247,35 +239,28 @@ export default function BookingsPage() {
                 onClick={() => navigate(`/admin/comenzi/${booking.id}`)}
                 className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors"
               >
-                {/* Status dot */}
                 <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${statusDotColor[booking.status] ?? 'bg-gray-300'}`} />
 
-                {/* Reference code */}
                 <span className="text-sm font-semibold text-gray-900 w-20 shrink-0">
                   {booking.referenceCode}
                 </span>
 
-                {/* Recurring icon */}
                 {booking.recurringGroupId && (
                   <Repeat className="h-3.5 w-3.5 text-blue-400 shrink-0" />
                 )}
 
-                {/* Category badge */}
                 {booking.category && (
                   <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-medium shrink-0">
                     {booking.category.icon} {booking.category.nameRo}
                   </span>
                 )}
 
-                {/* Service name — main title */}
                 <span className="text-sm text-gray-700 truncate min-w-0">
                   {booking.serviceName}
                 </span>
 
-                {/* Spacer */}
                 <span className="flex-1" />
 
-                {/* Metadata — desktop */}
                 <span className="hidden md:flex items-center gap-1 text-xs text-gray-400 shrink-0">
                   <User className="h-3 w-3" />
                   <span className="max-w-[120px] truncate">{booking.client?.fullName || '—'}</span>
@@ -290,14 +275,12 @@ export default function BookingsPage() {
                   {booking.scheduledStartTime ? `, ${booking.scheduledStartTime}` : ''}
                 </span>
 
-                {/* Price */}
                 <span className="text-sm font-medium text-gray-900 shrink-0 w-20 text-right">
                   {formatCurrency(booking.estimatedTotal)}
                 </span>
 
-                {/* Status label */}
                 <span className="text-xs text-gray-500 shrink-0 w-24 text-right hidden sm:block">
-                  {statusLabel[booking.status] ?? booking.status}
+                  {getStatusLabel(booking.status)}
                 </span>
               </div>
             ))}
@@ -312,7 +295,7 @@ export default function BookingsPage() {
           totalCount={totalCount}
           pageSize={PAGE_SIZE}
           onPageChange={setPage}
-          noun="comenzi"
+          noun={t('admin:bookings.noun')}
         />
       )}
     </div>

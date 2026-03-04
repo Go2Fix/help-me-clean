@@ -125,7 +125,7 @@ Alegerea unei firme de curățenie în București nu trebuie să fie o loterie. 
       'Ghid complet pentru curățenia apartamentului: ordinea corectă, produse profesionale, durata estimată și frecvența recomandată.',
     content: `## De ce ordinea contează în curățenia profesională
 
-Cel mai comun greșeală pe care o fac oamenii când curăță singuri este să înceapă aleator — azi baia, mâine bucătăria, poimâine aspiratul. Rezultatul: murdăria dintr-o zonă migrează în alta, iar unele suprafețe sunt curățate de două ori inutil. Profesioniștii urmează întotdeauna un protocol: de sus în jos, de la uscat la umed, de la mai puțin murdar la mai murdar.
+Cea mai comună greșeală pe care o fac oamenii când curăță singuri este să înceapă aleator — azi baia, mâine bucătăria, poimâine aspiratul. Rezultatul: murdăria dintr-o zonă migrează în alta, iar unele suprafețe sunt curățate de două ori inutil. Profesioniștii urmează întotdeauna un protocol: de sus în jos, de la uscat la umed, de la mai puțin murdar la mai murdar.
 
 ## 1. Pregătirea — 10 minute bine investite
 
@@ -209,7 +209,7 @@ Mulți antreprenori și manageri tratează curățenia biroului ca pe un cost op
 
 Un birou cu 20 de angajați este, din punct de vedere microbiologic, unul dintre cele mai contaminate spații de interior. Tastatura unui calculator conține în medie de 400 de ori mai mulți germeni decât un capac de toaletă. Clanțele, aparatul de cafea, butoanele liftului — toate sunt vectori de transmitere a virozelor.
 
-- **Dezinfecția regulară** a suprafețelor de contact redus cu până la 80% transmiterea virozelor sezoniere
+- **Dezinfecția regulară** a suprafețelor de contact reduce cu până la 80% transmiterea virozelor sezoniere
 - **Curățarea sistemelor de aer condiționat** — filtrele murdare recirculează alergeni, praf și spori de mucegai; curățarea trimestrială reduce simptomele alergice la angajați
 - **Igiena grupurilor sanitare** — o baie murdară este prima sursă de îmbolnăviri gastro-intestinale într-un colectiv
 
@@ -217,7 +217,7 @@ Reducerea absenteismului cu o zi pe angajat pe an înseamnă, la un echipaj de 2
 
 ## 2. Imaginea firmei — prima impresie contează
 
-Clienții, partenerii de afaceri și candidații la angajare judecă profesionalismul unei companii și după starea biroului. Un spațiu curat, bine mirosit și ordonat transmite un mesaj implicit: *această echipă îngrijește detaliile*. Un birou plin de pahare murdare pe birouri, coșuri de gunoi negolit și geamuri cu amprente digitale trimite mesajul opus.
+Clienții, partenerii de afaceri și candidații la angajare judecă profesionalismul unei companii și după starea biroului. Un spațiu curat, bine mirosit și ordonat transmite un mesaj implicit: *această echipă îngrijește detaliile*. Un birou plin de pahare murdare pe birouri, coșuri de gunoi negolite și geamuri cu amprente digitale trimite mesajul opus.
 
 - Candidații de top resping ofertele de angajare și din cauza mediului fizic de lucru
 - Clienții din domeniile financiar, juridic și medical au așteptări ridicate de igienă — un birou murdar poate bloca o colaborare
@@ -303,7 +303,7 @@ O firmă profesionistă face o inspecție vizuală (sau cere fotografii) înaint
 
 ### 3. Frecvența serviciului
 
-Clienții care contractează curățenie periodică (săptămânală sau bi-lunară) beneficiază de reduceri de 10–20% față de prețul per vizită ocazional. Logica e simplă: un apartament curățat regulat rămâne mai ușor de întreținut.
+Clienții care contractează curățenie periodică (săptămânală sau bilunară) beneficiază de reduceri de 10–20% față de prețul per vizită ocazional. Logica e simplă: un apartament curățat regulat rămâne mai ușor de întreținut.
 
 ### 4. Echipamentele și produsele
 
@@ -318,7 +318,7 @@ Deplasarea în zone periferice sau apartamentele la etaje înalte fără lift po
 O ofertă de 80–100 lei pentru curățenia unui apartament cu 3 camere ar trebui să ridice imediat un semnal de alarmă. Aceste prețuri sunt posibile doar în câteva scenarii:
 
 - Munca la negru (nicio asigurare, niciun contract, nicio răspundere dacă ceva e deteriorat)
-- Produse de calitate slabă sau diluate excesiv (rezultate proaste, potențial daunatoare suprafețelor)
+- Produse de calitate slabă sau diluate excesiv (rezultate proaste, potențial dăunătoare suprafețelor)
 - Timp insuficient alocat (curățenie superficială care bifează vizual câteva suprafețe)
 
 > **Regula de aur:** Nu plăti cel mai mic preț din piață dacă lași accesul la locuința ta. Plătești și pentru încredere, nu doar pentru ore de muncă.
@@ -331,7 +331,7 @@ Când contactezi o firmă, oferă-i următoarele informații pentru un preț pre
 2. Tipul de curățenie dorit (standard, generală, post-mutare)
 3. Data ultimei curățenii profesionale
 4. Dacă există animale de companie (influențează aspiratul și produsele)
-5. Zone cu atenție specială (oven, geamuri, baie cu calcar sever)
+5. Zone cu atenție specială (cuptor, geamuri, baie cu calcar sever)
 
 Un deviz serios vine în scris, detaliază ce e inclus și ce nu, și nu se modifică semnificativ față de prețul convenit inițial.
 
@@ -357,7 +357,7 @@ Pe [Go2Fix](/lista-asteptare), toate firmele afișează prețurile pe tipuri de 
       'Ghid complet de curățenie la predarea apartamentului. Listă de verificare completă și sfaturi pentru recuperarea depozitului de garanție.',
     content: `## De ce curățenia la mutare e mai importantă decât crezi
 
-Depozitul de garanție — echivalentul a 1–3 chirii lunare — este adesea cea mai mare sumă de bani pe care o chiriași o lasă la proprietar. Cel mai frecvent motiv pentru care proprietarii rețin depozitul (sau o parte din el) nu este uzura normală a apartamentului, ci **curățenia insatisfăcătoare la predare**.
+Depozitul de garanție — echivalentul a 1–3 chirii lunare — este adesea cea mai mare sumă de bani pe care un chiriaș o lasă la proprietar. Cel mai frecvent motiv pentru care proprietarii rețin depozitul (sau o parte din el) nu este uzura normală a apartamentului, ci **curățenia insatisfăcătoare la predare**.
 
 Un apartament predat murdar sau cu zone ignorate poate justifica legal reținerea depozitului. Un apartament predat impecabil, cu dovadă fotografică, îți dă dreptul legal și moral să îți recuperezi banii integral.
 
@@ -437,7 +437,7 @@ Dacă chiria lunară e 1.500 lei și depozitul e 3.000 lei, o curățenie profes
     slug: '5-greseli-curatenie-acasa',
     lang: 'ro',
     linkedSlug: 'five-cleaning-mistakes-everyone-makes',
-    title: '5 greșeli pe care le faci când curăț singur apartamentul',
+    title: '5 greșeli pe care le faci când curăți singur apartamentul',
     excerpt:
       'De la ordinea greșită a camerelor la excesul de detergent — 5 greșeli comune de curățenie care îți dublează munca fără rezultate mai bune.',
     category: 'sfaturi',
@@ -447,7 +447,7 @@ Dacă chiria lunară e 1.500 lei și depozitul e 3.000 lei, o curățenie profes
     readTimeMinutes: 4,
     metaTitle: '5 Greșeli de Curățenie pe Care le Faci Acasă | Go2Fix',
     metaDescription:
-      'Descoperi cele 5 greșeli clasice de curățenie care îți dublează munca. Sfaturi practice de la profesioniști pentru rezultate mai bune în mai puțin timp.',
+      'Descoperă cele 5 greșeli clasice de curățenie care îți dublează munca. Sfaturi practice de la profesioniști pentru rezultate mai bune în mai puțin timp.',
     content: `## De ce curăță mulți oameni mult și obțin puțin
 
 Curățenia nu e rocket science, dar are o logică internă pe care profesioniștii o urmează instinctiv și pe care majoritatea oamenilor o ignoră. Rezultatul: ore de muncă pentru un efect vizual mediocru, suprafețe care se murdăresc rapid și epuizare nejustificată. Iată cele 5 greșeli pe care le face aproape oricine curăță singur.
@@ -589,7 +589,7 @@ Prețurile variază în funcție de tipul renovării (zugravit vs. renovare comp
 
 ## De ce merită o firmă specializată
 
-O renovare costă mii sau zeci de mii de lei. O curățenie post-renovare nefăcută corect poate lăsa reziduri de mortar pe gresia nouă, zgarieturi pe parchetul proaspăt pus sau pete de var pe vopseaua delicată. Prețul unei firme specializate e neglijabil față de costul reparării daunelor.
+O renovare costă mii sau zeci de mii de lei. O curățenie post-renovare nefăcută corect poate lăsa reziduuri de mortar pe gresia nouă, zgârieturi pe parchetul proaspăt pus sau pete de var pe vopseaua delicată. Prețul unei firme specializate e neglijabil față de costul reparării daunelor.
 
 [Go2Fix](/lista-asteptare) lucrează cu firme care au echipamente industriale și experiență specifică în curățenie post-renovare. Înscrie-te pentru a accesa serviciul imediat ce ne lansăm.
 `,
@@ -1244,6 +1244,383 @@ The total cost of a complete reset for a 1-bedroom apartment runs between 600 an
 [Go2Fix](/en/waitlist) is launching with deep cleaning and seasonal cleaning services in Bucharest and other Romanian cities. Join the waitlist and you'll be among the first to get access — plus our early-launch offer for spring cleaning.
 `,
   },
+
+  // ─── BUCHAREST CITY GUIDE ─────────────────────────────────────────────────
+
+  {
+    slug: 'ghid-curatenie-bucuresti-pe-sectoare',
+    lang: 'ro',
+    linkedSlug: 'bucharest-cleaning-guide-by-district',
+    title: 'Curățenie în București: Ghid Complet pe Sectoare și Cartiere',
+    excerpt:
+      'De la penthouse-urile din Floreasca la blocurile din Militari — cum diferă curățenia profesională în funcție de sectorul în care locuiești. Prețuri, particularități și ce să ceri firmei.',
+    category: 'ghid-orase',
+    tags: [
+      'curatenie bucuresti',
+      'ghid curatenie pe sectoare',
+      'curatenie sector 1',
+      'curatenie sector 6',
+      'firma curatenie cartier bucuresti',
+    ],
+    author: 'Echipa Go2Fix',
+    publishedAt: '2026-03-04',
+    readTimeMinutes: 9,
+    metaTitle: 'Curățenie în București pe Sectoare 2026: Ghid Complet | Go2Fix',
+    metaDescription:
+      'Ghid complet de curățenie profesională în București, pe sectoare. Prețuri și provocări în Floreasca, Titan, Militari, Berceni, Cotroceni și alte cartiere.',
+    content: `## Bucureștiul nu este un oraș omogen — și nici curățenia lui nu este
+
+Capitala României are o diversitate arhitecturală unică în Europa: alături de blocuri comuniste cu zece etaje și scări înguste, găsești vile interbelice pe Calea Dorobanților, turnuri de sticlă în Floreasca și Pipera, și apartamente în ansambluri rezidențiale noi în Berceni sau Militari Est. Fiecare tip de locuință vine cu nevoi de curățenie diferite — și cu provocări pe care o firmă care nu cunoaște zona le poate subestima.
+
+Acest ghid parcurge toate cele șase sectoare ale Bucureștiului, explică ce tipuri de locuințe predomină, ce servicii de curățenie se solicită cel mai frecvent și la ce prețuri te poți aștepta în 2026.
+
+---
+
+## Sector 1 — Zona de Nord: Floreasca, Dorobanți, Aviației, Băneasa
+
+Sectorul 1 reunește cel mai scump real estate din București: vile interbelice renovate pe Calea Dorobanților și Floreasca, apartamente de lux în turnuri noi (One Floreasca, Belvedere Residences), și ansambluri rezidențiale cu piscine și spații comune în Băneasa și Pipera.
+
+**Tipuri de locuință predominante:**
+- Vile cu suprafețe de 200–800 m², adesea cu etaj și pivniță
+- Apartamente de 3–5 camere în blocuri noi (2015–2026)
+- Penthouse-uri și apartamente de lux cu terase și finisaje premium
+
+**Ce solicită locatarii din Sector 1:**
+
+Serviciile de curățenie periodică (săptămânală sau de două ori pe lună) sunt norma pentru gospodăriile cu venituri ridicate sau familii cu copii mici. Cerințele de calitate sunt mai ridicate: aspiratoare cu filtre HEPA, produse ecologice certificate, personal cu experiență demonstrată și continuitate — adică aceeași echipă la fiecare vizită.
+
+Vilele solicită adesea curățenie generală extinsă (exterior, terasă, garaj) și, sezonier, curățenie pre-eveniment sau post-grădinarit.
+
+**Prețuri orientative:**
+
+| Tip locuință | Serviciu periodic | Curățenie generală |
+|---|---|---|
+| Apartament 3 camere (80–100 m²) | 300–450 RON | 450–600 RON |
+| Vilă 300 m² | — | 700–1.200 RON |
+| Pre-eveniment cu personal dedicat | — | 900–1.500 RON |
+
+---
+
+## Sector 2 — Zona de Est: Iancului, Colentina, Pantelimon
+
+Sectorul 2 este unul dintre cele mai populate și diverse sectoare ale capitalei. Colentina și Pantelimon au blocuri comuniste mari cu apartamente de 2–4 camere, în timp ce zona Iancului și Tei a cunoscut o renovare progresivă. Barbu Văcărescu și Floreasca Est sunt acum zone de birouri și apartamente noi de rang mediu-superior.
+
+**Tipuri de locuință predominante:**
+- Blocuri comuniste (8–10 etaje) cu apartamente de 2–3 camere
+- Ansambluri rezidențiale noi în zona Barbu Văcărescu și Colentina Nord
+- Câteva case și vile în cartierele mai vechi (Tei, Fundeni)
+
+**Ce solicită locatarii din Sector 2:**
+
+Curățenia ocazională (generală, de sărbători, post-petrecere) este mai frecventă decât abonamentele periodice. Blocurile comuniste au adesea probleme specifice: mucegai în baie din cauza ventilației deficitare, pete de calcar dur pe obiecte sanitare vechi, și covoare sau parchet uzat care necesită atenție specială.
+
+**Prețuri orientative:**
+
+| Tip locuință | Curățenie generală |
+|---|---|
+| Garsonieră / apartament 1 cameră (25–40 m²) | 150–230 RON |
+| Apartament 2 camere (50–65 m²) | 220–320 RON |
+| Apartament 3 camere (70–90 m²) | 280–400 RON |
+
+---
+
+## Sector 3 — Cel Mai Mare Sector: Titan, Dristor, IOR, Balta Albă
+
+Sectorul 3 este cel mai populat din București și include unele dintre cele mai dense zone rezidențiale: Titan, Balta Albă, Dristor, Vitan. Predomină blocurile de 4–10 etaje construite în perioada 1960–1990, cu apartamente de 2–3 camere.
+
+**Tipuri de locuință predominante:**
+- Blocuri comuniste standard (4–10 etaje), cel mai frecvent tip din București
+- Apartamente de 2 și 3 camere cu suprafețe de 45–75 m²
+- Câteva ansambluri rezidențiale noi în Dristor și Vitan
+
+**Provocări specifice:**
+
+Locuințele vechi din Sector 3 prezintă frecvent: ferestre cu rame vechi care acumulează praf și rugină, gresie și faianță cu rosturi înnegrite greu de recuperat, aragazuri care necesită degresare profundă, și holuri înguste care îngreunează accesul echipamentelor mari.
+
+Un aspect practic: scările blocurilor comuniste au lifturi mici sau inexistente în blocurile mai scunde — firmele trebuie să transporte echipamentele pe scări, ceea ce poate adăuga timp facturabil.
+
+**Prețuri orientative:**
+
+| Tip locuință | Curățenie generală |
+|---|---|
+| Apartament 2 camere | 200–300 RON |
+| Apartament 3 camere | 260–380 RON |
+| Curățenie generală cu geamuri interioare | 350–500 RON |
+
+---
+
+## Sector 4 — Berceni, Giurgiului, Văcărești
+
+Sectorul 4 are o identitate rezidențială distinctă: Berceni este o zonă de blocuri dense cu una dintre cele mai mari densități de populație din capitală, în timp ce Văcărești și Giurgiului includeau până recent zone de case mici și semifabricate. Piața curățeniei profesionale este în plină creștere în noile ansambluri rezidențiale din Berceni Nord, unde profilul demografic s-a schimbat — familii tinere, angajați IT, expați.
+
+**Tipuri de locuință predominante:**
+- Blocuri comuniste (preponderent 4 etaje în Berceni vechi)
+- Ansambluri rezidențiale noi în Berceni Nord și Metalurgiei
+- Case și vile în zonele mai liniștite (Văcărești, Giurgiului)
+
+**Prețuri orientative:**
+
+| Tip locuință | Curățenie generală |
+|---|---|
+| Apartament 2 camere în bloc vechi | 190–270 RON |
+| Apartament 3 camere în ansamblu nou | 280–390 RON |
+
+---
+
+## Sector 5 — Rahova, Ferentari, Cotroceni
+
+Sectorul 5 este cel mai neomogen sector din București: cuprinde atât Cotroceni — unul dintre cele mai căutate cartiere, cu case interbelice și vile renovate — cât și Rahova și Ferentari, zone cu un fond locativ mai vechi.
+
+**Particularitate Cotroceni:**
+
+Vilele din Cotroceni ridică provocări specifice: parchet de esență tare (stejar, cireș) care necesită produse specializate, tavan înalt cu stucaturi care prind praf, și grădini cu suprafețe exterioare de curățat. Mulți proprietari caută continuitate — aceeași echipă la fiecare vizită — și discreție.
+
+**Prețuri orientative:**
+
+| Tip locuință | Curățenie generală |
+|---|---|
+| Apartament 2–3 camere în Rahova | 180–280 RON |
+| Vilă Cotroceni 200 m² | 600–1.000 RON |
+
+---
+
+## Sector 6 — Militari, Drumul Taberei, Crângași
+
+Sectorul 6 este cunoscut pentru densitatea sa — Militari și Drumul Taberei sunt două dintre cele mai mari cartiere de blocuri din țară. Construite masiv în deceniile șapte și opt, blocurile sunt acum în vârsta a doua, cu probleme specifice de uzură. Piața curățeniei profesionale este în creștere rapidă în această zonă.
+
+**Tipuri de locuință predominante:**
+- Blocuri de 8–10 etaje, apartamente de 2–4 camere
+- Câteva vile și case în zona Crângași și Roșu
+- Ansambluri rezidențiale noi în Militari Residence și Drumul Taberei Est
+
+**Provocări specifice:**
+
+Blocurile vechi din Militari și Drumul Taberei au adesea: ferestre cu rame de aluminiu cu depuneri de praf negru (poluare rutieră de pe Bd. Iuliu Maniu), pardoseli cu straturi multiple de lac sau linoleum care necesită tratament specific, și băi cu instalații vechi de robinete ce acumulează calcar masiv.
+
+**Prețuri orientative:**
+
+| Tip locuință | Curățenie generală |
+|---|---|
+| Garsonieră | 140–200 RON |
+| Apartament 2 camere | 190–280 RON |
+| Apartament 3 camere | 260–370 RON |
+
+---
+
+## Probleme comune în orice apartament din București
+
+Indiferent de sector, locuințele din București împărtășesc câteva caracteristici care influențează modul de curățenie:
+
+### 1. Praful negru de pe geamuri
+
+Bucureștiul are unul dintre cele mai ridicate niveluri de poluare cu particule PM2.5 și PM10 din Europa. Rezultatul vizibil: un strat de praf negros care se depune pe pervazurile geamurilor și pe suprafețele orizontale mult mai rapid decât în orașele vestice. Curățenia geamurilor interioare și a pervazurilor necesită frecvență mai mare față de media europeană.
+
+### 2. Calcarul dur din apa bucureșteană
+
+Apa din rețeaua Bucureștiului are un grad de duritate ridicat — peste 20 de grade germane în unele zone. Acest lucru duce la depuneri de calcar vizibile pe robineți, capete de duș și cabine de duș. Produsele standard de curățenie sunt insuficiente; sunt necesari descalcifianți acidulați sau produse profesionale.
+
+### 3. Holurile înguste și lifturile mici
+
+Marea majoritate a apartamentelor bucureștene au holuri de sub 3 m². Accesul echipamentelor profesionale (aspiratoare industriale, mașini de spălat pardoseli) poate fi dificil. Verifică înainte de programare dacă firma are și variante compacte de echipamente.
+
+---
+
+## Cum să alegi firma potrivită pentru cartierul tău
+
+O firmă de curățenie cu experiență în zona ta înseamnă timp de deplasare mai scurt (echipele sunt adesea alocate geografic), cunoașterea tipului de bloc și a suprafețelor predominante, și, potențial, referințe verificabile de la vecini.
+
+Întreabă direct: *"Aveți echipe active în sectorul meu? Câți clienți activi aveți în [cartier]?"* Un răspuns specific indică experiență reală în zona ta.
+
+Pe [Go2Fix](/lista-asteptare), firmele partenere sunt verificate și mapate geografic — comenzile sunt alocate automat echipei din zona ta. Înscrie-te pe lista de așteptare pentru acces timpuriu la serviciu.
+`,
+  },
+  {
+    slug: 'bucharest-cleaning-guide-by-district',
+    lang: 'en',
+    linkedSlug: 'ghid-curatenie-bucuresti-pe-sectoare',
+    title: 'Bucharest Cleaning Guide by District: What Every Resident Should Know',
+    excerpt:
+      'From Floreasca penthouses to Militari tower blocks — how professional cleaning needs differ across Bucharest\'s six districts. Prices, local challenges, and what to ask your cleaning company.',
+    category: 'ghid-orase',
+    tags: [
+      'bucharest cleaning service',
+      'cleaning company bucharest',
+      'district guide bucharest',
+      'professional cleaning romania',
+    ],
+    author: 'Go2Fix Team',
+    publishedAt: '2026-03-04',
+    readTimeMinutes: 8,
+    metaTitle: 'Bucharest Cleaning Guide by District 2026 | Go2Fix',
+    metaDescription:
+      'Cleaning needs vary widely across Bucharest\'s six districts. This guide covers Sector 1–6 prices, local challenges, and what to ask your cleaning company.',
+    content: `## Bucharest is not a uniform city — and neither are its cleaning needs
+
+Romania's capital has an unusually diverse architectural profile: communist-era tower blocks with narrow staircases stand next to interwar villas on Calea Dorobanților, glass towers in Floreasca and Pipera, and new residential complexes in Berceni or Militari Est. Each housing type comes with different cleaning requirements — and with challenges that a company unfamiliar with the area can easily underestimate.
+
+This guide covers all six of Bucharest's districts (sectors), the dominant housing types in each, the most commonly requested services, and realistic price expectations for 2026.
+
+---
+
+## Sector 1 — The North: Floreasca, Dorobanți, Aviației, Băneasa
+
+Sector 1 contains the most expensive real estate in Bucharest: renovated interwar villas on Calea Dorobanților and in Floreasca, luxury apartments in new towers (One Floreasca, Belvedere Residences), and gated complexes with pools and shared amenities in Băneasa and Pipera.
+
+**Dominant housing types:**
+- Villas with floor areas of 200–800 m², often multi-storey with basements
+- 3–5 room apartments in new-build blocks (2015–2026)
+- Penthouses and luxury apartments with terraces and premium finishes
+
+**What residents in Sector 1 request:**
+
+Regular cleaning subscriptions (weekly or fortnightly) are the norm for higher-income households and families with young children. Quality expectations are higher: HEPA-filter vacuums, certified eco products, experienced staff, and team continuity — the same team every visit.
+
+Villas regularly require extended deep cleans covering terraces, garages, and outdoor areas, plus seasonal pre-event or post-garden cleaning.
+
+**Approximate prices:**
+
+| Housing type | Regular service | Deep clean |
+|---|---|---|
+| 3-room apartment (80–100 m²) | 300–450 RON | 450–600 RON |
+| Villa 300 m² | — | 700–1,200 RON |
+| Pre-event with dedicated staff | — | 900–1,500 RON |
+
+---
+
+## Sector 2 — The East: Iancului, Colentina, Pantelimon
+
+Sector 2 is one of the most populous and varied sectors in the capital. Colentina and Pantelimon are dominated by large communist-era blocks with 2–4 room apartments, while Iancului and Tei have undergone progressive renovation. Barbu Văcărescu and eastern Floreasca are now business and mid-to-upper tier residential zones.
+
+**Dominant housing types:**
+- Communist-era blocks (8–10 storeys), 2–3 room apartments
+- New residential complexes in Barbu Văcărescu and northern Colentina
+- Some houses and villas in older areas (Tei, Fundeni)
+
+**What residents request:**
+
+One-off deep cleans (for holidays, after parties) are more common here than ongoing subscriptions. Older blocks often present specific issues: mould in bathrooms due to poor ventilation, stubborn limescale deposits on ageing sanitary ware, and worn carpets or parquet that require careful attention.
+
+**Approximate prices:**
+
+| Housing type | Deep clean |
+|---|---|
+| Studio / 1-room (25–40 m²) | 150–230 RON |
+| 2-room apartment (50–65 m²) | 220–320 RON |
+| 3-room apartment (70–90 m²) | 280–400 RON |
+
+---
+
+## Sector 3 — The Largest Sector: Titan, Dristor, IOR, Balta Albă
+
+Sector 3 is Bucharest's most populous district and includes some of its densest residential zones: Titan, Balta Albă, Dristor, Vitan. Four-to-ten-storey blocks built between 1960 and 1990 are the dominant housing type, with 2–3 room apartments.
+
+**Dominant housing types:**
+- Standard communist-era blocks (4–10 storeys) — the most common housing type in Bucharest
+- 2 and 3-room apartments with floor areas of 45–75 m²
+- Some new residential developments in Dristor and Vitan
+
+**Specific challenges:**
+
+Older housing in Sector 3 frequently presents: window frames that accumulate dust and rust, grouting between tiles that has blackened and is difficult to restore, cooker hobs requiring deep degreasing, and narrow hallways that restrict access for larger cleaning equipment.
+
+A practical note: communist-era blocks have small lifts or no lift at all in shorter buildings — cleaning teams must carry equipment up the stairs, which can add billable time.
+
+**Approximate prices:**
+
+| Housing type | Deep clean |
+|---|---|
+| 2-room apartment | 200–300 RON |
+| 3-room apartment | 260–380 RON |
+| Deep clean including interior windows | 350–500 RON |
+
+---
+
+## Sector 4 — Berceni, Giurgiului, Văcărești
+
+Sector 4 has a distinctive residential identity: Berceni is a dense block district with one of the highest population densities in the capital, while Văcărești and Giurgiului until recently included areas of small houses and older stock. The professional cleaning market is growing fast in the new residential complexes in northern Berceni, where the demographic profile has shifted — young families, IT professionals, and expatriates.
+
+**Dominant housing types:**
+- Communist-era blocks (predominantly 4-storey in old Berceni)
+- New residential complexes in northern Berceni and Metalurgiei
+- Houses and villas in quieter areas (Văcărești, Giurgiului)
+
+**Approximate prices:**
+
+| Housing type | Deep clean |
+|---|---|
+| 2-room apartment, older block | 190–270 RON |
+| 3-room apartment, new complex | 280–390 RON |
+
+---
+
+## Sector 5 — Rahova, Ferentari, Cotroceni
+
+Sector 5 is Bucharest's most heterogeneous district: it includes Cotroceni — one of the city's most desirable neighbourhoods, with interwar houses and renovated villas — alongside Rahova and Ferentari, areas with an older and more varied housing stock.
+
+**Cotroceni specifics:**
+
+Villas in Cotroceni present distinct challenges: hardwood parquet (oak, cherry) requiring specialist products, high ceilings with cornicing that traps dust, and gardens with surfaces to clean outdoors. Many owners here prioritise team continuity — the same people every visit — and discretion.
+
+**Approximate prices:**
+
+| Housing type | Deep clean |
+|---|---|
+| 2–3 room apartment in Rahova | 180–280 RON |
+| Cotroceni villa, 200 m² | 600–1,000 RON |
+
+---
+
+## Sector 6 — Militari, Drumul Taberei, Crângași
+
+Sector 6 is known for its density — Militari and Drumul Taberei are among the largest residential block districts in Romania. Built heavily during the 1960s–1980s, the housing stock is now entering its second lifespan, with specific wear and ageing issues. The professional cleaning market is growing rapidly here.
+
+**Dominant housing types:**
+- 8–10 storey blocks with 2–4 room apartments
+- Some villas and houses in Crângași and Roșu
+- New residential developments in Militari Residence and eastern Drumul Taberei
+
+**Specific challenges:**
+
+Older blocks in Militari and Drumul Taberei frequently feature: aluminium window frames with black dust deposits from road traffic pollution on Bd. Iuliu Maniu, floors with multiple layers of old lacquer or linoleum requiring specialist treatment, and bathrooms with ageing fittings that accumulate heavy limescale.
+
+**Approximate prices:**
+
+| Housing type | Deep clean |
+|---|---|
+| Studio | 140–200 RON |
+| 2-room apartment | 190–280 RON |
+| 3-room apartment | 260–370 RON |
+
+---
+
+## Challenges common to all Bucharest apartments
+
+Regardless of district, Bucharest homes share a few characteristics that affect cleaning requirements across the city:
+
+### 1. Black window dust from air pollution
+
+Bucharest has one of the highest PM2.5 and PM10 pollution levels in Europe. The visible result: a layer of black-grey dust that settles on window sills and horizontal surfaces much faster than in Western European cities. Interior window cleaning and sill wiping need higher frequency — at least monthly.
+
+### 2. Hard water limescale
+
+Bucharest's mains water has a high hardness level — above 20 German degrees in some areas. This causes visible limescale deposits on taps, showerheads, and shower enclosures. Standard household cleaning products are insufficient; acidic descalers or professional products are required.
+
+### 3. Narrow hallways and small lifts
+
+The vast majority of Bucharest apartments have hallways under 3 m². Access for professional equipment (industrial vacuums, floor-washing machines) can be difficult. Check before booking that the company has compact equipment variants available for your building type.
+
+---
+
+## Choosing the right company for your neighbourhood
+
+A cleaning company with experience in your specific area means shorter travel times (teams are often allocated geographically), familiarity with your building type and the surfaces it contains, and — potentially — verifiable references from your neighbours.
+
+Ask directly: *"Do you have active teams in my district? How many regular clients do you have in [neighbourhood]?"* A specific answer is a reliable indicator of genuine local experience.
+
+On [Go2Fix](/en/waitlist), partner companies are verified and mapped geographically — bookings are automatically allocated to the team nearest you. Join the waitlist for early access to the service.
+`,
+  },
+
 ];
 
 export function getPostBySlug(slug: string): BlogPost | undefined {

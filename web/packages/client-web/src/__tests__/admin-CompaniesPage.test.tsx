@@ -60,28 +60,28 @@ describe('CompaniesPage', () => {
 
   it('shows filter tabs', () => {
     renderCompaniesPage();
-    expect(screen.getByText('In asteptare')).toBeInTheDocument();
+    expect(screen.getByText('În așteptare')).toBeInTheDocument();
     expect(screen.getByText('Aprobate')).toBeInTheDocument();
     expect(screen.getByText('Toate')).toBeInTheDocument();
   });
 
   it('shows empty state for pending tab', () => {
     renderCompaniesPage();
-    expect(screen.getByText('Nu exista aplicatii in asteptare.')).toBeInTheDocument();
+    expect(screen.getByText('Nu există aplicații în așteptare.')).toBeInTheDocument();
   });
 
   it('shows empty state when no companies on all tab', () => {
     renderCompaniesPage();
-    const select = screen.getByDisplayValue('In asteptare');
+    const select = screen.getByDisplayValue('În așteptare');
     fireEvent.change(select, { target: { value: 'all' } });
-    expect(screen.getByText('Nu exista companii.')).toBeInTheDocument();
+    expect(screen.getByText('Nu există companii.')).toBeInTheDocument();
   });
 
   it('tab switching works', () => {
     renderCompaniesPage();
-    const select = screen.getByDisplayValue('In asteptare');
+    const select = screen.getByDisplayValue('În așteptare');
     fireEvent.change(select, { target: { value: 'approved' } });
-    expect(screen.getByText('Nu exista companii aprobate.')).toBeInTheDocument();
+    expect(screen.getByText('Nu există companii aprobate.')).toBeInTheDocument();
   });
 
   it('shows "Respinge aplicatia" modal title when reject button clicked', async () => {
@@ -119,6 +119,6 @@ describe('CompaniesPage', () => {
     renderCompaniesPage();
     const rejectButtons = screen.getAllByText('Respinge');
     await user.click(rejectButtons[0]);
-    expect(screen.getByText('Respinge aplicatia')).toBeInTheDocument();
+    expect(screen.getByText('Respinge aplicația')).toBeInTheDocument();
   });
 });

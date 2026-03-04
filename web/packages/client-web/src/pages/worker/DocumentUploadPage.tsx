@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ROUTE_MAP } from '@/i18n/routes';
 import { useMutation, useQuery } from '@apollo/client';
 import {
@@ -42,35 +43,18 @@ interface RequiredDoc {
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const REQUIRED_DOCS: RequiredDoc[] = [
-  {
-    type: 'cazier_judiciar',
-    label: 'Cazier Judiciar',
-    description: 'Cazierul judiciar (PDF, max 10MB)',
-  },
-  {
-    type: 'contract_munca',
-    label: 'Contract de Muncă',
-    description: 'Contract de muncă semnat (PDF, max 10MB)',
-  },
-];
-
-const STEPS = [
-  { label: 'Invitație', index: 0 },
-  { label: 'Test', index: 1 },
-  { label: 'Documente', index: 2 },
-  { label: 'Verificare', index: 3 },
-  { label: 'Activ', index: 4 },
-];
-
 const ACTIVE_STEP = 2;
 
 // ─── Stepper ─────────────────────────────────────────────────────────────────
 
-function OnboardingStepper() {
+interface OnboardingStepperProps {
+  steps: { label: string; index: number }[];
+}
+
+function OnboardingStepper({ steps }: OnboardingStepperProps) {
   return (
     <div className="flex items-center justify-center mb-10">
-      {STEPS.map((step, i) => {
+      {steps.map((step, i) => {
         const isCompleted = i < ACTIVE_STEP;
         const isActive = i === ACTIVE_STEP;
         return (
@@ -97,7 +81,7 @@ function OnboardingStepper() {
                 {step.label}
               </span>
             </div>
-            {i < STEPS.length - 1 && (
+            {i < steps.length - 1 && (
               <div
                 className={[
                   'h-px w-12 sm:w-20 mx-2 mb-5 transition-all',
@@ -121,6 +105,7 @@ interface ProfileImageUploadProps {
 }
 
 function ProfileImageUpload({ avatarUrl, workerId, onUploadComplete }: ProfileImageUploadProps) {
+  const { t } = useTranslation(['dashboard', 'worker']);
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploadAvatar, { loading: uploading }] = useMutation(UPLOAD_WORKER_AVATAR);
   const [error, setError] = useState('');
@@ -129,15 +114,13 @@ function ProfileImageUpload({ avatarUrl, workerId, onUploadComplete }: ProfileIm
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-      setError('Doar imagini (JPG, PNG, WEBP) sunt permise');
+      setError(t('worker:documents.avatar.errorType'));
       return;
     }
 
-    // Validate file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
-      setError('Imaginea depășește 10MB');
+      setError(t('worker:documents.avatar.errorSize'));
       return;
     }
 
@@ -150,7 +133,7 @@ function ProfileImageUpload({ avatarUrl, workerId, onUploadComplete }: ProfileIm
       onUploadComplete();
       if (inputRef.current) inputRef.current.value = '';
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Eroare la încărcarea imaginii');
+      setError(err instanceof Error ? err.message : t('worker:documents.avatar.errorGeneric'));
     }
   };
 
@@ -162,7 +145,7 @@ function ProfileImageUpload({ avatarUrl, workerId, onUploadComplete }: ProfileIm
           {avatarUrl ? (
             <img
               src={avatarUrl}
-              alt="Profil"
+              alt={t('worker:documents.avatar.title')}
               className="w-24 h-24 rounded-xl object-cover border-2 border-white shadow-lg"
             />
           ) : (
@@ -177,16 +160,16 @@ function ProfileImageUpload({ avatarUrl, workerId, onUploadComplete }: ProfileIm
           <div className="flex items-start justify-between">
             <div>
               <p className="font-bold text-gray-900">
-                {avatarUrl ? 'Fotografie de Profil' : 'Încarcă Fotografie de Profil'}
+                {avatarUrl ? t('worker:documents.avatar.title') : t('worker:documents.avatar.titleUpload')}
               </p>
               <p className="text-sm text-gray-600 mt-0.5">
-                Fotografie portret clară (JPG/PNG, max 10MB)
+                {t('worker:documents.avatar.description')}
               </p>
             </div>
             {avatarUrl && (
               <Badge variant="success" className="flex-shrink-0">
                 <CheckCircle2 className="w-3 h-3 mr-1" />
-                Încărcat
+                {t('worker:documents.avatar.uploaded')}
               </Badge>
             )}
           </div>
@@ -215,7 +198,11 @@ function ProfileImageUpload({ avatarUrl, workerId, onUploadComplete }: ProfileIm
               type="button"
             >
               <Upload className="w-4 h-4 mr-2" />
-              {uploading ? 'Se încarcă...' : avatarUrl ? 'Schimbă fotografia' : 'Încarcă fotografie'}
+              {uploading
+                ? t('worker:documents.avatar.uploading')
+                : avatarUrl
+                ? t('worker:documents.avatar.changePhoto')
+                : t('worker:documents.avatar.uploadPhoto')}
             </Button>
           </div>
         </div>
@@ -235,6 +222,7 @@ interface DocumentCardProps {
 }
 
 function DocumentCard({ index, doc, uploaded, workerId, onUploadComplete }: DocumentCardProps) {
+  const { t } = useTranslation(['dashboard', 'worker']);
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploadDocument, { loading: uploading }] = useMutation(UPLOAD_WORKER_DOCUMENT);
   const [deleteDocument, { loading: deleting }] = useMutation(DELETE_WORKER_DOCUMENT);
@@ -246,15 +234,13 @@ function DocumentCard({ index, doc, uploaded, workerId, onUploadComplete }: Docu
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
     if (file.type !== 'application/pdf') {
-      setError('Doar fișiere PDF sunt permise');
+      setError(t('worker:documents.documentCard.errorType'));
       return;
     }
 
-    // Validate file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
-      setError('Fișierul depășește 10MB');
+      setError(t('worker:documents.documentCard.errorSize'));
       return;
     }
 
@@ -267,12 +253,12 @@ function DocumentCard({ index, doc, uploaded, workerId, onUploadComplete }: Docu
       onUploadComplete();
       if (inputRef.current) inputRef.current.value = '';
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Eroare la încărcarea documentului');
+      setError(err instanceof Error ? err.message : t('worker:documents.documentCard.errorUpload'));
     }
   };
 
   const handleDelete = async () => {
-    if (!uploaded || !confirm(`Ștergi documentul ${doc.label}?`)) return;
+    if (!uploaded || !confirm(t('worker:documents.documentCard.confirmDelete', { label: doc.label }))) return;
     try {
       await deleteDocument({
         variables: { id: uploaded.id },
@@ -280,7 +266,7 @@ function DocumentCard({ index, doc, uploaded, workerId, onUploadComplete }: Docu
       });
       onUploadComplete();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Eroare la ștergere');
+      setError(err instanceof Error ? err.message : t('worker:documents.documentCard.errorDelete'));
     }
   };
 
@@ -333,14 +319,18 @@ function DocumentCard({ index, doc, uploaded, workerId, onUploadComplete }: Docu
               <span className="text-xs text-gray-600 truncate max-w-[200px]">
                 {uploaded.fileName}
               </span>
-              {status === 'PENDING' && <Badge variant="warning">În așteptare</Badge>}
-              {status === 'APPROVED' && <Badge variant="success">Aprobat</Badge>}
+              {status === 'PENDING' && (
+                <Badge variant="warning">{t('worker:documents.documentCard.pending')}</Badge>
+              )}
+              {status === 'APPROVED' && (
+                <Badge variant="success">{t('worker:documents.documentCard.approved')}</Badge>
+              )}
               {status === 'REJECTED' && (
                 <>
-                  <Badge variant="danger">Respins</Badge>
+                  <Badge variant="danger">{t('worker:documents.documentCard.rejected')}</Badge>
                   {uploaded.rejectionReason && (
                     <p className="text-xs text-red-600 w-full mt-1">
-                      Motiv: {uploaded.rejectionReason}
+                      {t('worker:documents.documentCard.rejectionReason', { reason: uploaded.rejectionReason })}
                     </p>
                   )}
                 </>
@@ -373,7 +363,11 @@ function DocumentCard({ index, doc, uploaded, workerId, onUploadComplete }: Docu
               type="button"
             >
               <Upload className="w-4 h-4 mr-2" />
-              {uploading ? 'Se încarcă...' : uploaded ? 'Reîncarcă' : 'Încarcă'}
+              {uploading
+                ? t('worker:documents.documentCard.uploading')
+                : uploaded
+                ? t('worker:documents.documentCard.reupload')
+                : t('worker:documents.documentCard.upload')}
             </Button>
 
             {uploaded && status !== 'APPROVED' && (
@@ -385,7 +379,9 @@ function DocumentCard({ index, doc, uploaded, workerId, onUploadComplete }: Docu
                 type="button"
               >
                 <Trash2 className="w-4 h-4 mr-2" />
-                {deleting ? 'Se șterge...' : 'Șterge'}
+                {deleting
+                  ? t('worker:documents.documentCard.deleting')
+                  : t('worker:documents.documentCard.delete')}
               </Button>
             )}
           </div>
@@ -398,6 +394,7 @@ function DocumentCard({ index, doc, uploaded, workerId, onUploadComplete }: Docu
 // ─── Main Page ───────────────────────────────────────────────────────────────
 
 export default function DocumentUploadPage() {
+  const { t } = useTranslation(['dashboard', 'worker']);
   const navigate = useNavigate();
   const { data, refetch } = useQuery(MY_WORKER_PROFILE);
 
@@ -405,6 +402,27 @@ export default function DocumentUploadPage() {
   const documents = profile?.documents || [];
   const avatarUrl = profile?.user?.avatarUrl;
   const workerId = profile?.id;
+
+  const REQUIRED_DOCS: RequiredDoc[] = [
+    {
+      type: 'cazier_judiciar',
+      label: t('worker:documents.requiredDocs.cazier_judiciar.label'),
+      description: t('worker:documents.requiredDocs.cazier_judiciar.description'),
+    },
+    {
+      type: 'contract_munca',
+      label: t('worker:documents.requiredDocs.contract_munca.label'),
+      description: t('worker:documents.requiredDocs.contract_munca.description'),
+    },
+  ];
+
+  const STEPS = [
+    { label: t('worker:documents.steps.invitation'), index: 0 },
+    { label: t('worker:documents.steps.test'), index: 1 },
+    { label: t('worker:documents.steps.documents'), index: 2 },
+    { label: t('worker:documents.steps.review'), index: 3 },
+    { label: t('worker:documents.steps.active'), index: 4 },
+  ];
 
   // Check completion
   const hasAvatar = !!avatarUrl;
@@ -420,24 +438,30 @@ export default function DocumentUploadPage() {
     <div className="max-w-4xl mx-auto px-4 py-8">
       {/* Header */}
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-black text-gray-900 mb-2">Documente Obligatorii</h1>
-        <p className="text-gray-500">
-          Încarcă documentele necesare pentru activarea contului de curățitor
-        </p>
+        <h1 className="text-3xl font-black text-gray-900 mb-2">{t('worker:documents.pageTitle')}</h1>
+        <p className="text-gray-500">{t('worker:documents.pageSubtitle')}</p>
       </div>
 
       {/* Stepper */}
-      <OnboardingStepper />
+      <OnboardingStepper steps={STEPS} />
 
       {/* GDPR notice */}
       <div className="flex items-start gap-2 p-3 rounded-xl bg-blue-50 border border-blue-100 text-xs text-blue-700 mb-6">
         <Info className="w-4 h-4 shrink-0 mt-0.5" />
         <span>
-          Documentele tale sunt stocate securizat și procesate conform{' '}
-          <Link to={ROUTE_MAP.gdpr.ro} target="_blank" rel="noopener noreferrer" className="underline font-medium">
-            Notei de Informare GDPR
-          </Link>
-          . Accesul este restricționat exclusiv echipei de verificare Go2Fix.
+          {t('worker:documents.gdpr', {
+            gdprLink: (
+              <Link
+                key="gdpr"
+                to={ROUTE_MAP.gdpr.ro}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline font-medium"
+              >
+                {t('worker:documents.gdprLink')}
+              </Link>
+            ),
+          })}
         </span>
       </div>
 
@@ -448,10 +472,12 @@ export default function DocumentUploadPage() {
             <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
             <div className="flex-1">
               <p className="text-sm font-semibold text-blue-900">
-                {hasAvatar ? `${uploadedCount} din ${REQUIRED_DOCS.length} documente încărcate` : 'Începe cu fotografia de profil'}
+                {hasAvatar
+                  ? t('worker:documents.progressCount', { uploaded: uploadedCount, total: REQUIRED_DOCS.length })
+                  : t('worker:documents.progressStart')}
               </p>
               <p className="text-xs text-blue-700 mt-0.5">
-                Odată ce toate documentele sunt încărcate, profilul tău va fi trimis spre verificare.
+                {t('worker:documents.progressHint')}
               </p>
             </div>
           </div>
@@ -464,10 +490,8 @@ export default function DocumentUploadPage() {
           <div className="flex items-start gap-3">
             <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
             <div className="flex-1">
-              <p className="text-sm font-semibold text-emerald-900">Toate documentele au fost încărcate!</p>
-              <p className="text-xs text-emerald-700 mt-0.5">
-                Profilul tău este acum în curs de verificare. Vei fi notificat când este activat.
-              </p>
+              <p className="text-sm font-semibold text-emerald-900">{t('worker:documents.allUploaded')}</p>
+              <p className="text-xs text-emerald-700 mt-0.5">{t('worker:documents.allUploadedHint')}</p>
             </div>
           </div>
         </div>
@@ -502,11 +526,11 @@ export default function DocumentUploadPage() {
       {/* Navigation */}
       <div className="flex justify-between items-center pt-6 border-t border-gray-200">
         <Button variant="ghost" onClick={() => navigate('/worker')}>
-          Înapoi la Dashboard
+          {t('worker:documents.backToDashboard')}
         </Button>
         {isComplete && (
           <Button onClick={() => navigate('/worker')}>
-            Continuă
+            {t('worker:documents.continue')}
             <CheckCircle2 className="w-4 h-4 ml-2" />
           </Button>
         )}

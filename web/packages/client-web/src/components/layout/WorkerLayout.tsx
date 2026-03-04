@@ -1,3 +1,5 @@
+import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   LayoutDashboard,
   ClipboardList,
@@ -9,21 +11,26 @@ import {
 import DashboardLayout from './DashboardLayout';
 import WorkerStatusGate from '@/components/worker/WorkerStatusGate';
 
-const navItems = [
-  { to: '/worker', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/worker/comenzi', icon: ClipboardList, label: 'Comenzi' },
-  { to: '/worker/program', icon: CalendarDays, label: 'Program' },
-  { to: '/worker/mesaje', icon: MessageSquare, label: 'Contact Suport' },
-  { to: '/worker/profil', icon: User, label: 'Profil' },
-];
-
 export default function WorkerLayout() {
+  const { t } = useTranslation('worker');
+
+  const navItems = useMemo(
+    () => [
+      { to: '/worker', icon: LayoutDashboard, label: t('nav.dashboard') },
+      { to: '/worker/comenzi', icon: ClipboardList, label: t('nav.jobs') },
+      { to: '/worker/program', icon: CalendarDays, label: t('nav.schedule') },
+      { to: '/worker/mesaje', icon: MessageSquare, label: t('nav.documents') },
+      { to: '/worker/profil', icon: User, label: t('nav.settings') },
+    ],
+    [t],
+  );
+
   return (
     <DashboardLayout
       navItems={navItems}
       logoIcon={Sparkles}
       logoIconColor="text-accent"
-      subtitle="Worker Dashboard"
+      subtitle={t('nav.subtitle')}
       homeRoute="/worker"
       wrapper={(children) => <WorkerStatusGate>{children}</WorkerStatusGate>}
     />

@@ -1,0 +1,152 @@
+{
+  "nav": {
+    "logout": "Sign out",
+    "collapseMenu": "Collapse menu",
+    "expandMenu": "Expand menu",
+    "toggleMenu": "Menu"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "paused": "Paused",
+    "pastDue": "Past due",
+    "cancelled": "Cancelled",
+    "confirmed": "Confirmed",
+    "assigned": "Assigned",
+    "inProgress": "In progress",
+    "completed": "Completed",
+    "pending": "Pending",
+    "pendingAssignment": "Pending assignment",
+    "suspended": "Suspended",
+    "invited": "Invited",
+    "noShow": "No show",
+    "open": "Open",
+    "resolved": "Resolved",
+    "unknown": "Unknown"
+  },
+  "actions": {
+    "save": "Save",
+    "saving": "Saving...",
+    "saved": "Saved",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "edit": "Edit",
+    "back": "Back",
+    "view": "View",
+    "viewAll": "View all",
+    "close": "Close",
+    "add": "Add",
+    "upload": "Upload",
+    "download": "Download",
+    "submit": "Submit",
+    "approve": "Approve",
+    "reject": "Reject",
+    "refresh": "Refresh",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "send": "Send",
+    "search": "Search",
+    "filter": "Filter",
+    "reset": "Reset",
+    "select": "Select",
+    "remove": "Remove",
+    "update": "Update",
+    "manage": "Manage",
+    "details": "Details",
+    "continue": "Continue"
+  },
+  "recurrence": {
+    "oneTime": "One time",
+    "weekly": "Weekly",
+    "biweekly": "Every 2 weeks",
+    "monthly": "Monthly"
+  },
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page {{current}} of {{total}}",
+    "showing": "Showing {{from}}-{{to}} of {{total}}"
+  },
+  "empty": {
+    "noData": "No data available",
+    "noResults": "No results found",
+    "noItems": "No items"
+  },
+  "error": {
+    "generic": "An error occurred. Please try again.",
+    "loadFailed": "Failed to load data.",
+    "saveFailed": "Save failed. Please try again.",
+    "unauthorized": "You are not authorized to perform this action."
+  },
+  "loading": "Loading...",
+  "language": {
+    "label": "Preferred language",
+    "ro": "Română",
+    "en": "English",
+    "save": "Save preference",
+    "saved": "Preference saved"
+  },
+  "date": {
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "tomorrow": "Tomorrow",
+    "at": "at"
+  },
+  "bookingStatus": {
+    "PENDING_ASSIGNMENT": "Pending",
+    "CONFIRMED": "Confirmed",
+    "ASSIGNED": "Assigned",
+    "IN_PROGRESS": "In progress",
+    "COMPLETED": "Completed",
+    "CANCELLED": "Cancelled",
+    "NO_SHOW": "No show"
+  },
+  "subscriptionStatus": {
+    "ACTIVE": "Active",
+    "PAUSED": "Paused",
+    "PAST_DUE": "Past due",
+    "CANCELLED": "Cancelled"
+  },
+  "userRole": {
+    "CLIENT": "Client",
+    "COMPANY_ADMIN": "Company admin",
+    "WORKER": "Worker",
+    "GLOBAL_ADMIN": "Administrator"
+  },
+  "userStatus": {
+    "ACTIVE": "Active",
+    "INACTIVE": "Inactive",
+    "SUSPENDED": "Suspended",
+    "PENDING": "Pending"
+  },
+  "documentStatus": {
+    "PENDING": "Under review",
+    "APPROVED": "Approved",
+    "REJECTED": "Rejected"
+  },
+  "days": {
+    "0": "Sunday",
+    "1": "Monday",
+    "2": "Tuesday",
+    "3": "Wednesday",
+    "4": "Thursday",
+    "5": "Friday",
+    "6": "Saturday",
+    "short": {
+      "0": "Sun",
+      "1": "Mon",
+      "2": "Tue",
+      "3": "Wed",
+      "4": "Thu",
+      "5": "Fri",
+      "6": "Sat"
+    }
+  },
+  "notification": {
+    "success": "Success",
+    "error": "Error",
+    "info": "Info",
+    "warning": "Warning"
+  }
+}

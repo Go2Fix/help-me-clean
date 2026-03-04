@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery } from '@apollo/client';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -48,18 +49,6 @@ const statusBadgeVariant: Record<string, 'default' | 'success' | 'warning' | 'da
   CANCELLED: 'danger',
 };
 
-const statusLabel: Record<string, string> = {
-  CONFIRMED: 'Confirmata',
-  IN_PROGRESS: 'In desfasurare',
-  COMPLETED: 'Finalizata',
-  CANCELLED: 'Anulata',
-};
-
-function formatDate(dateStr: string): string {
-  const d = new Date(dateStr);
-  return d.toLocaleDateString('ro-RO', { day: '2-digit', month: 'short' });
-}
-
 function toYYYYMMDD(date: Date): string {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -95,10 +84,14 @@ function CustomTooltip({
   active,
   payload,
   label,
+  revenueLabel,
+  commissionLabel,
 }: {
   active?: boolean;
   payload?: ChartPayloadItem[];
   label?: string;
+  revenueLabel: string;
+  commissionLabel: string;
 }) {
   if (!active || !payload || payload.length === 0) return null;
 
@@ -107,7 +100,7 @@ function CustomTooltip({
       <p className="text-sm font-medium text-gray-900 mb-1">{label}</p>
       {payload.map((entry) => (
         <p key={entry.dataKey} className="text-sm" style={{ color: entry.color }}>
-          {entry.dataKey === 'revenue' ? 'Venit' : 'Comision'}: {Number(entry.value).toFixed(2)} RON
+          {entry.dataKey === 'revenue' ? revenueLabel : commissionLabel}: {Number(entry.value).toFixed(2)} RON
         </p>
       ))}
     </div>
@@ -118,6 +111,14 @@ function CustomTooltip({
 
 export default function DashboardPage() {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation(['dashboard', 'company']);
+
+  const locale = i18n.language === 'en' ? 'en-GB' : 'ro-RO';
+
+  function formatDate(dateStr: string): string {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString(locale, { day: '2-digit', month: 'short' });
+  }
 
   // Date range for chart: last 30 days
   const { from, to } = useMemo(() => {
@@ -166,13 +167,13 @@ export default function DashboardPage() {
   const hasAllCompanyDocs = REQUIRED_COMPANY_DOC_TYPES.every((t) => approvedCompanyDocTypes.has(t));
 
   const setupItems: SetupItem[] = [
-    { key: 'logo', label: 'Adaugă logo-ul firmei', description: 'Apare pe profil și pe facturi', done: !!company?.logoUrl, to: '/firma/setari', icon: Image },
-    { key: 'description', label: 'Completează descrierea firmei', description: 'Ajută clienții să înțeleagă oferta', done: !!company?.description?.trim(), to: '/firma/setari', icon: AlignLeft },
-    { key: 'phone', label: 'Adaugă telefon de contact', description: 'Necesar pentru comunicarea cu clienții', done: !!company?.contactPhone?.trim(), to: '/firma/setari', icon: Phone },
-    { key: 'docs', label: 'Încarcă documentele obligatorii', description: 'Certificat constatator, RCA, document CUI', done: hasAllCompanyDocs, to: '/firma/documente-obligatorii', icon: ShieldCheck },
-    { key: 'stripe', label: 'Configurează plățile Stripe', description: 'Necesare pentru a primi bani de la clienți', done: connectData?.myConnectStatus?.onboardingStatus === 'COMPLETE', to: '/firma/setari', icon: CreditCard },
-    { key: 'categories', label: 'Selectează categoriile de servicii', description: 'Definește ce servicii oferă firma ta', done: (company?.serviceCategories?.length ?? 0) > 0, to: '/firma/setari', icon: Briefcase },
-    { key: 'areas', label: 'Configurează zonele de lucru', description: 'Definește în ce zone poate lucra firma', done: (serviceAreasData?.myCompanyServiceAreas?.length ?? 0) > 0, to: '/firma/setari', icon: MapPin },
+    { key: 'logo', label: t('company:dashboard.setup.logo'), description: t('company:dashboard.setup.logoDesc'), done: !!company?.logoUrl, to: '/firma/setari', icon: Image },
+    { key: 'description', label: t('company:dashboard.setup.description'), description: t('company:dashboard.setup.descriptionDesc'), done: !!company?.description?.trim(), to: '/firma/setari', icon: AlignLeft },
+    { key: 'phone', label: t('company:dashboard.setup.phone'), description: t('company:dashboard.setup.phoneDesc'), done: !!company?.contactPhone?.trim(), to: '/firma/setari', icon: Phone },
+    { key: 'docs', label: t('company:dashboard.setup.docs'), description: t('company:dashboard.setup.docsDesc'), done: hasAllCompanyDocs, to: '/firma/documente-obligatorii', icon: ShieldCheck },
+    { key: 'stripe', label: t('company:dashboard.setup.stripe'), description: t('company:dashboard.setup.stripeDesc'), done: connectData?.myConnectStatus?.onboardingStatus === 'COMPLETE', to: '/firma/setari', icon: CreditCard },
+    { key: 'categories', label: t('company:dashboard.setup.categories'), description: t('company:dashboard.setup.categoriesDesc'), done: (company?.serviceCategories?.length ?? 0) > 0, to: '/firma/setari', icon: Briefcase },
+    { key: 'areas', label: t('company:dashboard.setup.areas'), description: t('company:dashboard.setup.areasDesc'), done: (serviceAreasData?.myCompanyServiceAreas?.length ?? 0) > 0, to: '/firma/setari', icon: MapPin },
   ];
 
   // Chart data formatted for display
@@ -183,18 +184,46 @@ export default function DashboardPage() {
         revenue: Number(point.revenue),
         commission: Number(point.commission),
       })),
-    [revenuePoints],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [revenuePoints, locale],
   );
+
+  const subStatusLabel = (status: string) => {
+    const map: Record<string, string> = {
+      ACTIVE: t('company:dashboard.recentSubscriptions.active'),
+      PAUSED: t('company:dashboard.recentSubscriptions.paused'),
+      CANCELLED: t('company:dashboard.recentSubscriptions.cancelled'),
+    };
+    return map[status] ?? status;
+  };
+
+  const subStatusVariant = (status: string): 'success' | 'warning' | 'danger' | 'default' => {
+    if (status === 'ACTIVE') return 'success';
+    if (status === 'PAUSED') return 'warning';
+    if (status === 'CANCELLED') return 'danger';
+    return 'default';
+  };
+
+  const recurrenceLabel = (type: string) => {
+    const map: Record<string, string> = {
+      WEEKLY: t('company:dashboard.recentSubscriptions.weekly'),
+      BIWEEKLY: t('company:dashboard.recentSubscriptions.biweekly'),
+      MONTHLY: t('company:dashboard.recentSubscriptions.monthly'),
+    };
+    return map[type] ?? type;
+  };
 
   return (
     <div>
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">
-          Bun venit{company ? `, ${company.companyName.split(' ')[0]}` : ''}!
+          {company
+            ? t('company:dashboard.welcomeCompany', { name: company.companyName.split(' ')[0] })
+            : t('company:dashboard.welcome')}
         </h1>
         <p className="text-gray-500 mt-1">
-          Iată o privire de ansamblu asupra activității tale.
+          {t('company:dashboard.subtitle')}
         </p>
       </div>
 
@@ -203,8 +232,8 @@ export default function DashboardPage() {
         <div className="mb-8">
           <ProfileSetupChecklist
             items={setupItems}
-            title="Configurare firmă"
-            subtitle="Completează toți pașii pentru a primi comenzi"
+            title={t('company:dashboard.setupTitle')}
+            subtitle={t('company:dashboard.setupSubtitle')}
           />
         </div>
       )}
@@ -228,19 +257,19 @@ export default function DashboardPage() {
         <Card className="mb-0">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-1 divide-y md:divide-y-0 md:divide-x divide-gray-100">
             <div className="space-y-1">
-              <Metric icon={ClipboardList} label="Comenzi finalizate" value={financial?.completedBookings ?? company?.totalJobsCompleted ?? 0} />
-              <Metric icon={Star} label="Rating mediu" value={company?.ratingAvg ? Number(company.ratingAvg).toFixed(1) : '--'} />
+              <Metric icon={ClipboardList} label={t('company:dashboard.metrics.completedOrders')} value={financial?.completedBookings ?? company?.totalJobsCompleted ?? 0} />
+              <Metric icon={Star} label={t('company:dashboard.metrics.avgRating')} value={company?.ratingAvg ? Number(company.ratingAvg).toFixed(1) : '--'} />
             </div>
             <div className="space-y-1 pt-3 md:pt-0 md:pl-6">
-              <Metric icon={TrendingUp} label="Venit total" value={`${Number(financial?.totalRevenue ?? 0).toFixed(2)} RON`} />
-              <Metric icon={Wallet} label="Venit net" value={`${Number(financial?.netPayout ?? 0).toFixed(2)} RON`} />
+              <Metric icon={TrendingUp} label={t('company:dashboard.metrics.totalRevenue')} value={`${Number(financial?.totalRevenue ?? 0).toFixed(2)} RON`} />
+              <Metric icon={Wallet} label={t('company:dashboard.metrics.netRevenue')} value={`${Number(financial?.netPayout ?? 0).toFixed(2)} RON`} />
             </div>
             <div className="space-y-1 pt-3 md:pt-0 md:pl-6">
-              <Metric icon={Receipt} label="Comision platforma" value={`${Number(financial?.totalCommission ?? 0).toFixed(2)} RON`} />
+              <Metric icon={Receipt} label={t('company:dashboard.metrics.platformCommission')} value={`${Number(financial?.totalCommission ?? 0).toFixed(2)} RON`} />
             </div>
             <div className="space-y-1 pt-3 md:pt-0 md:pl-6">
-              <Metric icon={Repeat} label="Abonamente active" value={activeSubsCount} />
-              <Metric icon={Repeat} label="Venit lunar recurent" value={`${(monthlyRecurring / 100).toFixed(2)} RON`} />
+              <Metric icon={Repeat} label={t('company:dashboard.metrics.activeSubscriptions')} value={activeSubsCount} />
+              <Metric icon={Repeat} label={t('company:dashboard.metrics.monthlyRecurring')} value={`${(monthlyRecurring / 100).toFixed(2)} RON`} />
             </div>
           </div>
         </Card>
@@ -249,7 +278,7 @@ export default function DashboardPage() {
       {/* Revenue Chart */}
       <div className="mt-8">
         <Card>
-          <h2 className="text-lg font-bold text-gray-900 mb-4">Venituri ultimele 30 zile</h2>
+          <h2 className="text-lg font-bold text-gray-900 mb-4">{t('company:dashboard.chart.title')}</h2>
 
           {revenueLoading ? (
             <div className="animate-pulse">
@@ -257,7 +286,7 @@ export default function DashboardPage() {
             </div>
           ) : chartData.length === 0 ? (
             <div className="flex items-center justify-center h-64 text-gray-400">
-              <p>Nu exista date de venit pentru aceasta perioada.</p>
+              <p>{t('company:dashboard.chart.empty')}</p>
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={300}>
@@ -284,14 +313,21 @@ export default function DashboardPage() {
                   axisLine={false}
                   tickFormatter={(v: number) => `${v} RON`}
                 />
-                <Tooltip content={<CustomTooltip />} />
+                <Tooltip
+                  content={
+                    <CustomTooltip
+                      revenueLabel={t('company:dashboard.chart.revenue')}
+                      commissionLabel={t('company:dashboard.chart.commission')}
+                    />
+                  }
+                />
                 <Area
                   type="monotone"
                   dataKey="revenue"
                   stroke="#2563EB"
                   strokeWidth={2}
                   fill="url(#revenueGradient)"
-                  name="Venit"
+                  name={t('company:dashboard.chart.revenue')}
                 />
                 <Area
                   type="monotone"
@@ -299,7 +335,7 @@ export default function DashboardPage() {
                   stroke="#F59E0B"
                   strokeWidth={2}
                   fill="url(#commissionGradient)"
-                  name="Comision"
+                  name={t('company:dashboard.chart.commission')}
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -310,7 +346,7 @@ export default function DashboardPage() {
       {/* Recent Orders */}
       <div className="mt-8">
         <Card>
-          <h2 className="text-lg font-bold text-gray-900 mb-4">Comenzi recente</h2>
+          <h2 className="text-lg font-bold text-gray-900 mb-4">{t('company:dashboard.recentOrders.title')}</h2>
 
           {bookingsLoading ? (
             <div className="space-y-4">
@@ -327,8 +363,8 @@ export default function DashboardPage() {
           ) : recentBookings.length === 0 ? (
             <div className="text-center py-12">
               <ClipboardList className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-1">Nicio comanda</h3>
-              <p className="text-gray-500">Nu ai comenzi recente.</p>
+              <h3 className="text-lg font-medium text-gray-900 mb-1">{t('company:dashboard.recentOrders.empty')}</h3>
+              <p className="text-gray-500">{t('company:dashboard.recentOrders.emptyDesc')}</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -344,7 +380,7 @@ export default function DashboardPage() {
                         #{booking.referenceCode as string}
                       </p>
                       <Badge variant={statusBadgeVariant[(booking.status as string) || 'CONFIRMED']}>
-                        {statusLabel[(booking.status as string) || 'CONFIRMED'] || (booking.status as string)}
+                        {t(`bookingStatus.${booking.status as string}`) || (booking.status as string)}
                       </Badge>
                     </div>
                     <p className="text-sm text-gray-600">
@@ -370,13 +406,13 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Repeat className="h-5 w-5 text-blue-500" />
-              <h2 className="text-lg font-bold text-gray-900">Abonamente recente</h2>
+              <h2 className="text-lg font-bold text-gray-900">{t('company:dashboard.recentSubscriptions.title')}</h2>
             </div>
             <button
               onClick={() => navigate('/firma/abonamente')}
               className="text-sm font-medium text-primary hover:text-primary/80 transition-colors cursor-pointer"
             >
-              Vezi toate &rarr;
+              {t('company:dashboard.recentSubscriptions.viewAll')} &rarr;
             </button>
           </div>
 
@@ -395,12 +431,11 @@ export default function DashboardPage() {
           ) : subsEdges.length === 0 ? (
             <div className="text-center py-8">
               <Repeat className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-500 text-sm">Niciun abonament</p>
+              <p className="text-gray-500 text-sm">{t('company:dashboard.recentSubscriptions.empty')}</p>
             </div>
           ) : (
             <div className="space-y-3">
               {subsEdges.map((sub) => {
-                const isActive = sub.status === 'ACTIVE';
                 return (
                   <div
                     key={sub.id}
@@ -412,17 +447,17 @@ export default function DashboardPage() {
                         <p className="font-semibold text-gray-900 truncate">
                           {sub.serviceName}
                         </p>
-                        <Badge variant={isActive ? 'success' : sub.status === 'PAUSED' ? 'warning' : sub.status === 'CANCELLED' ? 'danger' : 'default'}>
-                          {sub.status === 'ACTIVE' ? 'Activ' : sub.status === 'PAUSED' ? 'In pauza' : sub.status === 'CANCELLED' ? 'Anulat' : sub.status}
+                        <Badge variant={subStatusVariant(sub.status)}>
+                          {subStatusLabel(sub.status)}
                         </Badge>
                       </div>
                       <p className="text-sm text-gray-600">
-                        {sub.client?.fullName ?? '--'} &middot; {sub.recurrenceType === 'WEEKLY' ? 'Saptamanal' : sub.recurrenceType === 'BIWEEKLY' ? 'La 2 sapt.' : 'Lunar'}
+                        {sub.client?.fullName ?? '--'} &middot; {recurrenceLabel(sub.recurrenceType)}
                       </p>
                     </div>
                     <div className="flex items-center gap-3 ml-4">
                       <p className="text-lg font-bold text-gray-900 whitespace-nowrap">
-                        {(sub.monthlyAmount / 100).toFixed(0)} RON/luna
+                        {(sub.monthlyAmount / 100).toFixed(0)} {t('company:dashboard.recentSubscriptions.perMonth')}
                       </p>
                       <ChevronRight className="h-5 w-5 text-gray-400" />
                     </div>

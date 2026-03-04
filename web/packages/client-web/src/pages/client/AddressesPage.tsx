@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
+import { useTranslation } from 'react-i18next';
 import { MapPin, Plus, Check, Pencil, Trash2, Star, X } from 'lucide-react';
 import { cn } from '@go2fix/shared';
 import { useAuth } from '@/context/AuthContext';
@@ -61,6 +62,7 @@ const EMPTY_FORM: AddressFormData = {
 
 export default function AddressesPage() {
   const { isAuthenticated } = useAuth();
+  const { t } = useTranslation(['dashboard', 'client']);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [formError, setFormError] = useState('');
@@ -80,7 +82,7 @@ export default function AddressesPage() {
       refetch();
     },
     onError: () => {
-      setFormError('Nu am putut salva adresa. Te rugam sa incerci din nou.');
+      setFormError(t('client:addresses.error.saveFailed'));
     },
   });
 
@@ -90,7 +92,7 @@ export default function AddressesPage() {
       refetch();
     },
     onError: () => {
-      setFormError('Nu am putut actualiza adresa. Te rugam sa incerci din nou.');
+      setFormError(t('client:addresses.error.updateFailed'));
     },
   });
 
@@ -157,7 +159,7 @@ export default function AddressesPage() {
       setFormError('');
 
       if (!form.streetAddress.trim() || !form.city.trim() || !form.county.trim()) {
-        setFormError('Adresa, orasul si judetul sunt obligatorii.');
+        setFormError(t('client:addresses.validation.required'));
         return;
       }
 
@@ -209,15 +211,15 @@ export default function AddressesPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Adresele mele</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t('client:addresses.title')}</h1>
           <p className="text-gray-500 mt-1">
-            Gestioneaza adresele tale pentru rezervari rapide.
+            {t('client:addresses.subtitle')}
           </p>
         </div>
         {!showAddForm && (
           <Button onClick={openAddForm}>
             <Plus className="h-4 w-4" />
-            Adauga adresa
+            {t('client:addresses.addAddress')}
           </Button>
         )}
       </div>
@@ -227,7 +229,7 @@ export default function AddressesPage() {
         <Card className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900">
-              {editingId ? 'Editeaza adresa' : 'Adauga adresa noua'}
+              {editingId ? t('client:addresses.form.editTitle') : t('client:addresses.form.addTitle')}
             </h2>
             <button
               type="button"
@@ -239,15 +241,15 @@ export default function AddressesPage() {
           </div>
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
-              label="Eticheta (optional)"
-              placeholder="Acasa, Birou, etc."
+              label={t('client:addresses.form.labelField')}
+              placeholder={t('client:addresses.form.labelPlaceholder')}
               value={form.label}
               onChange={(e) => setForm((prev) => ({ ...prev, label: e.target.value }))}
             />
 
             <AddressAutocomplete
-              label="Adresa strada *"
-              placeholder="Cauta adresa sau scrie manual..."
+              label={t('client:addresses.form.streetAddress')}
+              placeholder={t('client:addresses.form.streetPlaceholder')}
               value={form.streetAddress}
               onChange={(val) => setForm((prev) => ({ ...prev, streetAddress: val }))}
               onAddressSelect={handleAutocompleteSelect}
@@ -255,14 +257,14 @@ export default function AddressesPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Input
-                label="Oras *"
-                placeholder="Bucuresti"
+                label={t('client:addresses.form.city')}
+                placeholder={t('client:addresses.form.cityPlaceholder')}
                 value={form.city}
                 onChange={(e) => setForm((prev) => ({ ...prev, city: e.target.value }))}
               />
               <Input
-                label="Judet *"
-                placeholder="Bucuresti"
+                label={t('client:addresses.form.county')}
+                placeholder={t('client:addresses.form.countyPlaceholder')}
                 value={form.county}
                 onChange={(e) => setForm((prev) => ({ ...prev, county: e.target.value }))}
               />
@@ -270,20 +272,20 @@ export default function AddressesPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <Input
-                label="Cod postal (optional)"
-                placeholder="010101"
+                label={t('client:addresses.form.postalCode')}
+                placeholder={t('client:addresses.form.postalPlaceholder')}
                 value={form.postalCode}
                 onChange={(e) => setForm((prev) => ({ ...prev, postalCode: e.target.value }))}
               />
               <Input
-                label="Etaj (optional)"
-                placeholder="2"
+                label={t('client:addresses.form.floor')}
+                placeholder={t('client:addresses.form.floorPlaceholder')}
                 value={form.floor}
                 onChange={(e) => setForm((prev) => ({ ...prev, floor: e.target.value }))}
               />
               <Input
-                label="Apartament (optional)"
-                placeholder="12A"
+                label={t('client:addresses.form.apartment')}
+                placeholder={t('client:addresses.form.apartmentPlaceholder')}
                 value={form.apartment}
                 onChange={(e) => setForm((prev) => ({ ...prev, apartment: e.target.value }))}
               />
@@ -299,14 +301,14 @@ export default function AddressesPage() {
                   className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
                 />
                 <label htmlFor="isDefault" className="text-sm text-gray-700">
-                  Seteaza ca adresa implicita
+                  {t('client:addresses.form.setDefault')}
                 </label>
               </div>
             )}
 
             {form.latitude != null && form.longitude != null && (
               <p className="text-xs text-gray-400">
-                Coordonate: {form.latitude.toFixed(5)}, {form.longitude.toFixed(5)}
+                {t('client:addresses.form.coordinates', { lat: form.latitude.toFixed(5), lng: form.longitude.toFixed(5) })}
               </p>
             )}
 
@@ -319,10 +321,10 @@ export default function AddressesPage() {
             <div className="flex gap-3 pt-2">
               <Button type="submit" loading={isSaving}>
                 <Check className="h-4 w-4" />
-                {editingId ? 'Salveaza modificarile' : 'Salveaza adresa'}
+                {editingId ? t('client:addresses.form.saveChanges') : t('client:addresses.form.saveAddress')}
               </Button>
               <Button type="button" variant="ghost" onClick={closeForm}>
-                Anuleaza
+                {t('client:addresses.form.cancel')}
               </Button>
             </div>
           </form>
@@ -330,7 +332,7 @@ export default function AddressesPage() {
       )}
 
       {/* Loading State */}
-      {loading && !data && <LoadingSpinner text="Se incarca adresele..." />}
+      {loading && !data && <LoadingSpinner text={t('client:addresses.loading')} />}
 
       {/* Address List */}
       {!loading && addresses.length > 0 && (
@@ -342,7 +344,7 @@ export default function AddressesPage() {
                 <div className="absolute inset-0 bg-white/95 rounded-xl flex items-center justify-center z-10">
                   <div className="text-center">
                     <p className="text-sm font-medium text-gray-900 mb-3">
-                      Stergi aceasta adresa?
+                      {t('client:addresses.deleteConfirm')}
                     </p>
                     <div className="flex gap-2 justify-center">
                       <Button
@@ -350,7 +352,7 @@ export default function AddressesPage() {
                         variant="outline"
                         onClick={() => setDeleteConfirmId(null)}
                       >
-                        Anuleaza
+                        {t('client:addresses.form.cancel')}
                       </Button>
                       <Button
                         size="sm"
@@ -359,7 +361,7 @@ export default function AddressesPage() {
                         onClick={() => handleDelete(addr.id)}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
-                        Sterge
+                        {t('client:addresses.delete')}
                       </Button>
                     </div>
                   </div>
@@ -380,14 +382,14 @@ export default function AddressesPage() {
                     {addr.isDefault && (
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary/10 text-xs font-semibold text-secondary">
                         <Star className="h-3 w-3" />
-                        Implicita
+                        {t('client:addresses.default')}
                       </span>
                     )}
                   </div>
                   <div className="text-sm text-gray-600">
                     {addr.streetAddress}
-                    {addr.floor && `, Etaj ${addr.floor}`}
-                    {addr.apartment && `, Ap. ${addr.apartment}`}
+                    {addr.floor && `, ${t('client:addresses.floor', { floor: addr.floor })}`}
+                    {addr.apartment && `, ${t('client:addresses.apartment', { apt: addr.apartment })}`}
                   </div>
                   <div className="text-sm text-gray-400">
                     {addr.city}, {addr.county}
@@ -404,7 +406,7 @@ export default function AddressesPage() {
                       className={cn(
                         'p-2 rounded-lg text-gray-400 hover:bg-amber-50 hover:text-amber-500 transition cursor-pointer',
                       )}
-                      title="Seteaza ca implicita"
+                      title={t('client:addresses.setDefault')}
                     >
                       <Star className="h-4 w-4" />
                     </button>
@@ -413,7 +415,7 @@ export default function AddressesPage() {
                     type="button"
                     onClick={() => openEditForm(addr)}
                     className="p-2 rounded-lg text-gray-400 hover:bg-primary/5 hover:text-primary transition cursor-pointer"
-                    title="Editeaza"
+                    title={t('client:addresses.edit')}
                   >
                     <Pencil className="h-4 w-4" />
                   </button>
@@ -421,7 +423,7 @@ export default function AddressesPage() {
                     type="button"
                     onClick={() => setDeleteConfirmId(addr.id)}
                     className="p-2 rounded-lg text-gray-400 hover:bg-red-50 hover:text-danger transition cursor-pointer"
-                    title="Sterge"
+                    title={t('client:addresses.delete')}
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -439,14 +441,14 @@ export default function AddressesPage() {
             <MapPin className="h-8 w-8 text-gray-400" />
           </div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            Nu ai nicio adresa salvata
+            {t('client:addresses.empty.title')}
           </h3>
           <p className="text-gray-500 mb-6">
-            Adauga prima ta adresa pentru rezervari mai rapide.
+            {t('client:addresses.empty.description')}
           </p>
           <Button onClick={openAddForm}>
             <Plus className="h-4 w-4" />
-            Adauga adresa
+            {t('client:addresses.empty.addButton')}
           </Button>
         </div>
       )}

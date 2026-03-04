@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useLazyQuery } from '@apollo/client';
+import { useTranslation } from 'react-i18next';
 import {
   FileText,
   Download,
@@ -96,46 +97,6 @@ const invoiceStatusDotColor: Record<string, string> = {
   CREDIT_NOTE: 'bg-indigo-400',
 };
 
-const invoiceStatusLabel: Record<string, string> = {
-  DRAFT: 'Ciorna',
-  ISSUED: 'Emisa',
-  SENT: 'Trimisa',
-  TRANSMITTED: 'Transmisa e-Factura',
-  PAID: 'Platita',
-  CANCELLED: 'Anulata',
-  CREDIT_NOTE: 'Nota de credit',
-};
-
-const invoiceTypeLabel: Record<string, string> = {
-  CLIENT_SERVICE: 'Serviciu client',
-  PLATFORM_COMMISSION: 'Comision platforma',
-};
-
-const efacturaStatusLabel: Record<string, string> = {
-  NOT_SENT: 'Netransmisa',
-  transmitted: 'Transmisa',
-  accepted: 'Acceptata',
-  rejected: 'Respinsa',
-  error: 'Eroare',
-};
-
-const statusOptions = [
-  { value: '', label: 'Toate statusurile' },
-  { value: 'DRAFT', label: 'Ciorna' },
-  { value: 'ISSUED', label: 'Emisa' },
-  { value: 'SENT', label: 'Trimisa' },
-  { value: 'TRANSMITTED', label: 'Transmisa e-Factura' },
-  { value: 'PAID', label: 'Platita' },
-  { value: 'CANCELLED', label: 'Anulata' },
-  { value: 'CREDIT_NOTE', label: 'Nota de credit' },
-];
-
-const typeOptions = [
-  { value: '', label: 'Toate tipurile' },
-  { value: 'CLIENT_SERVICE', label: 'Serviciu client' },
-  { value: 'PLATFORM_COMMISSION', label: 'Comision platforma' },
-];
-
 // ─── Company Search Dropdown ───────────────────────────────────────────────
 
 function CompanySearchDropdown({
@@ -143,11 +104,19 @@ function CompanySearchDropdown({
   selectedCompanyName,
   onSelect,
   onClear,
+  label,
+  placeholder,
+  searchingLabel,
+  noResultsLabel,
 }: {
   selectedCompanyId: string;
   selectedCompanyName: string;
   onSelect: (id: string, name: string) => void;
   onClear: () => void;
+  label: string;
+  placeholder: string;
+  searchingLabel: string;
+  noResultsLabel: string;
 }) {
   const [searchText, setSearchText] = useState('');
   const [isOpen, setIsOpen] = useState(false);
@@ -182,7 +151,7 @@ function CompanySearchDropdown({
     return (
       <div className="w-full">
         <label className="block text-sm font-medium text-gray-700 mb-1.5">
-          Companie
+          {label}
         </label>
         <div className="flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm">
           <span className="text-gray-900 truncate flex-1">{selectedCompanyName}</span>
@@ -190,7 +159,6 @@ function CompanySearchDropdown({
             type="button"
             onClick={onClear}
             className="shrink-0 p-0.5 rounded text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
-            title="Sterge filtrul"
           >
             <X className="h-4 w-4" />
           </button>
@@ -202,7 +170,7 @@ function CompanySearchDropdown({
   return (
     <div className="w-full relative" ref={wrapperRef}>
       <label className="block text-sm font-medium text-gray-700 mb-1.5">
-        Companie
+        {label}
       </label>
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
@@ -213,7 +181,7 @@ function CompanySearchDropdown({
           onFocus={() => {
             if (debouncedSearch.length >= 1) setIsOpen(true);
           }}
-          placeholder="Cauta companie..."
+          placeholder={placeholder}
           className="w-full rounded-xl border border-gray-300 bg-white pl-9 pr-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
         />
       </div>
@@ -221,9 +189,9 @@ function CompanySearchDropdown({
       {isOpen && (
         <div className="absolute z-50 mt-1 w-full max-h-60 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-lg">
           {searching ? (
-            <div className="px-4 py-3 text-sm text-gray-500">Se cauta...</div>
+            <div className="px-4 py-3 text-sm text-gray-500">{searchingLabel}</div>
           ) : companies.length === 0 ? (
-            <div className="px-4 py-3 text-sm text-gray-400">Niciun rezultat</div>
+            <div className="px-4 py-3 text-sm text-gray-400">{noResultsLabel}</div>
           ) : (
             companies.map((company) => (
               <button
@@ -250,7 +218,25 @@ function CompanySearchDropdown({
 // ─── Component ─────────────────────────────────────────────────────────────
 
 export default function AdminInvoicesPage() {
+  const { t } = useTranslation(['dashboard', 'admin']);
   const monthRange = getMonthRange();
+
+  const statusOptions = [
+    { value: '', label: t('admin:invoices.allStatuses') },
+    { value: 'DRAFT', label: t('admin:invoices.statusLabels.DRAFT') },
+    { value: 'ISSUED', label: t('admin:invoices.statusLabels.ISSUED') },
+    { value: 'SENT', label: t('admin:invoices.statusLabels.SENT') },
+    { value: 'TRANSMITTED', label: t('admin:invoices.statusLabels.TRANSMITTED') },
+    { value: 'PAID', label: t('admin:invoices.statusLabels.PAID') },
+    { value: 'CANCELLED', label: t('admin:invoices.statusLabels.CANCELLED') },
+    { value: 'CREDIT_NOTE', label: t('admin:invoices.statusLabels.CREDIT_NOTE') },
+  ];
+
+  const typeOptions = [
+    { value: '', label: t('admin:invoices.allTypes') },
+    { value: 'CLIENT_SERVICE', label: t('admin:invoices.typeLabels.CLIENT_SERVICE') },
+    { value: 'PLATFORM_COMMISSION', label: t('admin:invoices.typeLabels.PLATFORM_COMMISSION') },
+  ];
 
   // Filters
   const [statusFilter, setStatusFilter] = useState('');
@@ -407,12 +393,19 @@ export default function AdminInvoicesPage() {
     }
   };
 
+  const analyticsItems = analytics ? [
+    { icon: FileText, label: t('admin:invoices.analytics.totalIssued'), value: String(analytics.totalIssued) },
+    { icon: Banknote, label: t('admin:invoices.analytics.totalAmount'), value: formatCents(analytics.totalAmount) },
+    { icon: TrendingUp, label: t('admin:invoices.analytics.totalVat'), value: formatCents(analytics.totalVat) },
+    { icon: Receipt, label: t('admin:invoices.analytics.platformTotal'), value: t('admin:invoices.analytics.platformTotalValue', { count: totalCount }) },
+  ] : [];
+
   return (
     <div>
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Facturi</h1>
-        <p className="text-gray-500 mt-1">Gestioneaza toate facturile emise pe platforma.</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('admin:invoices.title')}</h1>
+        <p className="text-gray-500 mt-1">{t('admin:invoices.subtitle')}</p>
       </div>
 
       {/* Analytics Summary */}
@@ -433,12 +426,7 @@ export default function AdminInvoicesPage() {
       ) : analytics ? (
         <Card className="mb-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-1 divide-y md:divide-y-0 md:divide-x divide-gray-100">
-            {[
-              { icon: FileText, label: 'Facturi emise', value: String(analytics.totalIssued) },
-              { icon: Banknote, label: 'Valoare totala', value: formatCents(analytics.totalAmount) },
-              { icon: TrendingUp, label: 'TVA total', value: formatCents(analytics.totalVat) },
-              { icon: Receipt, label: 'Total platforma', value: `${totalCount} facturi` },
-            ].map((item, idx) => (
+            {analyticsItems.map((item, idx) => (
               <div key={idx} className={`flex items-center gap-3 py-3 ${idx > 0 ? 'md:pl-6' : ''}`}>
                 <div className="h-9 w-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
                   <item.icon className="h-4.5 w-4.5 text-gray-500" />
@@ -475,6 +463,10 @@ export default function AdminInvoicesPage() {
             selectedCompanyName={companyName}
             onSelect={(id, name) => { setCompanyId(id); setCompanyName(name); resetPage(); }}
             onClear={() => { setCompanyId(''); setCompanyName(''); resetPage(); }}
+            label={t('admin:invoices.companyLabel')}
+            placeholder={t('admin:invoices.companyPlaceholder')}
+            searchingLabel={t('admin:invoices.searching')}
+            noResultsLabel={t('admin:invoices.noResults')}
           />
         </div>
         <div className="flex items-end gap-2">
@@ -494,11 +486,11 @@ export default function AdminInvoicesPage() {
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={() => setCreditNoteModalOpen(true)}>
             <FileText className="h-4 w-4" />
-            Nota de credit
+            {t('admin:invoices.creditNoteButton')}
           </Button>
           <Button size="sm" onClick={() => setCommissionModalOpen(true)}>
             <Plus className="h-4 w-4" />
-            Factura comision
+            {t('admin:invoices.commissionButton')}
           </Button>
         </div>
       </div>
@@ -518,7 +510,7 @@ export default function AdminInvoicesPage() {
             ))}
           </div>
         ) : paginatedInvoices.length === 0 ? (
-          <p className="text-center text-gray-400 py-12">Nu exista facturi.</p>
+          <p className="text-center text-gray-400 py-12">{t('admin:invoices.empty')}</p>
         ) : (
           <>
             <div className="divide-y divide-gray-100">
@@ -535,7 +527,7 @@ export default function AdminInvoicesPage() {
                       {invoice.invoiceNumber}
                     </span>
                     <span className="text-xs text-gray-400 shrink-0">
-                      {invoiceTypeLabel[invoice.invoiceType] ?? invoice.invoiceType}
+                      {t(`admin:invoices.typeLabels.${invoice.invoiceType}`, { defaultValue: invoice.invoiceType })}
                     </span>
                     <span className="hidden md:block text-sm text-gray-700 truncate max-w-[140px]" title={invoice.buyerName}>
                       {invoice.buyerName}
@@ -543,7 +535,7 @@ export default function AdminInvoicesPage() {
                     <span className="flex-1" />
                     {efStatus !== 'NOT_SENT' && (
                       <span className="hidden md:block text-xs text-gray-400 shrink-0">
-                        eF: {efacturaStatusLabel[efStatus] ?? efStatus}
+                        eF: {t(`admin:invoices.efacturaStatusLabels.${efStatus}`, { defaultValue: efStatus })}
                       </span>
                     )}
                     <span className="hidden md:flex items-center gap-1 text-xs text-gray-400 shrink-0">
@@ -554,7 +546,7 @@ export default function AdminInvoicesPage() {
                       {formatCents(invoice.totalAmount)}
                     </span>
                     <span className="text-xs text-gray-500 shrink-0 w-28 text-right hidden sm:block">
-                      {invoiceStatusLabel[invoice.status] ?? invoice.status}
+                      {t(`admin:invoices.statusLabels.${invoice.status}`, { defaultValue: invoice.status })}
                     </span>
                     {/* Actions */}
                     <div className="flex items-center gap-0.5 shrink-0">
@@ -564,7 +556,7 @@ export default function AdminInvoicesPage() {
                           target="_blank"
                           rel="noopener noreferrer"
                           className="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                          title="Descarca PDF"
+                          title={t('admin:invoices.actions.download')}
                           onClick={(e) => e.stopPropagation()}
                         >
                           <Download className="h-3.5 w-3.5" />
@@ -578,7 +570,7 @@ export default function AdminInvoicesPage() {
                             onClick={() => handleTransmit(invoice.id)}
                             disabled={transmitting}
                             className="p-1.5 rounded-lg text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors cursor-pointer disabled:opacity-50"
-                            title="Transmite la e-Factura"
+                            title={t('admin:invoices.actions.transmit')}
                           >
                             <Send className="h-3.5 w-3.5" />
                           </button>
@@ -590,7 +582,7 @@ export default function AdminInvoicesPage() {
                             onClick={() => handleRefreshEfactura(invoice.id)}
                             disabled={refreshing}
                             className="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer disabled:opacity-50"
-                            title="Actualizeaza status e-Factura"
+                            title={t('admin:invoices.actions.refresh')}
                           >
                             <RefreshCw className="h-3.5 w-3.5" />
                           </button>
@@ -600,7 +592,7 @@ export default function AdminInvoicesPage() {
                           onClick={() => handleMarkAsPaid(invoice.id)}
                           disabled={markingPaid}
                           className="p-1.5 rounded-lg text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors cursor-pointer disabled:opacity-50"
-                          title="Marcheaza platita"
+                          title={t('admin:invoices.actions.markPaid')}
                         >
                           <CheckCircle className="h-3.5 w-3.5" />
                         </button>
@@ -614,7 +606,7 @@ export default function AdminInvoicesPage() {
                               setCancelModalOpen(true);
                             }}
                             className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
-                            title="Anuleaza factura"
+                            title={t('admin:invoices.actions.cancel')}
                           >
                             <XCircle className="h-3.5 w-3.5" />
                           </button>
@@ -630,7 +622,7 @@ export default function AdminInvoicesPage() {
                 totalCount={filteredTotal}
                 pageSize={PAGE_SIZE}
                 onPageChange={setPage}
-                noun="facturi"
+                noun={t('admin:invoices.noun')}
               />
             </div>
           </>
@@ -644,13 +636,13 @@ export default function AdminInvoicesPage() {
           setCancelModalOpen(false);
           setCancelInvoiceId(null);
         }}
-        title="Confirma anularea"
+        title={t('admin:invoices.cancelModal.title')}
       >
         <div className="space-y-4">
           <div className="flex items-start gap-3 p-4 rounded-xl bg-red-50 border border-red-200">
             <AlertTriangle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
             <p className="text-sm text-red-700">
-              Esti sigur ca doresti sa anulezi aceasta factura? Aceasta actiune nu poate fi anulata.
+              {t('admin:invoices.cancelModal.warning')}
             </p>
           </div>
           <div className="flex justify-end gap-3 pt-2">
@@ -661,11 +653,11 @@ export default function AdminInvoicesPage() {
                 setCancelInvoiceId(null);
               }}
             >
-              Renunta
+              {t('admin:invoices.cancelModal.dismiss')}
             </Button>
             <Button variant="danger" onClick={handleCancel} loading={cancelling}>
               <XCircle className="h-4 w-4" />
-              Anuleaza factura
+              {t('admin:invoices.cancelModal.confirm')}
             </Button>
           </div>
         </div>
@@ -675,28 +667,28 @@ export default function AdminInvoicesPage() {
       <Modal
         open={commissionModalOpen}
         onClose={() => setCommissionModalOpen(false)}
-        title="Genereaza factura comision"
+        title={t('admin:invoices.commissionModal.title')}
       >
         <div className="space-y-4">
           <Input
-            label="ID Payout (plata lunara)"
+            label={t('admin:invoices.commissionModal.payoutIdLabel')}
             value={payoutIdForCommission}
             onChange={(e) => setPayoutIdForCommission(e.target.value)}
-            placeholder="ex. uuid-payout"
+            placeholder={t('admin:invoices.commissionModal.payoutIdPlaceholder')}
           />
           <p className="text-sm text-gray-500">
-            Se va genera o factura de comision pe baza platii lunare selectate.
+            {t('admin:invoices.commissionModal.description')}
           </p>
           <div className="flex justify-end gap-3 pt-4">
             <Button variant="ghost" onClick={() => setCommissionModalOpen(false)}>
-              Anuleaza
+              {t('admin:invoices.commissionModal.dismiss')}
             </Button>
             <Button
               onClick={handleGenerateCommission}
               loading={generatingCommission}
               disabled={!payoutIdForCommission}
             >
-              Genereaza factura
+              {t('admin:invoices.commissionModal.confirm')}
             </Button>
           </div>
         </div>
@@ -706,46 +698,46 @@ export default function AdminInvoicesPage() {
       <Modal
         open={creditNoteModalOpen}
         onClose={() => setCreditNoteModalOpen(false)}
-        title="Emite nota de credit"
+        title={t('admin:invoices.creditNoteModal.title')}
       >
         <div className="space-y-4">
           <Input
-            label="ID Factura originala"
+            label={t('admin:invoices.creditNoteModal.invoiceIdLabel')}
             value={creditInvoiceId}
             onChange={(e) => setCreditInvoiceId(e.target.value)}
-            placeholder="ex. uuid-factura"
+            placeholder={t('admin:invoices.creditNoteModal.invoiceIdPlaceholder')}
           />
           <Input
-            label="Suma (lei)"
+            label={t('admin:invoices.creditNoteModal.amountLabel')}
             type="number"
             step="0.01"
             min="0"
             value={creditAmount}
             onChange={(e) => setCreditAmount(e.target.value)}
-            placeholder="ex. 150.00"
+            placeholder={t('admin:invoices.creditNoteModal.amountPlaceholder')}
           />
           <div className="w-full">
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Motiv
+              {t('admin:invoices.creditNoteModal.reasonLabel')}
             </label>
             <textarea
               value={creditReason}
               onChange={(e) => setCreditReason(e.target.value)}
               rows={3}
-              placeholder="Descrie motivul notei de credit..."
+              placeholder={t('admin:invoices.creditNoteModal.reasonPlaceholder')}
               className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary resize-none"
             />
           </div>
           <div className="flex justify-end gap-3 pt-4">
             <Button variant="ghost" onClick={() => setCreditNoteModalOpen(false)}>
-              Anuleaza
+              {t('admin:invoices.creditNoteModal.dismiss')}
             </Button>
             <Button
               onClick={handleGenerateCreditNote}
               loading={generatingCredit}
               disabled={!creditInvoiceId || !creditAmount || !creditReason}
             >
-              Emite nota de credit
+              {t('admin:invoices.creditNoteModal.confirm')}
             </Button>
           </div>
         </div>

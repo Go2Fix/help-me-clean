@@ -9,6 +9,7 @@ import (
 	"context"
 	"fmt"
 	"go2fix-backend/internal/graph/model"
+	"go2fix-backend/internal/service/notification"
 	"log"
 	"os"
 
@@ -19,6 +20,17 @@ import (
 // sends a confirmation receipt to the submitter.
 // In non-production environments the message is only logged.
 func (r *mutationResolver) SendContactMessage(ctx context.Context, input model.ContactMessageInput) (bool, error) {
+	// Always send to Slack so the admin sees contact form submissions in all environments.
+	r.NotifSvc.Dispatch(notification.EventContactMessage,
+		notification.Payload{
+			"name":    input.Name,
+			"email":   input.Email,
+			"subject": input.Subject,
+			"message": input.Message,
+		},
+		[]notification.Target{{Email: input.Email, Name: input.Name}},
+	)
+
 	if os.Getenv("ENVIRONMENT") != "production" {
 		log.Printf("[contact] form submission: from=%s (%s) subject=%q message=%q",
 			input.Name, input.Email, input.Subject, input.Message)

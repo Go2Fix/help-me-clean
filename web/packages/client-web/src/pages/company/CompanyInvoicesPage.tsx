@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
+import { useTranslation } from 'react-i18next';
 import {
   FileText,
   Download,
@@ -30,9 +31,9 @@ function formatRON(amountCents: number): string {
   return (amountCents / 100).toFixed(2) + ' lei';
 }
 
-function formatDate(dateStr: string): string {
+function formatDate(dateStr: string, locale: string): string {
   const d = new Date(dateStr);
-  return d.toLocaleDateString('ro-RO', {
+  return d.toLocaleDateString(locale, {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -53,16 +54,6 @@ const invoiceStatusBadge: Record<InvoiceStatus, 'default' | 'info' | 'success' |
   CREDIT_NOTE: 'info',
 };
 
-const invoiceStatusLabel: Record<InvoiceStatus, string> = {
-  DRAFT: 'Ciorna',
-  ISSUED: 'Emisa',
-  SENT: 'Trimisa',
-  TRANSMITTED: 'Transmisa e-Factura',
-  PAID: 'Plătită',
-  CANCELLED: 'Anulata',
-  CREDIT_NOTE: 'Nota de credit',
-};
-
 type EfacturaStatus = 'NOT_SENT' | 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'ERROR';
 
 const efacturaStatusBadge: Record<EfacturaStatus, 'default' | 'warning' | 'success' | 'danger'> = {
@@ -72,25 +63,6 @@ const efacturaStatusBadge: Record<EfacturaStatus, 'default' | 'warning' | 'succe
   REJECTED: 'danger',
   ERROR: 'danger',
 };
-
-const efacturaStatusLabel: Record<EfacturaStatus, string> = {
-  NOT_SENT: 'Netransmisa',
-  PENDING: 'In procesare',
-  ACCEPTED: 'Acceptata',
-  REJECTED: 'Respinsa',
-  ERROR: 'Eroare',
-};
-
-const statusFilterOptions = [
-  { value: '', label: 'Toate statusurile' },
-  { value: 'DRAFT', label: 'Ciorna' },
-  { value: 'ISSUED', label: 'Emisa' },
-  { value: 'SENT', label: 'Trimisa' },
-  { value: 'TRANSMITTED', label: 'Transmisa e-Factura' },
-  { value: 'PAID', label: 'Plătită' },
-  { value: 'CANCELLED', label: 'Anulata' },
-  { value: 'CREDIT_NOTE', label: 'Nota de credit' },
-];
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -129,6 +101,38 @@ type InvoicesTab = 'issued' | 'received';
 const PAGE_SIZE = 20;
 
 export default function CompanyInvoicesPage() {
+  const { t, i18n } = useTranslation(['dashboard', 'company']);
+  const locale = i18n.language === 'en' ? 'en-GB' : 'ro-RO';
+
+  const invoiceStatusLabel: Record<InvoiceStatus, string> = {
+    DRAFT: t('company:invoices.status.draft'),
+    ISSUED: t('company:invoices.status.issued'),
+    SENT: t('company:invoices.status.sent'),
+    TRANSMITTED: t('company:invoices.status.transmitted'),
+    PAID: t('company:invoices.status.paid'),
+    CANCELLED: t('company:invoices.status.cancelled'),
+    CREDIT_NOTE: t('company:invoices.status.creditNote'),
+  };
+
+  const efacturaStatusLabel: Record<EfacturaStatus, string> = {
+    NOT_SENT: t('company:invoices.efactura.notSent'),
+    PENDING: t('company:invoices.efactura.pending'),
+    ACCEPTED: t('company:invoices.efactura.accepted'),
+    REJECTED: t('company:invoices.efactura.rejected'),
+    ERROR: t('company:invoices.efactura.error'),
+  };
+
+  const statusFilterOptions = [
+    { value: '', label: t('company:invoices.allStatuses') },
+    { value: 'DRAFT', label: t('company:invoices.status.draft') },
+    { value: 'ISSUED', label: t('company:invoices.status.issued') },
+    { value: 'SENT', label: t('company:invoices.status.sent') },
+    { value: 'TRANSMITTED', label: t('company:invoices.status.transmitted') },
+    { value: 'PAID', label: t('company:invoices.status.paid') },
+    { value: 'CANCELLED', label: t('company:invoices.status.cancelled') },
+    { value: 'CREDIT_NOTE', label: t('company:invoices.status.creditNote') },
+  ];
+
   const [activeTab, setActiveTab] = useState<InvoicesTab>('issued');
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [issuedPage, setIssuedPage] = useState(0);
@@ -248,15 +252,15 @@ export default function CompanyInvoicesPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Facturi</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t('company:invoices.title')}</h1>
           <p className="text-gray-500 mt-1">
-            Gestionează facturile firmei tale.
+            {t('company:invoices.subtitle')}
           </p>
         </div>
         {activeTab === 'issued' && (
           <Button onClick={() => setGenerateModalOpen(true)} size="sm">
             <Plus className="h-4 w-4" />
-            Genereaza factura
+            {t('company:invoices.generateBtn')}
           </Button>
         )}
       </div>
@@ -273,7 +277,7 @@ export default function CompanyInvoicesPage() {
               : 'border-transparent text-gray-500 hover:text-gray-700',
           )}
         >
-          Facturi emise
+          {t('company:invoices.tabIssued')}
         </button>
         <button
           type="button"
@@ -285,7 +289,7 @@ export default function CompanyInvoicesPage() {
               : 'border-transparent text-gray-500 hover:text-gray-700',
           )}
         >
-          Facturi primite
+          {t('company:invoices.tabReceived')}
         </button>
       </div>
 
@@ -299,7 +303,7 @@ export default function CompanyInvoicesPage() {
                 options={statusFilterOptions}
                 value={statusFilter}
                 onChange={(e) => { setStatusFilter(e.target.value); setIssuedPage(0); }}
-                label="Filtrează după status"
+                label={t('company:invoices.filterStatus')}
               />
             </div>
           </div>
@@ -307,13 +311,13 @@ export default function CompanyInvoicesPage() {
           {/* Invoice table */}
           <Card padding={false}>
             {loading ? (
-              <LoadingSpinner text="Se incarca facturile..." />
+              <LoadingSpinner text={t('company:invoices.loadingIssued')} />
             ) : invoices.length === 0 ? (
               <div className="text-center py-12 px-6">
                 <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-1">Nicio factura</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-1">{t('company:invoices.emptyIssued')}</h3>
                 <p className="text-gray-500">
-                  Nu exista facturi {statusFilter ? 'pentru filtrul selectat' : 'inregistrate inca'}.
+                  {statusFilter ? t('company:invoices.emptyIssuedFilter') : t('company:invoices.emptyIssuedNone')}
                 </p>
               </div>
             ) : (
@@ -322,25 +326,25 @@ export default function CompanyInvoicesPage() {
                   <thead>
                     <tr className="border-y border-gray-100">
                       <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase">
-                        Nr. factura
+                        {t('company:invoices.colNumber')}
                       </th>
                       <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">
-                        Data
+                        {t('company:invoices.colDate')}
                       </th>
                       <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase hidden md:table-cell">
-                        Cumparator
+                        {t('company:invoices.colBuyer')}
                       </th>
                       <th className="text-right px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase">
-                        Suma
+                        {t('company:invoices.colAmount')}
                       </th>
                       <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase">
-                        Status
+                        {t('company:invoices.colStatus')}
                       </th>
                       <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase hidden lg:table-cell">
-                        E-Factura
+                        {t('company:invoices.colEfactura')}
                       </th>
                       <th className="px-2 md:px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">
-                        Actiuni
+                        {t('company:invoices.colActions')}
                       </th>
                     </tr>
                   </thead>
@@ -356,7 +360,7 @@ export default function CompanyInvoicesPage() {
                           </div>
                         </td>
                         <td className="px-3 md:px-6 py-3 md:py-4 text-gray-600 hidden sm:table-cell">
-                          {formatDate(invoice.issuedAt || invoice.createdAt)}
+                          {formatDate(invoice.issuedAt || invoice.createdAt, locale)}
                         </td>
                         <td className="px-3 md:px-6 py-3 md:py-4 text-gray-900 hidden md:table-cell">
                           {invoice.buyerName || '--'}
@@ -389,7 +393,7 @@ export default function CompanyInvoicesPage() {
                               <button
                                 onClick={() => handleDownload(invoice.downloadUrl!)}
                                 className="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer"
-                                title="Descarca PDF"
+                                title={t('company:invoices.downloadPdf')}
                               >
                                 <Download className="h-4 w-4" />
                               </button>
@@ -402,7 +406,7 @@ export default function CompanyInvoicesPage() {
                                   onClick={() => handleTransmit(invoice.id)}
                                   disabled={transmitting}
                                   className="p-1.5 rounded-lg text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors cursor-pointer disabled:opacity-50"
-                                  title="Transmite la e-Factura"
+                                  title={t('company:invoices.transmitEfactura')}
                                 >
                                   <Send className="h-4 w-4" />
                                 </button>
@@ -411,7 +415,7 @@ export default function CompanyInvoicesPage() {
                               <button
                                 onClick={() => openCancelModal(invoice.id)}
                                 className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
-                                title="Anuleaza factura"
+                                title={t('company:invoices.cancelInvoice')}
                               >
                                 <XCircle className="h-4 w-4" />
                               </button>
@@ -430,7 +434,12 @@ export default function CompanyInvoicesPage() {
           {issuedTotalCount > 0 && (
             <div className="flex flex-wrap items-center justify-between gap-3 mt-6">
               <span className="text-sm text-gray-500">
-                {issuedTotalCount} {issuedTotalCount === 1 ? 'factura' : 'facturi'} &middot; Pagina {issuedPage + 1} din {issuedTotalPages}
+                {t('company:invoices.pagination', {
+                  total: issuedTotalCount,
+                  noun: issuedTotalCount === 1 ? t('company:invoices.invoiceNoun') : t('company:invoices.invoicesNoun'),
+                  page: issuedPage + 1,
+                  totalPages: issuedTotalPages,
+                })}
               </span>
               {issuedTotalPages > 1 && (
                 <div className="flex items-center gap-2">
@@ -440,7 +449,7 @@ export default function CompanyInvoicesPage() {
                     disabled={issuedPage === 0}
                     onClick={() => setIssuedPage((p) => p - 1)}
                   >
-                    Anterior
+                    {t('pagination.previous')}
                   </Button>
                   <Button
                     variant="outline"
@@ -448,7 +457,7 @@ export default function CompanyInvoicesPage() {
                     disabled={!issuedHasNext}
                     onClick={() => setIssuedPage((p) => p + 1)}
                   >
-                    Urmator
+                    {t('pagination.next')}
                   </Button>
                 </div>
               )}
@@ -462,13 +471,13 @@ export default function CompanyInvoicesPage() {
         <>
         <Card padding={false}>
           {receivedLoading ? (
-            <LoadingSpinner text="Se incarca facturile primite..." />
+            <LoadingSpinner text={t('company:invoices.loadingReceived')} />
           ) : receivedInvoices.length === 0 ? (
             <div className="text-center py-12 px-6">
               <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-1">Nicio factura primita</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-1">{t('company:invoices.emptyReceived')}</h3>
               <p className="text-gray-500">
-                Nu exista facturi de comision primite de la Go2Fix.
+                {t('company:invoices.emptyReceivedDesc')}
               </p>
             </div>
           ) : (
@@ -478,22 +487,22 @@ export default function CompanyInvoicesPage() {
                   <thead>
                     <tr className="border-y border-gray-100">
                       <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase">
-                        Nr. factura
+                        {t('company:invoices.colNumber')}
                       </th>
                       <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">
-                        Data
+                        {t('company:invoices.colDate')}
                       </th>
                       <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase hidden md:table-cell">
-                        Emitent
+                        {t('company:invoices.colIssuer')}
                       </th>
                       <th className="text-right px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase">
-                        Suma
+                        {t('company:invoices.colAmount')}
                       </th>
                       <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase">
-                        Status
+                        {t('company:invoices.colStatus')}
                       </th>
                       <th className="px-2 md:px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">
-                        Descarca
+                        {t('company:invoices.colDownload')}
                       </th>
                     </tr>
                   </thead>
@@ -509,7 +518,7 @@ export default function CompanyInvoicesPage() {
                           </div>
                         </td>
                         <td className="px-3 md:px-6 py-3 md:py-4 text-gray-600 hidden sm:table-cell">
-                          {formatDate(invoice.issuedAt || invoice.createdAt)}
+                          {formatDate(invoice.issuedAt || invoice.createdAt, locale)}
                         </td>
                         <td className="px-3 md:px-6 py-3 md:py-4 text-gray-900 hidden md:table-cell">
                           {invoice.sellerCompanyName}
@@ -528,7 +537,7 @@ export default function CompanyInvoicesPage() {
                               <button
                                 onClick={() => handleDownload(invoice.downloadUrl!)}
                                 className="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer"
-                                title="Descarca PDF"
+                                title={t('company:invoices.downloadPdf')}
                               >
                                 <Download className="h-4 w-4" />
                               </button>
@@ -550,7 +559,12 @@ export default function CompanyInvoicesPage() {
         {receivedTotalCount > 0 && (
           <div className="flex flex-wrap items-center justify-between gap-3 mt-6">
             <span className="text-sm text-gray-500">
-              {receivedTotalCount} {receivedTotalCount === 1 ? 'factura' : 'facturi'} &middot; Pagina {receivedPage + 1} din {receivedTotalPages}
+              {t('company:invoices.pagination', {
+                  total: receivedTotalCount,
+                  noun: receivedTotalCount === 1 ? t('company:invoices.invoiceNoun') : t('company:invoices.invoicesNoun'),
+                  page: receivedPage + 1,
+                  totalPages: receivedTotalPages,
+                })}
             </span>
             {receivedTotalPages > 1 && (
               <div className="flex items-center gap-2">
@@ -560,7 +574,7 @@ export default function CompanyInvoicesPage() {
                   disabled={receivedPage === 0}
                   onClick={() => setReceivedPage((p) => p - 1)}
                 >
-                  Anterior
+                  {t('pagination.previous')}
                 </Button>
                 <Button
                   variant="outline"
@@ -568,7 +582,7 @@ export default function CompanyInvoicesPage() {
                   disabled={!receivedHasNext}
                   onClick={() => setReceivedPage((p) => p + 1)}
                 >
-                  Urmator
+                  {t('pagination.next')}
                 </Button>
               </div>
             )}
@@ -584,17 +598,17 @@ export default function CompanyInvoicesPage() {
           setGenerateModalOpen(false);
           setGenerateBookingId('');
         }}
-        title="Genereaza factura"
+        title={t('company:invoices.generateModal.title')}
       >
         <div className="space-y-4">
           <p className="text-sm text-gray-600">
-            Introdu ID-ul rezervarii finalizate pentru care doresti sa generezi o factura.
+            {t('company:invoices.generateModal.desc')}
           </p>
           <Input
-            label="ID Rezervare"
+            label={t('company:invoices.generateModal.idLabel')}
             value={generateBookingId}
             onChange={(e) => setGenerateBookingId(e.target.value)}
-            placeholder="ex: abc123-def456..."
+            placeholder={t('company:invoices.generateModal.idPlaceholder')}
           />
           <div className="flex gap-3 pt-2">
             <Button
@@ -605,7 +619,7 @@ export default function CompanyInvoicesPage() {
               }}
               className="flex-1"
             >
-              Anuleaza
+              {t('company:invoices.generateModal.cancel')}
             </Button>
             <Button
               onClick={handleGenerate}
@@ -614,7 +628,7 @@ export default function CompanyInvoicesPage() {
               className="flex-1"
             >
               <FileText className="h-4 w-4" />
-              Genereaza
+              {t('company:invoices.generateModal.generate')}
             </Button>
           </div>
         </div>
@@ -627,13 +641,13 @@ export default function CompanyInvoicesPage() {
           setCancelModalOpen(false);
           setCancelInvoiceId(null);
         }}
-        title="Confirma anularea"
+        title={t('company:invoices.cancelModal.title')}
       >
         <div className="space-y-4">
           <div className="flex items-start gap-3 p-4 rounded-xl bg-red-50 border border-red-200">
             <AlertTriangle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
             <p className="text-sm text-red-700">
-              Esti sigur ca doresti sa anulezi aceasta factura? Aceasta actiune nu poate fi anulata.
+              {t('company:invoices.cancelModal.warning')}
             </p>
           </div>
           <div className="flex gap-3 pt-2">
@@ -645,7 +659,7 @@ export default function CompanyInvoicesPage() {
               }}
               className="flex-1"
             >
-              Renunta
+              {t('company:invoices.cancelModal.cancel')}
             </Button>
             <Button
               variant="danger"
@@ -654,7 +668,7 @@ export default function CompanyInvoicesPage() {
               className="flex-1"
             >
               <XCircle className="h-4 w-4" />
-              Anuleaza factura
+              {t('company:invoices.cancelModal.confirm')}
             </Button>
           </div>
         </div>

@@ -1,6 +1,7 @@
 import { useState, useMemo, lazy, Suspense } from 'react';
 import { useQuery } from '@apollo/client';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Banknote,
   TrendingUp,
@@ -43,56 +44,6 @@ function getMonthRange(): { from: string; to: string } {
     to: toDateStr(new Date(now.getFullYear(), now.getMonth() + 1, 0)),
   };
 }
-
-// ─── Date Presets ──────────────────────────────────────────────────────────
-
-interface DatePreset {
-  label: string;
-  getRange: () => { from: string; to: string };
-}
-
-const datePresets: DatePreset[] = [
-  {
-    label: 'Luna aceasta',
-    getRange: () => {
-      const now = new Date();
-      return {
-        from: toDateStr(new Date(now.getFullYear(), now.getMonth(), 1)),
-        to: toDateStr(new Date(now.getFullYear(), now.getMonth() + 1, 0)),
-      };
-    },
-  },
-  {
-    label: 'Luna trecuta',
-    getRange: () => {
-      const now = new Date();
-      return {
-        from: toDateStr(new Date(now.getFullYear(), now.getMonth() - 1, 1)),
-        to: toDateStr(new Date(now.getFullYear(), now.getMonth(), 0)),
-      };
-    },
-  },
-  {
-    label: '3 Luni',
-    getRange: () => {
-      const now = new Date();
-      return {
-        from: toDateStr(new Date(now.getFullYear(), now.getMonth() - 2, 1)),
-        to: toDateStr(new Date(now.getFullYear(), now.getMonth() + 1, 0)),
-      };
-    },
-  },
-  {
-    label: '6 Luni',
-    getRange: () => {
-      const now = new Date();
-      return {
-        from: toDateStr(new Date(now.getFullYear(), now.getMonth() - 5, 1)),
-        to: toDateStr(new Date(now.getFullYear(), now.getMonth() + 1, 0)),
-      };
-    },
-  },
-];
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -140,33 +91,9 @@ const paymentStatusDotColor: Record<string, string> = {
   PARTIALLY_REFUNDED: 'bg-amber-400',
 };
 
-const paymentStatusLabel: Record<string, string> = {
-  PENDING: 'In asteptare',
-  PROCESSING: 'Se proceseaza',
-  SUCCEEDED: 'Reusita',
-  FAILED: 'Esuata',
-  REFUNDED: 'Rambursata',
-  PARTIALLY_REFUNDED: 'Rambursata partial',
-};
-
-const statusOptions = [
-  { value: '', label: 'Toate statusurile' },
-  { value: 'PENDING', label: 'In asteptare' },
-  { value: 'PROCESSING', label: 'Se proceseaza' },
-  { value: 'SUCCEEDED', label: 'Reusita' },
-  { value: 'FAILED', label: 'Esuata' },
-  { value: 'REFUNDED', label: 'Rambursata' },
-];
-
 // ─── Sub-Tabs ──────────────────────────────────────────────────────────────
 
 type PaymentsTab = 'summary' | 'payouts' | 'refunds';
-
-const tabOptions = [
-  { value: 'summary', label: 'Sumar tranzactii' },
-  { value: 'payouts', label: 'Plati companii' },
-  { value: 'refunds', label: 'Rambursari' },
-];
 
 // ─── Tab loading fallback ──────────────────────────────────────────────────
 
@@ -191,6 +118,68 @@ function TabSkeleton() {
 
 export default function PaymentsPage() {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation(['dashboard', 'admin']);
+
+  const locale = i18n.language === 'en' ? 'en-GB' : 'ro-RO';
+
+  const tabOptions = [
+    { value: 'summary', label: t('admin:payments.tabs.summary') },
+    { value: 'payouts', label: t('admin:payments.tabs.payouts') },
+    { value: 'refunds', label: t('admin:payments.tabs.refunds') },
+  ];
+
+  const statusOptions = [
+    { value: '', label: t('admin:payments.allStatuses') },
+    { value: 'PENDING', label: t('admin:payments.statusLabels.PENDING') },
+    { value: 'PROCESSING', label: t('admin:payments.statusLabels.PROCESSING') },
+    { value: 'SUCCEEDED', label: t('admin:payments.statusLabels.SUCCEEDED') },
+    { value: 'FAILED', label: t('admin:payments.statusLabels.FAILED') },
+    { value: 'REFUNDED', label: t('admin:payments.statusLabels.REFUNDED') },
+  ];
+
+  const datePresets = [
+    {
+      label: t('admin:payments.presets.thisMonth'),
+      getRange: () => {
+        const now = new Date();
+        return {
+          from: toDateStr(new Date(now.getFullYear(), now.getMonth(), 1)),
+          to: toDateStr(new Date(now.getFullYear(), now.getMonth() + 1, 0)),
+        };
+      },
+    },
+    {
+      label: t('admin:payments.presets.lastMonth'),
+      getRange: () => {
+        const now = new Date();
+        return {
+          from: toDateStr(new Date(now.getFullYear(), now.getMonth() - 1, 1)),
+          to: toDateStr(new Date(now.getFullYear(), now.getMonth(), 0)),
+        };
+      },
+    },
+    {
+      label: t('admin:payments.presets.threeMonths'),
+      getRange: () => {
+        const now = new Date();
+        return {
+          from: toDateStr(new Date(now.getFullYear(), now.getMonth() - 2, 1)),
+          to: toDateStr(new Date(now.getFullYear(), now.getMonth() + 1, 0)),
+        };
+      },
+    },
+    {
+      label: t('admin:payments.presets.sixMonths'),
+      getRange: () => {
+        const now = new Date();
+        return {
+          from: toDateStr(new Date(now.getFullYear(), now.getMonth() - 5, 1)),
+          to: toDateStr(new Date(now.getFullYear(), now.getMonth() + 1, 0)),
+        };
+      },
+    },
+  ];
+
   const [activeTab, setActiveTab] = useState<PaymentsTab>('summary');
   const defaults = getMonthRange();
   const [dateFrom, setDateFrom] = useState(defaults.from);
@@ -237,19 +226,27 @@ export default function PaymentsPage() {
     setPage(0);
   }
 
-  function applyPreset(preset: DatePreset) {
+  function applyPreset(preset: { label: string; getRange: () => { from: string; to: string } }) {
     const range = preset.getRange();
     setDateFrom(range.from);
     setDateTo(range.to);
   }
 
+  const metricsItems = report ? [
+    { icon: Banknote, label: t('admin:payments.metrics.totalRevenue'), value: formatCents(report.totalRevenue) },
+    { icon: TrendingUp, label: t('admin:payments.metrics.platformCommission'), value: formatCents(report.totalCommission) },
+    { icon: ArrowDownRight, label: t('admin:payments.metrics.companyPayouts'), value: formatCents(report.totalPayouts) },
+    { icon: Clock, label: t('admin:payments.metrics.pending'), value: formatCents(report.pendingPayouts) },
+    { icon: RotateCcw, label: t('admin:payments.metrics.refunds'), value: formatCents(report.totalRefunds) },
+  ] : [];
+
   return (
     <div>
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Plati si Venituri</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t('admin:payments.title')}</h1>
         <p className="text-gray-500 mt-1">
-          Raport financiar si tranzactii pe platforma.
+          {t('admin:payments.subtitle')}
         </p>
       </div>
 
@@ -311,13 +308,7 @@ export default function PaymentsPage() {
         ) : report ? (
           <Card className="mb-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-x-6 gap-y-1 divide-y md:divide-y-0 md:divide-x divide-gray-100">
-              {[
-                { icon: Banknote, label: 'Venit total', value: formatCents(report.totalRevenue) },
-                { icon: TrendingUp, label: 'Comision platforma', value: formatCents(report.totalCommission) },
-                { icon: ArrowDownRight, label: 'Plati companii', value: formatCents(report.totalPayouts) },
-                { icon: Clock, label: 'In asteptare', value: formatCents(report.pendingPayouts) },
-                { icon: RotateCcw, label: 'Rambursari', value: formatCents(report.totalRefunds) },
-              ].map((item, idx) => (
+              {metricsItems.map((item, idx) => (
                 <div key={idx} className={`flex items-center gap-3 py-3 ${idx > 0 ? 'md:pl-6' : ''}`}>
                   <div className="h-9 w-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
                     <item.icon className="h-4.5 w-4.5 text-gray-500" />
@@ -346,22 +337,22 @@ export default function PaymentsPage() {
             variant="outline"
             size="sm"
             onClick={() => exportToCSV(
-              allTransactions.map((t) => ({
-                'ID Tranzactie': t.id,
-                'Cod Rezervare': t.booking?.referenceCode ?? '',
-                'Serviciu': t.booking?.serviceName ?? '',
-                'Companie': t.booking?.company?.companyName ?? '',
-                'Suma Totala (lei)': (t.amountTotal / 100).toFixed(2),
-                'Comision (lei)': (t.amountPlatformFee / 100).toFixed(2),
-                'Suma Companie (lei)': (t.amountCompany / 100).toFixed(2),
-                'Status': t.status,
-                'Data': new Date(t.createdAt).toLocaleDateString('ro-RO'),
+              allTransactions.map((tx) => ({
+                [t('admin:payments.csvColumns.transactionId')]: tx.id,
+                [t('admin:payments.csvColumns.bookingCode')]: tx.booking?.referenceCode ?? '',
+                [t('admin:payments.csvColumns.service')]: tx.booking?.serviceName ?? '',
+                [t('admin:payments.csvColumns.company')]: tx.booking?.company?.companyName ?? '',
+                [t('admin:payments.csvColumns.totalAmount')]: (tx.amountTotal / 100).toFixed(2),
+                [t('admin:payments.csvColumns.commission')]: (tx.amountPlatformFee / 100).toFixed(2),
+                [t('admin:payments.csvColumns.companyAmount')]: (tx.amountCompany / 100).toFixed(2),
+                [t('admin:payments.csvColumns.status')]: tx.status,
+                [t('admin:payments.csvColumns.date')]: new Date(tx.createdAt).toLocaleDateString(locale),
               })),
               `tranzactii-${new Date().toISOString().slice(0, 10)}.csv`
             )}
           >
             <Download className="h-4 w-4" />
-            Export CSV
+            {t('admin:payments.exportCsv')}
           </Button>
         </div>
 
@@ -379,7 +370,7 @@ export default function PaymentsPage() {
               ))}
             </div>
           ) : paginatedTransactions.length === 0 ? (
-            <p className="text-center text-gray-400 py-12">Nu exista tranzactii.</p>
+            <p className="text-center text-gray-400 py-12">{t('admin:payments.empty')}</p>
           ) : (
             <>
               <div className="divide-y divide-gray-100">
@@ -411,7 +402,7 @@ export default function PaymentsPage() {
                       {formatCents(tx.amountTotal)}
                     </span>
                     <span className="text-xs text-gray-500 shrink-0 w-24 text-right hidden sm:block">
-                      {paymentStatusLabel[tx.status] ?? tx.status}
+                      {t(`admin:payments.statusLabels.${tx.status}`, { defaultValue: tx.status })}
                     </span>
                   </div>
                 ))}
@@ -422,7 +413,7 @@ export default function PaymentsPage() {
                   totalCount={totalCount}
                   pageSize={PAGE_SIZE}
                   onPageChange={setPage}
-                  noun="tranzactii"
+                  noun={t('admin:payments.noun')}
                 />
               </div>
             </>

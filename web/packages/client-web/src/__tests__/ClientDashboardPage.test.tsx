@@ -169,7 +169,7 @@ describe('ClientDashboardPage', () => {
   it('shows KPI card labels', () => {
     setupDefaultQueries();
     renderPage();
-    expect(screen.getByText('Total rezervari')).toBeInTheDocument();
+    expect(screen.getByText('Total rezervări')).toBeInTheDocument();
     expect(screen.getByText('Active')).toBeInTheDocument();
     // "Abonamente" appears in both KPI card and section heading
     expect(screen.getAllByText('Abonamente').length).toBeGreaterThanOrEqual(1);
@@ -187,7 +187,7 @@ describe('ClientDashboardPage', () => {
   it('shows "Urmatoarele comenzi" section heading', () => {
     setupDefaultQueries();
     renderPage();
-    expect(screen.getByText('Urmatoarele comenzi')).toBeInTheDocument();
+    expect(screen.getByText('Următoarele comenzi')).toBeInTheDocument();
   });
 
   it('shows empty state when no upcoming bookings', () => {
@@ -215,13 +215,13 @@ describe('ClientDashboardPage', () => {
   it('shows quick actions section', () => {
     setupDefaultQueries();
     renderPage();
-    expect(screen.getByText('Actiuni rapide')).toBeInTheDocument();
+    expect(screen.getByText('Acțiuni rapide')).toBeInTheDocument();
     expect(screen.getByText('Comenzile mele')).toBeInTheDocument();
   });
 
   it('shows "Rezervare noua" button', () => {
     setupDefaultQueries();
     renderPage();
-    expect(screen.getByText('Rezervare noua')).toBeInTheDocument();
+    expect(screen.getByText('Rezervare nouă')).toBeInTheDocument();
   });
 });

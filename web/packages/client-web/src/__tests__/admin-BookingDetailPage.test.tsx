@@ -139,23 +139,23 @@ describe('BookingDetailPage', () => {
   it('shows "Asigneaza lucrator" button for ASSIGNED booking without worker', () => {
     mockBooking({ status: 'ASSIGNED', worker: null });
     renderPage();
-    expect(screen.getByText('Asigneaza lucrator')).toBeInTheDocument();
+    expect(screen.getByText('Asignează lucrător')).toBeInTheDocument();
   });
 
-  it('does not show "Asigneaza lucrator" button when worker is assigned', () => {
+  it('does not show "Asignează lucrător" button when worker is assigned', () => {
     mockBooking({
       status: 'ASSIGNED',
       worker: { id: 'cl1', fullName: 'Ion Popescu', phone: '0733111222' },
     });
     renderPage();
-    expect(screen.queryByText('Asigneaza lucrator')).not.toBeInTheDocument();
+    expect(screen.queryByText('Asignează lucrător')).not.toBeInTheDocument();
     expect(screen.getByText('Ion Popescu')).toBeInTheDocument();
   });
 
-  it('does not show "Asigneaza lucrator" button for COMPLETED bookings', () => {
+  it('does not show "Asignează lucrător" button for COMPLETED bookings', () => {
     mockBooking({ status: 'COMPLETED', worker: null });
     renderPage();
-    expect(screen.queryByText('Asigneaza lucrator')).not.toBeInTheDocument();
+    expect(screen.queryByText('Asignează lucrător')).not.toBeInTheDocument();
   });
 
   it('shows "Înapoi la comenzi" on not-found page navigating to /admin/comenzi', () => {

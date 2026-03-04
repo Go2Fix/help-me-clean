@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@apollo/client';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ClipboardList, ChevronRight, Search, Repeat } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
@@ -44,33 +45,6 @@ const statusBadgeVariant: Record<string, 'default' | 'success' | 'warning' | 'da
   CANCELLED_BY_ADMIN: 'danger',
 };
 
-const statusLabel: Record<string, string> = {
-  ASSIGNED: 'Asignata',
-  CONFIRMED: 'Confirmata',
-  IN_PROGRESS: 'In desfasurare',
-  COMPLETED: 'Finalizata',
-  CANCELLED_BY_CLIENT: 'Anulata de client',
-  CANCELLED_BY_COMPANY: 'Anulata de firma',
-  CANCELLED_BY_ADMIN: 'Anulata de admin',
-};
-
-const statusFilterOptions = [
-  { value: '', label: 'Toate statusurile' },
-  { value: 'CONFIRMED', label: 'Confirmata' },
-  { value: 'IN_PROGRESS', label: 'In desfasurare' },
-  { value: 'COMPLETED', label: 'Finalizata' },
-  { value: 'CANCELLED', label: 'Anulata' },
-];
-
-function formatDate(dateStr: string): string {
-  const d = new Date(dateStr + 'T00:00:00');
-  return d.toLocaleDateString('ro-RO', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  });
-}
-
 function formatRON(amount: string): string {
   return amount + ' lei';
 }
@@ -79,6 +53,26 @@ function formatRON(amount: string): string {
 
 export default function OrdersPage() {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation(['dashboard', 'company']);
+
+  const locale = i18n.language === 'en' ? 'en-GB' : 'ro-RO';
+
+  function formatDate(dateStr: string): string {
+    const d = new Date(dateStr + 'T00:00:00');
+    return d.toLocaleDateString(locale, {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
+  }
+
+  const statusFilterOptions = [
+    { value: '', label: t('company:orders.allStatuses') },
+    { value: 'CONFIRMED', label: t('bookingStatus.CONFIRMED') },
+    { value: 'IN_PROGRESS', label: t('bookingStatus.IN_PROGRESS') },
+    { value: 'COMPLETED', label: t('bookingStatus.COMPLETED') },
+    { value: 'CANCELLED', label: t('bookingStatus.CANCELLED') },
+  ];
 
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -113,12 +107,14 @@ export default function OrdersPage() {
   const totalCount: number = data?.searchCompanyBookings?.totalCount ?? 0;
   const totalPages = Math.max(1, Math.ceil(totalCount / LIMIT));
 
+  const statusLabel = (status: string) => t(`bookingStatus.${status}`) || status;
+
   return (
     <div className="max-w-full overflow-hidden">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Comenzi</h1>
-        <p className="text-gray-500 mt-1">Gestionează comenzile firmei tale.</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('company:orders.title')}</h1>
+        <p className="text-gray-500 mt-1">{t('company:orders.subtitle')}</p>
       </div>
 
       {/* Filters */}
@@ -128,7 +124,7 @@ export default function OrdersPage() {
             options={statusFilterOptions}
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            label="Filtrează după status"
+            label={t('company:orders.filterStatus')}
           />
         </div>
         <div className="relative flex-1 w-full min-w-0">
@@ -136,7 +132,7 @@ export default function OrdersPage() {
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Cauta dupa cod referinta..."
+            placeholder={t('company:orders.searchPlaceholder')}
             className="pl-9"
           />
         </div>
@@ -146,7 +142,7 @@ export default function OrdersPage() {
               type="date"
               value={dateFrom}
               onChange={(e) => setDateFrom(e.target.value)}
-              label="De la"
+              label={t('company:orders.dateFrom')}
               className="appearance-none px-2 sm:px-4"
             />
           </div>
@@ -155,7 +151,7 @@ export default function OrdersPage() {
               type="date"
               value={dateTo}
               onChange={(e) => setDateTo(e.target.value)}
-              label="Pana la"
+              label={t('company:orders.dateTo')}
               className="appearance-none px-2 sm:px-4"
             />
           </div>
@@ -165,22 +161,22 @@ export default function OrdersPage() {
       {/* Table Card */}
       <Card padding={false}>
         {loading ? (
-          <LoadingSpinner text="Se incarca comenzile..." />
+          <LoadingSpinner text={t('company:orders.loading')} />
         ) : bookings.length === 0 ? (
           <div className="text-center py-12 px-6">
             <ClipboardList className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-1">Nicio comanda</h3>
-            <p className="text-gray-500">Nu exista comenzi pentru filtrul selectat.</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-1">{t('company:orders.empty')}</h3>
+            <p className="text-gray-500">{t('company:orders.emptyFilter')}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-y border-gray-100">
-                  <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Cod</th>
-                  <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">Data</th>
-                  <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Status</th>
-                  <th className="text-right px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Pret</th>
+                  <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase">{t('company:orders.colCode')}</th>
+                  <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">{t('company:orders.colDate')}</th>
+                  <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase">{t('company:orders.colStatus')}</th>
+                  <th className="text-right px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase">{t('company:orders.colPrice')}</th>
                   <th className="px-2 md:px-6 py-3 w-8 md:w-10" />
                 </tr>
               </thead>
@@ -199,12 +195,12 @@ export default function OrdersPage() {
                         {!!booking.recurringGroupId && (
                           <span className="text-xs font-medium text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
                             <Repeat className="h-3 w-3" />
-                            <span className="hidden md:inline">Recurent</span>
+                            <span className="hidden md:inline">{t('company:orders.recurring')}</span>
                           </span>
                         )}
                         {booking.category && (
                           <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-medium">
-                            {booking.category.icon} {booking.category.nameRo}
+                            {booking.category.icon} {i18n.language === 'en' ? booking.category.nameEn : booking.category.nameRo}
                           </span>
                         )}
                       </div>
@@ -214,7 +210,7 @@ export default function OrdersPage() {
                     </td>
                     <td className="px-3 md:px-6 py-3 md:py-4">
                       <Badge variant={statusBadgeVariant[booking.status || 'CONFIRMED']}>
-                        {statusLabel[booking.status || 'CONFIRMED'] || booking.status}
+                        {statusLabel(booking.status || 'CONFIRMED')}
                       </Badge>
                     </td>
                     <td className="px-3 md:px-6 py-3 md:py-4 text-right font-bold text-gray-900 text-xs md:text-sm whitespace-nowrap">
@@ -235,7 +231,12 @@ export default function OrdersPage() {
       {totalCount > 0 && (
         <div className="flex flex-wrap items-center justify-between gap-3 mt-6">
           <span className="text-sm text-gray-500">
-            {totalCount} {totalCount === 1 ? 'comanda' : 'comenzi'} &middot; Pagina {page + 1} din {totalPages}
+            {t('company:orders.pagination', {
+              total: totalCount,
+              noun: totalCount === 1 ? t('company:orders.orderNoun') : t('company:orders.ordersNoun'),
+              page: page + 1,
+              totalPages,
+            })}
           </span>
           {totalPages > 1 && (
             <div className="flex items-center gap-2">
@@ -245,7 +246,7 @@ export default function OrdersPage() {
                 disabled={page === 0}
                 onClick={() => setPage((p) => p - 1)}
               >
-                Anterior
+                {t('pagination.previous')}
               </Button>
               <Button
                 variant="outline"
@@ -253,7 +254,7 @@ export default function OrdersPage() {
                 disabled={page >= totalPages - 1}
                 onClick={() => setPage((p) => p + 1)}
               >
-                Urmator
+                {t('pagination.next')}
               </Button>
             </div>
           )}

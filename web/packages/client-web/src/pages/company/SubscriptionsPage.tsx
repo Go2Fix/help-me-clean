@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@apollo/client';
+import { useTranslation } from 'react-i18next';
 import {
   Repeat,
   Users,
@@ -57,14 +58,6 @@ const statusBadgeVariant: Record<SubscriptionStatus, 'success' | 'warning' | 'da
   INCOMPLETE: 'default',
 };
 
-const statusLabel: Record<SubscriptionStatus, string> = {
-  ACTIVE: 'Activ',
-  PAUSED: 'In pauza',
-  PAST_DUE: 'Restant',
-  CANCELLED: 'Anulat',
-  INCOMPLETE: 'Incomplet',
-};
-
 const statusDotColor: Record<SubscriptionStatus, string> = {
   ACTIVE: 'bg-emerald-500',
   PAUSED: 'bg-amber-500',
@@ -73,19 +66,13 @@ const statusDotColor: Record<SubscriptionStatus, string> = {
   INCOMPLETE: 'bg-gray-300',
 };
 
-const recurrenceLabel: Record<string, string> = {
-  WEEKLY: 'Saptamanal',
-  BIWEEKLY: 'Bi-saptamanal',
-  MONTHLY: 'Lunar',
-};
-
 function formatRON(amount: number): string {
   return Number(amount).toFixed(2) + ' lei';
 }
 
-function formatDate(dateStr: string): string {
+function formatDate(dateStr: string, locale: string): string {
   const d = new Date(dateStr);
-  return d.toLocaleDateString('ro-RO', {
+  return d.toLocaleDateString(locale, {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -130,6 +117,23 @@ function TableSkeleton() {
 
 export default function CompanySubscriptionsPage() {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation(['dashboard', 'company']);
+  const locale = i18n.language === 'en' ? 'en-GB' : 'ro-RO';
+
+  const statusLabel: Record<SubscriptionStatus, string> = {
+    ACTIVE: t('company:subscriptions.status.active'),
+    PAUSED: t('company:subscriptions.status.paused'),
+    PAST_DUE: t('company:subscriptions.status.pastDue'),
+    CANCELLED: t('company:subscriptions.status.cancelled'),
+    INCOMPLETE: t('company:subscriptions.status.incomplete'),
+  };
+
+  const recurrenceLabel: Record<string, string> = {
+    WEEKLY: t('company:subscriptions.recurrence.weekly'),
+    BIWEEKLY: t('company:subscriptions.recurrence.biweekly'),
+    MONTHLY: t('company:subscriptions.recurrence.monthly'),
+  };
+
   const { data, loading } = useQuery(COMPANY_SUBSCRIPTIONS, {
     variables: { limit: 50, offset: 0 },
   });
@@ -154,9 +158,9 @@ export default function CompanySubscriptionsPage() {
     <div className="max-w-full overflow-hidden">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Abonamente clienti</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t('company:subscriptions.title')}</h1>
         <p className="text-gray-500 mt-1">
-          Vizualizeaza abonamentele active ale clientilor firmei tale.
+          {t('company:subscriptions.subtitle')}
         </p>
       </div>
 
@@ -178,12 +182,12 @@ export default function CompanySubscriptionsPage() {
       ) : (
         <Card className="mb-8">
           <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-1 divide-y md:divide-y-0 md:divide-x divide-gray-100">
-            <Metric icon={Users} label="Total abonamente" value={totalCount} />
+            <Metric icon={Users} label={t('company:subscriptions.kpi.total')} value={totalCount} />
             <div className="pt-3 md:pt-0 md:pl-6">
-              <Metric icon={Repeat} label="Active" value={activeCount} />
+              <Metric icon={Repeat} label={t('company:subscriptions.kpi.active')} value={activeCount} />
             </div>
             <div className="pt-3 md:pt-0 md:pl-6">
-              <Metric icon={TrendingUp} label="Venit lunar recurent" value={formatRON(monthlyRecurring)} />
+              <Metric icon={TrendingUp} label={t('company:subscriptions.kpi.monthlyRecurring')} value={formatRON(monthlyRecurring)} />
             </div>
           </div>
         </Card>
@@ -196,9 +200,9 @@ export default function CompanySubscriptionsPage() {
         ) : subscriptions.length === 0 ? (
           <div className="text-center py-12 px-6">
             <Repeat className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-1">Niciun abonament</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-1">{t('company:subscriptions.empty')}</h3>
             <p className="text-gray-500">
-              Nu exista abonamente inregistrate pentru firma ta.
+              {t('company:subscriptions.emptyDesc')}
             </p>
           </div>
         ) : (
@@ -209,25 +213,25 @@ export default function CompanySubscriptionsPage() {
                 <thead>
                   <tr className="border-y border-gray-100">
                     <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">
-                      Client
+                      {t('company:subscriptions.colClient')}
                     </th>
                     <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">
-                      Serviciu
+                      {t('company:subscriptions.colService')}
                     </th>
                     <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">
-                      Lucrator
+                      {t('company:subscriptions.colWorker')}
                     </th>
                     <th className="text-right px-6 py-3 text-xs font-semibold text-gray-500 uppercase">
-                      Lunar
+                      {t('company:subscriptions.colMonthly')}
                     </th>
                     <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">
-                      Status
+                      {t('company:subscriptions.colStatus')}
                     </th>
                     <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">
-                      Perioada
+                      {t('company:subscriptions.colPeriod')}
                     </th>
                     <th className="text-right px-6 py-3 text-xs font-semibold text-gray-500 uppercase">
-                      Progres
+                      {t('company:subscriptions.colProgress')}
                     </th>
                   </tr>
                 </thead>
@@ -255,7 +259,7 @@ export default function CompanySubscriptionsPage() {
                       <td className="px-6 py-4">
                         <span className="text-gray-700">
                           {sub.worker?.fullName ?? (
-                            <span className="text-gray-400">Neasignat</span>
+                            <span className="text-gray-400">{t('company:subscriptions.unassigned')}</span>
                           )}
                         </span>
                       </td>
@@ -270,17 +274,17 @@ export default function CompanySubscriptionsPage() {
                           </Badge>
                           {sub.workerChangeRequestedAt && (
                             <span className="text-xs font-medium text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded-full whitespace-nowrap">
-                              Cerere lucrator
+                              {t('company:subscriptions.workerChangeRequested')}
                             </span>
                           )}
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <p className="text-xs text-gray-600 whitespace-nowrap">
-                          {formatDate(sub.currentPeriodStart)}
+                          {formatDate(sub.currentPeriodStart, locale)}
                         </p>
                         <p className="text-xs text-gray-400 whitespace-nowrap">
-                          - {formatDate(sub.currentPeriodEnd)}
+                          - {formatDate(sub.currentPeriodEnd, locale)}
                         </p>
                       </td>
                       <td className="px-6 py-4 text-right">
@@ -327,7 +331,7 @@ export default function CompanySubscriptionsPage() {
                       </Badge>
                       {sub.workerChangeRequestedAt && (
                         <span className="text-xs font-medium text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded-full">
-                          Cerere lucrator
+                          {t('company:subscriptions.workerChangeRequested')}
                         </span>
                       )}
                     </div>
@@ -347,12 +351,12 @@ export default function CompanySubscriptionsPage() {
                       <User className="h-3.5 w-3.5 text-gray-400" />
                       <span className="truncate">
                         {sub.worker?.fullName ?? (
-                          <span className="text-gray-400">Neasignat</span>
+                          <span className="text-gray-400">{t('company:subscriptions.unassigned')}</span>
                         )}
                       </span>
                     </div>
                     <span className="font-bold text-gray-900 whitespace-nowrap">
-                      {formatRON(sub.monthlyAmount)}/luna
+                      {formatRON(sub.monthlyAmount)}{t('company:subscriptions.perMonth')}
                     </span>
                   </div>
 
@@ -361,7 +365,7 @@ export default function CompanySubscriptionsPage() {
                     <div className="flex items-center gap-1.5 text-xs text-gray-500">
                       <CalendarDays className="h-3.5 w-3.5 text-gray-400" />
                       <span>
-                        {formatDate(sub.currentPeriodStart)} - {formatDate(sub.currentPeriodEnd)}
+                        {formatDate(sub.currentPeriodStart, locale)} - {formatDate(sub.currentPeriodEnd, locale)}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -391,7 +395,9 @@ export default function CompanySubscriptionsPage() {
       {totalCount > 0 && (
         <div className="flex items-center justify-between mt-6">
           <span className="text-sm text-gray-500">
-            {totalCount} {totalCount === 1 ? 'abonament' : 'abonamente'}
+            {totalCount === 1
+              ? t('company:subscriptions.totalCount', { count: totalCount })
+              : t('company:subscriptions.totalCountPlural', { count: totalCount })}
           </span>
         </div>
       )}

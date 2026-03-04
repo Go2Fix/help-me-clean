@@ -191,7 +191,7 @@ describe('CompanyDetailPage - Documente tab', () => {
     expect(screen.getByText('cert.pdf')).toBeInTheDocument();
     expect(screen.getByText('insurance.pdf')).toBeInTheDocument();
     expect(screen.getByText('Certificat Constatator')).toBeInTheDocument();
-    expect(screen.getByText('Asigurare Raspundere Civila')).toBeInTheDocument();
+    expect(screen.getByText('Asigurare Răspundere Civilă')).toBeInTheDocument();
   });
 
   it('shows "Echipa si documente" section', () => {
@@ -214,8 +214,8 @@ describe('CompanyDetailPage - Documente tab', () => {
 
     expect(screen.getByText('Maria Ionescu')).toBeInTheDocument();
     expect(screen.getByText('maria@test.com')).toBeInTheDocument();
-    // Worker status PENDING_REVIEW maps to "In asteptare" label
-    const allInAsteptare = screen.getAllByText('In asteptare');
+    // Worker status PENDING_REVIEW maps to "În așteptare" label
+    const allInAsteptare = screen.getAllByText('În așteptare');
     expect(allInAsteptare.length).toBeGreaterThanOrEqual(1);
   });
 
@@ -226,10 +226,10 @@ describe('CompanyDetailPage - Documente tab', () => {
     const select = screen.getByDisplayValue('Detalii');
     fireEvent.change(select, { target: { value: 'echipa' } });
 
-    expect(screen.getByText('Activeaza')).toBeInTheDocument();
+    expect(screen.getByText('Activează')).toBeInTheDocument();
   });
 
-  it('does not show Activeaza button when worker status is ACTIVE', () => {
+  it('does not show Activează button when worker status is ACTIVE', () => {
     const dataWithActiveWorker = {
       company: {
         ...mockCompanyWithDocs.company,
@@ -247,6 +247,6 @@ describe('CompanyDetailPage - Documente tab', () => {
     const select = screen.getByDisplayValue('Detalii');
     fireEvent.change(select, { target: { value: 'echipa' } });
 
-    expect(screen.queryByText('Activeaza')).not.toBeInTheDocument();
+    expect(screen.queryByText('Activează')).not.toBeInTheDocument();
   });
 });

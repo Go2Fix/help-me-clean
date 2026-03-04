@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { useQuery, useMutation, useLazyQuery } from '@apollo/client';
+import { useTranslation } from 'react-i18next';
 import {
   FileText,
   Download,
@@ -165,29 +166,30 @@ function formatAmount(amount: number): string {
   return (amount / 100).toFixed(2) + ' lei';
 }
 
-function formatDate(iso: string): string {
+function formatDate(iso: string, locale: string): string {
   const d = new Date(iso);
-  return d.toLocaleDateString('ro-RO', {
+  return d.toLocaleDateString(locale === 'en' ? 'en-GB' : 'ro-RO', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
   });
 }
 
-const INVOICE_STATUS_CONFIG: Record<string, { label: string; variant: 'success' | 'warning' | 'danger' | 'default' | 'info' }> = {
-  ISSUED: { label: 'Emisa', variant: 'success' },
-  DRAFT: { label: 'Ciorna', variant: 'default' },
-  SENT: { label: 'Trimisa', variant: 'info' },
-  TRANSMITTED: { label: 'Transmisa e-Factura', variant: 'warning' },
-  CANCELLED: { label: 'Anulata', variant: 'danger' },
-  PAID: { label: 'Platita', variant: 'success' },
-  CREDIT_NOTE: { label: 'Nota de credit', variant: 'info' },
+const INVOICE_STATUS_VARIANTS: Record<string, 'success' | 'warning' | 'danger' | 'default' | 'info'> = {
+  ISSUED: 'success',
+  DRAFT: 'default',
+  SENT: 'info',
+  TRANSMITTED: 'warning',
+  CANCELLED: 'danger',
+  PAID: 'success',
+  CREDIT_NOTE: 'info',
 };
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function InvoicesPage() {
   const { isAuthenticated } = useAuth();
+  const { t, i18n } = useTranslation(['dashboard', 'client']);
   const [billingForm, setBillingForm] = useState<BillingFormData>(EMPTY_BILLING_FORM);
   const [billingEditing, setBillingEditing] = useState(false);
   const [billingError, setBillingError] = useState('');
@@ -240,7 +242,7 @@ export default function InvoicesPage() {
       refetchBilling();
     },
     onError: () => {
-      setBillingError('Nu am putut salva datele de facturare. Te rugam sa incerci din nou.');
+      setBillingError(t('client:invoices.billing.error'));
     },
   });
 
@@ -257,7 +259,7 @@ export default function InvoicesPage() {
 
       if (billingForm.isCompany) {
         if (!billingForm.companyName.trim() || !billingForm.cui.trim()) {
-          setBillingError('Numele companiei si CUI-ul sunt obligatorii pentru facturare B2B.');
+          setBillingError(t('client:invoices.billing.validationB2B'));
           return;
         }
       }
@@ -311,28 +313,28 @@ export default function InvoicesPage() {
     <div>
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Facturile mele</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t('client:invoices.title')}</h1>
         <p className="text-gray-500 mt-1">
-          Descarca facturile si gestioneaza datele de facturare.
+          {t('client:invoices.subtitle')}
         </p>
       </div>
 
       {/* Billing Profile Section */}
       <Card className="mb-8">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">Profil de facturare</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{t('client:invoices.billing.title')}</h2>
           {!billingEditing && !loadingBilling && (
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setBillingEditing(true)}
             >
-              {billing ? 'Modifica' : 'Configureaza'}
+              {billing ? t('client:invoices.billing.modify') : t('client:invoices.billing.configure')}
             </Button>
           )}
         </div>
 
-        {loadingBilling && <LoadingSpinner size="sm" text="Se incarca..." />}
+        {loadingBilling && <LoadingSpinner size="sm" text={t('client:invoices.billing.loading')} />}
 
         {!loadingBilling && !billingEditing && billing && (
           <div className="flex items-start gap-3">
@@ -345,7 +347,7 @@ export default function InvoicesPage() {
             </div>
             <div>
               <p className="text-sm font-medium text-gray-900">
-                {billing.isCompany ? 'Persoana juridica (B2B)' : 'Persoana fizica (B2C)'}
+                {billing.isCompany ? t('client:invoices.billing.company') : t('client:invoices.billing.individual')}
               </p>
               {billing.isCompany && (
                 <div className="text-sm text-gray-600 mt-1 space-y-0.5">
@@ -360,9 +362,9 @@ export default function InvoicesPage() {
                     </p>
                   )}
                   {billing.iban && <p>IBAN: {billing.iban}</p>}
-                  {billing.bankName && <p>Banca: {billing.bankName}</p>}
+                  {billing.bankName && <p>{t('client:invoices.billing.form.bank')}: {billing.bankName}</p>}
                   {billing.isVatPayer && (
-                    <Badge variant="info">Platitor TVA</Badge>
+                    <Badge variant="info">{t('client:invoices.billing.vatPayer')}</Badge>
                   )}
                 </div>
               )}
@@ -372,7 +374,7 @@ export default function InvoicesPage() {
 
         {!loadingBilling && !billingEditing && !billing && (
           <p className="text-sm text-gray-500">
-            Nu ai configurat inca un profil de facturare. Apasa pe &quot;Configureaza&quot; pentru a incepe.
+            {t('client:invoices.billing.noBilling')}
           </p>
         )}
 
@@ -390,7 +392,7 @@ export default function InvoicesPage() {
                 }`}
               >
                 <User className="h-4 w-4 inline-block mr-1.5 -mt-0.5" />
-                Persoana fizica (B2C)
+                {t('client:invoices.billing.form.individualTab')}
               </button>
               <button
                 type="button"
@@ -402,7 +404,7 @@ export default function InvoicesPage() {
                 }`}
               >
                 <Building2 className="h-4 w-4 inline-block mr-1.5 -mt-0.5" />
-                Persoana juridica (B2B)
+                {t('client:invoices.billing.form.companyTab')}
               </button>
             </div>
 
@@ -411,16 +413,16 @@ export default function InvoicesPage() {
               <>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input
-                    label="Nume companie *"
-                    placeholder="SC Exemplu SRL"
+                    label={t('client:invoices.billing.form.companyName')}
+                    placeholder={t('client:invoices.billing.form.companyNamePlaceholder')}
                     value={billingForm.companyName}
                     onChange={(e) =>
                       setBillingForm((prev) => ({ ...prev, companyName: e.target.value }))
                     }
                   />
                   <Input
-                    label="CUI *"
-                    placeholder="RO12345678"
+                    label={t('client:invoices.billing.form.cui')}
+                    placeholder={t('client:invoices.billing.form.cuiPlaceholder')}
                     value={billingForm.cui}
                     onChange={(e) =>
                       setBillingForm((prev) => ({ ...prev, cui: e.target.value }))
@@ -429,16 +431,16 @@ export default function InvoicesPage() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input
-                    label="Nr. Reg. Comertului"
-                    placeholder="J40/1234/2024"
+                    label={t('client:invoices.billing.form.regNumber')}
+                    placeholder={t('client:invoices.billing.form.regNumberPlaceholder')}
                     value={billingForm.regNumber}
                     onChange={(e) =>
                       setBillingForm((prev) => ({ ...prev, regNumber: e.target.value }))
                     }
                   />
                   <Input
-                    label="Adresa sediu"
-                    placeholder="Str. Exemplu nr. 1"
+                    label={t('client:invoices.billing.form.address')}
+                    placeholder={t('client:invoices.billing.form.addressPlaceholder')}
                     value={billingForm.address}
                     onChange={(e) =>
                       setBillingForm((prev) => ({ ...prev, address: e.target.value }))
@@ -447,16 +449,16 @@ export default function InvoicesPage() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input
-                    label="Oras"
-                    placeholder="Bucuresti"
+                    label={t('client:invoices.billing.form.city')}
+                    placeholder={t('client:invoices.billing.form.cityPlaceholder')}
                     value={billingForm.city}
                     onChange={(e) =>
                       setBillingForm((prev) => ({ ...prev, city: e.target.value }))
                     }
                   />
                   <Input
-                    label="Judet"
-                    placeholder="Bucuresti"
+                    label={t('client:invoices.billing.form.county')}
+                    placeholder={t('client:invoices.billing.form.countyPlaceholder')}
                     value={billingForm.county}
                     onChange={(e) =>
                       setBillingForm((prev) => ({ ...prev, county: e.target.value }))
@@ -465,16 +467,16 @@ export default function InvoicesPage() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input
-                    label="Banca"
-                    placeholder="ING Bank"
+                    label={t('client:invoices.billing.form.bank')}
+                    placeholder={t('client:invoices.billing.form.bankPlaceholder')}
                     value={billingForm.bankName}
                     onChange={(e) =>
                       setBillingForm((prev) => ({ ...prev, bankName: e.target.value }))
                     }
                   />
                   <Input
-                    label="IBAN"
-                    placeholder="RO12INGB..."
+                    label={t('client:invoices.billing.form.iban')}
+                    placeholder={t('client:invoices.billing.form.ibanPlaceholder')}
                     value={billingForm.iban}
                     onChange={(e) =>
                       setBillingForm((prev) => ({ ...prev, iban: e.target.value }))
@@ -492,7 +494,7 @@ export default function InvoicesPage() {
                     className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
                   />
                   <label htmlFor="isVatPayer" className="text-sm text-gray-700">
-                    Platitor de TVA
+                    {t('client:invoices.billing.form.vatPayer')}
                   </label>
                 </div>
               </>
@@ -500,7 +502,7 @@ export default function InvoicesPage() {
 
             {!billingForm.isCompany && (
               <p className="text-sm text-gray-500">
-                Facturile vor fi emise pe numele tau de persoana fizica, conform datelor din profilul contului tau.
+                {t('client:invoices.billing.form.individualNote')}
               </p>
             )}
 
@@ -513,7 +515,7 @@ export default function InvoicesPage() {
             <div className="flex gap-3 pt-2">
               <Button type="submit" loading={savingBilling}>
                 <Check className="h-4 w-4" />
-                Salveaza
+                {t('client:invoices.billing.form.save')}
               </Button>
               <Button
                 type="button"
@@ -540,7 +542,7 @@ export default function InvoicesPage() {
                   }
                 }}
               >
-                Anuleaza
+                {t('client:invoices.billing.form.cancel')}
               </Button>
             </div>
           </form>
@@ -549,7 +551,7 @@ export default function InvoicesPage() {
 
       {/* Invoices Section */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-gray-900">Facturi emise</h2>
+        <h2 className="text-lg font-semibold text-gray-900">{t('client:invoices.issuedInvoices')}</h2>
       </div>
 
       {/* Status Filter */}
@@ -560,18 +562,18 @@ export default function InvoicesPage() {
             onChange={(e) => setStatusFilter(e.target.value)}
             className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/30"
           >
-            <option value="">Toate facturile</option>
-            <option value="ISSUED">Emise</option>
-            <option value="PAID">Platite</option>
-            <option value="CANCELLED">Anulate</option>
-            <option value="CREDIT_NOTE">Nota credit</option>
+            <option value="">{t('client:invoices.filter.all')}</option>
+            <option value="ISSUED">{t('client:invoices.filter.issued')}</option>
+            <option value="PAID">{t('client:invoices.filter.paid')}</option>
+            <option value="CANCELLED">{t('client:invoices.filter.cancelled')}</option>
+            <option value="CREDIT_NOTE">{t('client:invoices.filter.creditNote')}</option>
           </select>
         </div>
       )}
 
       {/* Loading Invoices */}
       {loadingInvoices && !invoicesData && (
-        <LoadingSpinner text="Se incarca facturile..." />
+        <LoadingSpinner text={t('client:invoices.loading')} />
       )}
 
       {/* Invoices Table */}
@@ -581,20 +583,18 @@ export default function InvoicesPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-200">
-                  <th className="text-left px-3 md:px-6 py-3 font-medium text-gray-500">Nr. factura</th>
-                  <th className="text-left px-3 md:px-6 py-3 font-medium text-gray-500">Data</th>
-                  <th className="text-left px-3 md:px-6 py-3 font-medium text-gray-500 hidden sm:table-cell">Furnizor</th>
-                  <th className="text-right px-3 md:px-6 py-3 font-medium text-gray-500">Suma (RON)</th>
-                  <th className="text-center px-3 md:px-6 py-3 font-medium text-gray-500 hidden sm:table-cell">Status</th>
+                  <th className="text-left px-3 md:px-6 py-3 font-medium text-gray-500">{t('client:invoices.table.invoiceNumber')}</th>
+                  <th className="text-left px-3 md:px-6 py-3 font-medium text-gray-500">{t('client:invoices.table.date')}</th>
+                  <th className="text-left px-3 md:px-6 py-3 font-medium text-gray-500 hidden sm:table-cell">{t('client:invoices.table.supplier')}</th>
+                  <th className="text-right px-3 md:px-6 py-3 font-medium text-gray-500">{t('client:invoices.table.amount')}</th>
+                  <th className="text-center px-3 md:px-6 py-3 font-medium text-gray-500 hidden sm:table-cell">{t('client:invoices.table.status')}</th>
                   <th className="px-3 md:px-6 py-3 w-10" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {filteredInvoices.map((inv) => {
-                  const cfg = INVOICE_STATUS_CONFIG[inv.status] ?? {
-                    label: inv.status,
-                    variant: 'default' as const,
-                  };
+                  const statusVariant = INVOICE_STATUS_VARIANTS[inv.status] ?? 'default';
+                  const statusLabel = t(`client:invoices.status.${inv.status}`, { defaultValue: inv.status });
                   const isExpanded = expandedInvoiceId === inv.id;
                   const detail = isExpanded && detailData?.invoiceDetail?.id === inv.id
                     ? detailData.invoiceDetail
@@ -610,7 +610,7 @@ export default function InvoicesPage() {
                           {inv.invoiceNumber}
                         </td>
                         <td className="px-3 md:px-6 py-4 text-gray-600 whitespace-nowrap">
-                          {formatDate(inv.issuedAt)}
+                          {formatDate(inv.issuedAt, i18n.language)}
                         </td>
                         <td className="px-3 md:px-6 py-4 text-gray-600 whitespace-nowrap hidden sm:table-cell">
                           {inv.sellerCompanyName}
@@ -619,13 +619,13 @@ export default function InvoicesPage() {
                           {formatAmount(inv.totalAmount)}
                         </td>
                         <td className="px-3 md:px-6 py-4 text-center hidden sm:table-cell">
-                          <Badge variant={cfg.variant}>{cfg.label}</Badge>
+                          <Badge variant={statusVariant}>{statusLabel}</Badge>
                         </td>
                         <td className="px-3 md:px-6 py-4">
                           <div className="flex items-center gap-1">
                             <button
                               className="p-2 rounded-lg text-gray-400 hover:bg-primary/5 hover:text-primary transition inline-flex"
-                              title="Descarcă PDF"
+                              title={t('client:invoices.table.downloadPdf')}
                               onClick={async (e) => {
                                 e.stopPropagation();
                                 if (inv.downloadUrl) {
@@ -654,7 +654,7 @@ export default function InvoicesPage() {
                             {loadingDetail && !detail && (
                               <div className="flex items-center gap-2 text-sm text-gray-500">
                                 <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                                Se incarca detaliile...
+                                {t('client:invoices.detail.loading')}
                               </div>
                             )}
 
@@ -662,19 +662,19 @@ export default function InvoicesPage() {
                               <div className="space-y-4">
                                 {/* Mobile-only: status + supplier */}
                                 <div className="flex flex-wrap items-center gap-3 sm:hidden">
-                                  <Badge variant={cfg.variant}>{cfg.label}</Badge>
+                                  <Badge variant={statusVariant}>{statusLabel}</Badge>
                                   <span className="text-sm text-gray-600">{inv.sellerCompanyName}</span>
                                 </div>
 
                                 {/* Seller / Buyer info */}
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                   <div>
-                                    <p className="text-xs font-medium text-gray-400 uppercase mb-1">Furnizor</p>
+                                    <p className="text-xs font-medium text-gray-400 uppercase mb-1">{t('client:invoices.detail.supplier')}</p>
                                     <p className="text-sm font-medium text-gray-900">{detail.sellerCompanyName}</p>
                                     <p className="text-xs text-gray-500">CUI: {detail.sellerCui}</p>
                                   </div>
                                   <div>
-                                    <p className="text-xs font-medium text-gray-400 uppercase mb-1">Cumparator</p>
+                                    <p className="text-xs font-medium text-gray-400 uppercase mb-1">{t('client:invoices.detail.buyer')}</p>
                                     <p className="text-sm font-medium text-gray-900">{detail.buyerName}</p>
                                     {detail.buyerCui && (
                                       <p className="text-xs text-gray-500">CUI: {detail.buyerCui}</p>
@@ -685,15 +685,15 @@ export default function InvoicesPage() {
                                 {/* Line items */}
                                 {detail.lineItems.length > 0 && (
                                   <div>
-                                    <p className="text-xs font-medium text-gray-400 uppercase mb-2">Articole</p>
+                                    <p className="text-xs font-medium text-gray-400 uppercase mb-2">{t('client:invoices.detail.items')}</p>
                                     <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
                                       <table className="w-full text-xs">
                                         <thead>
                                           <tr className="border-b border-gray-100 bg-gray-50">
-                                            <th className="text-left px-3 py-2 font-medium text-gray-500">Descriere</th>
-                                            <th className="text-right px-3 py-2 font-medium text-gray-500">Cant.</th>
-                                            <th className="text-right px-3 py-2 font-medium text-gray-500 hidden sm:table-cell">Pret unit.</th>
-                                            <th className="text-right px-3 py-2 font-medium text-gray-500">Total</th>
+                                            <th className="text-left px-3 py-2 font-medium text-gray-500">{t('client:invoices.detail.itemDescription')}</th>
+                                            <th className="text-right px-3 py-2 font-medium text-gray-500">{t('client:invoices.detail.itemQty')}</th>
+                                            <th className="text-right px-3 py-2 font-medium text-gray-500 hidden sm:table-cell">{t('client:invoices.detail.itemUnitPrice')}</th>
+                                            <th className="text-right px-3 py-2 font-medium text-gray-500">{t('client:invoices.detail.itemTotal')}</th>
                                           </tr>
                                         </thead>
                                         <tbody className="divide-y divide-gray-50">
@@ -719,15 +719,15 @@ export default function InvoicesPage() {
                                 <div className="flex justify-end">
                                   <div className="text-sm space-y-1 min-w-[180px]">
                                     <div className="flex justify-between text-gray-600">
-                                      <span>Subtotal:</span>
+                                      <span>{t('client:invoices.detail.subtotal')}</span>
                                       <span>{formatAmount(detail.subtotalAmount)}</span>
                                     </div>
                                     <div className="flex justify-between text-gray-600">
-                                      <span>TVA ({detail.vatRate}%):</span>
+                                      <span>{t('client:invoices.detail.vat', { rate: detail.vatRate })}</span>
                                       <span>{formatAmount(detail.vatAmount)}</span>
                                     </div>
                                     <div className="flex justify-between font-semibold text-gray-900 pt-1 border-t border-gray-200">
-                                      <span>Total:</span>
+                                      <span>{t('client:invoices.detail.total')}</span>
                                       <span>{formatAmount(detail.totalAmount)}</span>
                                     </div>
                                   </div>
@@ -737,7 +737,7 @@ export default function InvoicesPage() {
                                 <div className="flex flex-wrap gap-4 text-sm">
                                   {detail.booking && (
                                     <div>
-                                      <span className="text-gray-500">Rezervare: </span>
+                                      <span className="text-gray-500">{t('client:invoices.detail.booking')}</span>
                                       <span className="font-medium text-gray-900">
                                         {detail.booking.referenceCode} - {detail.booking.serviceName}
                                       </span>
@@ -745,8 +745,8 @@ export default function InvoicesPage() {
                                   )}
                                   {detail.dueDate && (
                                     <div>
-                                      <span className="text-gray-500">Scadenta: </span>
-                                      <span className="font-medium text-gray-900">{formatDate(detail.dueDate)}</span>
+                                      <span className="text-gray-500">{t('client:invoices.detail.dueDate')}</span>
+                                      <span className="font-medium text-gray-900">{formatDate(detail.dueDate, i18n.language)}</span>
                                     </div>
                                   )}
                                 </div>
@@ -796,7 +796,7 @@ export default function InvoicesPage() {
                                     }}
                                   >
                                     <Download className="h-4 w-4" />
-                                    Descarcă PDF
+                                    {t('client:invoices.detail.downloadPdf')}
                                   </Button>
                                   {detail.booking && (
                                     <Button
@@ -808,7 +808,7 @@ export default function InvoicesPage() {
                                       }}
                                     >
                                       <ExternalLink className="h-4 w-4" />
-                                      Vezi rezervarea
+                                      {t('client:invoices.detail.viewBooking')}
                                     </Button>
                                   )}
                                 </div>
@@ -831,7 +831,7 @@ export default function InvoicesPage() {
       {invoiceTotalCount > 0 && (
         <div className="flex flex-wrap items-center justify-between gap-3 mt-6">
           <span className="text-sm text-gray-500">
-            {invoiceTotalCount} {invoiceTotalCount === 1 ? 'factura' : 'facturi'} &middot; Pagina {page + 1} din {invoiceTotalPages}
+            {invoiceTotalCount} {t('client:invoices.pagination.invoice', { count: invoiceTotalCount })} &middot; {t('pagination.page', { current: page + 1, total: invoiceTotalPages })}
           </span>
           {invoiceTotalPages > 1 && (
             <div className="flex items-center gap-3">
@@ -841,7 +841,7 @@ export default function InvoicesPage() {
                 disabled={page === 0}
                 onClick={() => setPage((p) => Math.max(0, p - 1))}
               >
-                Anterior
+                {t('pagination.previous')}
               </Button>
               <Button
                 variant="outline"
@@ -849,7 +849,7 @@ export default function InvoicesPage() {
                 disabled={!hasNextPage}
                 onClick={() => setPage((p) => p + 1)}
               >
-                Urmator
+                {t('pagination.next')}
               </Button>
             </div>
           )}
@@ -863,10 +863,10 @@ export default function InvoicesPage() {
             <FileText className="h-8 w-8 text-gray-400" />
           </div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            Nicio factura emisa
+            {t('client:invoices.empty.title')}
           </h3>
           <p className="text-gray-500">
-            Facturile vor fi generate automat dupa finalizarea si plata rezervarilor.
+            {t('client:invoices.empty.description')}
           </p>
         </div>
       )}
