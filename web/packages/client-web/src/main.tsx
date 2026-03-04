@@ -28,6 +28,14 @@ if (sentryDsn) {
     // 10% session replays on errors only
     replaysOnErrorSampleRate: 0.1,
     replaysSessionSampleRate: 0,
+    ignoreErrors: [
+      // Vercel Analytics script returns HTML on non-Vercel envs — not a real error
+      /Unexpected token '<'/,
+    ],
+    denyUrls: [
+      // Suppress errors originating from Vercel-injected scripts
+      /\/_vercel\//,
+    ],
   });
 }
 
