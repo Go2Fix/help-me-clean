@@ -463,24 +463,21 @@ func (r *mutationResolver) ProcessRefund(ctx context.Context, refundRequestID st
 		}
 	}
 
-	// Auto-generate credit note for the refunded amount (best-effort).
+	// Auto-generate credit note for the refunded amount.
 	if approved {
-		go func() {
-			bgCtx := context.Background()
-			// Find the client service invoice for this booking.
-			inv, invErr := r.Queries.GetInvoiceByBookingAndType(bgCtx, db.GetInvoiceByBookingAndTypeParams{
-				BookingID:   refundReq.BookingID,
-				InvoiceType: db.InvoiceTypeClientService,
-			})
-			if invErr == nil {
-				_, cnErr := r.InvoiceService.GenerateCreditNote(bgCtx, inv.ID, refundReq.Amount, fmt.Sprintf("Rambursare - %s", refundReq.Reason))
-				if cnErr != nil {
-					log.Printf("payment: auto credit note generation failed: %v", cnErr)
-				} else {
-					log.Printf("payment: auto credit note generated for refund on booking %s", uuidToString(refundReq.BookingID))
-				}
+		// Find the client service invoice for this booking.
+		inv, invErr := r.Queries.GetInvoiceByBookingAndType(ctx, db.GetInvoiceByBookingAndTypeParams{
+			BookingID:   refundReq.BookingID,
+			InvoiceType: db.InvoiceTypeClientService,
+		})
+		if invErr == nil {
+			_, cnErr := r.InvoiceService.GenerateCreditNote(ctx, inv.ID, refundReq.Amount, fmt.Sprintf("Rambursare - %s", refundReq.Reason))
+			if cnErr != nil {
+				log.Printf("payment: auto credit note generation failed: %v", cnErr)
+			} else {
+				log.Printf("payment: auto credit note generated for refund on booking %s", uuidToString(refundReq.BookingID))
 			}
-		}()
+		}
 	}
 
 	result := dbRefundRequestToGQL(updatedRefund)
@@ -563,22 +560,19 @@ func (r *mutationResolver) AdminIssueRefund(ctx context.Context, bookingID strin
 		return nil, fmt.Errorf("failed to update refund request with stripe ID: %w", err)
 	}
 
-	// Auto-generate credit note for the refunded amount (best-effort).
-	go func() {
-		bgCtx := context.Background()
-		inv, invErr := r.Queries.GetInvoiceByBookingAndType(bgCtx, db.GetInvoiceByBookingAndTypeParams{
-			BookingID:   bookingUUID,
-			InvoiceType: db.InvoiceTypeClientService,
-		})
-		if invErr == nil {
-			_, cnErr := r.InvoiceService.GenerateCreditNote(bgCtx, inv.ID, int32(amount), fmt.Sprintf("Rambursare - %s", reason))
-			if cnErr != nil {
-				log.Printf("payment: auto credit note generation failed: %v", cnErr)
-			} else {
-				log.Printf("payment: auto credit note generated for admin refund on booking %s", bookingID)
-			}
+	// Auto-generate credit note for the refunded amount.
+	inv, invErr := r.Queries.GetInvoiceByBookingAndType(ctx, db.GetInvoiceByBookingAndTypeParams{
+		BookingID:   bookingUUID,
+		InvoiceType: db.InvoiceTypeClientService,
+	})
+	if invErr == nil {
+		_, cnErr := r.InvoiceService.GenerateCreditNote(ctx, inv.ID, int32(amount), fmt.Sprintf("Rambursare - %s", reason))
+		if cnErr != nil {
+			log.Printf("payment: auto credit note generation failed: %v", cnErr)
+		} else {
+			log.Printf("payment: auto credit note generated for admin refund on booking %s", bookingID)
 		}
-	}()
+	}
 
 	result := dbRefundRequestToGQL(dbRefund)
 	// Enrich with booking data.

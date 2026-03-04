@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -24,6 +25,13 @@ func NewPool(ctx context.Context) (*pgxpool.Pool, error) {
 	// Use simple protocol to avoid prepared statement caching issues
 	// with Neon serverless PostgreSQL after schema changes (e.g. enum alterations).
 	config.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeSimpleProtocol
+
+	// Serverless-appropriate pool settings (one pool per function instance via sync.Once).
+	// MinConns=0: don't pre-create connections — serverless instances can be frozen/killed.
+	config.MaxConns = 5
+	config.MinConns = 0
+	config.MaxConnIdleTime = 2 * time.Minute
+	config.HealthCheckPeriod = 30 * time.Second
 
 	pool, err := pgxpool.NewWithConfig(ctx, config)
 	if err != nil {

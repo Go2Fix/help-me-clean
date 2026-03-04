@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { ApolloProvider } from '@apollo/client';
 import { identifyUser, resetUser } from '@/lib/analytics';
 import { createApolloClient } from '@go2fix/shared';
@@ -12,7 +12,7 @@ import { ROUTE_MAP } from '@/i18n/routes';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import PhoneGate from '@/components/PhoneGate';
 
-// Layouts
+// Layouts (eager — needed immediately for all routes)
 import PublicLayout from '@/components/layout/PublicLayout';
 import BookingLayout from '@/components/layout/BookingLayout';
 import ClientLayout from '@/components/layout/ClientLayout';
@@ -20,86 +20,88 @@ import CompanyLayout from '@/components/layout/CompanyLayout';
 import WorkerLayout from '@/components/layout/WorkerLayout';
 import AdminLayout from '@/components/layout/AdminLayout';
 
+// ─── Lazy page imports ────────────────────────────────────────────────────────
+
 // Public pages
-import HomePage from '@/pages/HomePage';
-import BookingPage from '@/pages/BookingPage';
-import LoginPage from '@/pages/LoginPage';
-import NotFoundPage from '@/pages/NotFoundPage';
-import RegisterCompanyPage from '@/pages/RegisterCompanyPage';
-import ClaimCompanyPage from '@/pages/ClaimCompanyPage';
-import WaitlistPage from '@/pages/WaitlistPage';
-import AboutPage from '@/pages/AboutPage';
-import ForCompaniesPage from '@/pages/ForCompaniesPage';
-import ContactPage from '@/pages/ContactPage';
-import TermsPage from '@/pages/TermsPage';
-import PrivacyPage from '@/pages/PrivacyPage';
-import GdprPage from '@/pages/GdprPage';
-import BlogListPage from '@/pages/blog/BlogListPage';
-import BlogPostPage from '@/pages/blog/BlogPostPage';
-import CategoryLandingPage from '@/pages/CategoryLandingPage';
-import VsHomerunPage from '@/pages/VsHomerunPage';
-import VsNecesitPage from '@/pages/VsNecesitPage';
+const HomePage = lazy(() => import('@/pages/HomePage'));
+const BookingPage = lazy(() => import('@/pages/BookingPage'));
+const LoginPage = lazy(() => import('@/pages/LoginPage'));
+const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
+const RegisterCompanyPage = lazy(() => import('@/pages/RegisterCompanyPage'));
+const ClaimCompanyPage = lazy(() => import('@/pages/ClaimCompanyPage'));
+const WaitlistPage = lazy(() => import('@/pages/WaitlistPage'));
+const AboutPage = lazy(() => import('@/pages/AboutPage'));
+const ForCompaniesPage = lazy(() => import('@/pages/ForCompaniesPage'));
+const ContactPage = lazy(() => import('@/pages/ContactPage'));
+const TermsPage = lazy(() => import('@/pages/TermsPage'));
+const PrivacyPage = lazy(() => import('@/pages/PrivacyPage'));
+const GdprPage = lazy(() => import('@/pages/GdprPage'));
+const BlogListPage = lazy(() => import('@/pages/blog/BlogListPage'));
+const BlogPostPage = lazy(() => import('@/pages/blog/BlogPostPage'));
+const CategoryLandingPage = lazy(() => import('@/pages/CategoryLandingPage'));
+const VsHomerunPage = lazy(() => import('@/pages/VsHomerunPage'));
+const VsNecesitPage = lazy(() => import('@/pages/VsNecesitPage'));
 
 // Client pages
-import ClientDashboardPage from '@/pages/client/ClientDashboardPage';
-import MyBookingsPage from '@/pages/client/MyBookingsPage';
-import ClientBookingDetailPage from '@/pages/client/BookingDetailPage';
-import ChatPage from '@/pages/client/ChatPage';
-import ProfilePage from '@/pages/client/ProfilePage';
-import AddressesPage from '@/pages/client/AddressesPage';
-import PaymentMethodsPage from '@/pages/client/PaymentMethodsPage';
-import PaymentHistoryPage from '@/pages/client/PaymentHistoryPage';
-import ClientInvoicesPage from '@/pages/client/InvoicesPage';
-import RecurringGroupDetailPage from '@/pages/client/RecurringGroupDetailPage';
-import ClientSubscriptionsPage from '@/pages/client/SubscriptionsPage';
-import SubscriptionDetailPage from '@/pages/client/SubscriptionDetailPage';
-import SupportPage from '@/pages/client/SupportPage';
+const ClientDashboardPage = lazy(() => import('@/pages/client/ClientDashboardPage'));
+const MyBookingsPage = lazy(() => import('@/pages/client/MyBookingsPage'));
+const ClientBookingDetailPage = lazy(() => import('@/pages/client/BookingDetailPage'));
+const ChatPage = lazy(() => import('@/pages/client/ChatPage'));
+const ProfilePage = lazy(() => import('@/pages/client/ProfilePage'));
+const AddressesPage = lazy(() => import('@/pages/client/AddressesPage'));
+const PaymentMethodsPage = lazy(() => import('@/pages/client/PaymentMethodsPage'));
+const PaymentHistoryPage = lazy(() => import('@/pages/client/PaymentHistoryPage'));
+const ClientInvoicesPage = lazy(() => import('@/pages/client/InvoicesPage'));
+const RecurringGroupDetailPage = lazy(() => import('@/pages/client/RecurringGroupDetailPage'));
+const ClientSubscriptionsPage = lazy(() => import('@/pages/client/SubscriptionsPage'));
+const SubscriptionDetailPage = lazy(() => import('@/pages/client/SubscriptionDetailPage'));
+const SupportPage = lazy(() => import('@/pages/client/SupportPage'));
 
 // Company pages
-import CompanyDashboardPage from '@/pages/company/DashboardPage';
-import DocumentUploadPage from '@/pages/company/DocumentUploadPage';
-import CompanyOrdersPage from '@/pages/company/OrdersPage';
-import CompanyOrderDetailPage from '@/pages/company/OrderDetailPage';
-import TeamPage from '@/pages/company/TeamPage';
-import WorkerDetailPage from '@/pages/company/WorkerDetailPage';
-import CompanySettingsPage from '@/pages/company/SettingsPage';
-import CompanyMessagesPage from '@/pages/company/MessagesPage';
-import CompanyCalendarPage from '@/pages/company/CalendarPage';
-import CompanyPayoutsPage from '@/pages/company/PayoutsPage';
-import CompanyInvoicesPage from '@/pages/company/CompanyInvoicesPage';
-import CompanySubscriptionsPage from '@/pages/company/SubscriptionsPage';
-import CompanySubscriptionDetailPage from '@/pages/company/SubscriptionDetailPage';
-import CompanyReviewsPage from '@/pages/company/ReviewsPage';
+const CompanyDashboardPage = lazy(() => import('@/pages/company/DashboardPage'));
+const DocumentUploadPage = lazy(() => import('@/pages/company/DocumentUploadPage'));
+const CompanyOrdersPage = lazy(() => import('@/pages/company/OrdersPage'));
+const CompanyOrderDetailPage = lazy(() => import('@/pages/company/OrderDetailPage'));
+const TeamPage = lazy(() => import('@/pages/company/TeamPage'));
+const WorkerDetailPage = lazy(() => import('@/pages/company/WorkerDetailPage'));
+const CompanySettingsPage = lazy(() => import('@/pages/company/SettingsPage'));
+const CompanyMessagesPage = lazy(() => import('@/pages/company/MessagesPage'));
+const CompanyCalendarPage = lazy(() => import('@/pages/company/CalendarPage'));
+const CompanyPayoutsPage = lazy(() => import('@/pages/company/PayoutsPage'));
+const CompanyInvoicesPage = lazy(() => import('@/pages/company/CompanyInvoicesPage'));
+const CompanySubscriptionsPage = lazy(() => import('@/pages/company/SubscriptionsPage'));
+const CompanySubscriptionDetailPage = lazy(() => import('@/pages/company/SubscriptionDetailPage'));
+const CompanyReviewsPage = lazy(() => import('@/pages/company/ReviewsPage'));
 
 // Worker pages
-import AcceptInvitePage from '@/pages/worker/AcceptInvitePage';
-import WorkerDashboardPage from '@/pages/worker/DashboardPage';
-import WorkerOrdersPage from '@/pages/worker/OrdersPage';
-import WorkerSchedulePage from '@/pages/worker/SchedulePage';
-import WorkerJobDetailPage from '@/pages/worker/JobDetailPage';
-import WorkerSettingsPage from '@/pages/worker/SettingsPage';
-import PersonalityTestPage from '@/pages/worker/PersonalityTestPage';
-import WorkerDocumentUploadPage from '@/pages/worker/DocumentUploadPage';
+const AcceptInvitePage = lazy(() => import('@/pages/worker/AcceptInvitePage'));
+const WorkerDashboardPage = lazy(() => import('@/pages/worker/DashboardPage'));
+const WorkerOrdersPage = lazy(() => import('@/pages/worker/OrdersPage'));
+const WorkerSchedulePage = lazy(() => import('@/pages/worker/SchedulePage'));
+const WorkerJobDetailPage = lazy(() => import('@/pages/worker/JobDetailPage'));
+const WorkerSettingsPage = lazy(() => import('@/pages/worker/SettingsPage'));
+const PersonalityTestPage = lazy(() => import('@/pages/worker/PersonalityTestPage'));
+const WorkerDocumentUploadPage = lazy(() => import('@/pages/worker/DocumentUploadPage'));
 
 // Admin pages
-import AdminDashboardPage from '@/pages/admin/DashboardPage';
-import CompaniesPage from '@/pages/admin/CompaniesPage';
-import CompanyDetailPage from '@/pages/admin/CompanyDetailPage';
-import AdminBookingsPage from '@/pages/admin/BookingsPage';
-import AdminBookingDetailPage from '@/pages/admin/BookingDetailPage';
-import UsersPage from '@/pages/admin/UsersPage';
-import UserDetailPage from '@/pages/admin/UserDetailPage';
-import AdminSettingsPage from '@/pages/admin/SettingsPage';
-import ReportsPage from '@/pages/admin/ReportsPage';
-import ReviewsPage from '@/pages/admin/ReviewsPage';
-import AdminPaymentsPage from '@/pages/admin/PaymentsPage';
-import AdminInvoicesPage from '@/pages/admin/AdminInvoicesPage';
-import AdminSubscriptionsPage from '@/pages/admin/SubscriptionsPage';
-import AdminSubscriptionDetailPage from '@/pages/admin/AdminSubscriptionDetailPage';
-import AdminPayoutsPage from '@/pages/admin/AdminPayoutsPage';
-import AdminRefundsPage from '@/pages/admin/RefundsPage';
-import PromoCodesPage from '@/pages/admin/PromoCodesPage';
-import DisputesPage from '@/pages/admin/DisputesPage';
+const AdminDashboardPage = lazy(() => import('@/pages/admin/DashboardPage'));
+const CompaniesPage = lazy(() => import('@/pages/admin/CompaniesPage'));
+const CompanyDetailPage = lazy(() => import('@/pages/admin/CompanyDetailPage'));
+const AdminBookingsPage = lazy(() => import('@/pages/admin/BookingsPage'));
+const AdminBookingDetailPage = lazy(() => import('@/pages/admin/BookingDetailPage'));
+const UsersPage = lazy(() => import('@/pages/admin/UsersPage'));
+const UserDetailPage = lazy(() => import('@/pages/admin/UserDetailPage'));
+const AdminSettingsPage = lazy(() => import('@/pages/admin/SettingsPage'));
+const ReportsPage = lazy(() => import('@/pages/admin/ReportsPage'));
+const ReviewsPage = lazy(() => import('@/pages/admin/ReviewsPage'));
+const AdminPaymentsPage = lazy(() => import('@/pages/admin/PaymentsPage'));
+const AdminInvoicesPage = lazy(() => import('@/pages/admin/AdminInvoicesPage'));
+const AdminSubscriptionsPage = lazy(() => import('@/pages/admin/SubscriptionsPage'));
+const AdminSubscriptionDetailPage = lazy(() => import('@/pages/admin/AdminSubscriptionDetailPage'));
+const AdminPayoutsPage = lazy(() => import('@/pages/admin/AdminPayoutsPage'));
+const AdminRefundsPage = lazy(() => import('@/pages/admin/RefundsPage'));
+const PromoCodesPage = lazy(() => import('@/pages/admin/PromoCodesPage'));
+const DisputesPage = lazy(() => import('@/pages/admin/DisputesPage'));
 
 // ─── Apollo Client ───────────────────────────────────────────────────────────
 
@@ -108,6 +110,14 @@ const httpEndpoint =
 const wsEndpoint = httpEndpoint.replace(/^http/, 'ws');
 
 const client = createApolloClient(httpEndpoint, wsEndpoint);
+
+// ─── Page Loader ─────────────────────────────────────────────────────────────
+
+const PageLoader = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+  </div>
+);
 
 // ─── Platform Gate ───────────────────────────────────────────────────────────
 
@@ -184,172 +194,174 @@ function AnalyticsSync() {
 
 function AppRoutes() {
   return (
-    <Routes>
-      {/* Standalone — no Header/Footer (split-screen layout) */}
-      <Route path="/autentificare" element={<LoginPage />} />
-      <Route path="/inregistrare-firma" element={<RegisterCompanyPage />} />
-      <Route path="/invitare" element={<AcceptInvitePage />} />
+    <Suspense fallback={<PageLoader />}>
+      <Routes>
+        {/* Standalone — no Header/Footer (split-screen layout) */}
+        <Route path="/autentificare" element={<LoginPage />} />
+        <Route path="/inregistrare-firma" element={<RegisterCompanyPage />} />
+        <Route path="/invitare" element={<AcceptInvitePage />} />
 
-      {/* ── Booking flow (Header only, no Footer) ── */}
-      <Route element={<BookingLayout />}>
-        <Route path="/rezervare" element={<BookingGateRoute />} />
-        <Route path="/en/booking" element={<BookingGateRoute />} />
-      </Route>
+        {/* ── Booking flow (Header only, no Footer) ── */}
+        <Route element={<BookingLayout />}>
+          <Route path="/rezervare" element={<BookingGateRoute />} />
+          <Route path="/en/booking" element={<BookingGateRoute />} />
+        </Route>
 
-      {/* ── Romanian public routes (no prefix) ── */}
-      <Route element={<PublicLayout />}>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/servicii" element={<Navigate to="/#servicii" replace />} />
-        <Route path="/servicii/:categorySlug" element={<CategoryLandingPage />} />
-        <Route path="/claim-firma/:token" element={<ClaimCompanyPage />} />
-        <Route path="/lista-asteptare" element={<WaitlistPage />} />
-        <Route path="/despre-noi" element={<AboutPage />} />
-        <Route path="/contact" element={<ContactPage />} />
-        <Route path="/pentru-firme" element={<ForCompaniesPage />} />
-        <Route path="/termeni" element={<TermsPage />} />
-        <Route path="/confidentialitate" element={<PrivacyPage />} />
-        <Route path="/gdpr" element={<GdprPage />} />
-        <Route path="/blog" element={<BlogListPage />} />
-        <Route path="/blog/:slug" element={<BlogPostPage />} />
-        <Route path="/vs/homerun" element={<VsHomerunPage />} />
-        <Route path="/vs/necesit" element={<VsNecesitPage />} />
-      </Route>
+        {/* ── Romanian public routes (no prefix) ── */}
+        <Route element={<PublicLayout />}>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/servicii" element={<Navigate to="/#servicii" replace />} />
+          <Route path="/servicii/:categorySlug" element={<CategoryLandingPage />} />
+          <Route path="/claim-firma/:token" element={<ClaimCompanyPage />} />
+          <Route path="/lista-asteptare" element={<WaitlistPage />} />
+          <Route path="/despre-noi" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/pentru-firme" element={<ForCompaniesPage />} />
+          <Route path="/termeni" element={<TermsPage />} />
+          <Route path="/confidentialitate" element={<PrivacyPage />} />
+          <Route path="/gdpr" element={<GdprPage />} />
+          <Route path="/blog" element={<BlogListPage />} />
+          <Route path="/blog/:slug" element={<BlogPostPage />} />
+          <Route path="/vs/homerun" element={<VsHomerunPage />} />
+          <Route path="/vs/necesit" element={<VsNecesitPage />} />
+        </Route>
 
-      {/* ── English public routes (/en/ prefix) ── */}
-      <Route path="/en" element={<PublicLayout />}>
-        <Route index element={<HomePage />} />
-        <Route path="services/:categorySlug" element={<CategoryLandingPage />} />
-        <Route path="about-us" element={<AboutPage />} />
-        <Route path="contact" element={<ContactPage />} />
-        <Route path="for-companies" element={<ForCompaniesPage />} />
-        <Route path="waitlist" element={<WaitlistPage />} />
-        <Route path="terms" element={<TermsPage />} />
-        <Route path="privacy" element={<PrivacyPage />} />
-        <Route path="gdpr" element={<GdprPage />} />
-        <Route path="blog" element={<BlogListPage />} />
-        <Route path="blog/:slug" element={<BlogPostPage />} />
-        <Route path="vs/homerun" element={<VsHomerunPage />} />
-        <Route path="vs/necesit" element={<VsNecesitPage />} />
-      </Route>
+        {/* ── English public routes (/en/ prefix) ── */}
+        <Route path="/en" element={<PublicLayout />}>
+          <Route index element={<HomePage />} />
+          <Route path="services/:categorySlug" element={<CategoryLandingPage />} />
+          <Route path="about-us" element={<AboutPage />} />
+          <Route path="contact" element={<ContactPage />} />
+          <Route path="for-companies" element={<ForCompaniesPage />} />
+          <Route path="waitlist" element={<WaitlistPage />} />
+          <Route path="terms" element={<TermsPage />} />
+          <Route path="privacy" element={<PrivacyPage />} />
+          <Route path="gdpr" element={<GdprPage />} />
+          <Route path="blog" element={<BlogListPage />} />
+          <Route path="blog/:slug" element={<BlogPostPage />} />
+          <Route path="vs/homerun" element={<VsHomerunPage />} />
+          <Route path="vs/necesit" element={<VsNecesitPage />} />
+        </Route>
 
-      {/* Client routes - Sidebar layout, auth + CLIENT role */}
-      <Route
-        path="/cont"
-        element={
-          <ProtectedRoute>
-            <RoleRoute role="CLIENT">
-              <PhoneGate>
-                <ClientLayout />
-              </PhoneGate>
-            </RoleRoute>
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<ClientDashboardPage />} />
-        <Route path="comenzi" element={<MyBookingsPage />} />
-        <Route path="comenzi/:id" element={<ClientBookingDetailPage />} />
-        <Route path="recurente/:id" element={<RecurringGroupDetailPage />} />
-        <Route path="abonamente" element={<ClientSubscriptionsPage />} />
-        <Route path="abonamente/:id" element={<SubscriptionDetailPage />} />
-        <Route path="mesaje" element={<ChatPage />} />
-        <Route path="adrese" element={<AddressesPage />} />
-        <Route path="plati" element={<PaymentMethodsPage />} />
-        <Route path="plati/istoric" element={<PaymentHistoryPage />} />
-        <Route path="facturi" element={<ClientInvoicesPage />} />
-        <Route path="setari" element={<ProfilePage />} />
-        <Route path="ajutor" element={<SupportPage />} />
-      </Route>
+        {/* Client routes - Sidebar layout, auth + CLIENT role */}
+        <Route
+          path="/cont"
+          element={
+            <ProtectedRoute>
+              <RoleRoute role="CLIENT">
+                <PhoneGate>
+                  <ClientLayout />
+                </PhoneGate>
+              </RoleRoute>
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<ClientDashboardPage />} />
+          <Route path="comenzi" element={<MyBookingsPage />} />
+          <Route path="comenzi/:id" element={<ClientBookingDetailPage />} />
+          <Route path="recurente/:id" element={<RecurringGroupDetailPage />} />
+          <Route path="abonamente" element={<ClientSubscriptionsPage />} />
+          <Route path="abonamente/:id" element={<SubscriptionDetailPage />} />
+          <Route path="mesaje" element={<ChatPage />} />
+          <Route path="adrese" element={<AddressesPage />} />
+          <Route path="plati" element={<PaymentMethodsPage />} />
+          <Route path="plati/istoric" element={<PaymentHistoryPage />} />
+          <Route path="facturi" element={<ClientInvoicesPage />} />
+          <Route path="setari" element={<ProfilePage />} />
+          <Route path="ajutor" element={<SupportPage />} />
+        </Route>
 
-      {/* Company routes - Sidebar layout, auth + COMPANY_ADMIN role */}
-      <Route
-        path="/firma"
-        element={
-          <ProtectedRoute>
-            <RoleRoute role="COMPANY_ADMIN">
-              <PhoneGate>
-                <CompanyProvider>
-                  <CompanyLayout />
-                </CompanyProvider>
-              </PhoneGate>
-            </RoleRoute>
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<CompanyDashboardPage />} />
-        <Route path="documente-obligatorii" element={<DocumentUploadPage />} />
-        <Route path="comenzi" element={<CompanyOrdersPage />} />
-        <Route path="comenzi/:id" element={<CompanyOrderDetailPage />} />
-        <Route path="program" element={<CompanyCalendarPage />} />
-        <Route path="mesaje" element={<CompanyMessagesPage />} />
-        <Route path="echipa" element={<TeamPage />} />
-        <Route path="echipa/:id" element={<WorkerDetailPage />} />
-        <Route path="recenzii" element={<CompanyReviewsPage />} />
-        <Route path="plati" element={<CompanyPayoutsPage />} />
-        <Route path="abonamente" element={<CompanySubscriptionsPage />} />
-        <Route path="abonamente/:id" element={<CompanySubscriptionDetailPage />} />
-        <Route path="facturi" element={<CompanyInvoicesPage />} />
-        <Route path="setari" element={<CompanySettingsPage />} />
-      </Route>
+        {/* Company routes - Sidebar layout, auth + COMPANY_ADMIN role */}
+        <Route
+          path="/firma"
+          element={
+            <ProtectedRoute>
+              <RoleRoute role="COMPANY_ADMIN">
+                <PhoneGate>
+                  <CompanyProvider>
+                    <CompanyLayout />
+                  </CompanyProvider>
+                </PhoneGate>
+              </RoleRoute>
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<CompanyDashboardPage />} />
+          <Route path="documente-obligatorii" element={<DocumentUploadPage />} />
+          <Route path="comenzi" element={<CompanyOrdersPage />} />
+          <Route path="comenzi/:id" element={<CompanyOrderDetailPage />} />
+          <Route path="program" element={<CompanyCalendarPage />} />
+          <Route path="mesaje" element={<CompanyMessagesPage />} />
+          <Route path="echipa" element={<TeamPage />} />
+          <Route path="echipa/:id" element={<WorkerDetailPage />} />
+          <Route path="recenzii" element={<CompanyReviewsPage />} />
+          <Route path="plati" element={<CompanyPayoutsPage />} />
+          <Route path="abonamente" element={<CompanySubscriptionsPage />} />
+          <Route path="abonamente/:id" element={<CompanySubscriptionDetailPage />} />
+          <Route path="facturi" element={<CompanyInvoicesPage />} />
+          <Route path="setari" element={<CompanySettingsPage />} />
+        </Route>
 
-      {/* Worker routes - Sidebar layout, auth + WORKER role */}
-      <Route
-        path="/worker"
-        element={
-          <ProtectedRoute>
-            <RoleRoute role="WORKER">
-              <PhoneGate>
-                <WorkerLayout />
-              </PhoneGate>
-            </RoleRoute>
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<WorkerDashboardPage />} />
-        <Route path="test-personalitate" element={<PersonalityTestPage />} />
-        <Route path="documente-obligatorii" element={<WorkerDocumentUploadPage />} />
-        <Route path="comenzi" element={<WorkerOrdersPage />} />
-        <Route path="comenzi/:id" element={<WorkerJobDetailPage />} />
-        <Route path="program" element={<WorkerSchedulePage />} />
-        <Route path="mesaje" element={<ChatPage />} />
-        <Route path="profil" element={<WorkerSettingsPage />} />
-      </Route>
+        {/* Worker routes - Sidebar layout, auth + WORKER role */}
+        <Route
+          path="/worker"
+          element={
+            <ProtectedRoute>
+              <RoleRoute role="WORKER">
+                <PhoneGate>
+                  <WorkerLayout />
+                </PhoneGate>
+              </RoleRoute>
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<WorkerDashboardPage />} />
+          <Route path="test-personalitate" element={<PersonalityTestPage />} />
+          <Route path="documente-obligatorii" element={<WorkerDocumentUploadPage />} />
+          <Route path="comenzi" element={<WorkerOrdersPage />} />
+          <Route path="comenzi/:id" element={<WorkerJobDetailPage />} />
+          <Route path="program" element={<WorkerSchedulePage />} />
+          <Route path="mesaje" element={<ChatPage />} />
+          <Route path="profil" element={<WorkerSettingsPage />} />
+        </Route>
 
-      {/* Admin routes - Sidebar layout, auth + GLOBAL_ADMIN role */}
-      <Route
-        path="/admin"
-        element={
-          <ProtectedRoute>
-            <RoleRoute role="GLOBAL_ADMIN">
-              <AdminLayout />
-            </RoleRoute>
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<AdminDashboardPage />} />
-        <Route path="companii" element={<CompaniesPage />} />
-        <Route path="companii/:id" element={<CompanyDetailPage />} />
-        <Route path="comenzi" element={<AdminBookingsPage />} />
-        <Route path="comenzi/:id" element={<AdminBookingDetailPage />} />
-        <Route path="abonamente" element={<AdminSubscriptionsPage />} />
-        <Route path="abonamente/:id" element={<AdminSubscriptionDetailPage />} />
-        <Route path="utilizatori" element={<UsersPage />} />
-        <Route path="utilizatori/:id" element={<UserDetailPage />} />
-        <Route path="plati" element={<AdminPaymentsPage />} />
-        <Route path="viramente" element={<AdminPayoutsPage />} />
-        <Route path="rambursari" element={<AdminRefundsPage />} />
-        <Route path="facturi" element={<AdminInvoicesPage />} />
-        <Route path="rapoarte" element={<ReportsPage />} />
-        <Route path="recenzii" element={<ReviewsPage />} />
-        <Route path="promo-coduri" element={<PromoCodesPage />} />
-        <Route path="dispute" element={<DisputesPage />} />
-        <Route path="setari" element={<AdminSettingsPage />} />
-      </Route>
+        {/* Admin routes - Sidebar layout, auth + GLOBAL_ADMIN role */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <RoleRoute role="GLOBAL_ADMIN">
+                <AdminLayout />
+              </RoleRoute>
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<AdminDashboardPage />} />
+          <Route path="companii" element={<CompaniesPage />} />
+          <Route path="companii/:id" element={<CompanyDetailPage />} />
+          <Route path="comenzi" element={<AdminBookingsPage />} />
+          <Route path="comenzi/:id" element={<AdminBookingDetailPage />} />
+          <Route path="abonamente" element={<AdminSubscriptionsPage />} />
+          <Route path="abonamente/:id" element={<AdminSubscriptionDetailPage />} />
+          <Route path="utilizatori" element={<UsersPage />} />
+          <Route path="utilizatori/:id" element={<UserDetailPage />} />
+          <Route path="plati" element={<AdminPaymentsPage />} />
+          <Route path="viramente" element={<AdminPayoutsPage />} />
+          <Route path="rambursari" element={<AdminRefundsPage />} />
+          <Route path="facturi" element={<AdminInvoicesPage />} />
+          <Route path="rapoarte" element={<ReportsPage />} />
+          <Route path="recenzii" element={<ReviewsPage />} />
+          <Route path="promo-coduri" element={<PromoCodesPage />} />
+          <Route path="dispute" element={<DisputesPage />} />
+          <Route path="setari" element={<AdminSettingsPage />} />
+        </Route>
 
-      {/* Catch all */}
-      <Route path="*" element={<PublicLayout />}>
-        <Route path="*" element={<NotFoundPage />} />
-      </Route>
-    </Routes>
+        {/* Catch all */}
+        <Route path="*" element={<PublicLayout />}>
+          <Route path="*" element={<NotFoundPage />} />
+        </Route>
+      </Routes>
+    </Suspense>
   );
 }
 

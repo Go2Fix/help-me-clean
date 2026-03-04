@@ -184,7 +184,9 @@ func (r *mutationResolver) PauseSubscription(ctx context.Context, id string) (*m
 
 	// Notify client that their subscription is paused.
 	go func(clientID pgtype.UUID) {
-		if _, err := r.Queries.CreateNotification(context.Background(), db.CreateNotificationParams{
+		bgCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		if _, err := r.Queries.CreateNotification(bgCtx, db.CreateNotificationParams{
 			UserID: clientID,
 			Type:   db.NotificationTypeSubscriptionCancelled,
 			Title:  "Abonament pausat",
@@ -221,7 +223,9 @@ func (r *mutationResolver) ResumeSubscription(ctx context.Context, id string) (*
 
 	// Notify client that their subscription is active again.
 	go func(clientID pgtype.UUID) {
-		if _, err := r.Queries.CreateNotification(context.Background(), db.CreateNotificationParams{
+		bgCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		if _, err := r.Queries.CreateNotification(bgCtx, db.CreateNotificationParams{
 			UserID: clientID,
 			Type:   db.NotificationTypeSubscriptionConfirmed,
 			Title:  "Abonament reactivat",
@@ -321,7 +325,11 @@ func (r *mutationResolver) RequestSubscriptionWorkerChange(ctx context.Context, 
 	}
 
 	// Send notifications asynchronously to company admin + global admins.
-	go r.sendWorkerChangeRequestNotifications(context.Background(), sub, clientName, reasonStr)
+	go func() {
+		bgCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		r.sendWorkerChangeRequestNotifications(bgCtx, sub, clientName, reasonStr)
+	}()
 
 	return r.fullSubscription(ctx, updated)
 }
@@ -412,7 +420,11 @@ func (r *mutationResolver) ResolveSubscriptionWorkerChange(ctx context.Context, 
 	if workerUser, uErr := r.Queries.GetUserByID(ctx, worker.UserID); uErr == nil {
 		workerName = workerUser.FullName
 	}
-	go r.sendWorkerChangedNotification(context.Background(), updated, workerName)
+	go func() {
+		bgCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		r.sendWorkerChangedNotification(bgCtx, updated, workerName)
+	}()
 
 	return r.fullSubscription(ctx, updated)
 }
@@ -555,7 +567,11 @@ func (r *mutationResolver) ResolveSubscriptionWorkerChangePerBooking(ctx context
 	if workerUser, uErr := r.Queries.GetUserByID(ctx, defaultWorker.UserID); uErr == nil {
 		workerName = workerUser.FullName
 	}
-	go r.sendWorkerChangedNotification(context.Background(), updated, workerName)
+	go func() {
+		bgCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		r.sendWorkerChangedNotification(bgCtx, updated, workerName)
+	}()
 
 	return r.fullSubscription(ctx, updated)
 }

@@ -114,9 +114,9 @@ func (r *mutationResolver) SignInWithGoogle(ctx context.Context, idToken string,
 	// Send welcome email and upsert contact (non-blocking).
 	r.dispatchWelcomeAndUpsert(ctx, newUser)
 
-	// Link referral signup if a referral code was provided (non-blocking).
+	// Link referral signup if a referral code was provided.
 	if referralCode != nil && *referralCode != "" {
-		go r.processNewUserReferral(context.Background(), newUser.ID, *referralCode)
+		r.processNewUserReferral(ctx, newUser.ID, *referralCode)
 	}
 
 	return &model.AuthPayload{
@@ -298,9 +298,9 @@ func (r *mutationResolver) VerifyEmailOtp(ctx context.Context, email string, cod
 	if isNewUser {
 		r.dispatchWelcomeAndUpsert(ctx, dbUser)
 
-		// Link referral signup if a referral code was provided (non-blocking).
+		// Link referral signup if a referral code was provided.
 		if referralCode != nil && *referralCode != "" {
-			go r.processNewUserReferral(context.Background(), dbUser.ID, *referralCode)
+			r.processNewUserReferral(ctx, dbUser.ID, *referralCode)
 		}
 	}
 

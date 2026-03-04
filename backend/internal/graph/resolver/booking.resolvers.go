@@ -379,19 +379,16 @@ func (r *mutationResolver) CancelBooking(ctx context.Context, id string, reason 
 
 	// If this booking had a reserved referral discount, release it back to available.
 	if current.ReferralDiscountID.Valid {
-		go func(discID pgtype.UUID, bID pgtype.UUID) {
-			bgCtx := context.Background()
-			if _, err := r.Queries.ReleaseReferralDiscount(bgCtx, discID); err != nil {
-				log.Printf("referral: failed to release discount %s on booking cancellation: %v", uuidToString(discID), err)
-			}
-			if err := r.Queries.ClearBookingReferralDiscount(bgCtx, bID); err != nil {
-				log.Printf("referral: failed to clear referral_discount_id on booking %s: %v", uuidToString(bID), err)
-			}
-		}(current.ReferralDiscountID, current.ID)
+		if _, err := r.Queries.ReleaseReferralDiscount(ctx, current.ReferralDiscountID); err != nil {
+			log.Printf("referral: failed to release discount %s on booking cancellation: %v", uuidToString(current.ReferralDiscountID), err)
+		}
+		if err := r.Queries.ClearBookingReferralDiscount(ctx, current.ID); err != nil {
+			log.Printf("referral: failed to clear referral_discount_id on booking %s: %v", uuidToString(current.ID), err)
+		}
 	}
 
 	// Issue Stripe refund (partial for late client cancellations, full otherwise).
-	go r.issueCancellationRefund(context.Background(), current, cancelStatus)
+	r.issueCancellationRefund(ctx, current, cancelStatus)
 
 	// Notify relevant parties based on who cancelled.
 	if cancelStatus == db.BookingStatusCancelledByClient {
@@ -520,7 +517,9 @@ func (r *mutationResolver) ConfirmBooking(ctx context.Context, id string) (*mode
 		body := fmt.Sprintf("Comanda %s a fost confirmată. Ne vedem în curând!", booking.ReferenceCode)
 		data := []byte(fmt.Sprintf(`{"bookingId":"%s"}`, uuidToString(booking.ID)))
 		go func() {
-			if _, err := r.Queries.CreateNotification(context.Background(), db.CreateNotificationParams{
+			bgCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+			defer cancel()
+			if _, err := r.Queries.CreateNotification(bgCtx, db.CreateNotificationParams{
 				UserID: booking.ClientUserID,
 				Type:   db.NotificationTypeBookingConfirmed,
 				Title:  "Comandă confirmată",
@@ -567,7 +566,9 @@ func (r *mutationResolver) StartJob(ctx context.Context, id string) (*model.Book
 		body := fmt.Sprintf("Echipa ta a ajuns și a început lucrul pentru comanda %s.", booking.ReferenceCode)
 		data := []byte(fmt.Sprintf(`{"bookingId":"%s"}`, uuidToString(booking.ID)))
 		go func() {
-			if _, err := r.Queries.CreateNotification(context.Background(), db.CreateNotificationParams{
+			bgCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+			defer cancel()
+			if _, err := r.Queries.CreateNotification(bgCtx, db.CreateNotificationParams{
 				UserID: booking.ClientUserID,
 				Type:   db.NotificationTypeBookingStarted,
 				Title:  "Curățenia a început",
@@ -626,58 +627,48 @@ func (r *mutationResolver) CompleteJob(ctx context.Context, id string) (*model.B
 		return nil, fmt.Errorf("failed to set final total: %w", err)
 	}
 
-	// Process referral tracking (non-blocking, best-effort).
-	// Must run before the invoice goroutine so that if the referrer also applies a
+	// Process referral tracking synchronously.
+	// Must run before invoice generation so that if the referrer also applies a
 	// discount on a future booking, the commission is already correct.
-	completedBookingForReferral := booking
-	go r.processReferralAtBookingComplete(context.Background(), completedBookingForReferral)
+	r.processReferralAtBookingComplete(ctx, booking)
 
 	// Also: if this booking itself had a referral discount applied, confirm it as used.
 	if booking.ReferralDiscountID.Valid {
-		go func(discID pgtype.UUID) {
-			if _, err := r.Queries.ConfirmReferralDiscountUsed(context.Background(), discID); err != nil {
-				log.Printf("referral: failed to confirm discount %s as used: %v", uuidToString(discID), err)
-			}
-		}(booking.ReferralDiscountID)
+		if _, err := r.Queries.ConfirmReferralDiscountUsed(ctx, booking.ReferralDiscountID); err != nil {
+			log.Printf("referral: failed to confirm discount %s as used: %v", uuidToString(booking.ReferralDiscountID), err)
+		}
 	}
 
-	// Auto-generate invoices after job completion (non-blocking, best-effort).
+	// Auto-generate invoices after job completion.
 	// Both final_total and platform_commission_amount are now set on the booking.
-	completedBooking := booking
-	go func() {
-		bgCtx := context.Background()
-
-		if !completedBooking.CompanyID.Valid {
-			log.Printf("invoice: booking %s has no company, skipping invoice generation", completedBooking.ReferenceCode)
-			return
-		}
-
-		company, compErr := r.Queries.GetCompanyByID(bgCtx, completedBooking.CompanyID)
+	if !booking.CompanyID.Valid {
+		log.Printf("invoice: booking %s has no company, skipping invoice generation", booking.ReferenceCode)
+	} else {
+		company, compErr := r.Queries.GetCompanyByID(ctx, booking.CompanyID)
 		if compErr != nil {
-			log.Printf("invoice: failed to load company for completed booking %s: %v", completedBooking.ReferenceCode, compErr)
-			return
-		}
+			log.Printf("invoice: failed to load company for completed booking %s: %v", booking.ReferenceCode, compErr)
+		} else {
+			// ① Client service invoice: company → client, for the full service amount.
+			if _, invErr := r.InvoiceService.GenerateClientServiceInvoice(ctx, booking, company, booking.ClientUserID); invErr != nil {
+				log.Printf("invoice: client service invoice failed for booking %s: %v", booking.ReferenceCode, invErr)
+			}
 
-		// ① Client service invoice: company → client, for the full service amount.
-		if _, invErr := r.InvoiceService.GenerateClientServiceInvoice(bgCtx, completedBooking, company, completedBooking.ClientUserID); invErr != nil {
-			log.Printf("invoice: client service invoice failed for booking %s: %v", completedBooking.ReferenceCode, invErr)
-		}
-
-		// ② Platform commission invoice: platform → company, for the commission amount.
-		commissionBani := int32(math.Round(numericToFloat(completedBooking.PlatformCommissionAmount) * 100))
-		if commissionBani > 0 {
-			if _, invErr := r.InvoiceService.GenerateCommissionInvoice(
-				bgCtx,
-				completedBooking.CompanyID,
-				commissionBani,
-				1,
-				completedBooking.ReferenceCode,
-				completedBooking.ReferenceCode,
-			); invErr != nil {
-				log.Printf("invoice: commission invoice failed for booking %s: %v", completedBooking.ReferenceCode, invErr)
+			// ② Platform commission invoice: platform → company, for the commission amount.
+			commissionBani := int32(math.Round(numericToFloat(booking.PlatformCommissionAmount) * 100))
+			if commissionBani > 0 {
+				if _, invErr := r.InvoiceService.GenerateCommissionInvoice(
+					ctx,
+					booking.CompanyID,
+					commissionBani,
+					1,
+					booking.ReferenceCode,
+					booking.ReferenceCode,
+				); invErr != nil {
+					log.Printf("invoice: commission invoice failed for booking %s: %v", booking.ReferenceCode, invErr)
+				}
 			}
 		}
-	}()
+	}
 
 	// Notify client that job is complete (non-blocking).
 	r.dispatchBookingCompletedNotification(ctx, booking)
@@ -793,7 +784,11 @@ func (r *mutationResolver) RescheduleBooking(ctx context.Context, id string, sch
 	}
 
 	// Notify all parties asynchronously.
-	go r.sendRescheduleNotifications(context.Background(), booking, scheduledDate, scheduledStartTime)
+	go func() {
+		bgCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		r.sendRescheduleNotifications(bgCtx, booking, scheduledDate, scheduledStartTime)
+	}()
 
 	result := dbBookingToGQL(booking)
 	r.enrichBooking(ctx, booking, result)

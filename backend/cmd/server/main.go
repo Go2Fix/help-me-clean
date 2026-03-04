@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"go2fix-backend/app"
 )
@@ -23,7 +24,14 @@ func main() {
 
 	log.Printf("Go2Fix backend starting on port %s", port)
 	log.Printf("GraphQL playground: http://localhost:%s/graphql", port)
-	if err := http.ListenAndServe(":"+port, handler); err != nil {
+	srv := &http.Server{
+		Addr:         ":" + port,
+		Handler:      handler,
+		ReadTimeout:  15 * time.Second,
+		WriteTimeout: 15 * time.Second,
+		IdleTimeout:  60 * time.Second,
+	}
+	if err := srv.ListenAndServe(); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
 }

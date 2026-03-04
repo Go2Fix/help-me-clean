@@ -235,7 +235,7 @@ func (r *mutationResolver) ResolveDispute(ctx context.Context, disputeID string,
 
 	// Issue a Stripe refund if a refund amount is specified and the booking has a payment intent.
 	if refundAmount != nil && *refundAmount > 0 {
-		r.issueDisputeRefund(dispute.BookingID, *refundAmount)
+		r.issueDisputeRefund(ctx, dispute.BookingID, *refundAmount)
 	}
 
 	r.dispatchDisputeResolvedNotification(ctx, dispute.BookingID, resolved)
@@ -356,30 +356,27 @@ func (r *queryResolver) AllDisputes(ctx context.Context, status *model.DisputeSt
 }
 
 // issueDisputeRefund issues a Stripe refund for the booking linked to a dispute.
-// It is fire-and-forget: errors are only logged.
-func (r *Resolver) issueDisputeRefund(bookingID pgtype.UUID, refundAmountRON float64) {
-	go func() {
-		ctx := context.Background()
-		booking, err := r.Queries.GetBookingByID(ctx, bookingID)
-		if err != nil {
-			log.Printf("[dispute] issueRefund: could not load booking %s: %v", uuidToString(bookingID), err)
-			return
-		}
-		if !booking.StripePaymentIntentID.Valid || booking.StripePaymentIntentID.String == "" {
-			log.Printf("[dispute] issueRefund: booking %s has no Stripe payment intent", booking.ReferenceCode)
-			return
-		}
-		if r.PaymentService == nil {
-			log.Printf("[dispute] issueRefund: PaymentService is nil, skipping refund for booking %s", booking.ReferenceCode)
-			return
-		}
-		// Stripe amounts are in bani (RON × 100).
-		amountBani := int64(refundAmountRON * 100)
-		refundID, err := r.PaymentService.CreateRefund(ctx, booking.StripePaymentIntentID.String, amountBani)
-		if err != nil {
-			log.Printf("[dispute] issueRefund: stripe refund failed for booking %s: %v", booking.ReferenceCode, err)
-			return
-		}
-		log.Printf("[dispute] issueRefund: created Stripe refund %s for booking %s (%.2f RON)", refundID, booking.ReferenceCode, refundAmountRON)
-	}()
+// Errors are only logged; the caller is not failed.
+func (r *Resolver) issueDisputeRefund(ctx context.Context, bookingID pgtype.UUID, refundAmountRON float64) {
+	booking, err := r.Queries.GetBookingByID(ctx, bookingID)
+	if err != nil {
+		log.Printf("[dispute] issueRefund: could not load booking %s: %v", uuidToString(bookingID), err)
+		return
+	}
+	if !booking.StripePaymentIntentID.Valid || booking.StripePaymentIntentID.String == "" {
+		log.Printf("[dispute] issueRefund: booking %s has no Stripe payment intent", booking.ReferenceCode)
+		return
+	}
+	if r.PaymentService == nil {
+		log.Printf("[dispute] issueRefund: PaymentService is nil, skipping refund for booking %s", booking.ReferenceCode)
+		return
+	}
+	// Stripe amounts are in bani (RON × 100).
+	amountBani := int64(refundAmountRON * 100)
+	refundID, err := r.PaymentService.CreateRefund(ctx, booking.StripePaymentIntentID.String, amountBani)
+	if err != nil {
+		log.Printf("[dispute] issueRefund: stripe refund failed for booking %s: %v", booking.ReferenceCode, err)
+		return
+	}
+	log.Printf("[dispute] issueRefund: created Stripe refund %s for booking %s (%.2f RON)", refundID, booking.ReferenceCode, refundAmountRON)
 }

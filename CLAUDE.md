@@ -4,7 +4,7 @@
 
 **Go2Fix.ro** is Romania's first home services marketplace MVP. Starting with cleaning, expanding to all home services.
 
-- **Purpose:** Functional prototype for investor demonstration
+- **Purpose:** Production launch — heading to live release
 - **Core Value:** Formalize Romania's informal services sector through compliance
 - **Architecture:** Go monolith backend + React web platform (client, company, admin) + iOS native app
 - **Domains:** go2fix.ro (web), api.go2fix.ro (API), dev.go2fix.ro (staging), dev.api.go2fix.ro (staging API)
@@ -228,6 +228,6 @@ Each service has a `.env.example` file. Copy to `.env` and fill in values:
 3. **Use the assigned voltagent** for each technology domain
 4. **Test locally** before marking tasks complete
 5. **Ask for clarification** if requirements are ambiguous
-6. **Keep it simple** - this is an MVP for investor demo
+6. **Keep it simple** - ship working code, avoid over-engineering
 
-The non-technical investor partner cares about **visual quality and smooth UX**. Polished design is paramount.
+Polished design and smooth UX are paramount — this is heading to live users.
