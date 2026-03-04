@@ -75,6 +75,11 @@ func NewHandler(ctx context.Context) (http.Handler, func(), error) {
 		fmt.Fprintf(w, `{"status":"ok","version":"0.1.0"}`)
 	})
 
+	// Silence browser favicon requests to keep logs clean.
+	noContent := func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusNoContent) }
+	r.Get("/favicon.ico", noContent)
+	r.Get("/favicon.png", noContent)
+
 	pool, err := internaldb.NewPool(ctx)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to connect to database: %w", err)
