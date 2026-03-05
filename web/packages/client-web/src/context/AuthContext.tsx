@@ -43,6 +43,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return authService.subscribe(setState);
   }, [client]);
 
+  // Identify authenticated user in Microsoft Clarity
+  useEffect(() => {
+    const clarityFn = (window as Window & { clarity?: (...args: unknown[]) => void }).clarity;
+    if (state.user && typeof clarityFn === 'function') {
+      clarityFn('identify', state.user.id, undefined, undefined, state.user.fullName);
+    }
+  }, [state.user?.id]);
+
   const loginWithGoogle = useCallback(
     (idToken: string, role?: string) => authService.loginWithGoogle(idToken, role),
     [],
