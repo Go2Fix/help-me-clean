@@ -110,15 +110,6 @@ func (s *GCSStorage) Upload(ctx context.Context, path string, filename string, r
 		return "", fmt.Errorf("failed to close GCS writer: %w", err)
 	}
 
-	// Set ACL for public files
-	if storageType == StorageTypePublic {
-		acl := obj.ACL()
-		if err := acl.Set(ctx, storage.AllUsers, storage.RoleReader); err != nil {
-			log.Printf("Warning: failed to set public ACL for %s: %v", objectPath, err)
-			// Don't fail upload if ACL fails, just log warning
-		}
-	}
-
 	// Return public URL for public files, GCS path for private files
 	if storageType == StorageTypePublic {
 		return s.GetPublicURL(objectPath), nil
