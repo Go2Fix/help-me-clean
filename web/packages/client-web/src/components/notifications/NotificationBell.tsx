@@ -93,7 +93,6 @@ export default function NotificationBell() {
   // Lazy-load notifications when popover opens
   const [fetchNotifications, { data: notifData, loading: notifLoading }] =
     useLazyQuery<MyNotificationsData>(MY_NOTIFICATIONS, {
-      variables: { first: 20 },
       fetchPolicy: 'cache-and-network',
     });
 
@@ -111,7 +110,7 @@ export default function NotificationBell() {
   // Fetch notifications when the dropdown opens
   useEffect(() => {
     if (open) {
-      void fetchNotifications();
+      void fetchNotifications({ variables: { first: 20 } });
     }
   }, [open, fetchNotifications]);
 
