@@ -58,7 +58,8 @@ createRoot(document.getElementById('root')!).render(
         </BrowserRouter>
       </GoogleOAuthProvider>
     </HelmetProvider>
-    {/* Only load Vercel Analytics in production — dev envs return HTML for /_vercel/insights/script.js */}
-    {import.meta.env.PROD && <Analytics />}
+    {/* Only load Vercel Analytics when explicitly enabled — requires Vercel Analytics to be
+        enabled in the Vercel dashboard, otherwise /_vercel/insights/script.js returns HTML */}
+    {import.meta.env.VITE_ENABLE_ANALYTICS === 'true' && <Analytics />}
   </StrictMode>,
 );
