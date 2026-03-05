@@ -394,10 +394,10 @@ export default function AdminInvoicesPage() {
   };
 
   const analyticsItems = analytics ? [
-    { icon: FileText, label: t('admin:invoices.analytics.totalIssued'), value: String(analytics.totalIssued) },
-    { icon: Banknote, label: t('admin:invoices.analytics.totalAmount'), value: formatCents(analytics.totalAmount) },
-    { icon: TrendingUp, label: t('admin:invoices.analytics.totalVat'), value: formatCents(analytics.totalVat) },
-    { icon: Receipt, label: t('admin:invoices.analytics.platformTotal'), value: t('admin:invoices.analytics.platformTotalValue', { count: totalCount }) },
+    { icon: FileText, label: t('admin:invoices.metrics.totalIssued'), value: String(analytics.totalIssued) },
+    { icon: Banknote, label: t('admin:invoices.metrics.totalAmount'), value: formatCents(analytics.totalAmount) },
+    { icon: TrendingUp, label: t('admin:invoices.metrics.totalVat'), value: formatCents(analytics.totalVat) },
+    { icon: Receipt, label: t('admin:invoices.metrics.totalPlatform'), value: t('admin:invoices.metrics.invoiceCount', { count: totalCount }) },
   ] : [];
 
   return (
@@ -486,11 +486,11 @@ export default function AdminInvoicesPage() {
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={() => setCreditNoteModalOpen(true)}>
             <FileText className="h-4 w-4" />
-            {t('admin:invoices.creditNoteButton')}
+            {t('admin:invoices.actions.creditNote')}
           </Button>
           <Button size="sm" onClick={() => setCommissionModalOpen(true)}>
             <Plus className="h-4 w-4" />
-            {t('admin:invoices.commissionButton')}
+            {t('admin:invoices.actions.commissionInvoice')}
           </Button>
         </div>
       </div>
@@ -556,7 +556,7 @@ export default function AdminInvoicesPage() {
                           target="_blank"
                           rel="noopener noreferrer"
                           className="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                          title={t('admin:invoices.actions.download')}
+                          title={t('admin:invoices.actions.downloadPdf')}
                           onClick={(e) => e.stopPropagation()}
                         >
                           <Download className="h-3.5 w-3.5" />
@@ -570,7 +570,7 @@ export default function AdminInvoicesPage() {
                             onClick={() => handleTransmit(invoice.id)}
                             disabled={transmitting}
                             className="p-1.5 rounded-lg text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors cursor-pointer disabled:opacity-50"
-                            title={t('admin:invoices.actions.transmit')}
+                            title={t('admin:invoices.actions.transmitEfactura')}
                           >
                             <Send className="h-3.5 w-3.5" />
                           </button>
@@ -582,7 +582,7 @@ export default function AdminInvoicesPage() {
                             onClick={() => handleRefreshEfactura(invoice.id)}
                             disabled={refreshing}
                             className="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer disabled:opacity-50"
-                            title={t('admin:invoices.actions.refresh')}
+                            title={t('admin:invoices.actions.refreshEfactura')}
                           >
                             <RefreshCw className="h-3.5 w-3.5" />
                           </button>
@@ -592,7 +592,7 @@ export default function AdminInvoicesPage() {
                           onClick={() => handleMarkAsPaid(invoice.id)}
                           disabled={markingPaid}
                           className="p-1.5 rounded-lg text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors cursor-pointer disabled:opacity-50"
-                          title={t('admin:invoices.actions.markPaid')}
+                          title={t('admin:invoices.actions.markAsPaid')}
                         >
                           <CheckCircle className="h-3.5 w-3.5" />
                         </button>
@@ -606,7 +606,7 @@ export default function AdminInvoicesPage() {
                               setCancelModalOpen(true);
                             }}
                             className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
-                            title={t('admin:invoices.actions.cancel')}
+                            title={t('admin:invoices.actions.cancelInvoice')}
                           >
                             <XCircle className="h-3.5 w-3.5" />
                           </button>
@@ -653,7 +653,7 @@ export default function AdminInvoicesPage() {
                 setCancelInvoiceId(null);
               }}
             >
-              {t('admin:invoices.cancelModal.dismiss')}
+              {t('admin:invoices.cancelModal.cancel')}
             </Button>
             <Button variant="danger" onClick={handleCancel} loading={cancelling}>
               <XCircle className="h-4 w-4" />
@@ -681,7 +681,7 @@ export default function AdminInvoicesPage() {
           </p>
           <div className="flex justify-end gap-3 pt-4">
             <Button variant="ghost" onClick={() => setCommissionModalOpen(false)}>
-              {t('admin:invoices.commissionModal.dismiss')}
+              {t('admin:invoices.commissionModal.cancel')}
             </Button>
             <Button
               onClick={handleGenerateCommission}
@@ -730,7 +730,7 @@ export default function AdminInvoicesPage() {
           </div>
           <div className="flex justify-end gap-3 pt-4">
             <Button variant="ghost" onClick={() => setCreditNoteModalOpen(false)}>
-              {t('admin:invoices.creditNoteModal.dismiss')}
+              {t('admin:invoices.creditNoteModal.cancel')}
             </Button>
             <Button
               onClick={handleGenerateCreditNote}

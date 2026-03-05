@@ -293,7 +293,7 @@ export default function UserDetailPage() {
         <User className="h-12 w-12 text-gray-300 mx-auto mb-4" />
         <p className="text-gray-400">{t('admin:userDetail.notFound')}</p>
         <Button variant="ghost" className="mt-4" onClick={() => navigate('/admin/utilizatori')}>
-          {t('admin:userDetail.backToList')}
+          {t('admin:userDetail.backToUsers')}
         </Button>
       </div>
     );
@@ -343,13 +343,13 @@ export default function UserDetailPage() {
         {/* Left Column - User Info */}
         <div className="lg:col-span-2">
           <Card>
-            <h3 className="text-lg font-semibold text-gray-900 mb-6">{t('admin:userDetail.userInfo.title')}</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-6">{t('admin:userDetail.sections.userInfo')}</h3>
             <div className="space-y-5">
               {/* Full Name - Editable */}
               <div className="flex items-start gap-3">
                 <User className="h-4 w-4 text-gray-400 mt-2.5 shrink-0" />
                 <div className="flex-1">
-                  <p className="text-xs text-gray-400 mb-1">{t('admin:userDetail.userInfo.fullName')}</p>
+                  <p className="text-xs text-gray-400 mb-1">{t('admin:userDetail.fields.fullName')}</p>
                   {editingName ? (
                     <div className="flex items-center gap-2">
                       <input
@@ -394,7 +394,7 @@ export default function UserDetailPage() {
               <div className="flex items-start gap-3">
                 <Mail className="h-4 w-4 text-gray-400 mt-0.5 shrink-0" />
                 <div>
-                  <p className="text-xs text-gray-400">{t('admin:userDetail.userInfo.email')}</p>
+                  <p className="text-xs text-gray-400">{t('admin:userDetail.fields.email')}</p>
                   <p className="text-sm text-gray-900">{user.email}</p>
                 </div>
               </div>
@@ -403,7 +403,7 @@ export default function UserDetailPage() {
               <div className="flex items-start gap-3">
                 <Phone className="h-4 w-4 text-gray-400 mt-2.5 shrink-0" />
                 <div className="flex-1">
-                  <p className="text-xs text-gray-400 mb-1">{t('admin:userDetail.userInfo.phone')}</p>
+                  <p className="text-xs text-gray-400 mb-1">{t('admin:userDetail.fields.phone')}</p>
                   {editingPhone ? (
                     <div className="flex items-center gap-2">
                       <input
@@ -449,7 +449,7 @@ export default function UserDetailPage() {
               <div className="flex items-start gap-3">
                 <Shield className="h-4 w-4 text-gray-400 mt-0.5 shrink-0" />
                 <div>
-                  <p className="text-xs text-gray-400">{t('admin:userDetail.userInfo.language')}</p>
+                  <p className="text-xs text-gray-400">{t('admin:userDetail.fields.preferredLanguage')}</p>
                   <p className="text-sm text-gray-900">
                     {t(`admin:userDetail.languageLabels.${user.preferredLanguage}`, { defaultValue: user.preferredLanguage ?? '--' })}
                   </p>
@@ -460,7 +460,7 @@ export default function UserDetailPage() {
               <div className="flex items-start gap-3">
                 <Calendar className="h-4 w-4 text-gray-400 mt-0.5 shrink-0" />
                 <div>
-                  <p className="text-xs text-gray-400">{t('admin:userDetail.userInfo.registeredAt')}</p>
+                  <p className="text-xs text-gray-400">{t('admin:userDetail.fields.registeredOn')}</p>
                   <p className="text-sm text-gray-900">
                     {formatDate(user.createdAt)}
                   </p>
@@ -475,14 +475,14 @@ export default function UserDetailPage() {
               {/* Worker Info Card */}
               <Card>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  {t('admin:userDetail.workerInfo.title')}
+                  {t('admin:userDetail.sections.workerInfo')}
                 </h3>
                 <div className="space-y-3">
                   {user.workerProfile.company && (
                     <div className="flex items-start gap-3">
                       <Building2 className="h-4 w-4 text-gray-400 mt-0.5 shrink-0" />
                       <div>
-                        <p className="text-xs text-gray-400">{t('admin:userDetail.workerInfo.company')}</p>
+                        <p className="text-xs text-gray-400">{t('admin:userDetail.fields.company')}</p>
                         <Link
                           to={`/admin/companii/${user.workerProfile.company.id}`}
                           className="text-sm text-primary hover:underline font-medium"
@@ -495,7 +495,7 @@ export default function UserDetailPage() {
                   <div className="flex items-start gap-3">
                     <Star className="h-4 w-4 text-gray-400 mt-0.5 shrink-0" />
                     <div>
-                      <p className="text-xs text-gray-400">{t('admin:userDetail.workerInfo.rating')}</p>
+                      <p className="text-xs text-gray-400">{t('admin:userDetail.fields.rating')}</p>
                       <p className="text-sm text-gray-900">
                         {user.workerProfile.ratingAvg
                           ? Number(user.workerProfile.ratingAvg).toFixed(1)
@@ -506,7 +506,7 @@ export default function UserDetailPage() {
                   <div className="flex items-start gap-3">
                     <ClipboardList className="h-4 w-4 text-gray-400 mt-0.5 shrink-0" />
                     <div>
-                      <p className="text-xs text-gray-400">{t('admin:userDetail.workerInfo.completedJobs')}</p>
+                      <p className="text-xs text-gray-400">{t('admin:userDetail.fields.completedJobs')}</p>
                       <p className="text-sm text-gray-900">
                         {user.workerProfile.totalJobsCompleted}
                       </p>
@@ -516,7 +516,7 @@ export default function UserDetailPage() {
                     <div className="flex items-start gap-3">
                       <User className="h-4 w-4 text-gray-400 mt-0.5 shrink-0" />
                       <div>
-                        <p className="text-xs text-gray-400">{t('admin:userDetail.workerInfo.bio')}</p>
+                        <p className="text-xs text-gray-400">{t('admin:userDetail.fields.bio')}</p>
                         <p className="text-sm text-gray-900">{user.workerProfile.bio}</p>
                       </div>
                     </div>
@@ -537,7 +537,7 @@ export default function UserDetailPage() {
               {user.workerProfile.personalityAssessment && (
                 <Card>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                    {t('admin:userDetail.personalityTest.title')}
+                    {t('admin:userDetail.sections.personalityTest')}
                   </h3>
                   <PersonalityScoreCard
                     assessment={user.workerProfile.personalityAssessment}
@@ -553,10 +553,10 @@ export default function UserDetailPage() {
               {/* Documents Card */}
               <Card>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  {t('admin:userDetail.documents.title')}
+                  {t('admin:userDetail.sections.mandatoryDocs')}
                 </h3>
                 {user.workerProfile.documents.length === 0 ? (
-                  <p className="text-sm text-gray-400">{t('admin:userDetail.documents.empty')}</p>
+                  <p className="text-sm text-gray-400">{t('admin:userDetail.noDocuments')}</p>
                 ) : (
                   <div className="space-y-3">
                     {user.workerProfile.documents.map((doc) => (
@@ -585,7 +585,7 @@ export default function UserDetailPage() {
         <div className="space-y-6">
           {/* Role Card */}
           <Card>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('admin:userDetail.roleCard.title')}</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('admin:userDetail.sections.role')}</h3>
             <div className="space-y-3">
               <Select
                 options={roleOptions}
@@ -600,14 +600,14 @@ export default function UserDetailPage() {
                 loading={savingRole}
                 disabled={selectedRole === user.role}
               >
-                {t('admin:userDetail.roleCard.saveRole')}
+                {t('admin:userDetail.actions.saveRole')}
               </Button>
             </div>
           </Card>
 
           {/* Status Card */}
           <Card>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('admin:userDetail.statusCard.title')}</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('admin:userDetail.sections.accountStatus')}</h3>
             <div className="flex items-center gap-2 mb-4">
               <Badge variant={statusVariant[user.status] ?? 'default'}>
                 {t(`admin:users.statusLabels.${user.status}`, { defaultValue: user.status })}
@@ -620,7 +620,7 @@ export default function UserDetailPage() {
                 className="w-full"
                 onClick={() => setSuspendModal(true)}
               >
-                {t('admin:userDetail.statusCard.suspend')}
+                {t('admin:userDetail.actions.suspend')}
               </Button>
             )}
             {user.status === 'SUSPENDED' && (
@@ -631,7 +631,7 @@ export default function UserDetailPage() {
                 onClick={handleReactivate}
                 loading={reactivating}
               >
-                {t('admin:userDetail.statusCard.reactivate')}
+                {t('admin:userDetail.actions.reactivate')}
               </Button>
             )}
           </Card>
@@ -662,7 +662,7 @@ export default function UserDetailPage() {
                 setSuspendReason('');
               }}
             >
-              {t('admin:userDetail.suspendModal.dismiss')}
+              {t('admin:userDetail.suspendModal.cancel')}
             </Button>
             <Button
               variant="danger"

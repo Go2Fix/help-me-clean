@@ -159,7 +159,7 @@ export default function PaymentsPage() {
       },
     },
     {
-      label: t('admin:payments.presets.threeMonths'),
+      label: t('admin:payments.presets.3months'),
       getRange: () => {
         const now = new Date();
         return {
@@ -169,7 +169,7 @@ export default function PaymentsPage() {
       },
     },
     {
-      label: t('admin:payments.presets.sixMonths'),
+      label: t('admin:payments.presets.6months'),
       getRange: () => {
         const now = new Date();
         return {

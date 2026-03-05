@@ -257,8 +257,8 @@ export default function ReviewsPage() {
         ) : reviews.length === 0 ? (
           <div className="text-center py-16">
             <MessageSquare className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('admin:reviews.emptyTitle')}</h3>
-            <p className="text-gray-500">{t('admin:reviews.emptySubtitle')}</p>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('admin:reviews.empty.title')}</h3>
+            <p className="text-gray-500">{t('admin:reviews.empty.description')}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -266,25 +266,25 @@ export default function ReviewsPage() {
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50">
                   <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 sm:px-6 py-3">
-                    {t('admin:reviews.columns.rating')}
+                    {t('admin:reviews.tableHeaders.rating')}
                   </th>
                   <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 sm:px-6 py-3">
-                    {t('admin:reviews.columns.bookingCode')}
+                    {t('admin:reviews.tableHeaders.bookingCode')}
                   </th>
                   <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 sm:px-6 py-3">
-                    {t('admin:reviews.columns.type')}
+                    {t('admin:reviews.tableHeaders.type')}
                   </th>
                   <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 sm:px-6 py-3">
-                    {t('admin:reviews.columns.status')}
+                    {t('admin:reviews.tableHeaders.status')}
                   </th>
                   <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 sm:px-6 py-3 hidden md:table-cell">
-                    {t('admin:reviews.columns.reviewer')}
+                    {t('admin:reviews.tableHeaders.reviewer')}
                   </th>
                   <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 sm:px-6 py-3 hidden md:table-cell">
-                    {t('admin:reviews.columns.date')}
+                    {t('admin:reviews.tableHeaders.date')}
                   </th>
                   <th className="text-right text-xs font-medium text-gray-500 uppercase tracking-wider px-4 sm:px-6 py-3">
-                    {t('admin:reviews.columns.actions')}
+                    {t('admin:reviews.tableHeaders.actions')}
                   </th>
                 </tr>
               </thead>
@@ -379,7 +379,7 @@ export default function ReviewsPage() {
       <Modal
         open={!!detailReview}
         onClose={() => setDetailReview(null)}
-        title={t('admin:reviews.detailModal.title')}
+        title={t('admin:reviews.detail.title')}
       >
         {detailReview && (
           <div className="space-y-4">
@@ -399,17 +399,17 @@ export default function ReviewsPage() {
             {/* Category ratings */}
             {(detailReview.ratingPunctuality || detailReview.ratingQuality || detailReview.ratingCommunication || detailReview.ratingValue) && (
               <div className="space-y-2 p-3 bg-gray-50 rounded-xl">
-                <p className="text-xs font-medium text-gray-500 mb-2">{t('admin:reviews.detailModal.categories')}</p>
-                <CategoryRatingRow label={t('admin:reviews.categoryLabels.punctuality')} icon={Clock} value={detailReview.ratingPunctuality} />
-                <CategoryRatingRow label={t('admin:reviews.categoryLabels.quality')} icon={Sparkles} value={detailReview.ratingQuality} />
-                <CategoryRatingRow label={t('admin:reviews.categoryLabels.communication')} icon={MessageCircle} value={detailReview.ratingCommunication} />
-                <CategoryRatingRow label={t('admin:reviews.categoryLabels.value')} icon={Scale} value={detailReview.ratingValue} />
+                <p className="text-xs font-medium text-gray-500 mb-2">{t('admin:reviews.detail.categories')}</p>
+                <CategoryRatingRow label={t('admin:reviews.detail.punctuality')} icon={Clock} value={detailReview.ratingPunctuality} />
+                <CategoryRatingRow label={t('admin:reviews.detail.quality')} icon={Sparkles} value={detailReview.ratingQuality} />
+                <CategoryRatingRow label={t('admin:reviews.detail.communication')} icon={MessageCircle} value={detailReview.ratingCommunication} />
+                <CategoryRatingRow label={t('admin:reviews.detail.valueForMoney')} icon={Scale} value={detailReview.ratingValue} />
               </div>
             )}
 
             {detailReview.comment && (
               <div>
-                <p className="text-xs font-medium text-gray-500 mb-1">{t('admin:reviews.detailModal.comment')}</p>
+                <p className="text-xs font-medium text-gray-500 mb-1">{t('admin:reviews.detail.comment')}</p>
                 <p className="text-sm text-gray-900">{detailReview.comment}</p>
               </div>
             )}
@@ -417,13 +417,13 @@ export default function ReviewsPage() {
             {/* Photos */}
             {detailReview.photos && detailReview.photos.length > 0 && (
               <div>
-                <p className="text-xs font-medium text-gray-500 mb-2">{t('admin:reviews.detailModal.photos')}</p>
+                <p className="text-xs font-medium text-gray-500 mb-2">{t('admin:reviews.detail.photos')}</p>
                 <div className="flex gap-2">
                   {detailReview.photos.map((photo) => (
                     <img
                       key={photo.id}
                       src={photo.photoUrl}
-                      alt={t('admin:reviews.detailModal.photoAlt')}
+                      alt={t('admin:reviews.detail.photoAlt')}
                       className="h-20 w-20 rounded-lg object-cover border border-gray-200"
                     />
                   ))}
@@ -433,18 +433,18 @@ export default function ReviewsPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-xs font-medium text-gray-500 mb-1">{t('admin:reviews.detailModal.reviewer')}</p>
+                <p className="text-xs font-medium text-gray-500 mb-1">{t('admin:reviews.detail.reviewer')}</p>
                 <p className="text-sm text-gray-900">{detailReview.reviewer?.fullName ?? '-'}</p>
               </div>
               <div>
-                <p className="text-xs font-medium text-gray-500 mb-1">{t('admin:reviews.detailModal.date')}</p>
+                <p className="text-xs font-medium text-gray-500 mb-1">{t('admin:reviews.detail.date')}</p>
                 <p className="text-sm text-gray-900">{formatDate(detailReview.createdAt)}</p>
               </div>
             </div>
 
             {detailReview.booking && (
               <div>
-                <p className="text-xs font-medium text-gray-500 mb-1">{t('admin:reviews.detailModal.bookingCode')}</p>
+                <p className="text-xs font-medium text-gray-500 mb-1">{t('admin:reviews.detail.bookingCode')}</p>
                 <button
                   onClick={() => {
                     setDetailReview(null);
@@ -458,7 +458,7 @@ export default function ReviewsPage() {
             )}
 
             <div className="flex justify-end gap-3 pt-2 border-t border-gray-100">
-              <Button variant="ghost" onClick={() => setDetailReview(null)}>{t('admin:reviews.detailModal.close')}</Button>
+              <Button variant="ghost" onClick={() => setDetailReview(null)}>{t('admin:reviews.detail.close')}</Button>
               {detailReview.status !== 'PUBLISHED' && (
                 <Button
                   variant="secondary"
@@ -467,7 +467,7 @@ export default function ReviewsPage() {
                   onClick={() => handleApprove(detailReview.id)}
                 >
                   <CheckCircle className="h-4 w-4" />
-                  {t('admin:reviews.detailModal.publish')}
+                  {t('admin:reviews.detail.publish')}
                 </Button>
               )}
               {detailReview.status !== 'REJECTED' && (
@@ -478,7 +478,7 @@ export default function ReviewsPage() {
                   onClick={() => handleReject(detailReview.id)}
                 >
                   <XCircle className="h-4 w-4" />
-                  {t('admin:reviews.detailModal.reject')}
+                  {t('admin:reviews.detail.reject')}
                 </Button>
               )}
               <Button
@@ -490,7 +490,7 @@ export default function ReviewsPage() {
                 }}
               >
                 <Trash2 className="h-4 w-4" />
-                {t('admin:reviews.detailModal.delete')}
+                {t('admin:reviews.detail.delete')}
               </Button>
             </div>
           </div>
@@ -505,14 +505,14 @@ export default function ReviewsPage() {
       >
         <div className="space-y-4">
           <p className="text-sm text-gray-600">
-            {t('admin:reviews.deleteModal.warning')}
+            {t('admin:reviews.deleteModal.confirmText')}
           </p>
           <div className="flex justify-end gap-3">
             <Button
               variant="ghost"
               onClick={() => setDeleteModal({ open: false, reviewId: '' })}
             >
-              {t('admin:reviews.deleteModal.dismiss')}
+              {t('admin:reviews.deleteModal.cancel')}
             </Button>
             <Button
               variant="danger"

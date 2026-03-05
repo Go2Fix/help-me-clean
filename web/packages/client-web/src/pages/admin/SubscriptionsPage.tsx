@@ -410,7 +410,7 @@ export default function AdminSubscriptionsPage() {
                 setCancelReason('');
               }}
             >
-              {t('admin:subscriptions.cancelModal.dismiss')}
+              {t('admin:subscriptions.cancelModal.cancel')}
             </Button>
             <Button variant="danger" onClick={handleCancel} loading={cancelling}>
               <XCircle className="h-4 w-4" />

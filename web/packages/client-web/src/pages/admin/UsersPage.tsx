@@ -170,10 +170,10 @@ export default function UsersPage() {
           <div className="text-center py-16">
             <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              {t('admin:users.emptyTitle')}
+              {t('admin:users.empty.title')}
             </h3>
             <p className="text-gray-500 max-w-md mx-auto">
-              {t('admin:users.emptySubtitle')}
+              {t('admin:users.empty.description')}
             </p>
           </div>
         ) : (
@@ -184,22 +184,22 @@ export default function UsersPage() {
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50">
                     <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">
-                      {t('admin:users.columns.user')}
+                      {t('admin:users.tableHeaders.user')}
                     </th>
                     <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">
-                      {t('admin:users.columns.email')}
+                      {t('admin:users.tableHeaders.email')}
                     </th>
                     <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">
-                      {t('admin:users.columns.phone')}
+                      {t('admin:users.tableHeaders.phone')}
                     </th>
                     <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">
-                      {t('admin:users.columns.role')}
+                      {t('admin:users.tableHeaders.role')}
                     </th>
                     <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">
-                      {t('admin:users.columns.status')}
+                      {t('admin:users.tableHeaders.status')}
                     </th>
                     <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">
-                      {t('admin:users.columns.registered')}
+                      {t('admin:users.tableHeaders.registered')}
                     </th>
                   </tr>
                 </thead>

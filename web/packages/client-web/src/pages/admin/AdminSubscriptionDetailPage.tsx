@@ -228,7 +228,7 @@ export default function AdminSubscriptionDetailPage() {
         </p>
         <Button variant="ghost" onClick={() => navigate('/admin/abonamente')}>
           <ArrowLeft className="h-4 w-4" />
-          {t('admin:subscriptionDetail.backToList')}
+          {t('admin:subscriptionDetail.backToSubscriptions')}
         </Button>
       </div>
     );
@@ -265,7 +265,7 @@ export default function AdminSubscriptionDetailPage() {
             </span>
           </div>
           <p className="text-gray-500 mt-0.5">
-            {t(`admin:subscriptionDetail.dayNames.${sub.dayOfWeek}`, { defaultValue: String(sub.dayOfWeek) })}, {t('admin:subscriptionDetail.timePrefix')} {fmtTime(sub.preferredTime)} &middot; {sub.sessionsPerMonth} {t('admin:subscriptionDetail.sessionsPerMonth')}
+            {t(`admin:subscriptionDetail.dayNames.${sub.dayOfWeek}`, { defaultValue: String(sub.dayOfWeek) })}, {t('admin:subscriptionDetail.timePrefix')} {fmtTime(sub.preferredTime)} &middot; {t('admin:subscriptionDetail.sessionsPerMonth', { count: sub.sessionsPerMonth })}
           </p>
         </div>
 
@@ -304,11 +304,11 @@ export default function AdminSubscriptionDetailPage() {
           <div className="flex items-start gap-3">
             <XCircle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-red-800">{t('admin:subscriptionDetail.banners.cancelReason')}</p>
+              <p className="text-sm font-medium text-red-800">{t('admin:subscriptionDetail.banners.cancellationReason')}</p>
               <p className="text-sm text-red-700 mt-0.5">{sub.cancellationReason}</p>
               {sub.cancelledAt && (
                 <p className="text-xs text-red-500 mt-1">
-                  {t('admin:subscriptionDetail.banners.cancelledOn')} {fmtDate(sub.cancelledAt)}
+                  {t('admin:subscriptionDetail.banners.cancelledOn', { date: fmtDate(sub.cancelledAt) })}
                 </p>
               )}
             </div>
@@ -321,7 +321,7 @@ export default function AdminSubscriptionDetailPage() {
           <div className="flex items-center gap-3">
             <Pause className="h-5 w-5 text-amber-500 shrink-0" />
             <p className="text-sm text-amber-800">
-              {t('admin:subscriptionDetail.banners.pausedSince')} {fmtDate(sub.pausedAt)}
+              {t('admin:subscriptionDetail.banners.pausedSince', { date: fmtDate(sub.pausedAt) })}
             </p>
           </div>
         </Card>
@@ -332,7 +332,7 @@ export default function AdminSubscriptionDetailPage() {
           <div className="flex items-center gap-3">
             <RefreshCw className="h-5 w-5 text-emerald-500 shrink-0" />
             <p className="text-sm text-emerald-800">
-              {t('admin:subscriptionDetail.banners.workerChangeSuccess')}
+              {t('admin:subscriptionDetail.banners.workerChanged')}
             </p>
           </div>
         </Card>
@@ -344,15 +344,15 @@ export default function AdminSubscriptionDetailPage() {
             <RefreshCw className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
             <div className="flex-1">
               <p className="text-sm font-medium text-amber-800">
-                {t('admin:subscriptionDetail.banners.workerChangeRequested')}
+                {t('admin:subscriptionDetail.banners.workerChangePending')}
               </p>
               {sub.workerChangeReason && (
                 <p className="text-sm text-amber-700 mt-0.5">
-                  {t('admin:subscriptionDetail.banners.reason')}: {sub.workerChangeReason}
+                  {t('admin:subscriptionDetail.banners.workerChangeReason', { reason: sub.workerChangeReason })}
                 </p>
               )}
               <p className="text-xs text-amber-600 mt-1">
-                {t('admin:subscriptionDetail.banners.requestedOn')} {fmtDate(sub.workerChangeRequestedAt)}
+                {t('admin:subscriptionDetail.banners.workerChangeRequestedOn', { date: fmtDate(sub.workerChangeRequestedAt) })}
               </p>
               <Button
                 size="sm"
@@ -372,7 +372,7 @@ export default function AdminSubscriptionDetailPage() {
         <div className="lg:col-span-2 space-y-6">
           {/* Pricing */}
           <Card>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('admin:subscriptionDetail.pricing.title')}</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('admin:subscriptionDetail.sections.pricing')}</h3>
             <div className="space-y-3">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">{t('admin:subscriptionDetail.pricing.hourlyRate')}</span>
@@ -382,12 +382,12 @@ export default function AdminSubscriptionDetailPage() {
                 <span className="text-gray-500">{t('admin:subscriptionDetail.pricing.estimatedDuration')}</span>
                 <span className="text-gray-900">
                   {sub.estimatedDurationHours} {sub.estimatedDurationHours === 1
-                    ? t('admin:subscriptionDetail.pricing.hour')
-                    : t('admin:subscriptionDetail.pricing.hours')}
+                    ? t('admin:subscriptionDetail.pricing.hour_one')
+                    : t('admin:subscriptionDetail.pricing.hour_other')}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500">{t('admin:subscriptionDetail.pricing.perSessionOriginal')}</span>
+                <span className="text-gray-500">{t('admin:subscriptionDetail.pricing.pricePerSessionOriginal')}</span>
                 <span className="text-gray-900">{fmtCurrency(sub.perSessionOriginal)}</span>
               </div>
               {sub.discountPct > 0 && (
@@ -400,7 +400,7 @@ export default function AdminSubscriptionDetailPage() {
                 </div>
               )}
               <div className="flex justify-between text-sm font-semibold">
-                <span className="text-gray-700">{t('admin:subscriptionDetail.pricing.perSessionDiscounted')}</span>
+                <span className="text-gray-700">{t('admin:subscriptionDetail.pricing.pricePerSession')}</span>
                 <span className="text-gray-900">{fmtCurrency(sub.perSessionDiscounted)}</span>
               </div>
               <div className="border-t border-gray-100 pt-3">
@@ -433,7 +433,7 @@ export default function AdminSubscriptionDetailPage() {
 
           {/* Service Details */}
           <Card>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('admin:subscriptionDetail.serviceDetails.title')}</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('admin:subscriptionDetail.sections.serviceDetails')}</h3>
             <div className="grid grid-cols-2 gap-4">
               {sub.propertyType && (
                 <div className="flex items-start gap-3">
@@ -441,7 +441,7 @@ export default function AdminSubscriptionDetailPage() {
                   <div>
                     <p className="text-xs text-gray-400">{t('admin:subscriptionDetail.serviceDetails.propertyType')}</p>
                     <p className="text-sm text-gray-900">
-                      {t(`admin:subscriptionDetail.propertyTypeLabels.${sub.propertyType}`, { defaultValue: sub.propertyType })}
+                      {t(`admin:subscriptionDetail.serviceDetails.propertyTypes.${sub.propertyType}`, { defaultValue: sub.propertyType })}
                     </p>
                   </div>
                 </div>
@@ -451,9 +451,7 @@ export default function AdminSubscriptionDetailPage() {
                 <div>
                   <p className="text-xs text-gray-400">{t('admin:subscriptionDetail.serviceDetails.rooms')}</p>
                   <p className="text-sm text-gray-900">
-                    {sub.numRooms} {sub.numRooms === 1
-                      ? t('admin:subscriptionDetail.serviceDetails.room')
-                      : t('admin:subscriptionDetail.serviceDetails.roomsPlural')}
+                    {sub.numRooms} {t('admin:subscriptionDetail.serviceDetails.room', { count: sub.numRooms })}
                   </p>
                 </div>
               </div>
@@ -462,9 +460,7 @@ export default function AdminSubscriptionDetailPage() {
                 <div>
                   <p className="text-xs text-gray-400">{t('admin:subscriptionDetail.serviceDetails.bathrooms')}</p>
                   <p className="text-sm text-gray-900">
-                    {sub.numBathrooms} {sub.numBathrooms === 1
-                      ? t('admin:subscriptionDetail.serviceDetails.bathroom')
-                      : t('admin:subscriptionDetail.serviceDetails.bathroomsPlural')}
+                    {sub.numBathrooms} {t('admin:subscriptionDetail.serviceDetails.bathroom', { count: sub.numBathrooms })}
                   </p>
                 </div>
               </div>
@@ -482,7 +478,7 @@ export default function AdminSubscriptionDetailPage() {
                   <PawPrint className="h-4 w-4 text-amber-500 mt-0.5" />
                   <div>
                     <p className="text-xs text-gray-400">{t('admin:subscriptionDetail.serviceDetails.pets')}</p>
-                    <p className="text-sm text-gray-900">{t('admin:subscriptionDetail.serviceDetails.petsYes')}</p>
+                    <p className="text-sm text-gray-900">{t('admin:subscriptionDetail.serviceDetails.hasPets')}</p>
                   </div>
                 </div>
               )}
@@ -503,7 +499,7 @@ export default function AdminSubscriptionDetailPage() {
           {/* Address */}
           {sub.address && (
             <Card>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('admin:subscriptionDetail.address.title')}</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('admin:subscriptionDetail.sections.address')}</h3>
               <div className="flex items-start gap-3">
                 <MapPin className="h-4 w-4 text-gray-400 mt-0.5" />
                 <p className="text-sm text-gray-900">
@@ -521,7 +517,7 @@ export default function AdminSubscriptionDetailPage() {
           {sub.upcomingBookings.length > 0 && (
             <Card>
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                {t('admin:subscriptionDetail.upcomingBookings.title', { count: sub.upcomingBookings.length })}
+                {t('admin:subscriptionDetail.sections.upcomingBookings', { count: sub.upcomingBookings.length })}
               </h3>
               <div className="space-y-2">
                 {sub.upcomingBookings.map((b) => (
@@ -552,7 +548,7 @@ export default function AdminSubscriptionDetailPage() {
           {sub.bookings.length > 0 && (
             <Card>
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                {t('admin:subscriptionDetail.bookingHistory.title', { count: sub.bookings.length })}
+                {t('admin:subscriptionDetail.sections.bookingHistory', { count: sub.bookings.length })}
               </h3>
               <div className="space-y-2">
                 {sub.bookings.map((b) => (
@@ -588,7 +584,7 @@ export default function AdminSubscriptionDetailPage() {
           {/* Client */}
           {sub.client && (
             <Card>
-              <h3 className="text-sm font-medium text-gray-500 mb-3">{t('admin:subscriptionDetail.sidebar.client')}</h3>
+              <h3 className="text-sm font-medium text-gray-500 mb-3">{t('admin:subscriptionDetail.sections.client')}</h3>
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-xl bg-primary/10">
                   <User className="h-5 w-5 text-primary" />
@@ -612,7 +608,7 @@ export default function AdminSubscriptionDetailPage() {
           {/* Company */}
           {sub.company && (
             <Card>
-              <h3 className="text-sm font-medium text-gray-500 mb-3">{t('admin:subscriptionDetail.sidebar.company')}</h3>
+              <h3 className="text-sm font-medium text-gray-500 mb-3">{t('admin:subscriptionDetail.sections.company')}</h3>
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-xl bg-secondary/10">
                   <Building2 className="h-5 w-5 text-secondary" />
@@ -629,7 +625,7 @@ export default function AdminSubscriptionDetailPage() {
 
           {/* Worker */}
           <Card>
-            <h3 className="text-sm font-medium text-gray-500 mb-3">{t('admin:subscriptionDetail.sidebar.worker')}</h3>
+            <h3 className="text-sm font-medium text-gray-500 mb-3">{t('admin:subscriptionDetail.sections.worker')}</h3>
             {sub.worker ? (
               <>
                 <div className="flex items-center gap-3">
@@ -664,29 +660,29 @@ export default function AdminSubscriptionDetailPage() {
                     onClick={() => setWorkerChangeModal(true)}
                   >
                     <RefreshCw className="h-4 w-4" />
-                    {t('admin:subscriptionDetail.sidebar.changeWorker')}
+                    {t('admin:subscriptionDetail.worker.changeWorker')}
                   </Button>
                 )}
               </>
             ) : (
-              <p className="text-sm text-gray-400">{t('admin:subscriptionDetail.sidebar.noWorker')}</p>
+              <p className="text-sm text-gray-400">{t('admin:subscriptionDetail.worker.noWorker')}</p>
             )}
           </Card>
 
           {/* Period */}
           {(sub.currentPeriodStart || sub.currentPeriodEnd) && (
             <Card>
-              <h3 className="text-sm font-medium text-gray-500 mb-3">{t('admin:subscriptionDetail.sidebar.currentPeriod')}</h3>
+              <h3 className="text-sm font-medium text-gray-500 mb-3">{t('admin:subscriptionDetail.sections.currentPeriod')}</h3>
               <div className="space-y-2 text-sm">
                 {sub.currentPeriodStart && (
                   <div className="flex justify-between">
-                    <span className="text-gray-500">{t('admin:subscriptionDetail.sidebar.periodStart')}</span>
+                    <span className="text-gray-500">{t('admin:subscriptionDetail.period.start')}</span>
                     <span className="text-gray-900">{fmtDate(sub.currentPeriodStart)}</span>
                   </div>
                 )}
                 {sub.currentPeriodEnd && (
                   <div className="flex justify-between">
-                    <span className="text-gray-500">{t('admin:subscriptionDetail.sidebar.periodEnd')}</span>
+                    <span className="text-gray-500">{t('admin:subscriptionDetail.period.end')}</span>
                     <span className="text-gray-900">{fmtDate(sub.currentPeriodEnd)}</span>
                   </div>
                 )}
@@ -696,9 +692,9 @@ export default function AdminSubscriptionDetailPage() {
 
           {/* Progress */}
           <Card>
-            <h3 className="text-sm font-medium text-gray-500 mb-3">{t('admin:subscriptionDetail.sidebar.progress')}</h3>
+            <h3 className="text-sm font-medium text-gray-500 mb-3">{t('admin:subscriptionDetail.sections.progress')}</h3>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-500">{t('admin:subscriptionDetail.sidebar.completed')}</span>
+              <span className="text-sm text-gray-500">{t('admin:subscriptionDetail.progress.completed')}</span>
               <span className="text-sm font-semibold text-gray-900">
                 {sub.completedBookings} / {sub.totalBookings}
               </span>
@@ -714,7 +710,7 @@ export default function AdminSubscriptionDetailPage() {
           {/* Extras */}
           {sub.extras.length > 0 && (
             <Card>
-              <h3 className="text-sm font-medium text-gray-500 mb-3">{t('admin:subscriptionDetail.sidebar.extras')}</h3>
+              <h3 className="text-sm font-medium text-gray-500 mb-3">{t('admin:subscriptionDetail.sections.extras')}</h3>
               <ul className="space-y-1.5">
                 {sub.extras.map((item, i) => (
                   <li key={i} className="flex justify-between text-sm">
@@ -730,18 +726,18 @@ export default function AdminSubscriptionDetailPage() {
 
           {/* Meta Info */}
           <Card>
-            <h3 className="text-sm font-medium text-gray-500 mb-3">{t('admin:subscriptionDetail.sidebar.info')}</h3>
+            <h3 className="text-sm font-medium text-gray-500 mb-3">{t('admin:subscriptionDetail.sections.info')}</h3>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-500">{t('admin:subscriptionDetail.sidebar.createdAt')}</span>
+                <span className="text-gray-500">{t('admin:subscriptionDetail.meta.createdOn')}</span>
                 <span className="text-gray-900">{fmtDate(sub.createdAt)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">{t('admin:subscriptionDetail.sidebar.serviceType')}</span>
+                <span className="text-gray-500">{t('admin:subscriptionDetail.meta.serviceType')}</span>
                 <span className="text-gray-900">{sub.serviceType}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">{t('admin:subscriptionDetail.sidebar.preferredDay')}</span>
+                <span className="text-gray-500">{t('admin:subscriptionDetail.meta.preferredDay')}</span>
                 <span className="text-gray-900">
                   {t(`admin:subscriptionDetail.dayNames.${sub.dayOfWeek}`, { defaultValue: String(sub.dayOfWeek) })}
                 </span>
@@ -782,7 +778,7 @@ export default function AdminSubscriptionDetailPage() {
           </div>
           <div className="flex justify-end gap-3 pt-2">
             <Button variant="ghost" onClick={() => { setCancelModalOpen(false); setCancelReason(''); }}>
-              {t('admin:subscriptions.cancelModal.dismiss')}
+              {t('admin:subscriptions.cancelModal.cancel')}
             </Button>
             <Button variant="danger" onClick={handleCancel} loading={cancelling}>
               <XCircle className="h-4 w-4" />
