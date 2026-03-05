@@ -65,6 +65,11 @@ func extractGQLOperation(r *http.Request) string {
 	if r.Body == nil {
 		return ""
 	}
+	// Skip body reading for multipart uploads — consuming bytes would truncate the
+	// stream and corrupt gqlgen's MultipartForm transport (all file uploads break).
+	if strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/") {
+		return ""
+	}
 	body, err := io.ReadAll(io.LimitReader(r.Body, 4096))
 	if err != nil {
 		return ""
