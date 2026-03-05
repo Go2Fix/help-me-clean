@@ -9,14 +9,14 @@ ENVIRONMENT=${1:-dev}
 REGION="europe-central2"
 
 if [ "$ENVIRONMENT" = "prod" ]; then
-  PROJECT_ID="helpmeclean-prod"
-  BUCKET_NAME="helpmeclean-prod-uploads"
+  PROJECT_ID="go2fix"
+  BUCKET_NAME="go2fix-prod-uploads"
   FUNCTION_NAME="image-optimizer-prod"
   MEMORY="512Mi"
   TIMEOUT="60s"
 elif [ "$ENVIRONMENT" = "dev" ]; then
-  PROJECT_ID="helpmeclean-dev"
-  BUCKET_NAME="helpmeclean-dev-uploads"
+  PROJECT_ID="go2fix"
+  BUCKET_NAME="go2fix-dev-uploads"
   FUNCTION_NAME="image-optimizer-dev"
   MEMORY="512Mi"
   TIMEOUT="60s"
@@ -34,7 +34,7 @@ echo ""
 # Deploy Cloud Function Gen 2
 gcloud functions deploy ${FUNCTION_NAME} \
   --gen2 \
-  --runtime=go122 \
+  --runtime=go124 \
   --region=${REGION} \
   --source=. \
   --entry-point=OptimizeImage \
