@@ -66,6 +66,7 @@ type Querier interface {
 	CountInvoicesByClient(ctx context.Context, clientUserID pgtype.UUID) (int64, error)
 	CountInvoicesByCompany(ctx context.Context, companyID pgtype.UUID) (int64, error)
 	CountPaymentHistoryByUser(ctx context.Context, clientUserID pgtype.UUID) (int64, error)
+	CountPendingCategoryRequests(ctx context.Context) (int64, error)
 	CountPriceAuditLog(ctx context.Context, entityType pgtype.Text) (int64, error)
 	CountPromoCodeUsesByUser(ctx context.Context, arg CountPromoCodeUsesByUserParams) (int64, error)
 	CountReceivedInvoicesByCompany(ctx context.Context, companyID pgtype.UUID) (int64, error)
@@ -93,6 +94,7 @@ type Querier interface {
 	CreateBookingTimeSlot(ctx context.Context, arg CreateBookingTimeSlotParams) (BookingTimeSlot, error)
 	CreateCity(ctx context.Context, arg CreateCityParams) (CreateCityRow, error)
 	CreateCompany(ctx context.Context, arg CreateCompanyParams) (Company, error)
+	CreateCompanyCategoryRequest(ctx context.Context, arg CreateCompanyCategoryRequestParams) (CompanyCategoryRequest, error)
 	CreateCompanyDocument(ctx context.Context, arg CreateCompanyDocumentParams) (CompanyDocument, error)
 	// ============================================
 	// COMPANY PAYOUTS
@@ -165,6 +167,7 @@ type Querier interface {
 	DeleteBillingProfile(ctx context.Context, id pgtype.UUID) error
 	DeleteBookingTimeSlots(ctx context.Context, bookingID pgtype.UUID) error
 	DeleteCompanyDocument(ctx context.Context, id pgtype.UUID) error
+	DeleteCompanyServiceCategory(ctx context.Context, arg DeleteCompanyServiceCategoryParams) error
 	DeleteCompanyWorkSchedule(ctx context.Context, companyID pgtype.UUID) error
 	DeleteExpiredEmailOTPs(ctx context.Context) error
 	DeleteExpiredPhoneOTPs(ctx context.Context) error
@@ -217,6 +220,7 @@ type Querier interface {
 	GetCompanyByCUI(ctx context.Context, cui string) (Company, error)
 	GetCompanyByClaimToken(ctx context.Context, claimToken pgtype.Text) (Company, error)
 	GetCompanyByID(ctx context.Context, id pgtype.UUID) (Company, error)
+	GetCompanyCategoryRequest(ctx context.Context, id pgtype.UUID) (CompanyCategoryRequest, error)
 	GetCompanyDocument(ctx context.Context, id pgtype.UUID) (CompanyDocument, error)
 	GetCompanyFinancialSummary(ctx context.Context, companyID pgtype.UUID) (GetCompanyFinancialSummaryRow, error)
 	GetCompanyPerformance(ctx context.Context, arg GetCompanyPerformanceParams) ([]GetCompanyPerformanceRow, error)
@@ -316,9 +320,11 @@ type Querier interface {
 	GetWorkerDateOverride(ctx context.Context, arg GetWorkerDateOverrideParams) (WorkerDateOverride, error)
 	GetWorkerDocument(ctx context.Context, id pgtype.UUID) (WorkerDocument, error)
 	GetWorkerEarningsByDateRange(ctx context.Context, arg GetWorkerEarningsByDateRangeParams) ([]GetWorkerEarningsByDateRangeRow, error)
+	GetWorkerInvitedCategories(ctx context.Context, id pgtype.UUID) ([]pgtype.UUID, error)
 	GetWorkerPerformanceStats(ctx context.Context, id pgtype.UUID) (GetWorkerPerformanceStatsRow, error)
 	// Per-dimension rating averages for a worker (from reviews with sub-ratings since migration 000047).
 	GetWorkerSubRatings(ctx context.Context, reviewedWorkerID pgtype.UUID) (GetWorkerSubRatingsRow, error)
+	HasPendingCategoryRequest(ctx context.Context, arg HasPendingCategoryRequestParams) (bool, error)
 	HasPersonalityAssessment(ctx context.Context, workerID pgtype.UUID) (bool, error)
 	IncrementPromoCodeUses(ctx context.Context, id pgtype.UUID) (PromoCode, error)
 	IncrementReferralCycle(ctx context.Context, id pgtype.UUID) (ReferralCode, error)
@@ -370,12 +376,14 @@ type Querier interface {
 	ListBookingsByWorker(ctx context.Context, workerID pgtype.UUID) ([]Booking, error)
 	ListBookingsByWorkerAndDateRange(ctx context.Context, arg ListBookingsByWorkerAndDateRangeParams) ([]Booking, error)
 	ListCompaniesByStatus(ctx context.Context, arg ListCompaniesByStatusParams) ([]Company, error)
+	ListCompanyCategoryRequests(ctx context.Context, companyID pgtype.UUID) ([]ListCompanyCategoryRequestsRow, error)
 	ListCompanyDocuments(ctx context.Context, companyID pgtype.UUID) ([]CompanyDocument, error)
 	ListCompanyServiceAreas(ctx context.Context, companyID pgtype.UUID) ([]ListCompanyServiceAreasRow, error)
 	ListCompanyServiceCategories(ctx context.Context, companyID pgtype.UUID) ([]ListCompanyServiceCategoriesRow, error)
 	ListCompanyWorkSchedule(ctx context.Context, companyID pgtype.UUID) ([]CompanyWorkSchedule, error)
 	ListDisputesByStatus(ctx context.Context, arg ListDisputesByStatusParams) ([]BookingDispute, error)
 	ListEnabledCities(ctx context.Context) ([]ListEnabledCitiesRow, error)
+	ListGlobalAdmins(ctx context.Context) ([]User, error)
 	ListInvoiceLineItems(ctx context.Context, invoiceID pgtype.UUID) ([]InvoiceLineItem, error)
 	// ============================================
 	// INVOICE LISTING (Client)
@@ -405,6 +413,7 @@ type Querier interface {
 	ListPayoutsByCompany(ctx context.Context, arg ListPayoutsByCompanyParams) ([]CompanyPayout, error)
 	ListPayoutsByCompanyAndStatus(ctx context.Context, arg ListPayoutsByCompanyAndStatusParams) ([]CompanyPayout, error)
 	ListPayoutsByStatus(ctx context.Context, arg ListPayoutsByStatusParams) ([]CompanyPayout, error)
+	ListPendingCategoryRequests(ctx context.Context) ([]ListPendingCategoryRequestsRow, error)
 	ListPendingCompanyDocuments(ctx context.Context) ([]CompanyDocument, error)
 	ListPendingWorkerDocuments(ctx context.Context) ([]WorkerDocument, error)
 	ListPlatformSettings(ctx context.Context) ([]PlatformSetting, error)
@@ -483,6 +492,7 @@ type Querier interface {
 	SetUserReferralCodeUsed(ctx context.Context, arg SetUserReferralCodeUsedParams) (User, error)
 	SetUserStripeCustomerID(ctx context.Context, arg SetUserStripeCustomerIDParams) error
 	SetWorkerAvailability(ctx context.Context, arg SetWorkerAvailabilityParams) (WorkerAvailability, error)
+	SetWorkerInvitedCategories(ctx context.Context, arg SetWorkerInvitedCategoriesParams) error
 	StartBooking(ctx context.Context, id pgtype.UUID) (Booking, error)
 	// ============================================
 	// COMPANY EARNINGS (Reporting)
@@ -501,6 +511,7 @@ type Querier interface {
 	UpdateBookingStatus(ctx context.Context, arg UpdateBookingStatusParams) (Booking, error)
 	UpdateCityActive(ctx context.Context, arg UpdateCityActiveParams) (UpdateCityActiveRow, error)
 	UpdateCityPricingMultiplier(ctx context.Context, arg UpdateCityPricingMultiplierParams) (UpdateCityPricingMultiplierRow, error)
+	UpdateCompanyCategoryRequestStatus(ctx context.Context, arg UpdateCompanyCategoryRequestStatusParams) (CompanyCategoryRequest, error)
 	UpdateCompanyDocumentStatus(ctx context.Context, arg UpdateCompanyDocumentStatusParams) (CompanyDocument, error)
 	UpdateCompanyLogo(ctx context.Context, arg UpdateCompanyLogoParams) (Company, error)
 	UpdateCompanyOwnProfile(ctx context.Context, arg UpdateCompanyOwnProfileParams) (Company, error)

@@ -118,6 +118,7 @@ input InviteWorkerInput {
   fullName: String!
   email: String!
   phone: String
+  categoryIds: [ID!]
 }
 
 input AvailabilitySlotInput {

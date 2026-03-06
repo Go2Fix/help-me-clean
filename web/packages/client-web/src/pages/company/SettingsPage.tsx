@@ -27,7 +27,8 @@ import {
   DELETE_COMPANY_DOCUMENT,
   UPLOAD_COMPANY_LOGO,
   SERVICE_CATEGORIES,
-  UPDATE_COMPANY_SERVICE_CATEGORIES,
+  MY_COMPANY_CATEGORY_REQUESTS,
+  REQUEST_CATEGORY_ACCESS,
 } from '@/graphql/operations';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -85,6 +86,22 @@ interface ServiceCategory {
   nameEn: string;
   icon: string;
   isActive: boolean;
+}
+
+interface CategoryRequest {
+  id: string;
+  requestType: 'ACTIVATE' | 'DEACTIVATE';
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  reviewNote?: string;
+  createdAt: string;
+  updatedAt: string;
+  category: {
+    id: string;
+    nameRo: string;
+    nameEn: string;
+    icon?: string;
+    slug: string;
+  };
 }
 
 /** Display order: Mon(1)..Sun(0) */
@@ -245,13 +262,15 @@ export default function SettingsPage() {
   });
 
   // Service categories
-  const { data: categoriesData, loading: categoriesLoading } = useQuery(SERVICE_CATEGORIES);
-  const [updateCompanyCategories, { loading: savingCategories }] = useMutation(UPDATE_COMPANY_SERVICE_CATEGORIES, {
-    refetchQueries: [{ query: MY_COMPANY }],
+  const { data: categoriesData, loading: categoriesLoading, refetch: refetchCategories } = useQuery(SERVICE_CATEGORIES);
+  const { data: requestsData, refetch: refetchRequests } = useQuery(MY_COMPANY_CATEGORY_REQUESTS, {
+    fetchPolicy: 'cache-and-network',
   });
+  const [requestCategoryAccess, { loading: requestingCategory }] = useMutation(REQUEST_CATEGORY_ACCESS);
   const allCategories: ServiceCategory[] = ((categoriesData?.serviceCategories ?? []) as ServiceCategory[]).filter(
     (c) => c.isActive,
   );
+  const categoryRequests: CategoryRequest[] = (requestsData?.myCompanyCategoryRequests ?? []) as CategoryRequest[];
 
   const [description, setDescription] = useState('');
   const [contactEmail, setContactEmail] = useState('');
@@ -268,7 +287,6 @@ export default function SettingsPage() {
   const [areasErrorMessage, setAreasErrorMessage] = useState('');
 
   // Service categories state
-  const [selectedCategoryIds, setSelectedCategoryIds] = useState<Set<string>>(new Set());
   const [categoriesSuccessMessage, setCategoriesSuccessMessage] = useState('');
   const [categoriesErrorMessage, setCategoriesErrorMessage] = useState('');
 
@@ -308,15 +326,6 @@ export default function SettingsPage() {
       setSelectedAreaIds(ids);
     }
   }, [companyAreasData]);
-
-  // Initialize selected categories from company's current service categories
-  useEffect(() => {
-    if (company?.serviceCategories) {
-      setSelectedCategoryIds(
-        new Set((company.serviceCategories as Array<{ id: string }>).map((c) => c.id)),
-      );
-    }
-  }, [company]);
 
   const cities: City[] = useMemo(
     () => (citiesData?.activeCities as City[] | undefined) ?? [],
@@ -447,31 +456,20 @@ export default function SettingsPage() {
 
   // ─── Service Category Handlers ──────────────────────────────────────────
 
-  const toggleCategoryId = (categoryId: string) => {
-    setSelectedCategoryIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(categoryId)) {
-        next.delete(categoryId);
-      } else {
-        next.add(categoryId);
-      }
-      return next;
-    });
-  };
-
-  const handleSaveCategories = async () => {
+  const handleRequestCategory = async (categoryId: string, requestType: 'ACTIVATE' | 'DEACTIVATE') => {
     setCategoriesSuccessMessage('');
     setCategoriesErrorMessage('');
     try {
-      await updateCompanyCategories({
-        variables: {
-          categoryIds: Array.from(selectedCategoryIds),
-        },
-      });
-      setCategoriesSuccessMessage(t('settings.categories.saveSuccess'));
-      setTimeout(() => setCategoriesSuccessMessage(''), 3000);
+      await requestCategoryAccess({ variables: { categoryId, requestType } });
+      await Promise.all([refetchCategories(), refetchRequests()]);
+      setCategoriesSuccessMessage(
+        requestType === 'ACTIVATE'
+          ? 'Cererea de activare a fost trimisă cu succes.'
+          : 'Cererea de dezactivare a fost trimisă cu succes.',
+      );
+      setTimeout(() => setCategoriesSuccessMessage(''), 4000);
     } catch {
-      setCategoriesErrorMessage(t('settings.categories.saveError'));
+      setCategoriesErrorMessage('A apărut o eroare. Vă rugăm să încercați din nou.');
       setTimeout(() => setCategoriesErrorMessage(''), 4000);
     }
   };
@@ -862,7 +860,7 @@ export default function SettingsPage() {
           <h2 className="text-lg font-semibold text-gray-900">{t('settings.categories.title')}</h2>
         </div>
         <p className="text-sm text-gray-500 mb-5">
-          {t('settings.categories.subtitle')}
+          Gestionați categoriile de servicii oferite de compania dvs. prin cereri de activare sau dezactivare.
         </p>
 
         {categoriesLoading ? (
@@ -871,56 +869,164 @@ export default function SettingsPage() {
             <div className="h-12 bg-gray-100 rounded-xl" />
             <div className="h-12 bg-gray-100 rounded-xl" />
           </div>
-        ) : allCategories.length === 0 ? (
-          <div className="text-center py-8">
-            <Layers className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-            <p className="text-sm text-gray-500">{t('settings.categories.empty')}</p>
-          </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {allCategories.map((cat) => {
-              const isSelected = selectedCategoryIds.has(cat.id);
-              return (
-                <label
-                  key={cat.id}
-                  className={cn(
-                    'flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-all border',
-                    isSelected
-                      ? 'border-blue-200 bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50',
-                  )}
-                >
-                  <input
-                    type="checkbox"
-                    checked={isSelected}
-                    onChange={() => toggleCategoryId(cat.id)}
-                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600/30"
-                  />
-                  {cat.icon && <span className="text-lg">{cat.icon}</span>}
-                  <span className={cn(
-                    'text-sm',
-                    isSelected ? 'font-medium text-blue-900' : 'text-gray-700',
-                  )}>
-                    {cat.nameRo}
-                  </span>
-                </label>
+          <>
+            {/* Categorii Active */}
+            {(() => {
+              const activeCategories = (company?.serviceCategories ?? []) as ServiceCategory[];
+              return activeCategories.length > 0 ? (
+                <div className="mb-6">
+                  <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                    <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                    Categorii Active
+                  </h3>
+                  <div className="space-y-2">
+                    {activeCategories.map((cat) => {
+                      const hasPendingDeactivate = categoryRequests.some(
+                        (r) => r.category.id === cat.id && r.requestType === 'DEACTIVATE' && r.status === 'PENDING',
+                      );
+                      return (
+                        <div
+                          key={cat.id}
+                          className="flex items-center justify-between px-4 py-3 rounded-xl border border-emerald-200 bg-emerald-50"
+                        >
+                          <div className="flex items-center gap-2">
+                            {cat.icon && <span className="text-lg">{cat.icon}</span>}
+                            <span className="text-sm font-medium text-emerald-900">
+                              {i18n.language === 'en' ? cat.nameEn : cat.nameRo}
+                            </span>
+                          </div>
+                          {!hasPendingDeactivate && (
+                            <button
+                              type="button"
+                              onClick={() => void handleRequestCategory(cat.id, 'DEACTIVATE')}
+                              disabled={requestingCategory}
+                              className="text-xs px-2.5 py-1 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-50 transition-colors"
+                            >
+                              Solicită dezactivare
+                            </button>
+                          )}
+                          {hasPendingDeactivate && (
+                            <span className="text-xs px-2.5 py-1 rounded-lg bg-amber-100 text-amber-700 border border-amber-200">
+                              Dezactivare în așteptare
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <div className="mb-6 p-4 rounded-xl border border-dashed border-gray-300 text-center">
+                  <p className="text-sm text-gray-500">Nu aveți categorii active momentan.</p>
+                </div>
               );
-            })}
-          </div>
-        )}
+            })()}
 
-        {/* Summary */}
-        {allCategories.length > 0 && (
-          <div className="mt-4 flex items-center gap-2 text-sm text-gray-500">
-            <Layers className="h-4 w-4" />
-            <span>
-              {selectedCategoryIds.size === 0
-                ? t('settings.categories.noneSelected')
-                : selectedCategoryIds.size === 1
-                  ? t('settings.categories.selected', { count: selectedCategoryIds.size })
-                  : t('settings.categories.selectedPlural', { count: selectedCategoryIds.size })}
-            </span>
-          </div>
+            {/* Categorii Disponibile */}
+            {(() => {
+              const activeIds = new Set(
+                ((company?.serviceCategories ?? []) as ServiceCategory[]).map((c) => c.id),
+              );
+              const available = allCategories.filter((c) => !activeIds.has(c.id));
+              return available.length > 0 ? (
+                <div className="mb-6">
+                  <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                    <span className="inline-flex h-2 w-2 rounded-full bg-blue-500" />
+                    Categorii Disponibile
+                  </h3>
+                  <div className="space-y-2">
+                    {available.map((cat) => {
+                      const hasPendingActivate = categoryRequests.some(
+                        (r) => r.category.id === cat.id && r.requestType === 'ACTIVATE' && r.status === 'PENDING',
+                      );
+                      return (
+                        <div
+                          key={cat.id}
+                          className="flex items-center justify-between px-4 py-3 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 transition-colors"
+                        >
+                          <div className="flex items-center gap-2">
+                            {cat.icon && <span className="text-lg">{cat.icon}</span>}
+                            <span className="text-sm text-gray-700">
+                              {i18n.language === 'en' ? cat.nameEn : cat.nameRo}
+                            </span>
+                          </div>
+                          {!hasPendingActivate && (
+                            <button
+                              type="button"
+                              onClick={() => void handleRequestCategory(cat.id, 'ACTIVATE')}
+                              disabled={requestingCategory}
+                              className="text-xs px-2.5 py-1 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                            >
+                              Solicită acces
+                            </button>
+                          )}
+                          {hasPendingActivate && (
+                            <span className="text-xs px-2.5 py-1 rounded-lg bg-amber-100 text-amber-700 border border-amber-200">
+                              Cerere în așteptare
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : null;
+            })()}
+
+            {/* Cereri Trimise */}
+            {categoryRequests.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                  <span className="inline-flex h-2 w-2 rounded-full bg-amber-500" />
+                  Cereri Trimise
+                </h3>
+                <div className="space-y-2">
+                  {categoryRequests.map((req) => (
+                    <div
+                      key={req.id}
+                      className="flex items-center justify-between px-4 py-3 rounded-xl border border-gray-200 bg-white"
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        {req.category.icon && <span className="text-base shrink-0">{req.category.icon}</span>}
+                        <div className="min-w-0">
+                          <span className="text-sm font-medium text-gray-800 truncate block">
+                            {i18n.language === 'en' ? req.category.nameEn : req.category.nameRo}
+                          </span>
+                          <span className="text-xs text-gray-400">
+                            {req.requestType === 'ACTIVATE' ? 'Activare' : 'Dezactivare'} &middot;{' '}
+                            {new Date(req.createdAt).toLocaleDateString('ro-RO')}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="shrink-0 ml-3">
+                        {req.status === 'PENDING' && (
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                            În așteptare
+                          </span>
+                        )}
+                        {req.status === 'APPROVED' && (
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
+                            Aprobat
+                          </span>
+                        )}
+                        {req.status === 'REJECTED' && (
+                          <div className="text-right">
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                              Respins
+                            </span>
+                            {req.reviewNote && (
+                              <p className="text-xs text-gray-500 mt-1 max-w-[200px] text-right">{req.reviewNote}</p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
         )}
 
         {/* Feedback messages */}
@@ -932,16 +1038,6 @@ export default function SettingsPage() {
         {categoriesErrorMessage && (
           <div className="mt-4 p-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">
             {categoriesErrorMessage}
-          </div>
-        )}
-
-        {/* Save button */}
-        {allCategories.length > 0 && (
-          <div className="mt-5">
-            <Button onClick={handleSaveCategories} loading={savingCategories}>
-              <Save className="h-4 w-4" />
-              {t('settings.categories.saveBtn')}
-            </Button>
           </div>
         )}
       </Card>

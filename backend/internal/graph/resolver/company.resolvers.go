@@ -615,18 +615,23 @@ func (r *mutationResolver) SetCompanyCommissionOverride(ctx context.Context, id 
 }
 
 // UpdateCompanyServiceCategories is the resolver for the updateCompanyServiceCategories field.
-func (r *mutationResolver) UpdateCompanyServiceCategories(ctx context.Context, categoryIds []string) ([]*model.ServiceCategory, error) {
+// Restricted to global_admin only. company_admin must use requestCategoryAccess instead.
+// The companyId parameter is required; it identifies which company's categories to update.
+func (r *mutationResolver) UpdateCompanyServiceCategories(ctx context.Context, categoryIds []string, companyID *string) ([]*model.ServiceCategory, error) {
 	claims := auth.GetUserFromContext(ctx)
 	if claims == nil {
 		return nil, fmt.Errorf("not authenticated")
 	}
-	if claims.Role != "company_admin" && claims.Role != "global_admin" {
-		return nil, fmt.Errorf("not authorized")
+	if claims.Role != "global_admin" {
+		return nil, fmt.Errorf("not authorized: only global administrators can directly set company categories")
+	}
+	if companyID == nil || *companyID == "" {
+		return nil, fmt.Errorf("companyId is required for global admin")
 	}
 
-	company, err := r.Queries.GetCompanyByAdminUserID(ctx, stringToUUID(claims.UserID))
+	company, err := r.Queries.GetCompanyByID(ctx, stringToUUID(*companyID))
 	if err != nil {
-		return nil, fmt.Errorf("company not found for user: %w", err)
+		return nil, fmt.Errorf("company not found: %w", err)
 	}
 
 	// Delete all existing categories and insert the new ones.

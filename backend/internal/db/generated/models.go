@@ -357,6 +357,10 @@ const (
 	NotificationTypeSubscriptionCancelled             NotificationType = "subscription_cancelled"
 	NotificationTypeAccountSuspended                  NotificationType = "account_suspended"
 	NotificationTypeAccountReactivated                NotificationType = "account_reactivated"
+	NotificationTypeCategoryRequestReceived           NotificationType = "category_request_received"
+	NotificationTypeCategoryRequestApproved           NotificationType = "category_request_approved"
+	NotificationTypeCategoryRequestRejected           NotificationType = "category_request_rejected"
+	NotificationTypeCategoryAssigned                  NotificationType = "category_assigned"
 )
 
 func (e *NotificationType) Scan(src interface{}) error {
@@ -1075,6 +1079,19 @@ type Company struct {
 	Iban                  pgtype.Text        `json:"iban"`
 }
 
+type CompanyCategoryRequest struct {
+	ID          pgtype.UUID        `json:"id"`
+	CompanyID   pgtype.UUID        `json:"company_id"`
+	CategoryID  pgtype.UUID        `json:"category_id"`
+	RequestType string             `json:"request_type"`
+	Status      string             `json:"status"`
+	RequestedBy pgtype.UUID        `json:"requested_by"`
+	ReviewedBy  pgtype.UUID        `json:"reviewed_by"`
+	ReviewNote  pgtype.Text        `json:"review_note"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
 type CompanyDocument struct {
 	ID              pgtype.UUID        `json:"id"`
 	CompanyID       pgtype.UUID        `json:"company_id"`
@@ -1640,6 +1657,7 @@ type Worker struct {
 	HomeLatitude       pgtype.Float8      `json:"home_latitude"`
 	HomeLongitude      pgtype.Float8      `json:"home_longitude"`
 	MaxDailyBookings   pgtype.Int4        `json:"max_daily_bookings"`
+	InvitedCategoryIds []pgtype.UUID      `json:"invited_category_ids"`
 }
 
 type WorkerAvailability struct {

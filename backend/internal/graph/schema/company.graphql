@@ -113,7 +113,7 @@ extend type Mutation {
   suspendCompany(id: ID!, reason: String!): Company!
   reviewCompanyDocument(id: ID!, approved: Boolean!, rejectionReason: String): CompanyDocument!
   setCompanyCommissionOverride(id: ID!, pct: Float): Company!
-  updateCompanyServiceCategories(categoryIds: [ID!]!): [ServiceCategory!]!
+  updateCompanyServiceCategories(categoryIds: [ID!]!, companyId: ID): [ServiceCategory!]!
   verifyCompanyWithANAF(id: ID!): Company!
 }
 

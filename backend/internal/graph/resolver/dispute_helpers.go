@@ -12,6 +12,32 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+// issueDisputeRefund issues a Stripe refund for a dispute resolution.
+// It is non-blocking and logs errors without propagating them.
+func (r *Resolver) issueDisputeRefund(ctx context.Context, bookingID pgtype.UUID, refundAmountRON float64) {
+	booking, err := r.Queries.GetBookingByID(ctx, bookingID)
+	if err != nil {
+		log.Printf("[dispute] issueRefund: could not load booking %s: %v", uuidToString(bookingID), err)
+		return
+	}
+	if !booking.StripePaymentIntentID.Valid || booking.StripePaymentIntentID.String == "" {
+		log.Printf("[dispute] issueRefund: booking %s has no Stripe payment intent", booking.ReferenceCode)
+		return
+	}
+	if r.PaymentService == nil {
+		log.Printf("[dispute] issueRefund: PaymentService is nil, skipping refund for booking %s", booking.ReferenceCode)
+		return
+	}
+	// Stripe amounts are in bani (RON × 100).
+	amountBani := int64(refundAmountRON * 100)
+	refundID, err := r.PaymentService.CreateRefund(ctx, booking.StripePaymentIntentID.String, amountBani)
+	if err != nil {
+		log.Printf("[dispute] issueRefund: stripe refund failed for booking %s: %v", booking.ReferenceCode, err)
+		return
+	}
+	log.Printf("[dispute] issueRefund: created Stripe refund %s for booking %s (%.2f RON)", refundID, booking.ReferenceCode, refundAmountRON)
+}
+
 // dbDisputeToGQL converts a db.BookingDispute row to the GraphQL BookingDispute model.
 // Related entities (booking, openedBy, resolvedBy) are not populated here — they are
 // lazily loaded by the admin list resolver or left nil for lightweight responses.

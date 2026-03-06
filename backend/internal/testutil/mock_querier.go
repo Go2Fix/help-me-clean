@@ -1544,3 +1544,49 @@ func (m *PartialMockQuerier) ResolveDispute(ctx context.Context, arg db.ResolveD
 func (m *PartialMockQuerier) UpdateDisputeCompanyResponse(ctx context.Context, arg db.UpdateDisputeCompanyResponseParams) (db.BookingDispute, error) {
 	panic("PartialMockQuerier: UpdateDisputeCompanyResponse not configured")
 }
+
+// ─── Company category request methods (migration 000064) ─────────────────────
+
+func (m *PartialMockQuerier) CountPendingCategoryRequests(ctx context.Context) (int64, error) {
+	panic("PartialMockQuerier: CountPendingCategoryRequests not configured")
+}
+
+func (m *PartialMockQuerier) CreateCompanyCategoryRequest(ctx context.Context, arg db.CreateCompanyCategoryRequestParams) (db.CompanyCategoryRequest, error) {
+	panic("PartialMockQuerier: CreateCompanyCategoryRequest not configured")
+}
+
+func (m *PartialMockQuerier) GetCompanyCategoryRequest(ctx context.Context, id pgtype.UUID) (db.CompanyCategoryRequest, error) {
+	panic("PartialMockQuerier: GetCompanyCategoryRequest not configured")
+}
+
+func (m *PartialMockQuerier) HasPendingCategoryRequest(ctx context.Context, arg db.HasPendingCategoryRequestParams) (bool, error) {
+	panic("PartialMockQuerier: HasPendingCategoryRequest not configured")
+}
+
+func (m *PartialMockQuerier) ListCompanyCategoryRequests(ctx context.Context, companyID pgtype.UUID) ([]db.ListCompanyCategoryRequestsRow, error) {
+	panic("PartialMockQuerier: ListCompanyCategoryRequests not configured")
+}
+
+func (m *PartialMockQuerier) ListPendingCategoryRequests(ctx context.Context) ([]db.ListPendingCategoryRequestsRow, error) {
+	panic("PartialMockQuerier: ListPendingCategoryRequests not configured")
+}
+
+func (m *PartialMockQuerier) UpdateCompanyCategoryRequestStatus(ctx context.Context, arg db.UpdateCompanyCategoryRequestStatusParams) (db.CompanyCategoryRequest, error) {
+	panic("PartialMockQuerier: UpdateCompanyCategoryRequestStatus not configured")
+}
+
+func (m *PartialMockQuerier) DeleteCompanyServiceCategory(ctx context.Context, arg db.DeleteCompanyServiceCategoryParams) error {
+	panic("PartialMockQuerier: DeleteCompanyServiceCategory not configured")
+}
+
+func (m *PartialMockQuerier) SetWorkerInvitedCategories(ctx context.Context, arg db.SetWorkerInvitedCategoriesParams) error {
+	panic("PartialMockQuerier: SetWorkerInvitedCategories not configured")
+}
+
+func (m *PartialMockQuerier) GetWorkerInvitedCategories(ctx context.Context, id pgtype.UUID) ([]pgtype.UUID, error) {
+	panic("PartialMockQuerier: GetWorkerInvitedCategories not configured")
+}
+
+func (m *PartialMockQuerier) ListGlobalAdmins(ctx context.Context) ([]db.User, error) {
+	panic("PartialMockQuerier: ListGlobalAdmins not configured")
+}

@@ -136,10 +136,23 @@ export default function NotificationBell() {
       if (!notification.isRead) {
         await markRead({ variables: { id: notification.id } });
       }
-      const bookingId = notification.data?.bookingId;
-      if (bookingId) {
-        setOpen(false);
-        navigate(`/cont/comenzi/${String(bookingId)}`);
+      setOpen(false);
+      const bookingId = notification.data?.bookingId as string | undefined;
+
+      switch (notification.type) {
+        case 'category_request_received':
+          navigate('/admin/categorii-cereri');
+          break;
+        case 'category_request_approved':
+        case 'category_request_rejected':
+          navigate('/firma/setari');
+          break;
+        case 'category_assigned':
+          navigate('/worker/profil');
+          break;
+        default:
+          if (bookingId) navigate(`/cont/comenzi/${bookingId}`);
+          break;
       }
     },
     [markRead, navigate],

@@ -18,3 +18,7 @@ SELECT EXISTS(
     SELECT 1 FROM company_service_categories
     WHERE company_id = $1 AND category_id = $2
 ) AS has_category;
+
+-- name: DeleteCompanyServiceCategory :exec
+DELETE FROM company_service_categories
+WHERE company_id = $1 AND category_id = $2;

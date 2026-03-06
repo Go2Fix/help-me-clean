@@ -270,6 +270,17 @@ type ComplexityRoot struct {
 		Company    func(childComplexity int) int
 	}
 
+	CompanyCategoryRequest struct {
+		Category    func(childComplexity int) int
+		Company     func(childComplexity int) int
+		CreatedAt   func(childComplexity int) int
+		ID          func(childComplexity int) int
+		RequestType func(childComplexity int) int
+		ReviewNote  func(childComplexity int) int
+		Status      func(childComplexity int) int
+		UpdatedAt   func(childComplexity int) int
+	}
+
 	CompanyConnection struct {
 		Edges      func(childComplexity int) int
 		PageInfo   func(childComplexity int) int
@@ -530,6 +541,7 @@ type ComplexityRoot struct {
 		RegisterDeviceToken                       func(childComplexity int, token string) int
 		RejectCompany                             func(childComplexity int, id string, reason string) int
 		RejectReview                              func(childComplexity int, id string) int
+		RequestCategoryAccess                     func(childComplexity int, categoryID string, requestType model.CategoryRequestType) int
 		RequestEmailOtp                           func(childComplexity int, email string, role model.UserRole) int
 		RequestPhoneVerification                  func(childComplexity int, phone string) int
 		RequestRefund                             func(childComplexity int, bookingID string, reason string) int
@@ -540,6 +552,7 @@ type ComplexityRoot struct {
 		ResolveSubscriptionWorkerChangePerBooking func(childComplexity int, id string, defaultWorkerID string, assignments []*model.BookingWorkerAssignment) int
 		RespondToDispute                          func(childComplexity int, disputeID string, response string) int
 		ResumeSubscription                        func(childComplexity int, id string) int
+		ReviewCategoryRequest                     func(childComplexity int, requestID string, action model.ReviewAction, note *string) int
 		ReviewCompanyDocument                     func(childComplexity int, id string, approved bool, rejectionReason *string) int
 		ReviewWorkerDocument                      func(childComplexity int, id string, approved bool, rejectionReason *string) int
 		SelectBookingTimeSlot                     func(childComplexity int, bookingID string, timeSlotID string) int
@@ -562,7 +575,7 @@ type ComplexityRoot struct {
 		UpdateCityPricingMultiplier               func(childComplexity int, id string, pricingMultiplier float64) int
 		UpdateCompanyProfile                      func(childComplexity int, input model.UpdateCompanyInput) int
 		UpdateCompanyServiceAreas                 func(childComplexity int, areaIds []string) int
-		UpdateCompanyServiceCategories            func(childComplexity int, categoryIds []string) int
+		UpdateCompanyServiceCategories            func(childComplexity int, categoryIds []string, companyID *string) int
 		UpdatePayoutStatus                        func(childComplexity int, payoutID string, status model.PayoutStatus, notes *string) int
 		UpdatePlatformSetting                     func(childComplexity int, key string, value string) int
 		UpdateProfile                             func(childComplexity int, input model.UpdateProfileInput) int
@@ -863,6 +876,7 @@ type ComplexityRoot struct {
 		MyBillingProfile                   func(childComplexity int) int
 		MyBookings                         func(childComplexity int, status *model.BookingStatus, first *int, after *string) int
 		MyCompany                          func(childComplexity int) int
+		MyCompanyCategoryRequests          func(childComplexity int) int
 		MyCompanyEarnings                  func(childComplexity int, from string, to string) int
 		MyCompanyFinancialSummary          func(childComplexity int) int
 		MyCompanyServiceAreas              func(childComplexity int) int
@@ -888,6 +902,8 @@ type ComplexityRoot struct {
 		MyWorkerServiceAreas               func(childComplexity int) int
 		MyWorkerStats                      func(childComplexity int) int
 		MyWorkers                          func(childComplexity int) int
+		PendingCategoryRequests            func(childComplexity int) int
+		PendingCategoryRequestsCount       func(childComplexity int) int
 		PendingCompanyApplications         func(childComplexity int) int
 		PendingCompanyDocuments            func(childComplexity int) int
 		PendingWorkerDocuments             func(childComplexity int) int
@@ -1344,7 +1360,7 @@ type MutationResolver interface {
 	SuspendCompany(ctx context.Context, id string, reason string) (*model.Company, error)
 	ReviewCompanyDocument(ctx context.Context, id string, approved bool, rejectionReason *string) (*model.CompanyDocument, error)
 	SetCompanyCommissionOverride(ctx context.Context, id string, pct *float64) (*model.Company, error)
-	UpdateCompanyServiceCategories(ctx context.Context, categoryIds []string) ([]*model.ServiceCategory, error)
+	UpdateCompanyServiceCategories(ctx context.Context, categoryIds []string, companyID *string) ([]*model.ServiceCategory, error)
 	VerifyCompanyWithAnaf(ctx context.Context, id string) (*model.Company, error)
 	SendContactMessage(ctx context.Context, input model.ContactMessageInput) (bool, error)
 	OpenDispute(ctx context.Context, bookingID string, reason model.DisputeReason, description string, evidenceUrls []string) (*model.BookingDispute, error)
@@ -1394,6 +1410,8 @@ type MutationResolver interface {
 	CreateServiceExtra(ctx context.Context, input model.CreateServiceExtraInput) (*model.ServiceExtra, error)
 	CreateServiceCategory(ctx context.Context, input model.CreateServiceCategoryInput) (*model.ServiceCategory, error)
 	UpdateServiceCategory(ctx context.Context, input model.UpdateServiceCategoryInput) (*model.ServiceCategory, error)
+	RequestCategoryAccess(ctx context.Context, categoryID string, requestType model.CategoryRequestType) (*model.CompanyCategoryRequest, error)
+	ReviewCategoryRequest(ctx context.Context, requestID string, action model.ReviewAction, note *string) (*model.CompanyCategoryRequest, error)
 	UpdatePlatformSetting(ctx context.Context, key string, value string) (*model.PlatformSetting, error)
 	CreateSubscription(ctx context.Context, input model.CreateSubscriptionInput) (*model.ServiceSubscription, error)
 	PauseSubscription(ctx context.Context, id string) (*model.ServiceSubscription, error)
@@ -1517,6 +1535,9 @@ type QueryResolver interface {
 	ServiceCategories(ctx context.Context) ([]*model.ServiceCategory, error)
 	ServiceCategoryBySlug(ctx context.Context, slug string) (*model.ServiceCategory, error)
 	AllServiceCategories(ctx context.Context) ([]*model.ServiceCategory, error)
+	PendingCategoryRequests(ctx context.Context) ([]*model.CompanyCategoryRequest, error)
+	MyCompanyCategoryRequests(ctx context.Context) ([]*model.CompanyCategoryRequest, error)
+	PendingCategoryRequestsCount(ctx context.Context) (int, error)
 	AllServices(ctx context.Context) ([]*model.ServiceDefinition, error)
 	AllExtras(ctx context.Context) ([]*model.ServiceExtra, error)
 	PlatformSettings(ctx context.Context) ([]*model.PlatformSetting, error)
@@ -2591,6 +2612,55 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.CompanyApplicationResult.Company(childComplexity), true
+
+	case "CompanyCategoryRequest.category":
+		if e.complexity.CompanyCategoryRequest.Category == nil {
+			break
+		}
+
+		return e.complexity.CompanyCategoryRequest.Category(childComplexity), true
+	case "CompanyCategoryRequest.company":
+		if e.complexity.CompanyCategoryRequest.Company == nil {
+			break
+		}
+
+		return e.complexity.CompanyCategoryRequest.Company(childComplexity), true
+	case "CompanyCategoryRequest.createdAt":
+		if e.complexity.CompanyCategoryRequest.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.CompanyCategoryRequest.CreatedAt(childComplexity), true
+	case "CompanyCategoryRequest.id":
+		if e.complexity.CompanyCategoryRequest.ID == nil {
+			break
+		}
+
+		return e.complexity.CompanyCategoryRequest.ID(childComplexity), true
+	case "CompanyCategoryRequest.requestType":
+		if e.complexity.CompanyCategoryRequest.RequestType == nil {
+			break
+		}
+
+		return e.complexity.CompanyCategoryRequest.RequestType(childComplexity), true
+	case "CompanyCategoryRequest.reviewNote":
+		if e.complexity.CompanyCategoryRequest.ReviewNote == nil {
+			break
+		}
+
+		return e.complexity.CompanyCategoryRequest.ReviewNote(childComplexity), true
+	case "CompanyCategoryRequest.status":
+		if e.complexity.CompanyCategoryRequest.Status == nil {
+			break
+		}
+
+		return e.complexity.CompanyCategoryRequest.Status(childComplexity), true
+	case "CompanyCategoryRequest.updatedAt":
+		if e.complexity.CompanyCategoryRequest.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.CompanyCategoryRequest.UpdatedAt(childComplexity), true
 
 	case "CompanyConnection.edges":
 		if e.complexity.CompanyConnection.Edges == nil {
@@ -4084,6 +4154,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.RejectReview(childComplexity, args["id"].(string)), true
+	case "Mutation.requestCategoryAccess":
+		if e.complexity.Mutation.RequestCategoryAccess == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_requestCategoryAccess_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RequestCategoryAccess(childComplexity, args["categoryId"].(string), args["requestType"].(model.CategoryRequestType)), true
 	case "Mutation.requestEmailOtp":
 		if e.complexity.Mutation.RequestEmailOtp == nil {
 			break
@@ -4194,6 +4275,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.ResumeSubscription(childComplexity, args["id"].(string)), true
+	case "Mutation.reviewCategoryRequest":
+		if e.complexity.Mutation.ReviewCategoryRequest == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_reviewCategoryRequest_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ReviewCategoryRequest(childComplexity, args["requestId"].(string), args["action"].(model.ReviewAction), args["note"].(*string)), true
 	case "Mutation.reviewCompanyDocument":
 		if e.complexity.Mutation.ReviewCompanyDocument == nil {
 			break
@@ -4446,7 +4538,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateCompanyServiceCategories(childComplexity, args["categoryIds"].([]string)), true
+		return e.complexity.Mutation.UpdateCompanyServiceCategories(childComplexity, args["categoryIds"].([]string), args["companyId"].(*string)), true
 	case "Mutation.updatePayoutStatus":
 		if e.complexity.Mutation.UpdatePayoutStatus == nil {
 			break
@@ -6159,6 +6251,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.MyCompany(childComplexity), true
+	case "Query.myCompanyCategoryRequests":
+		if e.complexity.Query.MyCompanyCategoryRequests == nil {
+			break
+		}
+
+		return e.complexity.Query.MyCompanyCategoryRequests(childComplexity), true
 	case "Query.myCompanyEarnings":
 		if e.complexity.Query.MyCompanyEarnings == nil {
 			break
@@ -6359,6 +6457,18 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.MyWorkers(childComplexity), true
+	case "Query.pendingCategoryRequests":
+		if e.complexity.Query.PendingCategoryRequests == nil {
+			break
+		}
+
+		return e.complexity.Query.PendingCategoryRequests(childComplexity), true
+	case "Query.pendingCategoryRequestsCount":
+		if e.complexity.Query.PendingCategoryRequestsCount == nil {
+			break
+		}
+
+		return e.complexity.Query.PendingCategoryRequestsCount(childComplexity), true
 	case "Query.pendingCompanyApplications":
 		if e.complexity.Query.PendingCompanyApplications == nil {
 			break
@@ -9253,6 +9363,22 @@ func (ec *executionContext) field_Mutation_rejectReview_args(ctx context.Context
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_requestCategoryAccess_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "categoryId", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["categoryId"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "requestType", ec.unmarshalNCategoryRequestType2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCategoryRequestType)
+	if err != nil {
+		return nil, err
+	}
+	args["requestType"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_requestEmailOtp_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -9425,6 +9551,27 @@ func (ec *executionContext) field_Mutation_resumeSubscription_args(ctx context.C
 		return nil, err
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_reviewCategoryRequest_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "requestId", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["requestId"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "action", ec.unmarshalNReviewAction2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐReviewAction)
+	if err != nil {
+		return nil, err
+	}
+	args["action"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "note", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["note"] = arg2
 	return args, nil
 }
 
@@ -9778,6 +9925,11 @@ func (ec *executionContext) field_Mutation_updateCompanyServiceCategories_args(c
 		return nil, err
 	}
 	args["categoryIds"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "companyId", ec.unmarshalOID2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["companyId"] = arg1
 	return args, nil
 }
 
@@ -17165,6 +17317,322 @@ func (ec *executionContext) fieldContext_CompanyApplicationResult_claimToken(_ c
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CompanyCategoryRequest_id(ctx context.Context, field graphql.CollectedField, obj *model.CompanyCategoryRequest) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CompanyCategoryRequest_id,
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CompanyCategoryRequest_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CompanyCategoryRequest",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CompanyCategoryRequest_company(ctx context.Context, field graphql.CollectedField, obj *model.CompanyCategoryRequest) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CompanyCategoryRequest_company,
+		func(ctx context.Context) (any, error) {
+			return obj.Company, nil
+		},
+		nil,
+		ec.marshalNCompany2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompany,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CompanyCategoryRequest_company(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CompanyCategoryRequest",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Company_id(ctx, field)
+			case "companyName":
+				return ec.fieldContext_Company_companyName(ctx, field)
+			case "cui":
+				return ec.fieldContext_Company_cui(ctx, field)
+			case "companyType":
+				return ec.fieldContext_Company_companyType(ctx, field)
+			case "legalRepresentative":
+				return ec.fieldContext_Company_legalRepresentative(ctx, field)
+			case "contactEmail":
+				return ec.fieldContext_Company_contactEmail(ctx, field)
+			case "contactPhone":
+				return ec.fieldContext_Company_contactPhone(ctx, field)
+			case "address":
+				return ec.fieldContext_Company_address(ctx, field)
+			case "city":
+				return ec.fieldContext_Company_city(ctx, field)
+			case "county":
+				return ec.fieldContext_Company_county(ctx, field)
+			case "description":
+				return ec.fieldContext_Company_description(ctx, field)
+			case "logoUrl":
+				return ec.fieldContext_Company_logoUrl(ctx, field)
+			case "status":
+				return ec.fieldContext_Company_status(ctx, field)
+			case "rejectionReason":
+				return ec.fieldContext_Company_rejectionReason(ctx, field)
+			case "ratingAvg":
+				return ec.fieldContext_Company_ratingAvg(ctx, field)
+			case "totalJobsCompleted":
+				return ec.fieldContext_Company_totalJobsCompleted(ctx, field)
+			case "documents":
+				return ec.fieldContext_Company_documents(ctx, field)
+			case "workers":
+				return ec.fieldContext_Company_workers(ctx, field)
+			case "commissionOverridePct":
+				return ec.fieldContext_Company_commissionOverridePct(ctx, field)
+			case "serviceCategories":
+				return ec.fieldContext_Company_serviceCategories(ctx, field)
+			case "admin":
+				return ec.fieldContext_Company_admin(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Company_createdAt(ctx, field)
+			case "anafVerification":
+				return ec.fieldContext_Company_anafVerification(ctx, field)
+			case "regNumber":
+				return ec.fieldContext_Company_regNumber(ctx, field)
+			case "isVatPayer":
+				return ec.fieldContext_Company_isVatPayer(ctx, field)
+			case "bankName":
+				return ec.fieldContext_Company_bankName(ctx, field)
+			case "iban":
+				return ec.fieldContext_Company_iban(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CompanyCategoryRequest_category(ctx context.Context, field graphql.CollectedField, obj *model.CompanyCategoryRequest) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CompanyCategoryRequest_category,
+		func(ctx context.Context) (any, error) {
+			return obj.Category, nil
+		},
+		nil,
+		ec.marshalNServiceCategory2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceCategory,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CompanyCategoryRequest_category(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CompanyCategoryRequest",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ServiceCategory_id(ctx, field)
+			case "slug":
+				return ec.fieldContext_ServiceCategory_slug(ctx, field)
+			case "nameRo":
+				return ec.fieldContext_ServiceCategory_nameRo(ctx, field)
+			case "nameEn":
+				return ec.fieldContext_ServiceCategory_nameEn(ctx, field)
+			case "descriptionRo":
+				return ec.fieldContext_ServiceCategory_descriptionRo(ctx, field)
+			case "descriptionEn":
+				return ec.fieldContext_ServiceCategory_descriptionEn(ctx, field)
+			case "icon":
+				return ec.fieldContext_ServiceCategory_icon(ctx, field)
+			case "imageUrl":
+				return ec.fieldContext_ServiceCategory_imageUrl(ctx, field)
+			case "commissionPct":
+				return ec.fieldContext_ServiceCategory_commissionPct(ctx, field)
+			case "sortOrder":
+				return ec.fieldContext_ServiceCategory_sortOrder(ctx, field)
+			case "isActive":
+				return ec.fieldContext_ServiceCategory_isActive(ctx, field)
+			case "services":
+				return ec.fieldContext_ServiceCategory_services(ctx, field)
+			case "formFields":
+				return ec.fieldContext_ServiceCategory_formFields(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ServiceCategory", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CompanyCategoryRequest_requestType(ctx context.Context, field graphql.CollectedField, obj *model.CompanyCategoryRequest) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CompanyCategoryRequest_requestType,
+		func(ctx context.Context) (any, error) {
+			return obj.RequestType, nil
+		},
+		nil,
+		ec.marshalNCategoryRequestType2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCategoryRequestType,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CompanyCategoryRequest_requestType(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CompanyCategoryRequest",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type CategoryRequestType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CompanyCategoryRequest_status(ctx context.Context, field graphql.CollectedField, obj *model.CompanyCategoryRequest) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CompanyCategoryRequest_status,
+		func(ctx context.Context) (any, error) {
+			return obj.Status, nil
+		},
+		nil,
+		ec.marshalNCategoryRequestStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCategoryRequestStatus,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CompanyCategoryRequest_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CompanyCategoryRequest",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type CategoryRequestStatus does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CompanyCategoryRequest_reviewNote(ctx context.Context, field graphql.CollectedField, obj *model.CompanyCategoryRequest) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CompanyCategoryRequest_reviewNote,
+		func(ctx context.Context) (any, error) {
+			return obj.ReviewNote, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CompanyCategoryRequest_reviewNote(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CompanyCategoryRequest",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CompanyCategoryRequest_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.CompanyCategoryRequest) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CompanyCategoryRequest_createdAt,
+		func(ctx context.Context) (any, error) {
+			return obj.CreatedAt, nil
+		},
+		nil,
+		ec.marshalNDateTime2timeᚐTime,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CompanyCategoryRequest_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CompanyCategoryRequest",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type DateTime does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CompanyCategoryRequest_updatedAt(ctx context.Context, field graphql.CollectedField, obj *model.CompanyCategoryRequest) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CompanyCategoryRequest_updatedAt,
+		func(ctx context.Context) (any, error) {
+			return obj.UpdatedAt, nil
+		},
+		nil,
+		ec.marshalNDateTime2timeᚐTime,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CompanyCategoryRequest_updatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CompanyCategoryRequest",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type DateTime does not have child fields")
 		},
 	}
 	return fc, nil
@@ -24886,7 +25354,7 @@ func (ec *executionContext) _Mutation_updateCompanyServiceCategories(ctx context
 		ec.fieldContext_Mutation_updateCompanyServiceCategories,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().UpdateCompanyServiceCategories(ctx, fc.Args["categoryIds"].([]string))
+			return ec.resolvers.Mutation().UpdateCompanyServiceCategories(ctx, fc.Args["categoryIds"].([]string), fc.Args["companyId"].(*string))
 		},
 		nil,
 		ec.marshalNServiceCategory2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐServiceCategoryᚄ,
@@ -28428,6 +28896,124 @@ func (ec *executionContext) fieldContext_Mutation_updateServiceCategory(ctx cont
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_updateServiceCategory_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_requestCategoryAccess(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_requestCategoryAccess,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().RequestCategoryAccess(ctx, fc.Args["categoryId"].(string), fc.Args["requestType"].(model.CategoryRequestType))
+		},
+		nil,
+		ec.marshalNCompanyCategoryRequest2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyCategoryRequest,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_requestCategoryAccess(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_CompanyCategoryRequest_id(ctx, field)
+			case "company":
+				return ec.fieldContext_CompanyCategoryRequest_company(ctx, field)
+			case "category":
+				return ec.fieldContext_CompanyCategoryRequest_category(ctx, field)
+			case "requestType":
+				return ec.fieldContext_CompanyCategoryRequest_requestType(ctx, field)
+			case "status":
+				return ec.fieldContext_CompanyCategoryRequest_status(ctx, field)
+			case "reviewNote":
+				return ec.fieldContext_CompanyCategoryRequest_reviewNote(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_CompanyCategoryRequest_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_CompanyCategoryRequest_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CompanyCategoryRequest", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_requestCategoryAccess_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_reviewCategoryRequest(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_reviewCategoryRequest,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().ReviewCategoryRequest(ctx, fc.Args["requestId"].(string), fc.Args["action"].(model.ReviewAction), fc.Args["note"].(*string))
+		},
+		nil,
+		ec.marshalNCompanyCategoryRequest2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyCategoryRequest,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_reviewCategoryRequest(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_CompanyCategoryRequest_id(ctx, field)
+			case "company":
+				return ec.fieldContext_CompanyCategoryRequest_company(ctx, field)
+			case "category":
+				return ec.fieldContext_CompanyCategoryRequest_category(ctx, field)
+			case "requestType":
+				return ec.fieldContext_CompanyCategoryRequest_requestType(ctx, field)
+			case "status":
+				return ec.fieldContext_CompanyCategoryRequest_status(ctx, field)
+			case "reviewNote":
+				return ec.fieldContext_CompanyCategoryRequest_reviewNote(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_CompanyCategoryRequest_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_CompanyCategoryRequest_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CompanyCategoryRequest", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_reviewCategoryRequest_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -40712,6 +41298,129 @@ func (ec *executionContext) fieldContext_Query_allServiceCategories(_ context.Co
 				return ec.fieldContext_ServiceCategory_formFields(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ServiceCategory", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_pendingCategoryRequests(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_pendingCategoryRequests,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.Query().PendingCategoryRequests(ctx)
+		},
+		nil,
+		ec.marshalNCompanyCategoryRequest2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyCategoryRequestᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_pendingCategoryRequests(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_CompanyCategoryRequest_id(ctx, field)
+			case "company":
+				return ec.fieldContext_CompanyCategoryRequest_company(ctx, field)
+			case "category":
+				return ec.fieldContext_CompanyCategoryRequest_category(ctx, field)
+			case "requestType":
+				return ec.fieldContext_CompanyCategoryRequest_requestType(ctx, field)
+			case "status":
+				return ec.fieldContext_CompanyCategoryRequest_status(ctx, field)
+			case "reviewNote":
+				return ec.fieldContext_CompanyCategoryRequest_reviewNote(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_CompanyCategoryRequest_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_CompanyCategoryRequest_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CompanyCategoryRequest", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_myCompanyCategoryRequests(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_myCompanyCategoryRequests,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.Query().MyCompanyCategoryRequests(ctx)
+		},
+		nil,
+		ec.marshalNCompanyCategoryRequest2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyCategoryRequestᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_myCompanyCategoryRequests(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_CompanyCategoryRequest_id(ctx, field)
+			case "company":
+				return ec.fieldContext_CompanyCategoryRequest_company(ctx, field)
+			case "category":
+				return ec.fieldContext_CompanyCategoryRequest_category(ctx, field)
+			case "requestType":
+				return ec.fieldContext_CompanyCategoryRequest_requestType(ctx, field)
+			case "status":
+				return ec.fieldContext_CompanyCategoryRequest_status(ctx, field)
+			case "reviewNote":
+				return ec.fieldContext_CompanyCategoryRequest_reviewNote(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_CompanyCategoryRequest_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_CompanyCategoryRequest_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CompanyCategoryRequest", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_pendingCategoryRequestsCount(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_pendingCategoryRequestsCount,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.Query().PendingCategoryRequestsCount(ctx)
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_pendingCategoryRequestsCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -53992,7 +54701,7 @@ func (ec *executionContext) unmarshalInputInviteWorkerInput(ctx context.Context,
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"fullName", "email", "phone"}
+	fieldsInOrder := [...]string{"fullName", "email", "phone", "categoryIds"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -54020,6 +54729,13 @@ func (ec *executionContext) unmarshalInputInviteWorkerInput(ctx context.Context,
 				return it, err
 			}
 			it.Phone = data
+		case "categoryIds":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoryIds"))
+			data, err := ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CategoryIds = data
 		}
 	}
 
@@ -56319,6 +57035,77 @@ func (ec *executionContext) _CompanyApplicationResult(ctx context.Context, sel a
 	return out
 }
 
+var companyCategoryRequestImplementors = []string{"CompanyCategoryRequest"}
+
+func (ec *executionContext) _CompanyCategoryRequest(ctx context.Context, sel ast.SelectionSet, obj *model.CompanyCategoryRequest) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, companyCategoryRequestImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CompanyCategoryRequest")
+		case "id":
+			out.Values[i] = ec._CompanyCategoryRequest_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "company":
+			out.Values[i] = ec._CompanyCategoryRequest_company(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "category":
+			out.Values[i] = ec._CompanyCategoryRequest_category(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "requestType":
+			out.Values[i] = ec._CompanyCategoryRequest_requestType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "status":
+			out.Values[i] = ec._CompanyCategoryRequest_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "reviewNote":
+			out.Values[i] = ec._CompanyCategoryRequest_reviewNote(ctx, field, obj)
+		case "createdAt":
+			out.Values[i] = ec._CompanyCategoryRequest_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updatedAt":
+			out.Values[i] = ec._CompanyCategoryRequest_updatedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var companyConnectionImplementors = []string{"CompanyConnection"}
 
 func (ec *executionContext) _CompanyConnection(ctx context.Context, sel ast.SelectionSet, obj *model.CompanyConnection) graphql.Marshaler {
@@ -58281,6 +59068,20 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "updateServiceCategory":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_updateServiceCategory(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "requestCategoryAccess":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_requestCategoryAccess(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "reviewCategoryRequest":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_reviewCategoryRequest(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -61866,6 +62667,72 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_allServiceCategories(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "pendingCategoryRequests":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_pendingCategoryRequests(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "myCompanyCategoryRequests":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_myCompanyCategoryRequests(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "pendingCategoryRequestsCount":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_pendingCategoryRequestsCount(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -65874,6 +66741,26 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) unmarshalNCategoryRequestStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCategoryRequestStatus(ctx context.Context, v any) (model.CategoryRequestStatus, error) {
+	var res model.CategoryRequestStatus
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNCategoryRequestStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCategoryRequestStatus(ctx context.Context, sel ast.SelectionSet, v model.CategoryRequestStatus) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNCategoryRequestType2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCategoryRequestType(ctx context.Context, v any) (model.CategoryRequestType, error) {
+	var res model.CategoryRequestType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNCategoryRequestType2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCategoryRequestType(ctx context.Context, sel ast.SelectionSet, v model.CategoryRequestType) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNCityArea2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCityArea(ctx context.Context, sel ast.SelectionSet, v model.CityArea) graphql.Marshaler {
 	return ec._CityArea(ctx, sel, &v)
 }
@@ -66021,6 +66908,64 @@ func (ec *executionContext) marshalNCompanyApplicationResult2ᚖgo2fixᚑbackend
 		return graphql.Null
 	}
 	return ec._CompanyApplicationResult(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNCompanyCategoryRequest2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyCategoryRequest(ctx context.Context, sel ast.SelectionSet, v model.CompanyCategoryRequest) graphql.Marshaler {
+	return ec._CompanyCategoryRequest(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCompanyCategoryRequest2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyCategoryRequestᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CompanyCategoryRequest) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNCompanyCategoryRequest2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyCategoryRequest(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNCompanyCategoryRequest2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyCategoryRequest(ctx context.Context, sel ast.SelectionSet, v *model.CompanyCategoryRequest) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CompanyCategoryRequest(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNCompanyConnection2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyConnection(ctx context.Context, sel ast.SelectionSet, v model.CompanyConnection) graphql.Marshaler {
@@ -68190,6 +69135,16 @@ func (ec *executionContext) marshalNReview2ᚖgo2fixᚑbackendᚋinternalᚋgrap
 		return graphql.Null
 	}
 	return ec._Review(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNReviewAction2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐReviewAction(ctx context.Context, v any) (model.ReviewAction, error) {
+	var res model.ReviewAction
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNReviewAction2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐReviewAction(ctx context.Context, sel ast.SelectionSet, v model.ReviewAction) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNReviewConnection2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐReviewConnection(ctx context.Context, sel ast.SelectionSet, v model.ReviewConnection) graphql.Marshaler {

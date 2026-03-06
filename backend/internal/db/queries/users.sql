@@ -72,3 +72,6 @@ WHERE id = $1 RETURNING *;
 
 -- name: DeleteUser :exec
 DELETE FROM users WHERE id = $1;
+
+-- name: ListGlobalAdmins :many
+SELECT * FROM users WHERE role = 'global_admin' AND status = 'active';

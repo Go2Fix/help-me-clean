@@ -79,6 +79,32 @@ func (r *mutationResolver) InviteWorker(ctx context.Context, input model.InviteW
 	// Auto-assign all company service areas to the new worker
 	r.copyCompanyAreasToWorkerHelper(ctx, company.ID, worker.ID)
 
+	// Determine which categories to assign to this worker at invitation time.
+	{
+		var catIDs []pgtype.UUID
+		if len(input.CategoryIds) > 0 {
+			for _, catID := range input.CategoryIds {
+				catIDs = append(catIDs, stringToUUID(catID))
+			}
+		} else {
+			// Default: use all of the company's active categories.
+			companyCats, cErr := r.Queries.ListCompanyServiceCategories(ctx, company.ID)
+			if cErr == nil {
+				for _, cc := range companyCats {
+					catIDs = append(catIDs, cc.CategoryID)
+				}
+			}
+		}
+		if len(catIDs) > 0 {
+			if err := r.Queries.SetWorkerInvitedCategories(ctx, db.SetWorkerInvitedCategoriesParams{
+				ID:                 worker.ID,
+				InvitedCategoryIds: catIDs,
+			}); err != nil {
+				log.Printf("[InviteWorker] failed to store invited categories: %v", err)
+			}
+		}
+	}
+
 	// Notify the invited worker by email and upsert contact.
 	{
 		inviteToken := textVal(worker.InviteToken)
@@ -240,6 +266,42 @@ func (r *mutationResolver) AcceptInvitation(ctx context.Context, token string) (
 	})
 	if err != nil {
 		fmt.Printf("Warning: failed to activate user: %v\n", err)
+	}
+
+	// Auto-assign categories stored from the invitation.
+	{
+		reloadedWorker, wErr := r.Queries.GetWorkerByID(ctx, worker.ID)
+		if wErr == nil && len(reloadedWorker.InvitedCategoryIds) > 0 {
+			_ = r.Queries.DeleteAllWorkerServiceCategories(ctx, worker.ID)
+			for _, catID := range reloadedWorker.InvitedCategoryIds {
+				if err := r.Queries.InsertWorkerServiceCategory(ctx, db.InsertWorkerServiceCategoryParams{
+					WorkerID:   worker.ID,
+					CategoryID: catID,
+				}); err != nil {
+					log.Printf("acceptInvitation: failed to assign category: %v", err)
+				}
+			}
+			// Notify the worker about the assigned categories.
+			go func(workerUserID pgtype.UUID) {
+				catRows, _ := r.Queries.ListWorkerServiceCategories(context.Background(), worker.ID)
+				if len(catRows) > 0 {
+					names := make([]string, 0, len(catRows))
+					for _, c := range catRows {
+						names = append(names, c.NameRo)
+					}
+					body := fmt.Sprintf("Ți-au fost atribuite %d categorii de servicii: %s.", len(catRows), strings.Join(names, ", "))
+					if _, err := r.Queries.CreateNotification(context.Background(), db.CreateNotificationParams{
+						UserID: workerUserID,
+						Type:   db.NotificationTypeCategoryAssigned,
+						Title:  "Categorii de servicii atribuite",
+						Body:   body,
+						Data:   []byte(`{}`),
+					}); err != nil {
+						log.Printf("acceptInvitation: failed to notify worker categories: %v", err)
+					}
+				}
+			}(currentUserID)
+		}
 	}
 
 	// Notify company admin that the worker accepted the invitation.

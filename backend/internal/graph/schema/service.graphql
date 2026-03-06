@@ -3,6 +3,33 @@ enum PricingModel {
   PER_SQM
 }
 
+enum CategoryRequestType {
+  ACTIVATE
+  DEACTIVATE
+}
+
+enum CategoryRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ReviewAction {
+  APPROVE
+  REJECT
+}
+
+type CompanyCategoryRequest {
+  id: ID!
+  company: Company!
+  category: ServiceCategory!
+  requestType: CategoryRequestType!
+  status: CategoryRequestStatus!
+  reviewNote: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
 type ServiceCategory {
   id: ID!
   slug: String!
@@ -81,6 +108,9 @@ extend type Query {
   serviceCategories: [ServiceCategory!]!
   serviceCategoryBySlug(slug: String!): ServiceCategory
   allServiceCategories: [ServiceCategory!]!
+  pendingCategoryRequests: [CompanyCategoryRequest!]!
+  myCompanyCategoryRequests: [CompanyCategoryRequest!]!
+  pendingCategoryRequestsCount: Int!
 }
 
 input PriceEstimateInput {
@@ -106,6 +136,8 @@ extend type Mutation {
   createServiceExtra(input: CreateServiceExtraInput!): ServiceExtra!
   createServiceCategory(input: CreateServiceCategoryInput!): ServiceCategory!
   updateServiceCategory(input: UpdateServiceCategoryInput!): ServiceCategory!
+  requestCategoryAccess(categoryId: ID!, requestType: CategoryRequestType!): CompanyCategoryRequest!
+  reviewCategoryRequest(requestId: ID!, action: ReviewAction!, note: String): CompanyCategoryRequest!
 }
 
 input UpdateServiceDefinitionInput {

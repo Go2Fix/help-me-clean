@@ -51,9 +51,31 @@ import {
   REVIEW_WORKER_DOCUMENT,
   ACTIVATE_WORKER,
   GENERATE_PERSONALITY_INSIGHTS,
+  SERVICE_CATEGORIES,
+  ADMIN_UPDATE_COMPANY_CATEGORIES,
+  PENDING_CATEGORY_REQUESTS,
+  REVIEW_CATEGORY_REQUEST,
 } from '@/graphql/operations';
 
 type DetailTab = 'detalii' | 'financiar' | 'comenzi' | 'documente' | 'echipa';
+
+interface AdminCategoryRequest {
+  id: string;
+  requestType: 'ACTIVATE' | 'DEACTIVATE';
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  reviewNote?: string;
+  createdAt: string;
+  company: { id: string; companyName: string };
+  category: { id: string; nameRo: string; nameEn: string; icon?: string };
+}
+
+interface ServiceCategoryItem {
+  id: string;
+  slug: string;
+  nameRo: string;
+  nameEn: string;
+  icon?: string;
+}
 
 const statusVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
   PENDING_REVIEW: 'warning',
@@ -196,6 +218,12 @@ export default function CompanyDetailPage() {
   const [editingCommission, setEditingCommission] = useState(false);
   const [commissionValue, setCommissionValue] = useState('');
 
+  // Category management state
+  const [selectedCatIds, setSelectedCatIds] = useState<Set<string>>(new Set());
+  const [catEditMode, setCatEditMode] = useState(false);
+  const [catRejectModal, setCatRejectModal] = useState<{ requestId: string } | null>(null);
+  const [catRejectNote, setCatRejectNote] = useState('');
+
   // Document rejection modal state
   const [docRejectModal, setDocRejectModal] = useState<{
     open: boolean;
@@ -260,6 +288,22 @@ export default function CompanyDetailPage() {
   });
 
   const [setCommissionOverride, { loading: settingCommission }] = useMutation(SET_COMPANY_COMMISSION_OVERRIDE, {
+    refetchQueries: [{ query: COMPANY, variables: { id } }],
+  });
+
+  // Category queries and mutations
+  const { data: allCatsData } = useQuery(SERVICE_CATEGORIES, { fetchPolicy: 'cache-first' });
+  const { data: pendingRequestsData, refetch: refetchPendingRequests } = useQuery(PENDING_CATEGORY_REQUESTS, {
+    fetchPolicy: 'cache-and-network',
+  });
+  const [adminUpdateCategories, { loading: updatingCategories }] = useMutation(ADMIN_UPDATE_COMPANY_CATEGORIES, {
+    refetchQueries: [{ query: COMPANY, variables: { id } }],
+    onCompleted: () => { setCatEditMode(false); },
+  });
+  const [reviewCategoryRequest, { loading: reviewingCatRequest }] = useMutation(REVIEW_CATEGORY_REQUEST, {
+    onCompleted: () => {
+      void refetchPendingRequests();
+    },
     refetchQueries: [{ query: COMPANY, variables: { id } }],
   });
 
@@ -404,6 +448,33 @@ export default function CompanyDetailPage() {
     await setCommissionOverride({ variables: { id, pct: null } });
     setEditingCommission(false);
     setCommissionValue('');
+  };
+
+  const handleStartCatEdit = () => {
+    const currentIds = new Set(
+      ((company?.serviceCategories ?? []) as ServiceCategoryItem[]).map((c) => c.id),
+    );
+    setSelectedCatIds(currentIds);
+    setCatEditMode(true);
+  };
+
+  const handleSaveCatEdit = async () => {
+    await adminUpdateCategories({
+      variables: { companyId: id, categoryIds: Array.from(selectedCatIds) },
+    });
+  };
+
+  const handleApproveCatRequest = async (requestId: string) => {
+    await reviewCategoryRequest({ variables: { requestId, action: 'APPROVE' } });
+  };
+
+  const handleRejectCatRequest = async () => {
+    if (!catRejectModal) return;
+    await reviewCategoryRequest({
+      variables: { requestId: catRejectModal.requestId, action: 'REJECT', note: catRejectNote },
+    });
+    setCatRejectModal(null);
+    setCatRejectNote('');
   };
 
   const companyDocuments: CompanyDocument[] = company?.documents ?? [];
@@ -574,30 +645,174 @@ export default function CompanyDetailPage() {
 
             {/* Service Categories */}
             <Card>
-              <div className="flex items-center gap-2 mb-4">
-                <Layers className="h-5 w-5 text-primary" />
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {t('admin:companyDetail.serviceCategories.title')}
-                </h3>
-              </div>
-              {company.serviceCategories && company.serviceCategories.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
-                  {company.serviceCategories.map((cat: { id: string; slug: string; nameRo: string; icon?: string }) => (
-                    <Badge key={cat.id} variant="info">
-                      {cat.icon && <span className="mr-1">{cat.icon}</span>}
-                      {cat.nameRo}
-                    </Badge>
-                  ))}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Layers className="h-5 w-5 text-primary" />
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {t('admin:companyDetail.serviceCategories.title')}
+                  </h3>
                 </div>
+                {!catEditMode && (
+                  <button
+                    type="button"
+                    onClick={handleStartCatEdit}
+                    className="text-xs px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors font-medium"
+                  >
+                    Editează categorii
+                  </button>
+                )}
+              </div>
+
+              {catEditMode ? (
+                <>
+                  <p className="text-sm text-gray-500 mb-3">Selectați categoriile active pentru această companie:</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
+                    {((allCatsData?.serviceCategories ?? []) as ServiceCategoryItem[])
+                      .filter((c) => (c as ServiceCategoryItem & { isActive?: boolean }).isActive !== false)
+                      .map((cat) => (
+                        <label
+                          key={cat.id}
+                          className="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedCatIds.has(cat.id)}
+                            onChange={(e) => {
+                              setSelectedCatIds((prev) => {
+                                const next = new Set(prev);
+                                if (e.target.checked) next.add(cat.id);
+                                else next.delete(cat.id);
+                                return next;
+                              });
+                            }}
+                            className="rounded border-gray-300 text-blue-600"
+                          />
+                          {cat.icon && <span>{cat.icon}</span>}
+                          <span className="text-sm text-gray-700">{cat.nameRo}</span>
+                        </label>
+                      ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => void handleSaveCatEdit()}
+                      disabled={updatingCategories}
+                      className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 disabled:opacity-50"
+                    >
+                      {updatingCategories ? 'Se salvează...' : 'Salvează'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCatEditMode(false)}
+                      className="px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg hover:bg-gray-50"
+                    >
+                      Anulează
+                    </button>
+                  </div>
+                </>
               ) : (
-                <p className="text-sm text-gray-400">
-                  {t('admin:companyDetail.serviceCategories.noCategories')}
-                </p>
+                <>
+                  {company.serviceCategories && company.serviceCategories.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {company.serviceCategories.map((cat: { id: string; slug: string; nameRo: string; icon?: string }) => (
+                        <Badge key={cat.id} variant="info">
+                          {cat.icon && <span className="mr-1">{cat.icon}</span>}
+                          {cat.nameRo}
+                        </Badge>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-400">
+                      {t('admin:companyDetail.serviceCategories.noCategories')}
+                    </p>
+                  )}
+                </>
               )}
-              <p className="text-xs text-gray-400 mt-3">
-                {t('admin:companyDetail.serviceCategories.managedBy')}
-              </p>
+
+              {/* Pending category requests for this company */}
+              {(() => {
+                const companyReqs = ((pendingRequestsData?.pendingCategoryRequests ?? []) as AdminCategoryRequest[])
+                  .filter((r) => r.company.id === id);
+                if (companyReqs.length === 0) return null;
+                return (
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <p className="text-sm font-semibold text-gray-700 mb-2">Cereri în așteptare</p>
+                    <div className="space-y-2">
+                      {companyReqs.map((req) => (
+                        <div
+                          key={req.id}
+                          className="flex items-center justify-between px-3 py-2 rounded-lg bg-amber-50 border border-amber-200"
+                        >
+                          <div>
+                            <span className="text-sm text-gray-800">
+                              {req.category.icon} {req.category.nameRo}
+                            </span>
+                            <span className={`ml-2 text-xs px-1.5 py-0.5 rounded-full ${
+                              req.requestType === 'ACTIVATE'
+                                ? 'bg-blue-100 text-blue-700'
+                                : 'bg-orange-100 text-orange-700'
+                            }`}>
+                              {req.requestType === 'ACTIVATE' ? 'Activare' : 'Dezactivare'}
+                            </span>
+                          </div>
+                          <div className="flex gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => void handleApproveCatRequest(req.id)}
+                              disabled={reviewingCatRequest}
+                              className="text-xs px-2.5 py-1 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50"
+                            >
+                              Aprobă
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setCatRejectModal({ requestId: req.id })}
+                              disabled={reviewingCatRequest}
+                              className="text-xs px-2.5 py-1 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 disabled:opacity-50"
+                            >
+                              Respinge
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
             </Card>
+
+            {/* Category reject modal */}
+            {catRejectModal && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4">
+                  <h3 className="text-lg font-semibold mb-4">Respinge cererea de categorie</h3>
+                  <textarea
+                    value={catRejectNote}
+                    onChange={(e) => setCatRejectNote(e.target.value)}
+                    placeholder="Motivul respingerii (opțional)"
+                    rows={3}
+                    className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <div className="flex gap-3 mt-4">
+                    <button
+                      type="button"
+                      onClick={() => { setCatRejectModal(null); setCatRejectNote(''); }}
+                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50"
+                    >
+                      Anulează
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void handleRejectCatRequest()}
+                      disabled={reviewingCatRequest}
+                      className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50"
+                    >
+                      Respinge
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Stats */}
             <div className="grid grid-cols-3 gap-4">

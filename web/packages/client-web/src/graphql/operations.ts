@@ -1307,6 +1307,101 @@ export const INVITE_WORKER = gql`
   }
 `;
 
+// ─── Category Access Control ──────────────────────────────────────────────────
+
+export const REQUEST_CATEGORY_ACCESS = gql`
+  mutation RequestCategoryAccess($categoryId: ID!, $requestType: CategoryRequestType!) {
+    requestCategoryAccess(categoryId: $categoryId, requestType: $requestType) {
+      id
+      requestType
+      status
+      createdAt
+    }
+  }
+`;
+
+export const REVIEW_CATEGORY_REQUEST = gql`
+  mutation ReviewCategoryRequest($requestId: ID!, $action: ReviewAction!, $note: String) {
+    reviewCategoryRequest(requestId: $requestId, action: $action, note: $note) {
+      id
+      requestType
+      status
+      reviewNote
+      updatedAt
+      company {
+        id
+        companyName
+      }
+      category {
+        id
+        nameRo
+        nameEn
+        icon
+      }
+    }
+  }
+`;
+
+export const PENDING_CATEGORY_REQUESTS = gql`
+  query PendingCategoryRequests {
+    pendingCategoryRequests {
+      id
+      requestType
+      status
+      reviewNote
+      createdAt
+      company {
+        id
+        companyName
+      }
+      category {
+        id
+        nameRo
+        nameEn
+        icon
+      }
+    }
+  }
+`;
+
+export const MY_COMPANY_CATEGORY_REQUESTS = gql`
+  query MyCompanyCategoryRequests {
+    myCompanyCategoryRequests {
+      id
+      requestType
+      status
+      reviewNote
+      createdAt
+      updatedAt
+      category {
+        id
+        nameRo
+        nameEn
+        icon
+        slug
+      }
+    }
+  }
+`;
+
+export const PENDING_CATEGORY_REQUESTS_COUNT = gql`
+  query PendingCategoryRequestsCount {
+    pendingCategoryRequestsCount
+  }
+`;
+
+export const ADMIN_UPDATE_COMPANY_CATEGORIES = gql`
+  mutation AdminUpdateCompanyCategories($companyId: ID!, $categoryIds: [ID!]!) {
+    updateCompanyServiceCategories(companyId: $companyId, categoryIds: $categoryIds) {
+      id
+      slug
+      nameRo
+      nameEn
+      icon
+    }
+  }
+`;
+
 export const INVITE_SELF_AS_WORKER = gql`
   mutation InviteSelfAsWorker {
     inviteSelfAsWorker {

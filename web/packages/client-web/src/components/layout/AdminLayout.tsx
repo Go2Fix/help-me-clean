@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useQuery } from '@apollo/client';
 import {
   LayoutDashboard,
   ClipboardList,
@@ -16,11 +17,20 @@ import {
   BarChart3,
   Tag,
   Scale,
+  Tags,
 } from 'lucide-react';
 import DashboardLayout from './DashboardLayout';
+import { PENDING_CATEGORY_REQUESTS_COUNT } from '@/graphql/operations';
 
 export default function AdminLayout() {
   const { t } = useTranslation('admin');
+
+  const { data: countData } = useQuery(PENDING_CATEGORY_REQUESTS_COUNT, {
+    pollInterval: 60_000,
+    fetchPolicy: 'cache-and-network',
+  });
+
+  const pendingCategoryCount: number = (countData?.pendingCategoryRequestsCount as number | undefined) ?? 0;
 
   const navItems = useMemo(() => [
     { to: '/admin', icon: LayoutDashboard, label: t('nav.dashboard') },
@@ -36,8 +46,9 @@ export default function AdminLayout() {
     { to: '/admin/recenzii', icon: Star, label: t('nav.reviews') },
     { to: '/admin/promo-coduri', icon: Tag, label: t('nav.promoCodes') },
     { to: '/admin/dispute', icon: Scale, label: t('nav.disputes') },
+    { to: '/admin/categorii-cereri', icon: Tags, label: 'Cereri categorii', badge: pendingCategoryCount },
     { to: '/admin/setari', icon: Settings, label: t('nav.settings') },
-  ], [t]);
+  ], [t, pendingCategoryCount]);
 
   return (
     <DashboardLayout

@@ -11,7 +11,6 @@ import (
 	"go2fix-backend/internal/auth"
 	db "go2fix-backend/internal/db/generated"
 	"go2fix-backend/internal/graph/model"
-	"log"
 	"time"
 
 	pgx "github.com/jackc/pgx/v5"
@@ -353,30 +352,4 @@ func (r *queryResolver) AllDisputes(ctx context.Context, status *model.DisputeSt
 		Edges:      edges,
 		TotalCount: int(total),
 	}, nil
-}
-
-// issueDisputeRefund issues a Stripe refund for the booking linked to a dispute.
-// Errors are only logged; the caller is not failed.
-func (r *Resolver) issueDisputeRefund(ctx context.Context, bookingID pgtype.UUID, refundAmountRON float64) {
-	booking, err := r.Queries.GetBookingByID(ctx, bookingID)
-	if err != nil {
-		log.Printf("[dispute] issueRefund: could not load booking %s: %v", uuidToString(bookingID), err)
-		return
-	}
-	if !booking.StripePaymentIntentID.Valid || booking.StripePaymentIntentID.String == "" {
-		log.Printf("[dispute] issueRefund: booking %s has no Stripe payment intent", booking.ReferenceCode)
-		return
-	}
-	if r.PaymentService == nil {
-		log.Printf("[dispute] issueRefund: PaymentService is nil, skipping refund for booking %s", booking.ReferenceCode)
-		return
-	}
-	// Stripe amounts are in bani (RON × 100).
-	amountBani := int64(refundAmountRON * 100)
-	refundID, err := r.PaymentService.CreateRefund(ctx, booking.StripePaymentIntentID.String, amountBani)
-	if err != nil {
-		log.Printf("[dispute] issueRefund: stripe refund failed for booking %s: %v", booking.ReferenceCode, err)
-		return
-	}
-	log.Printf("[dispute] issueRefund: created Stripe refund %s for booking %s (%.2f RON)", refundID, booking.ReferenceCode, refundAmountRON)
 }

@@ -294,6 +294,17 @@ type CompanyApplicationResult struct {
 	ClaimToken *string  `json:"claimToken,omitempty"`
 }
 
+type CompanyCategoryRequest struct {
+	ID          string                `json:"id"`
+	Company     *Company              `json:"company"`
+	Category    *ServiceCategory      `json:"category"`
+	RequestType CategoryRequestType   `json:"requestType"`
+	Status      CategoryRequestStatus `json:"status"`
+	ReviewNote  *string               `json:"reviewNote,omitempty"`
+	CreatedAt   time.Time             `json:"createdAt"`
+	UpdatedAt   time.Time             `json:"updatedAt"`
+}
+
 type CompanyConnection struct {
 	Edges      []*Company `json:"edges"`
 	PageInfo   *PageInfo  `json:"pageInfo"`
@@ -523,9 +534,10 @@ type ExtraLineItem struct {
 }
 
 type InviteWorkerInput struct {
-	FullName string  `json:"fullName"`
-	Email    string  `json:"email"`
-	Phone    *string `json:"phone,omitempty"`
+	FullName    string   `json:"fullName"`
+	Email       string   `json:"email"`
+	Phone       *string  `json:"phone,omitempty"`
+	CategoryIds []string `json:"categoryIds,omitempty"`
 }
 
 type Invoice struct {
@@ -1402,6 +1414,118 @@ func (e BookingStatus) MarshalJSON() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+type CategoryRequestStatus string
+
+const (
+	CategoryRequestStatusPending  CategoryRequestStatus = "PENDING"
+	CategoryRequestStatusApproved CategoryRequestStatus = "APPROVED"
+	CategoryRequestStatusRejected CategoryRequestStatus = "REJECTED"
+)
+
+var AllCategoryRequestStatus = []CategoryRequestStatus{
+	CategoryRequestStatusPending,
+	CategoryRequestStatusApproved,
+	CategoryRequestStatusRejected,
+}
+
+func (e CategoryRequestStatus) IsValid() bool {
+	switch e {
+	case CategoryRequestStatusPending, CategoryRequestStatusApproved, CategoryRequestStatusRejected:
+		return true
+	}
+	return false
+}
+
+func (e CategoryRequestStatus) String() string {
+	return string(e)
+}
+
+func (e *CategoryRequestStatus) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = CategoryRequestStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid CategoryRequestStatus", str)
+	}
+	return nil
+}
+
+func (e CategoryRequestStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *CategoryRequestStatus) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e CategoryRequestStatus) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+type CategoryRequestType string
+
+const (
+	CategoryRequestTypeActivate   CategoryRequestType = "ACTIVATE"
+	CategoryRequestTypeDeactivate CategoryRequestType = "DEACTIVATE"
+)
+
+var AllCategoryRequestType = []CategoryRequestType{
+	CategoryRequestTypeActivate,
+	CategoryRequestTypeDeactivate,
+}
+
+func (e CategoryRequestType) IsValid() bool {
+	switch e {
+	case CategoryRequestTypeActivate, CategoryRequestTypeDeactivate:
+		return true
+	}
+	return false
+}
+
+func (e CategoryRequestType) String() string {
+	return string(e)
+}
+
+func (e *CategoryRequestType) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = CategoryRequestType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid CategoryRequestType", str)
+	}
+	return nil
+}
+
+func (e CategoryRequestType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *CategoryRequestType) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e CategoryRequestType) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
 type CompanyStatus string
 
 const (
@@ -2176,6 +2300,61 @@ func (e *RefundStatus) UnmarshalJSON(b []byte) error {
 }
 
 func (e RefundStatus) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+type ReviewAction string
+
+const (
+	ReviewActionApprove ReviewAction = "APPROVE"
+	ReviewActionReject  ReviewAction = "REJECT"
+)
+
+var AllReviewAction = []ReviewAction{
+	ReviewActionApprove,
+	ReviewActionReject,
+}
+
+func (e ReviewAction) IsValid() bool {
+	switch e {
+	case ReviewActionApprove, ReviewActionReject:
+		return true
+	}
+	return false
+}
+
+func (e ReviewAction) String() string {
+	return string(e)
+}
+
+func (e *ReviewAction) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ReviewAction(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ReviewAction", str)
+	}
+	return nil
+}
+
+func (e ReviewAction) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *ReviewAction) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e ReviewAction) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil

@@ -39,6 +39,21 @@ func (q *Queries) DeleteAllCompanyServiceCategories(ctx context.Context, company
 	return err
 }
 
+const deleteCompanyServiceCategory = `-- name: DeleteCompanyServiceCategory :exec
+DELETE FROM company_service_categories
+WHERE company_id = $1 AND category_id = $2
+`
+
+type DeleteCompanyServiceCategoryParams struct {
+	CompanyID  pgtype.UUID `json:"company_id"`
+	CategoryID pgtype.UUID `json:"category_id"`
+}
+
+func (q *Queries) DeleteCompanyServiceCategory(ctx context.Context, arg DeleteCompanyServiceCategoryParams) error {
+	_, err := q.db.Exec(ctx, deleteCompanyServiceCategory, arg.CompanyID, arg.CategoryID)
+	return err
+}
+
 const insertCompanyServiceCategory = `-- name: InsertCompanyServiceCategory :exec
 INSERT INTO company_service_categories (company_id, category_id) VALUES ($1, $2)
 ON CONFLICT DO NOTHING

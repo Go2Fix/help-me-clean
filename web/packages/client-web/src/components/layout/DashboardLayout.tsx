@@ -18,6 +18,7 @@ export interface NavItem {
   to: string;
   icon: LucideIcon;
   label: string;
+  badge?: number;
 }
 
 interface DashboardLayoutProps {
@@ -86,7 +87,7 @@ export default function DashboardLayout({
 
         {/* Navigation */}
         <nav className={cn('flex-1 space-y-1 overflow-y-auto', collapsed ? 'px-2' : 'px-4')}>
-          {navItems.map(({ to, icon: Icon, label }) => (
+          {navItems.map(({ to, icon: Icon, label, badge }) => (
             <NavLink
               key={to}
               to={to}
@@ -94,7 +95,7 @@ export default function DashboardLayout({
               title={collapsed ? label : undefined}
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-3 py-2.5 rounded-xl text-sm font-medium transition-colors',
+                  'relative flex items-center gap-3 py-2.5 rounded-xl text-sm font-medium transition-colors',
                   collapsed ? 'justify-center px-2' : 'px-4',
                   isActive
                     ? 'bg-primary/10 text-primary'
@@ -103,7 +104,19 @@ export default function DashboardLayout({
               }
             >
               <Icon className="h-5 w-5 shrink-0" />
-              {!collapsed && label}
+              {!collapsed && (
+                <>
+                  <span className="flex-1">{label}</span>
+                  {badge != null && badge > 0 && (
+                    <span className="inline-flex items-center justify-center h-5 min-w-[20px] px-1.5 rounded-full bg-amber-500 text-white text-[10px] font-bold">
+                      {badge > 99 ? '99+' : badge}
+                    </span>
+                  )}
+                </>
+              )}
+              {collapsed && badge != null && badge > 0 && (
+                <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-amber-500" />
+              )}
             </NavLink>
           ))}
 

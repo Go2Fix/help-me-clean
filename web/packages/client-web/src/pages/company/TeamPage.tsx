@@ -10,7 +10,7 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Modal from '@/components/ui/Modal';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import { MY_WORKERS_LIST, INVITE_WORKER } from '@/graphql/operations';
+import { MY_WORKERS_LIST, INVITE_WORKER, SERVICE_CATEGORIES } from '@/graphql/operations';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -88,6 +88,9 @@ export default function TeamPage() {
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteError, setInviteError] = useState('');
 
+  // Category selection for invite
+  const [inviteCategoryIds, setInviteCategoryIds] = useState<string[]>([]);
+
   // Token result modal state
   const [inviteToken, setInviteToken] = useState('');
   const [showToken, setShowToken] = useState(false);
@@ -100,6 +103,7 @@ export default function TeamPage() {
   }, [searchQuery]);
 
   const { data, loading, refetch } = useQuery(MY_WORKERS_LIST);
+  const { data: categoriesData } = useQuery(SERVICE_CATEGORIES);
   const [inviteWorker, { loading: inviting }] = useMutation(INVITE_WORKER);
 
   const workers: Worker[] = data?.myWorkers ?? [];
@@ -133,12 +137,19 @@ export default function TeamPage() {
     }
     try {
       const { data: res } = await inviteWorker({
-        variables: { input: { email: inviteEmail.trim(), fullName: inviteName.trim() } },
+        variables: {
+          input: {
+            email: inviteEmail.trim(),
+            fullName: inviteName.trim(),
+            categoryIds: inviteCategoryIds.length > 0 ? inviteCategoryIds : undefined,
+          },
+        },
       });
       const token = res?.inviteWorker?.inviteToken;
       setShowInvite(false);
       setInviteEmail('');
       setInviteName('');
+      setInviteCategoryIds([]);
       refetch();
       if (token) {
         setInviteToken(token);
@@ -276,7 +287,11 @@ export default function TeamPage() {
       </Card>
 
       {/* Invite Modal */}
-      <Modal open={showInvite} onClose={() => setShowInvite(false)} title={t('company:team.inviteModal.title')}>
+      <Modal
+        open={showInvite}
+        onClose={() => { setShowInvite(false); setInviteCategoryIds([]); }}
+        title={t('company:team.inviteModal.title')}
+      >
         <form onSubmit={handleInvite} className="space-y-4">
           <Input
             label={t('company:team.inviteModal.nameLabel')}
@@ -292,8 +307,33 @@ export default function TeamPage() {
             onChange={(e) => setInviteEmail(e.target.value)}
             error={inviteError}
           />
+          {(categoriesData?.serviceCategories ?? []).length > 0 && (
+            <div>
+              <label className="text-sm font-medium text-gray-700">Categorii de servicii</label>
+              <p className="text-xs text-gray-500 mb-2">Selectați categoriile în care va lucra acest angajat</p>
+              <div className="grid grid-cols-2 gap-2">
+                {(categoriesData?.serviceCategories ?? []).map((cat: ServiceCategory) => (
+                  <label key={cat.id} className="flex items-center gap-2 cursor-pointer p-2 rounded-lg border hover:bg-gray-50">
+                    <input
+                      type="checkbox"
+                      checked={inviteCategoryIds.includes(cat.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setInviteCategoryIds((prev) => [...prev, cat.id]);
+                        } else {
+                          setInviteCategoryIds((prev) => prev.filter((id) => id !== cat.id));
+                        }
+                      }}
+                      className="rounded"
+                    />
+                    <span className="text-sm">{cat.icon} {i18n.language === 'en' ? cat.nameEn : cat.nameRo}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
           <div className="flex gap-3 pt-2">
-            <Button type="button" variant="ghost" onClick={() => setShowInvite(false)} className="flex-1">
+            <Button type="button" variant="ghost" onClick={() => { setShowInvite(false); setInviteCategoryIds([]); }} className="flex-1">
               {t('company:team.inviteModal.cancel')}
             </Button>
             <Button type="submit" loading={inviting} className="flex-1">

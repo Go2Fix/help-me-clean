@@ -94,3 +94,9 @@ SELECT COUNT(*) FROM bookings
 WHERE worker_id = $1
   AND scheduled_date = $2
   AND status NOT IN ('cancelled_by_client', 'cancelled_by_company', 'cancelled_by_admin');
+
+-- name: SetWorkerInvitedCategories :exec
+UPDATE workers SET invited_category_ids = $2, updated_at = NOW() WHERE id = $1;
+
+-- name: GetWorkerInvitedCategories :one
+SELECT invited_category_ids FROM workers WHERE id = $1;

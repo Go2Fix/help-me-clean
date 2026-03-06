@@ -263,6 +263,46 @@ func (q *Queries) ListAllUsers(ctx context.Context) ([]User, error) {
 	return items, nil
 }
 
+const listGlobalAdmins = `-- name: ListGlobalAdmins :many
+SELECT id, email, full_name, phone, avatar_url, role, status, google_id, fcm_token, preferred_language, created_at, updated_at, stripe_customer_id, phone_verified, referral_code_used FROM users WHERE role = 'global_admin' AND status = 'active'
+`
+
+func (q *Queries) ListGlobalAdmins(ctx context.Context) ([]User, error) {
+	rows, err := q.db.Query(ctx, listGlobalAdmins)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []User
+	for rows.Next() {
+		var i User
+		if err := rows.Scan(
+			&i.ID,
+			&i.Email,
+			&i.FullName,
+			&i.Phone,
+			&i.AvatarUrl,
+			&i.Role,
+			&i.Status,
+			&i.GoogleID,
+			&i.FcmToken,
+			&i.PreferredLanguage,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.StripeCustomerID,
+			&i.PhoneVerified,
+			&i.ReferralCodeUsed,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listUsersByRole = `-- name: ListUsersByRole :many
 SELECT id, email, full_name, phone, avatar_url, role, status, google_id, fcm_token, preferred_language, created_at, updated_at, stripe_customer_id, phone_verified, referral_code_used FROM users WHERE role = $1 ORDER BY created_at DESC
 `

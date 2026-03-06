@@ -12,7 +12,7 @@ import (
 )
 
 const activateWorkerStatus = `-- name: ActivateWorkerStatus :one
-UPDATE workers SET status = 'active', updated_at = NOW() WHERE id = $1 RETURNING id, user_id, company_id, status, is_company_admin, invite_token, invite_expires_at, rating_avg, total_jobs_completed, created_at, updated_at, bio, home_latitude, home_longitude, max_daily_bookings
+UPDATE workers SET status = 'active', updated_at = NOW() WHERE id = $1 RETURNING id, user_id, company_id, status, is_company_admin, invite_token, invite_expires_at, rating_avg, total_jobs_completed, created_at, updated_at, bio, home_latitude, home_longitude, max_daily_bookings, invited_category_ids
 `
 
 func (q *Queries) ActivateWorkerStatus(ctx context.Context, id pgtype.UUID) (Worker, error) {
@@ -34,6 +34,7 @@ func (q *Queries) ActivateWorkerStatus(ctx context.Context, id pgtype.UUID) (Wor
 		&i.HomeLatitude,
 		&i.HomeLongitude,
 		&i.MaxDailyBookings,
+		&i.InvitedCategoryIds,
 	)
 	return i, err
 }
@@ -60,7 +61,7 @@ func (q *Queries) CountWorkerBookingsForDate(ctx context.Context, arg CountWorke
 const createWorkerProfile = `-- name: CreateWorkerProfile :one
 INSERT INTO workers (user_id, company_id, status, is_company_admin, invite_token, invite_expires_at)
 VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING id, user_id, company_id, status, is_company_admin, invite_token, invite_expires_at, rating_avg, total_jobs_completed, created_at, updated_at, bio, home_latitude, home_longitude, max_daily_bookings
+RETURNING id, user_id, company_id, status, is_company_admin, invite_token, invite_expires_at, rating_avg, total_jobs_completed, created_at, updated_at, bio, home_latitude, home_longitude, max_daily_bookings, invited_category_ids
 `
 
 type CreateWorkerProfileParams struct {
@@ -98,6 +99,7 @@ func (q *Queries) CreateWorkerProfile(ctx context.Context, arg CreateWorkerProfi
 		&i.HomeLatitude,
 		&i.HomeLongitude,
 		&i.MaxDailyBookings,
+		&i.InvitedCategoryIds,
 	)
 	return i, err
 }
@@ -144,7 +146,7 @@ func (q *Queries) CreateWorkerUser(ctx context.Context, arg CreateWorkerUserPara
 }
 
 const getWorkerByID = `-- name: GetWorkerByID :one
-SELECT id, user_id, company_id, status, is_company_admin, invite_token, invite_expires_at, rating_avg, total_jobs_completed, created_at, updated_at, bio, home_latitude, home_longitude, max_daily_bookings FROM workers WHERE id = $1
+SELECT id, user_id, company_id, status, is_company_admin, invite_token, invite_expires_at, rating_avg, total_jobs_completed, created_at, updated_at, bio, home_latitude, home_longitude, max_daily_bookings, invited_category_ids FROM workers WHERE id = $1
 `
 
 func (q *Queries) GetWorkerByID(ctx context.Context, id pgtype.UUID) (Worker, error) {
@@ -166,12 +168,13 @@ func (q *Queries) GetWorkerByID(ctx context.Context, id pgtype.UUID) (Worker, er
 		&i.HomeLatitude,
 		&i.HomeLongitude,
 		&i.MaxDailyBookings,
+		&i.InvitedCategoryIds,
 	)
 	return i, err
 }
 
 const getWorkerByInviteToken = `-- name: GetWorkerByInviteToken :one
-SELECT id, user_id, company_id, status, is_company_admin, invite_token, invite_expires_at, rating_avg, total_jobs_completed, created_at, updated_at, bio, home_latitude, home_longitude, max_daily_bookings FROM workers WHERE invite_token = $1
+SELECT id, user_id, company_id, status, is_company_admin, invite_token, invite_expires_at, rating_avg, total_jobs_completed, created_at, updated_at, bio, home_latitude, home_longitude, max_daily_bookings, invited_category_ids FROM workers WHERE invite_token = $1
 `
 
 func (q *Queries) GetWorkerByInviteToken(ctx context.Context, inviteToken pgtype.Text) (Worker, error) {
@@ -193,12 +196,13 @@ func (q *Queries) GetWorkerByInviteToken(ctx context.Context, inviteToken pgtype
 		&i.HomeLatitude,
 		&i.HomeLongitude,
 		&i.MaxDailyBookings,
+		&i.InvitedCategoryIds,
 	)
 	return i, err
 }
 
 const getWorkerByUserID = `-- name: GetWorkerByUserID :one
-SELECT id, user_id, company_id, status, is_company_admin, invite_token, invite_expires_at, rating_avg, total_jobs_completed, created_at, updated_at, bio, home_latitude, home_longitude, max_daily_bookings FROM workers WHERE user_id = $1
+SELECT id, user_id, company_id, status, is_company_admin, invite_token, invite_expires_at, rating_avg, total_jobs_completed, created_at, updated_at, bio, home_latitude, home_longitude, max_daily_bookings, invited_category_ids FROM workers WHERE user_id = $1
 `
 
 func (q *Queries) GetWorkerByUserID(ctx context.Context, userID pgtype.UUID) (Worker, error) {
@@ -220,8 +224,20 @@ func (q *Queries) GetWorkerByUserID(ctx context.Context, userID pgtype.UUID) (Wo
 		&i.HomeLatitude,
 		&i.HomeLongitude,
 		&i.MaxDailyBookings,
+		&i.InvitedCategoryIds,
 	)
 	return i, err
+}
+
+const getWorkerInvitedCategories = `-- name: GetWorkerInvitedCategories :one
+SELECT invited_category_ids FROM workers WHERE id = $1
+`
+
+func (q *Queries) GetWorkerInvitedCategories(ctx context.Context, id pgtype.UUID) ([]pgtype.UUID, error) {
+	row := q.db.QueryRow(ctx, getWorkerInvitedCategories, id)
+	var invited_category_ids []pgtype.UUID
+	err := row.Scan(&invited_category_ids)
+	return invited_category_ids, err
 }
 
 const getWorkerPerformanceStats = `-- name: GetWorkerPerformanceStats :one
@@ -266,7 +282,7 @@ func (q *Queries) GetWorkerPerformanceStats(ctx context.Context, id pgtype.UUID)
 }
 
 const linkWorkerToUser = `-- name: LinkWorkerToUser :one
-UPDATE workers SET user_id = $2, status = 'pending_review', updated_at = NOW() WHERE id = $1 RETURNING id, user_id, company_id, status, is_company_admin, invite_token, invite_expires_at, rating_avg, total_jobs_completed, created_at, updated_at, bio, home_latitude, home_longitude, max_daily_bookings
+UPDATE workers SET user_id = $2, status = 'pending_review', updated_at = NOW() WHERE id = $1 RETURNING id, user_id, company_id, status, is_company_admin, invite_token, invite_expires_at, rating_avg, total_jobs_completed, created_at, updated_at, bio, home_latitude, home_longitude, max_daily_bookings, invited_category_ids
 `
 
 type LinkWorkerToUserParams struct {
@@ -293,6 +309,7 @@ func (q *Queries) LinkWorkerToUser(ctx context.Context, arg LinkWorkerToUserPara
 		&i.HomeLatitude,
 		&i.HomeLongitude,
 		&i.MaxDailyBookings,
+		&i.InvitedCategoryIds,
 	)
 	return i, err
 }
@@ -366,7 +383,7 @@ func (q *Queries) ListAllActiveWorkers(ctx context.Context) ([]ListAllActiveWork
 }
 
 const listWorkersByCompany = `-- name: ListWorkersByCompany :many
-SELECT id, user_id, company_id, status, is_company_admin, invite_token, invite_expires_at, rating_avg, total_jobs_completed, created_at, updated_at, bio, home_latitude, home_longitude, max_daily_bookings FROM workers WHERE company_id = $1 ORDER BY created_at DESC
+SELECT id, user_id, company_id, status, is_company_admin, invite_token, invite_expires_at, rating_avg, total_jobs_completed, created_at, updated_at, bio, home_latitude, home_longitude, max_daily_bookings, invited_category_ids FROM workers WHERE company_id = $1 ORDER BY created_at DESC
 `
 
 func (q *Queries) ListWorkersByCompany(ctx context.Context, companyID pgtype.UUID) ([]Worker, error) {
@@ -394,6 +411,7 @@ func (q *Queries) ListWorkersByCompany(ctx context.Context, companyID pgtype.UUI
 			&i.HomeLatitude,
 			&i.HomeLongitude,
 			&i.MaxDailyBookings,
+			&i.InvitedCategoryIds,
 		); err != nil {
 			return nil, err
 		}
@@ -415,6 +433,20 @@ func (q *Queries) ReactivateWorkersByCompany(ctx context.Context, companyID pgty
 	return err
 }
 
+const setWorkerInvitedCategories = `-- name: SetWorkerInvitedCategories :exec
+UPDATE workers SET invited_category_ids = $2, updated_at = NOW() WHERE id = $1
+`
+
+type SetWorkerInvitedCategoriesParams struct {
+	ID                 pgtype.UUID   `json:"id"`
+	InvitedCategoryIds []pgtype.UUID `json:"invited_category_ids"`
+}
+
+func (q *Queries) SetWorkerInvitedCategories(ctx context.Context, arg SetWorkerInvitedCategoriesParams) error {
+	_, err := q.db.Exec(ctx, setWorkerInvitedCategories, arg.ID, arg.InvitedCategoryIds)
+	return err
+}
+
 const suspendWorkersByCompany = `-- name: SuspendWorkersByCompany :exec
 UPDATE workers SET status = 'suspended', updated_at = NOW()
 WHERE company_id = $1 AND status IN ('active', 'pending_review')
@@ -429,7 +461,7 @@ const updateWorkerBio = `-- name: UpdateWorkerBio :one
 UPDATE workers SET
     bio = $2,
     updated_at = NOW()
-WHERE id = $1 RETURNING id, user_id, company_id, status, is_company_admin, invite_token, invite_expires_at, rating_avg, total_jobs_completed, created_at, updated_at, bio, home_latitude, home_longitude, max_daily_bookings
+WHERE id = $1 RETURNING id, user_id, company_id, status, is_company_admin, invite_token, invite_expires_at, rating_avg, total_jobs_completed, created_at, updated_at, bio, home_latitude, home_longitude, max_daily_bookings, invited_category_ids
 `
 
 type UpdateWorkerBioParams struct {
@@ -456,13 +488,14 @@ func (q *Queries) UpdateWorkerBio(ctx context.Context, arg UpdateWorkerBioParams
 		&i.HomeLatitude,
 		&i.HomeLongitude,
 		&i.MaxDailyBookings,
+		&i.InvitedCategoryIds,
 	)
 	return i, err
 }
 
 const updateWorkerMaxDailyBookings = `-- name: UpdateWorkerMaxDailyBookings :one
 
-UPDATE workers SET max_daily_bookings = $2, updated_at = NOW() WHERE id = $1 RETURNING id, user_id, company_id, status, is_company_admin, invite_token, invite_expires_at, rating_avg, total_jobs_completed, created_at, updated_at, bio, home_latitude, home_longitude, max_daily_bookings
+UPDATE workers SET max_daily_bookings = $2, updated_at = NOW() WHERE id = $1 RETURNING id, user_id, company_id, status, is_company_admin, invite_token, invite_expires_at, rating_avg, total_jobs_completed, created_at, updated_at, bio, home_latitude, home_longitude, max_daily_bookings, invited_category_ids
 `
 
 type UpdateWorkerMaxDailyBookingsParams struct {
@@ -492,12 +525,13 @@ func (q *Queries) UpdateWorkerMaxDailyBookings(ctx context.Context, arg UpdateWo
 		&i.HomeLatitude,
 		&i.HomeLongitude,
 		&i.MaxDailyBookings,
+		&i.InvitedCategoryIds,
 	)
 	return i, err
 }
 
 const updateWorkerStatus = `-- name: UpdateWorkerStatus :one
-UPDATE workers SET status = $2, updated_at = NOW() WHERE id = $1 RETURNING id, user_id, company_id, status, is_company_admin, invite_token, invite_expires_at, rating_avg, total_jobs_completed, created_at, updated_at, bio, home_latitude, home_longitude, max_daily_bookings
+UPDATE workers SET status = $2, updated_at = NOW() WHERE id = $1 RETURNING id, user_id, company_id, status, is_company_admin, invite_token, invite_expires_at, rating_avg, total_jobs_completed, created_at, updated_at, bio, home_latitude, home_longitude, max_daily_bookings, invited_category_ids
 `
 
 type UpdateWorkerStatusParams struct {
@@ -524,6 +558,7 @@ func (q *Queries) UpdateWorkerStatus(ctx context.Context, arg UpdateWorkerStatus
 		&i.HomeLatitude,
 		&i.HomeLongitude,
 		&i.MaxDailyBookings,
+		&i.InvitedCategoryIds,
 	)
 	return i, err
 }
