@@ -904,6 +904,9 @@ func (r *queryResolver) PendingCompanyDocuments(ctx context.Context) ([]*model.C
 	result := make([]*model.CompanyDocument, len(docs))
 	for i, d := range docs {
 		result[i] = dbCompanyDocToGQL(d)
+		if company, err := r.Queries.GetCompanyByID(ctx, d.CompanyID); err == nil {
+			result[i].Company = dbCompanyToGQL(company)
+		}
 	}
 	return result, nil
 }

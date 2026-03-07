@@ -74,7 +74,7 @@ Use specialized agents for different parts of the codebase:
 - Functional components with TypeScript interfaces
 - Use Apollo Client hooks for data fetching
 - Keep components small and focused (< 200 lines)
-- Component structure: `src/features/<domain>/<Component>.tsx`
+- Component structure: `src/components/<domain>/<Component>.tsx`, pages at `src/pages/<portal>/<Page>.tsx`
 
 ### iOS (SwiftUI)
 
@@ -147,8 +147,8 @@ Use specialized agents for different parts of the codebase:
 ```bash
 cd backend
 make install       # Install dependencies
-make generate      # Generate sqlc + gqlgen code
-make migrate-up    # Run migrations
+make generate      # Generate gqlgen code (run sqlc separately if schema changed)
+make migrate-up    # Run migrations on BOTH databases (DATABASE_URL + DATABASE_URL_2)
 make run           # Start server on :8080
 make test          # Run tests
 ```
@@ -218,6 +218,24 @@ Each service has a `.env.example` file. Copy to `.env` and fill in values:
 - Multi-payment methods
 - Automated invoicing
 - Additional service categories (plumbing, electrical, etc.)
+
+---
+
+## Database Migration Rule
+
+**ALWAYS run migrations on both databases after creating or applying a migration.**
+
+The project has two Neon PostgreSQL branches configured in `backend/.env`:
+- `DATABASE_URL` — primary (development/staging)
+- `DATABASE_URL_2` — secondary (production mirror)
+
+`make migrate-up` handles both automatically. When creating a new migration:
+1. `make migrate-new NAME=description` — creates the migration files
+2. Write the SQL in the generated `.up.sql` / `.down.sql` files
+3. `make migrate-up` — applies to **both** databases
+4. Run `sqlc generate` if the migration changes table structure
+
+Never apply a migration to only one database.
 
 ---
 

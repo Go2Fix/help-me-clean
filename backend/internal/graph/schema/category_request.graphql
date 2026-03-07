@@ -1,0 +1,37 @@
+enum CategoryRequestType {
+  ACTIVATE
+  DEACTIVATE
+}
+
+enum CategoryRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ReviewAction {
+  APPROVE
+  REJECT
+}
+
+type CompanyCategoryRequest {
+  id: ID!
+  company: Company!
+  category: ServiceCategory!
+  requestType: CategoryRequestType!
+  status: CategoryRequestStatus!
+  reviewNote: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+extend type Query {
+  pendingCategoryRequests: [CompanyCategoryRequest!]!
+  myCompanyCategoryRequests: [CompanyCategoryRequest!]!
+  pendingCategoryRequestsCount: Int!
+}
+
+extend type Mutation {
+  requestCategoryAccess(categoryId: ID!, requestType: CategoryRequestType!): CompanyCategoryRequest!
+  reviewCategoryRequest(requestId: ID!, action: ReviewAction!, note: String): CompanyCategoryRequest!
+}

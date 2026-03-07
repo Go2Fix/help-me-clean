@@ -16,11 +16,19 @@ generate: ## Generate sqlc and gqlgen code
 	@echo "Generating gqlgen..."
 	go run github.com/99designs/gqlgen generate
 
-migrate-up: ## Run database migrations up
+migrate-up: ## Run database migrations up (both DATABASE_URL and DATABASE_URL_2)
 	migrate -path internal/db/migrations -database "$${DATABASE_URL}" up
+	@if [ -n "$${DATABASE_URL_2}" ]; then \
+		echo "Running migrations on DATABASE_URL_2..."; \
+		migrate -path internal/db/migrations -database "$${DATABASE_URL_2}" up; \
+	fi
 
-migrate-down: ## Run database migrations down
+migrate-down: ## Run database migrations down (both DATABASE_URL and DATABASE_URL_2)
 	migrate -path internal/db/migrations -database "$${DATABASE_URL}" down
+	@if [ -n "$${DATABASE_URL_2}" ]; then \
+		echo "Running down migrations on DATABASE_URL_2..."; \
+		migrate -path internal/db/migrations -database "$${DATABASE_URL_2}" down; \
+	fi
 
 migrate-new: ## Create a new migration (usage: make migrate-new NAME=description)
 	@test -n "$(NAME)" || (echo "NAME is required. Usage: make migrate-new NAME=description" && exit 1)

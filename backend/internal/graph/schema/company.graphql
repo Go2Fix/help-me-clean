@@ -57,6 +57,7 @@ type CompanyDocument {
   uploadedAt: DateTime!
   reviewedAt: DateTime
   rejectionReason: String
+  company: Company!
 }
 
 type ANAFVerification {

@@ -7,12 +7,14 @@ import {
   Banknote,
   TrendingUp,
   Star,
-  AlertCircle,
   FileText,
   UserPlus,
   ArrowRight,
   ChevronRight,
   Repeat,
+  Inbox,
+  CheckCircle2,
+  Tag,
 } from 'lucide-react';
 import {
   BarChart,
@@ -24,7 +26,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import Card from '@/components/ui/Card';
 import { formatCurrency } from '@/utils/format';
 import {
@@ -34,6 +36,7 @@ import {
   PENDING_COMPANY_APPLICATIONS,
   PENDING_COMPANY_DOCUMENTS,
   PENDING_WORKER_DOCUMENTS,
+  PENDING_REVIEW_COUNT,
   SUBSCRIPTION_STATS,
 } from '@/graphql/operations';
 
@@ -94,10 +97,74 @@ function Metric({
   );
 }
 
+// ─── Attention Row ───────────────────────────────────────────────────────────
+
+interface AttentionItem {
+  id: string;
+  primary: string;
+  secondary: string;
+  date: string;
+  href: string;
+}
+
+function AttentionRow({
+  icon: Icon,
+  label,
+  count,
+  linkTo,
+  items,
+  locale,
+}: {
+  icon: React.ElementType;
+  label: string;
+  count: number;
+  linkTo: string;
+  items: AttentionItem[];
+  locale: string;
+}) {
+  if (count === 0) return null;
+  return (
+    <div className="rounded-xl border border-gray-100 bg-gray-50 overflow-hidden">
+      <Link
+        to={linkTo}
+        className="flex items-center gap-3 px-4 py-3 hover:bg-gray-100 transition-colors"
+      >
+        <Icon className="h-4 w-4 text-gray-500 shrink-0" />
+        <span className="flex-1 text-sm font-medium text-gray-700">{label}</span>
+        <span className="inline-flex items-center justify-center h-5 min-w-5 px-1.5 rounded-full bg-amber-100 text-amber-800 text-xs font-bold">
+          {count}
+        </span>
+        <ChevronRight className="h-3.5 w-3.5 text-gray-400" />
+      </Link>
+      {items.length > 0 && (
+        <div className="border-t border-gray-100 divide-y divide-gray-100">
+          {items.map((item) => (
+            <Link
+              key={item.id}
+              to={item.href}
+              className="flex items-center gap-3 px-4 py-2.5 bg-white hover:bg-blue-50 transition-colors"
+            >
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium text-gray-800 truncate">{item.primary}</p>
+                {item.secondary && (
+                  <p className="text-xs text-gray-400 truncate">{item.secondary}</p>
+                )}
+              </div>
+              <span className="text-xs text-gray-400 shrink-0">
+                {new Date(item.date).toLocaleDateString(locale)}
+              </span>
+              <ChevronRight className="h-3 w-3 text-gray-300 shrink-0" />
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Component ──────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
-  const navigate = useNavigate();
   const { t, i18n } = useTranslation(['dashboard', 'admin']);
 
   const locale = i18n.language === 'en' ? 'en-GB' : 'ro-RO';
@@ -109,9 +176,10 @@ export default function DashboardPage() {
   const { data: revenueData } = useQuery(REVENUE_BY_MONTH, {
     variables: { months: 6 },
   });
-  const { data: pendingData } = useQuery(PENDING_COMPANY_APPLICATIONS);
-  const { data: pendingCompanyDocsData } = useQuery(PENDING_COMPANY_DOCUMENTS);
-  const { data: pendingWorkerDocsData } = useQuery(PENDING_WORKER_DOCUMENTS);
+  const { data: pendingData } = useQuery(PENDING_COMPANY_APPLICATIONS, { pollInterval: 30000 });
+  const { data: pendingCompanyDocsData } = useQuery(PENDING_COMPANY_DOCUMENTS, { pollInterval: 30000 });
+  const { data: pendingWorkerDocsData } = useQuery(PENDING_WORKER_DOCUMENTS, { pollInterval: 30000 });
+  const { data: reviewCountData } = useQuery(PENDING_REVIEW_COUNT, { pollInterval: 30000 });
   const { data: subStatsData } = useQuery(SUBSCRIPTION_STATS);
 
   const stats = statsData?.platformStats;
@@ -121,8 +189,9 @@ export default function DashboardPage() {
   const pendingApps = pendingData?.pendingCompanyApplications ?? [];
   const pendingCompanyDocs = pendingCompanyDocsData?.pendingCompanyDocuments ?? [];
   const pendingWorkerDocs = pendingWorkerDocsData?.pendingWorkerDocuments ?? [];
-
-  const pendingCount = pendingApps.length + pendingCompanyDocs.length + pendingWorkerDocs.length;
+  const reviewCount = reviewCountData?.pendingReviewCount;
+  const categoryRequestsCount = reviewCount?.categoryRequests ?? 0;
+  const pendingCount = (reviewCount?.total ?? (pendingApps.length + pendingCompanyDocs.length + pendingWorkerDocs.length));
 
   return (
     <div>
@@ -214,47 +283,96 @@ export default function DashboardPage() {
         </Card>
       ) : null}
 
-      {/* Alerts Row */}
-      {pendingCount > 0 && (
-        <div className="mt-4 flex flex-col sm:flex-row gap-3">
-          {pendingApps.length > 0 && (
-            <Link
-              to="/admin/companii"
-              className="flex items-center gap-3 flex-1 px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl hover:bg-amber-100 transition-colors"
-            >
-              <AlertCircle className="h-4 w-4 text-amber-600 shrink-0" />
-              <span className="text-sm font-medium text-amber-800 flex-1">
-                {t('admin:dashboard.alerts.newApplication', { count: pendingApps.length })}
+      {/* Necesită atenție */}
+      <Card className="mt-4">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2.5">
+            <div className="p-1.5 rounded-lg bg-blue-50">
+              <Inbox className="h-4 w-4 text-blue-600" />
+            </div>
+            <h3 className="text-sm font-semibold text-gray-900">Necesită atenție</h3>
+            {pendingCount > 0 ? (
+              <span className="inline-flex items-center justify-center h-5 min-w-5 px-1.5 rounded-full bg-red-500 text-white text-xs font-bold">
+                {pendingCount}
               </span>
-              <ChevronRight className="h-4 w-4 text-amber-400" />
-            </Link>
-          )}
-          {pendingCompanyDocs.length > 0 && (
-            <Link
-              to="/admin/companii"
-              className="flex items-center gap-3 flex-1 px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl hover:bg-blue-100 transition-colors"
-            >
-              <FileText className="h-4 w-4 text-blue-600 shrink-0" />
-              <span className="text-sm font-medium text-blue-800 flex-1">
-                {t('admin:dashboard.alerts.companyDocs', { count: pendingCompanyDocs.length })}
+            ) : (
+              <span className="inline-flex items-center gap-1 text-xs text-emerald-600 font-medium">
+                <CheckCircle2 className="h-3.5 w-3.5" /> Totul este la zi
               </span>
-              <ChevronRight className="h-4 w-4 text-blue-400" />
-            </Link>
-          )}
-          {pendingWorkerDocs.length > 0 && (
-            <Link
-              to="/admin/companii"
-              className="flex items-center gap-3 flex-1 px-4 py-3 bg-red-50 border border-red-200 rounded-xl hover:bg-red-100 transition-colors"
-            >
-              <FileText className="h-4 w-4 text-red-600 shrink-0" />
-              <span className="text-sm font-medium text-red-800 flex-1">
-                {t('admin:dashboard.alerts.workerDocs', { count: pendingWorkerDocs.length })}
-              </span>
-              <ChevronRight className="h-4 w-4 text-red-400" />
-            </Link>
-          )}
+            )}
+          </div>
+          <Link
+            to="/admin/aprobari"
+            className="text-xs text-primary hover:underline flex items-center gap-1"
+          >
+            Vezi toate <ArrowRight className="h-3 w-3" />
+          </Link>
         </div>
-      )}
+
+        {pendingCount === 0 ? (
+          <div className="flex flex-col items-center justify-center py-6 text-gray-400">
+            <CheckCircle2 className="h-8 w-8 mb-2 text-emerald-300" />
+            <p className="text-sm">Nu există acțiuni în așteptare.</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {/* Row: Company Applications */}
+            <AttentionRow
+              icon={Building2}
+              label="Aplicații companii"
+              count={pendingApps.length}
+              linkTo="/admin/aprobari"
+              items={pendingApps.slice(0, 2).map((a: { id: string; companyName: string; city: string; county: string; createdAt: string }) => ({
+                id: a.id,
+                primary: a.companyName,
+                secondary: `${a.city}, ${a.county}`,
+                date: a.createdAt,
+                href: `/admin/companii/${a.id}?tab=documente`,
+              }))}
+              locale={locale}
+            />
+            {/* Row: Company Documents */}
+            <AttentionRow
+              icon={FileText}
+              label="Documente companii"
+              count={pendingCompanyDocs.length}
+              linkTo="/admin/aprobari?tab=documente-companie"
+              items={pendingCompanyDocs.slice(0, 2).map((d: { id: string; fileName: string; company?: { id: string; companyName: string }; uploadedAt: string }) => ({
+                id: d.id,
+                primary: d.fileName,
+                secondary: d.company?.companyName ?? '',
+                date: d.uploadedAt,
+                href: d.company ? `/admin/companii/${d.company.id}?tab=documente` : '/admin/aprobari?tab=documente-companie',
+              }))}
+              locale={locale}
+            />
+            {/* Row: Worker Documents */}
+            <AttentionRow
+              icon={Users}
+              label="Documente angajați"
+              count={pendingWorkerDocs.length}
+              linkTo="/admin/aprobari?tab=documente-angajat"
+              items={pendingWorkerDocs.slice(0, 2).map((d: { id: string; fileName: string; worker?: { fullName: string; company?: { companyName: string } }; uploadedAt: string }) => ({
+                id: d.id,
+                primary: d.fileName,
+                secondary: d.worker ? `${d.worker.fullName}${d.worker.company ? ` · ${d.worker.company.companyName}` : ''}` : '',
+                date: d.uploadedAt,
+                href: '/admin/aprobari?tab=documente-angajat',
+              }))}
+              locale={locale}
+            />
+            {/* Row: Category Requests */}
+            <AttentionRow
+              icon={Tag}
+              label="Cereri categorii"
+              count={categoryRequestsCount}
+              linkTo="/admin/aprobari?tab=categorii"
+              items={[]}
+              locale={locale}
+            />
+          </div>
+        )}
+      </Card>
 
       {/* Charts + Status */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
@@ -308,50 +426,6 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      {/* Pending Applications */}
-      {pendingApps.length > 0 && (
-        <Card className="mt-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
-              {t('admin:dashboard.pendingApplications.title')}
-            </h3>
-            <button
-              onClick={() => navigate('/admin/companii')}
-              className="text-xs text-primary hover:underline cursor-pointer flex items-center gap-1"
-            >
-              {t('admin:dashboard.pendingApplications.viewAll')} <ArrowRight className="h-3 w-3" />
-            </button>
-          </div>
-          <div className="divide-y divide-gray-100">
-            {pendingApps.slice(0, 5).map((app: {
-              id: string;
-              companyName: string;
-              cui: string;
-              city: string;
-              county: string;
-              createdAt: string;
-            }) => (
-              <div
-                key={app.id}
-                className="flex items-center gap-3 py-3 hover:bg-gray-50 -mx-2 px-2 rounded-lg cursor-pointer transition-colors"
-                onClick={() => navigate(`/admin/companii/${app.id}`)}
-              >
-                <div className="h-8 w-8 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
-                  <Building2 className="h-4 w-4 text-amber-600" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">{app.companyName}</p>
-                  <p className="text-xs text-gray-500">CUI: {app.cui} &middot; {app.city}, {app.county}</p>
-                </div>
-                <span className="text-xs text-gray-400 shrink-0">
-                  {new Date(app.createdAt).toLocaleDateString(locale)}
-                </span>
-                <ChevronRight className="h-4 w-4 text-gray-300 shrink-0" />
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
 
       {/* Quick Links */}
       <div className="mt-6 flex flex-wrap gap-3">

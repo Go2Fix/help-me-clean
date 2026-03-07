@@ -62,6 +62,14 @@ type CompanyScorecard {
   reviewCount: Int!
 }
 
+type PendingReviewCount {
+  applications: Int!
+  companyDocuments: Int!
+  workerDocuments: Int!
+  categoryRequests: Int!
+  total: Int!
+}
+
 extend type Query {
   platformStats(dateFrom: String, dateTo: String): PlatformStats!
   bookingsByStatus: [BookingsByStatus!]!
@@ -75,6 +83,7 @@ extend type Query {
   searchBookings(query: String, status: BookingStatus, dateFrom: String, dateTo: String, companyId: ID, serviceType: String, limit: Int, offset: Int): BookingConnection!
   allReviews(limit: Int, offset: Int, rating: Int, reviewType: String): ReviewConnection!
   companyScorecards(limit: Int, offset: Int): [CompanyScorecard!]!
+  pendingReviewCount: PendingReviewCount!
 }
 
 extend type Mutation {

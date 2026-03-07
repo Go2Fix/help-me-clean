@@ -1,6 +1,6 @@
 # Go2Fix.ro
 
-Romania's first home services marketplace — an investor-ready MVP that formalizes the informal services sector through compliance, trust, and technology. Starting with cleaning, expanding to all home services.
+Romania's first home services marketplace — heading to live release. Formalizes the informal services sector through compliance, trust, and technology. Starting with cleaning, expanding to all home services.
 
 ## Domain Structure
 
@@ -30,7 +30,7 @@ help-me-clean/
 │   └── internal/
 │       ├── auth/           # JWT + Google OAuth
 │       ├── db/             # Migrations, sqlc queries, seeds
-│       ├── graph/          # GraphQL schema (14 domains) + resolvers
+│       ├── graph/          # GraphQL schema (24 domains) + resolvers
 │       ├── middleware/      # CORS, logging
 │       ├── service/        # Business logic (9 services)
 │       └── storage/        # File uploads
@@ -38,8 +38,7 @@ help-me-clean/
 │   └── packages/
 │       ├── client-web/     # Client booking app (:3000)
 │       └── shared/         # Shared GraphQL, types, utils
-├── docker-compose.yml      # PostgreSQL 16
-└── help_me_clean.pdf       # Full MVP spec (46 pages)
+└── docker-compose.yml      # PostgreSQL 16
 ```
 
 ## Quick Start
@@ -54,7 +53,7 @@ help-me-clean/
 ### 1. Clone & Install
 
 ```bash
-git clone https://github.com/CleanBuddy/help-me-clean.git
+git clone https://github.com/Go2Fix/help-me-clean.git
 cd help-me-clean
 
 # Backend
@@ -75,19 +74,16 @@ npm install
 # Start PostgreSQL
 docker-compose up -d postgres
 
-# Run migrations
+# Run migrations (applies to both DATABASE_URL and DATABASE_URL_2)
 cd backend
 make migrate-up
-
-# (Optional) Seed dev data
-make seed
 ```
 
 ### 3. Generate Code
 
 ```bash
 cd backend
-make generate    # Generates gqlgen + sqlc code
+make generate    # Generates gqlgen code (run sqlc separately if schema changed)
 ```
 
 ### 4. Start Development
@@ -115,13 +111,12 @@ npm run dev
 ```bash
 cd backend
 make install        # Install dependencies + tools
-make generate       # Generate sqlc + gqlgen code
-make migrate-up     # Run migrations
+make generate       # Generate gqlgen code (run sqlc separately if schema changed)
+make migrate-up     # Run migrations on BOTH databases (DATABASE_URL + DATABASE_URL_2)
 make migrate-down   # Rollback migrations
 make migrate-new NAME=desc  # Create new migration
 make run            # Start server on :8080
 make test           # Run tests
-make seed           # Seed development data
 make clean          # Clean generated files
 ```
 
@@ -138,24 +133,34 @@ npm run test         # Run tests
 
 ## GraphQL Domains
 
-The backend exposes 14 GraphQL schema domains:
+The backend exposes 24 GraphQL schema domains:
 
 | Domain | Description |
 |--------|-------------|
 | Auth | JWT + Google OAuth, token management |
-| User | User profiles, roles |
-| Booking | Full booking lifecycle |
-| Company | Company registration, approval, management |
-| Cleaner | Cleaner invitation, onboarding, management |
+| User | User profiles, roles, preferred language |
+| Booking | Full booking lifecycle (create → assign → complete) |
+| Company | Company registration, approval, documents, management |
+| Worker | Worker invitation, onboarding, documents, management |
 | Service | Service definitions, extras, pricing |
-| Chat | Real-time messaging (client ↔ cleaner) |
+| Client | Client-specific operations and profiles |
 | Review | Ratings and reviews |
-| Payment | Stripe integration (mock for MVP) |
-| Notification | Push notifications |
-| Analytics | Platform metrics |
-| Admin | Platform administration |
-| Settings | Platform configuration |
-| Client | Client-specific operations |
+| Payment | Stripe Connect integration |
+| Subscription | Company subscription plans (Stripe) |
+| Invoice | Invoice generation (Keez.ro) |
+| Notification | Push notifications and in-app alerts |
+| Analytics | Platform metrics and stats |
+| Admin | Platform administration, review queue |
+| Settings | Platform configuration (KV store) |
+| Waitlist | Pre-release waitlist lead capture |
+| Promo | Promo codes and discounts |
+| Dispute | Booking dispute workflow |
+| CategoryRequest | Company category access requests |
+| Personality | Worker personality assessment |
+| Recurring | Recurring booking schedules |
+| Referral | Referral program |
+| Location | Location data (counties, cities) |
+| Audit | Audit log for admin actions |
 
 ## Environment Variables
 
@@ -169,19 +174,16 @@ Each service has a `.env.example` — copy to `.env` and fill in values:
 ## Testing
 
 ```bash
-# Backend
+# Backend (~111 tests)
 cd backend && make test
 
-# Web
+# Web (~427 tests across 44 files)
 cd web && npm run test
-
 ```
 
 ## Documentation
 
 - [CLAUDE.md](./CLAUDE.md) — Development guide, conventions, and agent assignments
-- [help_me_clean.pdf](./help_me_clean.pdf) — Full MVP specification (46 pages)
-- [INTERACTIVE_TEST_SCENARIOS.md](./INTERACTIVE_TEST_SCENARIOS.md) — Manual test scenarios
 
 ## License
 

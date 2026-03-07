@@ -37,6 +37,7 @@ type WorkerDocument {
   uploadedAt: DateTime!
   reviewedAt: DateTime
   rejectionReason: String
+  worker: WorkerProfile!
 }
 
 type AvailabilitySlot {

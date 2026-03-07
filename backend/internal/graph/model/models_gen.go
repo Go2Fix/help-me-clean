@@ -320,6 +320,7 @@ type CompanyDocument struct {
 	UploadedAt      time.Time      `json:"uploadedAt"`
 	ReviewedAt      *time.Time     `json:"reviewedAt,omitempty"`
 	RejectionReason *string        `json:"rejectionReason,omitempty"`
+	Company         *Company       `json:"company"`
 }
 
 type CompanyEarningsSummary struct {
@@ -702,6 +703,14 @@ type PayoutLineItem struct {
 	AmountGross      int      `json:"amountGross"`
 	AmountCommission int      `json:"amountCommission"`
 	AmountNet        int      `json:"amountNet"`
+}
+
+type PendingReviewCount struct {
+	Applications     int `json:"applications"`
+	CompanyDocuments int `json:"companyDocuments"`
+	WorkerDocuments  int `json:"workerDocuments"`
+	CategoryRequests int `json:"categoryRequests"`
+	Total            int `json:"total"`
 }
 
 type PersonalityAnswerInput struct {
@@ -1294,6 +1303,7 @@ type WorkerDocument struct {
 	UploadedAt      time.Time      `json:"uploadedAt"`
 	ReviewedAt      *time.Time     `json:"reviewedAt,omitempty"`
 	RejectionReason *string        `json:"rejectionReason,omitempty"`
+	Worker          *WorkerProfile `json:"worker"`
 }
 
 type WorkerPerformance struct {

@@ -814,3 +814,29 @@ func (r *queryResolver) CompanyScorecards(ctx context.Context, limit *int, offse
 
 	return result, nil
 }
+
+// PendingReviewCount is the resolver for the pendingReviewCount field.
+func (r *queryResolver) PendingReviewCount(ctx context.Context) (*model.PendingReviewCount, error) {
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil || claims.Role != "global_admin" {
+		return nil, fmt.Errorf("not authorized")
+	}
+
+	applications, _ := r.Queries.CountCompaniesByStatus(ctx, "pending_review")
+	companyDocs, _ := r.Queries.ListPendingCompanyDocuments(ctx)
+	workerDocs, _ := r.Queries.ListPendingWorkerDocuments(ctx)
+	categoryRequests, _ := r.Queries.CountPendingCategoryRequests(ctx)
+
+	apps := int(applications)
+	cDocs := len(companyDocs)
+	wDocs := len(workerDocs)
+	catReqs := int(categoryRequests)
+
+	return &model.PendingReviewCount{
+		Applications:    apps,
+		CompanyDocuments: cDocs,
+		WorkerDocuments: wDocs,
+		CategoryRequests: catReqs,
+		Total:           apps + cDocs + wDocs + catReqs,
+	}, nil
+}

@@ -1432,6 +1432,11 @@ func (r *queryResolver) PendingWorkerDocuments(ctx context.Context) ([]*model.Wo
 	result := make([]*model.WorkerDocument, len(docs))
 	for i, d := range docs {
 		result[i] = dbWorkerDocToGQL(d)
+		if worker, err := r.Queries.GetWorkerByID(ctx, d.WorkerID); err == nil {
+			if gqlWorker, err := r.workerWithCompany(ctx, worker); err == nil {
+				result[i].Worker = gqlWorker
+			}
+		}
 	}
 	return result, nil
 }

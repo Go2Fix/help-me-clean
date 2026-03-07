@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useQuery, useMutation } from '@apollo/client';
 import { useTranslation } from 'react-i18next';
 import {
@@ -200,12 +200,23 @@ function getDocumentCompletionStatus(
   return { ready, missing, pending, rejected };
 }
 
+const VALID_TABS: DetailTab[] = ['detalii', 'financiar', 'comenzi', 'documente', 'echipa'];
+
 export default function CompanyDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { t } = useTranslation(['dashboard', 'admin']);
 
-  const [activeTab, setActiveTab] = useState<DetailTab>('detalii');
+  const tabParam = searchParams.get('tab') as DetailTab | null;
+  const [activeTab, setActiveTab] = useState<DetailTab>(
+    tabParam && VALID_TABS.includes(tabParam) ? tabParam : 'detalii',
+  );
+
+  const handleTabChange = (tab: DetailTab) => {
+    setActiveTab(tab);
+    setSearchParams(tab === 'detalii' ? {} : { tab }, { replace: true });
+  };
   const [rejectModal, setRejectModal] = useState(false);
   const [suspendModal, setSuspendModal] = useState(false);
   const [reason, setReason] = useState('');
@@ -520,7 +531,7 @@ export default function CompanyDetailPage() {
         <Select
           options={tabOptions}
           value={activeTab}
-          onChange={(e) => setActiveTab(e.target.value as DetailTab)}
+          onChange={(e) => handleTabChange(e.target.value as DetailTab)}
         />
       </div>
 

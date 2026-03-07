@@ -5,6 +5,7 @@ import {
   CheckCircle2,
   XCircle,
   Clock,
+  AlertCircle,
 } from 'lucide-react';
 import Badge from './Badge';
 import { cn } from '@go2fix/shared';
@@ -33,7 +34,7 @@ const statusConfig: Record<
   string,
   { label: string; variant: 'warning' | 'success' | 'danger'; icon: React.ElementType }
 > = {
-  PENDING: { label: 'In asteptare', variant: 'warning', icon: Clock },
+  PENDING: { label: 'În așteptare', variant: 'warning', icon: Clock },
   APPROVED: { label: 'Aprobat', variant: 'success', icon: CheckCircle2 },
   REJECTED: { label: 'Respins', variant: 'danger', icon: XCircle },
 };
@@ -63,77 +64,94 @@ export default function DocumentCard({
   const StatusIcon = config.icon;
 
   const documentUrl = `${apiBase}/api/documents/${id}`;
+  const hasPendingActions = status === 'PENDING' && (onApprove || onReject);
 
   return (
     <div className="flex items-start gap-4 p-4 rounded-xl border border-gray-200 bg-white">
       <div className="p-2.5 rounded-xl bg-gray-100 shrink-0">
         <FileText className="h-5 w-5 text-gray-500" />
       </div>
+
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-1">
-          <p className="text-sm font-medium text-gray-900 truncate">{fileName}</p>
-          <Badge variant={config.variant}>
-            <StatusIcon className="h-3 w-3 mr-1" />
-            {config.label}
-          </Badge>
+        <div className="flex items-start justify-between gap-3 mb-1">
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-gray-900 truncate">{fileName}</p>
+            <p className="text-xs text-gray-500 mt-0.5">{documentTypeLabel}</p>
+            <p className="text-xs text-gray-400 mt-0.5">{formatDate(uploadedAt)}</p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Badge variant={config.variant}>
+              <StatusIcon className="h-3 w-3 mr-1" />
+              {config.label}
+            </Badge>
+            {onDelete && (status === 'PENDING' || status === 'REJECTED') && (
+              <button
+                onClick={() => onDelete(id)}
+                disabled={deleteLoading}
+                className={cn(
+                  'p-1.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition cursor-pointer',
+                  deleteLoading && 'opacity-50 cursor-not-allowed',
+                )}
+                title="Șterge document"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
         </div>
-        <p className="text-xs text-gray-500">{documentTypeLabel}</p>
-        <p className="text-xs text-gray-400 mt-0.5">{formatDate(uploadedAt)}</p>
+
         {status === 'REJECTED' && rejectionReason && (
-          <div className="mt-2 p-2 rounded-lg bg-red-50 text-xs text-red-600">
-            Motiv: {rejectionReason}
+          <div className="mt-2 flex items-start gap-1.5 p-2.5 rounded-lg bg-red-50 border border-red-100">
+            <AlertCircle className="h-3.5 w-3.5 text-red-500 mt-0.5 shrink-0" />
+            <p className="text-xs text-red-600">
+              <span className="font-medium">Motiv respingere:</span> {rejectionReason}
+            </p>
           </div>
         )}
-      </div>
-      <div className="flex items-center gap-1.5 shrink-0">
-        <a
-          href={documentUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition"
-          title="Previzualizeaza"
-        >
-          <ExternalLink className="h-4 w-4" />
-        </a>
-        {onDelete && (status === 'PENDING' || status === 'REJECTED') && (
-          <button
-            onClick={() => onDelete(id)}
-            disabled={deleteLoading}
-            className={cn(
-              'p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition cursor-pointer',
-              deleteLoading && 'opacity-50 cursor-not-allowed',
-            )}
-            title="Sterge"
+
+        <div className="mt-3 flex items-center gap-2 flex-wrap">
+          <a
+            href={documentUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline transition"
           >
-            <Trash2 className="h-4 w-4" />
-          </button>
-        )}
-        {onApprove && status === 'PENDING' && (
-          <button
-            onClick={() => onApprove(id)}
-            disabled={reviewLoading}
-            className={cn(
-              'p-1.5 rounded-lg text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition cursor-pointer',
-              reviewLoading && 'opacity-50 cursor-not-allowed',
-            )}
-            title="Aproba"
-          >
-            <CheckCircle2 className="h-4 w-4" />
-          </button>
-        )}
-        {onReject && status === 'PENDING' && (
-          <button
-            onClick={() => onReject(id)}
-            disabled={reviewLoading}
-            className={cn(
-              'p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition cursor-pointer',
-              reviewLoading && 'opacity-50 cursor-not-allowed',
-            )}
-            title="Respinge"
-          >
-            <XCircle className="h-4 w-4" />
-          </button>
-        )}
+            <ExternalLink className="h-3.5 w-3.5" />
+            Vizualizează
+          </a>
+
+          {hasPendingActions && (
+            <span className="text-gray-200 text-xs">|</span>
+          )}
+
+          {onApprove && status === 'PENDING' && (
+            <button
+              onClick={() => onApprove(id)}
+              disabled={reviewLoading}
+              className={cn(
+                'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-600 text-white hover:bg-emerald-700 transition cursor-pointer',
+                reviewLoading && 'opacity-50 cursor-not-allowed',
+              )}
+            >
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              Aprobă
+            </button>
+          )}
+
+          {onReject && status === 'PENDING' && (
+            <button
+              onClick={() => onReject(id)}
+              disabled={reviewLoading}
+              className={cn(
+                'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-red-300 text-red-600 hover:bg-red-50 transition cursor-pointer',
+                reviewLoading && 'opacity-50 cursor-not-allowed',
+              )}
+            >
+              <XCircle className="h-3.5 w-3.5" />
+              Respinge
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

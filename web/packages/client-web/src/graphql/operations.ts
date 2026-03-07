@@ -4163,6 +4163,10 @@ export const PENDING_COMPANY_DOCUMENTS = gql`
       fileName
       status
       uploadedAt
+      company {
+        id
+        companyName
+      }
     }
   }
 `;
@@ -4241,6 +4245,26 @@ export const PENDING_WORKER_DOCUMENTS = gql`
       fileName
       status
       uploadedAt
+      worker {
+        id
+        fullName
+        company {
+          id
+          companyName
+        }
+      }
+    }
+  }
+`;
+
+export const PENDING_REVIEW_COUNT = gql`
+  query PendingReviewCount {
+    pendingReviewCount {
+      applications
+      companyDocuments
+      workerDocuments
+      categoryRequests
+      total
     }
   }
 `;

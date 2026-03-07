@@ -21,6 +21,14 @@ vi.mock('@/context/AuthContext', () => ({
   useAuth: vi.fn(),
 }));
 
+vi.mock('@apollo/client', async () => {
+  const actual = await vi.importActual('@apollo/client');
+  return {
+    ...actual,
+    useQuery: vi.fn().mockReturnValue({ data: null, loading: false }),
+  };
+});
+
 const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom');

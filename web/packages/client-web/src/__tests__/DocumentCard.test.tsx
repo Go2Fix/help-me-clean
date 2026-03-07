@@ -30,7 +30,7 @@ describe('DocumentCard', () => {
 
   it('renders PENDING status badge', () => {
     render(<DocumentCard {...baseProps} status="PENDING" />);
-    expect(screen.getByText('In asteptare')).toBeInTheDocument();
+    expect(screen.getByText('În așteptare')).toBeInTheDocument();
   });
 
   it('renders APPROVED status badge', () => {
@@ -47,25 +47,25 @@ describe('DocumentCard', () => {
       />,
     );
     expect(screen.getByText('Respins')).toBeInTheDocument();
-    expect(screen.getByText('Motiv: Bad quality')).toBeInTheDocument();
+    expect(screen.getByText('Motiv respingere:')).toBeInTheDocument();
+    expect(screen.getByText('Bad quality')).toBeInTheDocument();
   });
 
   it('renders preview link pointing to backend proxy endpoint', () => {
     render(<DocumentCard {...baseProps} />);
-    const link = screen.getByTitle('Previzualizeaza');
-    expect(link.tagName).toBe('A');
-    expect(link).toHaveAttribute('href', 'http://localhost:8080/api/documents/doc-1');
-    expect(link).toHaveAttribute('target', '_blank');
+    const link = screen.getByText('Vizualizează');
+    expect(link.closest('a')).toHaveAttribute('href', 'http://localhost:8080/api/documents/doc-1');
+    expect(link.closest('a')).toHaveAttribute('target', '_blank');
   });
 
   it('shows delete button for PENDING docs when onDelete provided', () => {
     render(<DocumentCard {...baseProps} status="PENDING" onDelete={vi.fn()} />);
-    expect(screen.getByTitle('Sterge')).toBeInTheDocument();
+    expect(screen.getByTitle('Șterge document')).toBeInTheDocument();
   });
 
   it('does not show delete button for APPROVED docs', () => {
     render(<DocumentCard {...baseProps} status="APPROVED" onDelete={vi.fn()} />);
-    expect(screen.queryByTitle('Sterge')).not.toBeInTheDocument();
+    expect(screen.queryByTitle('Șterge document')).not.toBeInTheDocument();
   });
 
   it('shows approve and reject buttons when handlers provided and status is PENDING', () => {
@@ -77,8 +77,8 @@ describe('DocumentCard', () => {
         onReject={vi.fn()}
       />,
     );
-    expect(screen.getByTitle('Aproba')).toBeInTheDocument();
-    expect(screen.getByTitle('Respinge')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Aprobă/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Respinge/i })).toBeInTheDocument();
   });
 
   it('does not show approve/reject buttons when status is APPROVED', () => {
@@ -90,15 +90,15 @@ describe('DocumentCard', () => {
         onReject={vi.fn()}
       />,
     );
-    expect(screen.queryByTitle('Aproba')).not.toBeInTheDocument();
-    expect(screen.queryByTitle('Respinge')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Aprobă/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Respinge/i })).not.toBeInTheDocument();
   });
 
   it('calls onDelete when delete button clicked', async () => {
     const user = userEvent.setup();
     const onDelete = vi.fn();
     render(<DocumentCard {...baseProps} status="PENDING" onDelete={onDelete} />);
-    await user.click(screen.getByTitle('Sterge'));
+    await user.click(screen.getByTitle('Șterge document'));
     expect(onDelete).toHaveBeenCalledTimes(1);
     expect(onDelete).toHaveBeenCalledWith('doc-1');
   });
@@ -107,7 +107,7 @@ describe('DocumentCard', () => {
     const user = userEvent.setup();
     const onApprove = vi.fn();
     render(<DocumentCard {...baseProps} status="PENDING" onApprove={onApprove} />);
-    await user.click(screen.getByTitle('Aproba'));
+    await user.click(screen.getByRole('button', { name: /Aprobă/i }));
     expect(onApprove).toHaveBeenCalledTimes(1);
     expect(onApprove).toHaveBeenCalledWith('doc-1');
   });
@@ -116,7 +116,7 @@ describe('DocumentCard', () => {
     const user = userEvent.setup();
     const onReject = vi.fn();
     render(<DocumentCard {...baseProps} status="PENDING" onReject={onReject} />);
-    await user.click(screen.getByTitle('Respinge'));
+    await user.click(screen.getByRole('button', { name: /Respinge/i }));
     expect(onReject).toHaveBeenCalledTimes(1);
     expect(onReject).toHaveBeenCalledWith('doc-1');
   });
