@@ -4263,8 +4263,24 @@ export const PENDING_REVIEW_COUNT = gql`
       applications
       companyDocuments
       workerDocuments
+      workerActivations
       categoryRequests
       total
+    }
+  }
+`;
+
+export const PENDING_WORKER_ACTIVATIONS = gql`
+  query PendingWorkerActivations {
+    pendingWorkerActivations {
+      id
+      fullName
+      status
+      createdAt
+      company {
+        id
+        companyName
+      }
     }
   }
 `;

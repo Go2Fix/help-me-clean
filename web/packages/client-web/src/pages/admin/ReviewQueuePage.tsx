@@ -12,17 +12,21 @@ import {
   ExternalLink,
   Inbox,
   ChevronRight,
+  ShieldCheck,
 } from 'lucide-react';
 import {
   PENDING_COMPANY_APPLICATIONS,
   PENDING_COMPANY_DOCUMENTS,
   PENDING_WORKER_DOCUMENTS,
+  PENDING_WORKER_ACTIVATIONS,
   PENDING_CATEGORY_REQUESTS,
+  PENDING_REVIEW_COUNT,
   REVIEW_COMPANY_DOCUMENT,
   REVIEW_WORKER_DOCUMENT,
   REVIEW_CATEGORY_REQUEST,
   APPROVE_COMPANY,
   REJECT_COMPANY,
+  ACTIVATE_WORKER,
 } from '@/graphql/operations';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -58,6 +62,14 @@ interface WorkerDoc {
   worker: { id: string; fullName: string; company?: { id: string; companyName: string } };
 }
 
+interface WorkerForActivation {
+  id: string;
+  fullName: string;
+  status: string;
+  createdAt: string;
+  company?: { id: string; companyName: string };
+}
+
 interface CategoryRequest {
   id: string;
   requestType: 'ACTIVATE' | 'DEACTIVATE';
@@ -67,15 +79,25 @@ interface CategoryRequest {
   category: { id: string; nameRo: string; nameEn: string; icon?: string };
 }
 
+interface PendingReviewCount {
+  applications: number;
+  companyDocuments: number;
+  workerDocuments: number;
+  workerActivations: number;
+  categoryRequests: number;
+  total: number;
+}
+
 // ─── Tab options ─────────────────────────────────────────────────────────────
 
-type QueueTab = 'aplicatii' | 'documente-companie' | 'documente-angajat' | 'categorii';
+type QueueTab = 'aplicatii' | 'documente-companie' | 'documente-angajat' | 'activare-angajat' | 'categorii';
 
-const TABS: { value: QueueTab; label: string; icon: React.ElementType }[] = [
-  { value: 'aplicatii', label: 'Aplicații companii', icon: Building2 },
-  { value: 'documente-companie', label: 'Documente companii', icon: FileText },
-  { value: 'documente-angajat', label: 'Documente angajați', icon: Users },
-  { value: 'categorii', label: 'Cereri categorii', icon: Tag },
+const TABS: { value: QueueTab; label: string; icon: React.ElementType; countKey: keyof PendingReviewCount }[] = [
+  { value: 'aplicatii', label: 'Aplicații companii', icon: Building2, countKey: 'applications' },
+  { value: 'documente-companie', label: 'Documente companii', icon: FileText, countKey: 'companyDocuments' },
+  { value: 'documente-angajat', label: 'Documente angajați', icon: Users, countKey: 'workerDocuments' },
+  { value: 'activare-angajat', label: 'Activare angajați', icon: ShieldCheck, countKey: 'workerActivations' },
+  { value: 'categorii', label: 'Cereri categorii', icon: Tag, countKey: 'categoryRequests' },
 ];
 
 const VALID_TABS = TABS.map((t) => t.value);
@@ -164,9 +186,11 @@ function ApplicationsTab() {
 
   const [approveCompany, { loading: approving }] = useMutation(APPROVE_COMPANY, {
     onCompleted: () => { void refetch(); },
+    refetchQueries: [{ query: PENDING_REVIEW_COUNT }],
   });
   const [rejectCompany, { loading: rejecting }] = useMutation(REJECT_COMPANY, {
     onCompleted: () => { void refetch(); setRejectModal(null); },
+    refetchQueries: [{ query: PENDING_REVIEW_COUNT }],
   });
 
   const companies = data?.pendingCompanyApplications ?? [];
@@ -264,6 +288,7 @@ function CompanyDocsTab() {
 
   const [reviewDoc, { loading: reviewing }] = useMutation(REVIEW_COMPANY_DOCUMENT, {
     onCompleted: () => { void refetch(); setRejectModal(null); },
+    refetchQueries: [{ query: PENDING_REVIEW_COUNT }],
   });
 
   const docs = data?.pendingCompanyDocuments ?? [];
@@ -354,6 +379,7 @@ function WorkerDocsTab() {
 
   const [reviewDoc, { loading: reviewing }] = useMutation(REVIEW_WORKER_DOCUMENT, {
     onCompleted: () => { void refetch(); setRejectModal(null); },
+    refetchQueries: [{ query: PENDING_REVIEW_COUNT }],
   });
 
   const docs = data?.pendingWorkerDocuments ?? [];
@@ -426,7 +452,92 @@ function WorkerDocsTab() {
   );
 }
 
-// ─── Tab 4: Category Requests ─────────────────────────────────────────────────
+// ─── Tab 4: Worker Activations ────────────────────────────────────────────────
+
+function WorkerActivationsTab() {
+  const [activationError, setActivationError] = useState<Record<string, string>>({});
+
+  const { data, loading, refetch } = useQuery<{ pendingWorkerActivations: WorkerForActivation[] }>(
+    PENDING_WORKER_ACTIVATIONS,
+    { fetchPolicy: 'cache-and-network' },
+  );
+
+  const [activateWorker, { loading: activating }] = useMutation(ACTIVATE_WORKER, {
+    onCompleted: () => { void refetch(); },
+    refetchQueries: [{ query: PENDING_REVIEW_COUNT }],
+  });
+
+  const workers = data?.pendingWorkerActivations ?? [];
+
+  const handleActivate = async (workerId: string) => {
+    setActivationError((prev) => ({ ...prev, [workerId]: '' }));
+    try {
+      await activateWorker({ variables: { id: workerId } });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Eroare la activare';
+      setActivationError((prev) => ({ ...prev, [workerId]: msg }));
+    }
+  };
+
+  if (loading) return <LoadingSpinner />;
+  if (!workers.length) return <EmptyState icon={ShieldCheck} message="Nu există angajați care necesită activare" />;
+
+  return (
+    <div className="space-y-3">
+      {workers.map((worker) => (
+        <div key={worker.id} className="bg-white rounded-xl border border-gray-200 p-4">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <ShieldCheck className="h-4 w-4 text-amber-500 shrink-0" />
+                <span className="font-semibold text-gray-900">{worker.fullName}</span>
+                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-amber-50 text-amber-700">
+                  Necesită activare
+                </span>
+              </div>
+              {worker.company && (
+                <Link
+                  to={`/admin/companii/${worker.company.id}?tab=echipa`}
+                  className="text-xs text-blue-600 hover:underline"
+                >
+                  {worker.company.companyName}
+                </Link>
+              )}
+              <p className="text-xs text-gray-400 mt-0.5">Înregistrat: {formatDate(worker.createdAt)}</p>
+              <p className="text-xs text-emerald-600 mt-1">
+                Toate documentele aprobate · Evaluare personalitate completă
+              </p>
+              {activationError[worker.id] && (
+                <p className="text-xs text-red-600 mt-1">{activationError[worker.id]}</p>
+              )}
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              {worker.company && (
+                <Link
+                  to={`/admin/companii/${worker.company.id}?tab=echipa`}
+                  className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 hover:underline"
+                >
+                  Profil
+                  <ChevronRight className="h-3 w-3" />
+                </Link>
+              )}
+              <button
+                onClick={() => void handleActivate(worker.id)}
+                disabled={activating}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 text-white text-xs font-medium rounded-lg hover:bg-emerald-700 disabled:opacity-50"
+              >
+                <ShieldCheck className="h-3.5 w-3.5" />
+                Activează
+              </button>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── Tab 5: Category Requests ─────────────────────────────────────────────────
 
 function CategoryRequestsTab() {
   const { i18n } = useTranslation();
@@ -439,6 +550,7 @@ function CategoryRequestsTab() {
 
   const [reviewRequest, { loading: reviewing }] = useMutation(REVIEW_CATEGORY_REQUEST, {
     onCompleted: () => { void refetch(); setRejectModal(null); },
+    refetchQueries: [{ query: PENDING_REVIEW_COUNT }],
   });
 
   const requests = data?.pendingCategoryRequests ?? [];
@@ -531,6 +643,12 @@ export default function ReviewQueuePage() {
     tabParam && VALID_TABS.includes(tabParam) ? tabParam : 'aplicatii',
   );
 
+  const { data: reviewCountData } = useQuery<{ pendingReviewCount: PendingReviewCount }>(
+    PENDING_REVIEW_COUNT,
+    { fetchPolicy: 'cache-and-network' },
+  );
+  const counts = reviewCountData?.pendingReviewCount;
+
   const handleTabChange = (tab: QueueTab) => {
     setActiveTab(tab);
     setSearchParams(tab === 'aplicatii' ? {} : { tab }, { replace: true });
@@ -555,20 +673,34 @@ export default function ReviewQueuePage() {
 
       {/* Tab bar */}
       <div className="flex gap-1 p-1 bg-gray-100 rounded-xl mb-6 overflow-x-auto">
-        {TABS.map(({ value, label, icon: Icon }) => (
-          <button
-            key={value}
-            onClick={() => handleTabChange(value)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
-              activeTab === value
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            <Icon className="h-4 w-4" />
-            {label}
-          </button>
-        ))}
+        {TABS.map(({ value, label, icon: Icon, countKey }) => {
+          const count = counts ? counts[countKey] : 0;
+          return (
+            <button
+              key={value}
+              onClick={() => handleTabChange(value)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
+                activeTab === value
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <Icon className="h-4 w-4" />
+              {label}
+              {count > 0 && (
+                <span
+                  className={`inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-xs font-semibold ${
+                    activeTab === value
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-300 text-gray-700'
+                  }`}
+                >
+                  {count}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* Tab description */}
@@ -578,6 +710,7 @@ export default function ReviewQueuePage() {
           {activeTab === 'aplicatii' && 'Companii noi care așteaptă aprobare. Verifică documentele înainte de a activa.'}
           {activeTab === 'documente-companie' && 'Documente încărcate de companii — aprobă sau respinge individual.'}
           {activeTab === 'documente-angajat' && 'Documente încărcate de angajați — necesare pentru activarea contului.'}
+          {activeTab === 'activare-angajat' && 'Angajați cu toate documentele aprobate și evaluarea completă — gata pentru activare.'}
           {activeTab === 'categorii' && 'Cereri pentru adăugarea sau eliminarea categoriilor de servicii.'}
         </span>
       </div>
@@ -586,6 +719,7 @@ export default function ReviewQueuePage() {
       {activeTab === 'aplicatii' && <ApplicationsTab />}
       {activeTab === 'documente-companie' && <CompanyDocsTab />}
       {activeTab === 'documente-angajat' && <WorkerDocsTab />}
+      {activeTab === 'activare-angajat' && <WorkerActivationsTab />}
       {activeTab === 'categorii' && <CategoryRequestsTab />}
     </div>
   );

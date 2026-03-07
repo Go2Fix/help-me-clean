@@ -94,6 +94,7 @@ extend type Query {
   workerDateOverrides(workerId: ID!, from: String!, to: String!): [WorkerDateOverride!]!
   workerDocuments(workerId: ID!): [WorkerDocument!]!
   pendingWorkerDocuments: [WorkerDocument!]!
+  pendingWorkerActivations: [WorkerProfile!]!
 }
 
 extend type Mutation {

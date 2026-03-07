@@ -706,11 +706,12 @@ type PayoutLineItem struct {
 }
 
 type PendingReviewCount struct {
-	Applications     int `json:"applications"`
-	CompanyDocuments int `json:"companyDocuments"`
-	WorkerDocuments  int `json:"workerDocuments"`
-	CategoryRequests int `json:"categoryRequests"`
-	Total            int `json:"total"`
+	Applications      int `json:"applications"`
+	CompanyDocuments  int `json:"companyDocuments"`
+	WorkerDocuments   int `json:"workerDocuments"`
+	WorkerActivations int `json:"workerActivations"`
+	CategoryRequests  int `json:"categoryRequests"`
+	Total             int `json:"total"`
 }
 
 type PersonalityAnswerInput struct {

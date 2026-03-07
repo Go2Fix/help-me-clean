@@ -87,6 +87,7 @@ type Querier interface {
 	CountWaitlistLeads(ctx context.Context) (CountWaitlistLeadsRow, error)
 	CountWorkerBookingsForDate(ctx context.Context, arg CountWorkerBookingsForDateParams) (int64, error)
 	CountWorkerBookingsInDateRange(ctx context.Context, arg CountWorkerBookingsInDateRangeParams) (int64, error)
+	CountWorkersReadyForActivation(ctx context.Context) (int32, error)
 	CreateAddress(ctx context.Context, arg CreateAddressParams) (ClientAddress, error)
 	CreateArea(ctx context.Context, arg CreateAreaParams) (CreateAreaRow, error)
 	CreateBillingProfile(ctx context.Context, arg CreateBillingProfileParams) (ClientBillingProfile, error)
@@ -447,6 +448,7 @@ type Querier interface {
 	ListWorkerServiceAreas(ctx context.Context, workerID pgtype.UUID) ([]ListWorkerServiceAreasRow, error)
 	ListWorkerServiceCategories(ctx context.Context, workerID pgtype.UUID) ([]ListWorkerServiceCategoriesRow, error)
 	ListWorkersByCompany(ctx context.Context, companyID pgtype.UUID) ([]Worker, error)
+	ListWorkersReadyForActivation(ctx context.Context) ([]Worker, error)
 	MarkAllNotificationsRead(ctx context.Context, userID pgtype.UUID) error
 	MarkBookingPaid(ctx context.Context, id pgtype.UUID) (Booking, error)
 	// Atomically marks a booking as paid AND auto-confirms it if still assigned.

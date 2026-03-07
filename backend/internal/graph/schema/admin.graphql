@@ -66,6 +66,7 @@ type PendingReviewCount {
   applications: Int!
   companyDocuments: Int!
   workerDocuments: Int!
+  workerActivations: Int!
   categoryRequests: Int!
   total: Int!
 }

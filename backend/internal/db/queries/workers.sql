@@ -100,3 +100,20 @@ UPDATE workers SET invited_category_ids = $2, updated_at = NOW() WHERE id = $1;
 
 -- name: GetWorkerInvitedCategories :one
 SELECT invited_category_ids FROM workers WHERE id = $1;
+
+-- name: ListWorkersReadyForActivation :many
+SELECT DISTINCT w.*
+FROM workers w
+WHERE w.status = 'pending_review'
+  AND EXISTS (SELECT 1 FROM personality_assessments pa WHERE pa.worker_id = w.id)
+  AND EXISTS (SELECT 1 FROM worker_documents wd WHERE wd.worker_id = w.id)
+  AND NOT EXISTS (SELECT 1 FROM worker_documents wd WHERE wd.worker_id = w.id AND wd.status != 'approved')
+ORDER BY w.created_at ASC;
+
+-- name: CountWorkersReadyForActivation :one
+SELECT COUNT(DISTINCT w.id)::int
+FROM workers w
+WHERE w.status = 'pending_review'
+  AND EXISTS (SELECT 1 FROM personality_assessments pa WHERE pa.worker_id = w.id)
+  AND EXISTS (SELECT 1 FROM worker_documents wd WHERE wd.worker_id = w.id)
+  AND NOT EXISTS (SELECT 1 FROM worker_documents wd WHERE wd.worker_id = w.id AND wd.status != 'approved');

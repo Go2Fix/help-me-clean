@@ -825,18 +825,21 @@ func (r *queryResolver) PendingReviewCount(ctx context.Context) (*model.PendingR
 	applications, _ := r.Queries.CountCompaniesByStatus(ctx, "pending_review")
 	companyDocs, _ := r.Queries.ListPendingCompanyDocuments(ctx)
 	workerDocs, _ := r.Queries.ListPendingWorkerDocuments(ctx)
+	workerActivations, _ := r.Queries.CountWorkersReadyForActivation(ctx)
 	categoryRequests, _ := r.Queries.CountPendingCategoryRequests(ctx)
 
 	apps := int(applications)
 	cDocs := len(companyDocs)
 	wDocs := len(workerDocs)
+	wActivations := int(workerActivations) //nolint: unconvert
 	catReqs := int(categoryRequests)
 
 	return &model.PendingReviewCount{
-		Applications:    apps,
+		Applications:     apps,
 		CompanyDocuments: cDocs,
-		WorkerDocuments: wDocs,
+		WorkerDocuments:  wDocs,
+		WorkerActivations: wActivations,
 		CategoryRequests: catReqs,
-		Total:           apps + cDocs + wDocs + catReqs,
+		Total:            apps + cDocs + wDocs + wActivations + catReqs,
 	}, nil
 }

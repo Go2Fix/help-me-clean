@@ -58,6 +58,22 @@ func (q *Queries) CountWorkerBookingsForDate(ctx context.Context, arg CountWorke
 	return count, err
 }
 
+const countWorkersReadyForActivation = `-- name: CountWorkersReadyForActivation :one
+SELECT COUNT(DISTINCT w.id)::int
+FROM workers w
+WHERE w.status = 'pending_review'
+  AND EXISTS (SELECT 1 FROM personality_assessments pa WHERE pa.worker_id = w.id)
+  AND EXISTS (SELECT 1 FROM worker_documents wd WHERE wd.worker_id = w.id)
+  AND NOT EXISTS (SELECT 1 FROM worker_documents wd WHERE wd.worker_id = w.id AND wd.status != 'approved')
+`
+
+func (q *Queries) CountWorkersReadyForActivation(ctx context.Context) (int32, error) {
+	row := q.db.QueryRow(ctx, countWorkersReadyForActivation)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const createWorkerProfile = `-- name: CreateWorkerProfile :one
 INSERT INTO workers (user_id, company_id, status, is_company_admin, invite_token, invite_expires_at)
 VALUES ($1, $2, $3, $4, $5, $6)
@@ -388,6 +404,53 @@ SELECT id, user_id, company_id, status, is_company_admin, invite_token, invite_e
 
 func (q *Queries) ListWorkersByCompany(ctx context.Context, companyID pgtype.UUID) ([]Worker, error) {
 	rows, err := q.db.Query(ctx, listWorkersByCompany, companyID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Worker
+	for rows.Next() {
+		var i Worker
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.CompanyID,
+			&i.Status,
+			&i.IsCompanyAdmin,
+			&i.InviteToken,
+			&i.InviteExpiresAt,
+			&i.RatingAvg,
+			&i.TotalJobsCompleted,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Bio,
+			&i.HomeLatitude,
+			&i.HomeLongitude,
+			&i.MaxDailyBookings,
+			&i.InvitedCategoryIds,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listWorkersReadyForActivation = `-- name: ListWorkersReadyForActivation :many
+SELECT DISTINCT w.id, w.user_id, w.company_id, w.status, w.is_company_admin, w.invite_token, w.invite_expires_at, w.rating_avg, w.total_jobs_completed, w.created_at, w.updated_at, w.bio, w.home_latitude, w.home_longitude, w.max_daily_bookings, w.invited_category_ids
+FROM workers w
+WHERE w.status = 'pending_review'
+  AND EXISTS (SELECT 1 FROM personality_assessments pa WHERE pa.worker_id = w.id)
+  AND EXISTS (SELECT 1 FROM worker_documents wd WHERE wd.worker_id = w.id)
+  AND NOT EXISTS (SELECT 1 FROM worker_documents wd WHERE wd.worker_id = w.id AND wd.status != 'approved')
+ORDER BY w.created_at ASC
+`
+
+func (q *Queries) ListWorkersReadyForActivation(ctx context.Context) ([]Worker, error) {
+	rows, err := q.db.Query(ctx, listWorkersReadyForActivation)
 	if err != nil {
 		return nil, err
 	}

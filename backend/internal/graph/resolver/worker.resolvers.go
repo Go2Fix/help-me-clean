@@ -1441,6 +1441,29 @@ func (r *queryResolver) PendingWorkerDocuments(ctx context.Context) ([]*model.Wo
 	return result, nil
 }
 
+// PendingWorkerActivations is the resolver for the pendingWorkerActivations field.
+func (r *queryResolver) PendingWorkerActivations(ctx context.Context) ([]*model.WorkerProfile, error) {
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil || claims.Role != "global_admin" {
+		return nil, fmt.Errorf("not authorized")
+	}
+
+	workers, err := r.Queries.ListWorkersReadyForActivation(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list workers ready for activation: %w", err)
+	}
+
+	result := make([]*model.WorkerProfile, len(workers))
+	for i, w := range workers {
+		if gqlWorker, err := r.workerWithCompany(ctx, w); err == nil {
+			result[i] = gqlWorker
+		} else {
+			result[i] = dbWorkerToGQL(w, nil)
+		}
+	}
+	return result, nil
+}
+
 // ServiceCategories is the resolver for the serviceCategories field.
 func (r *workerProfileResolver) ServiceCategories(ctx context.Context, obj *model.WorkerProfile) ([]*model.ServiceCategory, error) {
 	workerUUID := stringToUUID(obj.ID)

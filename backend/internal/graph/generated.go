@@ -684,11 +684,12 @@ type ComplexityRoot struct {
 	}
 
 	PendingReviewCount struct {
-		Applications     func(childComplexity int) int
-		CategoryRequests func(childComplexity int) int
-		CompanyDocuments func(childComplexity int) int
-		Total            func(childComplexity int) int
-		WorkerDocuments  func(childComplexity int) int
+		Applications      func(childComplexity int) int
+		CategoryRequests  func(childComplexity int) int
+		CompanyDocuments  func(childComplexity int) int
+		Total             func(childComplexity int) int
+		WorkerActivations func(childComplexity int) int
+		WorkerDocuments   func(childComplexity int) int
 	}
 
 	PersonalityAssessment struct {
@@ -916,6 +917,7 @@ type ComplexityRoot struct {
 		PendingCompanyApplications         func(childComplexity int) int
 		PendingCompanyDocuments            func(childComplexity int) int
 		PendingReviewCount                 func(childComplexity int) int
+		PendingWorkerActivations           func(childComplexity int) int
 		PendingWorkerDocuments             func(childComplexity int) int
 		PersonalityQuestions               func(childComplexity int) int
 		PlatformMode                       func(childComplexity int) int
@@ -1582,6 +1584,7 @@ type QueryResolver interface {
 	WorkerDateOverrides(ctx context.Context, workerID string, from string, to string) ([]*model.WorkerDateOverride, error)
 	WorkerDocuments(ctx context.Context, workerID string) ([]*model.WorkerDocument, error)
 	PendingWorkerDocuments(ctx context.Context) ([]*model.WorkerDocument, error)
+	PendingWorkerActivations(ctx context.Context) ([]*model.WorkerProfile, error)
 }
 type WorkerProfileResolver interface {
 	ServiceCategories(ctx context.Context, obj *model.WorkerProfile) ([]*model.ServiceCategory, error)
@@ -5188,6 +5191,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.PendingReviewCount.Total(childComplexity), true
+	case "PendingReviewCount.workerActivations":
+		if e.complexity.PendingReviewCount.WorkerActivations == nil {
+			break
+		}
+
+		return e.complexity.PendingReviewCount.WorkerActivations(childComplexity), true
 	case "PendingReviewCount.workerDocuments":
 		if e.complexity.PendingReviewCount.WorkerDocuments == nil {
 			break
@@ -6536,6 +6545,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.PendingReviewCount(childComplexity), true
+	case "Query.pendingWorkerActivations":
+		if e.complexity.Query.PendingWorkerActivations == nil {
+			break
+		}
+
+		return e.complexity.Query.PendingWorkerActivations(childComplexity), true
 	case "Query.pendingWorkerDocuments":
 		if e.complexity.Query.PendingWorkerDocuments == nil {
 			break
@@ -33636,6 +33651,35 @@ func (ec *executionContext) fieldContext_PendingReviewCount_workerDocuments(_ co
 	return fc, nil
 }
 
+func (ec *executionContext) _PendingReviewCount_workerActivations(ctx context.Context, field graphql.CollectedField, obj *model.PendingReviewCount) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PendingReviewCount_workerActivations,
+		func(ctx context.Context) (any, error) {
+			return obj.WorkerActivations, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PendingReviewCount_workerActivations(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PendingReviewCount",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _PendingReviewCount_categoryRequests(ctx context.Context, field graphql.CollectedField, obj *model.PendingReviewCount) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -37391,6 +37435,8 @@ func (ec *executionContext) fieldContext_Query_pendingReviewCount(_ context.Cont
 				return ec.fieldContext_PendingReviewCount_companyDocuments(ctx, field)
 			case "workerDocuments":
 				return ec.fieldContext_PendingReviewCount_workerDocuments(ctx, field)
+			case "workerActivations":
+				return ec.fieldContext_PendingReviewCount_workerActivations(ctx, field)
 			case "categoryRequests":
 				return ec.fieldContext_PendingReviewCount_categoryRequests(ctx, field)
 			case "total":
@@ -43600,6 +43646,75 @@ func (ec *executionContext) fieldContext_Query_pendingWorkerDocuments(_ context.
 				return ec.fieldContext_WorkerDocument_worker(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type WorkerDocument", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_pendingWorkerActivations(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_pendingWorkerActivations,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.Query().PendingWorkerActivations(ctx)
+		},
+		nil,
+		ec.marshalNWorkerProfile2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐWorkerProfileᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_pendingWorkerActivations(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_WorkerProfile_id(ctx, field)
+			case "userId":
+				return ec.fieldContext_WorkerProfile_userId(ctx, field)
+			case "user":
+				return ec.fieldContext_WorkerProfile_user(ctx, field)
+			case "company":
+				return ec.fieldContext_WorkerProfile_company(ctx, field)
+			case "fullName":
+				return ec.fieldContext_WorkerProfile_fullName(ctx, field)
+			case "phone":
+				return ec.fieldContext_WorkerProfile_phone(ctx, field)
+			case "email":
+				return ec.fieldContext_WorkerProfile_email(ctx, field)
+			case "bio":
+				return ec.fieldContext_WorkerProfile_bio(ctx, field)
+			case "status":
+				return ec.fieldContext_WorkerProfile_status(ctx, field)
+			case "isCompanyAdmin":
+				return ec.fieldContext_WorkerProfile_isCompanyAdmin(ctx, field)
+			case "inviteToken":
+				return ec.fieldContext_WorkerProfile_inviteToken(ctx, field)
+			case "ratingAvg":
+				return ec.fieldContext_WorkerProfile_ratingAvg(ctx, field)
+			case "totalJobsCompleted":
+				return ec.fieldContext_WorkerProfile_totalJobsCompleted(ctx, field)
+			case "documents":
+				return ec.fieldContext_WorkerProfile_documents(ctx, field)
+			case "personalityAssessment":
+				return ec.fieldContext_WorkerProfile_personalityAssessment(ctx, field)
+			case "availability":
+				return ec.fieldContext_WorkerProfile_availability(ctx, field)
+			case "serviceCategories":
+				return ec.fieldContext_WorkerProfile_serviceCategories(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_WorkerProfile_createdAt(ctx, field)
+			case "maxDailyBookings":
+				return ec.fieldContext_WorkerProfile_maxDailyBookings(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type WorkerProfile", field.Name)
 		},
 	}
 	return fc, nil
@@ -60324,6 +60439,11 @@ func (ec *executionContext) _PendingReviewCount(ctx context.Context, sel ast.Sel
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "workerActivations":
+			out.Values[i] = ec._PendingReviewCount_workerActivations(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "categoryRequests":
 			out.Values[i] = ec._PendingReviewCount_categoryRequests(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -63940,6 +64060,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_pendingWorkerDocuments(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "pendingWorkerActivations":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_pendingWorkerActivations(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}

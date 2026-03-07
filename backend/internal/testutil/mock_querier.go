@@ -1590,3 +1590,11 @@ func (m *PartialMockQuerier) GetWorkerInvitedCategories(ctx context.Context, id 
 func (m *PartialMockQuerier) ListGlobalAdmins(ctx context.Context) ([]db.User, error) {
 	panic("PartialMockQuerier: ListGlobalAdmins not configured")
 }
+
+func (m *PartialMockQuerier) ListWorkersReadyForActivation(ctx context.Context) ([]db.Worker, error) {
+	panic("PartialMockQuerier: ListWorkersReadyForActivation not configured")
+}
+
+func (m *PartialMockQuerier) CountWorkersReadyForActivation(ctx context.Context) (int32, error) {
+	panic("PartialMockQuerier: CountWorkersReadyForActivation not configured")
+}
