@@ -366,8 +366,14 @@ func (r *queryResolver) ListPromoCodes(ctx context.Context, limit *int, offset *
 		edges = append(edges, dbPromoCodeToGQL(row))
 	}
 
+	hasNext := int64(off)+int64(lim) < totalCount
+	endCursor := fmt.Sprintf("%d", off+lim)
 	return &model.PromoCodeConnection{
-		Edges:      edges,
+		Edges: edges,
+		PageInfo: &model.PageInfo{
+			HasNextPage: hasNext,
+			EndCursor:   &endCursor,
+		},
 		TotalCount: int(totalCount),
 	}, nil
 }

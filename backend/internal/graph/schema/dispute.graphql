@@ -37,6 +37,7 @@ type BookingDispute {
 
 type DisputeConnection {
   edges: [BookingDispute!]!
+  pageInfo: PageInfo!
   totalCount: Int!
 }
 

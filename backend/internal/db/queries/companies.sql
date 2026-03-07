@@ -141,3 +141,19 @@ UPDATE companies SET
     updated_at       = NOW()
 WHERE id = $1
 RETURNING *;
+
+-- name: GetCompaniesByIDs :many
+SELECT * FROM companies WHERE id = ANY($1::uuid[]) ORDER BY company_name;
+
+-- name: GetCompanyRatingsBatch :many
+SELECT w.company_id, COALESCE(AVG(r.rating), 0)::DECIMAL(3,2) AS avg_rating
+FROM reviews r
+JOIN workers w ON r.reviewed_worker_id = w.id
+WHERE w.company_id = ANY($1::uuid[])
+GROUP BY w.company_id;
+
+-- name: GetCompanyJobCountsBatch :many
+SELECT company_id, COUNT(*)::bigint AS job_count
+FROM bookings
+WHERE company_id = ANY($1::uuid[]) AND status = 'completed'
+GROUP BY company_id;

@@ -13,7 +13,7 @@ import { useAuth } from '@/context/AuthContext';
 import ProfileSetupChecklist from '@/components/ProfileSetupChecklist';
 import type { SetupItem } from '@/components/ProfileSetupChecklist';
 import {
-  MY_WORKER_STATS, TODAYS_JOBS,
+  MY_WORKER_STATS, MY_WORKER_BOOKINGS_BY_DATE_RANGE,
   MY_WORKER_REVIEWS, MY_WORKER_PROFILE, MY_WORKER_AVAILABILITY,
 } from '@/graphql/operations';
 
@@ -67,9 +67,13 @@ function Metric({ icon: Icon, label, value, sub }: { icon: React.ElementType; la
 export default function DashboardPage() {
   const { t, i18n } = useTranslation(['dashboard', 'worker']);
   const { user } = useAuth();
+  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+
   const { data: profileData, loading: profileLoading } = useQuery(MY_WORKER_PROFILE);
   const { data: statsData, loading: statsLoading } = useQuery(MY_WORKER_STATS);
-  const { data: jobsData, loading: jobsLoading } = useQuery(TODAYS_JOBS);
+  const { data: jobsData, loading: jobsLoading } = useQuery(MY_WORKER_BOOKINGS_BY_DATE_RANGE, {
+    variables: { from: today, to: today },
+  });
   const { data: reviewsData, loading: reviewsLoading } = useQuery(MY_WORKER_REVIEWS, {
     variables: { limit: 3, offset: 0 },
   });
@@ -77,7 +81,7 @@ export default function DashboardPage() {
 
   const profile = profileData?.myWorkerProfile;
   const stats = statsData?.myWorkerStats;
-  const jobs: Job[] = jobsData?.todaysJobs ?? [];
+  const jobs: Job[] = jobsData?.myWorkerBookingsByDateRange ?? [];
   const reviews: Review[] = reviewsData?.myWorkerReviews?.reviews ?? [];
 
   // Setup checks

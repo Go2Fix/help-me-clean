@@ -382,6 +382,7 @@ type ComplexityRoot struct {
 
 	DisputeConnection struct {
 		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
 		TotalCount func(childComplexity int) int
 	}
 
@@ -823,6 +824,7 @@ type ComplexityRoot struct {
 
 	PromoCodeConnection struct {
 		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
 		TotalCount func(childComplexity int) int
 	}
 
@@ -882,7 +884,6 @@ type ComplexityRoot struct {
 		ListPromoCodes                     func(childComplexity int, limit *int, offset *int) int
 		Me                                 func(childComplexity int) int
 		MyAddresses                        func(childComplexity int) int
-		MyAssignedJobs                     func(childComplexity int, status *model.BookingStatus) int
 		MyBillingProfile                   func(childComplexity int) int
 		MyBookings                         func(childComplexity int, status *model.BookingStatus, first *int, after *string) int
 		MyCompany                          func(childComplexity int) int
@@ -942,7 +943,6 @@ type ComplexityRoot struct {
 		SubscriptionStats                  func(childComplexity int) int
 		SuggestWorkerForSubscription       func(childComplexity int, cityID string, areaID string, recurrenceType model.RecurrenceType, dayOfWeek int, preferredTimeStart string, preferredTimeEnd string, estimatedDurationHours float64, categoryID *string) int
 		SuggestWorkers                     func(childComplexity int, cityID string, areaID string, timeSlots []*model.TimeSlotInput, estimatedDurationHours float64, categoryID *string) int
-		TodaysJobs                         func(childComplexity int) int
 		TopCompaniesByRevenue              func(childComplexity int, from string, to string, limit *int) int
 		UnreadNotificationCount            func(childComplexity int) int
 		User                               func(childComplexity int, id string) int
@@ -1148,6 +1148,7 @@ type ComplexityRoot struct {
 
 	SubscriptionConnection struct {
 		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
 		TotalCount func(childComplexity int) int
 	}
 
@@ -1487,8 +1488,6 @@ type QueryResolver interface {
 	MyBookings(ctx context.Context, status *model.BookingStatus, first *int, after *string) (*model.BookingConnection, error)
 	Booking(ctx context.Context, id string) (*model.Booking, error)
 	CompanyBookings(ctx context.Context, status *model.BookingStatus, first *int, after *string) (*model.BookingConnection, error)
-	MyAssignedJobs(ctx context.Context, status *model.BookingStatus) ([]*model.Booking, error)
-	TodaysJobs(ctx context.Context) ([]*model.Booking, error)
 	AllBookings(ctx context.Context, status *model.BookingStatus, companyID *string, dateFrom *string, dateTo *string, first *int, after *string) (*model.BookingConnection, error)
 	CompanyBookingsByDateRange(ctx context.Context, from string, to string) ([]*model.Booking, error)
 	SearchCompanyBookings(ctx context.Context, query *string, status *string, dateFrom *string, dateTo *string, limit *int, offset *int) (*model.BookingConnection, error)
@@ -3073,6 +3072,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.DisputeConnection.Edges(childComplexity), true
+	case "DisputeConnection.pageInfo":
+		if e.complexity.DisputeConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.DisputeConnection.PageInfo(childComplexity), true
 	case "DisputeConnection.totalCount":
 		if e.complexity.DisputeConnection.TotalCount == nil {
 			break
@@ -5780,6 +5785,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.PromoCodeConnection.Edges(childComplexity), true
+	case "PromoCodeConnection.pageInfo":
+		if e.complexity.PromoCodeConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.PromoCodeConnection.PageInfo(childComplexity), true
 	case "PromoCodeConnection.totalCount":
 		if e.complexity.PromoCodeConnection.TotalCount == nil {
 			break
@@ -6275,17 +6286,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.MyAddresses(childComplexity), true
-	case "Query.myAssignedJobs":
-		if e.complexity.Query.MyAssignedJobs == nil {
-			break
-		}
-
-		args, err := ec.field_Query_myAssignedJobs_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.MyAssignedJobs(childComplexity, args["status"].(*model.BookingStatus)), true
 	case "Query.myBillingProfile":
 		if e.complexity.Query.MyBillingProfile == nil {
 			break
@@ -6775,12 +6775,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.SuggestWorkers(childComplexity, args["cityId"].(string), args["areaId"].(string), args["timeSlots"].([]*model.TimeSlotInput), args["estimatedDurationHours"].(float64), args["categoryId"].(*string)), true
-	case "Query.todaysJobs":
-		if e.complexity.Query.TodaysJobs == nil {
-			break
-		}
-
-		return e.complexity.Query.TodaysJobs(childComplexity), true
 	case "Query.topCompaniesByRevenue":
 		if e.complexity.Query.TopCompaniesByRevenue == nil {
 			break
@@ -7755,6 +7749,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.SubscriptionConnection.Edges(childComplexity), true
+	case "SubscriptionConnection.pageInfo":
+		if e.complexity.SubscriptionConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.SubscriptionConnection.PageInfo(childComplexity), true
 	case "SubscriptionConnection.totalCount":
 		if e.complexity.SubscriptionConnection.TotalCount == nil {
 			break
@@ -8494,6 +8494,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputAdminUpdateCompanyInput,
 		ec.unmarshalInputAvailabilitySlotInput,
 		ec.unmarshalInputBillingProfileInput,
+		ec.unmarshalInputBookingOrderByInput,
 		ec.unmarshalInputBookingWorkerAssignment,
 		ec.unmarshalInputCompanyApplicationInput,
 		ec.unmarshalInputContactMessageInput,
@@ -11030,17 +11031,6 @@ func (ec *executionContext) field_Query_listPromoCodes_args(ctx context.Context,
 		return nil, err
 	}
 	args["offset"] = arg1
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_myAssignedJobs_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "status", ec.unmarshalOBookingStatus2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingStatus)
-	if err != nil {
-		return nil, err
-	}
-	args["status"] = arg0
 	return args, nil
 }
 
@@ -19842,6 +19832,41 @@ func (ec *executionContext) fieldContext_DisputeConnection_edges(_ context.Conte
 				return ec.fieldContext_BookingDispute_createdAt(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type BookingDispute", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DisputeConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *model.DisputeConnection) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DisputeConnection_pageInfo,
+		func(ctx context.Context) (any, error) {
+			return obj.PageInfo, nil
+		},
+		nil,
+		ec.marshalNPageInfo2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPageInfo,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_DisputeConnection_pageInfo(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DisputeConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "hasNextPage":
+				return ec.fieldContext_PageInfo_hasNextPage(ctx, field)
+			case "endCursor":
+				return ec.fieldContext_PageInfo_endCursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PageInfo", field.Name)
 		},
 	}
 	return fc, nil
@@ -36552,6 +36577,41 @@ func (ec *executionContext) fieldContext_PromoCodeConnection_edges(_ context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _PromoCodeConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *model.PromoCodeConnection) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PromoCodeConnection_pageInfo,
+		func(ctx context.Context) (any, error) {
+			return obj.PageInfo, nil
+		},
+		nil,
+		ec.marshalNPageInfo2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPageInfo,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PromoCodeConnection_pageInfo(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PromoCodeConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "hasNextPage":
+				return ec.fieldContext_PageInfo_hasNextPage(ctx, field)
+			case "endCursor":
+				return ec.fieldContext_PageInfo_endCursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PageInfo", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _PromoCodeConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *model.PromoCodeConnection) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -38022,260 +38082,6 @@ func (ec *executionContext) fieldContext_Query_companyBookings(ctx context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_myAssignedJobs(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Query_myAssignedJobs,
-		func(ctx context.Context) (any, error) {
-			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Query().MyAssignedJobs(ctx, fc.Args["status"].(*model.BookingStatus))
-		},
-		nil,
-		ec.marshalNBooking2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingᚄ,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Query_myAssignedJobs(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Booking_id(ctx, field)
-			case "referenceCode":
-				return ec.fieldContext_Booking_referenceCode(ctx, field)
-			case "client":
-				return ec.fieldContext_Booking_client(ctx, field)
-			case "company":
-				return ec.fieldContext_Booking_company(ctx, field)
-			case "worker":
-				return ec.fieldContext_Booking_worker(ctx, field)
-			case "address":
-				return ec.fieldContext_Booking_address(ctx, field)
-			case "serviceType":
-				return ec.fieldContext_Booking_serviceType(ctx, field)
-			case "serviceName":
-				return ec.fieldContext_Booking_serviceName(ctx, field)
-			case "includedItems":
-				return ec.fieldContext_Booking_includedItems(ctx, field)
-			case "scheduledDate":
-				return ec.fieldContext_Booking_scheduledDate(ctx, field)
-			case "scheduledStartTime":
-				return ec.fieldContext_Booking_scheduledStartTime(ctx, field)
-			case "estimatedDurationHours":
-				return ec.fieldContext_Booking_estimatedDurationHours(ctx, field)
-			case "propertyType":
-				return ec.fieldContext_Booking_propertyType(ctx, field)
-			case "numRooms":
-				return ec.fieldContext_Booking_numRooms(ctx, field)
-			case "numBathrooms":
-				return ec.fieldContext_Booking_numBathrooms(ctx, field)
-			case "areaSqm":
-				return ec.fieldContext_Booking_areaSqm(ctx, field)
-			case "hasPets":
-				return ec.fieldContext_Booking_hasPets(ctx, field)
-			case "specialInstructions":
-				return ec.fieldContext_Booking_specialInstructions(ctx, field)
-			case "hourlyRate":
-				return ec.fieldContext_Booking_hourlyRate(ctx, field)
-			case "estimatedTotal":
-				return ec.fieldContext_Booking_estimatedTotal(ctx, field)
-			case "finalTotal":
-				return ec.fieldContext_Booking_finalTotal(ctx, field)
-			case "platformCommissionPct":
-				return ec.fieldContext_Booking_platformCommissionPct(ctx, field)
-			case "extras":
-				return ec.fieldContext_Booking_extras(ctx, field)
-			case "status":
-				return ec.fieldContext_Booking_status(ctx, field)
-			case "startedAt":
-				return ec.fieldContext_Booking_startedAt(ctx, field)
-			case "completedAt":
-				return ec.fieldContext_Booking_completedAt(ctx, field)
-			case "cancelledAt":
-				return ec.fieldContext_Booking_cancelledAt(ctx, field)
-			case "cancellationReason":
-				return ec.fieldContext_Booking_cancellationReason(ctx, field)
-			case "paymentStatus":
-				return ec.fieldContext_Booking_paymentStatus(ctx, field)
-			case "paidAt":
-				return ec.fieldContext_Booking_paidAt(ctx, field)
-			case "recurringGroupId":
-				return ec.fieldContext_Booking_recurringGroupId(ctx, field)
-			case "subscriptionId":
-				return ec.fieldContext_Booking_subscriptionId(ctx, field)
-			case "occurrenceNumber":
-				return ec.fieldContext_Booking_occurrenceNumber(ctx, field)
-			case "rescheduleCount":
-				return ec.fieldContext_Booking_rescheduleCount(ctx, field)
-			case "rescheduledAt":
-				return ec.fieldContext_Booking_rescheduledAt(ctx, field)
-			case "timeSlots":
-				return ec.fieldContext_Booking_timeSlots(ctx, field)
-			case "review":
-				return ec.fieldContext_Booking_review(ctx, field)
-			case "photos":
-				return ec.fieldContext_Booking_photos(ctx, field)
-			case "categoryId":
-				return ec.fieldContext_Booking_categoryId(ctx, field)
-			case "category":
-				return ec.fieldContext_Booking_category(ctx, field)
-			case "customFields":
-				return ec.fieldContext_Booking_customFields(ctx, field)
-			case "referralDiscountId":
-				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
-			case "promoCodeId":
-				return ec.fieldContext_Booking_promoCodeId(ctx, field)
-			case "promoDiscountAmount":
-				return ec.fieldContext_Booking_promoDiscountAmount(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_Booking_createdAt(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Booking", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_myAssignedJobs_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Query_todaysJobs(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Query_todaysJobs,
-		func(ctx context.Context) (any, error) {
-			return ec.resolvers.Query().TodaysJobs(ctx)
-		},
-		nil,
-		ec.marshalNBooking2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingᚄ,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Query_todaysJobs(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Booking_id(ctx, field)
-			case "referenceCode":
-				return ec.fieldContext_Booking_referenceCode(ctx, field)
-			case "client":
-				return ec.fieldContext_Booking_client(ctx, field)
-			case "company":
-				return ec.fieldContext_Booking_company(ctx, field)
-			case "worker":
-				return ec.fieldContext_Booking_worker(ctx, field)
-			case "address":
-				return ec.fieldContext_Booking_address(ctx, field)
-			case "serviceType":
-				return ec.fieldContext_Booking_serviceType(ctx, field)
-			case "serviceName":
-				return ec.fieldContext_Booking_serviceName(ctx, field)
-			case "includedItems":
-				return ec.fieldContext_Booking_includedItems(ctx, field)
-			case "scheduledDate":
-				return ec.fieldContext_Booking_scheduledDate(ctx, field)
-			case "scheduledStartTime":
-				return ec.fieldContext_Booking_scheduledStartTime(ctx, field)
-			case "estimatedDurationHours":
-				return ec.fieldContext_Booking_estimatedDurationHours(ctx, field)
-			case "propertyType":
-				return ec.fieldContext_Booking_propertyType(ctx, field)
-			case "numRooms":
-				return ec.fieldContext_Booking_numRooms(ctx, field)
-			case "numBathrooms":
-				return ec.fieldContext_Booking_numBathrooms(ctx, field)
-			case "areaSqm":
-				return ec.fieldContext_Booking_areaSqm(ctx, field)
-			case "hasPets":
-				return ec.fieldContext_Booking_hasPets(ctx, field)
-			case "specialInstructions":
-				return ec.fieldContext_Booking_specialInstructions(ctx, field)
-			case "hourlyRate":
-				return ec.fieldContext_Booking_hourlyRate(ctx, field)
-			case "estimatedTotal":
-				return ec.fieldContext_Booking_estimatedTotal(ctx, field)
-			case "finalTotal":
-				return ec.fieldContext_Booking_finalTotal(ctx, field)
-			case "platformCommissionPct":
-				return ec.fieldContext_Booking_platformCommissionPct(ctx, field)
-			case "extras":
-				return ec.fieldContext_Booking_extras(ctx, field)
-			case "status":
-				return ec.fieldContext_Booking_status(ctx, field)
-			case "startedAt":
-				return ec.fieldContext_Booking_startedAt(ctx, field)
-			case "completedAt":
-				return ec.fieldContext_Booking_completedAt(ctx, field)
-			case "cancelledAt":
-				return ec.fieldContext_Booking_cancelledAt(ctx, field)
-			case "cancellationReason":
-				return ec.fieldContext_Booking_cancellationReason(ctx, field)
-			case "paymentStatus":
-				return ec.fieldContext_Booking_paymentStatus(ctx, field)
-			case "paidAt":
-				return ec.fieldContext_Booking_paidAt(ctx, field)
-			case "recurringGroupId":
-				return ec.fieldContext_Booking_recurringGroupId(ctx, field)
-			case "subscriptionId":
-				return ec.fieldContext_Booking_subscriptionId(ctx, field)
-			case "occurrenceNumber":
-				return ec.fieldContext_Booking_occurrenceNumber(ctx, field)
-			case "rescheduleCount":
-				return ec.fieldContext_Booking_rescheduleCount(ctx, field)
-			case "rescheduledAt":
-				return ec.fieldContext_Booking_rescheduledAt(ctx, field)
-			case "timeSlots":
-				return ec.fieldContext_Booking_timeSlots(ctx, field)
-			case "review":
-				return ec.fieldContext_Booking_review(ctx, field)
-			case "photos":
-				return ec.fieldContext_Booking_photos(ctx, field)
-			case "categoryId":
-				return ec.fieldContext_Booking_categoryId(ctx, field)
-			case "category":
-				return ec.fieldContext_Booking_category(ctx, field)
-			case "customFields":
-				return ec.fieldContext_Booking_customFields(ctx, field)
-			case "referralDiscountId":
-				return ec.fieldContext_Booking_referralDiscountId(ctx, field)
-			case "promoCodeId":
-				return ec.fieldContext_Booking_promoCodeId(ctx, field)
-			case "promoDiscountAmount":
-				return ec.fieldContext_Booking_promoDiscountAmount(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_Booking_createdAt(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Booking", field.Name)
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Query_allBookings(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -39319,6 +39125,8 @@ func (ec *executionContext) fieldContext_Query_allDisputes(ctx context.Context, 
 			switch field.Name {
 			case "edges":
 				return ec.fieldContext_DisputeConnection_edges(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_DisputeConnection_pageInfo(ctx, field)
 			case "totalCount":
 				return ec.fieldContext_DisputeConnection_totalCount(ctx, field)
 			}
@@ -41280,6 +41088,8 @@ func (ec *executionContext) fieldContext_Query_listPromoCodes(ctx context.Contex
 			switch field.Name {
 			case "edges":
 				return ec.fieldContext_PromoCodeConnection_edges(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_PromoCodeConnection_pageInfo(ctx, field)
 			case "totalCount":
 				return ec.fieldContext_PromoCodeConnection_totalCount(ctx, field)
 			}
@@ -42384,6 +42194,8 @@ func (ec *executionContext) fieldContext_Query_companySubscriptions(ctx context.
 			switch field.Name {
 			case "edges":
 				return ec.fieldContext_SubscriptionConnection_edges(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_SubscriptionConnection_pageInfo(ctx, field)
 			case "totalCount":
 				return ec.fieldContext_SubscriptionConnection_totalCount(ctx, field)
 			}
@@ -42431,6 +42243,8 @@ func (ec *executionContext) fieldContext_Query_allSubscriptions(ctx context.Cont
 			switch field.Name {
 			case "edges":
 				return ec.fieldContext_SubscriptionConnection_edges(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_SubscriptionConnection_pageInfo(ctx, field)
 			case "totalCount":
 				return ec.fieldContext_SubscriptionConnection_totalCount(ctx, field)
 			}
@@ -48669,6 +48483,41 @@ func (ec *executionContext) fieldContext_SubscriptionConnection_edges(_ context.
 	return fc, nil
 }
 
+func (ec *executionContext) _SubscriptionConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *model.SubscriptionConnection) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_SubscriptionConnection_pageInfo,
+		func(ctx context.Context) (any, error) {
+			return obj.PageInfo, nil
+		},
+		nil,
+		ec.marshalNPageInfo2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPageInfo,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_SubscriptionConnection_pageInfo(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SubscriptionConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "hasNextPage":
+				return ec.fieldContext_PageInfo_hasNextPage(ctx, field)
+			case "endCursor":
+				return ec.fieldContext_PageInfo_endCursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PageInfo", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _SubscriptionConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *model.SubscriptionConnection) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -54308,6 +54157,40 @@ func (ec *executionContext) unmarshalInputBillingProfileInput(ctx context.Contex
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputBookingOrderByInput(ctx context.Context, obj any) (model.BookingOrderByInput, error) {
+	var it model.BookingOrderByInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"field", "direction"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "field":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field"))
+			data, err := ec.unmarshalNBookingOrderField2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingOrderField(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Field = data
+		case "direction":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("direction"))
+			data, err := ec.unmarshalNOrderDirection2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐOrderDirection(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Direction = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputBookingWorkerAssignment(ctx context.Context, obj any) (model.BookingWorkerAssignment, error) {
 	var it model.BookingWorkerAssignment
 	asMap := map[string]any{}
@@ -58368,6 +58251,11 @@ func (ec *executionContext) _DisputeConnection(ctx context.Context, sel ast.Sele
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "pageInfo":
+			out.Values[i] = ec._DisputeConnection_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "totalCount":
 			out.Values[i] = ec._DisputeConnection_totalCount(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -61364,6 +61252,11 @@ func (ec *executionContext) _PromoCodeConnection(ctx context.Context, sel ast.Se
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "pageInfo":
+			out.Values[i] = ec._PromoCodeConnection_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "totalCount":
 			out.Values[i] = ec._PromoCodeConnection_totalCount(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -61953,50 +61846,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_companyBookings(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "myAssignedJobs":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_myAssignedJobs(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "todaysJobs":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_todaysJobs(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -65259,6 +65108,11 @@ func (ec *executionContext) _SubscriptionConnection(ctx context.Context, sel ast
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "pageInfo":
+			out.Values[i] = ec._SubscriptionConnection_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "totalCount":
 			out.Values[i] = ec._SubscriptionConnection_totalCount(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -67226,6 +67080,16 @@ func (ec *executionContext) marshalNBookingJobPhoto2ᚖgo2fixᚑbackendᚋintern
 	return ec._BookingJobPhoto(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNBookingOrderField2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingOrderField(ctx context.Context, v any) (model.BookingOrderField, error) {
+	var res model.BookingOrderField
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNBookingOrderField2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingOrderField(ctx context.Context, sel ast.SelectionSet, v model.BookingOrderField) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNBookingPolicy2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBookingPolicy(ctx context.Context, sel ast.SelectionSet, v model.BookingPolicy) graphql.Marshaler {
 	return ec._BookingPolicy(ctx, sel, &v)
 }
@@ -68731,6 +68595,16 @@ func (ec *executionContext) marshalNNotificationConnection2ᚖgo2fixᚑbackend�
 		return graphql.Null
 	}
 	return ec._NotificationConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNOrderDirection2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐOrderDirection(ctx context.Context, v any) (model.OrderDirection, error) {
+	var res model.OrderDirection
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNOrderDirection2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐOrderDirection(ctx context.Context, sel ast.SelectionSet, v model.OrderDirection) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNPageInfo2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v *model.PageInfo) graphql.Marshaler {

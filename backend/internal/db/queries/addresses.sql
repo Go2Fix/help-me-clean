@@ -18,3 +18,6 @@ DELETE FROM client_addresses WHERE id = $1;
 
 -- name: SetDefaultAddress :exec
 UPDATE client_addresses SET is_default = (id = $2) WHERE user_id = $1;
+
+-- name: GetAddressesByIDs :many
+SELECT * FROM client_addresses WHERE id = ANY($1::uuid[]);

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useMutation } from '@apollo/client';
+import { useMutation, gql } from '@apollo/client';
 import {
   CardElement,
   useStripe,
@@ -13,7 +13,6 @@ import { CreditCard, Loader2, Check, X } from 'lucide-react';
 import {
   CREATE_SETUP_INTENT,
   ATTACH_PAYMENT_METHOD,
-  MY_PAYMENT_METHODS,
 } from '@/graphql/operations';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || null);
@@ -33,7 +32,31 @@ function AddCardForm({ onClose, onSuccess }: { onClose: () => void; onSuccess?: 
 
   const [createSetupIntent] = useMutation(CREATE_SETUP_INTENT);
   const [attachPaymentMethod] = useMutation(ATTACH_PAYMENT_METHOD, {
-    refetchQueries: [{ query: MY_PAYMENT_METHODS }],
+    update(cache, { data }) {
+      const newMethod = data?.attachPaymentMethod;
+      if (!newMethod) return;
+      cache.modify({
+        fields: {
+          myPaymentMethods(existing = []) {
+            const newRef = cache.writeFragment({
+              data: newMethod,
+              fragment: gql`
+                fragment NewPaymentMethod on PaymentMethod {
+                  id
+                  stripePaymentMethodId
+                  cardLastFour
+                  cardBrand
+                  cardExpMonth
+                  cardExpYear
+                  isDefault
+                }
+              `,
+            });
+            return [...existing, newRef];
+          },
+        },
+      });
+    },
   });
 
   const handleSubmit = async (e: React.FormEvent) => {

@@ -147,7 +147,8 @@ export default function MyBookingsPage() {
   const { isAuthenticated, loading: authLoading } = useAuth();
   const { t, i18n } = useTranslation(['dashboard', 'client']);
   const [statusFilter, setStatusFilter] = useState('');
-  const [page, setPage] = useState(0);
+  const [cursors, setCursors] = useState<string[]>([]);
+  const currentCursor = cursors[cursors.length - 1];
 
   const isRecurring = statusFilter === 'RECURRING';
 
@@ -155,7 +156,7 @@ export default function MyBookingsPage() {
     variables: {
       status: statusFilter || undefined,
       first: PAGE_SIZE,
-      after: page > 0 ? String(page * PAGE_SIZE) : undefined,
+      after: currentCursor,
     },
     fetchPolicy: 'cache-and-network',
     skip: !isAuthenticated || isRecurring,
@@ -188,11 +189,19 @@ export default function MyBookingsPage() {
   const totalCount = data?.myBookings?.totalCount ?? 0;
   const hasNextPage = data?.myBookings?.pageInfo?.hasNextPage ?? false;
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+  const currentPage = cursors.length;
 
   const handleFilterChange = (value: string) => {
     setStatusFilter(value);
-    setPage(0);
+    setCursors([]);
   };
+
+  const handleNext = () => {
+    const end = data?.myBookings?.pageInfo?.endCursor;
+    if (end) setCursors((p) => [...p, end]);
+  };
+
+  const handlePrev = () => setCursors((p) => p.slice(0, -1));
 
   return (
     <div>
@@ -353,15 +362,15 @@ export default function MyBookingsPage() {
           {!error && totalCount > 0 && (
             <div className="flex flex-wrap items-center justify-between gap-3 mt-6">
               <p className="text-sm text-gray-500">
-                {totalCount} {t('client:bookings.pagination.orders', { count: totalCount })} &middot; {t('pagination.page', { current: page + 1, total: totalPages })}
+                {totalCount} {t('client:bookings.pagination.orders', { count: totalCount })} &middot; {t('pagination.page', { current: currentPage + 1, total: totalPages })}
               </p>
               {totalPages > 1 && (
                 <div className="flex items-center gap-3">
                   <Button
                     variant="outline"
                     size="sm"
-                    disabled={page === 0}
-                    onClick={() => setPage((p) => Math.max(0, p - 1))}
+                    disabled={currentPage === 0}
+                    onClick={handlePrev}
                   >
                     <ChevronLeft className="h-4 w-4" />
                     {t('pagination.previous')}
@@ -370,7 +379,7 @@ export default function MyBookingsPage() {
                     variant="outline"
                     size="sm"
                     disabled={!hasNextPage}
-                    onClick={() => setPage((p) => p + 1)}
+                    onClick={handleNext}
                   >
                     {t('pagination.next')}
                     <ChevronRight className="h-4 w-4" />

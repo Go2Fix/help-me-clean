@@ -214,6 +214,121 @@ func (r *Resolver) enrichBooking(ctx context.Context, dbB db.Booking, gqlB *mode
 	}
 }
 
+// enrichBookingsBatch reduces N+1 queries for list resolvers by deduplicating
+// entity lookups across a slice of bookings. Instead of calling enrichBooking()
+// (10+ queries per booking), this loads each unique entity type exactly once.
+//
+// NOTE: Intentionally lighter than enrichBooking — list views don't need photos,
+// time slots, extras, or the full worker profile with documents/assessments.
+// Always use enrichBooking() for single-booking detail queries.
+func (r *Resolver) enrichBookingsBatch(ctx context.Context, dbBookings []db.Booking, gqlBookings []*model.Booking) {
+	if len(dbBookings) == 0 {
+		return
+	}
+
+	// Dedup caches keyed by UUID bytes.
+	userCache := map[[16]byte]*model.User{}
+	companyCache := map[[16]byte]*model.Company{}
+	workerCache := map[[16]byte]*model.WorkerProfile{}
+	addressCache := map[[16]byte]*model.Address{}
+	reviewCache := map[[16]byte]*model.Review{}
+
+	// Collect unique IDs across all bookings.
+	seenUsers := map[[16]byte]bool{}
+	seenCompanies := map[[16]byte]bool{}
+	seenWorkers := map[[16]byte]bool{}
+	seenAddresses := map[[16]byte]bool{}
+	for _, b := range dbBookings {
+		if b.ClientUserID.Valid {
+			seenUsers[b.ClientUserID.Bytes] = true
+		}
+		if b.CompanyID.Valid {
+			seenCompanies[b.CompanyID.Bytes] = true
+		}
+		if b.WorkerID.Valid {
+			seenWorkers[b.WorkerID.Bytes] = true
+		}
+		if b.AddressID.Valid {
+			seenAddresses[b.AddressID.Bytes] = true
+		}
+	}
+
+	// 1 query per unique user.
+	for bytes := range seenUsers {
+		if u, err := r.Queries.GetUserByID(ctx, pgtype.UUID{Bytes: bytes, Valid: true}); err == nil {
+			userCache[bytes] = dbUserToGQL(u)
+		}
+	}
+
+	// 1 query per unique company (no stats in list view).
+	for bytes := range seenCompanies {
+		if c, err := r.Queries.GetCompanyByID(ctx, pgtype.UUID{Bytes: bytes, Valid: true}); err == nil {
+			companyCache[bytes] = dbCompanyToGQL(c)
+		}
+	}
+
+	// 1+1 queries per unique worker (worker row + user row for name/photo).
+	// No company, documents, or personality assessment in list view.
+	for bytes := range seenWorkers {
+		if w, err := r.Queries.GetWorkerByID(ctx, pgtype.UUID{Bytes: bytes, Valid: true}); err == nil {
+			if u, err := r.Queries.GetUserByID(ctx, w.UserID); err == nil {
+				// Populate user cache while we have the data.
+				if _, ok := userCache[u.ID.Bytes]; !ok {
+					userCache[u.ID.Bytes] = dbUserToGQL(u)
+				}
+				wp := dbWorkerToGQL(w, &u)
+				wp.User = userCache[u.ID.Bytes]
+				workerCache[bytes] = wp
+			}
+		}
+	}
+
+	// 1 query per unique address.
+	for bytes := range seenAddresses {
+		if a, err := r.Queries.GetAddressByID(ctx, pgtype.UUID{Bytes: bytes, Valid: true}); err == nil {
+			addressCache[bytes] = dbAddressToGQL(a)
+		}
+	}
+
+	// 1 query for all service names (small lookup table).
+	serviceNameMap := map[string]string{}
+	if services, err := r.Queries.ListActiveServices(ctx); err == nil {
+		for _, s := range services {
+			serviceNameMap[string(s.ServiceType)] = s.NameRo
+		}
+	}
+
+	// 1 query per booking for review (reviews are keyed by booking_id).
+	for _, b := range dbBookings {
+		if review, err := r.Queries.GetReviewByBookingID(ctx, b.ID); err == nil {
+			reviewCache[b.ID.Bytes] = dbReviewToGQL(review)
+		}
+	}
+
+	// Assign enriched values to each GQL booking from cache.
+	for i, dbB := range dbBookings {
+		gqlB := gqlBookings[i]
+		if name, ok := serviceNameMap[string(dbB.ServiceType)]; ok {
+			gqlB.ServiceName = name
+		}
+		if dbB.ClientUserID.Valid {
+			gqlB.Client = userCache[dbB.ClientUserID.Bytes]
+		}
+		if dbB.CompanyID.Valid {
+			gqlB.Company = companyCache[dbB.CompanyID.Bytes]
+		}
+		if dbB.WorkerID.Valid {
+			gqlB.Worker = workerCache[dbB.WorkerID.Bytes]
+		}
+		if dbB.AddressID.Valid {
+			gqlB.Address = addressCache[dbB.AddressID.Bytes]
+		}
+		if rev, ok := reviewCache[dbB.ID.Bytes]; ok {
+			gqlB.Review = rev
+		}
+	}
+}
+
 // enrichInvoice populates related entities (line items, booking, company)
 // on a GQL invoice from the DB invoice's foreign keys.
 func (r *Resolver) enrichInvoice(ctx context.Context, inv db.Invoice, gql *model.Invoice) {

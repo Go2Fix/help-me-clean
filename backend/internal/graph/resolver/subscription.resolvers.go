@@ -786,9 +786,15 @@ func (r *queryResolver) CompanySubscriptions(ctx context.Context, limit *int, of
 		edges[i] = gql
 	}
 
+	hasNext := int64(o)+int64(l) < count
+	endCursor := fmt.Sprintf("%d", o+l)
 	return &model.SubscriptionConnection{
 		Edges:      edges,
 		TotalCount: int(count),
+		PageInfo: &model.PageInfo{
+			HasNextPage: hasNext,
+			EndCursor:   &endCursor,
+		},
 	}, nil
 }
 
@@ -843,9 +849,15 @@ func (r *queryResolver) AllSubscriptions(ctx context.Context, status *model.Subs
 		edges[i] = gql
 	}
 
+	hasNext := int64(o)+int64(l) < totalCount
+	endCursor := fmt.Sprintf("%d", o+l)
 	return &model.SubscriptionConnection{
 		Edges:      edges,
 		TotalCount: int(totalCount),
+		PageInfo: &model.PageInfo{
+			HasNextPage: hasNext,
+			EndCursor:   &endCursor,
+		},
 	}, nil
 }
 

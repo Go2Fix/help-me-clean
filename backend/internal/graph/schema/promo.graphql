@@ -23,6 +23,7 @@ type PromoCodeValidation {
 
 type PromoCodeConnection {
   edges: [PromoCode!]!
+  pageInfo: PageInfo!
   totalCount: Int!
 }
 

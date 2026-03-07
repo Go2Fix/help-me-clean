@@ -60,6 +60,9 @@ UPDATE reviews SET status = $2 WHERE id = $1 RETURNING *;
 -- name: GetReviewByID :one
 SELECT * FROM reviews WHERE id = $1;
 
+-- name: GetReviewsByBookingIDs :many
+SELECT * FROM reviews WHERE booking_id = ANY($1::uuid[]);
+
 -- name: CreateReviewPhoto :one
 INSERT INTO review_photos (review_id, photo_url, sort_order)
 VALUES ($1, $2, $3)

@@ -101,6 +101,22 @@ type BookingConnection {
   totalCount: Int!
 }
 
+enum BookingOrderField {
+  CREATED_AT
+  SCHEDULED_DATE
+  ESTIMATED_TOTAL
+}
+
+enum OrderDirection {
+  ASC
+  DESC
+}
+
+input BookingOrderByInput {
+  field: BookingOrderField!
+  direction: OrderDirection!
+}
+
 type BookingPolicy {
   cancelFreeHoursBefore: Int!
   cancelLateRefundPct: Int!
@@ -118,8 +134,6 @@ extend type Query {
   myBookings(status: BookingStatus, first: Int, after: String): BookingConnection!
   booking(id: ID!): Booking!
   companyBookings(status: BookingStatus, first: Int, after: String): BookingConnection!
-  myAssignedJobs(status: BookingStatus): [Booking!]!
-  todaysJobs: [Booking!]!
   allBookings(status: BookingStatus, companyId: ID, dateFrom: String, dateTo: String, first: Int, after: String): BookingConnection!
   companyBookingsByDateRange(from: String!, to: String!): [Booking!]!
   searchCompanyBookings(query: String, status: String, dateFrom: String, dateTo: String, limit: Int, offset: Int): BookingConnection!

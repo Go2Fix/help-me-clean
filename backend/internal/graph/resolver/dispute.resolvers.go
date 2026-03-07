@@ -348,8 +348,14 @@ func (r *queryResolver) AllDisputes(ctx context.Context, status *model.DisputeSt
 		edges = append(edges, gqlDispute)
 	}
 
+	hasNext := len(edges) >= int(lim)
+	endCursor := fmt.Sprintf("%d", off+int32(len(edges)))
 	return &model.DisputeConnection{
-		Edges:      edges,
+		Edges: edges,
+		PageInfo: &model.PageInfo{
+			HasNextPage: hasNext,
+			EndCursor:   &endCursor,
+		},
 		TotalCount: int(total),
 	}, nil
 }

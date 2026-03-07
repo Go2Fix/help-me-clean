@@ -194,6 +194,11 @@ type BookingJobPhoto struct {
 	CreatedAt  time.Time `json:"createdAt"`
 }
 
+type BookingOrderByInput struct {
+	Field     BookingOrderField `json:"field"`
+	Direction OrderDirection    `json:"direction"`
+}
+
 type BookingPolicy struct {
 	CancelFreeHoursBefore     int `json:"cancelFreeHoursBefore"`
 	CancelLateRefundPct       int `json:"cancelLateRefundPct"`
@@ -511,6 +516,7 @@ type DemandSlot struct {
 
 type DisputeConnection struct {
 	Edges      []*BookingDispute `json:"edges"`
+	PageInfo   *PageInfo         `json:"pageInfo"`
 	TotalCount int               `json:"totalCount"`
 }
 
@@ -861,6 +867,7 @@ type PromoCode struct {
 
 type PromoCodeConnection struct {
 	Edges      []*PromoCode `json:"edges"`
+	PageInfo   *PageInfo    `json:"pageInfo"`
 	TotalCount int          `json:"totalCount"`
 }
 
@@ -1080,6 +1087,7 @@ type SubmitReviewInput struct {
 
 type SubscriptionConnection struct {
 	Edges      []*ServiceSubscription `json:"edges"`
+	PageInfo   *PageInfo              `json:"pageInfo"`
 	TotalCount int                    `json:"totalCount"`
 }
 
@@ -1358,6 +1366,63 @@ type WorkerSuggestion struct {
 	SuggestedSlotIndex *int           `json:"suggestedSlotIndex,omitempty"`
 	SuggestedDate      *string        `json:"suggestedDate,omitempty"`
 	MatchScore         float64        `json:"matchScore"`
+}
+
+type BookingOrderField string
+
+const (
+	BookingOrderFieldCreatedAt      BookingOrderField = "CREATED_AT"
+	BookingOrderFieldScheduledDate  BookingOrderField = "SCHEDULED_DATE"
+	BookingOrderFieldEstimatedTotal BookingOrderField = "ESTIMATED_TOTAL"
+)
+
+var AllBookingOrderField = []BookingOrderField{
+	BookingOrderFieldCreatedAt,
+	BookingOrderFieldScheduledDate,
+	BookingOrderFieldEstimatedTotal,
+}
+
+func (e BookingOrderField) IsValid() bool {
+	switch e {
+	case BookingOrderFieldCreatedAt, BookingOrderFieldScheduledDate, BookingOrderFieldEstimatedTotal:
+		return true
+	}
+	return false
+}
+
+func (e BookingOrderField) String() string {
+	return string(e)
+}
+
+func (e *BookingOrderField) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = BookingOrderField(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid BookingOrderField", str)
+	}
+	return nil
+}
+
+func (e BookingOrderField) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *BookingOrderField) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e BookingOrderField) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
 }
 
 type BookingStatus string
@@ -2012,6 +2077,61 @@ func (e *InvoiceType) UnmarshalJSON(b []byte) error {
 }
 
 func (e InvoiceType) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+type OrderDirection string
+
+const (
+	OrderDirectionAsc  OrderDirection = "ASC"
+	OrderDirectionDesc OrderDirection = "DESC"
+)
+
+var AllOrderDirection = []OrderDirection{
+	OrderDirectionAsc,
+	OrderDirectionDesc,
+}
+
+func (e OrderDirection) IsValid() bool {
+	switch e {
+	case OrderDirectionAsc, OrderDirectionDesc:
+		return true
+	}
+	return false
+}
+
+func (e OrderDirection) String() string {
+	return string(e)
+}
+
+func (e *OrderDirection) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = OrderDirection(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid OrderDirection", str)
+	}
+	return nil
+}
+
+func (e OrderDirection) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *OrderDirection) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e OrderDirection) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil

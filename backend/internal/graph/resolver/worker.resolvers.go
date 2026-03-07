@@ -1048,10 +1048,9 @@ func (r *queryResolver) MyWorkerBookingsByDateRange(ctx context.Context, from st
 
 	result := make([]*model.Booking, len(bookings))
 	for i, b := range bookings {
-		gqlBooking := dbBookingToGQL(b)
-		r.enrichBooking(ctx, b, gqlBooking)
-		result[i] = gqlBooking
+		result[i] = dbBookingToGQL(b)
 	}
+	r.enrichBookingsBatch(ctx, bookings, result)
 	return result, nil
 }
 

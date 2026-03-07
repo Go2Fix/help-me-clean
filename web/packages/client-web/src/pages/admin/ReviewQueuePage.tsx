@@ -186,11 +186,27 @@ function ApplicationsTab() {
 
   const [approveCompany, { loading: approving }] = useMutation(APPROVE_COMPANY, {
     onCompleted: () => { void refetch(); },
-    refetchQueries: [{ query: PENDING_REVIEW_COUNT }],
+    update(cache) {
+      cache.modify({
+        fields: {
+          pendingReviewCount(current) {
+            return { ...current, applications: Math.max(0, (current.applications ?? 0) - 1), total: Math.max(0, (current.total ?? 0) - 1) };
+          },
+        },
+      });
+    },
   });
   const [rejectCompany, { loading: rejecting }] = useMutation(REJECT_COMPANY, {
     onCompleted: () => { void refetch(); setRejectModal(null); },
-    refetchQueries: [{ query: PENDING_REVIEW_COUNT }],
+    update(cache) {
+      cache.modify({
+        fields: {
+          pendingReviewCount(current) {
+            return { ...current, applications: Math.max(0, (current.applications ?? 0) - 1), total: Math.max(0, (current.total ?? 0) - 1) };
+          },
+        },
+      });
+    },
   });
 
   const companies = data?.pendingCompanyApplications ?? [];
@@ -288,7 +304,15 @@ function CompanyDocsTab() {
 
   const [reviewDoc, { loading: reviewing }] = useMutation(REVIEW_COMPANY_DOCUMENT, {
     onCompleted: () => { void refetch(); setRejectModal(null); },
-    refetchQueries: [{ query: PENDING_REVIEW_COUNT }],
+    update(cache) {
+      cache.modify({
+        fields: {
+          pendingReviewCount(current) {
+            return { ...current, companyDocuments: Math.max(0, (current.companyDocuments ?? 0) - 1), total: Math.max(0, (current.total ?? 0) - 1) };
+          },
+        },
+      });
+    },
   });
 
   const docs = data?.pendingCompanyDocuments ?? [];
@@ -379,7 +403,15 @@ function WorkerDocsTab() {
 
   const [reviewDoc, { loading: reviewing }] = useMutation(REVIEW_WORKER_DOCUMENT, {
     onCompleted: () => { void refetch(); setRejectModal(null); },
-    refetchQueries: [{ query: PENDING_REVIEW_COUNT }],
+    update(cache) {
+      cache.modify({
+        fields: {
+          pendingReviewCount(current) {
+            return { ...current, workerDocuments: Math.max(0, (current.workerDocuments ?? 0) - 1), total: Math.max(0, (current.total ?? 0) - 1) };
+          },
+        },
+      });
+    },
   });
 
   const docs = data?.pendingWorkerDocuments ?? [];
@@ -464,7 +496,15 @@ function WorkerActivationsTab() {
 
   const [activateWorker, { loading: activating }] = useMutation(ACTIVATE_WORKER, {
     onCompleted: () => { void refetch(); },
-    refetchQueries: [{ query: PENDING_REVIEW_COUNT }],
+    update(cache) {
+      cache.modify({
+        fields: {
+          pendingReviewCount(current) {
+            return { ...current, workerActivations: Math.max(0, (current.workerActivations ?? 0) - 1), total: Math.max(0, (current.total ?? 0) - 1) };
+          },
+        },
+      });
+    },
   });
 
   const workers = data?.pendingWorkerActivations ?? [];
@@ -550,7 +590,15 @@ function CategoryRequestsTab() {
 
   const [reviewRequest, { loading: reviewing }] = useMutation(REVIEW_CATEGORY_REQUEST, {
     onCompleted: () => { void refetch(); setRejectModal(null); },
-    refetchQueries: [{ query: PENDING_REVIEW_COUNT }],
+    update(cache) {
+      cache.modify({
+        fields: {
+          pendingReviewCount(current) {
+            return { ...current, categoryRequests: Math.max(0, (current.categoryRequests ?? 0) - 1), total: Math.max(0, (current.total ?? 0) - 1) };
+          },
+        },
+      });
+    },
   });
 
   const requests = data?.pendingCategoryRequests ?? [];

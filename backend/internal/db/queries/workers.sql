@@ -117,3 +117,52 @@ WHERE w.status = 'pending_review'
   AND EXISTS (SELECT 1 FROM personality_assessments pa WHERE pa.worker_id = w.id)
   AND EXISTS (SELECT 1 FROM worker_documents wd WHERE wd.worker_id = w.id)
   AND NOT EXISTS (SELECT 1 FROM worker_documents wd WHERE wd.worker_id = w.id AND wd.status != 'approved');
+
+-- name: GetWorkersByIDs :many
+SELECT * FROM workers WHERE id = ANY($1::uuid[]);
+
+-- name: GetWorkerPerformanceStatsByCompany :many
+-- Efficient batch version of GetWorkerPerformanceStats for listing all workers in a company.
+-- Uses LEFT JOINs + GROUP BY instead of per-row correlated subqueries.
+SELECT
+    w.id,
+    u.full_name,
+    COALESCE(r_agg.avg_rating, 0)::DECIMAL(3,2) AS rating_avg,
+    COALESCE(b_all.total_completed, 0)::bigint AS total_completed_jobs,
+    COALESCE(b_month.month_completed, 0)::bigint AS this_month_completed,
+    COALESCE(b_all.total_earnings, 0)::numeric AS total_earnings,
+    COALESCE(b_month.month_earnings, 0)::numeric AS this_month_earnings
+FROM workers w
+JOIN users u ON w.user_id = u.id
+LEFT JOIN (
+    SELECT reviewed_worker_id, AVG(rating)::DECIMAL(3,2) AS avg_rating
+    FROM reviews GROUP BY reviewed_worker_id
+) r_agg ON r_agg.reviewed_worker_id = w.id
+LEFT JOIN (
+    SELECT worker_id,
+        COUNT(*) FILTER (WHERE status = 'completed')::bigint AS total_completed,
+        COALESCE(SUM(COALESCE(final_total, estimated_total)) FILTER (WHERE status = 'completed'), 0) AS total_earnings
+    FROM bookings GROUP BY worker_id
+) b_all ON b_all.worker_id = w.id
+LEFT JOIN (
+    SELECT worker_id,
+        COUNT(*) FILTER (WHERE status = 'completed')::bigint AS month_completed,
+        COALESCE(SUM(COALESCE(final_total, estimated_total)) FILTER (WHERE status = 'completed'), 0) AS month_earnings
+    FROM bookings
+    WHERE completed_at >= date_trunc('month', CURRENT_DATE)
+    GROUP BY worker_id
+) b_month ON b_month.worker_id = w.id
+WHERE w.company_id = $1
+ORDER BY u.full_name;
+
+-- name: GetWorkerRatingsBatch :many
+SELECT reviewed_worker_id, COALESCE(AVG(rating), 0)::DECIMAL(3,2) AS avg_rating
+FROM reviews
+WHERE reviewed_worker_id = ANY($1::uuid[])
+GROUP BY reviewed_worker_id;
+
+-- name: GetWorkerJobCountsBatch :many
+SELECT worker_id, COUNT(*)::bigint AS job_count
+FROM bookings
+WHERE worker_id = ANY($1::uuid[]) AND status = 'completed'
+GROUP BY worker_id;

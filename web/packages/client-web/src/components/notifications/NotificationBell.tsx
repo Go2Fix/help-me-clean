@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useQuery, useLazyQuery, useMutation } from '@apollo/client';
+import { useQuery, useLazyQuery, useMutation, useApolloClient } from '@apollo/client';
 import { useNavigate } from 'react-router-dom';
 import {
   Bell,
@@ -81,6 +81,7 @@ export default function NotificationBell() {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const client = useApolloClient();
 
   // Poll unread count every 30 seconds
   const { data: countData } = useQuery<UnreadNotificationCountData>(
@@ -97,14 +98,48 @@ export default function NotificationBell() {
     });
 
   const [markRead] = useMutation(MARK_NOTIFICATION_READ, {
-    refetchQueries: [{ query: UNREAD_NOTIFICATION_COUNT }],
+    optimisticResponse: ({ id }: { id: string }) => ({
+      markNotificationRead: { __typename: 'Notification', id, isRead: true },
+    }),
+    update(cache, _, { variables }) {
+      // Decrement the unread count in cache
+      cache.modify({
+        fields: {
+          unreadNotificationCount(current: number) {
+            return Math.max(0, current - 1);
+          },
+        },
+      });
+      // Mark the notification as read in cache
+      cache.modify({
+        id: cache.identify({ __typename: 'Notification', id: variables?.id }),
+        fields: {
+          isRead: () => true,
+        },
+      });
+    },
   });
 
   const [markAllRead] = useMutation(MARK_ALL_NOTIFICATIONS_READ, {
-    refetchQueries: [
-      { query: UNREAD_NOTIFICATION_COUNT },
-      { query: MY_NOTIFICATIONS, variables: { first: 20 } },
-    ],
+    update(cache) {
+      // Set unread count to 0
+      cache.modify({
+        fields: {
+          unreadNotificationCount: () => 0,
+        },
+      });
+      // Mark all cached notifications as read
+      const cached = client.readQuery<MyNotificationsData>({
+        query: MY_NOTIFICATIONS,
+        variables: { first: 20 },
+      });
+      cached?.myNotifications.edges.forEach((n) => {
+        cache.modify({
+          id: cache.identify({ __typename: 'Notification', id: n.id }),
+          fields: { isRead: () => true },
+        });
+      });
+    },
   });
 
   // Fetch notifications when the dropdown opens

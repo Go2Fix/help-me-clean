@@ -835,11 +835,11 @@ func (r *queryResolver) PendingReviewCount(ctx context.Context) (*model.PendingR
 	catReqs := int(categoryRequests)
 
 	return &model.PendingReviewCount{
-		Applications:     apps,
-		CompanyDocuments: cDocs,
-		WorkerDocuments:  wDocs,
+		Applications:      apps,
+		CompanyDocuments:  cDocs,
+		WorkerDocuments:   wDocs,
 		WorkerActivations: wActivations,
-		CategoryRequests: catReqs,
-		Total:            apps + cDocs + wDocs + wActivations + catReqs,
+		CategoryRequests:  catReqs,
+		Total:             apps + cDocs + wDocs + wActivations + catReqs,
 	}, nil
 }

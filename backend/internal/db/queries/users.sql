@@ -75,3 +75,6 @@ DELETE FROM users WHERE id = $1;
 
 -- name: ListGlobalAdmins :many
 SELECT * FROM users WHERE role = 'global_admin' AND status = 'active';
+
+-- name: GetUsersByIDs :many
+SELECT * FROM users WHERE id = ANY($1::uuid[]) ORDER BY full_name;

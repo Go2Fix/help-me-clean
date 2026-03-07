@@ -1,4 +1,8 @@
 import { gql } from '@apollo/client';
+import {
+  PAGE_INFO_FIELDS,
+  BOOKING_LIST_FIELDS,
+} from './fragments';
 
 // ─── Auth ────────────────────────────────────────────────────────────────────
 
@@ -183,23 +187,15 @@ export const CREATE_BOOKING_REQUEST = gql`
 `;
 
 export const MY_BOOKINGS = gql`
+  ${BOOKING_LIST_FIELDS}
+  ${PAGE_INFO_FIELDS}
   query MyBookings($status: BookingStatus, $first: Int, $after: String) {
     myBookings(status: $status, first: $first, after: $after) {
       edges {
-        id
-        referenceCode
-        serviceType
-        serviceName
-        scheduledDate
-        scheduledStartTime
-        estimatedTotal
-        status
-        recurringGroupId
-        createdAt
+        ...BookingListFields
       }
       pageInfo {
-        hasNextPage
-        endCursor
+        ...PageInfoFields
       }
       totalCount
     }
@@ -1267,28 +1263,10 @@ export const MY_WORKERS = gql`
       }
       personalityAssessment {
         id
-        facetScores {
-          facetCode
-          facetName
-          score
-          maxScore
-          isFlagged
-        }
         integrityAvg
         workQualityAvg
         hasConcerns
-        flaggedFacets
         completedAt
-        insights {
-          summary
-          strengths
-          concerns
-          teamFitAnalysis
-          recommendedAction
-          confidence
-          aiModel
-          generatedAt
-        }
       }
       createdAt
     }
@@ -1426,17 +1404,12 @@ export const UPDATE_WORKER_STATUS = gql`
 // ─── Company Bookings ────────────────────────────────────────────────────────
 
 export const COMPANY_BOOKINGS = gql`
+  ${BOOKING_LIST_FIELDS}
+  ${PAGE_INFO_FIELDS}
   query CompanyBookings($status: BookingStatus, $first: Int, $after: String) {
     companyBookings(status: $status, first: $first, after: $after) {
       edges {
-        id
-        referenceCode
-        serviceType
-        serviceName
-        scheduledDate
-        scheduledStartTime
-        estimatedTotal
-        status
+        ...BookingListFields
         categoryId
         category {
           id
@@ -1445,7 +1418,6 @@ export const COMPANY_BOOKINGS = gql`
           nameEn
           icon
         }
-        createdAt
         client {
           id
           fullName
@@ -1462,8 +1434,7 @@ export const COMPANY_BOOKINGS = gql`
         }
       }
       pageInfo {
-        hasNextPage
-        endCursor
+        ...PageInfoFields
       }
       totalCount
     }
@@ -1863,18 +1834,13 @@ export const COMPANY = gql`
 // ─── Admin Bookings ──────────────────────────────────────────────────────────
 
 export const ALL_BOOKINGS = gql`
+  ${BOOKING_LIST_FIELDS}
+  ${PAGE_INFO_FIELDS}
   query AllBookings($status: BookingStatus, $companyId: ID, $first: Int, $after: String) {
     allBookings(status: $status, companyId: $companyId, first: $first, after: $after) {
       edges {
-        id
-        referenceCode
-        serviceType
-        serviceName
-        scheduledDate
-        scheduledStartTime
+        ...BookingListFields
         estimatedDurationHours
-        status
-        estimatedTotal
         paymentStatus
         categoryId
         category {
@@ -1884,7 +1850,6 @@ export const ALL_BOOKINGS = gql`
           nameEn
           icon
         }
-        createdAt
         client {
           id
           fullName
@@ -1894,6 +1859,9 @@ export const ALL_BOOKINGS = gql`
           id
           companyName
         }
+      }
+      pageInfo {
+        ...PageInfoFields
       }
       totalCount
     }
@@ -2866,69 +2834,6 @@ export const SET_WORKER_DATE_OVERRIDE_BY_ADMIN = gql`
 
 // ─── Worker ──────────────────────────────────────────────────────────────────
 
-export const TODAYS_JOBS = gql`
-  query TodaysJobs {
-    todaysJobs {
-      id
-      referenceCode
-      serviceType
-      serviceName
-      scheduledDate
-      scheduledStartTime
-      estimatedDurationHours
-      status
-      categoryId
-      category {
-        id
-        slug
-        nameRo
-        nameEn
-        icon
-      }
-      address {
-        streetAddress
-        city
-        floor
-        apartment
-      }
-      client {
-        fullName
-        phone
-      }
-    }
-  }
-`;
-
-export const MY_ASSIGNED_JOBS = gql`
-  query MyAssignedJobs($status: BookingStatus) {
-    myAssignedJobs(status: $status) {
-      id
-      referenceCode
-      serviceType
-      serviceName
-      scheduledDate
-      scheduledStartTime
-      estimatedDurationHours
-      status
-      categoryId
-      category {
-        id
-        slug
-        nameRo
-        nameEn
-        icon
-      }
-      address {
-        streetAddress
-        city
-      }
-      client {
-        fullName
-      }
-    }
-  }
-`;
-
 export const MY_WORKER_PROFILE = gql`
   query MyWorkerProfile {
     myWorkerProfile {
@@ -3429,6 +3334,7 @@ export const ATTACH_PAYMENT_METHOD = gql`
   mutation AttachPaymentMethod($stripePaymentMethodId: String!) {
     attachPaymentMethod(stripePaymentMethodId: $stripePaymentMethodId) {
       id
+      stripePaymentMethodId
       cardLastFour
       cardBrand
       cardExpMonth

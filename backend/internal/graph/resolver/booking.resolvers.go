@@ -1126,64 +1126,6 @@ func (r *queryResolver) CompanyBookings(ctx context.Context, status *model.Booki
 	}, nil
 }
 
-// MyAssignedJobs is the resolver for the myAssignedJobs field.
-func (r *queryResolver) MyAssignedJobs(ctx context.Context, status *model.BookingStatus) ([]*model.Booking, error) {
-	claims := auth.GetUserFromContext(ctx)
-	if claims == nil {
-		return nil, fmt.Errorf("not authenticated")
-	}
-
-	worker, err := r.Queries.GetWorkerByUserID(ctx, stringToUUID(claims.UserID))
-	if err != nil {
-		return nil, fmt.Errorf("worker profile not found: %w", err)
-	}
-
-	bookings, err := r.Queries.ListBookingsByWorker(ctx, worker.ID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to list assigned jobs: %w", err)
-	}
-
-	// Filter by status if provided, and enrich with related entities.
-	var result []*model.Booking
-	for _, b := range bookings {
-		gqlBooking := dbBookingToGQL(b)
-		if status != nil && gqlBooking.Status != *status {
-			continue
-		}
-		r.enrichBooking(ctx, b, gqlBooking)
-		result = append(result, gqlBooking)
-	}
-
-	return result, nil
-}
-
-// TodaysJobs is the resolver for the todaysJobs field.
-func (r *queryResolver) TodaysJobs(ctx context.Context) ([]*model.Booking, error) {
-	claims := auth.GetUserFromContext(ctx)
-	if claims == nil {
-		return nil, fmt.Errorf("not authenticated")
-	}
-
-	worker, err := r.Queries.GetWorkerByUserID(ctx, stringToUUID(claims.UserID))
-	if err != nil {
-		return nil, fmt.Errorf("worker profile not found: %w", err)
-	}
-
-	bookings, err := r.Queries.ListTodaysJobsByWorker(ctx, worker.ID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to list today's jobs: %w", err)
-	}
-
-	result := make([]*model.Booking, len(bookings))
-	for i, b := range bookings {
-		gqlBooking := dbBookingToGQL(b)
-		r.enrichBooking(ctx, b, gqlBooking)
-		result[i] = gqlBooking
-	}
-
-	return result, nil
-}
-
 // AllBookings is the resolver for the allBookings field.
 func (r *queryResolver) AllBookings(ctx context.Context, status *model.BookingStatus, companyID *string, dateFrom *string, dateTo *string, first *int, after *string) (*model.BookingConnection, error) {
 	claims := auth.GetUserFromContext(ctx)
@@ -1226,10 +1168,9 @@ func (r *queryResolver) AllBookings(ctx context.Context, status *model.BookingSt
 
 	edges := make([]*model.Booking, len(bookings))
 	for i, b := range bookings {
-		gqlBooking := dbBookingToGQL(b)
-		r.enrichBooking(ctx, b, gqlBooking)
-		edges[i] = gqlBooking
+		edges[i] = dbBookingToGQL(b)
 	}
+	r.enrichBookingsBatch(ctx, bookings, edges)
 
 	var endCursor *string
 	if len(bookings) > 0 {
@@ -1279,10 +1220,9 @@ func (r *queryResolver) CompanyBookingsByDateRange(ctx context.Context, from str
 
 	result := make([]*model.Booking, len(bookings))
 	for i, b := range bookings {
-		gqlBooking := dbBookingToGQL(b)
-		r.enrichBooking(ctx, b, gqlBooking)
-		result[i] = gqlBooking
+		result[i] = dbBookingToGQL(b)
 	}
+	r.enrichBookingsBatch(ctx, bookings, result)
 
 	return result, nil
 }

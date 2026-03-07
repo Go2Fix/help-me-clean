@@ -78,6 +78,7 @@ type ServiceSubscription {
 
 type SubscriptionConnection {
   edges: [ServiceSubscription!]!
+  pageInfo: PageInfo!
   totalCount: Int!
 }
 
