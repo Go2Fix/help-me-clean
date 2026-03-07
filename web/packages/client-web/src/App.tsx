@@ -104,6 +104,7 @@ const PromoCodesPage = lazy(() => import('@/pages/admin/PromoCodesPage'));
 const DisputesPage = lazy(() => import('@/pages/admin/DisputesPage'));
 const CategoryRequestsPage = lazy(() => import('@/pages/admin/CategoryRequestsPage'));
 const ReviewQueuePage = lazy(() => import('@/pages/admin/ReviewQueuePage'));
+const DocsPage = lazy(() => import('@/pages/admin/DocsPage'));
 
 // ─── Apollo Client ───────────────────────────────────────────────────────────
 
@@ -358,6 +359,7 @@ function AppRoutes() {
           <Route path="aprobari" element={<ReviewQueuePage />} />
           <Route path="categorii-cereri" element={<CategoryRequestsPage />} />
           <Route path="setari" element={<AdminSettingsPage />} />
+          <Route path="docs" element={<DocsPage />} />
         </Route>
 
         {/* Catch all */}

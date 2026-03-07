@@ -249,3 +249,21 @@ Never apply a migration to only one database.
 6. **Keep it simple** - ship working code, avoid over-engineering
 
 Polished design and smooth UX are paramount — this is heading to live users.
+
+---
+
+## Documentation Rule
+
+**`web/packages/client-web/public/docs/DOCUMENTATIE.md` is the single source of truth for how the platform works. It must be kept up to date at all times.**
+
+After every change that affects the user experience in any portal (client `/cont`, company `/firma`, worker `/worker`, admin `/admin`), update `web/packages/client-web/public/docs/DOCUMENTATIE.md` to reflect the new state.
+
+This includes:
+- New pages or routes added or removed
+- New user actions, buttons, or flows
+- Status changes or business rule modifications
+- Changes to onboarding steps for workers or companies
+- New or modified admin features and settings
+- Changes to booking lifecycle, disputes, subscriptions, or pricing logic
+
+The document is written in Romanian and describes the platform **as it is built**, not as it is planned. Do not leave it describing old behavior after a change is shipped.
