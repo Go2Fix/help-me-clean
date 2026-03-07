@@ -10,10 +10,10 @@ import {
   CheckCircle2,
   XCircle,
   ExternalLink,
-  Inbox,
   ChevronRight,
   ShieldCheck,
 } from 'lucide-react';
+import Select from '@/components/ui/Select';
 import {
   PENDING_COMPANY_APPLICATIONS,
   PENDING_COMPANY_DOCUMENTS,
@@ -92,12 +92,12 @@ interface PendingReviewCount {
 
 type QueueTab = 'aplicatii' | 'documente-companie' | 'documente-angajat' | 'activare-angajat' | 'categorii';
 
-const TABS: { value: QueueTab; label: string; icon: React.ElementType; countKey: keyof PendingReviewCount }[] = [
-  { value: 'aplicatii', label: 'Aplicații companii', icon: Building2, countKey: 'applications' },
-  { value: 'documente-companie', label: 'Documente companii', icon: FileText, countKey: 'companyDocuments' },
-  { value: 'documente-angajat', label: 'Documente angajați', icon: Users, countKey: 'workerDocuments' },
-  { value: 'activare-angajat', label: 'Activare angajați', icon: ShieldCheck, countKey: 'workerActivations' },
-  { value: 'categorii', label: 'Cereri categorii', icon: Tag, countKey: 'categoryRequests' },
+const TABS: { value: QueueTab; label: string; countKey: keyof PendingReviewCount }[] = [
+  { value: 'aplicatii', label: 'Aplicații companii', countKey: 'applications' },
+  { value: 'documente-companie', label: 'Documente companii', countKey: 'companyDocuments' },
+  { value: 'documente-angajat', label: 'Documente angajați', countKey: 'workerDocuments' },
+  { value: 'activare-angajat', label: 'Activare angajați', countKey: 'workerActivations' },
+  { value: 'categorii', label: 'Cereri categorii', countKey: 'categoryRequests' },
 ];
 
 const VALID_TABS = TABS.map((t) => t.value);
@@ -654,65 +654,28 @@ export default function ReviewQueuePage() {
     setSearchParams(tab === 'aplicatii' ? {} : { tab }, { replace: true });
   };
 
-  const activeTabConfig = TABS.find((t) => t.value === activeTab)!;
+  const tabOptions = TABS.map(({ value, label, countKey }) => ({
+    value,
+    label: counts && counts[countKey] > 0 ? `${label} (${counts[countKey]})` : label,
+  }));
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div>
       {/* Header */}
       <div className="mb-6">
-        <div className="flex items-center gap-3 mb-1">
-          <div className="p-2 rounded-xl bg-blue-50">
-            <Inbox className="h-5 w-5 text-blue-600" />
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900">Aprobări</h1>
-        </div>
-        <p className="text-gray-500 text-sm ml-11">
+        <h1 className="text-2xl font-bold text-gray-900">Aprobări</h1>
+        <p className="text-gray-500 mt-1">
           Toate acțiunile care necesită revizuire — aplicații, documente și cereri de categorii.
         </p>
       </div>
 
-      {/* Tab bar */}
-      <div className="flex gap-1 p-1 bg-gray-100 rounded-xl mb-6 overflow-x-auto">
-        {TABS.map(({ value, label, icon: Icon, countKey }) => {
-          const count = counts ? counts[countKey] : 0;
-          return (
-            <button
-              key={value}
-              onClick={() => handleTabChange(value)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
-                activeTab === value
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              <Icon className="h-4 w-4" />
-              {label}
-              {count > 0 && (
-                <span
-                  className={`inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-xs font-semibold ${
-                    activeTab === value
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-300 text-gray-700'
-                  }`}
-                >
-                  {count}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Tab description */}
-      <div className="mb-4 flex items-center gap-2 text-sm text-gray-500">
-        <activeTabConfig.icon className="h-4 w-4" />
-        <span>
-          {activeTab === 'aplicatii' && 'Companii noi care așteaptă aprobare. Verifică documentele înainte de a activa.'}
-          {activeTab === 'documente-companie' && 'Documente încărcate de companii — aprobă sau respinge individual.'}
-          {activeTab === 'documente-angajat' && 'Documente încărcate de angajați — necesare pentru activarea contului.'}
-          {activeTab === 'activare-angajat' && 'Angajați cu toate documentele aprobate și evaluarea completă — gata pentru activare.'}
-          {activeTab === 'categorii' && 'Cereri pentru adăugarea sau eliminarea categoriilor de servicii.'}
-        </span>
+      {/* Tab selector */}
+      <div className="mb-6 w-56">
+        <Select
+          options={tabOptions}
+          value={activeTab}
+          onChange={(e) => handleTabChange(e.target.value as QueueTab)}
+        />
       </div>
 
       {/* Tab content */}
