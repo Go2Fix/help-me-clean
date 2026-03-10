@@ -223,6 +223,46 @@ func (q *Queries) GetUserByID(ctx context.Context, id pgtype.UUID) (User, error)
 	return i, err
 }
 
+const getUsersByIDs = `-- name: GetUsersByIDs :many
+SELECT id, email, full_name, phone, avatar_url, role, status, google_id, fcm_token, preferred_language, created_at, updated_at, stripe_customer_id, phone_verified, referral_code_used FROM users WHERE id = ANY($1::uuid[]) ORDER BY full_name
+`
+
+func (q *Queries) GetUsersByIDs(ctx context.Context, dollar_1 []pgtype.UUID) ([]User, error) {
+	rows, err := q.db.Query(ctx, getUsersByIDs, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []User
+	for rows.Next() {
+		var i User
+		if err := rows.Scan(
+			&i.ID,
+			&i.Email,
+			&i.FullName,
+			&i.Phone,
+			&i.AvatarUrl,
+			&i.Role,
+			&i.Status,
+			&i.GoogleID,
+			&i.FcmToken,
+			&i.PreferredLanguage,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.StripeCustomerID,
+			&i.PhoneVerified,
+			&i.ReferralCodeUsed,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listAllUsers = `-- name: ListAllUsers :many
 SELECT id, email, full_name, phone, avatar_url, role, status, google_id, fcm_token, preferred_language, created_at, updated_at, stripe_customer_id, phone_verified, referral_code_used FROM users ORDER BY full_name ASC
 `

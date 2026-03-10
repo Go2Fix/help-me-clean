@@ -252,6 +252,7 @@
     },
     "actions": {
       "startCleaning": "Incepe curatenia",
+      "tooEarlyToStart": "Poți începe de la {{time}}",
       "completeCleaning": "Finalizeaza curatenia",
       "checkAllTasks": "Bifeaza toate sarcinile pentru a finaliza",
       "errorUpdate": "Nu s-a putut actualiza statusul. Te rugam sa incerci din nou."

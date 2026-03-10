@@ -556,6 +556,11 @@ func (r *mutationResolver) StartJob(ctx context.Context, id string) (*model.Book
 		return nil, err
 	}
 
+	// Enforce: worker cannot start more than 1 hour before scheduled time.
+	if hoursUntilBooking(current.ScheduledDate, current.ScheduledStartTime) > 1.0 {
+		return nil, fmt.Errorf("nu poți începe lucrarea cu mai mult de 1 oră înainte de ora programată")
+	}
+
 	booking, err := r.Queries.StartBooking(ctx, stringToUUID(id))
 	if err != nil {
 		return nil, fmt.Errorf("failed to start job: %w", err)

@@ -135,6 +135,7 @@ export default function BookingDetailPage() {
   const isCancelled = booking.status.startsWith('CANCELLED');
   const canCancel = !['COMPLETED'].includes(booking.status) && !isCancelled;
   const canAssign = booking.status === 'ASSIGNED' && !booking.worker;
+  const isPaid = booking.paymentStatus?.toUpperCase() === 'PAID';
 
   // Filter workers by search
   const allWorkers: WorkerOption[] = workersData?.allWorkers ?? [];
@@ -383,11 +384,11 @@ export default function BookingDetailPage() {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">{t('admin:bookingDetail.pricing.paymentStatus')}</span>
-                <Badge variant={booking.paymentStatus === 'PAID' ? 'success' : 'warning'}>
+                <Badge variant={isPaid ? 'success' : 'warning'}>
                   {booking.paymentStatus}
                 </Badge>
               </div>
-              {booking.paymentStatus !== 'PAID' && (
+              {!isPaid && !isCancelled && (
                 <div className="pt-3 border-t border-gray-200">
                   <Button
                     size="sm"

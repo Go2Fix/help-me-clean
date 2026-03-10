@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@apollo/client';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ArrowLeft, Calendar, Repeat, Clock, MapPin, Home,
@@ -249,6 +249,24 @@ export default function JobDetailPage() {
   }
 
   // ─── Derived data ───────────────────────────────────────────────────────────
+
+  const canStartJob = useMemo(() => {
+    if (!booking?.scheduledDate || !booking?.scheduledStartTime) return true;
+    const [year, month, day] = booking.scheduledDate.split('-').map(Number);
+    const [hour, minute] = booking.scheduledStartTime.split(':').map(Number);
+    const scheduledAt = new Date(year, month - 1, day, hour, minute, 0);
+    const allowedFrom = new Date(scheduledAt.getTime() - 60 * 60 * 1000);
+    return new Date() >= allowedFrom;
+  }, [booking?.scheduledDate, booking?.scheduledStartTime]);
+
+  const startUnlockTime = useMemo(() => {
+    if (!booking?.scheduledDate || !booking?.scheduledStartTime) return '';
+    const [year, month, day] = booking.scheduledDate.split('-').map(Number);
+    const [hour, minute] = booking.scheduledStartTime.split(':').map(Number);
+    const unlockAt = new Date(year, month - 1, day, hour, minute, 0);
+    unlockAt.setHours(unlockAt.getHours() - 1);
+    return unlockAt.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit', hour12: false });
+  }, [booking?.scheduledDate, booking?.scheduledStartTime]);
 
   const badgeVariant = STATUS_BADGE_VARIANT[booking.status] ?? ('default' as const);
   const badgeLabel = t(`worker:jobDetail.statusLabels.${booking.status}`, { defaultValue: booking.status });
@@ -790,16 +808,23 @@ export default function JobDetailPage() {
       )}
       <div className="mt-6 space-y-3">
         {booking.status === 'CONFIRMED' && (
-          <Button
-            onClick={() => handleAction('start')}
-            loading={starting}
-            disabled={actionLoading}
-            variant="secondary"
-            size="lg"
-            className="w-full"
-          >
-            {t('worker:jobDetail.actions.startCleaning')}
-          </Button>
+          <>
+            <Button
+              onClick={() => handleAction('start')}
+              loading={starting}
+              disabled={actionLoading || !canStartJob}
+              variant="secondary"
+              size="lg"
+              className="w-full"
+            >
+              {t('worker:jobDetail.actions.startCleaning')}
+            </Button>
+            {!canStartJob && (
+              <p className="text-xs text-amber-500 text-center mt-1">
+                {t('worker:jobDetail.actions.tooEarlyToStart', { time: startUnlockTime })}
+              </p>
+            )}
+          </>
         )}
         {booking.status === 'IN_PROGRESS' && (
           <>

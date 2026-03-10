@@ -386,6 +386,69 @@ func (q *Queries) CreateCompany(ctx context.Context, arg CreateCompanyParams) (C
 	return i, err
 }
 
+const getCompaniesByIDs = `-- name: GetCompaniesByIDs :many
+SELECT id, admin_user_id, company_name, cui, company_type, legal_representative, contact_email, contact_phone, address, city, county, description, logo_url, status, rejection_reason, rating_avg, total_jobs_completed, approved_at, created_at, updated_at, claim_token, stripe_connect_account_id, stripe_connect_onboarding_complete, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, commission_override_pct, anaf_status, anaf_denumire, anaf_adresa, anaf_data_infiintare, anaf_scp_tva, anaf_inactive, anaf_verified_at, anaf_raw_error, reg_number, is_vat_payer, bank_name, iban FROM companies WHERE id = ANY($1::uuid[]) ORDER BY company_name
+`
+
+func (q *Queries) GetCompaniesByIDs(ctx context.Context, dollar_1 []pgtype.UUID) ([]Company, error) {
+	rows, err := q.db.Query(ctx, getCompaniesByIDs, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Company
+	for rows.Next() {
+		var i Company
+		if err := rows.Scan(
+			&i.ID,
+			&i.AdminUserID,
+			&i.CompanyName,
+			&i.Cui,
+			&i.CompanyType,
+			&i.LegalRepresentative,
+			&i.ContactEmail,
+			&i.ContactPhone,
+			&i.Address,
+			&i.City,
+			&i.County,
+			&i.Description,
+			&i.LogoUrl,
+			&i.Status,
+			&i.RejectionReason,
+			&i.RatingAvg,
+			&i.TotalJobsCompleted,
+			&i.ApprovedAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.ClaimToken,
+			&i.StripeConnectAccountID,
+			&i.StripeConnectOnboardingComplete,
+			&i.StripeConnectChargesEnabled,
+			&i.StripeConnectPayoutsEnabled,
+			&i.CommissionOverridePct,
+			&i.AnafStatus,
+			&i.AnafDenumire,
+			&i.AnafAdresa,
+			&i.AnafDataInfiintare,
+			&i.AnafScpTva,
+			&i.AnafInactive,
+			&i.AnafVerifiedAt,
+			&i.AnafRawError,
+			&i.RegNumber,
+			&i.IsVatPayer,
+			&i.BankName,
+			&i.Iban,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getCompanyAverageRating = `-- name: GetCompanyAverageRating :one
 SELECT COALESCE(AVG(r.rating), 0)::DECIMAL(3,2) AS avg_rating
 FROM reviews r
@@ -627,6 +690,71 @@ func (q *Queries) GetCompanyFinancialSummary(ctx context.Context, companyID pgty
 		&i.NetPayout,
 	)
 	return i, err
+}
+
+const getCompanyJobCountsBatch = `-- name: GetCompanyJobCountsBatch :many
+SELECT company_id, COUNT(*)::bigint AS job_count
+FROM bookings
+WHERE company_id = ANY($1::uuid[]) AND status = 'completed'
+GROUP BY company_id
+`
+
+type GetCompanyJobCountsBatchRow struct {
+	CompanyID pgtype.UUID `json:"company_id"`
+	JobCount  int64       `json:"job_count"`
+}
+
+func (q *Queries) GetCompanyJobCountsBatch(ctx context.Context, dollar_1 []pgtype.UUID) ([]GetCompanyJobCountsBatchRow, error) {
+	rows, err := q.db.Query(ctx, getCompanyJobCountsBatch, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetCompanyJobCountsBatchRow
+	for rows.Next() {
+		var i GetCompanyJobCountsBatchRow
+		if err := rows.Scan(&i.CompanyID, &i.JobCount); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getCompanyRatingsBatch = `-- name: GetCompanyRatingsBatch :many
+SELECT w.company_id, COALESCE(AVG(r.rating), 0)::DECIMAL(3,2) AS avg_rating
+FROM reviews r
+JOIN workers w ON r.reviewed_worker_id = w.id
+WHERE w.company_id = ANY($1::uuid[])
+GROUP BY w.company_id
+`
+
+type GetCompanyRatingsBatchRow struct {
+	CompanyID pgtype.UUID    `json:"company_id"`
+	AvgRating pgtype.Numeric `json:"avg_rating"`
+}
+
+func (q *Queries) GetCompanyRatingsBatch(ctx context.Context, dollar_1 []pgtype.UUID) ([]GetCompanyRatingsBatchRow, error) {
+	rows, err := q.db.Query(ctx, getCompanyRatingsBatch, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetCompanyRatingsBatchRow
+	for rows.Next() {
+		var i GetCompanyRatingsBatchRow
+		if err := rows.Scan(&i.CompanyID, &i.AvgRating); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getUnclaimedCompanyByContactEmail = `-- name: GetUnclaimedCompanyByContactEmail :one

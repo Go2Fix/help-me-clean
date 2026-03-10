@@ -106,6 +106,46 @@ func (q *Queries) GetAddressByID(ctx context.Context, id pgtype.UUID) (ClientAdd
 	return i, err
 }
 
+const getAddressesByIDs = `-- name: GetAddressesByIDs :many
+SELECT id, user_id, label, street_address, city, county, postal_code, floor, apartment, entry_code, latitude, longitude, notes, is_default, created_at FROM client_addresses WHERE id = ANY($1::uuid[])
+`
+
+func (q *Queries) GetAddressesByIDs(ctx context.Context, dollar_1 []pgtype.UUID) ([]ClientAddress, error) {
+	rows, err := q.db.Query(ctx, getAddressesByIDs, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ClientAddress
+	for rows.Next() {
+		var i ClientAddress
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Label,
+			&i.StreetAddress,
+			&i.City,
+			&i.County,
+			&i.PostalCode,
+			&i.Floor,
+			&i.Apartment,
+			&i.EntryCode,
+			&i.Latitude,
+			&i.Longitude,
+			&i.Notes,
+			&i.IsDefault,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listAddressesByUser = `-- name: ListAddressesByUser :many
 SELECT id, user_id, label, street_address, city, county, postal_code, floor, apartment, entry_code, latitude, longitude, notes, is_default, created_at FROM client_addresses WHERE user_id = $1 ORDER BY is_default DESC, created_at DESC
 `

@@ -1598,3 +1598,43 @@ func (m *PartialMockQuerier) ListWorkersReadyForActivation(ctx context.Context) 
 func (m *PartialMockQuerier) CountWorkersReadyForActivation(ctx context.Context) (int32, error) {
 	panic("PartialMockQuerier: CountWorkersReadyForActivation not configured")
 }
+
+func (m *PartialMockQuerier) GetAddressesByIDs(ctx context.Context, ids []pgtype.UUID) ([]db.ClientAddress, error) {
+	return nil, nil
+}
+
+func (m *PartialMockQuerier) GetUsersByIDs(ctx context.Context, ids []pgtype.UUID) ([]db.User, error) {
+	return nil, nil
+}
+
+func (m *PartialMockQuerier) GetCompaniesByIDs(ctx context.Context, ids []pgtype.UUID) ([]db.Company, error) {
+	return nil, nil
+}
+
+func (m *PartialMockQuerier) GetWorkersByIDs(ctx context.Context, ids []pgtype.UUID) ([]db.Worker, error) {
+	return nil, nil
+}
+
+func (m *PartialMockQuerier) GetReviewsByBookingIDs(ctx context.Context, ids []pgtype.UUID) ([]db.Review, error) {
+	return nil, nil
+}
+
+func (m *PartialMockQuerier) GetWorkerRatingsBatch(ctx context.Context, ids []pgtype.UUID) ([]db.GetWorkerRatingsBatchRow, error) {
+	return nil, nil
+}
+
+func (m *PartialMockQuerier) GetWorkerJobCountsBatch(ctx context.Context, ids []pgtype.UUID) ([]db.GetWorkerJobCountsBatchRow, error) {
+	return nil, nil
+}
+
+func (m *PartialMockQuerier) GetCompanyRatingsBatch(ctx context.Context, ids []pgtype.UUID) ([]db.GetCompanyRatingsBatchRow, error) {
+	return nil, nil
+}
+
+func (m *PartialMockQuerier) GetCompanyJobCountsBatch(ctx context.Context, ids []pgtype.UUID) ([]db.GetCompanyJobCountsBatchRow, error) {
+	return nil, nil
+}
+
+func (m *PartialMockQuerier) GetWorkerPerformanceStatsByCompany(ctx context.Context, companyID pgtype.UUID) ([]db.GetWorkerPerformanceStatsByCompanyRow, error) {
+	return nil, nil
+}

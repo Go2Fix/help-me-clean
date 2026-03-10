@@ -192,6 +192,7 @@ type Querier interface {
 	// Area + category filtering: only returns workers (and their companies) qualified for the given category.
 	FindMatchingWorkersByCategory(ctx context.Context, arg FindMatchingWorkersByCategoryParams) ([]FindMatchingWorkersByCategoryRow, error)
 	GetAddressByID(ctx context.Context, id pgtype.UUID) (ClientAddress, error)
+	GetAddressesByIDs(ctx context.Context, dollar_1 []pgtype.UUID) ([]ClientAddress, error)
 	GetAllCompanyScorecards(ctx context.Context, arg GetAllCompanyScorecardsParams) ([]GetAllCompanyScorecardsRow, error)
 	GetAreaByID(ctx context.Context, id pgtype.UUID) (GetAreaByIDRow, error)
 	GetAvailableReferralDiscount(ctx context.Context, ownerUserID pgtype.UUID) (ReferralEarnedDiscount, error)
@@ -215,6 +216,7 @@ type Querier interface {
 	GetClientWorkerHistory(ctx context.Context, arg GetClientWorkerHistoryParams) (GetClientWorkerHistoryRow, error)
 	// Check for existing commission invoice to prevent duplicates
 	GetCommissionInvoiceByPeriod(ctx context.Context, arg GetCommissionInvoiceByPeriodParams) (Invoice, error)
+	GetCompaniesByIDs(ctx context.Context, dollar_1 []pgtype.UUID) ([]Company, error)
 	GetCompanyAverageRating(ctx context.Context, companyID pgtype.UUID) (pgtype.Numeric, error)
 	GetCompanyAvgRating(ctx context.Context, companyID pgtype.UUID) (GetCompanyAvgRatingRow, error)
 	GetCompanyByAdminUserID(ctx context.Context, adminUserID pgtype.UUID) (Company, error)
@@ -224,7 +226,9 @@ type Querier interface {
 	GetCompanyCategoryRequest(ctx context.Context, id pgtype.UUID) (CompanyCategoryRequest, error)
 	GetCompanyDocument(ctx context.Context, id pgtype.UUID) (CompanyDocument, error)
 	GetCompanyFinancialSummary(ctx context.Context, companyID pgtype.UUID) (GetCompanyFinancialSummaryRow, error)
+	GetCompanyJobCountsBatch(ctx context.Context, dollar_1 []pgtype.UUID) ([]GetCompanyJobCountsBatchRow, error)
 	GetCompanyPerformance(ctx context.Context, arg GetCompanyPerformanceParams) ([]GetCompanyPerformanceRow, error)
+	GetCompanyRatingsBatch(ctx context.Context, dollar_1 []pgtype.UUID) ([]GetCompanyRatingsBatchRow, error)
 	GetCompanyRevenueByDateRange(ctx context.Context, arg GetCompanyRevenueByDateRangeParams) ([]GetCompanyRevenueByDateRangeRow, error)
 	// ============================================
 	// STRIPE CONNECT (Companies)
@@ -287,6 +291,7 @@ type Querier interface {
 	GetRevenueByServiceType(ctx context.Context, arg GetRevenueByServiceTypeParams) ([]GetRevenueByServiceTypeRow, error)
 	GetReviewByBookingID(ctx context.Context, bookingID pgtype.UUID) (Review, error)
 	GetReviewByID(ctx context.Context, id pgtype.UUID) (Review, error)
+	GetReviewsByBookingIDs(ctx context.Context, dollar_1 []pgtype.UUID) ([]Review, error)
 	GetSelectedTimeSlot(ctx context.Context, bookingID pgtype.UUID) (BookingTimeSlot, error)
 	GetServiceByID(ctx context.Context, id pgtype.UUID) (ServiceDefinition, error)
 	GetServiceByType(ctx context.Context, serviceType ServiceType) (ServiceDefinition, error)
@@ -310,6 +315,7 @@ type Querier interface {
 	// STRIPE CUSTOMER
 	// ============================================
 	GetUserStripeCustomerID(ctx context.Context, id pgtype.UUID) (pgtype.Text, error)
+	GetUsersByIDs(ctx context.Context, dollar_1 []pgtype.UUID) ([]User, error)
 	GetValidEmailOTP(ctx context.Context, arg GetValidEmailOTPParams) (EmailOtpCode, error)
 	GetValidPhoneOTP(ctx context.Context, arg GetValidPhoneOTPParams) (PhoneOtpCode, error)
 	GetWorkerByID(ctx context.Context, id pgtype.UUID) (Worker, error)
@@ -322,9 +328,15 @@ type Querier interface {
 	GetWorkerDocument(ctx context.Context, id pgtype.UUID) (WorkerDocument, error)
 	GetWorkerEarningsByDateRange(ctx context.Context, arg GetWorkerEarningsByDateRangeParams) ([]GetWorkerEarningsByDateRangeRow, error)
 	GetWorkerInvitedCategories(ctx context.Context, id pgtype.UUID) ([]pgtype.UUID, error)
+	GetWorkerJobCountsBatch(ctx context.Context, dollar_1 []pgtype.UUID) ([]GetWorkerJobCountsBatchRow, error)
 	GetWorkerPerformanceStats(ctx context.Context, id pgtype.UUID) (GetWorkerPerformanceStatsRow, error)
+	// Efficient batch version of GetWorkerPerformanceStats for listing all workers in a company.
+	// Uses LEFT JOINs + GROUP BY instead of per-row correlated subqueries.
+	GetWorkerPerformanceStatsByCompany(ctx context.Context, companyID pgtype.UUID) ([]GetWorkerPerformanceStatsByCompanyRow, error)
+	GetWorkerRatingsBatch(ctx context.Context, dollar_1 []pgtype.UUID) ([]GetWorkerRatingsBatchRow, error)
 	// Per-dimension rating averages for a worker (from reviews with sub-ratings since migration 000047).
 	GetWorkerSubRatings(ctx context.Context, reviewedWorkerID pgtype.UUID) (GetWorkerSubRatingsRow, error)
+	GetWorkersByIDs(ctx context.Context, dollar_1 []pgtype.UUID) ([]Worker, error)
 	HasPendingCategoryRequest(ctx context.Context, arg HasPendingCategoryRequestParams) (bool, error)
 	HasPersonalityAssessment(ctx context.Context, workerID pgtype.UUID) (bool, error)
 	IncrementPromoCodeUses(ctx context.Context, id pgtype.UUID) (PromoCode, error)

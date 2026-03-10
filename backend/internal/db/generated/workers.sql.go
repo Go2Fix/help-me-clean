@@ -256,6 +256,38 @@ func (q *Queries) GetWorkerInvitedCategories(ctx context.Context, id pgtype.UUID
 	return invited_category_ids, err
 }
 
+const getWorkerJobCountsBatch = `-- name: GetWorkerJobCountsBatch :many
+SELECT worker_id, COUNT(*)::bigint AS job_count
+FROM bookings
+WHERE worker_id = ANY($1::uuid[]) AND status = 'completed'
+GROUP BY worker_id
+`
+
+type GetWorkerJobCountsBatchRow struct {
+	WorkerID pgtype.UUID `json:"worker_id"`
+	JobCount int64       `json:"job_count"`
+}
+
+func (q *Queries) GetWorkerJobCountsBatch(ctx context.Context, dollar_1 []pgtype.UUID) ([]GetWorkerJobCountsBatchRow, error) {
+	rows, err := q.db.Query(ctx, getWorkerJobCountsBatch, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetWorkerJobCountsBatchRow
+	for rows.Next() {
+		var i GetWorkerJobCountsBatchRow
+		if err := rows.Scan(&i.WorkerID, &i.JobCount); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getWorkerPerformanceStats = `-- name: GetWorkerPerformanceStats :one
 SELECT
     c.id,
@@ -295,6 +327,152 @@ func (q *Queries) GetWorkerPerformanceStats(ctx context.Context, id pgtype.UUID)
 		&i.ThisMonthEarnings,
 	)
 	return i, err
+}
+
+const getWorkerPerformanceStatsByCompany = `-- name: GetWorkerPerformanceStatsByCompany :many
+SELECT
+    w.id,
+    u.full_name,
+    COALESCE(r_agg.avg_rating, 0)::DECIMAL(3,2) AS rating_avg,
+    COALESCE(b_all.total_completed, 0)::bigint AS total_completed_jobs,
+    COALESCE(b_month.month_completed, 0)::bigint AS this_month_completed,
+    COALESCE(b_all.total_earnings, 0)::numeric AS total_earnings,
+    COALESCE(b_month.month_earnings, 0)::numeric AS this_month_earnings
+FROM workers w
+JOIN users u ON w.user_id = u.id
+LEFT JOIN (
+    SELECT reviewed_worker_id, AVG(rating)::DECIMAL(3,2) AS avg_rating
+    FROM reviews GROUP BY reviewed_worker_id
+) r_agg ON r_agg.reviewed_worker_id = w.id
+LEFT JOIN (
+    SELECT worker_id,
+        COUNT(*) FILTER (WHERE status = 'completed')::bigint AS total_completed,
+        COALESCE(SUM(COALESCE(final_total, estimated_total)) FILTER (WHERE status = 'completed'), 0) AS total_earnings
+    FROM bookings GROUP BY worker_id
+) b_all ON b_all.worker_id = w.id
+LEFT JOIN (
+    SELECT worker_id,
+        COUNT(*) FILTER (WHERE status = 'completed')::bigint AS month_completed,
+        COALESCE(SUM(COALESCE(final_total, estimated_total)) FILTER (WHERE status = 'completed'), 0) AS month_earnings
+    FROM bookings
+    WHERE completed_at >= date_trunc('month', CURRENT_DATE)
+    GROUP BY worker_id
+) b_month ON b_month.worker_id = w.id
+WHERE w.company_id = $1
+ORDER BY u.full_name
+`
+
+type GetWorkerPerformanceStatsByCompanyRow struct {
+	ID                 pgtype.UUID    `json:"id"`
+	FullName           string         `json:"full_name"`
+	RatingAvg          pgtype.Numeric `json:"rating_avg"`
+	TotalCompletedJobs int64          `json:"total_completed_jobs"`
+	ThisMonthCompleted int64          `json:"this_month_completed"`
+	TotalEarnings      pgtype.Numeric `json:"total_earnings"`
+	ThisMonthEarnings  pgtype.Numeric `json:"this_month_earnings"`
+}
+
+// Efficient batch version of GetWorkerPerformanceStats for listing all workers in a company.
+// Uses LEFT JOINs + GROUP BY instead of per-row correlated subqueries.
+func (q *Queries) GetWorkerPerformanceStatsByCompany(ctx context.Context, companyID pgtype.UUID) ([]GetWorkerPerformanceStatsByCompanyRow, error) {
+	rows, err := q.db.Query(ctx, getWorkerPerformanceStatsByCompany, companyID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetWorkerPerformanceStatsByCompanyRow
+	for rows.Next() {
+		var i GetWorkerPerformanceStatsByCompanyRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.FullName,
+			&i.RatingAvg,
+			&i.TotalCompletedJobs,
+			&i.ThisMonthCompleted,
+			&i.TotalEarnings,
+			&i.ThisMonthEarnings,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getWorkerRatingsBatch = `-- name: GetWorkerRatingsBatch :many
+SELECT reviewed_worker_id, COALESCE(AVG(rating), 0)::DECIMAL(3,2) AS avg_rating
+FROM reviews
+WHERE reviewed_worker_id = ANY($1::uuid[])
+GROUP BY reviewed_worker_id
+`
+
+type GetWorkerRatingsBatchRow struct {
+	ReviewedWorkerID pgtype.UUID    `json:"reviewed_worker_id"`
+	AvgRating        pgtype.Numeric `json:"avg_rating"`
+}
+
+func (q *Queries) GetWorkerRatingsBatch(ctx context.Context, dollar_1 []pgtype.UUID) ([]GetWorkerRatingsBatchRow, error) {
+	rows, err := q.db.Query(ctx, getWorkerRatingsBatch, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetWorkerRatingsBatchRow
+	for rows.Next() {
+		var i GetWorkerRatingsBatchRow
+		if err := rows.Scan(&i.ReviewedWorkerID, &i.AvgRating); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getWorkersByIDs = `-- name: GetWorkersByIDs :many
+SELECT id, user_id, company_id, status, is_company_admin, invite_token, invite_expires_at, rating_avg, total_jobs_completed, created_at, updated_at, bio, home_latitude, home_longitude, max_daily_bookings, invited_category_ids FROM workers WHERE id = ANY($1::uuid[])
+`
+
+func (q *Queries) GetWorkersByIDs(ctx context.Context, dollar_1 []pgtype.UUID) ([]Worker, error) {
+	rows, err := q.db.Query(ctx, getWorkersByIDs, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Worker
+	for rows.Next() {
+		var i Worker
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.CompanyID,
+			&i.Status,
+			&i.IsCompanyAdmin,
+			&i.InviteToken,
+			&i.InviteExpiresAt,
+			&i.RatingAvg,
+			&i.TotalJobsCompleted,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Bio,
+			&i.HomeLatitude,
+			&i.HomeLongitude,
+			&i.MaxDailyBookings,
+			&i.InvitedCategoryIds,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const linkWorkerToUser = `-- name: LinkWorkerToUser :one

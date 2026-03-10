@@ -252,6 +252,7 @@
     },
     "actions": {
       "startCleaning": "Start cleaning",
+      "tooEarlyToStart": "Available from {{time}}",
       "completeCleaning": "Complete cleaning",
       "checkAllTasks": "Check all tasks to complete",
       "errorUpdate": "Could not update status. Please try again."

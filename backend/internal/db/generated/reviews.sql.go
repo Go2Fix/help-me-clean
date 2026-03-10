@@ -234,6 +234,45 @@ func (q *Queries) GetReviewByID(ctx context.Context, id pgtype.UUID) (Review, er
 	return i, err
 }
 
+const getReviewsByBookingIDs = `-- name: GetReviewsByBookingIDs :many
+SELECT id, booking_id, reviewer_user_id, reviewed_user_id, reviewed_worker_id, rating, comment, review_type, created_at, rating_punctuality, rating_quality, rating_communication, rating_value, status FROM reviews WHERE booking_id = ANY($1::uuid[])
+`
+
+func (q *Queries) GetReviewsByBookingIDs(ctx context.Context, dollar_1 []pgtype.UUID) ([]Review, error) {
+	rows, err := q.db.Query(ctx, getReviewsByBookingIDs, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Review
+	for rows.Next() {
+		var i Review
+		if err := rows.Scan(
+			&i.ID,
+			&i.BookingID,
+			&i.ReviewerUserID,
+			&i.ReviewedUserID,
+			&i.ReviewedWorkerID,
+			&i.Rating,
+			&i.Comment,
+			&i.ReviewType,
+			&i.CreatedAt,
+			&i.RatingPunctuality,
+			&i.RatingQuality,
+			&i.RatingCommunication,
+			&i.RatingValue,
+			&i.Status,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listAllReviews = `-- name: ListAllReviews :many
 SELECT id, booking_id, reviewer_user_id, reviewed_user_id, reviewed_worker_id, rating, comment, review_type, created_at, rating_punctuality, rating_quality, rating_communication, rating_value, status FROM reviews ORDER BY created_at DESC LIMIT $1 OFFSET $2
 `
