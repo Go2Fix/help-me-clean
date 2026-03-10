@@ -113,7 +113,7 @@ func (r *queryResolver) WaitlistLeads(ctx context.Context, leadType *model.Waitl
 
 	result := make([]*model.WaitlistLead, len(rows))
 	for i, row := range rows {
-		result[i] = dbWaitlistLeadToGQL(row)
+		result[i] = dbWaitlistLeadsRowToGQL(row)
 	}
 
 	return result, nil

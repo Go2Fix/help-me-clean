@@ -11,8 +11,10 @@ import (
 	"go2fix-backend/internal/auth"
 	db "go2fix-backend/internal/db/generated"
 	"go2fix-backend/internal/graph/model"
+	"go2fix-backend/internal/storage"
 	"time"
 
+	"github.com/99designs/gqlgen/graphql"
 	pgx "github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -44,11 +46,11 @@ func (r *mutationResolver) OpenDispute(ctx context.Context, bookingID string, re
 		return nil, fmt.Errorf("disputes can only be opened for completed bookings")
 	}
 
-	// Enforce 48-hour window from completion.
+	// Enforce 24-hour window from completion.
 	if booking.CompletedAt.Valid {
-		deadline := booking.CompletedAt.Time.Add(48 * time.Hour)
+		deadline := booking.CompletedAt.Time.Add(24 * time.Hour)
 		if time.Now().After(deadline) {
-			return nil, fmt.Errorf("dispute window has closed: disputes must be opened within 48 hours of completion")
+			return nil, fmt.Errorf("dispute window has closed: disputes must be opened within 24 hours of completion")
 		}
 	}
 
@@ -198,6 +200,7 @@ func (r *mutationResolver) ResolveDispute(ctx context.Context, disputeID string,
 	case db.DisputeStatusResolvedRefundFull,
 		db.DisputeStatusResolvedRefundPartial,
 		db.DisputeStatusResolvedNoRefund,
+		db.DisputeStatusResolvedRemediation,
 		db.DisputeStatusAutoClosed,
 		db.DisputeStatusUnderReview:
 		// valid
@@ -232,14 +235,31 @@ func (r *mutationResolver) ResolveDispute(ctx context.Context, disputeID string,
 		return nil, fmt.Errorf("failed to resolve dispute: %w", err)
 	}
 
-	// Issue a Stripe refund if a refund amount is specified and the booking has a payment intent.
-	if refundAmount != nil && *refundAmount > 0 {
+	// Issue a Stripe refund only for monetary refund statuses (not remediation, which is handled offline).
+	if refundAmount != nil && *refundAmount > 0 &&
+		(dbStatus == db.DisputeStatusResolvedRefundFull || dbStatus == db.DisputeStatusResolvedRefundPartial) {
 		r.issueDisputeRefund(ctx, dispute.BookingID, *refundAmount)
 	}
 
 	r.dispatchDisputeResolvedNotification(ctx, dispute.BookingID, resolved)
 
 	return dbDisputeToGQL(resolved), nil
+}
+
+// UploadDisputeEvidence is the resolver for the uploadDisputeEvidence field.
+func (r *mutationResolver) UploadDisputeEvidence(ctx context.Context, file graphql.Upload) (*model.UploadResult, error) {
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil {
+		return nil, fmt.Errorf("not authenticated")
+	}
+
+	userIDStr := claims.UserID
+	path := fmt.Sprintf("disputes/%s/photos", userIDStr)
+	url, err := r.Storage.Upload(ctx, path, file.Filename, file.File, storage.StorageTypePrivate)
+	if err != nil {
+		return nil, fmt.Errorf("dispute evidence: upload failed: %w", err)
+	}
+	return &model.UploadResult{URL: url, FileName: file.Filename}, nil
 }
 
 // MyDisputeForBooking is the resolver for the myDisputeForBooking field.

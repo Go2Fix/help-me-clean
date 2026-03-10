@@ -7,7 +7,8 @@ import (
 	"os"
 	"time"
 
-	resend "github.com/resend/resend-go/v2"
+	resend "github.com/resend/resend-go/v3"
+	"golang.org/x/time/rate"
 )
 
 // emailTemplateEnvVars maps each Event to the name of the env var that holds
@@ -77,12 +78,16 @@ var emailSubjects = map[Event]string{
 
 // EmailChannel delivers notifications via Resend.
 type EmailChannel struct {
-	client     *resend.Client
-	from       string
-	audienceID string
+	client                   *resend.Client
+	from                     string
+	audienceID               string
+	audienceWaitlistClientID  string
+	audienceWaitlistCompanyID string
 	// templates holds resolved event → template-ID pairs (informational only;
-	// the v2 SDK sends raw HTML, not template references).
+	// the v3 SDK sends raw HTML, not template references).
 	templates map[Event]string
+	// limiter caps outbound Resend API calls to stay under the 2 req/s limit.
+	limiter *rate.Limiter
 }
 
 // NewEmailChannel reads RESEND_API_KEY and RESEND_FROM_EMAIL from env and resolves
@@ -111,12 +116,33 @@ func NewEmailChannel() *EmailChannel {
 	client := resend.NewClient(apiKey)
 	audienceID := resolveAudienceID(client)
 
+	audienceWaitlistClientID := os.Getenv("RESEND_AUDIENCE_WAITLIST_CLIENT")
+	audienceWaitlistCompanyID := os.Getenv("RESEND_AUDIENCE_WAITLIST_COMPANY")
+
 	return &EmailChannel{
-		client:     client,
-		from:       from,
-		audienceID: audienceID,
-		templates:  templates,
+		client:                   client,
+		from:                     from,
+		audienceID:               audienceID,
+		audienceWaitlistClientID:  audienceWaitlistClientID,
+		audienceWaitlistCompanyID: audienceWaitlistCompanyID,
+		templates:                 templates,
 	}
+}
+
+// AudienceWaitlistClientID returns the Resend audience ID for waitlist client leads.
+func (e *EmailChannel) AudienceWaitlistClientID() string {
+	if e == nil {
+		return ""
+	}
+	return e.audienceWaitlistClientID
+}
+
+// AudienceWaitlistCompanyID returns the Resend audience ID for waitlist company leads.
+func (e *EmailChannel) AudienceWaitlistCompanyID() string {
+	if e == nil {
+		return ""
+	}
+	return e.audienceWaitlistCompanyID
 }
 
 // resolveAudienceID returns the audience ID to use for contact management.

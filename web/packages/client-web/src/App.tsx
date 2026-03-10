@@ -102,6 +102,7 @@ const AdminPayoutsPage = lazy(() => import('@/pages/admin/AdminPayoutsPage'));
 const AdminRefundsPage = lazy(() => import('@/pages/admin/RefundsPage'));
 const PromoCodesPage = lazy(() => import('@/pages/admin/PromoCodesPage'));
 const DisputesPage = lazy(() => import('@/pages/admin/DisputesPage'));
+const WaitlistLeadsPage = lazy(() => import('@/pages/admin/WaitlistLeadsPage'));
 const CategoryRequestsPage = lazy(() => import('@/pages/admin/CategoryRequestsPage'));
 const ReviewQueuePage = lazy(() => import('@/pages/admin/ReviewQueuePage'));
 const DocsPage = lazy(() => import('@/pages/admin/DocsPage'));
@@ -358,6 +359,7 @@ function AppRoutes() {
           <Route path="dispute" element={<DisputesPage />} />
           <Route path="aprobari" element={<ReviewQueuePage />} />
           <Route path="categorii-cereri" element={<CategoryRequestsPage />} />
+          <Route path="lista-asteptare" element={<WaitlistLeadsPage />} />
           <Route path="setari" element={<AdminSettingsPage />} />
           <Route path="docs" element={<DocsPage />} />
         </Route>

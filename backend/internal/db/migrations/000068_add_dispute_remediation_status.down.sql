@@ -1,0 +1,2 @@
+-- PostgreSQL does not support removing enum values; this migration is intentionally a no-op.
+-- To fully revert, recreate the type without 'resolved_remediation' and update all references.

@@ -46,6 +46,10 @@ type Booking {
   completedAt: DateTime
   cancelledAt: DateTime
   cancellationReason: String
+  startLat: Float
+  startLng: Float
+  finishLat: Float
+  finishLng: Float
   paymentStatus: String!
   paidAt: DateTime
   recurringGroupId: ID
@@ -147,8 +151,8 @@ extend type Mutation {
   cancelBooking(id: ID!, reason: String): Booking!
   assignWorkerToBooking(bookingId: ID!, workerId: ID!): Booking!
   confirmBooking(id: ID!): Booking!
-  startJob(id: ID!): Booking!
-  completeJob(id: ID!): Booking!
+  startJob(id: ID!, latitude: Float, longitude: Float): Booking!
+  completeJob(id: ID!, latitude: Float, longitude: Float): Booking!
   selectBookingTimeSlot(bookingId: ID!, timeSlotId: ID!): Booking!
   rescheduleBooking(id: ID!, scheduledDate: String!, scheduledStartTime: String!, reason: String): Booking!
   uploadJobPhoto(bookingId: ID!, file: Upload!, phase: String!): BookingJobPhoto!

@@ -4,9 +4,11 @@ VALUES ($1, $2, $3, $4, $5, $6, $7)
 RETURNING *;
 
 -- name: ListWaitlistLeads :many
-SELECT * FROM waitlist_leads
-WHERE ($1::text = '' OR lead_type::text = $1)
-ORDER BY created_at DESC
+SELECT wl.*, (u.id IS NOT NULL) AS is_converted
+FROM waitlist_leads wl
+LEFT JOIN users u ON lower(u.email) = lower(wl.email)
+WHERE ($1::text = '' OR wl.lead_type::text = $1)
+ORDER BY wl.created_at DESC
 LIMIT $2 OFFSET $3;
 
 -- name: CountWaitlistLeads :one

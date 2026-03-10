@@ -452,6 +452,8 @@ Lista completă a joburilor desemnate angajatului.
 | `IN_PROGRESS` | Marchează finalizat, adaugă note → status devine `COMPLETED` |
 | `COMPLETED` | Vizualizează recenzia clientului |
 
+**Dovadă GPS:** La acțiunile de Check-in ("Am ajuns") și Finalizare, sistemul înregistrează automat coordonatele GPS ale angajatului. Aceste coordonate sunt stocate pe comandă și pot fi utilizate ca dovadă în disputele de tip `NO_SHOW` sau chargeback.
+
 **Chat:** Mesagerie directă cu clientul din pagina jobului.
 
 ### 5.8 Program (`/worker/program`)
@@ -622,8 +624,8 @@ Centrul de gestionare a disputelor deschise de clienți.
 - `OPEN` — dispute nou deschise
 - `COMPANY_RESPONDED` — firma a răspuns, în așteptare decizie admin
 - `UNDER_REVIEW` — adminul a preluat cazul
-- `RESOLVED_*` — dispute rezolvate (rambursare totală/parțială/nicio rambursare)
-- `AUTO_CLOSED` — închise automat după 48h
+- `RESOLVED_*` — dispute rezolvate (rambursare totală/parțială/nicio rambursare/remediere gratuită)
+- `AUTO_CLOSED` — închise automat după 24h
 
 **Vizualizare dispută (expandabil):**
 - Detalii comandă, motivul disputei, descrierea clientului, dovezi (poze/documente)
@@ -684,7 +686,27 @@ Analize și statistici ale platformei:
 - KPI-uri globale (clienți unici, firme active, rată de finalizare)
 - Heatmap cerere (zi săptămână × oră)
 
-### 6.15 Setări platformă (`/admin/setari`)
+### 6.15 Listă așteptare (`/admin/lista-asteptare`)
+
+Centralizează toate persoanele înscrise pe lista de așteptare înainte de lansare.
+
+**Statistici sumar:**
+- Carduri cu totalul înregistrărilor, clienți și firme (din `waitlistStats`).
+
+**Filtrare:**
+- Tab-uri: Toți / Clienți / Companii
+- Câmp de căutare client-side după nume sau email
+
+**Tabel înregistrări:**
+- Coloane: Nume, Email, Telefon, Oraș, Companie, Tip, Data înregistrării
+- Badge verde "Utilizator" dacă persoana s-a înregistrat ulterior pe platformă (`isConverted = true`)
+- Paginare câte 25 per pagină
+
+**Integrare Resend:**
+- La înscrierea pe waitlist, contactul este adăugat automat în audiența Resend corespunzătoare tipului (`RESEND_AUDIENCE_WAITLIST_CLIENT` sau `RESEND_AUDIENCE_WAITLIST_COMPANY`).
+- La crearea unui cont, contactul este șters automat din audiențele waitlist și adăugat în audiența principală (`RESEND_AUDIENCE_ID`).
+
+### 6.16 Setări platformă (`/admin/setari`)
 
 **Mod platformă:**
 - `pre_release` — redirect `/rezervare` → `/lista-asteptare`
@@ -702,9 +724,6 @@ Analize și statistici ale platformei:
 
 **Reduceri abonamente:**
 - Configurarea procentului de reducere per tip de recurență (săptămânal, bisăptămânal, lunar)
-
-**Statistici waitlist:**
-- Numărul de persoane înscrise în lista de așteptare (clienți vs. firme)
 
 ---
 
@@ -787,7 +806,7 @@ Plata este procesată prin Stripe. Statusul de plată este independent de status
 
 ### Cine poate deschide o dispută
 
-**Clientul**, din pagina de detaliu a unei comenzi finalizate (`COMPLETED`), în termen de 48 de ore de la finalizare.
+**Clientul**, din pagina de detaliu a unei comenzi finalizate (`COMPLETED`), în termen de 24 de ore de la finalizare.
 
 ### Motive posibile
 
@@ -809,7 +828,8 @@ Plata este procesată prin Stripe. Statusul de plată este independent de status
    - `RESOLVED_REFUND_FULL` — rambursare totală
    - `RESOLVED_REFUND_PARTIAL` — rambursare parțială (adminul specifică suma)
    - `RESOLVED_NO_REFUND` — nicio rambursare
-5. **Auto-închidere:** Dacă nimeni nu acționează în 48h, disputa se închide automat (`AUTO_CLOSED`)
+   - `RESOLVED_REMEDIATION` — Remediere Gratuită: firma reface serviciul fără cost suplimentar (nicio rambursare bănească)
+5. **Auto-închidere:** Dacă nimeni nu acționează în 24h, disputa se închide automat (`AUTO_CLOSED`)
 
 ### Acces admin
 
@@ -967,7 +987,7 @@ Servicii adiționale facturate separat:
 2. Selectează tab-ul **"OPEN"** sau **"COMPANY_RESPONDED"**
 3. Expandează disputa pentru a vedea: motivul clientului, răspunsul firmei, dovezile
 4. Apasă **"Rezolvă"** și selectează tipul rezoluției:
-   - Rambursare totală / parțială (specifici suma) / nicio rambursare
+   - Rambursare totală / parțială (specifici suma) / nicio rambursare / remediere gratuită (firma reface serviciul)
 5. Completează notele de rezoluție
 6. Confirmă — sistemul actualizează statusul și procesează rambursarea automat (dacă se aplică)
 

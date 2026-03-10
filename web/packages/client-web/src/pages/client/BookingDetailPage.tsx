@@ -37,7 +37,7 @@ import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/ClientBadge';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Modal from '@/components/ui/Modal';
-import { CLIENT_BOOKING_DETAIL, CANCEL_BOOKING, CREATE_BOOKING_PAYMENT_INTENT, REQUEST_REFUND, SUBMIT_REVIEW, UPLOAD_REVIEW_PHOTOS, BOOKING_POLICY, RESCHEDULE_BOOKING, CLIENT_INVOICE_FOR_BOOKING, MY_DISPUTE_FOR_BOOKING, OPEN_DISPUTE } from '@/graphql/operations';
+import { CLIENT_BOOKING_DETAIL, CANCEL_BOOKING, CREATE_BOOKING_PAYMENT_INTENT, REQUEST_REFUND, SUBMIT_REVIEW, UPLOAD_REVIEW_PHOTOS, BOOKING_POLICY, RESCHEDULE_BOOKING, CLIENT_INVOICE_FOR_BOOKING, MY_DISPUTE_FOR_BOOKING, OPEN_DISPUTE, UPLOAD_DISPUTE_EVIDENCE } from '@/graphql/operations';
 import RescheduleModal from '@/components/booking/RescheduleModal';
 import { StripeElementsWrapper } from '@/context/StripeContext';
 import StripePaymentForm from '@/components/payment/StripePaymentForm';
@@ -284,6 +284,8 @@ export default function BookingDetailPage() {
   const [disputeDescription, setDisputeDescription] = useState('');
   const [disputeError, setDisputeError] = useState('');
   const [disputeSubmitted, setDisputeSubmitted] = useState(false);
+  const [evidenceFiles, setEvidenceFiles] = useState<File[]>([]);
+  const [evidencePreviews, setEvidencePreviews] = useState<string[]>([]);
 
   // PAST_DUE banner (SubscriptionDetailPage uses its own; here for no-show toast)
   const [noShowToast, setNoShowToast] = useState('');
@@ -347,6 +349,8 @@ export default function BookingDetailPage() {
       if (id) refetchDispute?.();
     },
   });
+
+  const [uploadDisputeEvidence] = useMutation(UPLOAD_DISPUTE_EVIDENCE);
 
   const [submitReview, { loading: submittingReview }] = useMutation(SUBMIT_REVIEW, {
     onCompleted: async (result) => {
@@ -1257,7 +1261,7 @@ export default function BookingDetailPage() {
               <div className="mt-6 p-5 bg-gray-50 border border-gray-200 rounded-xl">
                 <p className="font-medium text-gray-900">Ai o problemă cu serviciul?</p>
                 <p className="text-sm text-gray-500 mt-1">
-                  Ai 48 de ore de la finalizare pentru a deschide o dispută. Vom analiza și te vom contacta.
+                  Ai 24 de ore de la finalizare pentru a deschide o dispută. Vom analiza și te vom contacta.
                 </p>
                 <button
                   onClick={() => setDisputeModalOpen(true)}
@@ -1300,6 +1304,18 @@ export default function BookingDetailPage() {
                     <p className="text-sm text-emerald-700 font-medium">
                       Rambursare aprobată: {dispute.refundAmount} RON
                     </p>
+                  )}
+                  {dispute.evidenceUrls && dispute.evidenceUrls.length > 0 && (
+                    <div className="mt-3">
+                      <p className="text-xs font-medium text-gray-500 mb-1.5">Fotografii depuse:</p>
+                      <div className="flex gap-2 flex-wrap">
+                        {dispute.evidenceUrls.map((url, i) => (
+                          <a key={i} href={url} target="_blank" rel="noopener noreferrer">
+                            <img src={url} alt={`Dovadă ${i+1}`} className="h-14 w-14 object-cover rounded-lg border border-gray-200 hover:opacity-80 transition-opacity" />
+                          </a>
+                        ))}
+                      </div>
+                    </div>
                   )}
                   <p className="text-xs text-gray-400">Deschisă pe {formatDateTime(dispute.createdAt)}</p>
                 </div>
@@ -1663,6 +1679,47 @@ export default function BookingDetailPage() {
               />
               <p className="text-xs text-gray-400 mt-1">{disputeDescription.length} / 20 caractere minime</p>
             </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Fotografii dovadă (opțional, max 3)
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                id="dispute-photo-input"
+                onChange={(e) => {
+                  const files = Array.from(e.target.files || []).slice(0, 3);
+                  setEvidenceFiles(files);
+                  setEvidencePreviews(files.map(f => URL.createObjectURL(f)));
+                }}
+              />
+              <label
+                htmlFor="dispute-photo-input"
+                className="flex items-center gap-2 cursor-pointer rounded-xl border border-dashed border-gray-300 px-4 py-3 text-sm text-gray-500 hover:border-primary hover:text-primary transition-colors"
+              >
+                <Camera className="h-4 w-4" />
+                Adaugă fotografii
+              </label>
+              {evidencePreviews.length > 0 && (
+                <div className="flex gap-2 mt-2">
+                  {evidencePreviews.map((src, i) => (
+                    <div key={i} className="relative">
+                      <img src={src} alt={`Dovadă ${i+1}`} className="h-16 w-16 object-cover rounded-lg border border-gray-200" />
+                      <button
+                        type="button"
+                        className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-white flex items-center justify-center text-xs"
+                        onClick={() => {
+                          setEvidenceFiles(prev => prev.filter((_, idx) => idx !== i));
+                          setEvidencePreviews(prev => prev.filter((_, idx) => idx !== i));
+                        }}
+                      >×</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
             {disputeError && (
               <div className="text-danger text-sm bg-red-50 px-4 py-3 rounded-xl">
                 {disputeError}
@@ -1675,6 +1732,8 @@ export default function BookingDetailPage() {
               onClick={() => {
                 setDisputeModalOpen(false);
                 setDisputeError('');
+                setEvidenceFiles([]);
+                setEvidencePreviews([]);
               }}
             >
               Renunță
@@ -1692,15 +1751,25 @@ export default function BookingDetailPage() {
                   return;
                 }
                 try {
+                  const uploadedUrls: string[] = [];
+                  for (const file of evidenceFiles) {
+                    const { data: uploadData } = await uploadDisputeEvidence({ variables: { file } });
+                    if (uploadData?.uploadDisputeEvidence?.url) {
+                      uploadedUrls.push(uploadData.uploadDisputeEvidence.url);
+                    }
+                  }
                   await openDisputeMutation({
                     variables: {
                       bookingId: booking.id,
                       reason: disputeReason,
                       description: disputeDescription.trim(),
+                      evidenceUrls: uploadedUrls.length > 0 ? uploadedUrls : undefined,
                     },
                   });
                   setDisputeSubmitted(true);
                   setDisputeModalOpen(false);
+                  setEvidenceFiles([]);
+                  setEvidencePreviews([]);
                 } catch {
                   setDisputeError('Nu am putut deschide disputa. Încearcă din nou.');
                 }

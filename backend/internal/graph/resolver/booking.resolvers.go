@@ -542,7 +542,7 @@ func (r *mutationResolver) ConfirmBooking(ctx context.Context, id string) (*mode
 }
 
 // StartJob is the resolver for the startJob field.
-func (r *mutationResolver) StartJob(ctx context.Context, id string) (*model.Booking, error) {
+func (r *mutationResolver) StartJob(ctx context.Context, id string, latitude *float64, longitude *float64) (*model.Booking, error) {
 	claims := auth.GetUserFromContext(ctx)
 	if claims == nil {
 		return nil, fmt.Errorf("not authenticated")
@@ -568,7 +568,11 @@ func (r *mutationResolver) StartJob(ctx context.Context, id string) (*model.Book
 		return nil, fmt.Errorf("nu poți începe lucrarea cu mai mult de 1 oră înainte de ora programată")
 	}
 
-	booking, err := r.Queries.StartBooking(ctx, stringToUUID(id))
+	booking, err := r.Queries.StartBooking(ctx, db.StartBookingParams{
+		ID:       bookingID,
+		StartLat: float64ToPgNumeric(latitude),
+		StartLng: float64ToPgNumeric(longitude),
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to start job: %w", err)
 	}
@@ -599,7 +603,7 @@ func (r *mutationResolver) StartJob(ctx context.Context, id string) (*model.Book
 }
 
 // CompleteJob is the resolver for the completeJob field.
-func (r *mutationResolver) CompleteJob(ctx context.Context, id string) (*model.Booking, error) {
+func (r *mutationResolver) CompleteJob(ctx context.Context, id string, latitude *float64, longitude *float64) (*model.Booking, error) {
 	claims := auth.GetUserFromContext(ctx)
 	if claims == nil {
 		return nil, fmt.Errorf("not authenticated")
@@ -620,7 +624,11 @@ func (r *mutationResolver) CompleteJob(ctx context.Context, id string) (*model.B
 		return nil, err
 	}
 
-	booking, err := r.Queries.CompleteBooking(ctx, stringToUUID(id))
+	booking, err := r.Queries.CompleteBooking(ctx, db.CompleteBookingParams{
+		ID:        bookingID,
+		FinishLat: float64ToPgNumeric(latitude),
+		FinishLng: float64ToPgNumeric(longitude),
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to complete job: %w", err)
 	}

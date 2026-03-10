@@ -3,6 +3,7 @@ package resolver
 import (
 	"encoding/json"
 	"fmt"
+	"math/big"
 	"strings"
 	"time"
 
@@ -119,6 +120,18 @@ func numericToFloat(n pgtype.Numeric) float64 {
 	}
 	f, _ := n.Float64Value()
 	return f.Float64
+}
+
+// float64ToPgNumeric converts a nullable *float64 to pgtype.Numeric.
+// Returns an invalid (NULL) Numeric when v is nil.
+func float64ToPgNumeric(v *float64) pgtype.Numeric {
+	if v == nil {
+		return pgtype.Numeric{}
+	}
+	// Represent as a 7-decimal-place integer (NUMERIC(10,7) column precision).
+	const scale = 7
+	scaled := int64(*v * 1e7)
+	return pgtype.Numeric{Int: big.NewInt(scaled), Exp: -scale, Valid: true}
 }
 
 func numericToFloatPtr(n pgtype.Numeric) *float64 {

@@ -259,6 +259,10 @@ export const CLIENT_BOOKING_DETAIL = gql`
       createdAt
       startedAt
       completedAt
+      startLat
+      startLng
+      finishLat
+      finishLng
       address {
         streetAddress
         city
@@ -2928,8 +2932,8 @@ export const CONFIRM_BOOKING = gql`
 `;
 
 export const START_JOB = gql`
-  mutation StartJob($id: ID!) {
-    startJob(id: $id) {
+  mutation StartJob($id: ID!, $latitude: Float, $longitude: Float) {
+    startJob(id: $id, latitude: $latitude, longitude: $longitude) {
       id
       status
       startedAt
@@ -2938,8 +2942,8 @@ export const START_JOB = gql`
 `;
 
 export const COMPLETE_JOB = gql`
-  mutation CompleteJob($id: ID!) {
-    completeJob(id: $id) {
+  mutation CompleteJob($id: ID!, $latitude: Float, $longitude: Float) {
+    completeJob(id: $id, latitude: $latitude, longitude: $longitude) {
       id
       status
       completedAt
@@ -4362,6 +4366,7 @@ export const WAITLIST_LEADS = gql`
       companyName
       message
       createdAt
+      isConverted
     }
   }
 `;
@@ -4785,6 +4790,15 @@ export const MY_DISPUTE_FOR_BOOKING = gql`
         id
         fullName
       }
+    }
+  }
+`;
+
+export const UPLOAD_DISPUTE_EVIDENCE = gql`
+  mutation UploadDisputeEvidence($file: Upload!) {
+    uploadDisputeEvidence(file: $file) {
+      url
+      fileName
     }
   }
 `;

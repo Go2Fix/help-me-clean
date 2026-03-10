@@ -113,6 +113,7 @@ export default function JobDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [error, setError] = useState('');
+  const [gpsToast, setGpsToast] = useState('');
   const [checkedItems, setCheckedItems] = useState<Set<number>>(new Set());
   const [photoPhase, setPhotoPhase] = useState<'before' | 'after' | 'during'>('during');
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
@@ -149,11 +150,31 @@ export default function JobDetailPage() {
     });
   }
 
+  const getGPS = (): Promise<{ latitude: number; longitude: number } | null> => {
+    return new Promise((resolve) => {
+      if (!navigator.geolocation) { resolve(null); return; }
+      navigator.geolocation.getCurrentPosition(
+        (pos) => resolve({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
+        () => resolve(null),
+        { timeout: 5000, maximumAge: 0 },
+      );
+    });
+  };
+
   const handleAction = async (action: 'start' | 'complete') => {
     setError('');
     try {
-      if (action === 'start') await startJob({ variables: { id } });
-      if (action === 'complete') await completeJob({ variables: { id } });
+      const gps = await getGPS();
+      if (action === 'start') {
+        await startJob({ variables: { id, latitude: gps?.latitude, longitude: gps?.longitude } });
+      }
+      if (action === 'complete') {
+        await completeJob({ variables: { id, latitude: gps?.latitude, longitude: gps?.longitude } });
+      }
+      if (gps) {
+        setGpsToast('Locația a fost înregistrată.');
+        setTimeout(() => setGpsToast(''), 4000);
+      }
     } catch {
       setError(t('worker:jobDetail.actions.errorUpdate'));
     }
@@ -846,6 +867,14 @@ export default function JobDetailPage() {
           </>
         )}
       </div>
+
+      {/* GPS toast */}
+      {gpsToast && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded-xl shadow-lg z-50 text-sm">
+          <Navigation className="inline h-4 w-4 mr-2" />
+          {gpsToast}
+        </div>
+      )}
     </div>
   );
 }

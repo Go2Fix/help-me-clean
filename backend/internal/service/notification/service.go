@@ -151,3 +151,19 @@ func (s *Service) UpsertContact(ctx context.Context, data ContactData) {
 		}
 	}
 }
+
+// RemoveFromWaitlistAudiences removes a contact from any configured waitlist audiences.
+// Used when a waitlist lead registers as a full user — they should be moved to the
+// main audience instead. Best-effort — errors are logged, not propagated.
+func (s *Service) RemoveFromWaitlistAudiences(ctx context.Context, email string) {
+	for _, ch := range s.channels {
+		if e, ok := ch.(*EmailChannel); ok {
+			if e.audienceWaitlistClientID != "" {
+				e.DeleteContact(ctx, e.audienceWaitlistClientID, email)
+			}
+			if e.audienceWaitlistCompanyID != "" {
+				e.DeleteContact(ctx, e.audienceWaitlistCompanyID, email)
+			}
+		}
+	}
+}

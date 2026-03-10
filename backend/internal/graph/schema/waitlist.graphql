@@ -13,6 +13,7 @@ type WaitlistLead {
   companyName: String
   message: String
   createdAt: DateTime!
+  isConverted: Boolean
 }
 
 type WaitlistStats {

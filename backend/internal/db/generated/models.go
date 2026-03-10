@@ -201,6 +201,7 @@ const (
 	DisputeStatusResolvedRefundPartial DisputeStatus = "resolved_refund_partial"
 	DisputeStatusResolvedNoRefund      DisputeStatus = "resolved_no_refund"
 	DisputeStatusAutoClosed            DisputeStatus = "auto_closed"
+	DisputeStatusResolvedRemediation   DisputeStatus = "resolved_remediation"
 )
 
 func (e *DisputeStatus) Scan(src interface{}) error {
@@ -932,6 +933,10 @@ type Booking struct {
 	ReferralDiscountID       pgtype.UUID        `json:"referral_discount_id"`
 	PromoCodeID              pgtype.UUID        `json:"promo_code_id"`
 	PromoDiscountAmount      pgtype.Numeric     `json:"promo_discount_amount"`
+	StartLat                 pgtype.Numeric     `json:"start_lat"`
+	StartLng                 pgtype.Numeric     `json:"start_lng"`
+	FinishLat                pgtype.Numeric     `json:"finish_lat"`
+	FinishLng                pgtype.Numeric     `json:"finish_lng"`
 }
 
 type BookingDispute struct {

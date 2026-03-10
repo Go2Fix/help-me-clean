@@ -72,11 +72,15 @@ UPDATE bookings SET company_id = $2, worker_id = $3, status = 'assigned', update
 WHERE id = $1 RETURNING *;
 
 -- name: StartBooking :one
-UPDATE bookings SET status = 'in_progress', started_at = NOW(), updated_at = NOW()
+UPDATE bookings SET status = 'in_progress', started_at = NOW(), updated_at = NOW(),
+  start_lat = COALESCE($2, start_lat),
+  start_lng = COALESCE($3, start_lng)
 WHERE id = $1 RETURNING *;
 
 -- name: CompleteBooking :one
-UPDATE bookings SET status = 'completed', completed_at = NOW(), updated_at = NOW()
+UPDATE bookings SET status = 'completed', completed_at = NOW(), updated_at = NOW(),
+  finish_lat = COALESCE($2, finish_lat),
+  finish_lng = COALESCE($3, finish_lng)
 WHERE id = $1 RETURNING *;
 
 -- name: CountBookingsByStatus :one

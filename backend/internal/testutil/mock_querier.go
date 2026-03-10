@@ -356,7 +356,7 @@ func (m *PartialMockQuerier) ClearCompanyCommissionOverride(ctx context.Context,
 func (m *PartialMockQuerier) CompanyHasCategory(ctx context.Context, arg db.CompanyHasCategoryParams) (bool, error) {
 	panic("PartialMockQuerier: CompanyHasCategory not configured")
 }
-func (m *PartialMockQuerier) CompleteBooking(ctx context.Context, id pgtype.UUID) (db.Booking, error) {
+func (m *PartialMockQuerier) CompleteBooking(ctx context.Context, arg db.CompleteBookingParams) (db.Booking, error) {
 	panic("PartialMockQuerier: CompleteBooking not configured")
 }
 func (m *PartialMockQuerier) ConfirmReferralDiscountUsed(ctx context.Context, id pgtype.UUID) (db.ReferralEarnedDiscount, error) {
@@ -1220,7 +1220,7 @@ func (m *PartialMockQuerier) ListUnpaidCompanyTransactions(ctx context.Context, 
 func (m *PartialMockQuerier) ListUsersByRole(ctx context.Context, role db.UserRole) ([]db.User, error) {
 	panic("PartialMockQuerier: ListUsersByRole not configured")
 }
-func (m *PartialMockQuerier) ListWaitlistLeads(ctx context.Context, arg db.ListWaitlistLeadsParams) ([]db.WaitlistLead, error) {
+func (m *PartialMockQuerier) ListWaitlistLeads(ctx context.Context, arg db.ListWaitlistLeadsParams) ([]db.ListWaitlistLeadsRow, error) {
 	panic("PartialMockQuerier: ListWaitlistLeads not configured")
 }
 func (m *PartialMockQuerier) ListWorkerAvailability(ctx context.Context, workerID pgtype.UUID) ([]db.WorkerAvailability, error) {
@@ -1367,7 +1367,7 @@ func (m *PartialMockQuerier) SetUserStripeCustomerID(ctx context.Context, arg db
 func (m *PartialMockQuerier) SetWorkerAvailability(ctx context.Context, arg db.SetWorkerAvailabilityParams) (db.WorkerAvailability, error) {
 	panic("PartialMockQuerier: SetWorkerAvailability not configured")
 }
-func (m *PartialMockQuerier) StartBooking(ctx context.Context, id pgtype.UUID) (db.Booking, error) {
+func (m *PartialMockQuerier) StartBooking(ctx context.Context, arg db.StartBookingParams) (db.Booking, error) {
 	panic("PartialMockQuerier: StartBooking not configured")
 }
 func (m *PartialMockQuerier) SumCompanyEarnings(ctx context.Context, arg db.SumCompanyEarningsParams) (db.SumCompanyEarningsRow, error) {

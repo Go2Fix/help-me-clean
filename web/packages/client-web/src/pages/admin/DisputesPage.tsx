@@ -31,6 +31,7 @@ type DisputeStatusFilter =
   | 'RESOLVED_REFUND_FULL'
   | 'RESOLVED_REFUND_PARTIAL'
   | 'RESOLVED_NO_REFUND'
+  | 'RESOLVED_REMEDIATION'
   | 'AUTO_CLOSED';
 
 const STATUS_BADGE_VARIANT: Record<
@@ -43,6 +44,7 @@ const STATUS_BADGE_VARIANT: Record<
   RESOLVED_REFUND_FULL: 'success',
   RESOLVED_REFUND_PARTIAL: 'success',
   RESOLVED_NO_REFUND: 'default',
+  RESOLVED_REMEDIATION: 'info',
   AUTO_CLOSED: 'default',
 };
 
@@ -252,6 +254,7 @@ export default function DisputesPage() {
     { key: 'RESOLVED_REFUND_FULL', label: t('admin:disputes.statusTabs.RESOLVED_REFUND_FULL') },
     { key: 'RESOLVED_REFUND_PARTIAL', label: t('admin:disputes.statusTabs.RESOLVED_REFUND_PARTIAL') },
     { key: 'RESOLVED_NO_REFUND', label: t('admin:disputes.statusTabs.RESOLVED_NO_REFUND') },
+    { key: 'RESOLVED_REMEDIATION', label: 'Remediere solicitată' },
     { key: 'AUTO_CLOSED', label: t('admin:disputes.statusTabs.AUTO_CLOSED') },
   ];
 
@@ -259,6 +262,7 @@ export default function DisputesPage() {
     { value: 'RESOLVED_REFUND_FULL', label: t('admin:disputes.resolveModal.resolveOptions.RESOLVED_REFUND_FULL') },
     { value: 'RESOLVED_REFUND_PARTIAL', label: t('admin:disputes.resolveModal.resolveOptions.RESOLVED_REFUND_PARTIAL') },
     { value: 'RESOLVED_NO_REFUND', label: t('admin:disputes.resolveModal.resolveOptions.RESOLVED_NO_REFUND') },
+    { value: 'RESOLVED_REMEDIATION', label: 'Remediere Gratuită (echipa revine)' },
   ];
 
   const [statusFilter, setStatusFilter] = useState<DisputeStatusFilter>('ALL');

@@ -19,6 +19,7 @@ import {
   Scale,
   Tags,
   Inbox,
+  Clock,
 } from 'lucide-react';
 import DashboardLayout from './DashboardLayout';
 import { PENDING_CATEGORY_REQUESTS_COUNT, PENDING_REVIEW_COUNT } from '@/graphql/operations';
@@ -55,6 +56,7 @@ export default function AdminLayout() {
     { to: '/admin/promo-coduri', icon: Tag, label: t('nav.promoCodes') },
     { to: '/admin/dispute', icon: Scale, label: t('nav.disputes') },
     { to: '/admin/categorii-cereri', icon: Tags, label: 'Cereri categorii', badge: pendingCategoryCount },
+    { to: '/admin/lista-asteptare', icon: Clock, label: 'Listă așteptare' },
     { to: '/admin/setari', icon: Settings, label: t('nav.settings') },
   ], [t, pendingCategoryCount, totalPendingCount]);
 

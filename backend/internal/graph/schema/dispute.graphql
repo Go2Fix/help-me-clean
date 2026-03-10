@@ -6,6 +6,7 @@ enum DisputeStatus {
   RESOLVED_REFUND_PARTIAL
   RESOLVED_NO_REFUND
   AUTO_CLOSED
+  RESOLVED_REMEDIATION
 }
 
 enum DisputeReason {
@@ -57,4 +58,6 @@ extend type Mutation {
   respondToDispute(disputeId: ID!, response: String!): BookingDispute!
   # Admin: resolve a dispute
   resolveDispute(disputeId: ID!, status: DisputeStatus!, resolutionNotes: String!, refundAmount: Float): BookingDispute!
+  # Upload evidence file for a dispute (authenticated users)
+  uploadDisputeEvidence(file: Upload!): UploadResult!
 }

@@ -114,6 +114,10 @@ func (r *mutationResolver) SignInWithGoogle(ctx context.Context, idToken string,
 	// Send welcome email and upsert contact (non-blocking).
 	r.dispatchWelcomeAndUpsert(ctx, newUser)
 
+	// Remove from waitlist audiences if the user was a waitlist lead.
+	// dispatchWelcomeAndUpsert already adds them to the main audience.
+	go r.NotifSvc.RemoveFromWaitlistAudiences(ctx, newUser.Email)
+
 	// Link referral signup if a referral code was provided.
 	if referralCode != nil && *referralCode != "" {
 		r.processNewUserReferral(ctx, newUser.ID, *referralCode)
@@ -297,6 +301,10 @@ func (r *mutationResolver) VerifyEmailOtp(ctx context.Context, email string, cod
 	// Send welcome email for newly created users (non-blocking).
 	if isNewUser {
 		r.dispatchWelcomeAndUpsert(ctx, dbUser)
+
+		// Remove from waitlist audiences if the user was a waitlist lead.
+		// dispatchWelcomeAndUpsert already adds them to the main audience.
+		go r.NotifSvc.RemoveFromWaitlistAudiences(ctx, dbUser.Email)
 
 		// Link referral signup if a referral code was provided.
 		if referralCode != nil && *referralCode != "" {

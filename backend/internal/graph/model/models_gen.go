@@ -124,6 +124,10 @@ type Booking struct {
 	CompletedAt            *time.Time         `json:"completedAt,omitempty"`
 	CancelledAt            *time.Time         `json:"cancelledAt,omitempty"`
 	CancellationReason     *string            `json:"cancellationReason,omitempty"`
+	StartLat               *float64           `json:"startLat,omitempty"`
+	StartLng               *float64           `json:"startLng,omitempty"`
+	FinishLat              *float64           `json:"finishLat,omitempty"`
+	FinishLng              *float64           `json:"finishLng,omitempty"`
 	PaymentStatus          string             `json:"paymentStatus"`
 	PaidAt                 *time.Time         `json:"paidAt,omitempty"`
 	RecurringGroupID       *string            `json:"recurringGroupId,omitempty"`
@@ -1270,6 +1274,7 @@ type WaitlistLead struct {
 	CompanyName *string          `json:"companyName,omitempty"`
 	Message     *string          `json:"message,omitempty"`
 	CreatedAt   time.Time        `json:"createdAt"`
+	IsConverted *bool            `json:"isConverted,omitempty"`
 }
 
 type WaitlistStats struct {
@@ -1851,6 +1856,7 @@ const (
 	DisputeStatusResolvedRefundPartial DisputeStatus = "RESOLVED_REFUND_PARTIAL"
 	DisputeStatusResolvedNoRefund      DisputeStatus = "RESOLVED_NO_REFUND"
 	DisputeStatusAutoClosed            DisputeStatus = "AUTO_CLOSED"
+	DisputeStatusResolvedRemediation   DisputeStatus = "RESOLVED_REMEDIATION"
 )
 
 var AllDisputeStatus = []DisputeStatus{
@@ -1861,11 +1867,12 @@ var AllDisputeStatus = []DisputeStatus{
 	DisputeStatusResolvedRefundPartial,
 	DisputeStatusResolvedNoRefund,
 	DisputeStatusAutoClosed,
+	DisputeStatusResolvedRemediation,
 }
 
 func (e DisputeStatus) IsValid() bool {
 	switch e {
-	case DisputeStatusOpen, DisputeStatusCompanyResponded, DisputeStatusUnderReview, DisputeStatusResolvedRefundFull, DisputeStatusResolvedRefundPartial, DisputeStatusResolvedNoRefund, DisputeStatusAutoClosed:
+	case DisputeStatusOpen, DisputeStatusCompanyResponded, DisputeStatusUnderReview, DisputeStatusResolvedRefundFull, DisputeStatusResolvedRefundPartial, DisputeStatusResolvedNoRefund, DisputeStatusAutoClosed, DisputeStatusResolvedRemediation:
 		return true
 	}
 	return false

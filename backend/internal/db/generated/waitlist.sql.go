@@ -74,9 +74,11 @@ func (q *Queries) CreateWaitlistLead(ctx context.Context, arg CreateWaitlistLead
 }
 
 const listWaitlistLeads = `-- name: ListWaitlistLeads :many
-SELECT id, lead_type, name, email, phone, city, company_name, message, created_at FROM waitlist_leads
-WHERE ($1::text = '' OR lead_type::text = $1)
-ORDER BY created_at DESC
+SELECT wl.id, wl.lead_type, wl.name, wl.email, wl.phone, wl.city, wl.company_name, wl.message, wl.created_at, (u.id IS NOT NULL) AS is_converted
+FROM waitlist_leads wl
+LEFT JOIN users u ON lower(u.email) = lower(wl.email)
+WHERE ($1::text = '' OR wl.lead_type::text = $1)
+ORDER BY wl.created_at DESC
 LIMIT $2 OFFSET $3
 `
 
@@ -86,15 +88,28 @@ type ListWaitlistLeadsParams struct {
 	Offset  int32  `json:"offset"`
 }
 
-func (q *Queries) ListWaitlistLeads(ctx context.Context, arg ListWaitlistLeadsParams) ([]WaitlistLead, error) {
+type ListWaitlistLeadsRow struct {
+	ID          pgtype.UUID        `json:"id"`
+	LeadType    WaitlistLeadType   `json:"lead_type"`
+	Name        string             `json:"name"`
+	Email       string             `json:"email"`
+	Phone       pgtype.Text        `json:"phone"`
+	City        pgtype.Text        `json:"city"`
+	CompanyName pgtype.Text        `json:"company_name"`
+	Message     pgtype.Text        `json:"message"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	IsConverted interface{}        `json:"is_converted"`
+}
+
+func (q *Queries) ListWaitlistLeads(ctx context.Context, arg ListWaitlistLeadsParams) ([]ListWaitlistLeadsRow, error) {
 	rows, err := q.db.Query(ctx, listWaitlistLeads, arg.Column1, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []WaitlistLead
+	var items []ListWaitlistLeadsRow
 	for rows.Next() {
-		var i WaitlistLead
+		var i ListWaitlistLeadsRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.LeadType,
@@ -105,6 +120,7 @@ func (q *Queries) ListWaitlistLeads(ctx context.Context, arg ListWaitlistLeadsPa
 			&i.CompanyName,
 			&i.Message,
 			&i.CreatedAt,
+			&i.IsConverted,
 		); err != nil {
 			return nil, err
 		}

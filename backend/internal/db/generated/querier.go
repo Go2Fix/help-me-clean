@@ -39,7 +39,7 @@ type Querier interface {
 	ClearBookingReferralDiscount(ctx context.Context, id pgtype.UUID) error
 	ClearCompanyCommissionOverride(ctx context.Context, id pgtype.UUID) (Company, error)
 	CompanyHasCategory(ctx context.Context, arg CompanyHasCategoryParams) (bool, error)
-	CompleteBooking(ctx context.Context, id pgtype.UUID) (Booking, error)
+	CompleteBooking(ctx context.Context, arg CompleteBookingParams) (Booking, error)
 	ConfirmReferralDiscountUsed(ctx context.Context, id pgtype.UUID) (ReferralEarnedDiscount, error)
 	CountActiveEmailOTPs(ctx context.Context, email string) (int64, error)
 	CountActivePhoneOTPs(ctx context.Context, userID pgtype.UUID) (int64, error)
@@ -452,7 +452,7 @@ type Querier interface {
 	ListTodaysJobsByWorker(ctx context.Context, workerID pgtype.UUID) ([]Booking, error)
 	ListUnpaidCompanyTransactions(ctx context.Context, arg ListUnpaidCompanyTransactionsParams) ([]PaymentTransaction, error)
 	ListUsersByRole(ctx context.Context, role UserRole) ([]User, error)
-	ListWaitlistLeads(ctx context.Context, arg ListWaitlistLeadsParams) ([]WaitlistLead, error)
+	ListWaitlistLeads(ctx context.Context, arg ListWaitlistLeadsParams) ([]ListWaitlistLeadsRow, error)
 	ListWorkerAvailability(ctx context.Context, workerID pgtype.UUID) ([]WorkerAvailability, error)
 	ListWorkerBookingsForDate(ctx context.Context, arg ListWorkerBookingsForDateParams) ([]ListWorkerBookingsForDateRow, error)
 	ListWorkerDateOverrides(ctx context.Context, arg ListWorkerDateOverridesParams) ([]WorkerDateOverride, error)
@@ -507,7 +507,7 @@ type Querier interface {
 	SetUserStripeCustomerID(ctx context.Context, arg SetUserStripeCustomerIDParams) error
 	SetWorkerAvailability(ctx context.Context, arg SetWorkerAvailabilityParams) (WorkerAvailability, error)
 	SetWorkerInvitedCategories(ctx context.Context, arg SetWorkerInvitedCategoriesParams) error
-	StartBooking(ctx context.Context, id pgtype.UUID) (Booking, error)
+	StartBooking(ctx context.Context, arg StartBookingParams) (Booking, error)
 	// ============================================
 	// COMPANY EARNINGS (Reporting)
 	// ============================================

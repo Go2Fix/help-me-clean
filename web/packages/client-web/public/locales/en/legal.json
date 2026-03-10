@@ -51,7 +51,7 @@
       "p1": "The Client may cancel a booking at any time before the scheduled time, subject to the following refund conditions: (1) Free cancellation — more than 24 hours in advance: full refund (100%), funds returned to card within 3-5 business days; (2) Late cancellation — between 2 and 24 hours in advance: a 30% administration fee is retained, and the client receives 70% back; (3) Last-minute cancellation or no-show — less than 2 hours before, or if the team cannot access the location after waiting at least 20 minutes: no refund is issued, as the time slot was fully reserved.",
       "p2": "If the service provider cannot arrive due to their own fault (force majeure, vehicle breakdown, medical emergency), the client will be notified immediately and will receive a full refund (100%) or the option to reschedule with a 10% discount for the inconvenience.",
       "p3": "The Client may reschedule a booking free of charge at least 24 hours before the scheduled time. Rescheduling requests made less than 24 hours in advance may be treated as a late cancellation (per point 2 above) and a new booking.",
-      "p4": "If the service was not provided as contracted, the Client may request a partial or full refund through the Platform within 48 hours of the scheduled service completion. Refund requests are reviewed individually by the Go2Fix team."
+      "p4": "If the service was not provided as contracted, the Client may request a partial or full refund through the Platform within 24 hours of the scheduled service completion. Refund requests are reviewed individually by the Go2Fix team."
     },
     "s6": {
       "title": "6. Liability",

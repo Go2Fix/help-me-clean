@@ -110,6 +110,8 @@ type ComplexityRoot struct {
 		EstimatedTotal         func(childComplexity int) int
 		Extras                 func(childComplexity int) int
 		FinalTotal             func(childComplexity int) int
+		FinishLat              func(childComplexity int) int
+		FinishLng              func(childComplexity int) int
 		HasPets                func(childComplexity int) int
 		HourlyRate             func(childComplexity int) int
 		ID                     func(childComplexity int) int
@@ -135,6 +137,8 @@ type ComplexityRoot struct {
 		ServiceName            func(childComplexity int) int
 		ServiceType            func(childComplexity int) int
 		SpecialInstructions    func(childComplexity int) int
+		StartLat               func(childComplexity int) int
+		StartLng               func(childComplexity int) int
 		StartedAt              func(childComplexity int) int
 		Status                 func(childComplexity int) int
 		SubscriptionID         func(childComplexity int) int
@@ -499,7 +503,7 @@ type ComplexityRoot struct {
 		CancelInvoice                             func(childComplexity int, id string) int
 		CancelSubscription                        func(childComplexity int, id string, reason *string) int
 		ClaimCompany                              func(childComplexity int, claimToken string) int
-		CompleteJob                               func(childComplexity int, id string) int
+		CompleteJob                               func(childComplexity int, id string, latitude *float64, longitude *float64) int
 		ConfirmBooking                            func(childComplexity int, id string) int
 		CreateBookingPaymentIntent                func(childComplexity int, bookingID string) int
 		CreateBookingRequest                      func(childComplexity int, input model.CreateBookingInput) int
@@ -566,7 +570,7 @@ type ComplexityRoot struct {
 		SetWorkerDateOverride                     func(childComplexity int, date string, isAvailable bool, startTime string, endTime string) int
 		SetWorkerDateOverrideByAdmin              func(childComplexity int, workerID string, date string, isAvailable bool, startTime string, endTime string) int
 		SignInWithGoogle                          func(childComplexity int, idToken string, role model.UserRole, referralCode *string) int
-		StartJob                                  func(childComplexity int, id string) int
+		StartJob                                  func(childComplexity int, id string, latitude *float64, longitude *float64) int
 		SubmitPersonalityAssessment               func(childComplexity int, answers []*model.PersonalityAnswerInput) int
 		SubmitReview                              func(childComplexity int, input model.SubmitReviewInput) int
 		SuspendCompany                            func(childComplexity int, id string, reason string) int
@@ -597,6 +601,7 @@ type ComplexityRoot struct {
 		UploadAvatar                              func(childComplexity int, file graphql.Upload) int
 		UploadCompanyDocument                     func(childComplexity int, companyID string, documentType string, file graphql.Upload) int
 		UploadCompanyLogo                         func(childComplexity int, file graphql.Upload) int
+		UploadDisputeEvidence                     func(childComplexity int, file graphql.Upload) int
 		UploadFile                                func(childComplexity int, file graphql.Upload, purpose string) int
 		UploadJobPhoto                            func(childComplexity int, bookingID string, file graphql.Upload, phase string) int
 		UploadReviewPhotos                        func(childComplexity int, reviewID string, files []*graphql.Upload) int
@@ -1228,6 +1233,7 @@ type ComplexityRoot struct {
 		CreatedAt   func(childComplexity int) int
 		Email       func(childComplexity int) int
 		ID          func(childComplexity int) int
+		IsConverted func(childComplexity int) int
 		LeadType    func(childComplexity int) int
 		Message     func(childComplexity int) int
 		Name        func(childComplexity int) int
@@ -1352,8 +1358,8 @@ type MutationResolver interface {
 	CancelBooking(ctx context.Context, id string, reason *string) (*model.Booking, error)
 	AssignWorkerToBooking(ctx context.Context, bookingID string, workerID string) (*model.Booking, error)
 	ConfirmBooking(ctx context.Context, id string) (*model.Booking, error)
-	StartJob(ctx context.Context, id string) (*model.Booking, error)
-	CompleteJob(ctx context.Context, id string) (*model.Booking, error)
+	StartJob(ctx context.Context, id string, latitude *float64, longitude *float64) (*model.Booking, error)
+	CompleteJob(ctx context.Context, id string, latitude *float64, longitude *float64) (*model.Booking, error)
 	SelectBookingTimeSlot(ctx context.Context, bookingID string, timeSlotID string) (*model.Booking, error)
 	RescheduleBooking(ctx context.Context, id string, scheduledDate string, scheduledStartTime string, reason *string) (*model.Booking, error)
 	UploadJobPhoto(ctx context.Context, bookingID string, file graphql.Upload, phase string) (*model.BookingJobPhoto, error)
@@ -1384,6 +1390,7 @@ type MutationResolver interface {
 	AddDisputeEvidence(ctx context.Context, disputeID string, evidenceUrls []string) (*model.BookingDispute, error)
 	RespondToDispute(ctx context.Context, disputeID string, response string) (*model.BookingDispute, error)
 	ResolveDispute(ctx context.Context, disputeID string, status model.DisputeStatus, resolutionNotes string, refundAmount *float64) (*model.BookingDispute, error)
+	UploadDisputeEvidence(ctx context.Context, file graphql.Upload) (*model.UploadResult, error)
 	UpsertBillingProfile(ctx context.Context, input model.BillingProfileInput) (*model.ClientBillingProfile, error)
 	GenerateBookingInvoice(ctx context.Context, bookingID string) (*model.Invoice, error)
 	CancelInvoice(ctx context.Context, id string) (*model.Invoice, error)
@@ -1883,6 +1890,18 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Booking.FinalTotal(childComplexity), true
+	case "Booking.finishLat":
+		if e.complexity.Booking.FinishLat == nil {
+			break
+		}
+
+		return e.complexity.Booking.FinishLat(childComplexity), true
+	case "Booking.finishLng":
+		if e.complexity.Booking.FinishLng == nil {
+			break
+		}
+
+		return e.complexity.Booking.FinishLng(childComplexity), true
 	case "Booking.hasPets":
 		if e.complexity.Booking.HasPets == nil {
 			break
@@ -2033,6 +2052,18 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Booking.SpecialInstructions(childComplexity), true
+	case "Booking.startLat":
+		if e.complexity.Booking.StartLat == nil {
+			break
+		}
+
+		return e.complexity.Booking.StartLat(childComplexity), true
+	case "Booking.startLng":
+		if e.complexity.Booking.StartLng == nil {
+			break
+		}
+
+		return e.complexity.Booking.StartLng(childComplexity), true
 	case "Booking.startedAt":
 		if e.complexity.Booking.StartedAt == nil {
 			break
@@ -3742,7 +3773,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CompleteJob(childComplexity, args["id"].(string)), true
+		return e.complexity.Mutation.CompleteJob(childComplexity, args["id"].(string), args["latitude"].(*float64), args["longitude"].(*float64)), true
 	case "Mutation.confirmBooking":
 		if e.complexity.Mutation.ConfirmBooking == nil {
 			break
@@ -4439,7 +4470,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.StartJob(childComplexity, args["id"].(string)), true
+		return e.complexity.Mutation.StartJob(childComplexity, args["id"].(string), args["latitude"].(*float64), args["longitude"].(*float64)), true
 	case "Mutation.submitPersonalityAssessment":
 		if e.complexity.Mutation.SubmitPersonalityAssessment == nil {
 			break
@@ -4770,6 +4801,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.UploadCompanyLogo(childComplexity, args["file"].(graphql.Upload)), true
+	case "Mutation.uploadDisputeEvidence":
+		if e.complexity.Mutation.UploadDisputeEvidence == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_uploadDisputeEvidence_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UploadDisputeEvidence(childComplexity, args["file"].(graphql.Upload)), true
 	case "Mutation.uploadFile":
 		if e.complexity.Mutation.UploadFile == nil {
 			break
@@ -8077,6 +8119,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.WaitlistLead.ID(childComplexity), true
+	case "WaitlistLead.isConverted":
+		if e.complexity.WaitlistLead.IsConverted == nil {
+			break
+		}
+
+		return e.complexity.WaitlistLead.IsConverted(childComplexity), true
 	case "WaitlistLead.leadType":
 		if e.complexity.WaitlistLead.LeadType == nil {
 			break
@@ -8994,6 +9042,16 @@ func (ec *executionContext) field_Mutation_completeJob_args(ctx context.Context,
 		return nil, err
 	}
 	args["id"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "latitude", ec.unmarshalOFloat2ᚖfloat64)
+	if err != nil {
+		return nil, err
+	}
+	args["latitude"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "longitude", ec.unmarshalOFloat2ᚖfloat64)
+	if err != nil {
+		return nil, err
+	}
+	args["longitude"] = arg2
 	return args, nil
 }
 
@@ -9853,6 +9911,16 @@ func (ec *executionContext) field_Mutation_startJob_args(ctx context.Context, ra
 		return nil, err
 	}
 	args["id"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "latitude", ec.unmarshalOFloat2ᚖfloat64)
+	if err != nil {
+		return nil, err
+	}
+	args["latitude"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "longitude", ec.unmarshalOFloat2ᚖfloat64)
+	if err != nil {
+		return nil, err
+	}
+	args["longitude"] = arg2
 	return args, nil
 }
 
@@ -10271,6 +10339,17 @@ func (ec *executionContext) field_Mutation_uploadCompanyDocument_args(ctx contex
 }
 
 func (ec *executionContext) field_Mutation_uploadCompanyLogo_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "file", ec.unmarshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload)
+	if err != nil {
+		return nil, err
+	}
+	args["file"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_uploadDisputeEvidence_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "file", ec.unmarshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload)
@@ -13701,6 +13780,122 @@ func (ec *executionContext) fieldContext_Booking_cancellationReason(_ context.Co
 	return fc, nil
 }
 
+func (ec *executionContext) _Booking_startLat(ctx context.Context, field graphql.CollectedField, obj *model.Booking) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Booking_startLat,
+		func(ctx context.Context) (any, error) {
+			return obj.StartLat, nil
+		},
+		nil,
+		ec.marshalOFloat2ᚖfloat64,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Booking_startLat(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Booking",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Booking_startLng(ctx context.Context, field graphql.CollectedField, obj *model.Booking) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Booking_startLng,
+		func(ctx context.Context) (any, error) {
+			return obj.StartLng, nil
+		},
+		nil,
+		ec.marshalOFloat2ᚖfloat64,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Booking_startLng(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Booking",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Booking_finishLat(ctx context.Context, field graphql.CollectedField, obj *model.Booking) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Booking_finishLat,
+		func(ctx context.Context) (any, error) {
+			return obj.FinishLat, nil
+		},
+		nil,
+		ec.marshalOFloat2ᚖfloat64,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Booking_finishLat(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Booking",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Booking_finishLng(ctx context.Context, field graphql.CollectedField, obj *model.Booking) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Booking_finishLng,
+		func(ctx context.Context) (any, error) {
+			return obj.FinishLng, nil
+		},
+		nil,
+		ec.marshalOFloat2ᚖfloat64,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Booking_finishLng(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Booking",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Booking_paymentStatus(ctx context.Context, field graphql.CollectedField, obj *model.Booking) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -14592,6 +14787,14 @@ func (ec *executionContext) fieldContext_BookingConnection_edges(_ context.Conte
 				return ec.fieldContext_Booking_cancelledAt(ctx, field)
 			case "cancellationReason":
 				return ec.fieldContext_Booking_cancellationReason(ctx, field)
+			case "startLat":
+				return ec.fieldContext_Booking_startLat(ctx, field)
+			case "startLng":
+				return ec.fieldContext_Booking_startLng(ctx, field)
+			case "finishLat":
+				return ec.fieldContext_Booking_finishLat(ctx, field)
+			case "finishLng":
+				return ec.fieldContext_Booking_finishLng(ctx, field)
 			case "paymentStatus":
 				return ec.fieldContext_Booking_paymentStatus(ctx, field)
 			case "paidAt":
@@ -14835,6 +15038,14 @@ func (ec *executionContext) fieldContext_BookingDispute_booking(_ context.Contex
 				return ec.fieldContext_Booking_cancelledAt(ctx, field)
 			case "cancellationReason":
 				return ec.fieldContext_Booking_cancellationReason(ctx, field)
+			case "startLat":
+				return ec.fieldContext_Booking_startLat(ctx, field)
+			case "startLng":
+				return ec.fieldContext_Booking_startLng(ctx, field)
+			case "finishLat":
+				return ec.fieldContext_Booking_finishLat(ctx, field)
+			case "finishLng":
+				return ec.fieldContext_Booking_finishLng(ctx, field)
 			case "paymentStatus":
 				return ec.fieldContext_Booking_paymentStatus(ctx, field)
 			case "paidAt":
@@ -21006,6 +21217,14 @@ func (ec *executionContext) fieldContext_Invoice_booking(_ context.Context, fiel
 				return ec.fieldContext_Booking_cancelledAt(ctx, field)
 			case "cancellationReason":
 				return ec.fieldContext_Booking_cancellationReason(ctx, field)
+			case "startLat":
+				return ec.fieldContext_Booking_startLat(ctx, field)
+			case "startLng":
+				return ec.fieldContext_Booking_startLng(ctx, field)
+			case "finishLat":
+				return ec.fieldContext_Booking_finishLat(ctx, field)
+			case "finishLng":
+				return ec.fieldContext_Booking_finishLng(ctx, field)
 			case "paymentStatus":
 				return ec.fieldContext_Booking_paymentStatus(ctx, field)
 			case "paidAt":
@@ -22193,6 +22412,14 @@ func (ec *executionContext) fieldContext_Mutation_adminCancelBooking(ctx context
 				return ec.fieldContext_Booking_cancelledAt(ctx, field)
 			case "cancellationReason":
 				return ec.fieldContext_Booking_cancellationReason(ctx, field)
+			case "startLat":
+				return ec.fieldContext_Booking_startLat(ctx, field)
+			case "startLng":
+				return ec.fieldContext_Booking_startLng(ctx, field)
+			case "finishLat":
+				return ec.fieldContext_Booking_finishLat(ctx, field)
+			case "finishLng":
+				return ec.fieldContext_Booking_finishLng(ctx, field)
 			case "paymentStatus":
 				return ec.fieldContext_Booking_paymentStatus(ctx, field)
 			case "paidAt":
@@ -22326,6 +22553,14 @@ func (ec *executionContext) fieldContext_Mutation_adminRescheduleBooking(ctx con
 				return ec.fieldContext_Booking_cancelledAt(ctx, field)
 			case "cancellationReason":
 				return ec.fieldContext_Booking_cancellationReason(ctx, field)
+			case "startLat":
+				return ec.fieldContext_Booking_startLat(ctx, field)
+			case "startLng":
+				return ec.fieldContext_Booking_startLng(ctx, field)
+			case "finishLat":
+				return ec.fieldContext_Booking_finishLat(ctx, field)
+			case "finishLng":
+				return ec.fieldContext_Booking_finishLng(ctx, field)
 			case "paymentStatus":
 				return ec.fieldContext_Booking_paymentStatus(ctx, field)
 			case "paidAt":
@@ -23265,6 +23500,14 @@ func (ec *executionContext) fieldContext_Mutation_createBookingRequest(ctx conte
 				return ec.fieldContext_Booking_cancelledAt(ctx, field)
 			case "cancellationReason":
 				return ec.fieldContext_Booking_cancellationReason(ctx, field)
+			case "startLat":
+				return ec.fieldContext_Booking_startLat(ctx, field)
+			case "startLng":
+				return ec.fieldContext_Booking_startLng(ctx, field)
+			case "finishLat":
+				return ec.fieldContext_Booking_finishLat(ctx, field)
+			case "finishLng":
+				return ec.fieldContext_Booking_finishLng(ctx, field)
 			case "paymentStatus":
 				return ec.fieldContext_Booking_paymentStatus(ctx, field)
 			case "paidAt":
@@ -23398,6 +23641,14 @@ func (ec *executionContext) fieldContext_Mutation_cancelBooking(ctx context.Cont
 				return ec.fieldContext_Booking_cancelledAt(ctx, field)
 			case "cancellationReason":
 				return ec.fieldContext_Booking_cancellationReason(ctx, field)
+			case "startLat":
+				return ec.fieldContext_Booking_startLat(ctx, field)
+			case "startLng":
+				return ec.fieldContext_Booking_startLng(ctx, field)
+			case "finishLat":
+				return ec.fieldContext_Booking_finishLat(ctx, field)
+			case "finishLng":
+				return ec.fieldContext_Booking_finishLng(ctx, field)
 			case "paymentStatus":
 				return ec.fieldContext_Booking_paymentStatus(ctx, field)
 			case "paidAt":
@@ -23531,6 +23782,14 @@ func (ec *executionContext) fieldContext_Mutation_assignWorkerToBooking(ctx cont
 				return ec.fieldContext_Booking_cancelledAt(ctx, field)
 			case "cancellationReason":
 				return ec.fieldContext_Booking_cancellationReason(ctx, field)
+			case "startLat":
+				return ec.fieldContext_Booking_startLat(ctx, field)
+			case "startLng":
+				return ec.fieldContext_Booking_startLng(ctx, field)
+			case "finishLat":
+				return ec.fieldContext_Booking_finishLat(ctx, field)
+			case "finishLng":
+				return ec.fieldContext_Booking_finishLng(ctx, field)
 			case "paymentStatus":
 				return ec.fieldContext_Booking_paymentStatus(ctx, field)
 			case "paidAt":
@@ -23664,6 +23923,14 @@ func (ec *executionContext) fieldContext_Mutation_confirmBooking(ctx context.Con
 				return ec.fieldContext_Booking_cancelledAt(ctx, field)
 			case "cancellationReason":
 				return ec.fieldContext_Booking_cancellationReason(ctx, field)
+			case "startLat":
+				return ec.fieldContext_Booking_startLat(ctx, field)
+			case "startLng":
+				return ec.fieldContext_Booking_startLng(ctx, field)
+			case "finishLat":
+				return ec.fieldContext_Booking_finishLat(ctx, field)
+			case "finishLng":
+				return ec.fieldContext_Booking_finishLng(ctx, field)
 			case "paymentStatus":
 				return ec.fieldContext_Booking_paymentStatus(ctx, field)
 			case "paidAt":
@@ -23724,7 +23991,7 @@ func (ec *executionContext) _Mutation_startJob(ctx context.Context, field graphq
 		ec.fieldContext_Mutation_startJob,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().StartJob(ctx, fc.Args["id"].(string))
+			return ec.resolvers.Mutation().StartJob(ctx, fc.Args["id"].(string), fc.Args["latitude"].(*float64), fc.Args["longitude"].(*float64))
 		},
 		nil,
 		ec.marshalNBooking2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking,
@@ -23797,6 +24064,14 @@ func (ec *executionContext) fieldContext_Mutation_startJob(ctx context.Context, 
 				return ec.fieldContext_Booking_cancelledAt(ctx, field)
 			case "cancellationReason":
 				return ec.fieldContext_Booking_cancellationReason(ctx, field)
+			case "startLat":
+				return ec.fieldContext_Booking_startLat(ctx, field)
+			case "startLng":
+				return ec.fieldContext_Booking_startLng(ctx, field)
+			case "finishLat":
+				return ec.fieldContext_Booking_finishLat(ctx, field)
+			case "finishLng":
+				return ec.fieldContext_Booking_finishLng(ctx, field)
 			case "paymentStatus":
 				return ec.fieldContext_Booking_paymentStatus(ctx, field)
 			case "paidAt":
@@ -23857,7 +24132,7 @@ func (ec *executionContext) _Mutation_completeJob(ctx context.Context, field gra
 		ec.fieldContext_Mutation_completeJob,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().CompleteJob(ctx, fc.Args["id"].(string))
+			return ec.resolvers.Mutation().CompleteJob(ctx, fc.Args["id"].(string), fc.Args["latitude"].(*float64), fc.Args["longitude"].(*float64))
 		},
 		nil,
 		ec.marshalNBooking2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBooking,
@@ -23930,6 +24205,14 @@ func (ec *executionContext) fieldContext_Mutation_completeJob(ctx context.Contex
 				return ec.fieldContext_Booking_cancelledAt(ctx, field)
 			case "cancellationReason":
 				return ec.fieldContext_Booking_cancellationReason(ctx, field)
+			case "startLat":
+				return ec.fieldContext_Booking_startLat(ctx, field)
+			case "startLng":
+				return ec.fieldContext_Booking_startLng(ctx, field)
+			case "finishLat":
+				return ec.fieldContext_Booking_finishLat(ctx, field)
+			case "finishLng":
+				return ec.fieldContext_Booking_finishLng(ctx, field)
 			case "paymentStatus":
 				return ec.fieldContext_Booking_paymentStatus(ctx, field)
 			case "paidAt":
@@ -24063,6 +24346,14 @@ func (ec *executionContext) fieldContext_Mutation_selectBookingTimeSlot(ctx cont
 				return ec.fieldContext_Booking_cancelledAt(ctx, field)
 			case "cancellationReason":
 				return ec.fieldContext_Booking_cancellationReason(ctx, field)
+			case "startLat":
+				return ec.fieldContext_Booking_startLat(ctx, field)
+			case "startLng":
+				return ec.fieldContext_Booking_startLng(ctx, field)
+			case "finishLat":
+				return ec.fieldContext_Booking_finishLat(ctx, field)
+			case "finishLng":
+				return ec.fieldContext_Booking_finishLng(ctx, field)
 			case "paymentStatus":
 				return ec.fieldContext_Booking_paymentStatus(ctx, field)
 			case "paidAt":
@@ -24196,6 +24487,14 @@ func (ec *executionContext) fieldContext_Mutation_rescheduleBooking(ctx context.
 				return ec.fieldContext_Booking_cancelledAt(ctx, field)
 			case "cancellationReason":
 				return ec.fieldContext_Booking_cancellationReason(ctx, field)
+			case "startLat":
+				return ec.fieldContext_Booking_startLat(ctx, field)
+			case "startLng":
+				return ec.fieldContext_Booking_startLng(ctx, field)
+			case "finishLat":
+				return ec.fieldContext_Booking_finishLat(ctx, field)
+			case "finishLng":
+				return ec.fieldContext_Booking_finishLng(ctx, field)
 			case "paymentStatus":
 				return ec.fieldContext_Booking_paymentStatus(ctx, field)
 			case "paidAt":
@@ -26192,6 +26491,53 @@ func (ec *executionContext) fieldContext_Mutation_resolveDispute(ctx context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_uploadDisputeEvidence(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_uploadDisputeEvidence,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().UploadDisputeEvidence(ctx, fc.Args["file"].(graphql.Upload))
+		},
+		nil,
+		ec.marshalNUploadResult2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐUploadResult,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_uploadDisputeEvidence(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "url":
+				return ec.fieldContext_UploadResult_url(ctx, field)
+			case "fileName":
+				return ec.fieldContext_UploadResult_fileName(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type UploadResult", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_uploadDisputeEvidence_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_upsertBillingProfile(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -28068,6 +28414,14 @@ func (ec *executionContext) fieldContext_Mutation_markBookingPaid(ctx context.Co
 				return ec.fieldContext_Booking_cancelledAt(ctx, field)
 			case "cancellationReason":
 				return ec.fieldContext_Booking_cancellationReason(ctx, field)
+			case "startLat":
+				return ec.fieldContext_Booking_startLat(ctx, field)
+			case "startLng":
+				return ec.fieldContext_Booking_startLng(ctx, field)
+			case "finishLat":
+				return ec.fieldContext_Booking_finishLat(ctx, field)
+			case "finishLng":
+				return ec.fieldContext_Booking_finishLng(ctx, field)
 			case "paymentStatus":
 				return ec.fieldContext_Booking_paymentStatus(ctx, field)
 			case "paidAt":
@@ -28380,6 +28734,14 @@ func (ec *executionContext) fieldContext_Mutation_applyPromoCodeToBooking(ctx co
 				return ec.fieldContext_Booking_cancelledAt(ctx, field)
 			case "cancellationReason":
 				return ec.fieldContext_Booking_cancellationReason(ctx, field)
+			case "startLat":
+				return ec.fieldContext_Booking_startLat(ctx, field)
+			case "startLng":
+				return ec.fieldContext_Booking_startLng(ctx, field)
+			case "finishLat":
+				return ec.fieldContext_Booking_finishLat(ctx, field)
+			case "finishLng":
+				return ec.fieldContext_Booking_finishLng(ctx, field)
 			case "paymentStatus":
 				return ec.fieldContext_Booking_paymentStatus(ctx, field)
 			case "paidAt":
@@ -28651,6 +29013,14 @@ func (ec *executionContext) fieldContext_Mutation_applyReferralDiscountToBooking
 				return ec.fieldContext_Booking_cancelledAt(ctx, field)
 			case "cancellationReason":
 				return ec.fieldContext_Booking_cancellationReason(ctx, field)
+			case "startLat":
+				return ec.fieldContext_Booking_startLat(ctx, field)
+			case "startLng":
+				return ec.fieldContext_Booking_startLng(ctx, field)
+			case "finishLat":
+				return ec.fieldContext_Booking_finishLat(ctx, field)
+			case "finishLng":
+				return ec.fieldContext_Booking_finishLng(ctx, field)
 			case "paymentStatus":
 				return ec.fieldContext_Booking_paymentStatus(ctx, field)
 			case "paidAt":
@@ -30757,6 +31127,8 @@ func (ec *executionContext) fieldContext_Mutation_joinWaitlist(ctx context.Conte
 				return ec.fieldContext_WaitlistLead_message(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_WaitlistLead_createdAt(ctx, field)
+			case "isConverted":
+				return ec.fieldContext_WaitlistLead_isConverted(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type WaitlistLead", field.Name)
 		},
@@ -32443,6 +32815,14 @@ func (ec *executionContext) fieldContext_PaymentHistoryEntry_booking(_ context.C
 				return ec.fieldContext_Booking_cancelledAt(ctx, field)
 			case "cancellationReason":
 				return ec.fieldContext_Booking_cancellationReason(ctx, field)
+			case "startLat":
+				return ec.fieldContext_Booking_startLat(ctx, field)
+			case "startLng":
+				return ec.fieldContext_Booking_startLng(ctx, field)
+			case "finishLat":
+				return ec.fieldContext_Booking_finishLat(ctx, field)
+			case "finishLng":
+				return ec.fieldContext_Booking_finishLng(ctx, field)
 			case "paymentStatus":
 				return ec.fieldContext_Booking_paymentStatus(ctx, field)
 			case "paidAt":
@@ -33086,6 +33466,14 @@ func (ec *executionContext) fieldContext_PaymentTransaction_booking(_ context.Co
 				return ec.fieldContext_Booking_cancelledAt(ctx, field)
 			case "cancellationReason":
 				return ec.fieldContext_Booking_cancellationReason(ctx, field)
+			case "startLat":
+				return ec.fieldContext_Booking_startLat(ctx, field)
+			case "startLng":
+				return ec.fieldContext_Booking_startLng(ctx, field)
+			case "finishLat":
+				return ec.fieldContext_Booking_finishLat(ctx, field)
+			case "finishLng":
+				return ec.fieldContext_Booking_finishLng(ctx, field)
 			case "paymentStatus":
 				return ec.fieldContext_Booking_paymentStatus(ctx, field)
 			case "paidAt":
@@ -33497,6 +33885,14 @@ func (ec *executionContext) fieldContext_PayoutLineItem_booking(_ context.Contex
 				return ec.fieldContext_Booking_cancelledAt(ctx, field)
 			case "cancellationReason":
 				return ec.fieldContext_Booking_cancellationReason(ctx, field)
+			case "startLat":
+				return ec.fieldContext_Booking_startLat(ctx, field)
+			case "startLng":
+				return ec.fieldContext_Booking_startLng(ctx, field)
+			case "finishLat":
+				return ec.fieldContext_Booking_finishLat(ctx, field)
+			case "finishLng":
+				return ec.fieldContext_Booking_finishLng(ctx, field)
 			case "paymentStatus":
 				return ec.fieldContext_Booking_paymentStatus(ctx, field)
 			case "paidAt":
@@ -38017,6 +38413,14 @@ func (ec *executionContext) fieldContext_Query_booking(ctx context.Context, fiel
 				return ec.fieldContext_Booking_cancelledAt(ctx, field)
 			case "cancellationReason":
 				return ec.fieldContext_Booking_cancellationReason(ctx, field)
+			case "startLat":
+				return ec.fieldContext_Booking_startLat(ctx, field)
+			case "startLng":
+				return ec.fieldContext_Booking_startLng(ctx, field)
+			case "finishLat":
+				return ec.fieldContext_Booking_finishLat(ctx, field)
+			case "finishLng":
+				return ec.fieldContext_Booking_finishLng(ctx, field)
 			case "paymentStatus":
 				return ec.fieldContext_Booking_paymentStatus(ctx, field)
 			case "paidAt":
@@ -38248,6 +38652,14 @@ func (ec *executionContext) fieldContext_Query_companyBookingsByDateRange(ctx co
 				return ec.fieldContext_Booking_cancelledAt(ctx, field)
 			case "cancellationReason":
 				return ec.fieldContext_Booking_cancellationReason(ctx, field)
+			case "startLat":
+				return ec.fieldContext_Booking_startLat(ctx, field)
+			case "startLng":
+				return ec.fieldContext_Booking_startLng(ctx, field)
+			case "finishLat":
+				return ec.fieldContext_Booking_finishLat(ctx, field)
+			case "finishLng":
+				return ec.fieldContext_Booking_finishLng(ctx, field)
 			case "paymentStatus":
 				return ec.fieldContext_Booking_paymentStatus(ctx, field)
 			case "paidAt":
@@ -42638,6 +43050,8 @@ func (ec *executionContext) fieldContext_Query_waitlistLeads(ctx context.Context
 				return ec.fieldContext_WaitlistLead_message(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_WaitlistLead_createdAt(ctx, field)
+			case "isConverted":
+				return ec.fieldContext_WaitlistLead_isConverted(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type WaitlistLead", field.Name)
 		},
@@ -43051,6 +43465,14 @@ func (ec *executionContext) fieldContext_Query_myWorkerBookingsByDateRange(ctx c
 				return ec.fieldContext_Booking_cancelledAt(ctx, field)
 			case "cancellationReason":
 				return ec.fieldContext_Booking_cancellationReason(ctx, field)
+			case "startLat":
+				return ec.fieldContext_Booking_startLat(ctx, field)
+			case "startLng":
+				return ec.fieldContext_Booking_startLng(ctx, field)
+			case "finishLat":
+				return ec.fieldContext_Booking_finishLat(ctx, field)
+			case "finishLng":
+				return ec.fieldContext_Booking_finishLng(ctx, field)
 			case "paymentStatus":
 				return ec.fieldContext_Booking_paymentStatus(ctx, field)
 			case "paidAt":
@@ -44242,6 +44664,14 @@ func (ec *executionContext) fieldContext_RefundRequest_booking(_ context.Context
 				return ec.fieldContext_Booking_cancelledAt(ctx, field)
 			case "cancellationReason":
 				return ec.fieldContext_Booking_cancellationReason(ctx, field)
+			case "startLat":
+				return ec.fieldContext_Booking_startLat(ctx, field)
+			case "startLng":
+				return ec.fieldContext_Booking_startLng(ctx, field)
+			case "finishLat":
+				return ec.fieldContext_Booking_finishLat(ctx, field)
+			case "finishLng":
+				return ec.fieldContext_Booking_finishLng(ctx, field)
 			case "paymentStatus":
 				return ec.fieldContext_Booking_paymentStatus(ctx, field)
 			case "paidAt":
@@ -44817,6 +45247,14 @@ func (ec *executionContext) fieldContext_Review_booking(_ context.Context, field
 				return ec.fieldContext_Booking_cancelledAt(ctx, field)
 			case "cancellationReason":
 				return ec.fieldContext_Booking_cancellationReason(ctx, field)
+			case "startLat":
+				return ec.fieldContext_Booking_startLat(ctx, field)
+			case "startLng":
+				return ec.fieldContext_Booking_startLng(ctx, field)
+			case "finishLat":
+				return ec.fieldContext_Booking_finishLat(ctx, field)
+			case "finishLng":
+				return ec.fieldContext_Booking_finishLng(ctx, field)
 			case "paymentStatus":
 				return ec.fieldContext_Booking_paymentStatus(ctx, field)
 			case "paidAt":
@@ -48010,6 +48448,14 @@ func (ec *executionContext) fieldContext_ServiceSubscription_bookings(_ context.
 				return ec.fieldContext_Booking_cancelledAt(ctx, field)
 			case "cancellationReason":
 				return ec.fieldContext_Booking_cancellationReason(ctx, field)
+			case "startLat":
+				return ec.fieldContext_Booking_startLat(ctx, field)
+			case "startLng":
+				return ec.fieldContext_Booking_startLng(ctx, field)
+			case "finishLat":
+				return ec.fieldContext_Booking_finishLat(ctx, field)
+			case "finishLng":
+				return ec.fieldContext_Booking_finishLng(ctx, field)
 			case "paymentStatus":
 				return ec.fieldContext_Booking_paymentStatus(ctx, field)
 			case "paidAt":
@@ -48131,6 +48577,14 @@ func (ec *executionContext) fieldContext_ServiceSubscription_upcomingBookings(_ 
 				return ec.fieldContext_Booking_cancelledAt(ctx, field)
 			case "cancellationReason":
 				return ec.fieldContext_Booking_cancellationReason(ctx, field)
+			case "startLat":
+				return ec.fieldContext_Booking_startLat(ctx, field)
+			case "startLng":
+				return ec.fieldContext_Booking_startLng(ctx, field)
+			case "finishLat":
+				return ec.fieldContext_Booking_finishLat(ctx, field)
+			case "finishLng":
+				return ec.fieldContext_Booking_finishLng(ctx, field)
 			case "paymentStatus":
 				return ec.fieldContext_Booking_paymentStatus(ctx, field)
 			case "paidAt":
@@ -50324,6 +50778,35 @@ func (ec *executionContext) fieldContext_WaitlistLead_createdAt(_ context.Contex
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type DateTime does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _WaitlistLead_isConverted(ctx context.Context, field graphql.CollectedField, obj *model.WaitlistLead) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_WaitlistLead_isConverted,
+		func(ctx context.Context) (any, error) {
+			return obj.IsConverted, nil
+		},
+		nil,
+		ec.marshalOBoolean2ᚖbool,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_WaitlistLead_isConverted(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "WaitlistLead",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -56564,6 +57047,14 @@ func (ec *executionContext) _Booking(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = ec._Booking_cancelledAt(ctx, field, obj)
 		case "cancellationReason":
 			out.Values[i] = ec._Booking_cancellationReason(ctx, field, obj)
+		case "startLat":
+			out.Values[i] = ec._Booking_startLat(ctx, field, obj)
+		case "startLng":
+			out.Values[i] = ec._Booking_startLng(ctx, field, obj)
+		case "finishLat":
+			out.Values[i] = ec._Booking_finishLat(ctx, field, obj)
+		case "finishLng":
+			out.Values[i] = ec._Booking_finishLng(ctx, field, obj)
 		case "paymentStatus":
 			out.Values[i] = ec._Booking_paymentStatus(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -59252,6 +59743,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "resolveDispute":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_resolveDispute(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "uploadDisputeEvidence":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_uploadDisputeEvidence(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -65710,6 +66208,8 @@ func (ec *executionContext) _WaitlistLead(ctx context.Context, sel ast.Selection
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "isConverted":
+			out.Values[i] = ec._WaitlistLead_isConverted(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
