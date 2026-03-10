@@ -13,7 +13,7 @@ import (
 	"log"
 	"os"
 
-	resend "github.com/resend/resend-go/v2"
+	resend "github.com/resend/resend-go/v3"
 )
 
 // SendContactMessage forwards a contact form submission to the support team and

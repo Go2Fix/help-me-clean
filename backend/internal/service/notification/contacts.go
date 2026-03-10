@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	resend "github.com/resend/resend-go/v2"
+	resend "github.com/resend/resend-go/v3"
 )
 
 // ContactData carries the fields needed to create or update a Resend audience contact.
@@ -82,7 +82,7 @@ func (e *EmailChannel) DeleteContact(ctx context.Context, audienceID, email stri
 	}
 
 	// List contacts to find the one matching the email.
-	resp, err := e.client.Contacts.List(audienceID)
+	resp, err := e.client.Contacts.List(&resend.ListContactsOptions{AudienceId: audienceID})
 	if err != nil {
 		log.Printf("[notification/contacts] delete: failed to list contacts in audience %s: %v", audienceID, err)
 		return
@@ -101,7 +101,7 @@ func (e *EmailChannel) DeleteContact(ctx context.Context, audienceID, email stri
 		return
 	}
 
-	if _, err := e.client.Contacts.Remove(audienceID, contactID); err != nil {
+	if _, err := e.client.Contacts.Remove(&resend.RemoveContactOptions{AudienceId: audienceID, Id: contactID}); err != nil {
 		log.Printf("[notification/contacts] delete: failed to remove contact %s from audience %s: %v", email, audienceID, err)
 	}
 }

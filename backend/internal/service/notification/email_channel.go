@@ -91,10 +91,8 @@ type EmailChannel struct {
 }
 
 // NewEmailChannel reads RESEND_API_KEY and RESEND_FROM_EMAIL from env and resolves
-// all template IDs. The audience ID is resolved automatically: if RESEND_AUDIENCE_ID
-// is set it is used directly; otherwise the first existing Resend audience is used;
-// if none exists a new "Go2Fix Users" audience is created. Returns nil if RESEND_API_KEY
-// is not set.
+// all template IDs. The audience ID is read from RESEND_AUDIENCE_ID env var; if not
+// set, contact upserts are disabled. Returns nil if RESEND_API_KEY is not set.
 func NewEmailChannel() *EmailChannel {
 	apiKey := os.Getenv("RESEND_API_KEY")
 	if apiKey == "" {
@@ -113,19 +111,18 @@ func NewEmailChannel() *EmailChannel {
 		}
 	}
 
-	client := resend.NewClient(apiKey)
-	audienceID := resolveAudienceID(client)
-
 	audienceWaitlistClientID := os.Getenv("RESEND_AUDIENCE_WAITLIST_CLIENT")
 	audienceWaitlistCompanyID := os.Getenv("RESEND_AUDIENCE_WAITLIST_COMPANY")
 
 	return &EmailChannel{
-		client:                   client,
-		from:                     from,
-		audienceID:               audienceID,
+		client:                    resend.NewClient(apiKey),
+		from:                      from,
+		audienceID:                resolveAudienceID(),
 		audienceWaitlistClientID:  audienceWaitlistClientID,
 		audienceWaitlistCompanyID: audienceWaitlistCompanyID,
 		templates:                 templates,
+		// Stay safely under Resend's 2 req/s rate limit.
+		limiter: rate.NewLimiter(rate.Limit(1.5), 1),
 	}
 }
 
@@ -145,29 +142,14 @@ func (e *EmailChannel) AudienceWaitlistCompanyID() string {
 	return e.audienceWaitlistCompanyID
 }
 
-// resolveAudienceID returns the audience ID to use for contact management.
-// Priority: RESEND_AUDIENCE_ID env var → first existing audience → newly created audience.
-func resolveAudienceID(client *resend.Client) string {
-	if id := os.Getenv("RESEND_AUDIENCE_ID"); id != "" {
-		return id
+// resolveAudienceID returns the audience ID from the RESEND_AUDIENCE_ID env var.
+// No API calls are made at startup to avoid hitting Resend's rate limit on cold starts.
+func resolveAudienceID() string {
+	id := os.Getenv("RESEND_AUDIENCE_ID")
+	if id == "" {
+		log.Println("[notification/email] RESEND_AUDIENCE_ID not set — contact upserts disabled")
 	}
-
-	// List existing audiences — use the first one found.
-	resp, err := client.Audiences.List()
-	if err == nil && len(resp.Data) > 0 {
-		id := resp.Data[0].Id
-		log.Printf("[notification/email] using Resend audience id=%s name=%q", id, resp.Data[0].Name)
-		return id
-	}
-
-	// No audience found — create one.
-	created, err := client.Audiences.Create(&resend.CreateAudienceRequest{Name: "Go2Fix Users"})
-	if err != nil {
-		log.Printf("[notification/email] failed to create Resend audience: %v — contact upserts disabled", err)
-		return ""
-	}
-	log.Printf("[notification/email] created Resend audience id=%s", created.Id)
-	return created.Id
+	return id
 }
 
 // Name implements Channel.
@@ -183,7 +165,7 @@ func (e *EmailChannel) Send(ctx context.Context, event Event, payload Payload, t
 		if target.Email == "" {
 			continue
 		}
-		if err := e.sendToTarget(event, payload, target); err != nil {
+		if err := e.sendToTarget(ctx, event, payload, target); err != nil {
 			log.Printf("[notification/email] failed to send %s to %s: %v", event, target.Email, err)
 		}
 	}
@@ -198,10 +180,14 @@ func (e *EmailChannel) Send(ctx context.Context, event Event, payload Payload, t
 }
 
 // sendToTarget builds and sends a single email via the Resend API.
-func (e *EmailChannel) sendToTarget(event Event, payload Payload, target Target) error {
+func (e *EmailChannel) sendToTarget(ctx context.Context, event Event, payload Payload, target Target) error {
 	subject, ok := emailSubjects[event]
 	if !ok {
 		subject = "Notificare Go2Fix"
+	}
+
+	if err := e.limiter.Wait(ctx); err != nil {
+		return err
 	}
 
 	req := &resend.SendEmailRequest{
