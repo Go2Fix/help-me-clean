@@ -158,11 +158,11 @@ func (s *Service) UpsertContact(ctx context.Context, data ContactData) {
 func (s *Service) RemoveFromWaitlistAudiences(ctx context.Context, email string) {
 	for _, ch := range s.channels {
 		if e, ok := ch.(*EmailChannel); ok {
-			if e.audienceWaitlistClientID != "" {
-				e.DeleteContact(ctx, e.audienceWaitlistClientID, email)
+			if e.segmentWaitlistClientID != "" {
+				e.DeleteContact(ctx, e.segmentWaitlistClientID, email)
 			}
-			if e.audienceWaitlistCompanyID != "" {
-				e.DeleteContact(ctx, e.audienceWaitlistCompanyID, email)
+			if e.segmentWaitlistCompanyID != "" {
+				e.DeleteContact(ctx, e.segmentWaitlistCompanyID, email)
 			}
 		}
 	}

@@ -78,11 +78,11 @@ var emailSubjects = map[Event]string{
 
 // EmailChannel delivers notifications via Resend.
 type EmailChannel struct {
-	client                   *resend.Client
-	from                     string
-	audienceID               string
-	audienceWaitlistClientID  string
-	audienceWaitlistCompanyID string
+	client                    *resend.Client
+	from                      string
+	segmentID                 string
+	segmentWaitlistClientID   string
+	segmentWaitlistCompanyID  string
 	// templates holds resolved event → template-ID pairs (informational only;
 	// the v3 SDK sends raw HTML, not template references).
 	templates map[Event]string
@@ -91,7 +91,7 @@ type EmailChannel struct {
 }
 
 // NewEmailChannel reads RESEND_API_KEY and RESEND_FROM_EMAIL from env and resolves
-// all template IDs. The audience ID is read from RESEND_AUDIENCE_ID env var; if not
+// all template IDs. The segment ID is read from RESEND_SEGMENT_ID env var; if not
 // set, contact upserts are disabled. Returns nil if RESEND_API_KEY is not set.
 func NewEmailChannel() *EmailChannel {
 	apiKey := os.Getenv("RESEND_API_KEY")
@@ -111,45 +111,37 @@ func NewEmailChannel() *EmailChannel {
 		}
 	}
 
-	audienceWaitlistClientID := os.Getenv("RESEND_AUDIENCE_WAITLIST_CLIENT")
-	audienceWaitlistCompanyID := os.Getenv("RESEND_AUDIENCE_WAITLIST_COMPANY")
+	segmentID := os.Getenv("RESEND_SEGMENT_ID")
+	if segmentID == "" {
+		log.Println("[notification/email] RESEND_SEGMENT_ID not set — contact upserts disabled")
+	}
 
 	return &EmailChannel{
-		client:                    resend.NewClient(apiKey),
-		from:                      from,
-		audienceID:                resolveAudienceID(),
-		audienceWaitlistClientID:  audienceWaitlistClientID,
-		audienceWaitlistCompanyID: audienceWaitlistCompanyID,
-		templates:                 templates,
+		client:                   resend.NewClient(apiKey),
+		from:                     from,
+		segmentID:                segmentID,
+		segmentWaitlistClientID:  os.Getenv("RESEND_SEGMENT_WAITLIST_CLIENT"),
+		segmentWaitlistCompanyID: os.Getenv("RESEND_SEGMENT_WAITLIST_COMPANY"),
+		templates:                templates,
 		// Stay safely under Resend's 2 req/s rate limit.
 		limiter: rate.NewLimiter(rate.Limit(1.5), 1),
 	}
 }
 
-// AudienceWaitlistClientID returns the Resend audience ID for waitlist client leads.
-func (e *EmailChannel) AudienceWaitlistClientID() string {
+// SegmentWaitlistClientID returns the Resend segment ID for waitlist client leads.
+func (e *EmailChannel) SegmentWaitlistClientID() string {
 	if e == nil {
 		return ""
 	}
-	return e.audienceWaitlistClientID
+	return e.segmentWaitlistClientID
 }
 
-// AudienceWaitlistCompanyID returns the Resend audience ID for waitlist company leads.
-func (e *EmailChannel) AudienceWaitlistCompanyID() string {
+// SegmentWaitlistCompanyID returns the Resend segment ID for waitlist company leads.
+func (e *EmailChannel) SegmentWaitlistCompanyID() string {
 	if e == nil {
 		return ""
 	}
-	return e.audienceWaitlistCompanyID
-}
-
-// resolveAudienceID returns the audience ID from the RESEND_AUDIENCE_ID env var.
-// No API calls are made at startup to avoid hitting Resend's rate limit on cold starts.
-func resolveAudienceID() string {
-	id := os.Getenv("RESEND_AUDIENCE_ID")
-	if id == "" {
-		log.Println("[notification/email] RESEND_AUDIENCE_ID not set — contact upserts disabled")
-	}
-	return id
+	return e.segmentWaitlistCompanyID
 }
 
 // Name implements Channel.
