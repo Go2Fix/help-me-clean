@@ -120,6 +120,7 @@ input BookingOrderByInput {
 type BookingPolicy {
   cancelFreeHoursBefore: Int!
   cancelLateRefundPct: Int!
+  cancelNoRefundHoursBefore: Int!
   rescheduleFreeHoursBefore: Int!
   rescheduleMaxPerBooking: Int!
 }

@@ -48,9 +48,10 @@
     },
     "s5": {
       "title": "5. Anulare, reprogramare și rambursare",
-      "p1": "Clientul poate anula o rezervare oricând înainte de ora programată, cu următoarele condiții de rambursare: anulările efectuate cu cel puțin 48 de ore înainte beneficiază de rambursare integrală (100%); anulările efectuate între 24 și 48 de ore înainte beneficiază de rambursare parțială de 50% din valoarea plătită; anulările efectuate cu mai puțin de 24 de ore înainte de ora programată nu beneficiază de nicio rambursare.",
-      "p2": "Clientul poate reprograma o rezervare cu cel puțin 24 de ore înainte de ora programată, de maximum 2 ori per rezervare. Reprogramările efectuate cu mai puțin de 24 de ore înainte nu sunt permise.",
-      "p3": "În cazul în care serviciul nu a fost prestat conform contractului, Clientul poate solicita o rambursare parțială sau totală prin intermediul Platformei, în termen de 48 de ore de la finalizarea programată a serviciului. Cererile de rambursare sunt analizate individual de echipa Go2Fix."
+      "p1": "Clientul poate anula o rezervare oricând înainte de ora programată, cu următoarele condiții de rambursare: (1) Anulare gratuită — cu mai mult de 24 de ore înainte: rambursare integrală 100%, banii revenind pe card în 3-5 zile lucrătoare; (2) Anulare târzie — între 2 și 24 de ore înainte: se reține o taxă de administrare de 30% din valoarea comenzii, clientul primind înapoi 70%; (3) Anulare de ultim moment sau neprezentare — cu mai puțin de 2 ore înainte sau dacă echipa nu poate accesa locația după minim 20 de minute de așteptare: nu se acordă nicio rambursare, intervalul orar fiind blocat integral.",
+      "p2": "În cazul în care furnizorul nu poate ajunge din vina sa (forță majoră, defecțiune auto, urgență medicală), clientul va fi notificat imediat și va primi rambursare integrală (100%) sau posibilitatea de reprogramare cu un discount de 10% pentru inconveniența creată.",
+      "p3": "Clientul poate reprograma o rezervare gratuit cu cel puțin 24 de ore înainte de ora programată. Reprogramările solicitate cu mai puțin de 24 de ore înainte pot fi tratate ca o anulare târzie (conform punctului 2 de mai sus) și o rezervare nouă.",
+      "p4": "În cazul în care serviciul nu a fost prestat conform contractului, Clientul poate solicita o rambursare parțială sau totală prin intermediul Platformei, în termen de 48 de ore de la finalizarea programată a serviciului. Cererile de rambursare sunt analizate individual de echipa Go2Fix."
     },
     "s6": {
       "title": "6. Răspundere",

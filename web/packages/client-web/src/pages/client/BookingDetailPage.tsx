@@ -1413,18 +1413,35 @@ export default function BookingDetailPage() {
             const policy = policyData?.bookingPolicy;
             if (!policy) return null;
             const hoursUntil = hoursUntilBooking;
+            const noRefundHours: number = (policy.cancelNoRefundHoursBefore as number | null | undefined) ?? 2;
+            const totalRON: number = booking.finalTotal ?? booking.estimatedTotal;
             let msg: string;
+            let msgVariant: 'info' | 'warning' | 'danger' = 'info';
             if (hoursUntil >= policy.cancelFreeHoursBefore) {
-              msg = 'Vei primi o rambursare completa (100%).';
-            } else if (hoursUntil >= 24) {
-              msg = `Vei primi o rambursare partiala (${policy.cancelLateRefundPct}%).`;
+              msg = 'Vei primi o rambursare completă (100%).';
+              msgVariant = 'info';
+            } else if (hoursUntil >= noRefundHours) {
+              const refundAmount = (totalRON * policy.cancelLateRefundPct / 100).toFixed(2);
+              msg = `Atenție! Dacă anulezi acum, vei primi înapoi ${refundAmount} RON (${policy.cancelLateRefundPct}%) conform politicii noastre. Se va reține o taxă de administrare de ${100 - policy.cancelLateRefundPct}%.`;
+              msgVariant = 'warning';
             } else {
-              msg = 'Nu se acorda rambursare pentru anulari cu mai putin de 24 de ore inainte.';
+              msg = `Nu se acordă rambursare pentru anulări cu mai puțin de ${noRefundHours} ore înainte de ora programată.`;
+              msgVariant = 'danger';
             }
+            const variantClasses = {
+              info: 'bg-blue-50 border-blue-100 text-blue-700',
+              warning: 'bg-amber-50 border-amber-100 text-amber-700',
+              danger: 'bg-red-50 border-red-100 text-red-700',
+            } as const;
+            const iconClasses = {
+              info: 'text-blue-600',
+              warning: 'text-amber-600',
+              danger: 'text-red-600',
+            } as const;
             return (
-              <div className="flex items-start gap-3 p-3 mb-4 rounded-xl bg-blue-50 border border-blue-100">
-                <AlertTriangle className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
-                <p className="text-sm text-blue-800">{msg}</p>
+              <div className={`flex items-start gap-3 p-3 mb-4 rounded-xl border ${variantClasses[msgVariant]}`}>
+                <AlertTriangle className={`h-4 w-4 shrink-0 mt-0.5 ${iconClasses[msgVariant]}`} />
+                <p className="text-sm">{msg}</p>
               </div>
             );
           })()}

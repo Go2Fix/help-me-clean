@@ -196,6 +196,7 @@ type ComplexityRoot struct {
 	BookingPolicy struct {
 		CancelFreeHoursBefore     func(childComplexity int) int
 		CancelLateRefundPct       func(childComplexity int) int
+		CancelNoRefundHoursBefore func(childComplexity int) int
 		RescheduleFreeHoursBefore func(childComplexity int) int
 		RescheduleMaxPerBooking   func(childComplexity int) int
 	}
@@ -2296,6 +2297,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.BookingPolicy.CancelLateRefundPct(childComplexity), true
+	case "BookingPolicy.cancelNoRefundHoursBefore":
+		if e.complexity.BookingPolicy.CancelNoRefundHoursBefore == nil {
+			break
+		}
+
+		return e.complexity.BookingPolicy.CancelNoRefundHoursBefore(childComplexity), true
 	case "BookingPolicy.rescheduleFreeHoursBefore":
 		if e.complexity.BookingPolicy.RescheduleFreeHoursBefore == nil {
 			break
@@ -15623,6 +15630,35 @@ func (ec *executionContext) _BookingPolicy_cancelLateRefundPct(ctx context.Conte
 }
 
 func (ec *executionContext) fieldContext_BookingPolicy_cancelLateRefundPct(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BookingPolicy",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BookingPolicy_cancelNoRefundHoursBefore(ctx context.Context, field graphql.CollectedField, obj *model.BookingPolicy) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BookingPolicy_cancelNoRefundHoursBefore,
+		func(ctx context.Context) (any, error) {
+			return obj.CancelNoRefundHoursBefore, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BookingPolicy_cancelNoRefundHoursBefore(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "BookingPolicy",
 		Field:      field,
@@ -38341,6 +38377,8 @@ func (ec *executionContext) fieldContext_Query_bookingPolicy(_ context.Context, 
 				return ec.fieldContext_BookingPolicy_cancelFreeHoursBefore(ctx, field)
 			case "cancelLateRefundPct":
 				return ec.fieldContext_BookingPolicy_cancelLateRefundPct(ctx, field)
+			case "cancelNoRefundHoursBefore":
+				return ec.fieldContext_BookingPolicy_cancelNoRefundHoursBefore(ctx, field)
 			case "rescheduleFreeHoursBefore":
 				return ec.fieldContext_BookingPolicy_rescheduleFreeHoursBefore(ctx, field)
 			case "rescheduleMaxPerBooking":
@@ -56976,6 +57014,11 @@ func (ec *executionContext) _BookingPolicy(ctx context.Context, sel ast.Selectio
 			}
 		case "cancelLateRefundPct":
 			out.Values[i] = ec._BookingPolicy_cancelLateRefundPct(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "cancelNoRefundHoursBefore":
+			out.Values[i] = ec._BookingPolicy_cancelNoRefundHoursBefore(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}

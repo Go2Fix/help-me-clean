@@ -390,6 +390,7 @@ export default function BookingPage() {
   const [showAddCardModal, setShowAddCardModal] = useState(false);
   const [paymentProcessing, setPaymentProcessing] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [agreedToTnC, setAgreedToTnC] = useState(false);
 
   // Referral discount state
   const [appliedReferralDiscountId, setAppliedReferralDiscountId] = useState<string | null>(null);
@@ -1637,10 +1638,26 @@ export default function BookingPage() {
                 </div>
               ) : STEPS[currentStep]?.key === 'payment' ? (
                 <div className="flex flex-col items-stretch sm:items-end gap-1">
+                  <div className="flex items-start gap-2 mb-3">
+                    <input
+                      type="checkbox"
+                      id="tnc-agree"
+                      checked={agreedToTnC}
+                      onChange={(e) => setAgreedToTnC(e.target.checked)}
+                      className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-blue-600"
+                    />
+                    <label htmlFor="tnc-agree" className="text-xs text-gray-500 cursor-pointer leading-relaxed">
+                      Prin finalizarea comenzii, confirmi că ai citit și ești de acord cu{' '}
+                      <Link to="/termeni#s5" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-700">
+                        Politica de Anulare și Rambursare
+                      </Link>
+                      .
+                    </label>
+                  </div>
                   <Button
                     onClick={handlePayAndBook}
                     loading={paymentProcessing}
-                    disabled={!canProceed || paymentProcessing}
+                    disabled={!canProceed || paymentProcessing || !agreedToTnC}
                     size="lg"
                     className="w-full sm:w-auto"
                   >

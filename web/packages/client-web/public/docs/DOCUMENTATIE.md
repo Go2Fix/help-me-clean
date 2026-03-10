@@ -728,14 +728,51 @@ PENDING → ASSIGNED → CONFIRMED → IN_PROGRESS → COMPLETED
 | `CANCELLED_BY_COMPANY` | Firma a anulat | Firma |
 | `CANCELLED_BY_ADMIN` | Adminul a anulat | Adminul |
 
-### Politica de anulare și reprogramare
+### Politica de Anulare și Rambursare
 
-Configurabilă din `platform_settings`:
+Politica este aliniată cu Termenii și Condițiile Go2Fix (secțiunea 5 — `/termeni#s5`) și se aplică automat la orice anulare de comandă.
 
-- **Anulare gratuită:** Dacă se face cu X ore înainte (configurable `cancelFreeHoursBefore`)
-- **Anulare tardivă:** Rambursare parțială (procent configurable `cancelLateRefundPct`)
-- **Reprogramare gratuită:** Cu Y ore înainte (`rescheduleFreeHoursBefore`)
-- **Număr maxim reprogramări:** Per comandă (`rescheduleMaxPerBooking`)
+#### Tabel penalități
+
+| Momentul Anulării | Penalitate Client | Ce primește Furnizorul | Ce reține Go2Fix | Acțiune Contabilă |
+|---|---|---|---|---|
+| **> 24h înainte** | 0% (Refund total) | 0 RON | 0 RON | Factură stornată automat |
+| **2h – 24h înainte** | 30% taxă admin | 20% din valoarea comenzii (despăgubire) | 10% (comision admin) | Storno + factură penalitate nouă |
+| **< 2h / No-show client** | 100% penalitate | 80% din valoarea comenzii | 20% (comision) | Factura rămâne validă |
+
+#### Forță majoră (vina furnizorului)
+
+Dacă anularea este cauzată de furnizor (ex: angajatul nu s-a prezentat, serviciul nu a putut fi prestat), clientul primește **rambursare 100%** SAU poate opta pentru **reprogramare cu discount 10%** aplicat automat la noua comandă.
+
+#### Reprogramare
+
+- **Gratuită** dacă se solicită cu cel puțin 24h înainte de ora de start
+- **Cu < 24h înainte** se tratează ca o anulare tardivă (tier 2 — 2h–24h) plus crearea unei rezervări noi
+
+#### Automatizare contabilă
+
+Sistemul generează automat notele contabile corespunzătoare prin funcția `issueCancellationInvoiceActions`:
+- **Tier 1 (> 24h):** nota de credit (storno) se emite automat, rambursarea se procesează prin Stripe
+- **Tier 2 (2h–24h):** storno parțial + factură de penalitate nouă pentru taxa administrativă de 30%
+- **Tier 3 (< 2h / no-show):** factura originală rămâne validă, nicio acțiune suplimentară
+
+#### Setări configurabile
+
+Pragurile de timp și procentele sunt configurabile din `platform_settings` (Admin > Setări):
+
+| Cheie | Valoare implicită | Semnificație |
+|---|---|---|
+| `cancel_free_hours_before` | 24 ore | Limita pentru anulare gratuită (tier 1) |
+| `cancel_no_refund_hours_before` | 2 ore | Limita sub care se aplică penalitatea 100% (tier 3) |
+| `cancel_late_refund_pct` | 70% | Procentul rambursat clientului în tier 2 (echivalent: 30% taxă admin) |
+
+#### Interfața de anulare
+
+- **Checkbox T&C:** afișat pe pagina de rezervare (`/rezervare`) înainte de butonul de plată, cu link direct către `/termeni#s5`
+- **Mesaj dinamic la anulare:** butonul "Anulează comanda" din dashboard-ul clientului afișează suma exactă care va fi returnată, colorat în funcție de tier:
+  - **Albastru** — rambursare totală (> 24h)
+  - **Amber** — rambursare parțială (2h–24h)
+  - **Roșu** — nicio rambursare (< 2h / no-show)
 
 ### Plata comenzii
 

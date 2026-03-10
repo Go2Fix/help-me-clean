@@ -331,6 +331,7 @@ export const BOOKING_POLICY = gql`
     bookingPolicy {
       cancelFreeHoursBefore
       cancelLateRefundPct
+      cancelNoRefundHoursBefore
       rescheduleFreeHoursBefore
       rescheduleMaxPerBooking
     }

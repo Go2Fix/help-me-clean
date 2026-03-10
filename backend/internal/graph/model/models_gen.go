@@ -202,6 +202,7 @@ type BookingOrderByInput struct {
 type BookingPolicy struct {
 	CancelFreeHoursBefore     int `json:"cancelFreeHoursBefore"`
 	CancelLateRefundPct       int `json:"cancelLateRefundPct"`
+	CancelNoRefundHoursBefore int `json:"cancelNoRefundHoursBefore"`
 	RescheduleFreeHoursBefore int `json:"rescheduleFreeHoursBefore"`
 	RescheduleMaxPerBooking   int `json:"rescheduleMaxPerBooking"`
 }

@@ -17,6 +17,7 @@ import (
 type BookingPolicyConfig struct {
 	CancelFreeHoursBefore     int
 	CancelLateRefundPct       int
+	CancelNoRefundHoursBefore int
 	RescheduleFreeHoursBefore int
 	RescheduleMaxPerBooking   int
 }
@@ -25,8 +26,9 @@ type BookingPolicyConfig struct {
 // falling back to defaults for any missing keys.
 func loadBookingPolicy(ctx context.Context, queries db.Querier) BookingPolicyConfig {
 	cfg := BookingPolicyConfig{
-		CancelFreeHoursBefore:     48,
-		CancelLateRefundPct:       50,
+		CancelFreeHoursBefore:     24,
+		CancelLateRefundPct:       70,
+		CancelNoRefundHoursBefore: 2,
 		RescheduleFreeHoursBefore: 24,
 		RescheduleMaxPerBooking:   2,
 	}
@@ -38,6 +40,11 @@ func loadBookingPolicy(ctx context.Context, queries db.Querier) BookingPolicyCon
 	if v, err := queries.GetPlatformSetting(ctx, "cancel_late_refund_pct"); err == nil {
 		if n, err := strconv.Atoi(v.Value); err == nil && n >= 0 && n <= 100 {
 			cfg.CancelLateRefundPct = n
+		}
+	}
+	if v, err := queries.GetPlatformSetting(ctx, "cancel_no_refund_hours_before"); err == nil {
+		if n, err := strconv.Atoi(v.Value); err == nil && n >= 0 {
+			cfg.CancelNoRefundHoursBefore = n
 		}
 	}
 	if v, err := queries.GetPlatformSetting(ctx, "reschedule_free_hours_before"); err == nil {
@@ -154,16 +161,16 @@ func (r *Resolver) issueCancellationRefund(ctx context.Context, booking db.Booki
 		// Company or admin cancelled — full refund to the client.
 		refundBani = totalBani
 	default:
-		// Client cancelled — apply the late-cancel policy.
 		policy := loadBookingPolicy(ctx, r.Queries)
 		hoursLeft := hoursUntilBooking(booking.ScheduledDate, booking.ScheduledStartTime)
 		if hoursLeft >= float64(policy.CancelFreeHoursBefore) {
-			// Inside the free-cancel window — full refund.
+			// Free cancel window — full refund
 			refundBani = totalBani
-		} else {
-			// Late cancellation — partial refund.
+		} else if hoursLeft >= float64(policy.CancelNoRefundHoursBefore) {
+			// Late cancel (2-24h) — partial refund
 			refundBani = int64(math.Round(totalRON * float64(policy.CancelLateRefundPct) / 100.0 * 100))
 		}
+		// else hoursLeft < CancelNoRefundHoursBefore: no refund (refundBani stays 0)
 	}
 
 	if refundBani <= 0 {
@@ -178,4 +185,83 @@ func (r *Resolver) issueCancellationRefund(ctx context.Context, booking db.Booki
 	}
 	log.Printf("cancellation: issued Stripe refund %s for booking %s (%.2f RON)",
 		refundID, uuidToString(booking.ID), float64(refundBani)/100.0)
+}
+
+// issueCancellationInvoiceActions handles invoice storno/penalty creation after a client cancellation.
+//
+// Rules:
+//   - Tier 1 (>24h, full refund): storno the original client_service invoice (100%).
+//   - Tier 2 (2-24h, partial refund): storno the original invoice + create a 30% penalty invoice
+//     with description "Taxă anulare rezervare <code>".
+//   - Tier 3 (<2h, no refund): invoice stays valid — no action.
+//
+// Only acts if the booking was paid (payment_status = 'paid').
+// Non-blocking — failures are logged but do not affect the cancellation.
+func (r *Resolver) issueCancellationInvoiceActions(ctx context.Context, booking db.Booking, cancelStatus db.BookingStatus) {
+	if booking.PaymentStatus.String != "paid" {
+		return
+	}
+
+	switch cancelStatus {
+	case db.BookingStatusCancelledByCompany, db.BookingStatusCancelledByAdmin:
+		// Company or admin cancelled — full storno, no penalty.
+		r.stornoCancellationInvoice(ctx, booking, 0)
+		return
+	}
+
+	// Client cancelled — determine tier from policy.
+	policy := loadBookingPolicy(ctx, r.Queries)
+	hoursLeft := hoursUntilBooking(booking.ScheduledDate, booking.ScheduledStartTime)
+
+	if hoursLeft >= float64(policy.CancelFreeHoursBefore) {
+		// Tier 1: full storno, no penalty.
+		r.stornoCancellationInvoice(ctx, booking, 0)
+	} else if hoursLeft >= float64(policy.CancelNoRefundHoursBefore) {
+		// Tier 2: storno + penalty invoice for retained percentage (100 - CancelLateRefundPct).
+		penaltyPct := 100 - policy.CancelLateRefundPct
+		r.stornoCancellationInvoice(ctx, booking, penaltyPct)
+	}
+	// Tier 3 (<2h): no action — invoice stays valid.
+}
+
+// stornoCancellationInvoice generates a credit note for the full original client_service
+// invoice amount. If penaltyPct > 0, it also creates a new penalty invoice for that
+// percentage of the original total (e.g. 30 means 30% is billed as a cancellation fee).
+func (r *Resolver) stornoCancellationInvoice(ctx context.Context, booking db.Booking, penaltyPct int) {
+	inv, err := r.Queries.GetInvoiceByBookingAndType(ctx, db.GetInvoiceByBookingAndTypeParams{
+		BookingID:   booking.ID,
+		InvoiceType: db.InvoiceTypeClientService,
+	})
+	if err != nil {
+		log.Printf("cancellation invoice: no client_service invoice for booking %s: %v",
+			uuidToString(booking.ID), err)
+		return
+	}
+
+	totalBani := inv.TotalAmount
+
+	creditNote, err := r.InvoiceService.GenerateCreditNote(ctx, inv.ID, totalBani, "Anulare comandă")
+	if err != nil {
+		log.Printf("cancellation invoice: failed to generate credit note for invoice %s: %v",
+			uuidToString(inv.ID), err)
+		return
+	}
+	log.Printf("cancellation invoice: credit note %s generated for booking %s",
+		uuidToString(creditNote.ID), uuidToString(booking.ID))
+
+	if penaltyPct <= 0 {
+		return
+	}
+
+	penaltyBani := int32(math.Round(float64(totalBani) * float64(penaltyPct) / 100.0))
+	description := fmt.Sprintf("Taxă anulare rezervare %s", booking.ReferenceCode)
+
+	_, err = r.InvoiceService.CreatePenaltyInvoice(ctx, booking, penaltyBani, description)
+	if err != nil {
+		log.Printf("cancellation invoice: failed to create penalty invoice for booking %s: %v",
+			uuidToString(booking.ID), err)
+	} else {
+		log.Printf("cancellation invoice: penalty invoice created for booking %s (%.2f RON)",
+			uuidToString(booking.ID), float64(penaltyBani)/100.0)
+	}
 }

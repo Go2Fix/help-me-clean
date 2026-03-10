@@ -1230,6 +1230,135 @@ func (s *Service) MarkInvoiceAsPaid(ctx context.Context, id pgtype.UUID) (db.Inv
 	return inv, nil
 }
 
+// CreatePenaltyInvoice creates a new client_service invoice representing a
+// cancellation penalty charged to the client. It mirrors the seller/buyer
+// information from the original client_service invoice for the booking.
+// amountBani is the VAT-inclusive penalty amount in bani (Romanian cents).
+// description is the line item / notes text (e.g. "Taxă anulare rezervare #ABC123").
+func (s *Service) CreatePenaltyInvoice(ctx context.Context, booking db.Booking, amountBani int32, description string) (db.Invoice, error) {
+	if amountBani <= 0 {
+		return db.Invoice{}, errors.New("invoice: penalty amount must be positive")
+	}
+
+	// Load the original client_service invoice to copy seller/buyer details.
+	original, err := s.queries.GetInvoiceByBookingAndType(ctx, db.GetInvoiceByBookingAndTypeParams{
+		BookingID:   booking.ID,
+		InvoiceType: db.InvoiceTypeClientService,
+	})
+	if err != nil {
+		return db.Invoice{}, fmt.Errorf("invoice: no original client_service invoice for penalty: %w", err)
+	}
+
+	vatRate := int32(s.loadVATRate(ctx))
+	subtotalNet := amountBani * 100 / (100 + vatRate)
+	vatAmount := amountBani - subtotalNet
+
+	// Generate penalty invoice number using the same company as the original.
+	invoiceNumber, err := s.NewInvoiceNumber(ctx, original.CompanyID, "FCT")
+	if err != nil {
+		return db.Invoice{}, fmt.Errorf("invoice: generate penalty invoice number: %w", err)
+	}
+
+	dueDate := pgtype.Date{Time: time.Now().AddDate(0, 0, 30), Valid: true}
+
+	inv, err := s.queries.CreateInvoice(ctx, db.CreateInvoiceParams{
+		InvoiceType:          db.InvoiceTypeClientService,
+		InvoiceNumber:        pgText(invoiceNumber),
+		SellerCompanyName:    original.SellerCompanyName,
+		SellerCui:            original.SellerCui,
+		SellerRegNumber:      original.SellerRegNumber,
+		SellerAddress:        original.SellerAddress,
+		SellerCity:           original.SellerCity,
+		SellerCounty:         original.SellerCounty,
+		SellerIsVatPayer:     original.SellerIsVatPayer,
+		SellerBankName:       original.SellerBankName,
+		SellerIban:           original.SellerIban,
+		BuyerName:            original.BuyerName,
+		BuyerCui:             original.BuyerCui,
+		BuyerRegNumber:       original.BuyerRegNumber,
+		BuyerAddress:         original.BuyerAddress,
+		BuyerCity:            original.BuyerCity,
+		BuyerCounty:          original.BuyerCounty,
+		BuyerIsVatPayer:      original.BuyerIsVatPayer,
+		BuyerEmail:           original.BuyerEmail,
+		SubtotalAmount:       subtotalNet,
+		VatRate:              numericFromInt(int(vatRate)),
+		VatAmount:            vatAmount,
+		TotalAmount:          amountBani,
+		Currency:             "RON",
+		BookingID:            booking.ID,
+		PaymentTransactionID: pgtype.UUID{},
+		CompanyID:            original.CompanyID,
+		ClientUserID:         original.ClientUserID,
+		Status:               db.InvoiceStatusIssued,
+		DueDate:              dueDate,
+		Notes:                pgText(description),
+	})
+	if err != nil {
+		return db.Invoice{}, fmt.Errorf("invoice: create penalty invoice: %w", err)
+	}
+
+	_, err = s.queries.CreateInvoiceLineItem(ctx, db.CreateInvoiceLineItemParams{
+		InvoiceID:        inv.ID,
+		DescriptionRo:    description,
+		DescriptionEn:    pgText(description),
+		Quantity:         numericFromInt(1),
+		UnitPrice:        subtotalNet,
+		VatRate:          numericFromInt(int(vatRate)),
+		VatAmount:        vatAmount,
+		LineTotal:        subtotalNet,
+		LineTotalWithVat: amountBani,
+		SortOrder:        pgtype.Int4{Int32: 1, Valid: true},
+	})
+	if err != nil {
+		return db.Invoice{}, fmt.Errorf("invoice: create penalty invoice line item: %w", err)
+	}
+
+	// Push to Keez — same pattern as commission invoices.
+	if ensureErr := s.ensureKeezItems(ctx); ensureErr != nil {
+		log.Printf("invoice: keez.ro ensure items error for penalty invoice (non-fatal): %v", ensureErr)
+	}
+
+	lineItems, _ := s.queries.ListInvoiceLineItems(ctx, inv.ID)
+	extID, keezSeries, keezNum, apiErr := s.createInvoiceOnKeez(ctx, inv, lineItems, s.keezCommissionID, nil)
+	if apiErr != nil {
+		log.Printf("invoice: keez.ro API error for penalty invoice (non-fatal): %v", apiErr)
+	} else if extID != "" {
+		assignedNumber := keezSeries + " " + keezNum
+		updateErr := s.queries.UpdateInvoiceKeez(ctx, db.UpdateInvoiceKeezParams{
+			ID:             inv.ID,
+			InvoiceNumber:  pgText(assignedNumber),
+			KeezExternalID: pgText(extID),
+			KeezSeries:     pgText(keezSeries),
+			KeezNumber:     pgText(keezNum),
+		})
+		if updateErr != nil {
+			log.Printf("invoice: failed to persist keez metadata for penalty invoice: %v", updateErr)
+		} else {
+			inv.InvoiceNumber = pgText(assignedNumber)
+			inv.KeezExternalID = pgText(extID)
+			inv.KeezSeries = pgText(keezSeries)
+			inv.KeezNumber = pgText(keezNum)
+		}
+	}
+
+	// Auto-transmit to e-Factura (best-effort, non-blocking).
+	if inv.KeezExternalID.Valid && inv.KeezExternalID.String != "" {
+		go func() {
+			bgCtx := context.Background()
+			if transmitErr := s.TransmitToEFactura(bgCtx, inv.ID); transmitErr != nil {
+				log.Printf("invoice: auto e-factura transmission failed for penalty invoice (non-fatal): %v", transmitErr)
+			} else {
+				log.Printf("invoice: auto-transmitted penalty invoice %s to e-factura", textVal(inv.InvoiceNumber))
+			}
+		}()
+	}
+
+	log.Printf("invoice: created penalty invoice %s for booking %s (%.2f RON)",
+		invoiceNumber, booking.ReferenceCode, float64(amountBani)/100.0)
+	return inv, nil
+}
+
 // ---------------------------------------------------------------------------
 // Type conversion helpers
 // ---------------------------------------------------------------------------

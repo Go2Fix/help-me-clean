@@ -390,6 +390,13 @@ func (r *mutationResolver) CancelBooking(ctx context.Context, id string, reason 
 	// Issue Stripe refund (partial for late client cancellations, full otherwise).
 	r.issueCancellationRefund(ctx, current, cancelStatus)
 
+	// Handle invoice storno and penalty creation (non-blocking).
+	go func() {
+		bgCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		r.issueCancellationInvoiceActions(bgCtx, current, cancelStatus)
+	}()
+
 	// Notify relevant parties based on who cancelled.
 	if cancelStatus == db.BookingStatusCancelledByClient {
 		r.dispatchBookingCancelledByClient(ctx, booking, reasonText)
@@ -1336,6 +1343,7 @@ func (r *queryResolver) BookingPolicy(ctx context.Context) (*model.BookingPolicy
 	return &model.BookingPolicy{
 		CancelFreeHoursBefore:     p.CancelFreeHoursBefore,
 		CancelLateRefundPct:       p.CancelLateRefundPct,
+		CancelNoRefundHoursBefore: p.CancelNoRefundHoursBefore,
 		RescheduleFreeHoursBefore: p.RescheduleFreeHoursBefore,
 		RescheduleMaxPerBooking:   p.RescheduleMaxPerBooking,
 	}, nil

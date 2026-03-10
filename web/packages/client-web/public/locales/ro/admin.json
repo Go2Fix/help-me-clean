@@ -1132,6 +1132,7 @@
         "require_company_approval": "Aprobare companie necesară",
         "cancel_free_hours_before": "Anulare gratuită înainte de (ore)",
         "cancel_late_refund_pct": "Rambursare anulare târzie (%)",
+        "cancel_no_refund_hours_before": "Anulare fără rambursare sub (ore)",
         "reschedule_free_hours_before": "Reprogramare gratuită înainte de (ore)",
         "reschedule_max_per_booking": "Max reprogramări per rezervare",
         "support_email": "Email suport",
