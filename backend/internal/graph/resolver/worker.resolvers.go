@@ -78,6 +78,7 @@ func (r *mutationResolver) InviteWorker(ctx context.Context, input model.InviteW
 
 	// Auto-assign all company service areas to the new worker
 	r.copyCompanyAreasToWorkerHelper(ctx, company.ID, worker.ID)
+	r.copyCompanyScheduleToWorkerHelper(ctx, company.ID, worker.ID)
 
 	// Determine which categories to assign to this worker at invitation time.
 	{
@@ -170,6 +171,7 @@ func (r *mutationResolver) InviteSelfAsWorker(ctx context.Context) (*model.Worke
 
 	// Auto-assign all company service areas to the new worker
 	r.copyCompanyAreasToWorkerHelper(ctx, company.ID, worker.ID)
+	r.copyCompanyScheduleToWorkerHelper(ctx, company.ID, worker.ID)
 
 	return r.workerWithCompany(ctx, worker)
 }

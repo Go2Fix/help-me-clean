@@ -92,6 +92,28 @@ func (r *Resolver) copyCompanyAreasToWorkerHelper(ctx context.Context, companyID
 	}
 }
 
+// copyCompanyScheduleToWorkerHelper copies all company work schedule rows to a newly created worker.
+// Errors are logged but not propagated (best-effort).
+func (r *Resolver) copyCompanyScheduleToWorkerHelper(ctx context.Context, companyID pgtype.UUID, workerID pgtype.UUID) {
+	schedule, err := r.Queries.ListCompanyWorkSchedule(ctx, companyID)
+	if err != nil {
+		log.Printf("copyCompanyScheduleToWorkerHelper: failed to list company schedule: %v", err)
+		return
+	}
+	for _, day := range schedule {
+		_, err := r.Queries.SetWorkerAvailability(ctx, db.SetWorkerAvailabilityParams{
+			WorkerID:    workerID,
+			DayOfWeek:   day.DayOfWeek,
+			StartTime:   day.StartTime,
+			EndTime:     day.EndTime,
+			IsAvailable: pgtype.Bool{Bool: day.IsWorkDay, Valid: true},
+		})
+		if err != nil {
+			log.Printf("copyCompanyScheduleToWorkerHelper: failed to set availability for day %d: %v", day.DayOfWeek, err)
+		}
+	}
+}
+
 // enrichWorkerStats populates ratingAvg and totalJobsCompleted dynamically from reviews/bookings.
 func (r *Resolver) enrichWorkerStats(ctx context.Context, workerID pgtype.UUID, profile *model.WorkerProfile) {
 	if avg, err := r.Queries.GetAverageWorkerRating(ctx, workerID); err == nil {

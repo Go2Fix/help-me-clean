@@ -6,7 +6,7 @@ import {
   ArrowLeft, Mail, Phone, Star, Copy, Check, Users,
   Briefcase, TrendingUp, Calendar, DollarSign, ChevronDown,
   MapPin, CheckCircle, FileText, Upload as UploadIcon, AlertCircle, User, Brain,
-  Shield, Sparkles, AlertTriangle, Layers,
+  Shield, Sparkles, AlertTriangle, Layers, Pencil, Plus, Loader2, X,
 } from 'lucide-react';
 import { cn } from '@go2fix/shared';
 import Card from '@/components/ui/Card';
@@ -20,6 +20,9 @@ import {
   UPLOAD_WORKER_DOCUMENT, UPLOAD_WORKER_AVATAR,
   SERVICE_CATEGORIES, UPDATE_WORKER_SERVICE_CATEGORIES,
   UPDATE_WORKER_MAX_DAILY_BOOKINGS,
+  UPDATE_WORKER_AVAILABILITY,
+  WORKER_DATE_OVERRIDES,
+  SET_WORKER_DATE_OVERRIDE_BY_ADMIN,
 } from '@/graphql/operations';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -120,6 +123,28 @@ interface CityArea {
   cityId: string;
   cityName: string;
 }
+
+// ─── Schedule constants & types ──────────────────────────────────────────────
+
+const WEEK_DAY_ORDER_COMPANY = [1, 2, 3, 4, 5, 6, 0]; // Mon-Sun
+
+interface EditableScheduleSlot {
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+  isAvailable: boolean;
+}
+
+interface WorkerDateOverride {
+  id: string;
+  date: string;
+  isAvailable: boolean;
+  startTime: string;
+  endTime: string;
+}
+
+function fmtDateISO(d: Date): string { return d.toISOString().split('T')[0]; }
+function addDaysHelper(d: Date, n: number): Date { const r = new Date(d); r.setDate(r.getDate() + n); return r; }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -297,6 +322,9 @@ export default function WorkerDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
+  const todayISO = fmtDateISO(new Date());
+  const plus30ISO = fmtDateISO(addDaysHelper(new Date(), 30));
+
   // ─── State ──────────────────────────────────────────────────────────────
   const [copiedToken, setCopiedToken] = useState(false);
   const [statusModal, setStatusModal] = useState<{ newStatus: MutableStatus } | null>(null);
@@ -311,6 +339,10 @@ export default function WorkerDetailPage() {
   const [saveCategoriesSuccess, setSaveCategoriesSuccess] = useState(false);
   const [saveCategoriesError, setSaveCategoriesError] = useState('');
   const [maxDailyBookings, setMaxDailyBookings] = useState<string>('');
+  const [scheduleEditMode, setScheduleEditMode] = useState(false);
+  const [editableSlots, setEditableSlots] = useState<EditableScheduleSlot[]>([]);
+  const [schedFeedback, setSchedFeedback] = useState<'success' | 'error' | null>(null);
+  const [schedError, setSchedError] = useState('');
 
   // ─── Queries ────────────────────────────────────────────────────────────
   const { data, loading, refetch } = useQuery(MY_WORKERS);
@@ -327,12 +359,26 @@ export default function WorkerDetailPage() {
     workerServiceAreas: CityArea[];
   }>(WORKER_SERVICE_AREAS);
 
+  const { data: workerOverridesData, refetch: refetchWorkerOverrides } = useQuery(WORKER_DATE_OVERRIDES, {
+    variables: { workerId: id!, from: todayISO, to: plus30ISO },
+    skip: !id,
+    fetchPolicy: 'cache-and-network',
+  });
+  const workerOverrides: WorkerDateOverride[] = (workerOverridesData?.workerDateOverrides ?? []).filter(
+    (o: WorkerDateOverride) => !o.isAvailable,
+  );
+
   // ─── Mutations ──────────────────────────────────────────────────────────
   const [updateStatus, { loading: updatingStatus }] = useMutation(UPDATE_WORKER_STATUS);
   const [updateWorkerAreas, { loading: savingAreas }] = useMutation(UPDATE_WORKER_SERVICE_AREAS);
   const [uploadDocument] = useMutation(UPLOAD_WORKER_DOCUMENT);
   const [uploadAvatar] = useMutation(UPLOAD_WORKER_AVATAR);
   const [updateWorkerMaxDailyBookings] = useMutation(UPDATE_WORKER_MAX_DAILY_BOOKINGS);
+  const [updateWorkerAvailability, { loading: savingSchedule }] = useMutation(UPDATE_WORKER_AVAILABILITY);
+  const [setWorkerDateOverrideByAdmin, { loading: savingAdminOverride }] = useMutation(
+    SET_WORKER_DATE_OVERRIDE_BY_ADMIN,
+    { onCompleted: () => refetchWorkerOverrides() },
+  );
 
   // ─── Service Categories ───────────────────────────────────────────────
   const { data: categoriesData, loading: categoriesLoading } = useQuery(SERVICE_CATEGORIES);
@@ -392,6 +438,22 @@ export default function WorkerDetailPage() {
   useEffect(() => {
     if (worker) {
       setMaxDailyBookings(worker.maxDailyBookings != null ? String(worker.maxDailyBookings) : '');
+    }
+  }, [worker]);
+
+  // Initialize editable schedule slots from worker data
+  useEffect(() => {
+    if (worker) {
+      const slots = WEEK_DAY_ORDER_COMPANY.map((dow) => {
+        const existing = (worker.availability ?? []).find((s: AvailabilitySlot) => s.dayOfWeek === dow);
+        return {
+          dayOfWeek: dow,
+          startTime: existing?.startTime ?? '08:00',
+          endTime: existing?.endTime ?? '18:00',
+          isAvailable: existing?.isAvailable ?? false,
+        };
+      });
+      setEditableSlots(slots);
     }
   }, [worker]);
 
@@ -504,6 +566,59 @@ export default function WorkerDetailPage() {
     }
   };
 
+  const handleScheduleSlotChange = useCallback(
+    (dayOfWeek: number, field: keyof EditableScheduleSlot, value: string | boolean) => {
+      setEditableSlots((prev) =>
+        prev.map((s) => (s.dayOfWeek === dayOfWeek ? { ...s, [field]: value } : s)),
+      );
+    },
+    [],
+  );
+
+  const handleSaveSchedule = async () => {
+    if (!worker) return;
+    setSchedFeedback(null);
+    setSchedError('');
+    try {
+      await updateWorkerAvailability({
+        variables: {
+          workerId: worker.id,
+          slots: editableSlots.map((s) => ({
+            dayOfWeek: s.dayOfWeek,
+            startTime: s.startTime,
+            endTime: s.endTime,
+            isAvailable: s.isAvailable,
+          })),
+        },
+      });
+      setSchedFeedback('success');
+      setScheduleEditMode(false);
+      refetch();
+      setTimeout(() => setSchedFeedback(null), 3000);
+    } catch {
+      setSchedError('Eroare la salvarea programului. Încearcă din nou.');
+      setSchedFeedback('error');
+    }
+  };
+
+  const handleCancelScheduleEdit = () => {
+    if (worker) {
+      const slots = WEEK_DAY_ORDER_COMPANY.map((dow) => {
+        const existing = (worker.availability ?? []).find((s: AvailabilitySlot) => s.dayOfWeek === dow);
+        return {
+          dayOfWeek: dow,
+          startTime: existing?.startTime ?? '08:00',
+          endTime: existing?.endTime ?? '18:00',
+          isAvailable: existing?.isAvailable ?? false,
+        };
+      });
+      setEditableSlots(slots);
+    }
+    setSchedError('');
+    setSchedFeedback(null);
+    setScheduleEditMode(false);
+  };
+
   const handleDocumentUpload = (file: File) => {
     setDocTypeModal(file);
   };
@@ -573,7 +688,6 @@ export default function WorkerDetailPage() {
   // ─── Derived from worker ─────────────────────────────────────────────
 
   const canChangeStatus = worker.status === 'ACTIVE' || worker.status === 'INACTIVE' || worker.status === 'SUSPENDED';
-  const slots = (worker.availability ?? []).filter((s) => s.isAvailable).sort((a, b) => a.dayOfWeek - b.dayOfWeek);
   const requiredDocs = ['cazier_judiciar', 'contract_munca'];
   const uploadedDocTypes = new Set(worker.documents?.map((d) => d.documentType) ?? []);
   const missingDocs = requiredDocs.filter((docType) => !uploadedDocTypes.has(docType));
@@ -709,32 +823,176 @@ export default function WorkerDetailPage() {
       </div>
 
       {/* 4. Availability Schedule Card */}
-      <Card className="mb-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Calendar className="h-5 w-5 text-primary" />
-          <h2 className="font-semibold text-gray-900">{t('workerDetail.availability.title')}</h2>
+      <Card className="mb-4">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Calendar className="h-5 w-5 text-primary" />
+            <h2 className="font-semibold text-gray-900">{t('workerDetail.availability.title')}</h2>
+          </div>
+          {!scheduleEditMode && (
+            <Button variant="outline" size="sm" onClick={() => setScheduleEditMode(true)}>
+              <Pencil className="h-4 w-4" />
+              {t('workerDetail.availability.editSchedule')}
+            </Button>
+          )}
         </div>
-        {slots.length > 0 ? (
-          <div className="space-y-2">
-            {slots.map((slot) => (
-              <div
-                key={slot.id}
-                className="flex items-center justify-between px-3 sm:px-4 py-2.5 bg-gray-50 rounded-xl gap-2"
-              >
-                <span className="text-sm font-medium text-gray-700 truncate">
-                  {dayNames[slot.dayOfWeek] ?? t('workerDetail.availability.day', { num: slot.dayOfWeek })}
-                </span>
-                <span className="text-sm text-gray-500 shrink-0">{slot.startTime} - {slot.endTime}</span>
-              </div>
-            ))}
+
+        {scheduleEditMode ? (
+          /* Edit mode */
+          <div>
+            <div className="space-y-2 mb-4">
+              {editableSlots.map((slot) => {
+                const dayName = dayNames[slot.dayOfWeek] ?? `Zi ${slot.dayOfWeek}`;
+                return (
+                  <div
+                    key={slot.dayOfWeek}
+                    className={cn(
+                      'flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors',
+                      slot.isAvailable ? 'bg-emerald-50/50' : 'bg-gray-50',
+                    )}
+                  >
+                    {/* Toggle */}
+                    <button
+                      type="button"
+                      onClick={() => handleScheduleSlotChange(slot.dayOfWeek, 'isAvailable', !slot.isAvailable)}
+                      className={cn(
+                        'relative w-10 h-5 rounded-full transition-colors shrink-0 cursor-pointer',
+                        slot.isAvailable ? 'bg-emerald-500' : 'bg-gray-300',
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          'absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform shadow-sm',
+                          slot.isAvailable && 'translate-x-5',
+                        )}
+                      />
+                    </button>
+                    {/* Day name */}
+                    <span className={cn(
+                      'text-sm font-medium w-24 shrink-0',
+                      slot.isAvailable ? 'text-gray-900' : 'text-gray-400',
+                    )}>
+                      {dayName}
+                    </span>
+                    {/* Time inputs */}
+                    {slot.isAvailable ? (
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <input
+                          type="time"
+                          value={slot.startTime}
+                          onChange={(e) => handleScheduleSlotChange(slot.dayOfWeek, 'startTime', e.target.value)}
+                          className="border border-gray-200 rounded-lg px-2 py-1 text-sm text-gray-700 w-[110px] bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 outline-none"
+                        />
+                        <span className="text-gray-400 text-xs">–</span>
+                        <input
+                          type="time"
+                          value={slot.endTime}
+                          onChange={(e) => handleScheduleSlotChange(slot.dayOfWeek, 'endTime', e.target.value)}
+                          className="border border-gray-200 rounded-lg px-2 py-1 text-sm text-gray-700 w-[110px] bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 outline-none"
+                        />
+                      </div>
+                    ) : (
+                      <span className="text-xs text-gray-400 italic">Indisponibil</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            {schedError && (
+              <p className="text-sm text-red-600 mb-3">{schedError}</p>
+            )}
+            <div className="flex items-center gap-2">
+              <Button size="sm" onClick={handleSaveSchedule} loading={savingSchedule}>
+                <Check className="h-4 w-4" />
+                {t('workerDetail.availability.saveSchedule')}
+              </Button>
+              <Button variant="ghost" size="sm" onClick={handleCancelScheduleEdit} disabled={savingSchedule}>
+                <X className="h-4 w-4" />
+                {t('workerDetail.availability.cancelEdit')}
+              </Button>
+            </div>
           </div>
         ) : (
-          <div className="text-center py-6">
-            <Calendar className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-            <p className="text-sm text-gray-400">{t('workerDetail.availability.empty')}</p>
+          /* View mode */
+          <div>
+            {editableSlots.length === 0 ? (
+              <div className="text-center py-6">
+                <Calendar className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+                <p className="text-sm text-gray-400">{t('workerDetail.availability.empty')}</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {WEEK_DAY_ORDER_COMPANY.map((dow) => {
+                  const slot = editableSlots.find((s) => s.dayOfWeek === dow);
+                  const isAvail = slot?.isAvailable ?? false;
+                  const name = dayNames[dow] ?? `Zi ${dow}`;
+                  return (
+                    <div
+                      key={dow}
+                      className={cn(
+                        'flex items-center justify-between px-3 py-2.5 rounded-xl',
+                        isAvail ? 'bg-emerald-50/50' : 'bg-gray-50',
+                      )}
+                    >
+                      <span className={cn(
+                        'text-sm font-medium w-24 shrink-0',
+                        isAvail ? 'text-gray-900' : 'text-gray-400',
+                      )}>
+                        {name}
+                      </span>
+                      {isAvail && slot ? (
+                        <span className="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-700 rounded-full px-3 py-1 text-sm font-medium">
+                          {slot.startTime} – {slot.endTime}
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center bg-gray-100 text-gray-400 rounded-full px-3 py-1 text-xs">
+                          Indisponibil
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            {schedFeedback === 'success' && (
+              <div className="flex items-center gap-1.5 mt-3 text-sm text-emerald-600">
+                <Check className="h-4 w-4" />
+                {t('workerDetail.availability.saveSuccess')}
+              </div>
+            )}
           </div>
         )}
       </Card>
+
+      {/* 4b. Worker Day-Off Overrides Card */}
+      <WorkerDayOffManager
+        overrides={workerOverrides}
+        onAdd={async (date, isFullDay, start, end) => {
+          if (!worker) return;
+          await setWorkerDateOverrideByAdmin({
+            variables: {
+              workerId: worker.id,
+              date,
+              isAvailable: false,
+              startTime: isFullDay ? '00:00' : start,
+              endTime: isFullDay ? '23:59' : end,
+            },
+          });
+        }}
+        onCancel={async (date) => {
+          if (!worker) return;
+          await setWorkerDateOverrideByAdmin({
+            variables: {
+              workerId: worker.id,
+              date,
+              isAvailable: true,
+              startTime: '08:00',
+              endTime: '20:00',
+            },
+          });
+        }}
+        saving={savingAdminOverride}
+      />
 
       {/* 5. Service Areas Card */}
       <Card className="mb-6">
@@ -1308,5 +1566,178 @@ export default function WorkerDetailPage() {
         </div>
       </Modal>
     </div>
+  );
+}
+
+// ─── WorkerDayOffManager ─────────────────────────────────────────────────────
+
+interface WorkerDayOffManagerProps {
+  overrides: WorkerDateOverride[];
+  onAdd: (date: string, isFullDay: boolean, start: string, end: string) => Promise<void>;
+  onCancel: (date: string) => Promise<void>;
+  saving: boolean;
+}
+
+function WorkerDayOffManager({ overrides, onAdd, onCancel, saving }: WorkerDayOffManagerProps) {
+  const { i18n } = useTranslation('company');
+  const locale = i18n.language === 'en' ? 'en-GB' : 'ro-RO';
+  const [showForm, setShowForm] = useState(false);
+  const [formDate, setFormDate] = useState('');
+  const [isFullDay, setIsFullDay] = useState(true);
+  const [formStart, setFormStart] = useState('08:00');
+  const [formEnd, setFormEnd] = useState('20:00');
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  const minDate = fmtDateISO(new Date());
+  const sorted = [...overrides].sort((a, b) => a.date.localeCompare(b.date));
+
+  const handleAdd = async () => {
+    if (!formDate) return;
+    setToast(null);
+    try {
+      await onAdd(formDate, isFullDay, formStart, formEnd);
+      setShowForm(false);
+      setFormDate('');
+      setIsFullDay(true);
+      setFormStart('08:00');
+      setFormEnd('20:00');
+      setToast({ type: 'success', message: 'Zi liberă adăugată.' });
+      setTimeout(() => setToast(null), 3000);
+    } catch {
+      setToast({ type: 'error', message: 'Eroare la adăugare. Încearcă din nou.' });
+    }
+  };
+
+  const handleCancel = async (date: string) => {
+    setToast(null);
+    try {
+      await onCancel(date);
+      setToast({ type: 'success', message: 'Zi liberă anulată.' });
+      setTimeout(() => setToast(null), 3000);
+    } catch {
+      setToast({ type: 'error', message: 'Eroare la anulare.' });
+    }
+  };
+
+  return (
+    <Card className="mb-6">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <Calendar className="h-5 w-5 text-primary" />
+          <h2 className="font-semibold text-gray-900">Zile libere lucrător</h2>
+        </div>
+        {!showForm && (
+          <Button variant="outline" size="sm" onClick={() => setShowForm(true)}>
+            <Plus className="h-4 w-4" />
+            Adaugă
+          </Button>
+        )}
+      </div>
+
+      {toast && (
+        <div className={cn(
+          'text-sm font-medium mb-4 px-3 py-2 rounded-lg',
+          toast.type === 'success' ? 'text-emerald-700 bg-emerald-50' : 'text-red-700 bg-red-50',
+        )}>
+          {toast.message}
+        </div>
+      )}
+
+      {showForm && (
+        <div className="border border-gray-200 rounded-xl p-4 mb-4 bg-gray-50">
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs font-medium text-gray-600 mb-1 block">Data</label>
+              <input
+                type="date"
+                value={formDate}
+                min={minDate}
+                onChange={(e) => setFormDate(e.target.value)}
+                className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 w-full bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 outline-none"
+              />
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setIsFullDay(!isFullDay)}
+                className={cn(
+                  'relative w-10 h-5 rounded-full transition-colors shrink-0 cursor-pointer',
+                  isFullDay ? 'bg-blue-600' : 'bg-gray-300',
+                )}
+              >
+                <span className={cn(
+                  'absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform shadow-sm',
+                  isFullDay && 'translate-x-5',
+                )} />
+              </button>
+              <span className="text-sm text-gray-700">Ziua întreagă</span>
+            </div>
+            {!isFullDay && (
+              <div className="flex items-center gap-2">
+                <div className="flex-1">
+                  <label className="text-xs font-medium text-gray-600 mb-1 block">De la</label>
+                  <input type="time" value={formStart} onChange={(e) => setFormStart(e.target.value)}
+                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 w-full bg-white outline-none" />
+                </div>
+                <div className="flex-1">
+                  <label className="text-xs font-medium text-gray-600 mb-1 block">Până la</label>
+                  <input type="time" value={formEnd} onChange={(e) => setFormEnd(e.target.value)}
+                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 w-full bg-white outline-none" />
+                </div>
+              </div>
+            )}
+            <div className="flex items-center gap-2 pt-1">
+              <Button size="sm" onClick={handleAdd} loading={saving} disabled={!formDate}>
+                <Check className="h-4 w-4" />
+                Salvează
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => { setShowForm(false); setFormDate(''); }}>
+                <X className="h-4 w-4" />
+                Anulează
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {sorted.length === 0 ? (
+        <div className="text-center py-6">
+          <Calendar className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+          <p className="text-sm text-gray-400">Nu există zile libere programate în următoarele 30 de zile.</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {sorted.map((override) => {
+            const dateStr = override.date?.split('T')[0] ?? override.date;
+            const dateObj = new Date(dateStr + 'T00:00:00');
+            const isFullDayOff = override.startTime === '00:00' && (override.endTime === '23:59' || override.endTime === '23:59:00');
+            return (
+              <div key={override.id} className="flex items-center justify-between px-3 py-2.5 bg-red-50/50 border border-red-100 rounded-xl">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center shrink-0">
+                    <span className="text-sm font-bold text-red-600">{dateObj.getDate()}</span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-gray-900">
+                      {dateObj.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' })}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {isFullDayOff ? 'Zi liberă întreagă' : `Liber: ${override.startTime} – ${override.endTime}`}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleCancel(dateStr)}
+                  disabled={saving}
+                  className="text-xs font-medium text-red-600 hover:text-red-700 hover:bg-red-100 px-2 py-1 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Anulează'}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </Card>
   );
 }

@@ -182,7 +182,9 @@ func (e *EmailChannel) sendToTarget(event Event, payload Payload, target Target)
 		From:    e.from,
 		To:      []string{target.Email},
 		Subject: subject,
+		ReplyTo: "contact@go2fix.ro",
 		Html:    buildEventHTML(event, subject, target.Name, payload),
+		Text:    buildEventText(event, subject, target.Name, payload),
 	}
 
 	_, err := e.client.Emails.Send(req)
@@ -214,7 +216,9 @@ func (e *EmailChannel) scheduleOnboarding(target Target) {
 			From:        e.from,
 			To:          []string{target.Email},
 			Subject:     subject,
+			ReplyTo:     "contact@go2fix.ro",
 			Html:        buildFallbackHTML(subject, target.Name, nil),
+			Text:        buildEventText(EventWelcomeClient, subject, target.Name, nil),
 			ScheduledAt: scheduledAt,
 		}
 		if _, err := e.client.Emails.Send(req); err != nil {
@@ -224,14 +228,47 @@ func (e *EmailChannel) scheduleOnboarding(target Target) {
 }
 
 // buildEventHTML returns branded HTML for a given event.
-// For the OTP event it renders the full OTP code block; for all other events
-// it renders a concise generic message.
 func buildEventHTML(event Event, subject, name string, payload Payload) string {
-	if event == EventOTPCode {
+	switch event {
+	case EventOTPCode:
 		code, _ := payload["code"].(string)
 		return buildOTPHTML(name, code)
+	case EventWelcomeClient:
+		return buildWelcomeClientHTML(name)
+	case EventWelcomeCompanyAdmin:
+		companyName, _ := payload["companyName"].(string)
+		return buildWelcomeCompanyHTML(name, companyName)
+	case EventWelcomeWorker:
+		return buildWelcomeWorkerHTML(name)
+	case EventBookingConfirmedClient:
+		return buildBookingConfirmedHTML(name, payload)
+	case EventBookingNewRequestCompany:
+		return buildBookingNewRequestHTML(name, payload)
+	case EventBookingWorkerAssignedClient:
+		return buildWorkerAssignedClientHTML(name, payload)
+	case EventJobAssignedWorker:
+		return buildJobAssignedWorkerHTML(name, payload)
+	case EventBookingCompleted:
+		return buildBookingCompletedHTML(name, payload)
+	case EventBookingCancelledByClient, EventBookingCancelledByAdmin:
+		return buildBookingCancelledHTML(name, payload, event)
+	case EventBookingRescheduled:
+		return buildBookingRescheduledHTML(name, payload)
+	case EventCompanyApplicationReceived:
+		return buildCompanyApplicationHTML(name)
+	case EventCompanyApproved:
+		return buildCompanyApprovedHTML(name)
+	case EventCompanyRejected:
+		return buildCompanyRejectedHTML(name, payload)
+	case EventWorkerInvited:
+		return buildWorkerInvitedHTML(name, payload)
+	case EventInvoiceReady:
+		return buildInvoiceReadyHTML(name, payload)
+	case EventWaitlistJoined:
+		return buildWaitlistHTML(name, payload)
+	default:
+		return buildFallbackHTML(subject, name, payload)
 	}
-	return buildFallbackHTML(subject, name, payload)
 }
 
 // emailHeader is the shared top bar used in every email.
@@ -245,14 +282,45 @@ const emailHeader = `
 </table>`
 
 // emailFooter is the shared bottom bar used in every email.
+// TODO: replace RO[PLACEHOLDER] with the actual Go2Fix SRL CUI once confirmed.
 const emailFooter = `
 <table width="100%%" cellpadding="0" cellspacing="0">
   <tr>
-    <td style="background:#F9FAFB;border-top:1px solid #E5E7EB;padding:20px 40px;border-radius:0 0 16px 16px;">
-      <p style="margin:0;font-size:12px;color:#9CA3AF;font-family:'Inter',Arial,sans-serif;">
-        &copy; 2026 Go2Fix SRL &nbsp;&middot;&nbsp;
-        <a href="https://go2fix.ro" style="color:#9CA3AF;text-decoration:none;">go2fix.ro</a>
-      </p>
+    <td style="background:#F9FAFB;border-top:1px solid #E5E7EB;padding:24px 40px;border-radius:0 0 16px 16px;">
+      <table width="100%%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td style="padding-bottom:10px;">
+            <p style="margin:0;font-size:13px;font-weight:600;color:#374151;font-family:'Inter',Arial,sans-serif;">
+              Go2Fix SRL &nbsp;&middot;&nbsp; CUI: RO[PLACEHOLDER] &nbsp;&middot;&nbsp; București, România
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding-bottom:10px;">
+            <p style="margin:0;font-size:12px;color:#6B7280;font-family:'Inter',Arial,sans-serif;">
+              <a href="https://go2fix.ro" style="color:#2563EB;text-decoration:none;">go2fix.ro</a>
+              &nbsp;&middot;&nbsp;
+              <a href="mailto:contact@go2fix.ro" style="color:#2563EB;text-decoration:none;">contact@go2fix.ro</a>
+              &nbsp;&middot;&nbsp;
+              <a href="https://facebook.com/go2fix.ro" style="color:#2563EB;text-decoration:none;">Facebook</a>
+              &nbsp;&middot;&nbsp;
+              <a href="https://instagram.com/go2fix.ro" style="color:#2563EB;text-decoration:none;">Instagram</a>
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding-top:8px;border-top:1px solid #E5E7EB;">
+            <p style="margin:0;font-size:11px;color:#9CA3AF;font-family:'Inter',Arial,sans-serif;line-height:1.6;">
+              Ai primit acest email deoarece ai un cont activ sau o rezervare pe Go2Fix.ro.<br>
+              <a href="https://go2fix.ro/cont/setari#notificari" style="color:#9CA3AF;text-decoration:underline;">Setări notificări</a>
+              &nbsp;&middot;&nbsp;
+              <a href="https://go2fix.ro/politica-confidentialitate" style="color:#9CA3AF;text-decoration:underline;">Politică de confidențialitate</a>
+              &nbsp;&middot;&nbsp;
+              &copy; 2026 Go2Fix SRL
+            </p>
+          </td>
+        </tr>
+      </table>
     </td>
   </tr>
 </table>`
@@ -270,7 +338,7 @@ func emailWrapper(body string) string {
 <table width="100%%" cellpadding="0" cellspacing="0" style="background:#F3F4F6;padding:40px 16px;">
   <tr>
     <td align="center">
-      <table width="520" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;border:1px solid #E5E7EB;">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;border:1px solid #E5E7EB;max-width:600px;width:100%%;">
         <tr><td>%s</td></tr>
         <tr><td>%s</td></tr>
         <tr><td>%s</td></tr>

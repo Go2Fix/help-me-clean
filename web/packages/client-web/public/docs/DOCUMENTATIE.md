@@ -1,6 +1,6 @@
 # Go2Fix.ro — Documentație Platformă
 
-> **Versiune:** Actualizată la 07 martie 2026
+> **Versiune:** Actualizată la 10 martie 2026
 > **Scop:** Referință completă a funcționalității platformei. Oricine citește acest document trebuie să înțeleagă cum funcționează Go2Fix, ce poate face fiecare tip de utilizator și cum se rezolvă problemele operaționale frecvente.
 
 ---
@@ -277,15 +277,26 @@ Gestionarea angajaților firmei.
 4. Se afișează link-ul de invitație: `go2fix.ro/invitare?token=inv-xxx`
 5. Copiere link → trimis angajatului pe orice canal (WhatsApp, email etc.)
 
-**Detaliu angajat (`/firma/echipa/:id`):**
+**Notă:** La trimiterea invitației, disponibilitatea săptămânală a angajatului este **populată automat** pe baza programului de lucru al firmei (configurat în `/firma/setari`).
+
+**Detaliu angajat (`/firma/lucratori/:id`):**
 - Profil complet: nume, telefon, email, avatar, rating
 - Statistici: joburi finalizate, recenzii, rating mediu
 - Categorii de servicii desemnate
 - Status curent al angajatului
 
+**Gestionare program angajat:**
+- Secțiunea de disponibilitate din pagina de detaliu include butonul **"Editează program"**
+- Administratorul firmei poate activa/dezactiva zilele de lucru și seta orele de start-end per zi pentru angajat
+- Modificările se salvează imediat și devin vizibile angajatului ca program read-only
+
+**Zile libere lucrător:**
+- Un card dedicat **"Zile libere lucrător"** permite administratorului să adauge sau să anuleze zile libere punctuale pentru angajat
+- Zilele libere adăugate funcționează ca override-uri pe datele respective, blocând alocarea de joburi
+
 ### 4.5 Calendar (`/firma/program`)
 
-Vizualizare săptămânală a programului firmei cu joburile desemnate pe zile și ore. Permite editarea disponibilității și configurarea datelor indisponibile.
+Vizualizare săptămânală a programului firmei cu joburile desemnate pe zile și ore. Permite vizualizarea globală a disponibilității echipei. Editarea programului individual al fiecărui angajat se face din pagina de detaliu a angajatului (`/firma/lucratori/:id`).
 
 ### 4.6 Mesaje (`/firma/mesaje`)
 
@@ -445,13 +456,15 @@ Lista completă a joburilor desemnate angajatului.
 
 ### 5.8 Program (`/worker/program`)
 
-**Disponibilitate săptămânală:**
-- Grid Lun-Dum cu toggle disponibil/indisponibil
-- Setare ore de start-end per zi
+**Disponibilitate săptămânală (read-only):**
+- Tab-ul "Disponibilitate" afișează programul săptămânal setat de administratorul firmei (zilele active și orele de lucru per zi)
+- Angajatul **nu poate modifica** programul săptămânal — acesta este controlat exclusiv de firmă
+- Un banner informativ explică că programul este gestionat de companie
 
-**Override-uri per dată:**
-- Marcare zile specifice ca indisponibile (ex: concediu, zi liberă)
-- Data overrides au prioritate față de programul săptămânal
+**Zile libere solicitate:**
+- Angajatul poate solicita zile libere punctuale prin secțiunea "Zile libere solicitate" din același tab
+- Ziua liberă aprobată funcționează ca un override pe data respectivă, blocând alocarea de joburi
+- Override-urile per dată au prioritate față de programul săptămânal
 
 ### 5.9 Profil (`/worker/profil`)
 
@@ -949,8 +962,8 @@ Servicii adiționale facturate separat:
 ### Cum verifici disponibilitatea unui angajat pentru o comandă?
 
 Din pagina de detaliu a comenzii, secțiunea "Desemnare angajat", sistemul verifică automat disponibilitatea fiecărui angajat din echipa firmei pe baza:
-- Programului săptămânal setat de angajat
-- Override-urilor pe date specifice
+- Programului săptămânal setat de administratorul firmei pentru angajat (editabil din `/firma/lucratori/:id`)
+- Override-urilor pe date specifice (zile libere adăugate de firmă sau solicitate de angajat)
 - Comenzilor deja desemnate (pentru a evita suprapuneri)
 - Ariilor geografice de servicii ale angajatului
 

@@ -384,7 +384,12 @@
     "availability": {
       "title": "Availability schedule",
       "empty": "No availability schedule set.",
-      "day": "Day {{num}}"
+      "day": "Day {{num}}",
+      "editSchedule": "Edit schedule",
+      "saveSchedule": "Save schedule",
+      "cancelEdit": "Cancel",
+      "saveError": "Error saving. Please try again.",
+      "saveSuccess": "Schedule saved successfully!"
     },
     "areas": {
       "title": "Work zones",

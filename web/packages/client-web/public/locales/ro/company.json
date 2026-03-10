@@ -384,7 +384,12 @@
     "availability": {
       "title": "Program disponibilitate",
       "empty": "Niciun program de disponibilitate setat.",
-      "day": "Ziua {{num}}"
+      "day": "Ziua {{num}}",
+      "editSchedule": "Editează program",
+      "saveSchedule": "Salvează programul",
+      "cancelEdit": "Anulează",
+      "saveError": "Eroare la salvare. Încearcă din nou.",
+      "saveSuccess": "Program salvat cu succes!"
     },
     "areas": {
       "title": "Zone de lucru",

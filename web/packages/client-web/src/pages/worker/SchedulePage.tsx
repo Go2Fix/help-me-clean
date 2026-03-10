@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -13,7 +13,7 @@ import Button from '@/components/ui/Button';
 import {
   MY_WORKER_BOOKINGS_BY_DATE_RANGE,
   MY_WORKER_AVAILABILITY,
-  UPDATE_AVAILABILITY,
+  MY_WORKER_COMPANY_SCHEDULE,
   MY_WORKER_DATE_OVERRIDES,
   SET_WORKER_DATE_OVERRIDE,
 } from '@/graphql/operations';
@@ -46,6 +46,14 @@ interface DateOverride {
   isAvailable: boolean;
   startTime: string;
   endTime: string;
+}
+
+interface CompanyScheduleSlot {
+  id: string;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+  isWorkDay: boolean;
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -110,6 +118,9 @@ export default function SchedulePage() {
   const { data: availData, loading: availLoading } = useQuery(MY_WORKER_AVAILABILITY);
   const availabilitySlots: AvailabilitySlot[] = availData?.myWorkerAvailability ?? [];
 
+  const { data: companySchedData, loading: companySchedLoading } = useQuery(MY_WORKER_COMPANY_SCHEDULE);
+  const companySchedule: CompanyScheduleSlot[] = companySchedData?.myWorkerCompanySchedule ?? [];
+
   const { data: overridesData, loading: overridesLoading, refetch: refetchOverrides } = useQuery(MY_WORKER_DATE_OVERRIDES, {
     variables: { from: fromISO, to: toISO },
     fetchPolicy: 'cache-and-network',
@@ -125,10 +136,6 @@ export default function SchedulePage() {
   const overrides30: DateOverride[] = overrides30Data?.myWorkerDateOverrides ?? [];
 
   // ─── Mutations ──────────────────────────────────────────────────────
-
-  const [updateAvailability, { loading: savingAvail }] = useMutation(UPDATE_AVAILABILITY, {
-    refetchQueries: [{ query: MY_WORKER_AVAILABILITY }],
-  });
 
   const [setDateOverride, { loading: savingOverride }] = useMutation(SET_WORKER_DATE_OVERRIDE, {
     onCompleted: () => {
@@ -260,9 +267,8 @@ export default function SchedulePage() {
       ) : (
         <AvailabilityManager
           availabilitySlots={availabilitySlots}
-          availLoading={availLoading}
-          updateAvailability={updateAvailability}
-          savingAvail={savingAvail}
+          companySchedule={companySchedule}
+          availLoading={availLoading || companySchedLoading}
           overrides={overrides30.filter((o) => !o.isAvailable)}
           setDateOverride={setDateOverride}
           savingOverride={savingOverride}
@@ -583,33 +589,29 @@ function DayCard({ day, onJobClick }: { day: WeekDay; onJobClick: (id: string) =
 
 interface AvailabilityManagerProps {
   availabilitySlots: AvailabilitySlot[];
+  companySchedule: CompanyScheduleSlot[];
   availLoading: boolean;
-  updateAvailability: (opts: { variables: { slots: AvailabilitySlotInput[] } }) => Promise<unknown>;
-  savingAvail: boolean;
   overrides: DateOverride[];
   setDateOverride: (opts: { variables: { date: string; isAvailable: boolean; startTime: string; endTime: string } }) => Promise<unknown>;
   savingOverride: boolean;
 }
 
-interface AvailabilitySlotInput {
-  dayOfWeek: number;
-  startTime: string;
-  endTime: string;
-  isAvailable: boolean;
-}
-
 function AvailabilityManager({
-  availabilitySlots, availLoading, updateAvailability, savingAvail,
-  overrides, setDateOverride, savingOverride,
+  availabilitySlots, companySchedule, availLoading, overrides, setDateOverride, savingOverride,
 }: AvailabilityManagerProps) {
+  const displaySlots = availabilitySlots.length > 0
+    ? availabilitySlots
+    : companySchedule.map((cs) => ({
+        id: cs.id,
+        dayOfWeek: cs.dayOfWeek,
+        startTime: cs.startTime,
+        endTime: cs.endTime,
+        isAvailable: cs.isWorkDay,
+      }));
+
   return (
     <div className="space-y-6">
-      <WeeklyScheduleEditor
-        slots={availabilitySlots}
-        loading={availLoading}
-        onSave={updateAvailability}
-        saving={savingAvail}
-      />
+      <ReadOnlyScheduleDisplay slots={displaySlots} loading={availLoading} />
       <DateOverridesManager
         overrides={overrides}
         onSetOverride={setDateOverride}
@@ -619,82 +621,22 @@ function AvailabilityManager({
   );
 }
 
-// ─── Weekly Schedule Editor ─────────────────────────────────────────────────
+// ─── Read-Only Schedule Display ─────────────────────────────────────────────
 
-interface WeeklyScheduleEditorProps {
-  slots: AvailabilitySlot[];
-  loading: boolean;
-  onSave: (opts: { variables: { slots: AvailabilitySlotInput[] } }) => Promise<unknown>;
-  saving: boolean;
-}
-
-interface EditableSlot {
+interface ReadOnlyScheduleDisplaySlot {
   dayOfWeek: number;
   startTime: string;
   endTime: string;
   isAvailable: boolean;
 }
 
-function WeeklyScheduleEditor({ slots, loading, onSave, saving }: WeeklyScheduleEditorProps) {
+interface ReadOnlyScheduleDisplayProps {
+  slots: ReadOnlyScheduleDisplaySlot[];
+  loading: boolean;
+}
+
+function ReadOnlyScheduleDisplay({ slots, loading }: ReadOnlyScheduleDisplayProps) {
   const { t } = useTranslation(['dashboard', 'worker']);
-  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
-
-  const initialState = useMemo((): EditableSlot[] => {
-    return WEEK_DAY_ORDER.map((dow) => {
-      const existing = slots.find((s) => s.dayOfWeek === dow);
-      return {
-        dayOfWeek: dow,
-        startTime: existing?.startTime ?? '08:00',
-        endTime: existing?.endTime ?? '18:00',
-        isAvailable: existing?.isAvailable ?? false,
-      };
-    });
-  }, [slots]);
-
-  const [editSlots, setEditSlots] = useState<EditableSlot[]>(initialState);
-
-  const slotsKey = slots.map((s) => `${s.dayOfWeek}-${s.isAvailable}-${s.startTime}-${s.endTime}`).join(',');
-  const [lastKey, setLastKey] = useState(slotsKey);
-  if (slotsKey !== lastKey) {
-    setLastKey(slotsKey);
-    setEditSlots(
-      WEEK_DAY_ORDER.map((dow) => {
-        const existing = slots.find((s) => s.dayOfWeek === dow);
-        return {
-          dayOfWeek: dow,
-          startTime: existing?.startTime ?? '08:00',
-          endTime: existing?.endTime ?? '18:00',
-          isAvailable: existing?.isAvailable ?? false,
-        };
-      }),
-    );
-  }
-
-  const updateSlot = useCallback((dayOfWeek: number, field: keyof EditableSlot, value: string | boolean) => {
-    setEditSlots((prev) =>
-      prev.map((s) => (s.dayOfWeek === dayOfWeek ? { ...s, [field]: value } : s)),
-    );
-  }, []);
-
-  const handleSave = async () => {
-    setToast(null);
-    try {
-      await onSave({
-        variables: {
-          slots: editSlots.map((s) => ({
-            dayOfWeek: s.dayOfWeek,
-            startTime: s.startTime,
-            endTime: s.endTime,
-            isAvailable: s.isAvailable,
-          })),
-        },
-      });
-      setToast({ type: 'success', message: t('worker:schedule.savedSchedule') });
-      setTimeout(() => setToast(null), 3000);
-    } catch {
-      setToast({ type: 'error', message: t('worker:schedule.errorSaveSchedule') });
-    }
-  };
 
   if (loading) {
     return (
@@ -702,7 +644,7 @@ function WeeklyScheduleEditor({ slots, loading, onSave, saving }: WeeklySchedule
         <div className="animate-pulse space-y-3">
           <div className="h-5 bg-gray-200 rounded w-48 mb-4" />
           {[...Array(7)].map((_, i) => (
-            <div key={i} className="h-10 bg-gray-100 rounded" />
+            <div key={i} className="h-10 bg-gray-100 rounded-xl" />
           ))}
         </div>
       </Card>
@@ -711,92 +653,57 @@ function WeeklyScheduleEditor({ slots, loading, onSave, saving }: WeeklySchedule
 
   return (
     <Card>
-      <div className="flex items-center gap-2 mb-5">
+      <div className="flex items-center gap-2 mb-4">
         <Calendar className="h-5 w-5 text-blue-600" />
         <h2 className="font-semibold text-gray-900">{t('worker:schedule.weeklySchedule')}</h2>
       </div>
 
-      <div className="space-y-2">
-        {editSlots.map((slot) => {
-          const dayName = t(`days.${slot.dayOfWeek}`);
-          return (
-            <div
-              key={slot.dayOfWeek}
-              className={cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors',
-                slot.isAvailable ? 'bg-emerald-50/50' : 'bg-gray-50',
-              )}
-            >
-              {/* Toggle */}
-              <button
-                type="button"
-                onClick={() => updateSlot(slot.dayOfWeek, 'isAvailable', !slot.isAvailable)}
-                className={cn(
-                  'relative w-10 h-5 rounded-full transition-colors shrink-0 cursor-pointer',
-                  slot.isAvailable ? 'bg-emerald-500' : 'bg-gray-300',
-                )}
-                aria-label={t('worker:schedule.ariaAvailableDay', { day: dayName })}
-              >
-                <span
-                  className={cn(
-                    'absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform shadow-sm',
-                    slot.isAvailable && 'translate-x-5',
-                  )}
-                />
-              </button>
-
-              {/* Day name */}
-              <span className={cn(
-                'text-sm font-medium w-20 shrink-0',
-                slot.isAvailable ? 'text-gray-900' : 'text-gray-400',
-              )}>
-                {dayName}
-              </span>
-
-              {/* Time inputs */}
-              {slot.isAvailable ? (
-                <div className="flex items-center gap-2 flex-1 min-w-0">
-                  <input
-                    type="time"
-                    value={slot.startTime}
-                    onChange={(e) => updateSlot(slot.dayOfWeek, 'startTime', e.target.value)}
-                    className="border border-gray-200 rounded-lg px-2 py-1 text-sm text-gray-700 w-[110px] bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 outline-none"
-                  />
-                  <span className="text-gray-400 text-xs">-</span>
-                  <input
-                    type="time"
-                    value={slot.endTime}
-                    onChange={(e) => updateSlot(slot.dayOfWeek, 'endTime', e.target.value)}
-                    className="border border-gray-200 rounded-lg px-2 py-1 text-sm text-gray-700 w-[110px] bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 outline-none"
-                  />
-                </div>
-              ) : (
-                <span className="text-xs text-gray-400 italic">{t('worker:schedule.unavailableLabel')}</span>
-              )}
-            </div>
-          );
-        })}
+      {/* Info banner */}
+      <div className="flex items-start gap-2.5 bg-blue-50 border border-blue-100 rounded-xl px-3 py-2.5 mb-4">
+        <Clock className="h-4 w-4 text-blue-500 mt-0.5 shrink-0" />
+        <p className="text-sm text-blue-700">{t('worker:schedule.readOnlyInfo')}</p>
       </div>
 
-      {/* Toast + Save */}
-      <div className="flex items-center justify-between mt-5">
-        <div>
-          {toast && (
-            <span
-              className={cn(
-                'text-sm font-medium',
-                toast.type === 'success' ? 'text-emerald-600' : 'text-red-600',
-              )}
-            >
-              {toast.type === 'success' && <Check className="h-4 w-4 inline-block mr-1 -mt-0.5" />}
-              {toast.message}
-            </span>
-          )}
+      {slots.length === 0 ? (
+        <div className="text-center py-6">
+          <Calendar className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+          <p className="text-sm text-gray-400">{t('worker:schedule.noScheduleConfigured')}</p>
         </div>
-        <Button onClick={handleSave} loading={saving} size="sm">
-          {t('worker:schedule.saveSchedule')}
-        </Button>
-      </div>
+      ) : (
+        <div className="space-y-2">
+          {WEEK_DAY_ORDER.map((dow) => {
+            const slot = slots.find((s) => s.dayOfWeek === dow);
+            const isAvailable = slot?.isAvailable ?? false;
+            const dayName = t(`days.${dow}`);
+            return (
+              <div
+                key={dow}
+                className={cn(
+                  'flex items-center justify-between px-3 py-2.5 rounded-xl',
+                  isAvailable ? 'bg-emerald-50/50' : 'bg-gray-50',
+                )}
+              >
+                <span className={cn(
+                  'text-sm font-medium w-24 shrink-0',
+                  isAvailable ? 'text-gray-900' : 'text-gray-400',
+                )}>
+                  {dayName}
+                </span>
+                {isAvailable && slot ? (
+                  <span className="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-700 rounded-full px-3 py-1 text-sm font-medium">
+                    <Clock className="h-3.5 w-3.5" />
+                    {slot.startTime} – {slot.endTime}
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center bg-gray-100 text-gray-400 rounded-full px-3 py-1 text-xs">
+                    {t('worker:schedule.unavailableLabel')}
+                  </span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </Card>
   );
 }
@@ -868,12 +775,12 @@ function DateOverridesManager({ overrides, onSetOverride, saving }: DateOverride
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2">
           <Calendar className="h-5 w-5 text-blue-600" />
-          <h2 className="font-semibold text-gray-900">{t('worker:schedule.daysOff')}</h2>
+          <h2 className="font-semibold text-gray-900">{t('worker:schedule.requestedDaysOff')}</h2>
         </div>
         {!showForm && (
           <Button variant="outline" size="sm" onClick={() => setShowForm(true)}>
             <Plus className="h-4 w-4" />
-            {t('worker:schedule.addDayOff')}
+            {t('worker:schedule.requestDayOff')}
           </Button>
         )}
       </div>
