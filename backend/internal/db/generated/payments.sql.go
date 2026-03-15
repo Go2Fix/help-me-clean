@@ -434,6 +434,32 @@ func (q *Queries) GetPayoutByID(ctx context.Context, id pgtype.UUID) (CompanyPay
 	return i, err
 }
 
+const getPayoutByStripePayoutID = `-- name: GetPayoutByStripePayoutID :one
+SELECT id, company_id, stripe_transfer_id, stripe_payout_id, amount, currency, period_from, period_to, booking_count, status, paid_at, failure_reason, created_at, updated_at FROM company_payouts WHERE stripe_payout_id = $1
+`
+
+func (q *Queries) GetPayoutByStripePayoutID(ctx context.Context, stripePayoutID pgtype.Text) (CompanyPayout, error) {
+	row := q.db.QueryRow(ctx, getPayoutByStripePayoutID, stripePayoutID)
+	var i CompanyPayout
+	err := row.Scan(
+		&i.ID,
+		&i.CompanyID,
+		&i.StripeTransferID,
+		&i.StripePayoutID,
+		&i.Amount,
+		&i.Currency,
+		&i.PeriodFrom,
+		&i.PeriodTo,
+		&i.BookingCount,
+		&i.Status,
+		&i.PaidAt,
+		&i.FailureReason,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getPlatformRevenueReport = `-- name: GetPlatformRevenueReport :one
 
 SELECT
@@ -570,6 +596,38 @@ func (q *Queries) GetUserStripeCustomerID(ctx context.Context, id pgtype.UUID) (
 	var stripe_customer_id pgtype.Text
 	err := row.Scan(&stripe_customer_id)
 	return stripe_customer_id, err
+}
+
+const listAllCompaniesWithStripeConnect = `-- name: ListAllCompaniesWithStripeConnect :many
+SELECT id, stripe_connect_account_id
+FROM companies
+WHERE stripe_connect_account_id IS NOT NULL
+  AND stripe_connect_charges_enabled = true
+`
+
+type ListAllCompaniesWithStripeConnectRow struct {
+	ID                     pgtype.UUID `json:"id"`
+	StripeConnectAccountID pgtype.Text `json:"stripe_connect_account_id"`
+}
+
+func (q *Queries) ListAllCompaniesWithStripeConnect(ctx context.Context) ([]ListAllCompaniesWithStripeConnectRow, error) {
+	rows, err := q.db.Query(ctx, listAllCompaniesWithStripeConnect)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListAllCompaniesWithStripeConnectRow
+	for rows.Next() {
+		var i ListAllCompaniesWithStripeConnectRow
+		if err := rows.Scan(&i.ID, &i.StripeConnectAccountID); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listAllPaymentTransactions = `-- name: ListAllPaymentTransactions :many
@@ -1688,6 +1746,37 @@ func (q *Queries) UpdatePayoutFailed(ctx context.Context, arg UpdatePayoutFailed
 	return i, err
 }
 
+const updatePayoutPaid = `-- name: UpdatePayoutPaid :one
+UPDATE company_payouts
+SET status = 'paid',
+    paid_at = NOW(),
+    updated_at = NOW()
+WHERE stripe_payout_id = $1
+RETURNING id, company_id, stripe_transfer_id, stripe_payout_id, amount, currency, period_from, period_to, booking_count, status, paid_at, failure_reason, created_at, updated_at
+`
+
+func (q *Queries) UpdatePayoutPaid(ctx context.Context, stripePayoutID pgtype.Text) (CompanyPayout, error) {
+	row := q.db.QueryRow(ctx, updatePayoutPaid, stripePayoutID)
+	var i CompanyPayout
+	err := row.Scan(
+		&i.ID,
+		&i.CompanyID,
+		&i.StripeTransferID,
+		&i.StripePayoutID,
+		&i.Amount,
+		&i.Currency,
+		&i.PeriodFrom,
+		&i.PeriodTo,
+		&i.BookingCount,
+		&i.Status,
+		&i.PaidAt,
+		&i.FailureReason,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const updatePayoutStatus = `-- name: UpdatePayoutStatus :one
 UPDATE company_payouts SET status = $2, stripe_transfer_id = $3, paid_at = CASE WHEN $2 = 'paid' THEN NOW() ELSE paid_at END, updated_at = NOW()
 WHERE id = $1 RETURNING id, company_id, stripe_transfer_id, stripe_payout_id, amount, currency, period_from, period_to, booking_count, status, paid_at, failure_reason, created_at, updated_at
@@ -1719,6 +1808,26 @@ func (q *Queries) UpdatePayoutStatus(ctx context.Context, arg UpdatePayoutStatus
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const updatePayoutStripeIDs = `-- name: UpdatePayoutStripeIDs :exec
+UPDATE company_payouts
+SET stripe_payout_id = $2,
+    stripe_transfer_id = $3,
+    status = 'processing',
+    updated_at = NOW()
+WHERE id = $1
+`
+
+type UpdatePayoutStripeIDsParams struct {
+	ID               pgtype.UUID `json:"id"`
+	StripePayoutID   pgtype.Text `json:"stripe_payout_id"`
+	StripeTransferID pgtype.Text `json:"stripe_transfer_id"`
+}
+
+func (q *Queries) UpdatePayoutStripeIDs(ctx context.Context, arg UpdatePayoutStripeIDsParams) error {
+	_, err := q.db.Exec(ctx, updatePayoutStripeIDs, arg.ID, arg.StripePayoutID, arg.StripeTransferID)
+	return err
 }
 
 const updateRefundRequestStatus = `-- name: UpdateRefundRequestStatus :one

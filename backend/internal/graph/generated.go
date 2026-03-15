@@ -577,7 +577,9 @@ type ComplexityRoot struct {
 		SuspendUser                               func(childComplexity int, id string, reason string) int
 		ToggleCityActive                          func(childComplexity int, id string, isActive bool) int
 		TransmitInvoiceToEFactura                 func(childComplexity int, id string) int
+		TriggerCompanyPayout                      func(childComplexity int, companyID string, periodFrom string, periodTo string) int
 		UpdateAddress                             func(childComplexity int, id string, input model.UpdateAddressInput) int
+		UpdateAllConnectPayoutSchedules           func(childComplexity int) int
 		UpdateAvailability                        func(childComplexity int, slots []*model.AvailabilitySlotInput) int
 		UpdateCityPricingMultiplier               func(childComplexity int, id string, pricingMultiplier float64) int
 		UpdateCompanyProfile                      func(childComplexity int, input model.UpdateCompanyInput) int
@@ -1419,6 +1421,8 @@ type MutationResolver interface {
 	ProcessRefund(ctx context.Context, refundRequestID string, approved bool) (*model.RefundRequest, error)
 	AdminIssueRefund(ctx context.Context, bookingID string, amount int, reason string) (*model.RefundRequest, error)
 	MarkBookingPaid(ctx context.Context, id string) (*model.Booking, error)
+	TriggerCompanyPayout(ctx context.Context, companyID string, periodFrom string, periodTo string) (*model.CompanyPayout, error)
+	UpdateAllConnectPayoutSchedules(ctx context.Context) (bool, error)
 	SubmitPersonalityAssessment(ctx context.Context, answers []*model.PersonalityAnswerInput) (*model.PersonalityAssessment, error)
 	GeneratePersonalityInsights(ctx context.Context, workerID string) (*model.PersonalityInsights, error)
 	RegeneratePersonalityInsights(ctx context.Context, workerID string) (*model.PersonalityInsights, error)
@@ -4537,6 +4541,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.TransmitInvoiceToEFactura(childComplexity, args["id"].(string)), true
+	case "Mutation.triggerCompanyPayout":
+		if e.complexity.Mutation.TriggerCompanyPayout == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_triggerCompanyPayout_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.TriggerCompanyPayout(childComplexity, args["companyId"].(string), args["periodFrom"].(string), args["periodTo"].(string)), true
 	case "Mutation.updateAddress":
 		if e.complexity.Mutation.UpdateAddress == nil {
 			break
@@ -4548,6 +4563,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.UpdateAddress(childComplexity, args["id"].(string), args["input"].(model.UpdateAddressInput)), true
+	case "Mutation.updateAllConnectPayoutSchedules":
+		if e.complexity.Mutation.UpdateAllConnectPayoutSchedules == nil {
+			break
+		}
+
+		return e.complexity.Mutation.UpdateAllConnectPayoutSchedules(childComplexity), true
 	case "Mutation.updateAvailability":
 		if e.complexity.Mutation.UpdateAvailability == nil {
 			break
@@ -10002,6 +10023,27 @@ func (ec *executionContext) field_Mutation_transmitInvoiceToEFactura_args(ctx co
 		return nil, err
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_triggerCompanyPayout_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "companyId", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["companyId"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "periodFrom", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["periodFrom"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "periodTo", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["periodTo"] = arg2
 	return args, nil
 }
 
@@ -28470,6 +28512,100 @@ func (ec *executionContext) fieldContext_Mutation_markBookingPaid(ctx context.Co
 	if fc.Args, err = ec.field_Mutation_markBookingPaid_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_triggerCompanyPayout(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_triggerCompanyPayout,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().TriggerCompanyPayout(ctx, fc.Args["companyId"].(string), fc.Args["periodFrom"].(string), fc.Args["periodTo"].(string))
+		},
+		nil,
+		ec.marshalNCompanyPayout2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyPayout,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_triggerCompanyPayout(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_CompanyPayout_id(ctx, field)
+			case "company":
+				return ec.fieldContext_CompanyPayout_company(ctx, field)
+			case "amount":
+				return ec.fieldContext_CompanyPayout_amount(ctx, field)
+			case "currency":
+				return ec.fieldContext_CompanyPayout_currency(ctx, field)
+			case "periodFrom":
+				return ec.fieldContext_CompanyPayout_periodFrom(ctx, field)
+			case "periodTo":
+				return ec.fieldContext_CompanyPayout_periodTo(ctx, field)
+			case "bookingCount":
+				return ec.fieldContext_CompanyPayout_bookingCount(ctx, field)
+			case "status":
+				return ec.fieldContext_CompanyPayout_status(ctx, field)
+			case "paidAt":
+				return ec.fieldContext_CompanyPayout_paidAt(ctx, field)
+			case "lineItems":
+				return ec.fieldContext_CompanyPayout_lineItems(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_CompanyPayout_createdAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CompanyPayout", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_triggerCompanyPayout_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateAllConnectPayoutSchedules(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_updateAllConnectPayoutSchedules,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.Mutation().UpdateAllConnectPayoutSchedules(ctx)
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateAllConnectPayoutSchedules(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
 	}
 	return fc, nil
 }
@@ -59946,6 +60082,20 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "markBookingPaid":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_markBookingPaid(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "triggerCompanyPayout":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_triggerCompanyPayout(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updateAllConnectPayoutSchedules":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateAllConnectPayoutSchedules(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++

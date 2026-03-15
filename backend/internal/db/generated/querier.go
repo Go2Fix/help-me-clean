@@ -255,6 +255,7 @@ type Querier interface {
 	GetPaymentTransactionByBookingID(ctx context.Context, bookingID pgtype.UUID) (PaymentTransaction, error)
 	GetPaymentTransactionByStripePI(ctx context.Context, stripePaymentIntentID string) (PaymentTransaction, error)
 	GetPayoutByID(ctx context.Context, id pgtype.UUID) (CompanyPayout, error)
+	GetPayoutByStripePayoutID(ctx context.Context, stripePayoutID pgtype.Text) (CompanyPayout, error)
 	GetPersonalityAnswersByAssessmentID(ctx context.Context, assessmentID pgtype.UUID) ([]PersonalityAssessmentAnswer, error)
 	GetPersonalityAssessmentByWorkerID(ctx context.Context, workerID pgtype.UUID) (PersonalityAssessment, error)
 	// Get personality insight by assessment ID
@@ -362,6 +363,7 @@ type Querier interface {
 	ListAllActiveWorkers(ctx context.Context) ([]ListAllActiveWorkersRow, error)
 	ListAllBookings(ctx context.Context, arg ListAllBookingsParams) ([]Booking, error)
 	ListAllCompanies(ctx context.Context, arg ListAllCompaniesParams) ([]Company, error)
+	ListAllCompaniesWithStripeConnect(ctx context.Context) ([]ListAllCompaniesWithStripeConnectRow, error)
 	ListAllDisputes(ctx context.Context, arg ListAllDisputesParams) ([]BookingDispute, error)
 	ListAllExtras(ctx context.Context) ([]ServiceExtra, error)
 	// ============================================
@@ -539,7 +541,9 @@ type Querier interface {
 	UpdatePaymentTransactionRefund(ctx context.Context, arg UpdatePaymentTransactionRefundParams) (PaymentTransaction, error)
 	UpdatePaymentTransactionStatus(ctx context.Context, arg UpdatePaymentTransactionStatusParams) (PaymentTransaction, error)
 	UpdatePayoutFailed(ctx context.Context, arg UpdatePayoutFailedParams) (CompanyPayout, error)
+	UpdatePayoutPaid(ctx context.Context, stripePayoutID pgtype.Text) (CompanyPayout, error)
 	UpdatePayoutStatus(ctx context.Context, arg UpdatePayoutStatusParams) (CompanyPayout, error)
+	UpdatePayoutStripeIDs(ctx context.Context, arg UpdatePayoutStripeIDsParams) error
 	// UpdatePlatformLegalEntity updates the platform legal entity details.
 	UpdatePlatformLegalEntity(ctx context.Context, arg UpdatePlatformLegalEntityParams) (PlatformLegalEntity, error)
 	UpdatePlatformSetting(ctx context.Context, arg UpdatePlatformSettingParams) (PlatformSetting, error)

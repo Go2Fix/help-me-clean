@@ -138,6 +138,31 @@ SET status = 'failed',
 WHERE stripe_payout_id = $1
 RETURNING *;
 
+-- name: UpdatePayoutStripeIDs :exec
+UPDATE company_payouts
+SET stripe_payout_id = $2,
+    stripe_transfer_id = $3,
+    status = 'processing',
+    updated_at = NOW()
+WHERE id = $1;
+
+-- name: UpdatePayoutPaid :one
+UPDATE company_payouts
+SET status = 'paid',
+    paid_at = NOW(),
+    updated_at = NOW()
+WHERE stripe_payout_id = $1
+RETURNING *;
+
+-- name: GetPayoutByStripePayoutID :one
+SELECT * FROM company_payouts WHERE stripe_payout_id = $1;
+
+-- name: ListAllCompaniesWithStripeConnect :many
+SELECT id, stripe_connect_account_id
+FROM companies
+WHERE stripe_connect_account_id IS NOT NULL
+  AND stripe_connect_charges_enabled = true;
+
 -- name: ListPayoutsByCompany :many
 SELECT * FROM company_payouts WHERE company_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3;
 

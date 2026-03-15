@@ -13,6 +13,7 @@ import (
 	"github.com/stripe/stripe-go/v81/account"
 	"github.com/stripe/stripe-go/v81/accountlink"
 	"github.com/stripe/stripe-go/v81/customer"
+	stripepayout "github.com/stripe/stripe-go/v81/payout"
 	"github.com/stripe/stripe-go/v81/paymentintent"
 	"github.com/stripe/stripe-go/v81/paymentmethod"
 	"github.com/stripe/stripe-go/v81/refund"
@@ -258,18 +259,16 @@ func (s *Service) CreatePaymentIntentForBooking(ctx context.Context, booking db.
 
 	applicationFee := int64(math.Round(float64(amountBani) * commissionPct / 100.0))
 
-	// Create the PaymentIntent with Connect transfer.
+	// Create the PaymentIntent on the platform account.
+	// Funds are held by the platform; transfers to companies happen on the biweekly payout cycle.
 	params := &stripe.PaymentIntentParams{
-		Amount:               stripe.Int64(amountBani),
-		Currency:             stripe.String("ron"),
-		Customer:             stripe.String(customerID),
-		ApplicationFeeAmount: stripe.Int64(applicationFee),
-		TransferData: &stripe.PaymentIntentTransferDataParams{
-			Destination: stripe.String(connectInfo.StripeConnectAccountID.String),
-		},
+		Amount:   stripe.Int64(amountBani),
+		Currency: stripe.String("ron"),
+		Customer: stripe.String(customerID),
 	}
 	params.AddMetadata("booking_id", uuidToString(booking.ID))
 	params.AddMetadata("reference_code", booking.ReferenceCode)
+	params.AddMetadata("transfer_group", "booking_"+uuidToString(booking.ID))
 
 	pi, err := paymentintent.New(params)
 	if err != nil {
@@ -335,6 +334,10 @@ func (s *Service) HandleWebhookEvent(ctx context.Context, payload []byte, sigHea
 		return s.handleAccountUpdated(ctx, event)
 	case "charge.dispute.created":
 		return s.handleChargeDisputeCreated(ctx, event)
+	case "payout.created":
+		return s.handlePayoutCreated(ctx, event)
+	case "payout.paid":
+		return s.handlePayoutPaid(ctx, event)
 	case "payout.failed":
 		return s.handlePayoutFailed(ctx, event)
 	case "invoice.paid":
@@ -678,6 +681,37 @@ func (s *Service) handlePayoutFailed(ctx context.Context, event stripe.Event) er
 	return nil
 }
 
+// handlePayoutCreated logs platform-initiated and company-initiated payouts.
+// Payout webhooks arrive from connected accounts via Stripe Connect.
+func (s *Service) handlePayoutCreated(ctx context.Context, event stripe.Event) error {
+	var payout stripe.Payout
+	if err := json.Unmarshal(event.Data.Raw, &payout); err != nil {
+		return fmt.Errorf("payment: failed to unmarshal payout.created: %w", err)
+	}
+	log.Printf("payment: payout.created for account %s, payout=%s, amount=%d, status=%s",
+		event.Account, payout.ID, payout.Amount, payout.Status)
+	return nil
+}
+
+// handlePayoutPaid marks the matching company payout record as paid when Stripe
+// confirms the bank transfer has been completed.
+func (s *Service) handlePayoutPaid(ctx context.Context, event stripe.Event) error {
+	var payout stripe.Payout
+	if err := json.Unmarshal(event.Data.Raw, &payout); err != nil {
+		return fmt.Errorf("payment: failed to unmarshal payout.paid: %w", err)
+	}
+
+	_, err := s.queries.UpdatePayoutPaid(ctx, pgtype.Text{String: payout.ID, Valid: true})
+	if err != nil {
+		// Payout may have been initiated outside our system — not a hard error.
+		log.Printf("payment: warning: payout.paid for payout %s not found in DB (account %s): %v", payout.ID, event.Account, err)
+		return nil
+	}
+
+	log.Printf("payment: payout.paid processed for payout %s, account %s, amount=%d bani", payout.ID, event.Account, payout.Amount)
+	return nil
+}
+
 // CreateConnectAccount creates a Stripe Express Connect account for a company
 // and saves the account ID to the database.
 func (s *Service) CreateConnectAccount(ctx context.Context, companyID pgtype.UUID, companyName string, email string) (string, error) {
@@ -694,6 +728,14 @@ func (s *Service) CreateConnectAccount(ctx context.Context, companyID pgtype.UUI
 			},
 			Transfers: &stripe.AccountCapabilitiesTransfersParams{
 				Requested: stripe.Bool(true),
+			},
+		},
+		Settings: &stripe.AccountSettingsParams{
+			Payouts: &stripe.AccountSettingsPayoutsParams{
+				Schedule: &stripe.AccountSettingsPayoutsScheduleParams{
+					Interval: stripe.String("manual"),
+				},
+				DebitNegativeBalances: stripe.Bool(true),
 			},
 		},
 	}
@@ -803,6 +845,52 @@ func (s *Service) GetConnectAccountStatus(ctx context.Context, companyID pgtype.
 	}
 
 	return accountID, acct.ChargesEnabled, acct.PayoutsEnabled, acct.DetailsSubmitted, nil
+}
+
+// UpdateConnectPayoutSchedule sets an existing Connect account's payout schedule
+// to manual, stopping Stripe from automatically paying out their balance to their bank.
+// Call this once for all legacy accounts that were created before this was the default.
+func (s *Service) UpdateConnectPayoutSchedule(ctx context.Context, accountID string) error {
+	params := &stripe.AccountParams{
+		Settings: &stripe.AccountSettingsParams{
+			Payouts: &stripe.AccountSettingsPayoutsParams{
+				Schedule: &stripe.AccountSettingsPayoutsScheduleParams{
+					Interval: stripe.String("manual"),
+				},
+				DebitNegativeBalances: stripe.Bool(true),
+			},
+		},
+	}
+	_, err := account.Update(accountID, params)
+	if err != nil {
+		return fmt.Errorf("payment: failed to update payout schedule for account %s: %w", accountID, err)
+	}
+	log.Printf("payment: set manual payout schedule for connect account %s", accountID)
+	return nil
+}
+
+// TriggerCompanyBankPayout initiates a Stripe payout from the company's Connect
+// account balance to their registered bank account. The funds must already be
+// present in the Connect account balance (via destination charge transfers).
+// idempotencyKey should be the payout DB record ID to prevent duplicate payouts.
+// Returns the Stripe payout ID.
+func (s *Service) TriggerCompanyBankPayout(ctx context.Context, connectAccountID string, amountBani int64, idempotencyKey string) (string, error) {
+	params := &stripe.PayoutParams{
+		Amount:   stripe.Int64(amountBani),
+		Currency: stripe.String("ron"),
+		Method:   stripe.String("standard"),
+	}
+	params.SetStripeAccount(connectAccountID)
+	params.SetIdempotencyKey("payout_" + idempotencyKey)
+	params.AddMetadata("platform_payout_id", idempotencyKey)
+
+	p, err := stripepayout.New(params)
+	if err != nil {
+		return "", fmt.Errorf("payment: failed to trigger bank payout for connect account %s: %w", connectAccountID, err)
+	}
+
+	log.Printf("payment: triggered bank payout %s for connect account %s, amount=%d bani", p.ID, connectAccountID, amountBani)
+	return p.ID, nil
 }
 
 // CreateRefund creates a Stripe refund for a given payment intent.

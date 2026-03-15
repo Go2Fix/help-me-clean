@@ -785,6 +785,18 @@ func (m *PartialMockQuerier) GetPaymentTransactionByStripePI(ctx context.Context
 func (m *PartialMockQuerier) GetPayoutByID(ctx context.Context, id pgtype.UUID) (db.CompanyPayout, error) {
 	panic("PartialMockQuerier: GetPayoutByID not configured")
 }
+func (m *PartialMockQuerier) GetPayoutByStripePayoutID(ctx context.Context, stripePayoutID pgtype.Text) (db.CompanyPayout, error) {
+	panic("PartialMockQuerier: GetPayoutByStripePayoutID not configured")
+}
+func (m *PartialMockQuerier) ListAllCompaniesWithStripeConnect(ctx context.Context) ([]db.ListAllCompaniesWithStripeConnectRow, error) {
+	panic("PartialMockQuerier: ListAllCompaniesWithStripeConnect not configured")
+}
+func (m *PartialMockQuerier) UpdatePayoutPaid(ctx context.Context, stripePayoutID pgtype.Text) (db.CompanyPayout, error) {
+	panic("PartialMockQuerier: UpdatePayoutPaid not configured")
+}
+func (m *PartialMockQuerier) UpdatePayoutStripeIDs(ctx context.Context, arg db.UpdatePayoutStripeIDsParams) error {
+	panic("PartialMockQuerier: UpdatePayoutStripeIDs not configured")
+}
 func (m *PartialMockQuerier) GetPersonalityAnswersByAssessmentID(ctx context.Context, assessmentID pgtype.UUID) ([]db.PersonalityAssessmentAnswer, error) {
 	panic("PartialMockQuerier: GetPersonalityAnswersByAssessmentID not configured")
 }

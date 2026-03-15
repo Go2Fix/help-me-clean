@@ -297,6 +297,35 @@ func (r *mutationResolver) CreateMonthlyPayout(ctx context.Context, companyID st
 		}
 	}
 
+	// Trigger the actual Stripe bank payout from the company's Connect account balance.
+	connectInfo, err := r.Queries.GetCompanyStripeConnect(ctx, companyUUID)
+	if err != nil || !connectInfo.StripeConnectAccountID.Valid || connectInfo.StripeConnectAccountID.String == "" {
+		log.Printf("payment: warning: company %s has no connect account, skipping stripe payout trigger", companyID)
+	} else {
+		stripePayoutID, stripeErr := r.PaymentService.TriggerCompanyBankPayout(
+			ctx,
+			connectInfo.StripeConnectAccountID.String,
+			int64(totalNet),
+			uuidToString(payout.ID),
+		)
+		if stripeErr != nil {
+			log.Printf("payment: warning: stripe payout trigger failed for payout %s: %v — record created, retry manually", uuidToString(payout.ID), stripeErr)
+		} else {
+			dbErr := r.Queries.UpdatePayoutStripeIDs(ctx, db.UpdatePayoutStripeIDsParams{
+				ID:               payout.ID,
+				StripePayoutID:   pgtype.Text{String: stripePayoutID, Valid: true},
+				StripeTransferID: pgtype.Text{},
+			})
+			if dbErr != nil {
+				log.Printf("payment: warning: failed to store stripe payout id %s: %v", stripePayoutID, dbErr)
+			}
+			// Reload payout with updated stripe IDs.
+			if updated, reloadErr := r.Queries.GetPayoutByID(ctx, payout.ID); reloadErr == nil {
+				payout = updated
+			}
+		}
+	}
+
 	result := dbCompanyPayoutToGQL(payout)
 
 	// Enrich with company data.
@@ -614,6 +643,57 @@ func (r *mutationResolver) MarkBookingPaid(ctx context.Context, id string) (*mod
 	result := dbBookingToGQL(booking)
 	r.enrichBooking(ctx, booking, result)
 	return result, nil
+}
+
+// TriggerCompanyPayout is the resolver for the triggerCompanyPayout field.
+// Admin-only: immediately triggers a Stripe bank payout for a company for the given period.
+// Functionally identical to createMonthlyPayout — use this for on-demand / manual triggers.
+func (r *mutationResolver) TriggerCompanyPayout(ctx context.Context, companyID string, periodFrom string, periodTo string) (*model.CompanyPayout, error) {
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil {
+		return nil, fmt.Errorf("not authenticated")
+	}
+	if claims.Role != "global_admin" {
+		return nil, fmt.Errorf("only admins can trigger payouts")
+	}
+	// Delegate to the same logic as createMonthlyPayout.
+	return r.CreateMonthlyPayout(ctx, companyID, periodFrom, periodTo)
+}
+
+// UpdateAllConnectPayoutSchedules is the resolver for the updateAllConnectPayoutSchedules field.
+// Admin-only: one-time migration to set all existing Connect accounts to manual payout schedule,
+// stopping Stripe from auto-paying companies daily. Run once after deploying this change.
+func (r *mutationResolver) UpdateAllConnectPayoutSchedules(ctx context.Context) (bool, error) {
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil {
+		return false, fmt.Errorf("not authenticated")
+	}
+	if claims.Role != "global_admin" {
+		return false, fmt.Errorf("only admins can update payout schedules")
+	}
+
+	companies, err := r.Queries.ListAllCompaniesWithStripeConnect(ctx)
+	if err != nil {
+		return false, fmt.Errorf("failed to list companies with connect accounts: %w", err)
+	}
+
+	var failed int
+	for _, company := range companies {
+		if !company.StripeConnectAccountID.Valid || company.StripeConnectAccountID.String == "" {
+			continue
+		}
+		if err := r.PaymentService.UpdateConnectPayoutSchedule(ctx, company.StripeConnectAccountID.String); err != nil {
+			log.Printf("payment: failed to update payout schedule for account %s: %v", company.StripeConnectAccountID.String, err)
+			failed++
+		}
+	}
+
+	if failed > 0 {
+		return false, fmt.Errorf("updated %d accounts, %d failed — check logs", len(companies)-failed, failed)
+	}
+
+	log.Printf("payment: updated payout schedule to manual for %d connect accounts", len(companies))
+	return true, nil
 }
 
 // MyPaymentHistory is the resolver for the myPaymentHistory field.

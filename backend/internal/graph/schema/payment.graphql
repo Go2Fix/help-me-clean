@@ -180,4 +180,10 @@ extend type Mutation {
   processRefund(refundRequestId: ID!, approved: Boolean!): RefundRequest!
   adminIssueRefund(bookingId: ID!, amount: Int!, reason: String!): RefundRequest!
   markBookingPaid(id: ID!): Booking!
+
+  # Admin: Connect payout schedule management
+  # Trigger an immediate payout for a specific company (same as createMonthlyPayout but fires Stripe immediately)
+  triggerCompanyPayout(companyId: ID!, periodFrom: String!, periodTo: String!): CompanyPayout!
+  # One-time migration: set all existing Connect accounts to manual payout schedule
+  updateAllConnectPayoutSchedules: Boolean!
 }
