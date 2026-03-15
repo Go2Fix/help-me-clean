@@ -4,10 +4,12 @@
   "private": true,
   "packageManager": "npm@11.7.0",
   "workspaces": [
-    "packages/*"
+    "packages/client-web",
+    "packages/shared"
   ],
   "scripts": {
     "dev": "turbo run dev --filter=client-web",
+    "dev:mobile": "turbo run dev --filter=mobile",
     "build": "turbo run build",
     "lint": "turbo run lint",
     "type-check": "turbo run type-check",

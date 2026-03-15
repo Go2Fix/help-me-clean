@@ -84,6 +84,20 @@ Use specialized agents for different parts of the codebase:
 - Follow Apple Human Interface Guidelines
 - View structure: `Features/<Domain>/<View>.swift`
 
+### Mobile (React Native / Expo)
+
+- **Icons:** Always use `@expo/vector-icons` (Feather preferred). Never use emoji or plain text characters as icons (✕, ←, →, etc.). Example: `import { Feather } from '@expo/vector-icons'` → `<Feather name="chevron-left" size={24} color={colors.textSecondary} />`
+- **Dark mode:** Every screen must support dark/light mode. Use `useColorScheme()` from `react-native` and a `makeStyles(dark: boolean)` factory function driven by `useMemo`. Never hardcode colors directly in styles — always derive them from the theme. `userInterfaceStyle: 'automatic'` is set in `app.config.js`.
+- **Dark mode color pattern:**
+  ```typescript
+  const scheme = useColorScheme();
+  const dark = scheme === 'dark';
+  const s = useMemo(() => makeStyles(dark), [dark]);
+  // In makeStyles: derive bg, text, border colors from the dark boolean
+  ```
+- **Shadow rendering:** Always use the shadow-wrapper pattern (outer `View` owns shadow + `backgroundColor`, inner `Pressable` has `overflow: 'hidden'`) when you need both shadow and border radius.
+- **Pressable with background:** Use children-as-function `{({ pressed }) => <View style={...}>}` pattern — do NOT put `backgroundColor` in the `style` function on `Pressable` directly, as it may not render on all platforms.
+
 ---
 
 ## Design System

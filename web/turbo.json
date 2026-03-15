@@ -14,6 +14,13 @@
     },
     "type-check": {
       "outputs": []
+    },
+    "mobile:dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "mobile:build": {
+      "outputs": []
     }
   }
 }
