@@ -21,7 +21,7 @@ import {
   Inbox,
   Clock,
 } from 'lucide-react';
-import DashboardLayout from './DashboardLayout';
+import DashboardLayout, { NavGroup } from './DashboardLayout';
 import { PENDING_CATEGORY_REQUESTS_COUNT, PENDING_REVIEW_COUNT } from '@/graphql/operations';
 
 export default function AdminLayout() {
@@ -40,29 +40,49 @@ export default function AdminLayout() {
   const pendingCategoryCount: number = (countData?.pendingCategoryRequestsCount as number | undefined) ?? 0;
   const totalPendingCount: number = (reviewCountData?.pendingReviewCount?.total as number | undefined) ?? 0;
 
-  const navItems = useMemo(() => [
-    { to: '/admin', icon: LayoutDashboard, label: t('nav.dashboard') },
-    { to: '/admin/aprobari', icon: Inbox, label: 'Aprobări', badge: totalPendingCount },
-    { to: '/admin/companii', icon: Building2, label: t('nav.companies') },
-    { to: '/admin/comenzi', icon: ClipboardList, label: t('nav.bookings') },
-    { to: '/admin/abonamente', icon: Repeat, label: t('nav.subscriptions') },
-    { to: '/admin/plati', icon: Wallet, label: t('nav.payments') },
-    { to: '/admin/viramente', icon: Banknote, label: t('nav.payouts') },
-    { to: '/admin/rambursari', icon: RefreshCw, label: t('nav.refunds') },
-    { to: '/admin/facturi', icon: FileText, label: t('nav.invoices') },
-    { to: '/admin/utilizatori', icon: Users, label: t('nav.users') },
-    { to: '/admin/rapoarte', icon: BarChart3, label: t('nav.reports') },
-    { to: '/admin/recenzii', icon: Star, label: t('nav.reviews') },
-    { to: '/admin/promo-coduri', icon: Tag, label: t('nav.promoCodes') },
-    { to: '/admin/dispute', icon: Scale, label: t('nav.disputes') },
-    { to: '/admin/categorii-cereri', icon: Tags, label: 'Cereri categorii', badge: pendingCategoryCount },
-    { to: '/admin/lista-asteptare', icon: Clock, label: 'Listă așteptare' },
-    { to: '/admin/setari', icon: Settings, label: t('nav.settings') },
+  const navGroups = useMemo<NavGroup[]>(() => [
+    {
+      items: [
+        { to: '/admin', icon: LayoutDashboard, label: t('nav.dashboard') },
+      ],
+    },
+    {
+      label: 'Echipe',
+      items: [
+        { to: '/admin/aprobari', icon: Inbox, label: 'Aprobări', badge: totalPendingCount },
+        { to: '/admin/companii', icon: Building2, label: t('nav.companies') },
+        { to: '/admin/utilizatori', icon: Users, label: t('nav.users') },
+        { to: '/admin/lista-asteptare', icon: Clock, label: 'Listă așteptare' },
+      ],
+    },
+    {
+      label: 'Financiar',
+      items: [
+        { to: '/admin/comenzi', icon: ClipboardList, label: t('nav.bookings') },
+        { to: '/admin/abonamente', icon: Repeat, label: t('nav.subscriptions') },
+        { to: '/admin/plati', icon: Wallet, label: t('nav.payments') },
+        { to: '/admin/viramente', icon: Banknote, label: t('nav.payouts') },
+        { to: '/admin/rambursari', icon: RefreshCw, label: t('nav.refunds') },
+        { to: '/admin/facturi', icon: FileText, label: t('nav.invoices') },
+      ],
+    },
+    {
+      label: 'Platformă',
+      items: [
+        { to: '/admin/rapoarte', icon: BarChart3, label: t('nav.reports') },
+        { to: '/admin/recenzii', icon: Star, label: t('nav.reviews') },
+        { to: '/admin/promo-coduri', icon: Tag, label: t('nav.promoCodes') },
+        { to: '/admin/dispute', icon: Scale, label: t('nav.disputes') },
+        { to: '/admin/categorii-cereri', icon: Tags, label: 'Cereri categorii', badge: pendingCategoryCount },
+        { to: '/admin/setari', icon: Settings, label: t('nav.settings') },
+      ],
+    },
   ], [t, pendingCategoryCount, totalPendingCount]);
 
   return (
     <DashboardLayout
-      navItems={navItems}
+      navItems={[]}
+      navGroups={navGroups}
       logoIcon={Shield}
       subtitle={t('nav.subtitle')}
       homeRoute="/admin"

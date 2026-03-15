@@ -1,11 +1,12 @@
-import { type ReactNode } from 'react';
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { type ReactNode, useState, useEffect } from 'react';
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import {
   LogOut,
   Menu,
   X,
   PanelLeftClose,
   PanelLeftOpen,
+  ChevronRight,
   type LucideIcon,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -21,8 +22,14 @@ export interface NavItem {
   badge?: number;
 }
 
+export interface NavGroup {
+  label?: string;
+  items: NavItem[];
+}
+
 interface DashboardLayoutProps {
   navItems: NavItem[];
+  navGroups?: NavGroup[];
   logoIcon: LucideIcon;
   logoIconColor?: string;
   subtitle: string;
@@ -34,6 +41,7 @@ interface DashboardLayoutProps {
 
 export default function DashboardLayout({
   navItems,
+  navGroups,
   logoIcon: LogoIcon,
   logoIconColor = 'text-primary',
   subtitle,
@@ -44,9 +52,42 @@ export default function DashboardLayout({
 }: DashboardLayoutProps) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useTranslation('dashboard');
   const { isCollapsed, isMobileOpen, toggleCollapse, toggleMobile, closeMobile } =
     useSidebar();
+
+  const getActiveGroupLabel = (pathname: string) => {
+    if (!navGroups) return null;
+    for (const group of navGroups) {
+      if (group.label && group.items.some(item => pathname === item.to || pathname.startsWith(item.to + '/'))) {
+        return group.label;
+      }
+    }
+    return null;
+  };
+
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => {
+    const active = getActiveGroupLabel(location.pathname);
+    return active ? new Set([active]) : new Set();
+  });
+
+  useEffect(() => {
+    const active = getActiveGroupLabel(location.pathname);
+    if (active) {
+      setExpandedGroups(prev => prev.has(active) ? prev : new Set([...prev, active]));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
+
+  const toggleGroup = (label: string) => {
+    setExpandedGroups(prev => {
+      const next = new Set(prev);
+      if (next.has(label)) next.delete(label);
+      else next.add(label);
+      return next;
+    });
+  };
 
   const handleLogout = () => {
     logout();
@@ -87,38 +128,91 @@ export default function DashboardLayout({
 
         {/* Navigation */}
         <nav className={cn('flex-1 space-y-1 overflow-y-auto', collapsed ? 'px-2' : 'px-4')}>
-          {navItems.map(({ to, icon: Icon, label, badge }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={to === homeRoute}
-              title={collapsed ? label : undefined}
-              className={({ isActive }) =>
-                cn(
-                  'relative flex items-center gap-3 py-2.5 rounded-xl text-sm font-medium transition-colors',
-                  collapsed ? 'justify-center px-2' : 'px-4',
-                  isActive
-                    ? 'bg-primary/10 text-primary'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
-                )
-              }
-            >
-              <Icon className="h-5 w-5 shrink-0" />
-              {!collapsed && (
-                <>
-                  <span className="flex-1">{label}</span>
-                  {badge != null && badge > 0 && (
-                    <span className="inline-flex items-center justify-center h-5 min-w-[20px] px-1.5 rounded-full bg-amber-500 text-white text-[10px] font-bold">
-                      {badge > 99 ? '99+' : badge}
-                    </span>
+          {navGroups && navGroups.length > 0
+            ? navGroups.map((group, i) => {
+                const isExpanded = !group.label || expandedGroups.has(group.label);
+                return (
+                  <div key={group.label ?? i}>
+                    {!collapsed && group.label && (
+                      <button
+                        onClick={() => toggleGroup(group.label!)}
+                        className="w-full flex items-center justify-between px-4 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-widest text-gray-400 hover:text-gray-600 transition-colors cursor-pointer select-none"
+                      >
+                        <span>{group.label}</span>
+                        <ChevronRight className={cn('h-3 w-3 transition-transform duration-200', isExpanded && 'rotate-90')} />
+                      </button>
+                    )}
+                    {collapsed && i > 0 && (
+                      <div className="my-1 mx-2 border-t border-gray-100" />
+                    )}
+                    {(collapsed || isExpanded) && group.items.map(({ to, icon: Icon, label, badge }) => (
+                      <NavLink
+                        key={to}
+                        to={to}
+                        end={to === homeRoute}
+                        title={collapsed ? label : undefined}
+                        className={({ isActive }) =>
+                          cn(
+                            'relative flex items-center gap-3 py-2.5 rounded-xl text-sm font-medium transition-colors',
+                            collapsed ? 'justify-center px-2' : 'px-4',
+                            isActive
+                              ? 'bg-primary/10 text-primary'
+                              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
+                          )
+                        }
+                      >
+                        <Icon className="h-5 w-5 shrink-0" />
+                        {!collapsed && (
+                          <>
+                            <span className="flex-1">{label}</span>
+                            {badge != null && badge > 0 && (
+                              <span className="inline-flex items-center justify-center h-5 min-w-[20px] px-1.5 rounded-full bg-amber-500 text-white text-[10px] font-bold">
+                                {badge > 99 ? '99+' : badge}
+                              </span>
+                            )}
+                          </>
+                        )}
+                        {collapsed && badge != null && badge > 0 && (
+                          <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-amber-500" />
+                        )}
+                      </NavLink>
+                    ))}
+                  </div>
+                );
+              })
+            : navItems.map(({ to, icon: Icon, label, badge }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  end={to === homeRoute}
+                  title={collapsed ? label : undefined}
+                  className={({ isActive }) =>
+                    cn(
+                      'relative flex items-center gap-3 py-2.5 rounded-xl text-sm font-medium transition-colors',
+                      collapsed ? 'justify-center px-2' : 'px-4',
+                      isActive
+                        ? 'bg-primary/10 text-primary'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
+                    )
+                  }
+                >
+                  <Icon className="h-5 w-5 shrink-0" />
+                  {!collapsed && (
+                    <>
+                      <span className="flex-1">{label}</span>
+                      {badge != null && badge > 0 && (
+                        <span className="inline-flex items-center justify-center h-5 min-w-[20px] px-1.5 rounded-full bg-amber-500 text-white text-[10px] font-bold">
+                          {badge > 99 ? '99+' : badge}
+                        </span>
+                      )}
+                    </>
                   )}
-                </>
-              )}
-              {collapsed && badge != null && badge > 0 && (
-                <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-amber-500" />
-              )}
-            </NavLink>
-          ))}
+                  {collapsed && badge != null && badge > 0 && (
+                    <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-amber-500" />
+                  )}
+                </NavLink>
+              ))
+          }
 
           {/* CTA button (e.g., "Rezervare noua" in ClientSidebar) */}
           {ctaButton && !collapsed && <div className="pt-3">{ctaButton}</div>}
