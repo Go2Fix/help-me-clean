@@ -229,6 +229,12 @@ type BookingsByStatus struct {
 	Count  int           `json:"count"`
 }
 
+type BulkPayoutResult struct {
+	Succeeded []*CompanyPayout `json:"succeeded"`
+	Skipped   int              `json:"skipped"`
+	Failed    int              `json:"failed"`
+}
+
 type CityArea struct {
 	ID       string `json:"id"`
 	Name     string `json:"name"`
@@ -349,17 +355,19 @@ type CompanyFinancialSummary struct {
 }
 
 type CompanyPayout struct {
-	ID           string            `json:"id"`
-	Company      *Company          `json:"company,omitempty"`
-	Amount       int               `json:"amount"`
-	Currency     string            `json:"currency"`
-	PeriodFrom   string            `json:"periodFrom"`
-	PeriodTo     string            `json:"periodTo"`
-	BookingCount int               `json:"bookingCount"`
-	Status       PayoutStatus      `json:"status"`
-	PaidAt       *time.Time        `json:"paidAt,omitempty"`
-	LineItems    []*PayoutLineItem `json:"lineItems"`
-	CreatedAt    time.Time         `json:"createdAt"`
+	ID             string            `json:"id"`
+	Company        *Company          `json:"company,omitempty"`
+	Amount         int               `json:"amount"`
+	Currency       string            `json:"currency"`
+	PeriodFrom     string            `json:"periodFrom"`
+	PeriodTo       string            `json:"periodTo"`
+	BookingCount   int               `json:"bookingCount"`
+	Status         PayoutStatus      `json:"status"`
+	PaidAt         *time.Time        `json:"paidAt,omitempty"`
+	LineItems      []*PayoutLineItem `json:"lineItems"`
+	CreatedAt      time.Time         `json:"createdAt"`
+	StripePayoutID *string           `json:"stripePayoutId,omitempty"`
+	FailureReason  *string           `json:"failureReason,omitempty"`
 }
 
 type CompanyPerformance struct {
@@ -706,6 +714,8 @@ type PaymentTransaction struct {
 	FailureReason         *string                  `json:"failureReason,omitempty"`
 	RefundAmount          *int                     `json:"refundAmount,omitempty"`
 	CreatedAt             time.Time                `json:"createdAt"`
+	StripeChargeID        *string                  `json:"stripeChargeId,omitempty"`
+	StripeDisputeID       *string                  `json:"stripeDisputeId,omitempty"`
 }
 
 type PayoutLineItem struct {
@@ -919,15 +929,16 @@ type ReferralStatus struct {
 }
 
 type RefundRequest struct {
-	ID          string       `json:"id"`
-	Booking     *Booking     `json:"booking,omitempty"`
-	RequestedBy *User        `json:"requestedBy,omitempty"`
-	ApprovedBy  *User        `json:"approvedBy,omitempty"`
-	Amount      int          `json:"amount"`
-	Reason      string       `json:"reason"`
-	Status      RefundStatus `json:"status"`
-	ProcessedAt *time.Time   `json:"processedAt,omitempty"`
-	CreatedAt   time.Time    `json:"createdAt"`
+	ID             string       `json:"id"`
+	Booking        *Booking     `json:"booking,omitempty"`
+	RequestedBy    *User        `json:"requestedBy,omitempty"`
+	ApprovedBy     *User        `json:"approvedBy,omitempty"`
+	Amount         int          `json:"amount"`
+	Reason         string       `json:"reason"`
+	Status         RefundStatus `json:"status"`
+	ProcessedAt    *time.Time   `json:"processedAt,omitempty"`
+	CreatedAt      time.Time    `json:"createdAt"`
+	StripeRefundID *string      `json:"stripeRefundId,omitempty"`
 }
 
 type RequestOtpResponse struct {

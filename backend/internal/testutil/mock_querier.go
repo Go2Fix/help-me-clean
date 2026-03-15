@@ -1385,6 +1385,9 @@ func (m *PartialMockQuerier) StartBooking(ctx context.Context, arg db.StartBooki
 func (m *PartialMockQuerier) SumCompanyEarnings(ctx context.Context, arg db.SumCompanyEarningsParams) (db.SumCompanyEarningsRow, error) {
 	panic("PartialMockQuerier: SumCompanyEarnings not configured")
 }
+func (m *PartialMockQuerier) SumCompanyUnpaidEarnings(ctx context.Context, companyID pgtype.UUID) (int64, error) {
+	panic("PartialMockQuerier: SumCompanyUnpaidEarnings not configured")
+}
 func (m *PartialMockQuerier) SumRefundedAmountByBooking(ctx context.Context, bookingID pgtype.UUID) (int32, error) {
 	panic("PartialMockQuerier: SumRefundedAmountByBooking not configured")
 }

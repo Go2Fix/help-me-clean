@@ -3396,6 +3396,7 @@ export const MY_REFUND_REQUESTS = gql`
       amount
       reason
       status
+      stripeRefundId
       processedAt
       createdAt
       booking {
@@ -3488,6 +3489,8 @@ export const MY_PAYOUTS = gql`
       periodTo
       bookingCount
       status
+      stripePayoutId
+      failureReason
       paidAt
       createdAt
       company {
@@ -3508,6 +3511,8 @@ export const MY_PAYOUT_DETAIL = gql`
       periodTo
       bookingCount
       status
+      stripePayoutId
+      failureReason
       paidAt
       createdAt
       company {
@@ -3779,6 +3784,8 @@ export const ALL_PAYMENT_TRANSACTIONS = gql`
       id
       bookingId
       stripePaymentIntentId
+      stripeChargeId
+      stripeDisputeId
       amountTotal
       amountCompany
       amountPlatformFee
@@ -3807,6 +3814,7 @@ export const ALL_REFUND_REQUESTS = gql`
       amount
       reason
       status
+      stripeRefundId
       processedAt
       createdAt
       booking {
@@ -3873,6 +3881,8 @@ export const ALL_PAYOUTS = gql`
       periodTo
       bookingCount
       status
+      stripePayoutId
+      failureReason
       paidAt
       createdAt
       company {
@@ -3890,6 +3900,66 @@ export const UPDATE_PAYOUT_STATUS = gql`
       status
       paidAt
     }
+  }
+`;
+
+export const TRIGGER_COMPANY_PAYOUT = gql`
+  mutation TriggerCompanyPayout($companyId: ID!, $periodFrom: String!, $periodTo: String!) {
+    triggerCompanyPayout(companyId: $companyId, periodFrom: $periodFrom, periodTo: $periodTo) {
+      id
+      amount
+      currency
+      periodFrom
+      periodTo
+      bookingCount
+      status
+      stripePayoutId
+      failureReason
+      paidAt
+      createdAt
+      company {
+        id
+        companyName
+      }
+    }
+  }
+`;
+
+export const TRIGGER_ALL_COMPANY_PAYOUTS = gql`
+  mutation TriggerAllCompanyPayouts($periodFrom: String!, $periodTo: String!) {
+    triggerAllCompanyPayouts(periodFrom: $periodFrom, periodTo: $periodTo) {
+      succeeded {
+        id
+        amount
+        currency
+        periodFrom
+        periodTo
+        bookingCount
+        status
+        stripePayoutId
+        failureReason
+        paidAt
+        createdAt
+        company {
+          id
+          companyName
+        }
+      }
+      skipped
+      failed
+    }
+  }
+`;
+
+export const UPDATE_ALL_CONNECT_PAYOUT_SCHEDULES = gql`
+  mutation UpdateAllConnectPayoutSchedules {
+    updateAllConnectPayoutSchedules
+  }
+`;
+
+export const MY_UNPAID_EARNINGS = gql`
+  query MyUnpaidEarnings {
+    myUnpaidEarnings
   }
 `;
 

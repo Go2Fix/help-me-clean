@@ -6,7 +6,9 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
+import Badge from '@/components/ui/Badge';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import AddCardModal from '@/components/payment/AddCardModal';
 import {
   MY_PAYMENT_METHODS,
@@ -20,8 +22,8 @@ interface PaymentMethod {
   id: string;
   cardLastFour: string;
   cardBrand: string;
-  cardExpMonth?: number;
-  cardExpYear?: number;
+  cardExpMonth?: number | null;
+  cardExpYear?: number | null;
   isDefault: boolean;
 }
 
@@ -41,11 +43,23 @@ function formatBrand(brand: string): string {
   return BRAND_LABELS[brand.toLowerCase()] || brand;
 }
 
-function formatExpiry(month?: number, year?: number): string {
+function formatExpiry(month?: number | null, year?: number | null): string {
   if (month == null || year == null) return '';
   const mm = String(month).padStart(2, '0');
   const yy = String(year).slice(-2);
   return `${mm}/${yy}`;
+}
+
+/**
+ * Returns true if the card expires within the next 60 days.
+ * Uses the first day of the expiry month as the expiry boundary.
+ */
+function isExpiringSoon(expMonth?: number | null, expYear?: number | null): boolean {
+  if (!expMonth || !expYear) return false;
+  const expDate = new Date(expYear, expMonth - 1, 1); // first of expiry month
+  const sixtyDaysFromNow = new Date();
+  sixtyDaysFromNow.setDate(sixtyDaysFromNow.getDate() + 60);
+  return expDate <= sixtyDaysFromNow;
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -97,6 +111,9 @@ export default function PaymentMethodsPage() {
 
   const methods = data?.myPaymentMethods ?? [];
 
+  // Find the card being deleted (for dialog description)
+  const cardBeingDeleted = methods.find((pm) => pm.id === deleteConfirmId);
+
   // ─── Render ─────────────────────────────────────────────────────────────
 
   return (
@@ -129,42 +146,13 @@ export default function PaymentMethodsPage() {
       {!loading && methods.length > 0 && (
         <div className="space-y-4">
           {methods.map((pm) => (
-            <Card key={pm.id} className="relative">
-              {/* Delete Confirmation Overlay */}
-              {deleteConfirmId === pm.id && (
-                <div className="absolute inset-0 bg-white/95 rounded-xl flex items-center justify-center z-10">
-                  <div className="text-center">
-                    <p className="text-sm font-medium text-gray-900 mb-3">
-                      {t('client:payments.deleteConfirm')}
-                    </p>
-                    <div className="flex gap-2 justify-center">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setDeleteConfirmId(null)}
-                      >
-                        {t('client:payments.cancel')}
-                      </Button>
-                      <Button
-                        size="sm"
-                        className="bg-danger hover:bg-danger/90 text-white"
-                        loading={deleting}
-                        onClick={() => handleDelete(pm.id)}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                        {t('client:payments.delete')}
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
+            <Card key={pm.id}>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                   <CreditCard className="h-5 w-5 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-0.5">
+                  <div className="flex items-center gap-2 mb-0.5 flex-wrap">
                     <span className="text-sm font-medium text-gray-900">
                       {formatBrand(pm.cardBrand)}
                     </span>
@@ -173,6 +161,10 @@ export default function PaymentMethodsPage() {
                         <Star className="h-3 w-3" />
                         {t('client:payments.default')}
                       </span>
+                    )}
+                    {/* Expiry warning badge */}
+                    {isExpiringSoon(pm.cardExpMonth, pm.cardExpYear) && (
+                      <Badge variant="warning" className="text-xs">Expiră curând</Badge>
                     )}
                   </div>
                   <div className="text-sm text-gray-600">
@@ -201,7 +193,7 @@ export default function PaymentMethodsPage() {
                     type="button"
                     onClick={() => setDeleteConfirmId(pm.id)}
                     className="p-2 rounded-lg text-gray-400 hover:bg-red-50 hover:text-danger transition cursor-pointer"
-                    title="Sterge"
+                    title="Șterge"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -230,6 +222,23 @@ export default function PaymentMethodsPage() {
           </Button>
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        open={deleteConfirmId !== null}
+        onClose={() => setDeleteConfirmId(null)}
+        onConfirm={() => deleteConfirmId && handleDelete(deleteConfirmId)}
+        title="Șterge cardul?"
+        description={
+          cardBeingDeleted
+            ? `Ești sigur că vrei să ștergi cardul ${formatBrand(cardBeingDeleted.cardBrand)} **** ${cardBeingDeleted.cardLastFour}? Această acțiune nu poate fi anulată.`
+            : 'Ești sigur că vrei să ștergi acest card? Această acțiune nu poate fi anulată.'
+        }
+        confirmLabel="Șterge"
+        cancelLabel="Anulează"
+        variant="danger"
+        loading={deleting}
+      />
 
       {/* Add Card Modal */}
       <AddCardModal

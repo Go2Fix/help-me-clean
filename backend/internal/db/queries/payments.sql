@@ -254,6 +254,15 @@ JOIN bookings b ON b.id = pt.booking_id
 WHERE b.company_id = $1 AND pt.status = 'succeeded'
   AND pt.created_at >= $2 AND pt.created_at <= $3;
 
+-- name: SumCompanyUnpaidEarnings :one
+SELECT COALESCE(SUM(pt.amount_company), 0)::BIGINT as total_unpaid
+FROM payment_transactions pt
+JOIN bookings b ON b.id = pt.booking_id
+LEFT JOIN payout_line_items pli ON pli.payment_transaction_id = pt.id
+WHERE b.company_id = $1
+  AND pt.status = 'succeeded'
+  AND pli.id IS NULL;
+
 -- ============================================
 -- PLATFORM REVENUE (Admin reporting)
 -- ============================================

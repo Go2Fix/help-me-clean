@@ -1476,6 +1476,23 @@ func (q *Queries) SumCompanyEarnings(ctx context.Context, arg SumCompanyEarnings
 	return i, err
 }
 
+const sumCompanyUnpaidEarnings = `-- name: SumCompanyUnpaidEarnings :one
+SELECT COALESCE(SUM(pt.amount_company), 0)::BIGINT as total_unpaid
+FROM payment_transactions pt
+JOIN bookings b ON b.id = pt.booking_id
+LEFT JOIN payout_line_items pli ON pli.payment_transaction_id = pt.id
+WHERE b.company_id = $1
+  AND pt.status = 'succeeded'
+  AND pli.id IS NULL
+`
+
+func (q *Queries) SumCompanyUnpaidEarnings(ctx context.Context, companyID pgtype.UUID) (int64, error) {
+	row := q.db.QueryRow(ctx, sumCompanyUnpaidEarnings, companyID)
+	var total_unpaid int64
+	err := row.Scan(&total_unpaid)
+	return total_unpaid, err
+}
+
 const sumRefundedAmountByBooking = `-- name: SumRefundedAmountByBooking :one
 SELECT COALESCE(SUM(amount), 0)::INT as total_refunded
 FROM refund_requests

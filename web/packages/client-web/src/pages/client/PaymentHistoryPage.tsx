@@ -69,6 +69,7 @@ const STATUS_VARIANTS: Record<string, 'success' | 'warning' | 'danger' | 'defaul
   PENDING: 'warning',
   FAILED: 'danger',
   REFUNDED: 'default',
+  PARTIALLY_REFUNDED: 'warning',
 };
 
 const REFUND_DOT_COLORS: Record<RefundStatus, string> = {
@@ -160,6 +161,7 @@ export default function PaymentHistoryPage() {
             <option value="PENDING">{t('client:paymentHistory.filter.pending')}</option>
             <option value="FAILED">{t('client:paymentHistory.filter.failed')}</option>
             <option value="REFUNDED">{t('client:paymentHistory.filter.refunded')}</option>
+            <option value="PARTIALLY_REFUNDED">Parțial rambursată</option>
           </select>
         </div>
       )}
@@ -205,6 +207,14 @@ export default function PaymentHistoryPage() {
                             <span className="block text-xs text-gray-400">
                               {payment.booking.serviceName}
                             </span>
+                            {/* Invoice deep-link */}
+                            <a
+                              href={`/cont/comenzi/${payment.booking.id}#invoice`}
+                              className="text-xs text-blue-600 hover:underline"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              Factură
+                            </a>
                           </div>
                         ) : (
                           <span className="text-gray-400">-</span>
@@ -217,9 +227,25 @@ export default function PaymentHistoryPage() {
                         <Badge variant={statusVariant}>{statusLabel}</Badge>
                       </td>
                       <td className="px-3 md:px-6 py-4">
-                        {payment.booking && (
-                          <ChevronRight className="h-4 w-4 text-gray-400" />
-                        )}
+                        <div className="flex items-center gap-2 justify-end">
+                          {/* Request refund button for SUCCEEDED payments */}
+                          {payment.status === 'SUCCEEDED' && payment.booking && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="text-xs h-7"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/cont/comenzi/${payment.booking!.id}?action=refund`);
+                              }}
+                            >
+                              Solicită rambursare
+                            </Button>
+                          )}
+                          {payment.booking && (
+                            <ChevronRight className="h-4 w-4 text-gray-400 shrink-0" />
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -322,6 +348,10 @@ export default function PaymentHistoryPage() {
                             </>
                           ) : (
                             <span className="text-sm text-gray-400">-</span>
+                          )}
+                          {/* Show approved reason for PROCESSED refunds */}
+                          {refund.status === 'PROCESSED' && (
+                            <p className="text-xs text-gray-500 mt-0.5">Motiv aprobat: {refund.reason}</p>
                           )}
                         </div>
                       </div>

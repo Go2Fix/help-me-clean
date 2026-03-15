@@ -660,6 +660,50 @@ func (r *mutationResolver) TriggerCompanyPayout(ctx context.Context, companyID s
 	return r.CreateMonthlyPayout(ctx, companyID, periodFrom, periodTo)
 }
 
+// TriggerAllCompanyPayouts is the resolver for the triggerAllCompanyPayouts field.
+func (r *mutationResolver) TriggerAllCompanyPayouts(ctx context.Context, periodFrom string, periodTo string) (*model.BulkPayoutResult, error) {
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil {
+		return nil, fmt.Errorf("not authenticated")
+	}
+	if claims.Role != "global_admin" {
+		return nil, fmt.Errorf("only admins can trigger bulk payouts")
+	}
+
+	companies, err := r.Queries.ListAllCompaniesWithStripeConnect(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list companies: %w", err)
+	}
+
+	var succeeded []*model.CompanyPayout
+	skipped := 0
+	failed := 0
+
+	for _, company := range companies {
+		payout, err := r.CreateMonthlyPayout(ctx, uuidToString(company.ID), periodFrom, periodTo)
+		if err != nil {
+			if strings.Contains(err.Error(), "no unpaid transactions") {
+				skipped++
+			} else {
+				log.Printf("payment: bulk payout failed for company %s: %v", uuidToString(company.ID), err)
+				failed++
+			}
+			continue
+		}
+		succeeded = append(succeeded, payout)
+	}
+
+	if succeeded == nil {
+		succeeded = []*model.CompanyPayout{}
+	}
+
+	return &model.BulkPayoutResult{
+		Succeeded: succeeded,
+		Skipped:   skipped,
+		Failed:    failed,
+	}, nil
+}
+
 // UpdateAllConnectPayoutSchedules is the resolver for the updateAllConnectPayoutSchedules field.
 // Admin-only: one-time migration to set all existing Connect accounts to manual payout schedule,
 // stopping Stripe from auto-paying companies daily. Run once after deploying this change.
@@ -1062,6 +1106,29 @@ func (r *queryResolver) MyCompanyEarnings(ctx context.Context, from string, to s
 		BookingCount:      int(earnings.BookingCount),
 		AveragePerBooking: averagePerBooking,
 	}, nil
+}
+
+// MyUnpaidEarnings is the resolver for the myUnpaidEarnings field.
+func (r *queryResolver) MyUnpaidEarnings(ctx context.Context) (int, error) {
+	claims := auth.GetUserFromContext(ctx)
+	if claims == nil {
+		return 0, fmt.Errorf("not authenticated")
+	}
+	if claims.Role != "company_admin" {
+		return 0, fmt.Errorf("only company admins can view unpaid earnings")
+	}
+
+	company, err := r.Queries.GetCompanyByAdminUserID(ctx, stringToUUID(claims.UserID))
+	if err != nil {
+		return 0, fmt.Errorf("company not found: %w", err)
+	}
+
+	total, err := r.Queries.SumCompanyUnpaidEarnings(ctx, company.ID)
+	if err != nil {
+		return 0, fmt.Errorf("failed to calculate unpaid earnings: %w", err)
+	}
+
+	return int(total), nil
 }
 
 // AllPaymentTransactions is the resolver for the allPaymentTransactions field.

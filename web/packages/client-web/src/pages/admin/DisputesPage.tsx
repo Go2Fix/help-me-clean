@@ -79,6 +79,13 @@ interface Dispute {
   booking: DisputeBooking | null;
 }
 
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function computeDaysRemaining(autoCloseAt: string | null): number | null {
+  if (!autoCloseAt) return null;
+  return Math.ceil((new Date(autoCloseAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+}
+
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
 interface DisputeRowProps {
@@ -96,6 +103,8 @@ function DisputeRow({ dispute, onResolve }: DisputeRowProps) {
   });
   const isResolved =
     dispute.status.startsWith('RESOLVED') || dispute.status === 'AUTO_CLOSED';
+
+  const daysRemaining = computeDaysRemaining(dispute.autoCloseAt);
 
   return (
     <div className="border-b border-gray-100 last:border-0">
@@ -115,6 +124,13 @@ function DisputeRow({ dispute, onResolve }: DisputeRowProps) {
         <span className="text-sm text-gray-500 flex-1 truncate min-w-0 hidden md:block">
           {dispute.openedBy?.fullName ?? '—'}
         </span>
+
+        {/* Days remaining badge — shown in row for OPEN disputes close to deadline */}
+        {daysRemaining !== null && daysRemaining > 0 && daysRemaining < 7 && (
+          <Badge variant="warning" className="shrink-0">
+            {daysRemaining} zile
+          </Badge>
+        )}
 
         {/* Status badge */}
         <Badge variant={statusVariant} className="shrink-0">
@@ -163,6 +179,29 @@ function DisputeRow({ dispute, onResolve }: DisputeRowProps) {
             </p>
             <p className="text-sm text-gray-800">{dispute.description}</p>
           </div>
+
+          {/* Days remaining countdown (full detail) */}
+          {daysRemaining !== null && daysRemaining > 0 && (
+            <div className="flex items-center gap-3 flex-wrap">
+              <Badge variant={daysRemaining < 7 ? 'warning' : 'secondary' as 'default'}>
+                {daysRemaining} zile rămase
+              </Badge>
+              <span className="text-xs text-gray-400">
+                Închidere automată: {formatDateTime(dispute.autoCloseAt!)}
+              </span>
+            </div>
+          )}
+
+          {/* Link to payment transaction */}
+          {dispute.booking?.referenceCode && (
+            <a
+              href={`/admin/plati?booking=${encodeURIComponent(dispute.booking.referenceCode)}`}
+              className="text-sm text-blue-600 hover:underline flex items-center gap-1 w-fit"
+            >
+              <ExternalLink className="h-3 w-3" />
+              Vezi tranzacția de plată
+            </a>
+          )}
 
           {/* Evidence */}
           {dispute.evidenceUrls && dispute.evidenceUrls.length > 0 && (
@@ -216,6 +255,12 @@ function DisputeRow({ dispute, onResolve }: DisputeRowProps) {
                 )}
               </p>
               <p className="text-sm text-gray-800">{dispute.resolutionNotes}</p>
+              {/* RESOLVED_REMEDIATION helper text */}
+              {dispute.status === 'RESOLVED_REMEDIATION' && (
+                <p className="text-xs text-blue-600 mt-1 italic">
+                  Remediere = prestare gratuita sau reducere la o viitoare rezervare
+                </p>
+              )}
               {dispute.refundAmount != null && dispute.refundAmount > 0 && (
                 <p className="text-sm font-semibold text-emerald-700 mt-1">
                   {t('admin:disputes.row.refund', {
@@ -262,7 +307,7 @@ export default function DisputesPage() {
     { value: 'RESOLVED_REFUND_FULL', label: t('admin:disputes.resolveModal.resolveOptions.RESOLVED_REFUND_FULL') },
     { value: 'RESOLVED_REFUND_PARTIAL', label: t('admin:disputes.resolveModal.resolveOptions.RESOLVED_REFUND_PARTIAL') },
     { value: 'RESOLVED_NO_REFUND', label: t('admin:disputes.resolveModal.resolveOptions.RESOLVED_NO_REFUND') },
-    { value: 'RESOLVED_REMEDIATION', label: 'Remediere Gratuită (echipa revine)' },
+    { value: 'RESOLVED_REMEDIATION', label: 'Remediere Gratuita (echipa revine)' },
   ];
 
   const [statusFilter, setStatusFilter] = useState<DisputeStatusFilter>('ALL');
@@ -452,12 +497,20 @@ export default function DisputesPage() {
               <p className="text-sm text-gray-600 mt-2">{resolveTarget.description}</p>
             </div>
 
-            <Select
-              label={t('admin:disputes.resolveModal.resolutionType')}
-              options={resolveOptions}
-              value={resolveStatus}
-              onChange={(e) => setResolveStatus(e.target.value)}
-            />
+            <div>
+              <Select
+                label={t('admin:disputes.resolveModal.resolutionType')}
+                options={resolveOptions}
+                value={resolveStatus}
+                onChange={(e) => setResolveStatus(e.target.value)}
+              />
+              {/* RESOLVED_REMEDIATION helper text */}
+              {resolveStatus === 'RESOLVED_REMEDIATION' && (
+                <p className="mt-1 text-xs text-blue-600 italic">
+                  Remediere = prestare gratuita sau reducere la o viitoare rezervare
+                </p>
+              )}
+            </div>
 
             {resolveStatus === 'RESOLVED_REFUND_PARTIAL' && (
               <Input

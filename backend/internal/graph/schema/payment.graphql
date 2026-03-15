@@ -66,6 +66,8 @@ type PaymentTransaction {
   failureReason: String
   refundAmount: Int
   createdAt: DateTime!
+  stripeChargeId: String
+  stripeDisputeId: String
 }
 
 type CompanyPayout {
@@ -80,6 +82,8 @@ type CompanyPayout {
   paidAt: DateTime
   lineItems: [PayoutLineItem!]!
   createdAt: DateTime!
+  stripePayoutId: String
+  failureReason: String
 }
 
 type PayoutLineItem {
@@ -100,6 +104,7 @@ type RefundRequest {
   status: RefundStatus!
   processedAt: DateTime
   createdAt: DateTime!
+  stripeRefundId: String
 }
 
 type PaymentHistoryEntry {
@@ -140,6 +145,12 @@ type ConnectOnboardingLink {
   url: String!
 }
 
+type BulkPayoutResult {
+  succeeded: [CompanyPayout!]!
+  skipped: Int!
+  failed: Int!
+}
+
 # ─── Queries ──────────────────────────────────────────────────────────────────
 
 extend type Query {
@@ -153,6 +164,7 @@ extend type Query {
   myPayouts(first: Int, after: String): [CompanyPayout!]!
   myPayoutDetail(id: ID!): CompanyPayout!
   myCompanyEarnings(from: String!, to: String!): CompanyEarningsSummary!
+  myUnpaidEarnings: Int!
 
   # Admin
   allPaymentTransactions(status: PaymentTransactionStatus, first: Int, after: String): [PaymentTransaction!]!
@@ -184,6 +196,8 @@ extend type Mutation {
   # Admin: Connect payout schedule management
   # Trigger an immediate payout for a specific company (same as createMonthlyPayout but fires Stripe immediately)
   triggerCompanyPayout(companyId: ID!, periodFrom: String!, periodTo: String!): CompanyPayout!
+  # Trigger payouts for all eligible companies in bulk
+  triggerAllCompanyPayouts(periodFrom: String!, periodTo: String!): BulkPayoutResult!
   # One-time migration: set all existing Connect accounts to manual payout schedule
   updateAllConnectPayoutSchedules: Boolean!
 }

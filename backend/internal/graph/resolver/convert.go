@@ -718,21 +718,25 @@ func dbPaymentTransactionToGQL(t db.PaymentTransaction) *model.PaymentTransactio
 		FailureReason:         textPtr(t.FailureReason),
 		RefundAmount:          int4Ptr(t.RefundAmount),
 		CreatedAt:             timestamptzToTime(t.CreatedAt),
+		StripeChargeID:        textPtr(t.StripeChargeID),
+		StripeDisputeID:       textPtr(t.StripeDisputeID),
 	}
 }
 
 func dbCompanyPayoutToGQL(p db.CompanyPayout) *model.CompanyPayout {
 	return &model.CompanyPayout{
-		ID:           uuidToString(p.ID),
-		Amount:       int(p.Amount),
-		Currency:     p.Currency,
-		PeriodFrom:   dateToString(p.PeriodFrom),
-		PeriodTo:     dateToString(p.PeriodTo),
-		BookingCount: int(p.BookingCount),
-		Status:       model.PayoutStatus(strings.ToUpper(string(p.Status))),
-		PaidAt:       timestamptzToTimePtr(p.PaidAt),
-		LineItems:    []*model.PayoutLineItem{},
-		CreatedAt:    timestamptzToTime(p.CreatedAt),
+		ID:             uuidToString(p.ID),
+		Amount:         int(p.Amount),
+		Currency:       p.Currency,
+		PeriodFrom:     dateToString(p.PeriodFrom),
+		PeriodTo:       dateToString(p.PeriodTo),
+		BookingCount:   int(p.BookingCount),
+		Status:         model.PayoutStatus(strings.ToUpper(string(p.Status))),
+		PaidAt:         timestamptzToTimePtr(p.PaidAt),
+		LineItems:      []*model.PayoutLineItem{},
+		CreatedAt:      timestamptzToTime(p.CreatedAt),
+		StripePayoutID: textPtr(p.StripePayoutID),
+		FailureReason:  textPtr(p.FailureReason),
 	}
 }
 
@@ -747,12 +751,13 @@ func dbPayoutLineItemToGQL(li db.PayoutLineItem) *model.PayoutLineItem {
 
 func dbRefundRequestToGQL(r db.RefundRequest) *model.RefundRequest {
 	return &model.RefundRequest{
-		ID:          uuidToString(r.ID),
-		Amount:      int(r.Amount),
-		Reason:      r.Reason,
-		Status:      model.RefundStatus(strings.ToUpper(string(r.Status))),
-		ProcessedAt: timestamptzToTimePtr(r.ProcessedAt),
-		CreatedAt:   timestamptzToTime(r.CreatedAt),
+		ID:             uuidToString(r.ID),
+		Amount:         int(r.Amount),
+		Reason:         r.Reason,
+		Status:         model.RefundStatus(strings.ToUpper(string(r.Status))),
+		ProcessedAt:    timestamptzToTimePtr(r.ProcessedAt),
+		CreatedAt:      timestamptzToTime(r.CreatedAt),
+		StripeRefundID: textPtr(r.StripeRefundID),
 	}
 }
 

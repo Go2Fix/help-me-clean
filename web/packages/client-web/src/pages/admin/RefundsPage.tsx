@@ -8,15 +8,19 @@ import {
   Search,
   CreditCard,
   User,
+  ChevronDown,
+  ChevronUp,
+  Copy,
 } from 'lucide-react';
 import AdminPagination from '@/components/admin/AdminPagination';
-import { formatCents } from '@/utils/format';
+import { formatCents, formatDate } from '@/utils/format';
 import { useDebounce } from '@/hooks/useDebounce';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Select from '@/components/ui/Select';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import {
   ALL_REFUND_REQUESTS,
   PROCESS_REFUND,
@@ -27,6 +31,7 @@ import {
 // ─── Constants ──────────────────────────────────────────────────────────────
 
 const PAGE_SIZE = 20;
+const REASON_PREVIEW_LEN = 60;
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -35,6 +40,7 @@ interface RefundRequest {
   amount: number;
   reason: string;
   status: string;
+  stripeRefundId: string | null;
   processedAt: string | null;
   createdAt: string;
   booking: {
@@ -59,6 +65,14 @@ interface BookingSearchResult {
   serviceName: string;
 }
 
+// ─── Confirm dialog action type ──────────────────────────────────────────────
+
+type ConfirmAction =
+  | { type: 'approve'; refund: RefundRequest }
+  | { type: 'reject'; refund: RefundRequest }
+  | { type: 'process'; refund: RefundRequest }
+  | { type: 'direct' };
+
 // ─── Status Maps ────────────────────────────────────────────────────────────
 
 type StatusTab = 'REQUESTED' | 'APPROVED' | 'PROCESSED' | 'REJECTED';
@@ -69,6 +83,203 @@ const refundStatusDotColor: Record<string, string> = {
   PROCESSED: 'bg-emerald-500',
   REJECTED: 'bg-red-400',
 };
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function truncateReason(reason: string): string {
+  if (reason.length <= REASON_PREVIEW_LEN) return reason;
+  return reason.slice(0, REASON_PREVIEW_LEN) + '…';
+}
+
+// ─── Refund row with expand toggle ───────────────────────────────────────────
+
+interface RefundRowProps {
+  refund: RefundRequest;
+  activeTab: StatusTab;
+  onApprove: (refund: RefundRequest) => void;
+  onReject: (refund: RefundRequest) => void;
+  onProcess: (refund: RefundRequest) => void;
+  processing: boolean;
+  t: (key: string, opts?: Record<string, unknown>) => string;
+}
+
+function RefundRow({
+  refund,
+  activeTab,
+  onApprove,
+  onReject,
+  onProcess,
+  processing,
+  t,
+}: RefundRowProps) {
+  const [expanded, setExpanded] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const showActions = activeTab === 'REQUESTED' || activeTab === 'APPROVED';
+
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  };
+
+  return (
+    <div className="border-b border-gray-100 last:border-0">
+      {/* Row */}
+      <div className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors">
+        <span
+          className={`h-2.5 w-2.5 rounded-full shrink-0 ${refundStatusDotColor[refund.status] ?? 'bg-gray-300'}`}
+        />
+        <span className="text-sm font-semibold text-gray-900 w-20 shrink-0">
+          {refund.booking?.referenceCode ?? '-'}
+        </span>
+        <span className="text-sm text-gray-700 truncate min-w-0">
+          {refund.booking?.serviceName ?? '-'}
+        </span>
+        <span className="flex-1" />
+        {refund.requestedBy && (
+          <span className="hidden md:flex items-center gap-1 text-xs text-gray-400 shrink-0">
+            <User className="h-3 w-3" />
+            <span className="max-w-[100px] truncate">{refund.requestedBy.fullName}</span>
+          </span>
+        )}
+        {/* Reason — first 60 chars always visible */}
+        <span
+          className="hidden md:block text-xs text-gray-500 shrink-0 max-w-[160px] truncate"
+          title={refund.reason}
+        >
+          {truncateReason(refund.reason)}
+        </span>
+        <span className="text-sm font-medium text-gray-900 shrink-0 w-20 text-right">
+          {formatCents(refund.amount)}
+        </span>
+        {activeTab === 'REQUESTED' && (
+          <div className="flex items-center gap-1.5 shrink-0">
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => onApprove(refund)}
+              disabled={processing}
+            >
+              <Check className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">{t('admin:refunds.actions.approve')}</span>
+            </Button>
+            <Button
+              size="sm"
+              variant="danger"
+              onClick={() => onReject(refund)}
+              disabled={processing}
+            >
+              <X className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">{t('admin:refunds.actions.reject')}</span>
+            </Button>
+          </div>
+        )}
+        {activeTab === 'APPROVED' && (
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => onProcess(refund)}
+            disabled={processing}
+          >
+            <CreditCard className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">{t('admin:refunds.actions.process')}</span>
+          </Button>
+        )}
+        {!showActions && (
+          <span className="text-xs text-gray-500 shrink-0 w-20 text-right hidden sm:block">
+            {t(`admin:refunds.statusLabels.${refund.status}`, { defaultValue: refund.status })}
+          </span>
+        )}
+        {/* Expand toggle */}
+        <button
+          type="button"
+          onClick={() => setExpanded((p) => !p)}
+          className="flex items-center gap-0.5 text-xs text-blue-600 font-medium hover:text-blue-800 transition-colors shrink-0"
+        >
+          {expanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+        </button>
+      </div>
+
+      {/* Expanded detail */}
+      {expanded && (
+        <div className="px-4 pb-4 pt-3 bg-gray-50 border-t border-gray-100 space-y-3">
+          {/* Timeline */}
+          <div className="flex items-center gap-2 text-xs text-gray-500 flex-wrap">
+            <span className="flex items-center gap-1">
+              <span className="h-2 w-2 rounded-full bg-blue-500" />
+              Solicitat {formatDate(refund.createdAt)}
+            </span>
+            {refund.status !== 'REQUESTED' && (
+              <>
+                <span>→</span>
+                <span className="flex items-center gap-1">
+                  <span
+                    className={`h-2 w-2 rounded-full ${
+                      refund.status === 'REJECTED' ? 'bg-red-500' : 'bg-green-500'
+                    }`}
+                  />
+                  {refund.status === 'REJECTED' ? 'Respins' : 'Aprobat'}
+                  {refund.approvedBy && (
+                    <span className="text-gray-400 ml-0.5">de {refund.approvedBy.fullName}</span>
+                  )}
+                </span>
+              </>
+            )}
+            {refund.status === 'PROCESSED' && (
+              <>
+                <span>→</span>
+                <span className="flex items-center gap-1">
+                  <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                  Procesat {refund.processedAt ? formatDate(refund.processedAt) : ''}
+                </span>
+              </>
+            )}
+          </div>
+
+          {/* Full reason */}
+          {refund.reason.length > REASON_PREVIEW_LEN && (
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                Motiv complet
+              </p>
+              <p className="text-sm text-gray-700">{refund.reason}</p>
+            </div>
+          )}
+
+          {/* Stripe Refund ID — only on PROCESSED rows */}
+          {refund.status === 'PROCESSED' && refund.stripeRefundId && (
+            <div className="flex items-center gap-2">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                Stripe Refund ID
+              </p>
+              <code className="text-xs font-mono text-gray-700 bg-white border border-gray-200 rounded px-2 py-0.5">
+                {refund.stripeRefundId}
+              </code>
+              <button
+                type="button"
+                onClick={() => handleCopy(refund.stripeRefundId!)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+                title="Copiază"
+              >
+                <Copy className="h-3.5 w-3.5" />
+              </button>
+              {copied && <span className="text-xs text-emerald-600">Copiat!</span>}
+            </div>
+          )}
+
+          {/* Requester email */}
+          {refund.requestedBy?.email && (
+            <p className="text-xs text-gray-400">
+              Email client: <span className="text-gray-600">{refund.requestedBy.email}</span>
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ─── Component ──────────────────────────────────────────────────────────────
 
@@ -98,6 +309,9 @@ export default function RefundsPage() {
   const [showBookingDropdown, setShowBookingDropdown] = useState(false);
   const debouncedBookingSearch = useDebounce(bookingSearchInput, 300);
   const bookingDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Confirmation dialog state
+  const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
 
   // Reset page when tab changes
   const handleTabChange = (tab: StatusTab) => {
@@ -182,16 +396,37 @@ export default function RefundsPage() {
 
   // ─── Handlers ───────────────────────────────────────────────────────────
 
-  const handleApprove = (refundRequestId: string) => {
-    processRefund({ variables: { refundRequestId, approved: true } });
+  const handleApprove = (refund: RefundRequest) => {
+    setConfirmAction({ type: 'approve', refund });
   };
 
-  const handleReject = (refundRequestId: string) => {
-    processRefund({ variables: { refundRequestId, approved: false } });
+  const handleReject = (refund: RefundRequest) => {
+    setConfirmAction({ type: 'reject', refund });
   };
 
-  const handleProcess = (refundRequestId: string) => {
-    processRefund({ variables: { refundRequestId, approved: true } });
+  const handleProcess = (refund: RefundRequest) => {
+    setConfirmAction({ type: 'process', refund });
+  };
+
+  const handleConfirmAction = () => {
+    if (!confirmAction) return;
+    if (confirmAction.type === 'approve') {
+      processRefund({ variables: { refundRequestId: confirmAction.refund.id, approved: true } });
+    } else if (confirmAction.type === 'reject') {
+      processRefund({ variables: { refundRequestId: confirmAction.refund.id, approved: false } });
+    } else if (confirmAction.type === 'process') {
+      processRefund({ variables: { refundRequestId: confirmAction.refund.id, approved: true } });
+    } else if (confirmAction.type === 'direct') {
+      if (!directBookingId || !directAmount || !directReason) return;
+      issueRefund({
+        variables: {
+          bookingId: directBookingId,
+          amount: Math.round(parseFloat(directAmount) * 100),
+          reason: directReason,
+        },
+      });
+    }
+    setConfirmAction(null);
   };
 
   const handleSelectBooking = (booking: BookingSearchResult) => {
@@ -210,15 +445,10 @@ export default function RefundsPage() {
     setShowBookingDropdown(false);
   };
 
-  const handleDirectRefund = () => {
+  // Direct refund: show confirmation AlertDialog before firing mutation
+  const handleDirectRefundConfirmRequest = () => {
     if (!directBookingId || !directAmount || !directReason) return;
-    issueRefund({
-      variables: {
-        bookingId: directBookingId,
-        amount: Math.round(parseFloat(directAmount) * 100),
-        reason: directReason,
-      },
-    });
+    setConfirmAction({ type: 'direct' });
   };
 
   const handleCloseModal = () => {
@@ -226,8 +456,50 @@ export default function RefundsPage() {
     resetDirectForm();
   };
 
-  // Does this tab show action buttons?
-  const showActions = activeTab === 'REQUESTED' || activeTab === 'APPROVED';
+  // ─── Confirm dialog content ───────────────────────────────────────────────
+
+  const confirmDialogProps = useMemo(() => {
+    if (!confirmAction) return null;
+    if (confirmAction.type === 'approve') {
+      const { refund } = confirmAction;
+      return {
+        title: 'Aprobare rambursare',
+        description: `Confirmi aprobarea rambursării de ${formatCents(refund.amount)} pentru rezervarea ${refund.booking?.referenceCode ?? '—'}?`,
+        confirmLabel: t('admin:refunds.actions.approve'),
+        variant: 'primary' as const,
+      };
+    }
+    if (confirmAction.type === 'reject') {
+      const { refund } = confirmAction;
+      return {
+        title: 'Respingere rambursare',
+        description: `Confirmi respingerea cererii de rambursare pentru rezervarea ${refund.booking?.referenceCode ?? '—'}?`,
+        confirmLabel: t('admin:refunds.actions.reject'),
+        variant: 'danger' as const,
+      };
+    }
+    if (confirmAction.type === 'process') {
+      const { refund } = confirmAction;
+      return {
+        title: 'Procesare rambursare',
+        description: `Confirmi procesarea rambursării de ${formatCents(refund.amount)} pentru rezervarea ${refund.booking?.referenceCode ?? '—'}?`,
+        confirmLabel: t('admin:refunds.actions.process'),
+        variant: 'primary' as const,
+      };
+    }
+    if (confirmAction.type === 'direct') {
+      const amountFormatted = directAmount
+        ? formatCents(Math.round(parseFloat(directAmount) * 100))
+        : '—';
+      return {
+        title: 'Confirmare rambursare directă',
+        description: `Aceasta va rambursa imediat ${amountFormatted} direct prin Stripe și nu poate fi anulat.`,
+        confirmLabel: t('admin:refunds.directModal.confirm'),
+        variant: 'danger' as const,
+      };
+    }
+    return null;
+  }, [confirmAction, directAmount, t]);
 
   const currentTabLabel = tabOptions.find((opt) => opt.value === activeTab)?.label ?? '';
 
@@ -286,69 +558,16 @@ export default function RefundsPage() {
           <>
             <div className="divide-y divide-gray-100">
               {paginatedRefunds.map((refund) => (
-                <div
+                <RefundRow
                   key={refund.id}
-                  className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
-                >
-                  <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${refundStatusDotColor[refund.status] ?? 'bg-gray-300'}`} />
-                  <span className="text-sm font-semibold text-gray-900 w-20 shrink-0">
-                    {refund.booking?.referenceCode ?? '-'}
-                  </span>
-                  <span className="text-sm text-gray-700 truncate min-w-0">
-                    {refund.booking?.serviceName ?? '-'}
-                  </span>
-                  <span className="flex-1" />
-                  {refund.requestedBy && (
-                    <span className="hidden md:flex items-center gap-1 text-xs text-gray-400 shrink-0">
-                      <User className="h-3 w-3" />
-                      <span className="max-w-[100px] truncate">{refund.requestedBy.fullName}</span>
-                    </span>
-                  )}
-                  <span className="hidden md:block text-xs text-gray-400 shrink-0 max-w-[140px] truncate" title={refund.reason}>
-                    {refund.reason}
-                  </span>
-                  <span className="text-sm font-medium text-gray-900 shrink-0 w-20 text-right">
-                    {formatCents(refund.amount)}
-                  </span>
-                  {activeTab === 'REQUESTED' && (
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={() => handleApprove(refund.id)}
-                        disabled={processing}
-                      >
-                        <Check className="h-3.5 w-3.5" />
-                        <span className="hidden sm:inline">{t('admin:refunds.actions.approve')}</span>
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="danger"
-                        onClick={() => handleReject(refund.id)}
-                        disabled={processing}
-                      >
-                        <X className="h-3.5 w-3.5" />
-                        <span className="hidden sm:inline">{t('admin:refunds.actions.reject')}</span>
-                      </Button>
-                    </div>
-                  )}
-                  {activeTab === 'APPROVED' && (
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      onClick={() => handleProcess(refund.id)}
-                      disabled={processing}
-                    >
-                      <CreditCard className="h-3.5 w-3.5" />
-                      <span className="hidden sm:inline">{t('admin:refunds.actions.process')}</span>
-                    </Button>
-                  )}
-                  {!showActions && (
-                    <span className="text-xs text-gray-500 shrink-0 w-20 text-right hidden sm:block">
-                      {t(`admin:refunds.statusLabels.${refund.status}`, { defaultValue: refund.status })}
-                    </span>
-                  )}
-                </div>
+                  refund={refund}
+                  activeTab={activeTab}
+                  onApprove={handleApprove}
+                  onReject={handleReject}
+                  onProcess={handleProcess}
+                  processing={processing}
+                  t={t as (key: string, opts?: Record<string, unknown>) => string}
+                />
               ))}
             </div>
             <div className="px-4">
@@ -472,8 +691,7 @@ export default function RefundsPage() {
               {t('admin:refunds.directModal.dismiss')}
             </Button>
             <Button
-              onClick={handleDirectRefund}
-              loading={issuing}
+              onClick={handleDirectRefundConfirmRequest}
               disabled={!directBookingId || !directAmount || !directReason}
             >
               {t('admin:refunds.directModal.confirm')}
@@ -481,6 +699,21 @@ export default function RefundsPage() {
           </div>
         </div>
       </Modal>
+
+      {/* Shared Confirm Dialog */}
+      {confirmDialogProps && (
+        <ConfirmDialog
+          open={confirmAction !== null}
+          onClose={() => setConfirmAction(null)}
+          onConfirm={handleConfirmAction}
+          title={confirmDialogProps.title}
+          description={confirmDialogProps.description}
+          confirmLabel={confirmDialogProps.confirmLabel}
+          variant={confirmDialogProps.variant}
+          loading={processing || issuing}
+        />
+      )}
+
     </div>
   );
 }

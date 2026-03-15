@@ -218,6 +218,12 @@ type ComplexityRoot struct {
 		Status func(childComplexity int) int
 	}
 
+	BulkPayoutResult struct {
+		Failed    func(childComplexity int) int
+		Skipped   func(childComplexity int) int
+		Succeeded func(childComplexity int) int
+	}
+
 	CityArea struct {
 		CityID   func(childComplexity int) int
 		CityName func(childComplexity int) int
@@ -320,17 +326,19 @@ type ComplexityRoot struct {
 	}
 
 	CompanyPayout struct {
-		Amount       func(childComplexity int) int
-		BookingCount func(childComplexity int) int
-		Company      func(childComplexity int) int
-		CreatedAt    func(childComplexity int) int
-		Currency     func(childComplexity int) int
-		ID           func(childComplexity int) int
-		LineItems    func(childComplexity int) int
-		PaidAt       func(childComplexity int) int
-		PeriodFrom   func(childComplexity int) int
-		PeriodTo     func(childComplexity int) int
-		Status       func(childComplexity int) int
+		Amount         func(childComplexity int) int
+		BookingCount   func(childComplexity int) int
+		Company        func(childComplexity int) int
+		CreatedAt      func(childComplexity int) int
+		Currency       func(childComplexity int) int
+		FailureReason  func(childComplexity int) int
+		ID             func(childComplexity int) int
+		LineItems      func(childComplexity int) int
+		PaidAt         func(childComplexity int) int
+		PeriodFrom     func(childComplexity int) int
+		PeriodTo       func(childComplexity int) int
+		Status         func(childComplexity int) int
+		StripePayoutID func(childComplexity int) int
 	}
 
 	CompanyPerformance struct {
@@ -577,6 +585,7 @@ type ComplexityRoot struct {
 		SuspendUser                               func(childComplexity int, id string, reason string) int
 		ToggleCityActive                          func(childComplexity int, id string, isActive bool) int
 		TransmitInvoiceToEFactura                 func(childComplexity int, id string) int
+		TriggerAllCompanyPayouts                  func(childComplexity int, periodFrom string, periodTo string) int
 		TriggerCompanyPayout                      func(childComplexity int, companyID string, periodFrom string, periodTo string) int
 		UpdateAddress                             func(childComplexity int, id string, input model.UpdateAddressInput) int
 		UpdateAllConnectPayoutSchedules           func(childComplexity int) int
@@ -681,6 +690,8 @@ type ComplexityRoot struct {
 		ID                    func(childComplexity int) int
 		RefundAmount          func(childComplexity int) int
 		Status                func(childComplexity int) int
+		StripeChargeID        func(childComplexity int) int
+		StripeDisputeID       func(childComplexity int) int
 		StripePaymentIntentID func(childComplexity int) int
 	}
 
@@ -912,6 +923,7 @@ type ComplexityRoot struct {
 		MyReferralStatus                   func(childComplexity int) int
 		MyRefundRequests                   func(childComplexity int) int
 		MySubscriptions                    func(childComplexity int) int
+		MyUnpaidEarnings                   func(childComplexity int) int
 		MyWorkerAvailability               func(childComplexity int) int
 		MyWorkerBookingsByDateRange        func(childComplexity int, from string, to string) int
 		MyWorkerCompanySchedule            func(childComplexity int) int
@@ -993,15 +1005,16 @@ type ComplexityRoot struct {
 	}
 
 	RefundRequest struct {
-		Amount      func(childComplexity int) int
-		ApprovedBy  func(childComplexity int) int
-		Booking     func(childComplexity int) int
-		CreatedAt   func(childComplexity int) int
-		ID          func(childComplexity int) int
-		ProcessedAt func(childComplexity int) int
-		Reason      func(childComplexity int) int
-		RequestedBy func(childComplexity int) int
-		Status      func(childComplexity int) int
+		Amount         func(childComplexity int) int
+		ApprovedBy     func(childComplexity int) int
+		Booking        func(childComplexity int) int
+		CreatedAt      func(childComplexity int) int
+		ID             func(childComplexity int) int
+		ProcessedAt    func(childComplexity int) int
+		Reason         func(childComplexity int) int
+		RequestedBy    func(childComplexity int) int
+		Status         func(childComplexity int) int
+		StripeRefundID func(childComplexity int) int
 	}
 
 	RequestOtpResponse struct {
@@ -1422,6 +1435,7 @@ type MutationResolver interface {
 	AdminIssueRefund(ctx context.Context, bookingID string, amount int, reason string) (*model.RefundRequest, error)
 	MarkBookingPaid(ctx context.Context, id string) (*model.Booking, error)
 	TriggerCompanyPayout(ctx context.Context, companyID string, periodFrom string, periodTo string) (*model.CompanyPayout, error)
+	TriggerAllCompanyPayouts(ctx context.Context, periodFrom string, periodTo string) (*model.BulkPayoutResult, error)
 	UpdateAllConnectPayoutSchedules(ctx context.Context) (bool, error)
 	SubmitPersonalityAssessment(ctx context.Context, answers []*model.PersonalityAnswerInput) (*model.PersonalityAssessment, error)
 	GeneratePersonalityInsights(ctx context.Context, workerID string) (*model.PersonalityInsights, error)
@@ -1545,6 +1559,7 @@ type QueryResolver interface {
 	MyPayouts(ctx context.Context, first *int, after *string) ([]*model.CompanyPayout, error)
 	MyPayoutDetail(ctx context.Context, id string) (*model.CompanyPayout, error)
 	MyCompanyEarnings(ctx context.Context, from string, to string) (*model.CompanyEarningsSummary, error)
+	MyUnpaidEarnings(ctx context.Context) (int, error)
 	AllPaymentTransactions(ctx context.Context, status *model.PaymentTransactionStatus, first *int, after *string) ([]*model.PaymentTransaction, error)
 	AllRefundRequests(ctx context.Context, status *model.RefundStatus, first *int, after *string) ([]*model.RefundRequest, error)
 	AllPayouts(ctx context.Context, companyID *string, status *model.PayoutStatus, first *int, after *string) ([]*model.CompanyPayout, error)
@@ -2395,6 +2410,25 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.BookingsByStatus.Status(childComplexity), true
 
+	case "BulkPayoutResult.failed":
+		if e.complexity.BulkPayoutResult.Failed == nil {
+			break
+		}
+
+		return e.complexity.BulkPayoutResult.Failed(childComplexity), true
+	case "BulkPayoutResult.skipped":
+		if e.complexity.BulkPayoutResult.Skipped == nil {
+			break
+		}
+
+		return e.complexity.BulkPayoutResult.Skipped(childComplexity), true
+	case "BulkPayoutResult.succeeded":
+		if e.complexity.BulkPayoutResult.Succeeded == nil {
+			break
+		}
+
+		return e.complexity.BulkPayoutResult.Succeeded(childComplexity), true
+
 	case "CityArea.cityId":
 		if e.complexity.CityArea.CityID == nil {
 			break
@@ -2878,6 +2912,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.CompanyPayout.Currency(childComplexity), true
+	case "CompanyPayout.failureReason":
+		if e.complexity.CompanyPayout.FailureReason == nil {
+			break
+		}
+
+		return e.complexity.CompanyPayout.FailureReason(childComplexity), true
 	case "CompanyPayout.id":
 		if e.complexity.CompanyPayout.ID == nil {
 			break
@@ -2914,6 +2954,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.CompanyPayout.Status(childComplexity), true
+	case "CompanyPayout.stripePayoutId":
+		if e.complexity.CompanyPayout.StripePayoutID == nil {
+			break
+		}
+
+		return e.complexity.CompanyPayout.StripePayoutID(childComplexity), true
 
 	case "CompanyPerformance.averageRating":
 		if e.complexity.CompanyPerformance.AverageRating == nil {
@@ -4541,6 +4587,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.TransmitInvoiceToEFactura(childComplexity, args["id"].(string)), true
+	case "Mutation.triggerAllCompanyPayouts":
+		if e.complexity.Mutation.TriggerAllCompanyPayouts == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_triggerAllCompanyPayouts_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.TriggerAllCompanyPayouts(childComplexity, args["periodFrom"].(string), args["periodTo"].(string)), true
 	case "Mutation.triggerCompanyPayout":
 		if e.complexity.Mutation.TriggerCompanyPayout == nil {
 			break
@@ -5204,6 +5261,18 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.PaymentTransaction.Status(childComplexity), true
+	case "PaymentTransaction.stripeChargeId":
+		if e.complexity.PaymentTransaction.StripeChargeID == nil {
+			break
+		}
+
+		return e.complexity.PaymentTransaction.StripeChargeID(childComplexity), true
+	case "PaymentTransaction.stripeDisputeId":
+		if e.complexity.PaymentTransaction.StripeDisputeID == nil {
+			break
+		}
+
+		return e.complexity.PaymentTransaction.StripeDisputeID(childComplexity), true
 	case "PaymentTransaction.stripePaymentIntentId":
 		if e.complexity.PaymentTransaction.StripePaymentIntentID == nil {
 			break
@@ -6516,6 +6585,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.MySubscriptions(childComplexity), true
+	case "Query.myUnpaidEarnings":
+		if e.complexity.Query.MyUnpaidEarnings == nil {
+			break
+		}
+
+		return e.complexity.Query.MyUnpaidEarnings(childComplexity), true
 	case "Query.myWorkerAvailability":
 		if e.complexity.Query.MyWorkerAvailability == nil {
 			break
@@ -7116,6 +7191,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.RefundRequest.Status(childComplexity), true
+	case "RefundRequest.stripeRefundId":
+		if e.complexity.RefundRequest.StripeRefundID == nil {
+			break
+		}
+
+		return e.complexity.RefundRequest.StripeRefundID(childComplexity), true
 
 	case "RequestOtpResponse.devCode":
 		if e.complexity.RequestOtpResponse.DevCode == nil {
@@ -10023,6 +10104,22 @@ func (ec *executionContext) field_Mutation_transmitInvoiceToEFactura_args(ctx co
 		return nil, err
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_triggerAllCompanyPayouts_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "periodFrom", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["periodFrom"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "periodTo", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["periodTo"] = arg1
 	return args, nil
 }
 
@@ -16185,6 +16282,121 @@ func (ec *executionContext) fieldContext_BookingsByStatus_count(_ context.Contex
 	return fc, nil
 }
 
+func (ec *executionContext) _BulkPayoutResult_succeeded(ctx context.Context, field graphql.CollectedField, obj *model.BulkPayoutResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BulkPayoutResult_succeeded,
+		func(ctx context.Context) (any, error) {
+			return obj.Succeeded, nil
+		},
+		nil,
+		ec.marshalNCompanyPayout2ᚕᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCompanyPayoutᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BulkPayoutResult_succeeded(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BulkPayoutResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_CompanyPayout_id(ctx, field)
+			case "company":
+				return ec.fieldContext_CompanyPayout_company(ctx, field)
+			case "amount":
+				return ec.fieldContext_CompanyPayout_amount(ctx, field)
+			case "currency":
+				return ec.fieldContext_CompanyPayout_currency(ctx, field)
+			case "periodFrom":
+				return ec.fieldContext_CompanyPayout_periodFrom(ctx, field)
+			case "periodTo":
+				return ec.fieldContext_CompanyPayout_periodTo(ctx, field)
+			case "bookingCount":
+				return ec.fieldContext_CompanyPayout_bookingCount(ctx, field)
+			case "status":
+				return ec.fieldContext_CompanyPayout_status(ctx, field)
+			case "paidAt":
+				return ec.fieldContext_CompanyPayout_paidAt(ctx, field)
+			case "lineItems":
+				return ec.fieldContext_CompanyPayout_lineItems(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_CompanyPayout_createdAt(ctx, field)
+			case "stripePayoutId":
+				return ec.fieldContext_CompanyPayout_stripePayoutId(ctx, field)
+			case "failureReason":
+				return ec.fieldContext_CompanyPayout_failureReason(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CompanyPayout", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BulkPayoutResult_skipped(ctx context.Context, field graphql.CollectedField, obj *model.BulkPayoutResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BulkPayoutResult_skipped,
+		func(ctx context.Context) (any, error) {
+			return obj.Skipped, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BulkPayoutResult_skipped(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BulkPayoutResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BulkPayoutResult_failed(ctx context.Context, field graphql.CollectedField, obj *model.BulkPayoutResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BulkPayoutResult_failed,
+		func(ctx context.Context) (any, error) {
+			return obj.Failed, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BulkPayoutResult_failed(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BulkPayoutResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _CityArea_id(ctx context.Context, field graphql.CollectedField, obj *model.CityArea) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -19105,6 +19317,64 @@ func (ec *executionContext) fieldContext_CompanyPayout_createdAt(_ context.Conte
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type DateTime does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CompanyPayout_stripePayoutId(ctx context.Context, field graphql.CollectedField, obj *model.CompanyPayout) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CompanyPayout_stripePayoutId,
+		func(ctx context.Context) (any, error) {
+			return obj.StripePayoutID, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CompanyPayout_stripePayoutId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CompanyPayout",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CompanyPayout_failureReason(ctx context.Context, field graphql.CollectedField, obj *model.CompanyPayout) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CompanyPayout_failureReason,
+		func(ctx context.Context) (any, error) {
+			return obj.FailureReason, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CompanyPayout_failureReason(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CompanyPayout",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -28039,6 +28309,8 @@ func (ec *executionContext) fieldContext_Mutation_requestRefund(ctx context.Cont
 				return ec.fieldContext_RefundRequest_processedAt(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_RefundRequest_createdAt(ctx, field)
+			case "stripeRefundId":
+				return ec.fieldContext_RefundRequest_stripeRefundId(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type RefundRequest", field.Name)
 		},
@@ -28170,6 +28442,10 @@ func (ec *executionContext) fieldContext_Mutation_createMonthlyPayout(ctx contex
 				return ec.fieldContext_CompanyPayout_lineItems(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_CompanyPayout_createdAt(ctx, field)
+			case "stripePayoutId":
+				return ec.fieldContext_CompanyPayout_stripePayoutId(ctx, field)
+			case "failureReason":
+				return ec.fieldContext_CompanyPayout_failureReason(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CompanyPayout", field.Name)
 		},
@@ -28235,6 +28511,10 @@ func (ec *executionContext) fieldContext_Mutation_updatePayoutStatus(ctx context
 				return ec.fieldContext_CompanyPayout_lineItems(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_CompanyPayout_createdAt(ctx, field)
+			case "stripePayoutId":
+				return ec.fieldContext_CompanyPayout_stripePayoutId(ctx, field)
+			case "failureReason":
+				return ec.fieldContext_CompanyPayout_failureReason(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CompanyPayout", field.Name)
 		},
@@ -28296,6 +28576,8 @@ func (ec *executionContext) fieldContext_Mutation_processRefund(ctx context.Cont
 				return ec.fieldContext_RefundRequest_processedAt(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_RefundRequest_createdAt(ctx, field)
+			case "stripeRefundId":
+				return ec.fieldContext_RefundRequest_stripeRefundId(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type RefundRequest", field.Name)
 		},
@@ -28357,6 +28639,8 @@ func (ec *executionContext) fieldContext_Mutation_adminIssueRefund(ctx context.C
 				return ec.fieldContext_RefundRequest_processedAt(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_RefundRequest_createdAt(ctx, field)
+			case "stripeRefundId":
+				return ec.fieldContext_RefundRequest_stripeRefundId(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type RefundRequest", field.Name)
 		},
@@ -28563,6 +28847,10 @@ func (ec *executionContext) fieldContext_Mutation_triggerCompanyPayout(ctx conte
 				return ec.fieldContext_CompanyPayout_lineItems(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_CompanyPayout_createdAt(ctx, field)
+			case "stripePayoutId":
+				return ec.fieldContext_CompanyPayout_stripePayoutId(ctx, field)
+			case "failureReason":
+				return ec.fieldContext_CompanyPayout_failureReason(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CompanyPayout", field.Name)
 		},
@@ -28575,6 +28863,55 @@ func (ec *executionContext) fieldContext_Mutation_triggerCompanyPayout(ctx conte
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_triggerCompanyPayout_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_triggerAllCompanyPayouts(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_triggerAllCompanyPayouts,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().TriggerAllCompanyPayouts(ctx, fc.Args["periodFrom"].(string), fc.Args["periodTo"].(string))
+		},
+		nil,
+		ec.marshalNBulkPayoutResult2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBulkPayoutResult,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_triggerAllCompanyPayouts(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "succeeded":
+				return ec.fieldContext_BulkPayoutResult_succeeded(ctx, field)
+			case "skipped":
+				return ec.fieldContext_BulkPayoutResult_skipped(ctx, field)
+			case "failed":
+				return ec.fieldContext_BulkPayoutResult_failed(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type BulkPayoutResult", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_triggerAllCompanyPayouts_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -33907,6 +34244,64 @@ func (ec *executionContext) fieldContext_PaymentTransaction_createdAt(_ context.
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type DateTime does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PaymentTransaction_stripeChargeId(ctx context.Context, field graphql.CollectedField, obj *model.PaymentTransaction) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PaymentTransaction_stripeChargeId,
+		func(ctx context.Context) (any, error) {
+			return obj.StripeChargeID, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_PaymentTransaction_stripeChargeId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PaymentTransaction",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PaymentTransaction_stripeDisputeId(ctx context.Context, field graphql.CollectedField, obj *model.PaymentTransaction) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PaymentTransaction_stripeDisputeId,
+		func(ctx context.Context) (any, error) {
+			return obj.StripeDisputeID, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_PaymentTransaction_stripeDisputeId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PaymentTransaction",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -40903,6 +41298,8 @@ func (ec *executionContext) fieldContext_Query_myRefundRequests(_ context.Contex
 				return ec.fieldContext_RefundRequest_processedAt(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_RefundRequest_createdAt(ctx, field)
+			case "stripeRefundId":
+				return ec.fieldContext_RefundRequest_stripeRefundId(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type RefundRequest", field.Name)
 		},
@@ -40959,6 +41356,10 @@ func (ec *executionContext) fieldContext_Query_bookingPaymentDetails(ctx context
 				return ec.fieldContext_PaymentTransaction_refundAmount(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_PaymentTransaction_createdAt(ctx, field)
+			case "stripeChargeId":
+				return ec.fieldContext_PaymentTransaction_stripeChargeId(ctx, field)
+			case "stripeDisputeId":
+				return ec.fieldContext_PaymentTransaction_stripeDisputeId(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type PaymentTransaction", field.Name)
 		},
@@ -41063,6 +41464,10 @@ func (ec *executionContext) fieldContext_Query_myPayouts(ctx context.Context, fi
 				return ec.fieldContext_CompanyPayout_lineItems(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_CompanyPayout_createdAt(ctx, field)
+			case "stripePayoutId":
+				return ec.fieldContext_CompanyPayout_stripePayoutId(ctx, field)
+			case "failureReason":
+				return ec.fieldContext_CompanyPayout_failureReason(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CompanyPayout", field.Name)
 		},
@@ -41128,6 +41533,10 @@ func (ec *executionContext) fieldContext_Query_myPayoutDetail(ctx context.Contex
 				return ec.fieldContext_CompanyPayout_lineItems(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_CompanyPayout_createdAt(ctx, field)
+			case "stripePayoutId":
+				return ec.fieldContext_CompanyPayout_stripePayoutId(ctx, field)
+			case "failureReason":
+				return ec.fieldContext_CompanyPayout_failureReason(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CompanyPayout", field.Name)
 		},
@@ -41199,6 +41608,35 @@ func (ec *executionContext) fieldContext_Query_myCompanyEarnings(ctx context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_myUnpaidEarnings(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_myUnpaidEarnings,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.Query().MyUnpaidEarnings(ctx)
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_myUnpaidEarnings(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_allPaymentTransactions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -41248,6 +41686,10 @@ func (ec *executionContext) fieldContext_Query_allPaymentTransactions(ctx contex
 				return ec.fieldContext_PaymentTransaction_refundAmount(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_PaymentTransaction_createdAt(ctx, field)
+			case "stripeChargeId":
+				return ec.fieldContext_PaymentTransaction_stripeChargeId(ctx, field)
+			case "stripeDisputeId":
+				return ec.fieldContext_PaymentTransaction_stripeDisputeId(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type PaymentTransaction", field.Name)
 		},
@@ -41309,6 +41751,8 @@ func (ec *executionContext) fieldContext_Query_allRefundRequests(ctx context.Con
 				return ec.fieldContext_RefundRequest_processedAt(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_RefundRequest_createdAt(ctx, field)
+			case "stripeRefundId":
+				return ec.fieldContext_RefundRequest_stripeRefundId(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type RefundRequest", field.Name)
 		},
@@ -41374,6 +41818,10 @@ func (ec *executionContext) fieldContext_Query_allPayouts(ctx context.Context, f
 				return ec.fieldContext_CompanyPayout_lineItems(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_CompanyPayout_createdAt(ctx, field)
+			case "stripePayoutId":
+				return ec.fieldContext_CompanyPayout_stripePayoutId(ctx, field)
+			case "failureReason":
+				return ec.fieldContext_CompanyPayout_failureReason(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CompanyPayout", field.Name)
 		},
@@ -45095,6 +45543,35 @@ func (ec *executionContext) fieldContext_RefundRequest_createdAt(_ context.Conte
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type DateTime does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RefundRequest_stripeRefundId(ctx context.Context, field graphql.CollectedField, obj *model.RefundRequest) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RefundRequest_stripeRefundId,
+		func(ctx context.Context) (any, error) {
+			return obj.StripeRefundID, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_RefundRequest_stripeRefundId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RefundRequest",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -57785,6 +58262,55 @@ func (ec *executionContext) _BookingsByStatus(ctx context.Context, sel ast.Selec
 	return out
 }
 
+var bulkPayoutResultImplementors = []string{"BulkPayoutResult"}
+
+func (ec *executionContext) _BulkPayoutResult(ctx context.Context, sel ast.SelectionSet, obj *model.BulkPayoutResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, bulkPayoutResultImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("BulkPayoutResult")
+		case "succeeded":
+			out.Values[i] = ec._BulkPayoutResult_succeeded(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "skipped":
+			out.Values[i] = ec._BulkPayoutResult_skipped(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "failed":
+			out.Values[i] = ec._BulkPayoutResult_failed(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var cityAreaImplementors = []string{"CityArea"}
 
 func (ec *executionContext) _CityArea(ctx context.Context, sel ast.SelectionSet, obj *model.CityArea) graphql.Marshaler {
@@ -58489,6 +59015,10 @@ func (ec *executionContext) _CompanyPayout(ctx context.Context, sel ast.Selectio
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "stripePayoutId":
+			out.Values[i] = ec._CompanyPayout_stripePayoutId(ctx, field, obj)
+		case "failureReason":
+			out.Values[i] = ec._CompanyPayout_failureReason(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -60093,6 +60623,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "triggerAllCompanyPayouts":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_triggerAllCompanyPayouts(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "updateAllConnectPayoutSchedules":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_updateAllConnectPayoutSchedules(ctx, field)
@@ -60913,6 +61450,10 @@ func (ec *executionContext) _PaymentTransaction(ctx context.Context, sel ast.Sel
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "stripeChargeId":
+			out.Values[i] = ec._PaymentTransaction_stripeChargeId(ctx, field, obj)
+		case "stripeDisputeId":
+			out.Values[i] = ec._PaymentTransaction_stripeDisputeId(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -63524,6 +64065,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "myUnpaidEarnings":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_myUnpaidEarnings(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "allPaymentTransactions":
 			field := field
 
@@ -64911,6 +65474,8 @@ func (ec *executionContext) _RefundRequest(ctx context.Context, sel ast.Selectio
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "stripeRefundId":
+			out.Values[i] = ec._RefundRequest_stripeRefundId(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -67949,6 +68514,20 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNBulkPayoutResult2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBulkPayoutResult(ctx context.Context, sel ast.SelectionSet, v model.BulkPayoutResult) graphql.Marshaler {
+	return ec._BulkPayoutResult(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNBulkPayoutResult2ᚖgo2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐBulkPayoutResult(ctx context.Context, sel ast.SelectionSet, v *model.BulkPayoutResult) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._BulkPayoutResult(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNCategoryRequestStatus2go2fixᚑbackendᚋinternalᚋgraphᚋmodelᚐCategoryRequestStatus(ctx context.Context, v any) (model.CategoryRequestStatus, error) {

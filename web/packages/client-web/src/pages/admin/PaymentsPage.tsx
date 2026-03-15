@@ -11,10 +11,14 @@ import {
   Calendar,
   Building2,
   Download,
+  XCircle,
+  Scale,
+  Copy,
 } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Select from '@/components/ui/Select';
 import Input from '@/components/ui/Input';
+import Badge from '@/components/ui/Badge';
 import AdminPagination from '@/components/admin/AdminPagination';
 import Button from '@/components/ui/Button';
 import { formatCents, formatDate, exportToCSV } from '@/utils/format';
@@ -26,6 +30,7 @@ import {
 // Lazy-load sub-tab components (code-split)
 const AdminPayoutsPage = lazy(() => import('@/pages/admin/AdminPayoutsPage'));
 const RefundsPage = lazy(() => import('@/pages/admin/RefundsPage'));
+const DisputesPage = lazy(() => import('./DisputesPage'));
 
 // ─── Constants ─────────────────────────────────────────────────────────────
 
@@ -51,6 +56,8 @@ interface PaymentTransaction {
   id: string;
   bookingId: string;
   stripePaymentIntentId: string;
+  stripeChargeId: string | null;
+  stripeDisputeId: string | null;
   amountTotal: number;
   amountCompany: number;
   amountPlatformFee: number;
@@ -93,7 +100,7 @@ const paymentStatusDotColor: Record<string, string> = {
 
 // ─── Sub-Tabs ──────────────────────────────────────────────────────────────
 
-type PaymentsTab = 'summary' | 'payouts' | 'refunds';
+type PaymentsTab = 'summary' | 'payouts' | 'refunds' | 'disputes';
 
 // ─── Tab loading fallback ──────────────────────────────────────────────────
 
@@ -126,6 +133,7 @@ export default function PaymentsPage() {
     { value: 'summary', label: t('admin:payments.tabs.summary') },
     { value: 'payouts', label: t('admin:payments.tabs.payouts') },
     { value: 'refunds', label: t('admin:payments.tabs.refunds') },
+    { value: 'disputes', label: 'Dispute' },
   ];
 
   const statusOptions = [
@@ -135,6 +143,7 @@ export default function PaymentsPage() {
     { value: 'SUCCEEDED', label: t('admin:payments.statusLabels.SUCCEEDED') },
     { value: 'FAILED', label: t('admin:payments.statusLabels.FAILED') },
     { value: 'REFUNDED', label: t('admin:payments.statusLabels.REFUNDED') },
+    { value: 'PARTIALLY_REFUNDED', label: t('admin:payments.statusLabels.PARTIALLY_REFUNDED', { defaultValue: 'Parțial rambursată' }) },
   ];
 
   const datePresets = [
@@ -187,12 +196,27 @@ export default function PaymentsPage() {
   const [statusFilter, setStatusFilter] = useState('');
   const [page, setPage] = useState(0);
 
+  // Track which rows are expanded (for stripeChargeId)
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+
   // Track which tabs have been visited (for keeping state alive)
   const [visitedTabs, setVisitedTabs] = useState<Set<PaymentsTab>>(new Set(['summary']));
 
   function handleTabChange(tab: PaymentsTab) {
     setActiveTab(tab);
     setVisitedTabs((prev) => new Set(prev).add(tab));
+  }
+
+  function toggleRow(id: string) {
+    setExpandedRows((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
   }
 
   // Revenue report — skip when not on summary tab
@@ -212,6 +236,16 @@ export default function PaymentsPage() {
 
   const report: RevenueReport | null = revenueData?.platformRevenueReport ?? null;
   const allTransactions: PaymentTransaction[] = txData?.allPaymentTransactions ?? [];
+
+  // Derived KPI counts from transactions
+  const failedCount = useMemo(
+    () => allTransactions.filter((t) => t.status === 'FAILED').length,
+    [allTransactions],
+  );
+  const activeDisputeCount = useMemo(
+    () => allTransactions.filter((t) => Boolean(t.stripeDisputeId)).length,
+    [allTransactions],
+  );
 
   // Client-side pagination
   const totalCount = allTransactions.length;
@@ -233,11 +267,13 @@ export default function PaymentsPage() {
   }
 
   const metricsItems = report ? [
-    { icon: Banknote, label: t('admin:payments.metrics.totalRevenue'), value: formatCents(report.totalRevenue) },
-    { icon: TrendingUp, label: t('admin:payments.metrics.platformCommission'), value: formatCents(report.totalCommission) },
-    { icon: ArrowDownRight, label: t('admin:payments.metrics.companyPayouts'), value: formatCents(report.totalPayouts) },
-    { icon: Clock, label: t('admin:payments.metrics.pending'), value: formatCents(report.pendingPayouts) },
-    { icon: RotateCcw, label: t('admin:payments.metrics.refunds'), value: formatCents(report.totalRefunds) },
+    { icon: Banknote, label: t('admin:payments.metrics.totalRevenue'), value: formatCents(report.totalRevenue), accent: '' },
+    { icon: TrendingUp, label: t('admin:payments.metrics.platformCommission'), value: formatCents(report.totalCommission), accent: '' },
+    { icon: ArrowDownRight, label: t('admin:payments.metrics.companyPayouts'), value: formatCents(report.totalPayouts), accent: '' },
+    { icon: Clock, label: t('admin:payments.metrics.pending'), value: formatCents(report.pendingPayouts), accent: '' },
+    { icon: RotateCcw, label: t('admin:payments.metrics.refunds'), value: formatCents(report.totalRefunds), accent: '' },
+    { icon: XCircle, label: 'Plăți Eșuate', value: String(failedCount), accent: 'red' },
+    { icon: Scale, label: 'Dispute Active', value: String(activeDisputeCount), accent: 'amber' },
   ] : [];
 
   return (
@@ -293,8 +329,8 @@ export default function PaymentsPage() {
         {/* Revenue Summary */}
         {revenueLoading ? (
           <Card className="mb-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
-              {Array.from({ length: 5 }).map((_, i) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-7 gap-4">
+              {Array.from({ length: 7 }).map((_, i) => (
                 <div key={i} className="animate-pulse flex items-center gap-3 py-3">
                   <div className="h-9 w-9 bg-gray-200 rounded-lg shrink-0" />
                   <div>
@@ -307,15 +343,46 @@ export default function PaymentsPage() {
           </Card>
         ) : report ? (
           <Card className="mb-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-x-6 gap-y-1 divide-y md:divide-y-0 md:divide-x divide-gray-100">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-7 gap-x-6 gap-y-1 divide-y md:divide-y-0 md:divide-x divide-gray-100">
               {metricsItems.map((item, idx) => (
-                <div key={idx} className={`flex items-center gap-3 py-3 ${idx > 0 ? 'md:pl-6' : ''}`}>
-                  <div className="h-9 w-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
-                    <item.icon className="h-4.5 w-4.5 text-gray-500" />
+                <div
+                  key={idx}
+                  className={[
+                    'flex items-center gap-3 py-3',
+                    idx > 0 ? 'md:pl-6' : '',
+                    item.accent === 'red' ? 'border-l-2 border-red-200 pl-3' : '',
+                    item.accent === 'amber' ? 'border-l-2 border-amber-200 pl-3' : '',
+                  ].join(' ')}
+                >
+                  <div
+                    className={[
+                      'h-9 w-9 rounded-lg flex items-center justify-center shrink-0',
+                      item.accent === 'red' ? 'bg-red-50' : '',
+                      item.accent === 'amber' ? 'bg-amber-50' : '',
+                      item.accent === '' ? 'bg-gray-100' : '',
+                    ].join(' ')}
+                  >
+                    <item.icon
+                      className={[
+                        'h-4.5 w-4.5',
+                        item.accent === 'red' ? 'text-red-600' : '',
+                        item.accent === 'amber' ? 'text-amber-600' : '',
+                        item.accent === '' ? 'text-gray-500' : '',
+                      ].join(' ')}
+                    />
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 leading-tight">{item.label}</p>
-                    <p className="text-lg font-semibold text-gray-900 leading-tight">{item.value}</p>
+                    <p
+                      className={[
+                        'text-lg font-semibold leading-tight',
+                        item.accent === 'red' ? 'text-red-600' : '',
+                        item.accent === 'amber' ? 'text-amber-600' : '',
+                        item.accent === '' ? 'text-gray-900' : '',
+                      ].join(' ')}
+                    >
+                      {item.value}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -374,38 +441,89 @@ export default function PaymentsPage() {
           ) : (
             <>
               <div className="divide-y divide-gray-100">
-                {paginatedTransactions.map((tx) => (
-                  <div
-                    key={tx.id}
-                    onClick={() => {
-                      if (tx.booking?.id) navigate(`/admin/comenzi/${tx.booking.id}`);
-                    }}
-                    className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors"
-                  >
-                    <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${paymentStatusDotColor[tx.status] ?? 'bg-gray-300'}`} />
-                    <span className="text-sm font-semibold text-gray-900 w-20 shrink-0">
-                      {tx.booking?.referenceCode ?? '-'}
-                    </span>
-                    <span className="text-sm text-gray-700 truncate min-w-0">
-                      {tx.booking?.serviceName ?? '-'}
-                    </span>
-                    <span className="flex-1" />
-                    <span className="hidden md:flex items-center gap-1 text-xs text-gray-400 shrink-0">
-                      <Building2 className="h-3 w-3" />
-                      <span className="max-w-[120px] truncate">{tx.booking?.company?.companyName ?? '-'}</span>
-                    </span>
-                    <span className="hidden md:flex items-center gap-1 text-xs text-gray-400 shrink-0">
-                      <Calendar className="h-3 w-3" />
-                      {formatDate(tx.createdAt)}
-                    </span>
-                    <span className="text-sm font-medium text-gray-900 shrink-0 w-20 text-right">
-                      {formatCents(tx.amountTotal)}
-                    </span>
-                    <span className="text-xs text-gray-500 shrink-0 w-24 text-right hidden sm:block">
-                      {t(`admin:payments.statusLabels.${tx.status}`, { defaultValue: tx.status })}
-                    </span>
-                  </div>
-                ))}
+                {paginatedTransactions.map((tx) => {
+                  const isExpanded = expandedRows.has(tx.id);
+                  return (
+                    <div key={tx.id} className="border-b border-gray-100 last:border-0">
+                      {/* Main row */}
+                      <div
+                        onClick={() => {
+                          if (tx.booking?.id) navigate(`/admin/comenzi/${tx.booking.id}`);
+                        }}
+                        className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors"
+                      >
+                        <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${paymentStatusDotColor[tx.status] ?? 'bg-gray-300'}`} />
+                        <span className="text-sm font-semibold text-gray-900 w-20 shrink-0">
+                          {tx.booking?.referenceCode ?? '-'}
+                        </span>
+                        <div className="text-sm text-gray-700 truncate min-w-0">
+                          <span className="truncate">{tx.booking?.serviceName ?? '-'}</span>
+                          {tx.status === 'FAILED' && tx.failureReason && (
+                            <p className="text-xs text-red-600 truncate max-w-[240px]" title={tx.failureReason}>
+                              {tx.failureReason.slice(0, 60)}{tx.failureReason.length > 60 ? '…' : ''}
+                            </p>
+                          )}
+                        </div>
+                        <span className="flex-1" />
+                        {/* Dispute badge */}
+                        {tx.stripeDisputeId && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleTabChange('disputes');
+                            }}
+                            className="shrink-0"
+                          >
+                            <Badge variant="warning">Dispute</Badge>
+                          </button>
+                        )}
+                        <span className="hidden md:flex items-center gap-1 text-xs text-gray-400 shrink-0">
+                          <Building2 className="h-3 w-3" />
+                          <span className="max-w-[120px] truncate">{tx.booking?.company?.companyName ?? '-'}</span>
+                        </span>
+                        <span className="hidden md:flex items-center gap-1 text-xs text-gray-400 shrink-0">
+                          <Calendar className="h-3 w-3" />
+                          {formatDate(tx.createdAt)}
+                        </span>
+                        <span className="text-sm font-medium text-gray-900 shrink-0 w-20 text-right">
+                          {formatCents(tx.amountTotal)}
+                        </span>
+                        <span className="text-xs text-gray-500 shrink-0 w-24 text-right hidden sm:block">
+                          {t(`admin:payments.statusLabels.${tx.status}`, { defaultValue: tx.status })}
+                        </span>
+                        {/* Expand toggle for charge ID */}
+                        {tx.stripeChargeId && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleRow(tx.id);
+                            }}
+                            className="text-xs text-gray-400 hover:text-gray-600 transition-colors shrink-0 font-mono"
+                            title="Afișează detalii Stripe"
+                          >
+                            ch:…
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Expanded detail — stripeChargeId */}
+                      {isExpanded && tx.stripeChargeId && (
+                        <div className="px-4 pb-3 bg-gray-50 border-t border-gray-100">
+                          <div className="text-xs text-muted-foreground font-mono flex items-center gap-1 pt-2">
+                            <span className="text-gray-500">ch:</span>
+                            <span className="text-gray-700">{tx.stripeChargeId.slice(0, 12)}…</span>
+                            <Copy
+                              className="h-3 w-3 cursor-pointer text-gray-400 hover:text-gray-700 transition-colors"
+                              onClick={() => navigator.clipboard.writeText(tx.stripeChargeId!)}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
               <div className="px-4">
                 <AdminPagination
@@ -435,6 +553,15 @@ export default function PaymentsPage() {
         <div className={activeTab === 'refunds' ? '' : 'hidden'}>
           <Suspense fallback={<TabSkeleton />}>
             <RefundsPage />
+          </Suspense>
+        </div>
+      )}
+
+      {/* Disputes tab — lazy-loaded, kept alive once visited */}
+      {visitedTabs.has('disputes') && (
+        <div className={activeTab === 'disputes' ? '' : 'hidden'}>
+          <Suspense fallback={<TabSkeleton />}>
+            <DisputesPage />
           </Suspense>
         </div>
       )}

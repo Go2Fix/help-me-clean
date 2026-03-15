@@ -13,18 +13,19 @@ import {
   ChevronDown,
   ChevronRight,
   Hash,
+  Copy,
 } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import {
   MY_COMPANY_EARNINGS,
   MY_PAYOUTS,
   MY_PAYOUT_DETAIL,
   MY_CONNECT_STATUS,
+  MY_UNPAID_EARNINGS,
   INITIATE_CONNECT_ONBOARDING,
   REFRESH_CONNECT_ONBOARDING,
 } from '@/graphql/operations';
@@ -60,14 +61,26 @@ function getMonthRange(): { from: string; to: string } {
   };
 }
 
-type PayoutStatus = 'PENDING' | 'PROCESSING' | 'PAID' | 'FAILED';
+type PayoutStatus = 'PENDING' | 'PROCESSING' | 'PAID' | 'FAILED' | 'CANCELLED';
 
-const payoutStatusBadge: Record<PayoutStatus, 'warning' | 'info' | 'success' | 'danger'> = {
+const payoutStatusBadge: Record<PayoutStatus, 'warning' | 'info' | 'success' | 'danger' | 'default'> = {
   PENDING: 'warning',
   PROCESSING: 'info',
   PAID: 'success',
   FAILED: 'danger',
+  CANCELLED: 'default',
 };
+
+function payoutStatusLabel(status: string, paidAt?: string | null): string {
+  switch (status) {
+    case 'PENDING': return 'În așteptare';
+    case 'PROCESSING': return 'În procesare la bancă';
+    case 'PAID': return paidAt ? `Plătit în cont · ${new Date(paidAt).toLocaleDateString('ro-RO')}` : 'Plătit';
+    case 'FAILED': return 'Transfer eșuat';
+    case 'CANCELLED': return 'Anulat';
+    default: return status;
+  }
+}
 
 // ─── Metric ──────────────────────────────────────────────────────────────────
 
@@ -144,13 +157,18 @@ function StripeConnectCard() {
           <div className="min-w-0">
             <p className="text-xs md:text-sm font-medium text-gray-500">{t('company:payouts.stripe.label')}</p>
             {onboardingStatus === 'COMPLETE' ? (
-              <div className="flex items-center gap-2 mt-1">
-                <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0" />
-                <span className="text-sm font-semibold text-emerald-600">{t('company:payouts.stripe.active')}</span>
-                {connectStatus?.chargesEnabled && (
-                  <Badge variant="success">{t('company:payouts.stripe.paymentsEnabled')}</Badge>
-                )}
-              </div>
+              <>
+                <div className="flex items-center gap-2 mt-1">
+                  <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0" />
+                  <Badge variant="success">Cont activ</Badge>
+                  {connectStatus?.chargesEnabled && (
+                    <Badge variant="success">{t('company:payouts.stripe.paymentsEnabled')}</Badge>
+                  )}
+                </div>
+                <p className="text-xs text-gray-400 mt-1">
+                  Transferurile se procesează automat în contul tău bancar
+                </p>
+              </>
             ) : onboardingStatus === 'PENDING' ? (
               <div className="flex items-center gap-2 mt-1">
                 <Clock className="h-4 w-4 text-amber-500 shrink-0" />
@@ -165,7 +183,7 @@ function StripeConnectCard() {
           </div>
         </div>
 
-        <div className="shrink-0">
+        <div className="shrink-0 flex items-center gap-2">
           {onboardingStatus === 'NOT_STARTED' && (
             <Button onClick={handleInitiate} loading={initiating} size="sm">
               <ExternalLink className="h-4 w-4" />
@@ -179,7 +197,15 @@ function StripeConnectCard() {
             </Button>
           )}
           {onboardingStatus === 'COMPLETE' && (
-            <Badge variant="success">{t('company:payouts.stripe.statusActive')}</Badge>
+            <a
+              href="https://dashboard.stripe.com/express"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-sm text-purple-600 hover:text-purple-700 hover:underline font-medium"
+            >
+              Accesează Stripe Dashboard
+              <ExternalLink className="h-3.5 w-3.5" />
+            </a>
           )}
         </div>
       </div>
@@ -202,7 +228,7 @@ interface PayoutLineItem {
   };
 }
 
-function PayoutDetailPanel({ payoutId, locale }: { payoutId: string; locale: string }) {
+function PayoutDetailPanel({ payoutId, stripePayoutId, locale }: { payoutId: string; stripePayoutId?: string | null; locale: string }) {
   const { t } = useTranslation('company');
   const { data, loading } = useQuery(MY_PAYOUT_DETAIL, {
     variables: { id: payoutId },
@@ -227,6 +253,15 @@ function PayoutDetailPanel({ payoutId, locale }: { payoutId: string; locale: str
     return (
       <div className="px-3 md:px-6 py-4 bg-gray-50 border-t border-gray-100">
         <p className="text-sm text-gray-500">{t('company:payouts.detail.noDetails')}</p>
+        {stripePayoutId && (
+          <div className="text-xs text-gray-400 font-mono flex items-center gap-1 mt-2">
+            ID Stripe: {stripePayoutId.slice(0, 8)}...{stripePayoutId.slice(-4)}
+            <Copy
+              className="h-3 w-3 cursor-pointer hover:text-gray-600"
+              onClick={() => navigator.clipboard.writeText(stripePayoutId)}
+            />
+          </div>
+        )}
       </div>
     );
   }
@@ -257,6 +292,26 @@ function PayoutDetailPanel({ payoutId, locale }: { payoutId: string; locale: str
           </div>
         ))}
       </div>
+
+      {/* Totals footer */}
+      <div className="flex justify-between text-sm font-medium border-t pt-2 mt-2">
+        <span>Total</span>
+        <div className="flex gap-4">
+          <span>{formatRON(lineItems.reduce((s, i) => s + i.amountGross, 0))} brut</span>
+          <span className="text-amber-600">-{formatRON(lineItems.reduce((s, i) => s + i.amountCommission, 0))} comision</span>
+          <span className="text-green-600 font-bold">{formatRON(lineItems.reduce((s, i) => s + i.amountNet, 0))} net</span>
+        </div>
+      </div>
+
+      {stripePayoutId && (
+        <div className="text-xs text-gray-400 font-mono flex items-center gap-1 mt-2">
+          ID Stripe: {stripePayoutId.slice(0, 8)}...{stripePayoutId.slice(-4)}
+          <Copy
+            className="h-3 w-3 cursor-pointer hover:text-gray-600"
+            onClick={() => navigator.clipboard.writeText(stripePayoutId)}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -270,6 +325,8 @@ interface Payout {
   periodTo: string;
   bookingCount: number;
   status: PayoutStatus;
+  stripePayoutId?: string | null;
+  failureReason?: string | null;
   paidAt: string | null;
   createdAt: string;
 }
@@ -278,26 +335,14 @@ export default function PayoutsPage() {
   const { t, i18n } = useTranslation(['dashboard', 'company']);
   const locale = i18n.language === 'en' ? 'en-GB' : 'ro-RO';
 
-  const payoutStatusLabel: Record<PayoutStatus, string> = {
-    PENDING: t('company:payouts.status.pending'),
-    PROCESSING: t('company:payouts.status.processing'),
-    PAID: t('company:payouts.status.paid'),
-    FAILED: t('company:payouts.status.failed'),
-  };
-
-  const statusFilterOptions = [
-    { value: '', label: t('company:payouts.allStatuses') },
-    { value: 'PENDING', label: t('company:payouts.status.pending') },
-    { value: 'PROCESSING', label: t('company:payouts.status.processing') },
-    { value: 'PAID', label: t('company:payouts.status.paid') },
-    { value: 'FAILED', label: t('company:payouts.status.failed') },
-  ];
-
   const defaultRange = useMemo(getMonthRange, []);
   const [dateFrom, setDateFrom] = useState(defaultRange.from);
   const [dateTo, setDateTo] = useState(defaultRange.to);
   const [expandedPayoutId, setExpandedPayoutId] = useState<string | null>(null);
-  const [statusFilter, setStatusFilter] = useState<string>('');
+
+  // Unpaid earnings (hero card)
+  const { data: unpaidData, loading: unpaidLoading } = useQuery(MY_UNPAID_EARNINGS);
+  const unpaidEarnings: number = unpaidData?.myUnpaidEarnings ?? 0;
 
   // Earnings query for date range
   const { data: earningsData, loading: earningsLoading } = useQuery(MY_COMPANY_EARNINGS, {
@@ -310,12 +355,7 @@ export default function PayoutsPage() {
   });
 
   const earnings = earningsData?.myCompanyEarnings;
-  const allPayouts: Payout[] = payoutsData?.myPayouts ?? [];
-
-  // Client-side status filtering
-  const payouts = statusFilter
-    ? allPayouts.filter((p: Payout) => p.status === statusFilter)
-    : allPayouts;
+  const payouts: Payout[] = payoutsData?.myPayouts ?? [];
 
   const toggleExpand = (payoutId: string) => {
     setExpandedPayoutId((prev) => (prev === payoutId ? null : payoutId));
@@ -330,6 +370,29 @@ export default function PayoutsPage() {
           {t('company:payouts.subtitle')}
         </p>
       </div>
+
+      {/* Estimated Next Payout Hero Card */}
+      <Card className="bg-gradient-to-r from-blue-600 to-blue-700 text-white mb-6">
+        <div className="pt-0">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-blue-100 text-sm">Încasare estimată la următoarea plată</p>
+              {unpaidLoading ? (
+                <div className="h-8 w-32 bg-blue-500 rounded animate-pulse mt-1" />
+              ) : (
+                <p className="text-3xl font-bold mt-1">{(unpaidEarnings / 100).toFixed(2)} lei</p>
+              )}
+              <p className="text-blue-200 text-xs mt-2">
+                Go2Fix procesează plățile la fiecare 2 săptămâni automat
+              </p>
+            </div>
+            <Wallet className="h-12 w-12 text-blue-300 opacity-70" />
+          </div>
+          {unpaidEarnings === 0 && !unpaidLoading && (
+            <p className="text-blue-200 text-sm mt-3">Nu există rezervări finalizate neplătite momentan.</p>
+          )}
+        </div>
+      </Card>
 
       {/* Stripe Connect Status */}
       <div className="mb-6">
@@ -392,29 +455,37 @@ export default function PayoutsPage() {
         </Card>
       ) : null}
 
-      {/* Status filter */}
-      <div className="mb-6">
-        <div className="w-full sm:w-64">
-          <Select
-            options={statusFilterOptions}
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            label={t('company:payouts.filterStatus')}
-          />
-        </div>
-      </div>
-
       {/* Payouts Table */}
       <Card padding={false}>
+        {/* Failed payout alert */}
+        {payouts.some((p) => p.status === 'FAILED') && (
+          <div className="mx-3 md:mx-6 mt-4 mb-2 flex gap-3 p-3 rounded-lg bg-red-50 border border-red-200">
+            <AlertCircle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-red-700">Transfer eșuat</p>
+              <p className="text-sm text-red-600">
+                Un transfer a eșuat.{' '}
+                {payouts.find((p) => p.status === 'FAILED')?.failureReason && (
+                  <span className="block text-xs mt-1">
+                    {payouts.find((p) => p.status === 'FAILED')?.failureReason}
+                  </span>
+                )}
+                Te rugăm să contactezi echipa Go2Fix:{' '}
+                <a href="mailto:support@go2fix.ro" className="underline">
+                  support@go2fix.ro
+                </a>
+              </p>
+            </div>
+          </div>
+        )}
+
         {payoutsLoading ? (
           <LoadingSpinner text={t('company:payouts.loading')} />
         ) : payouts.length === 0 ? (
           <div className="text-center py-12 px-6">
             <Wallet className="h-12 w-12 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-1">{t('company:payouts.empty')}</h3>
-            <p className="text-gray-500">
-              {statusFilter ? t('company:payouts.emptyFilter') : t('company:payouts.emptyNone')}
-            </p>
+            <p className="text-gray-500">{t('company:payouts.emptyNone')}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -433,9 +504,6 @@ export default function PayoutsPage() {
                   <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase">
                     {t('company:payouts.table.status')}
                   </th>
-                  <th className="text-left px-3 md:px-6 py-3 text-xs font-semibold text-gray-500 uppercase hidden md:table-cell">
-                    {t('company:payouts.table.paidAt')}
-                  </th>
                   <th className="px-2 md:px-6 py-3 w-8 md:w-10" />
                 </tr>
               </thead>
@@ -444,7 +512,7 @@ export default function PayoutsPage() {
                   const isExpanded = expandedPayoutId === payout.id;
                   return (
                     <tr key={payout.id} className="group">
-                      <td colSpan={6} className="p-0">
+                      <td colSpan={5} className="p-0">
                         <div
                           onClick={() => toggleExpand(payout.id)}
                           className="flex items-center cursor-pointer hover:bg-gray-50 transition-colors"
@@ -468,13 +536,8 @@ export default function PayoutsPage() {
                             <Badge
                               variant={payoutStatusBadge[payout.status] ?? 'default'}
                             >
-                              {payoutStatusLabel[payout.status] ?? payout.status}
+                              {payoutStatusLabel(payout.status, payout.paidAt)}
                             </Badge>
-                          </div>
-                          <div className="px-3 md:px-6 py-3 md:py-4 hidden md:block">
-                            <span className="text-sm text-gray-500">
-                              {payout.paidAt ? formatDate(payout.paidAt, locale) : '--'}
-                            </span>
                           </div>
                           <div className="px-2 md:px-6 py-3 md:py-4">
                             {isExpanded ? (
@@ -485,7 +548,13 @@ export default function PayoutsPage() {
                           </div>
                         </div>
 
-                        {isExpanded && <PayoutDetailPanel payoutId={payout.id} locale={locale} />}
+                        {isExpanded && (
+                          <PayoutDetailPanel
+                            payoutId={payout.id}
+                            stripePayoutId={payout.stripePayoutId}
+                            locale={locale}
+                          />
+                        )}
                       </td>
                     </tr>
                   );

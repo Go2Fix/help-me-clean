@@ -514,6 +514,7 @@ type Querier interface {
 	// COMPANY EARNINGS (Reporting)
 	// ============================================
 	SumCompanyEarnings(ctx context.Context, arg SumCompanyEarningsParams) (SumCompanyEarningsRow, error)
+	SumCompanyUnpaidEarnings(ctx context.Context, companyID pgtype.UUID) (int64, error)
 	SumRefundedAmountByBooking(ctx context.Context, bookingID pgtype.UUID) (int32, error)
 	SumThisMonthEarningsByWorker(ctx context.Context, workerID pgtype.UUID) (pgtype.Numeric, error)
 	SuspendWorkersByCompany(ctx context.Context, companyID pgtype.UUID) error
