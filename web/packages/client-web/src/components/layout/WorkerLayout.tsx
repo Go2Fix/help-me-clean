@@ -6,7 +6,7 @@ import {
   CalendarDays,
   MessageSquare,
   User,
-  Sparkles,
+  Briefcase,
 } from 'lucide-react';
 import DashboardLayout from './DashboardLayout';
 import WorkerStatusGate from '@/components/worker/WorkerStatusGate';
@@ -19,7 +19,7 @@ export default function WorkerLayout() {
       { to: '/worker', icon: LayoutDashboard, label: t('nav.dashboard') },
       { to: '/worker/comenzi', icon: ClipboardList, label: t('nav.jobs') },
       { to: '/worker/program', icon: CalendarDays, label: t('nav.schedule') },
-      { to: '/worker/mesaje', icon: MessageSquare, label: t('nav.documents') },
+      { to: '/worker/mesaje', icon: MessageSquare, label: t('nav.messages') },
       { to: '/worker/profil', icon: User, label: t('nav.settings') },
     ],
     [t],
@@ -28,7 +28,7 @@ export default function WorkerLayout() {
   return (
     <DashboardLayout
       navItems={navItems}
-      logoIcon={Sparkles}
+      logoIcon={Briefcase}
       logoIconColor="text-accent"
       subtitle={t('nav.subtitle')}
       homeRoute="/worker"

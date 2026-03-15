@@ -14,7 +14,15 @@
     "promoCodes": "Coduri promo",
     "disputes": "Dispute",
     "settings": "Setări",
-    "subtitle": "Admin Panel"
+    "subtitle": "Admin Panel",
+    "approvals": "Aprobări",
+    "waitlist": "Listă așteptare",
+    "categoryRequests": "Cereri categorii",
+    "groupTeams": "Echipe",
+    "groupOperations": "Operațiuni",
+    "groupFinancial": "Financiar",
+    "groupReports": "Rapoarte",
+    "groupSystem": "Sistem"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -53,6 +61,16 @@
     "pendingApplications": {
       "title": "Aplicații în așteptare",
       "viewAll": "Vezi toate"
+    },
+    "attention": {
+      "title": "Necesită atenție",
+      "allUpToDate": "Totul este la zi",
+      "noPendingActions": "Nu există acțiuni în așteptare.",
+      "viewAll": "Vezi toate",
+      "companyApplications": "Aplicații companii",
+      "companyDocuments": "Documente companii",
+      "workerDocuments": "Documente angajați",
+      "categoryRequests": "Cereri categorii"
     },
     "quickLinks": {
       "companies": "Companii",
@@ -452,6 +470,7 @@
       "mrr": "MRR"
     },
     "perMonth": "{{amount}}/lună",
+    "monthSuffix": "/lună",
     "cancelTitle": "Anulează abonamentul",
     "empty": "Nu există abonamente.",
     "errorLoading": "Eroare la încărcarea abonamentelor. Încearcă din nou.",
@@ -548,6 +567,11 @@
       "serviceType": "Tip serviciu",
       "preferredDay": "Ziua preferată",
       "id": "ID"
+    },
+    "timePrefix": "la",
+    "address": {
+      "floor": "Etaj",
+      "apt": "Ap."
     },
     "dayNames": {
       "0": "Duminică",
@@ -717,6 +741,7 @@
     },
     "paidOn": "Plătit: {{date}}",
     "bookings": "rez.",
+    "bookingsAbbr": "rez.",
     "empty": "Nu există plăți.",
     "createModal": {
       "title": "Creează plată lunară",
@@ -728,6 +753,7 @@
       "periodFrom": "Perioada de la",
       "periodTo": "Perioada până la",
       "cancel": "Anulează",
+      "dismiss": "Anulează",
       "confirm": "Creează plată"
     },
     "csvColumns": {
@@ -772,11 +798,15 @@
       "title": "Rambursare directă",
       "bookingLabel": "Rezervare",
       "bookingSearchPlaceholder": "Caută după cod rezervare...",
+      "bookingPlaceholder": "Caută după cod rezervare...",
+      "searching": "Se caută...",
+      "noBookings": "Nicio rezervare găsită.",
       "amountLabel": "Sumă (lei)",
       "amountPlaceholder": "ex. 150.00",
       "reasonLabel": "Motiv",
       "reasonPlaceholder": "Descrie motivul rambursării...",
       "cancel": "Anulează",
+      "dismiss": "Anulează",
       "confirm": "Emite rambursare"
     },
     "noun": "rambursări"

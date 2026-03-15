@@ -11,7 +11,10 @@
     "invoices": "Invoices",
     "documents": "Documents",
     "settings": "Settings",
-    "subtitle": "Company Panel"
+    "subtitle": "Company Panel",
+    "groupOperations": "Operations",
+    "groupTeam": "Team",
+    "groupFinancial": "Financial"
   },
   "dashboard": {
     "welcome": "Welcome",
@@ -42,7 +45,8 @@
       "netRevenue": "Net revenue",
       "platformCommission": "Platform commission",
       "activeSubscriptions": "Active subscriptions",
-      "monthlyRecurring": "Monthly recurring revenue"
+      "monthlyRecurring": "Monthly recurring revenue",
+      "pendingOrders": "Pending orders"
     },
     "chart": {
       "title": "Revenue last 30 days",

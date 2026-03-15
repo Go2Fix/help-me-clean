@@ -30,11 +30,12 @@ import {
   X,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/context/AuthContext';
 import { usePlatform } from '@/context/PlatformContext';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
-import Badge from '@/components/ui/ClientBadge';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Modal from '@/components/ui/Modal';
 import { CLIENT_BOOKING_DETAIL, CANCEL_BOOKING, CREATE_BOOKING_PAYMENT_INTENT, REQUEST_REFUND, SUBMIT_REVIEW, UPLOAD_REVIEW_PHOTOS, BOOKING_POLICY, RESCHEDULE_BOOKING, CLIENT_INVOICE_FOR_BOOKING, MY_DISPUTE_FOR_BOOKING, OPEN_DISPUTE, UPLOAD_DISPUTE_EVIDENCE } from '@/graphql/operations';
@@ -256,6 +257,7 @@ function RatingRow({ label, icon: Icon, value, onChange }: { label: string; icon
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function BookingDetailPage() {
+  const { t } = useTranslation('dashboard');
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -583,7 +585,7 @@ export default function BookingDetailPage() {
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
                 {booking.serviceName}
               </h1>
-              <Badge status={booking.status} />
+              <StatusBadge status={booking.status} label={t(`bookingStatus.${booking.status}`)} />
               {booking.category && (
                 <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 font-medium">
                   {booking.category.icon} {booking.category.nameRo}

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, type ElementType } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@apollo/client';
 import { useTranslation } from 'react-i18next';
@@ -24,16 +24,17 @@ import Badge from '@/components/ui/ClientBadge';
 import ProfileSetupChecklist from '@/components/ProfileSetupChecklist';
 import type { SetupItem } from '@/components/ProfileSetupChecklist';
 import { MY_BOOKINGS, MY_SUBSCRIPTIONS, MY_INVOICES, MY_PAYMENT_METHODS, MY_ADDRESSES, MY_RECENT_COMPLETED_BOOKINGS } from '@/graphql/operations';
+import { formatDate, formatCurrency } from '@/utils/format';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
-const SERVICE_ICONS: Record<string, string> = {
-  STANDARD_CLEANING: '\u{1F9F9}',
-  DEEP_CLEANING: '\u2728',
-  MOVE_IN_OUT_CLEANING: '\u{1F4E6}',
-  POST_CONSTRUCTION: '\u{1F3D7}\uFE0F',
-  OFFICE_CLEANING: '\u{1F3E2}',
-  WINDOW_CLEANING: '\u{1FA9F}',
+const SERVICE_ICONS: Record<string, ElementType> = {
+  STANDARD_CLEANING: ClipboardList,
+  DEEP_CLEANING: Sparkles,
+  MOVE_IN_OUT_CLEANING: MapPin,
+  POST_CONSTRUCTION: Settings,
+  OFFICE_CLEANING: FileText,
+  WINDOW_CLEANING: Star,
 };
 
 const subscriptionStatusColor: Record<string, { bg: string; text: string }> = {
@@ -87,18 +88,6 @@ interface CompletedBookingEdge {
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-function formatDate(dateStr: string, locale: string): string {
-  try {
-    return new Date(dateStr).toLocaleDateString(locale === 'en' ? 'en-GB' : 'ro-RO', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-    });
-  } catch {
-    return dateStr;
-  }
-}
-
 function formatTime(timeStr: string): string {
   if (!timeStr) return '';
   return timeStr.slice(0, 5);
@@ -109,7 +98,7 @@ function formatTime(timeStr: string): string {
 export default function ClientDashboardPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { t, i18n } = useTranslation(['dashboard', 'client']);
+  const { t } = useTranslation(['dashboard', 'client']);
 
   // ─── Queries ────────────────────────────────────────────────────────────
 
@@ -212,12 +201,8 @@ export default function ClientDashboardPage() {
   ];
 
   const quickActions = [
-    { label: t('client:dashboard.quickLinks.myBookings'), icon: ClipboardList, path: '/cont/comenzi' },
+    { label: t('client:dashboard.quickLinks.newBooking'), icon: Sparkles, path: '/rezervare' },
     { label: t('client:dashboard.quickLinks.support'), icon: MessageCircle, path: '/cont/mesaje' },
-    { label: t('client:dashboard.quickLinks.addresses'), icon: MapPin, path: '/cont/adrese' },
-    { label: t('client:dashboard.quickLinks.invoices'), icon: FileText, path: '/cont/facturi' },
-    { label: t('client:dashboard.quickLinks.paymentMethods'), icon: CreditCard, path: '/cont/plati' },
-    { label: t('client:dashboard.quickLinks.profile'), icon: Settings, path: '/cont/setari' },
   ];
 
   const setupItems: SetupItem[] = [
@@ -230,7 +215,7 @@ export default function ClientDashboardPage() {
   // ─── Render ─────────────────────────────────────────────────────────────
 
   return (
-    <div>
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
@@ -271,7 +256,7 @@ export default function ClientDashboardPage() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-gray-900">{t('client:dashboard.leaveReviewFor', { name: booking.serviceName })}</p>
-                <p className="text-xs text-gray-500">{formatDate(booking.scheduledDate, i18n.language)} · {booking.referenceCode}</p>
+                <p className="text-xs text-gray-500">{formatDate(booking.scheduledDate)} · {booking.referenceCode}</p>
               </div>
               <ChevronRight className="h-4 w-4 text-amber-500 group-hover:translate-x-0.5 transition-transform shrink-0" />
             </button>
@@ -360,8 +345,8 @@ export default function ClientDashboardPage() {
                     onClick={() => navigate(`/cont/comenzi/${booking.id}`)}
                     className="w-full flex items-center gap-4 px-4 sm:px-6 py-3 sm:py-4 hover:bg-gray-50 transition-colors text-left cursor-pointer"
                   >
-                    <div className="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center shrink-0 text-lg select-none">
-                      {SERVICE_ICONS[booking.serviceType] ?? '\u{1F9F9}'}
+                    <div className="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
+                      {(() => { const Icon = SERVICE_ICONS[booking.serviceType] ?? ClipboardList; return <Icon className="h-5 w-5 text-blue-600" />; })()}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2 mb-1">
@@ -372,12 +357,12 @@ export default function ClientDashboardPage() {
                       </div>
                       <div className="flex items-center gap-1.5 text-xs text-gray-500">
                         <Calendar className="h-3 w-3" />
-                        {formatDate(booking.scheduledDate, i18n.language)} · {formatTime(booking.scheduledStartTime)}
+                        {formatDate(booking.scheduledDate)} · {formatTime(booking.scheduledStartTime)}
                       </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <span className="text-sm font-bold text-gray-900">
-                        {booking.estimatedTotal} lei
+                        {formatCurrency(booking.estimatedTotal)}
                       </span>
                       <ChevronRight className="h-4 w-4 text-gray-400" />
                     </div>
@@ -461,7 +446,7 @@ export default function ClientDashboardPage() {
                         </p>
                         {sub.currentPeriodEnd && (
                           <p className="text-xs text-blue-600 mt-1">
-                            {t('client:dashboard.nextBilling', { date: formatDate(sub.currentPeriodEnd, i18n.language) })}
+                            {t('client:dashboard.nextBilling', { date: formatDate(sub.currentPeriodEnd) })}
                           </p>
                         )}
                       </div>
@@ -486,26 +471,21 @@ export default function ClientDashboardPage() {
           </Card>
 
           {/* Quick Actions */}
-          <Card padding={false}>
-            <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-gray-100">
-              <h2 className="text-lg font-semibold text-gray-900">
-                {t('client:dashboard.quickActions')}
-              </h2>
-            </div>
-            <div className="divide-y divide-gray-100">
+          <Card>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              {t('client:dashboard.quickActions')}
+            </h2>
+            <div className="flex flex-col gap-3">
               {quickActions.map((action) => (
-                <button
+                <Button
                   key={action.path}
-                  type="button"
+                  variant="outline"
                   onClick={() => navigate(action.path)}
-                  className="w-full flex items-center gap-3 px-4 sm:px-6 py-3 sm:py-3.5 hover:bg-gray-50 transition-colors text-left cursor-pointer"
+                  className="w-full justify-start gap-3"
                 >
-                  <action.icon className="h-4.5 w-4.5 text-gray-400 shrink-0" />
-                  <span className="text-sm font-medium text-gray-700 flex-1">
-                    {action.label}
-                  </span>
-                  <ChevronRight className="h-4 w-4 text-gray-300 shrink-0" />
-                </button>
+                  <action.icon className="h-4 w-4 shrink-0" />
+                  <span className="flex-1 text-left">{action.label}</span>
+                </Button>
               ))}
             </div>
           </Card>

@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
@@ -31,16 +32,6 @@ import RescheduleModal from '@/components/booking/RescheduleModal';
 import { ADMIN_BOOKING_DETAIL, ADMIN_CANCEL_BOOKING, ADMIN_RESCHEDULE_BOOKING, ALL_BOOKINGS, ALL_WORKERS, ASSIGN_WORKER, MARK_BOOKING_PAID } from '@/graphql/operations';
 import { formatCurrency, formatDate, formatDateTime } from '@/utils/format';
 
-const statusVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
-  ASSIGNED: 'info',
-  CONFIRMED: 'info',
-  IN_PROGRESS: 'info',
-  COMPLETED: 'success',
-  CANCELLED: 'danger',
-  CANCELLED_BY_CLIENT: 'danger',
-  CANCELLED_BY_COMPANY: 'danger',
-  CANCELLED_BY_ADMIN: 'danger',
-};
 
 interface WorkerOption {
   id: string;
@@ -197,9 +188,7 @@ export default function BookingDetailPage() {
         <div className="flex-1">
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold text-gray-900">{booking.referenceCode}</h1>
-            <Badge variant={statusVariant[booking.status] ?? 'default'}>
-              {t(`admin:bookings.statusLabels.${booking.status}`, { defaultValue: booking.status })}
-            </Badge>
+            <StatusBadge status={booking.status} label={t(`bookingStatus.${booking.status}`)} />
           </div>
           <div className="flex items-center gap-2 mt-0.5">
             <p className="text-gray-500">{booking.serviceName}</p>

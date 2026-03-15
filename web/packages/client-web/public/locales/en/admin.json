@@ -14,7 +14,15 @@
     "promoCodes": "Promo Codes",
     "disputes": "Disputes",
     "settings": "Settings",
-    "subtitle": "Admin Panel"
+    "subtitle": "Admin Panel",
+    "approvals": "Approvals",
+    "waitlist": "Waitlist",
+    "categoryRequests": "Category Requests",
+    "groupTeams": "Teams",
+    "groupOperations": "Operations",
+    "groupFinancial": "Financial",
+    "groupReports": "Reports",
+    "groupSystem": "System"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -50,6 +58,16 @@
     "pendingApplications": {
       "title": "Pending applications",
       "viewAll": "View all"
+    },
+    "attention": {
+      "title": "Needs attention",
+      "allUpToDate": "All up to date",
+      "noPendingActions": "No pending actions.",
+      "viewAll": "View all",
+      "companyApplications": "Company applications",
+      "companyDocuments": "Company documents",
+      "workerDocuments": "Worker documents",
+      "categoryRequests": "Category requests"
     },
     "quickLinks": {
       "companies": "Companies",
@@ -449,6 +467,7 @@
       "mrr": "MRR"
     },
     "perMonth": "{{amount}}/month",
+    "monthSuffix": "/month",
     "cancelTitle": "Cancel subscription",
     "empty": "No subscriptions found.",
     "errorLoading": "Error loading subscriptions. Please try again.",
@@ -545,6 +564,11 @@
       "serviceType": "Service type",
       "preferredDay": "Preferred day",
       "id": "ID"
+    },
+    "timePrefix": "at",
+    "address": {
+      "floor": "Floor",
+      "apt": "Apt."
     },
     "dayNames": {
       "0": "Sunday",
@@ -714,6 +738,7 @@
     },
     "paidOn": "Paid: {{date}}",
     "bookings": "bkgs.",
+    "bookingsAbbr": "bkgs.",
     "empty": "No payouts found.",
     "createModal": {
       "title": "Create monthly payout",
@@ -725,6 +750,7 @@
       "periodFrom": "Period from",
       "periodTo": "Period to",
       "cancel": "Cancel",
+      "dismiss": "Cancel",
       "confirm": "Create payout"
     },
     "csvColumns": {
@@ -767,11 +793,15 @@
       "title": "Direct refund",
       "bookingLabel": "Booking",
       "bookingSearchPlaceholder": "Search by booking code...",
+      "bookingPlaceholder": "Search by booking code...",
+      "searching": "Searching...",
+      "noBookings": "No booking found.",
       "amountLabel": "Amount (RON)",
       "amountPlaceholder": "e.g. 150.00",
       "reasonLabel": "Reason",
       "reasonPlaceholder": "Describe the reason for the refund...",
       "cancel": "Cancel",
+      "dismiss": "Cancel",
       "confirm": "Issue refund"
     },
     "noun": "refunds"

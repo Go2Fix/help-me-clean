@@ -5,7 +5,9 @@ import {
   Star, Briefcase, Clock, MapPin, Calendar,
   ChevronRight, Brain, FileText, CalendarDays, User,
   MessageSquare, ClipboardList, Camera, AlignLeft, MessageCircle,
+  DollarSign,
 } from 'lucide-react';
+import { formatCurrency } from '@/utils/format';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import { cn } from '@go2fix/shared';
@@ -139,8 +141,8 @@ export default function DashboardPage() {
       {/* Key Metrics */}
       {isKpiLoading ? (
         <Card>
-          <div className="grid grid-cols-2 gap-4">
-            {Array.from({ length: 2 }).map((_, i) => (
+          <div className="grid grid-cols-3 gap-4">
+            {Array.from({ length: 3 }).map((_, i) => (
               <div key={i} className="animate-pulse flex items-center gap-3 py-3">
                 <div className="h-9 w-9 bg-gray-200 rounded-lg shrink-0" />
                 <div>
@@ -153,7 +155,7 @@ export default function DashboardPage() {
         </Card>
       ) : (
         <Card>
-          <div className="grid grid-cols-2 gap-x-6 gap-y-1 divide-x divide-gray-100">
+          <div className="grid grid-cols-3 gap-x-6 gap-y-1 divide-x divide-gray-100">
             <Metric
               icon={Star} label={t('worker:dashboard.rating')}
               value={stats?.averageRating ? Number(stats.averageRating).toFixed(1) : '--'}
@@ -164,6 +166,16 @@ export default function DashboardPage() {
                 icon={Briefcase} label={t('worker:dashboard.jobsCompleted')}
                 value={stats?.totalJobsCompleted ?? 0}
                 sub={t('worker:dashboard.thisMonth', { count: stats?.thisMonthJobs ?? 0 })}
+              />
+            </div>
+            <div className="pl-6">
+              {/* TODO: wire up earnings from API when available — thisMonthEarnings is returned by MY_WORKER_STATS */}
+              <Metric
+                icon={DollarSign} label={t('worker:dashboard.earnings')}
+                value={stats?.thisMonthEarnings != null
+                  ? formatCurrency(Number(stats.thisMonthEarnings))
+                  : '—'}
+                sub={t('worker:dashboard.earningsThisMonth')}
               />
             </div>
           </div>
@@ -249,7 +261,7 @@ export default function DashboardPage() {
                   <div className="flex items-center gap-2 mb-0.5">
                     <p className="text-sm font-semibold text-gray-900 truncate">{job.serviceName}</p>
                     <Badge variant={statusVariant[job.status] ?? 'default'} className="shrink-0">
-                      {t(`worker:jobDetail.statusLabels.${job.status}`, { defaultValue: job.status })}
+                      {t(`bookingStatus.${job.status}`, { defaultValue: job.status })}
                     </Badge>
                     {job.category && (
                       <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-medium shrink-0">

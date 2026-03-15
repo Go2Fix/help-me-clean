@@ -39,10 +39,13 @@ import {
   MY_CONNECT_STATUS,
   MY_COMPANY_SERVICE_AREAS,
 } from '@/graphql/operations';
+import { formatDate, formatCurrency } from '@/utils/format';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const statusBadgeVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
+  PENDING: 'default',
+  ASSIGNED: 'warning',
   CONFIRMED: 'info',
   IN_PROGRESS: 'info',
   COMPLETED: 'success',
@@ -100,7 +103,7 @@ function CustomTooltip({
       <p className="text-sm font-medium text-gray-900 mb-1">{label}</p>
       {payload.map((entry) => (
         <p key={entry.dataKey} className="text-sm" style={{ color: entry.color }}>
-          {entry.dataKey === 'revenue' ? revenueLabel : commissionLabel}: {Number(entry.value).toFixed(2)} RON
+          {entry.dataKey === 'revenue' ? revenueLabel : commissionLabel}: {formatCurrency(Number(entry.value))}
         </p>
       ))}
     </div>
@@ -111,14 +114,7 @@ function CustomTooltip({
 
 export default function DashboardPage() {
   const navigate = useNavigate();
-  const { t, i18n } = useTranslation(['dashboard', 'company']);
-
-  const locale = i18n.language === 'en' ? 'en-GB' : 'ro-RO';
-
-  function formatDate(dateStr: string): string {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString(locale, { day: '2-digit', month: 'short' });
-  }
+  const { t } = useTranslation(['dashboard', 'company']);
 
   // Date range for chart: last 30 days
   const { from, to } = useMemo(() => {
@@ -140,6 +136,9 @@ export default function DashboardPage() {
   const { data: bookingsData, loading: bookingsLoading } = useQuery(COMPANY_BOOKINGS, {
     variables: { first: 5 },
   });
+  const { data: pendingBookingsData, loading: pendingBookingsLoading } = useQuery(COMPANY_BOOKINGS, {
+    variables: { status: 'PENDING', first: 0 },
+  });
   const { data: subsData, loading: subsLoading } = useQuery(COMPANY_SUBSCRIPTIONS, {
     variables: { limit: 5 },
   });
@@ -158,7 +157,9 @@ export default function DashboardPage() {
     .filter((s) => s.status === 'ACTIVE')
     .reduce((sum, s) => sum + (s.monthlyAmount ?? 0), 0);
 
-  const isKpiLoading = companyLoading || financialLoading;
+  const pendingOrdersCount: number = pendingBookingsData?.companyBookings?.totalCount ?? 0;
+
+  const isKpiLoading = companyLoading || financialLoading || pendingBookingsLoading;
 
   // Setup checklist
   const REQUIRED_COMPANY_DOC_TYPES = ['certificat_constatator', 'asigurare_raspundere_civila', 'cui_document'];
@@ -184,8 +185,7 @@ export default function DashboardPage() {
         revenue: Number(point.revenue),
         commission: Number(point.commission),
       })),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [revenuePoints, locale],
+    [revenuePoints],
   );
 
   const subStatusLabel = (status: string) => {
@@ -214,7 +214,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <div>
+    <div className="space-y-6">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">
@@ -261,15 +261,26 @@ export default function DashboardPage() {
               <Metric icon={Star} label={t('company:dashboard.metrics.avgRating')} value={company?.ratingAvg ? Number(company.ratingAvg).toFixed(1) : '--'} />
             </div>
             <div className="space-y-1 pt-3 md:pt-0 md:pl-6">
-              <Metric icon={TrendingUp} label={t('company:dashboard.metrics.totalRevenue')} value={`${Number(financial?.totalRevenue ?? 0).toFixed(2)} RON`} />
-              <Metric icon={Wallet} label={t('company:dashboard.metrics.netRevenue')} value={`${Number(financial?.netPayout ?? 0).toFixed(2)} RON`} />
+              <Metric icon={TrendingUp} label={t('company:dashboard.metrics.totalRevenue')} value={formatCurrency(Number(financial?.totalRevenue ?? 0))} />
+              <Metric icon={Wallet} label={t('company:dashboard.metrics.netRevenue')} value={formatCurrency(Number(financial?.netPayout ?? 0))} />
             </div>
             <div className="space-y-1 pt-3 md:pt-0 md:pl-6">
-              <Metric icon={Receipt} label={t('company:dashboard.metrics.platformCommission')} value={`${Number(financial?.totalCommission ?? 0).toFixed(2)} RON`} />
+              <Metric icon={Receipt} label={t('company:dashboard.metrics.platformCommission')} value={formatCurrency(Number(financial?.totalCommission ?? 0))} />
+              <div className={`flex items-center gap-3 py-3 px-3 rounded-xl border ${pendingOrdersCount > 0 ? 'border-amber-200 bg-amber-50' : 'border-gray-100 bg-gray-50'}`}>
+                <div className="h-9 w-9 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
+                  <ClipboardList className="h-4.5 w-4.5 text-amber-600" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs text-gray-500 leading-tight">{t('company:dashboard.metrics.pendingOrders')}</p>
+                  <p className={`text-lg leading-tight ${pendingOrdersCount > 0 ? 'text-amber-700 font-semibold' : 'text-gray-900 font-semibold'}`}>
+                    {pendingOrdersCount}
+                  </p>
+                </div>
+              </div>
             </div>
             <div className="space-y-1 pt-3 md:pt-0 md:pl-6">
               <Metric icon={Repeat} label={t('company:dashboard.metrics.activeSubscriptions')} value={activeSubsCount} />
-              <Metric icon={Repeat} label={t('company:dashboard.metrics.monthlyRecurring')} value={`${(monthlyRecurring / 100).toFixed(2)} RON`} />
+              <Metric icon={Repeat} label={t('company:dashboard.metrics.monthlyRecurring')} value={formatCurrency(monthlyRecurring / 100)} />
             </div>
           </div>
         </Card>
@@ -389,7 +400,7 @@ export default function DashboardPage() {
                   </div>
                   <div className="flex items-center gap-3 ml-4">
                     <p className="text-lg font-bold text-gray-900 whitespace-nowrap">
-                      {Number(booking.estimatedTotal ?? 0).toFixed(2)} RON
+                      {formatCurrency(Number(booking.estimatedTotal ?? 0))}
                     </p>
                     <ChevronRight className="h-5 w-5 text-gray-400" />
                   </div>
@@ -457,7 +468,7 @@ export default function DashboardPage() {
                     </div>
                     <div className="flex items-center gap-3 ml-4">
                       <p className="text-lg font-bold text-gray-900 whitespace-nowrap">
-                        {(sub.monthlyAmount / 100).toFixed(0)} {t('company:dashboard.recentSubscriptions.perMonth')}
+                        {formatCurrency(sub.monthlyAmount / 100)} {t('company:dashboard.recentSubscriptions.perMonth')}
                       </p>
                       <ChevronRight className="h-5 w-5 text-gray-400" />
                     </div>

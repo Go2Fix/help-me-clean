@@ -10,7 +10,10 @@
     "settings": "Profil & Setări",
     "help": "Ajutor",
     "subtitle": "Contul meu",
-    "newBooking": "Rezervare nouă"
+    "newBooking": "Rezervare nouă",
+    "groupServices": "Servicii",
+    "groupFinancial": "Financiar",
+    "groupAccount": "Cont"
   },
   "dashboard": {
     "welcomeBack": "Bun venit",
@@ -47,6 +50,7 @@
       "paymentDesc": "Necesară pentru a plăti serviciile"
     },
     "quickLinks": {
+      "newBooking": "Rezervare nouă",
       "myBookings": "Comenzile mele",
       "support": "Contact Suport",
       "addresses": "Adresele mele",

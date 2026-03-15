@@ -53,7 +53,7 @@ export default function SEOHead({
     <Helmet>
       <title>{fullTitle}</title>
       <meta name="description" content={description} />
-      {noIndex && <meta name="robots" content="noindex, nofollow" />}
+      <meta name="robots" content={noIndex ? "noindex, nofollow" : "index, follow"} />
       {canonical && <link rel="canonical" href={canonical} />}
 
       {/* hreflang — signals language variants to Google */}

@@ -3,7 +3,8 @@
     "dashboard": "Dashboard",
     "jobs": "Comenzi",
     "schedule": "Program",
-    "documents": "Contact Suport",
+    "messages": "Mesaje",
+    "documents": "Documente",
     "personalityTest": "Test personalitate",
     "settings": "Profil",
     "subtitle": "Worker Dashboard"
@@ -44,7 +45,9 @@
     "allReviews": "Toate",
     "noReviewsYet": "Nicio recenzie inca",
     "noReviewsYetDesc": "Recenziile vor aparea dupa finalizarea primelor comenzi.",
-    "reviewerFallback": "Client"
+    "reviewerFallback": "Client",
+    "earnings": "Câștiguri",
+    "earningsThisMonth": "Luna aceasta"
   },
   "personalityTest": {
     "loading": "Se incarca testul...",

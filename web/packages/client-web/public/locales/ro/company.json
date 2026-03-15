@@ -11,7 +11,10 @@
     "invoices": "Facturi",
     "documents": "Documente",
     "settings": "Setări",
-    "subtitle": "Company Dashboard"
+    "subtitle": "Company Dashboard",
+    "groupOperations": "Operațiuni",
+    "groupTeam": "Echipă",
+    "groupFinancial": "Financiar"
   },
   "dashboard": {
     "welcome": "Bun venit",
@@ -42,7 +45,8 @@
       "netRevenue": "Venit net",
       "platformCommission": "Comision platforma",
       "activeSubscriptions": "Abonamente active",
-      "monthlyRecurring": "Venit lunar recurent"
+      "monthlyRecurring": "Venit lunar recurent",
+      "pendingOrders": "Comenzi în așteptare"
     },
     "chart": {
       "title": "Venituri ultimele 30 zile",

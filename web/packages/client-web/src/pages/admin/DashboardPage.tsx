@@ -1,4 +1,5 @@
 import { useQuery } from '@apollo/client';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Users,
@@ -6,6 +7,7 @@ import {
   CalendarDays,
   Banknote,
   TrendingUp,
+  TrendingDown,
   Star,
   FileText,
   UserPlus,
@@ -28,7 +30,8 @@ import {
 } from 'recharts';
 import { Link } from 'react-router-dom';
 import Card from '@/components/ui/Card';
-import { formatCurrency } from '@/utils/format';
+import Button from '@/components/ui/Button';
+import { formatCurrency, formatDate } from '@/utils/format';
 import {
   PLATFORM_STATS,
   BOOKINGS_BY_STATUS,
@@ -62,7 +65,7 @@ function TrendBadge({ current, previous }: { current: number; previous: number }
         up ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-600'
       }`}
     >
-      {up ? '↑' : '↓'} {Math.abs(pct).toFixed(0)}%
+      {up ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />} {Math.abs(pct).toFixed(0)}%
     </span>
   );
 }
@@ -113,14 +116,12 @@ function AttentionRow({
   count,
   linkTo,
   items,
-  locale,
 }: {
   icon: React.ElementType;
   label: string;
   count: number;
   linkTo: string;
   items: AttentionItem[];
-  locale: string;
 }) {
   if (count === 0) return null;
   return (
@@ -151,7 +152,7 @@ function AttentionRow({
                 )}
               </div>
               <span className="text-xs text-gray-400 shrink-0">
-                {new Date(item.date).toLocaleDateString(locale)}
+                {formatDate(item.date)}
               </span>
               <ChevronRight className="h-3 w-3 text-gray-300 shrink-0" />
             </Link>
@@ -165,9 +166,8 @@ function AttentionRow({
 // ─── Component ──────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
-  const { t, i18n } = useTranslation(['dashboard', 'admin']);
-
-  const locale = i18n.language === 'en' ? 'en-GB' : 'ro-RO';
+  const navigate = useNavigate();
+  const { t } = useTranslation(['dashboard', 'admin']);
 
   const { data: statsData, loading: statsLoading } = useQuery(PLATFORM_STATS, {
     pollInterval: 30000,
@@ -194,9 +194,9 @@ export default function DashboardPage() {
   const pendingCount = (reviewCount?.total ?? (pendingApps.length + pendingCompanyDocs.length + pendingWorkerDocs.length));
 
   return (
-    <div>
+    <div className="space-y-6">
       {/* Header */}
-      <div className="mb-6">
+      <div>
         <h1 className="text-2xl font-bold text-gray-900">{t('admin:dashboard.title')}</h1>
         <p className="text-gray-500 mt-1">{t('admin:dashboard.subtitle')}</p>
       </div>
@@ -284,20 +284,20 @@ export default function DashboardPage() {
       ) : null}
 
       {/* Necesită atenție */}
-      <Card className="mt-4">
+      <Card>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2.5">
             <div className="p-1.5 rounded-lg bg-blue-50">
               <Inbox className="h-4 w-4 text-blue-600" />
             </div>
-            <h3 className="text-sm font-semibold text-gray-900">Necesită atenție</h3>
+            <h3 className="text-sm font-semibold text-gray-900">{t('admin:dashboard.attention.title')}</h3>
             {pendingCount > 0 ? (
               <span className="inline-flex items-center justify-center h-5 min-w-5 px-1.5 rounded-full bg-red-500 text-white text-xs font-bold">
                 {pendingCount}
               </span>
             ) : (
               <span className="inline-flex items-center gap-1 text-xs text-emerald-600 font-medium">
-                <CheckCircle2 className="h-3.5 w-3.5" /> Totul este la zi
+                <CheckCircle2 className="h-3.5 w-3.5" /> {t('admin:dashboard.attention.allUpToDate')}
               </span>
             )}
           </div>
@@ -305,21 +305,21 @@ export default function DashboardPage() {
             to="/admin/aprobari"
             className="text-xs text-primary hover:underline flex items-center gap-1"
           >
-            Vezi toate <ArrowRight className="h-3 w-3" />
+            {t('admin:dashboard.attention.viewAll')} <ArrowRight className="h-3 w-3" />
           </Link>
         </div>
 
         {pendingCount === 0 ? (
           <div className="flex flex-col items-center justify-center py-6 text-gray-400">
             <CheckCircle2 className="h-8 w-8 mb-2 text-emerald-300" />
-            <p className="text-sm">Nu există acțiuni în așteptare.</p>
+            <p className="text-sm">{t('admin:dashboard.attention.noPendingActions')}</p>
           </div>
         ) : (
           <div className="space-y-3">
             {/* Row: Company Applications */}
             <AttentionRow
               icon={Building2}
-              label="Aplicații companii"
+              label={t('admin:dashboard.attention.companyApplications')}
               count={pendingApps.length}
               linkTo="/admin/aprobari"
               items={pendingApps.slice(0, 2).map((a: { id: string; companyName: string; city: string; county: string; createdAt: string }) => ({
@@ -329,12 +329,11 @@ export default function DashboardPage() {
                 date: a.createdAt,
                 href: `/admin/companii/${a.id}?tab=documente`,
               }))}
-              locale={locale}
             />
             {/* Row: Company Documents */}
             <AttentionRow
               icon={FileText}
-              label="Documente companii"
+              label={t('admin:dashboard.attention.companyDocuments')}
               count={pendingCompanyDocs.length}
               linkTo="/admin/aprobari?tab=documente-companie"
               items={pendingCompanyDocs.slice(0, 2).map((d: { id: string; fileName: string; company?: { id: string; companyName: string }; uploadedAt: string }) => ({
@@ -344,12 +343,11 @@ export default function DashboardPage() {
                 date: d.uploadedAt,
                 href: d.company ? `/admin/companii/${d.company.id}?tab=documente` : '/admin/aprobari?tab=documente-companie',
               }))}
-              locale={locale}
             />
             {/* Row: Worker Documents */}
             <AttentionRow
               icon={Users}
-              label="Documente angajați"
+              label={t('admin:dashboard.attention.workerDocuments')}
               count={pendingWorkerDocs.length}
               linkTo="/admin/aprobari?tab=documente-angajat"
               items={pendingWorkerDocs.slice(0, 2).map((d: { id: string; fileName: string; worker?: { fullName: string; company?: { companyName: string } }; uploadedAt: string }) => ({
@@ -359,23 +357,21 @@ export default function DashboardPage() {
                 date: d.uploadedAt,
                 href: '/admin/aprobari?tab=documente-angajat',
               }))}
-              locale={locale}
             />
             {/* Row: Category Requests */}
             <AttentionRow
               icon={Tag}
-              label="Cereri categorii"
+              label={t('admin:dashboard.attention.categoryRequests')}
               count={categoryRequestsCount}
               linkTo="/admin/aprobari?tab=categorii"
               items={[]}
-              locale={locale}
             />
           </div>
         )}
       </Card>
 
       {/* Charts + Status */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Revenue Chart — 2 cols */}
         <Card className="lg:col-span-2">
           <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">{t('admin:dashboard.charts.revenueByMonth')}</h3>
@@ -428,16 +424,16 @@ export default function DashboardPage() {
 
 
       {/* Quick Links */}
-      <div className="mt-6 flex flex-wrap gap-3">
-        <Link to="/admin/companii" className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:border-gray-300 hover:text-gray-900 transition-colors">
+      <div className="flex flex-wrap gap-3">
+        <Button variant="outline" size="sm" onClick={() => navigate('/admin/companii')}>
           <Building2 className="h-4 w-4" /> {t('admin:dashboard.quickLinks.companies')}
-        </Link>
-        <Link to="/admin/comenzi" className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:border-gray-300 hover:text-gray-900 transition-colors">
+        </Button>
+        <Button variant="outline" size="sm" onClick={() => navigate('/admin/comenzi')}>
           <CalendarDays className="h-4 w-4" /> {t('admin:dashboard.quickLinks.bookings')}
-        </Link>
-        <Link to="/admin/plati" className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:border-gray-300 hover:text-gray-900 transition-colors">
+        </Button>
+        <Button variant="outline" size="sm" onClick={() => navigate('/admin/plati')}>
           <Banknote className="h-4 w-4" /> {t('admin:dashboard.quickLinks.payments')}
-        </Link>
+        </Button>
       </div>
     </div>
   );

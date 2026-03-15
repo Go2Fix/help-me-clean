@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import RescheduleModal from '@/components/booking/RescheduleModal';
@@ -60,16 +61,6 @@ function formatDateTime(date: string, locale: string): string {
   });
 }
 
-const statusBadgeVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
-  ASSIGNED: 'info',
-  CONFIRMED: 'info',
-  IN_PROGRESS: 'info',
-  COMPLETED: 'success',
-  CANCELLED: 'danger',
-  CANCELLED_BY_CLIENT: 'danger',
-  CANCELLED_BY_COMPANY: 'danger',
-  CANCELLED_BY_ADMIN: 'danger',
-};
 
 const paymentBadgeVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
   PAID: 'success',
@@ -195,7 +186,7 @@ interface TimelineStep {
 export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { t, i18n } = useTranslation('company');
+  const { t, i18n } = useTranslation(['company', 'dashboard']);
   const locale = i18n.language === 'en' ? 'en-GB' : 'ro-RO';
 
   const statusLabel: Record<string, string> = {
@@ -500,9 +491,7 @@ export default function OrderDetailPage() {
             <h1 className="text-2xl font-bold text-gray-900">
               {t('orderDetail.orderPrefix')}{booking.referenceCode}
             </h1>
-            <Badge variant={statusBadgeVariant[booking.status] || 'default'}>
-              {statusLabel[booking.status] || booking.status}
-            </Badge>
+            <StatusBadge status={booking.status} label={t(`bookingStatus.${booking.status}`)} />
             {booking.recurringGroupId && (
               <Badge variant="info">
                 <Repeat className="h-3 w-3 mr-1" />

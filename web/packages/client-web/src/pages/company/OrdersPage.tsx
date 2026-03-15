@@ -4,12 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ClipboardList, ChevronRight, Search, Repeat } from 'lucide-react';
 import Card from '@/components/ui/Card';
-import Badge from '@/components/ui/Badge';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { SEARCH_COMPANY_BOOKINGS } from '@/graphql/operations';
+import { formatDate, formatCurrency } from '@/utils/format';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -35,36 +36,12 @@ interface BookingEdge {
 
 const LIMIT = 20;
 
-const statusBadgeVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
-  ASSIGNED: 'info',
-  CONFIRMED: 'info',
-  IN_PROGRESS: 'info',
-  COMPLETED: 'success',
-  CANCELLED_BY_CLIENT: 'danger',
-  CANCELLED_BY_COMPANY: 'danger',
-  CANCELLED_BY_ADMIN: 'danger',
-};
-
-function formatRON(amount: string): string {
-  return amount + ' lei';
-}
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function OrdersPage() {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation(['dashboard', 'company']);
-
-  const locale = i18n.language === 'en' ? 'en-GB' : 'ro-RO';
-
-  function formatDate(dateStr: string): string {
-    const d = new Date(dateStr + 'T00:00:00');
-    return d.toLocaleDateString(locale, {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    });
-  }
 
   const statusFilterOptions = [
     { value: '', label: t('company:orders.allStatuses') },
@@ -107,7 +84,6 @@ export default function OrdersPage() {
   const totalCount: number = data?.searchCompanyBookings?.totalCount ?? 0;
   const totalPages = Math.max(1, Math.ceil(totalCount / LIMIT));
 
-  const statusLabel = (status: string) => t(`bookingStatus.${status}`) || status;
 
   return (
     <div className="max-w-full overflow-hidden">
@@ -160,8 +136,12 @@ export default function OrdersPage() {
 
       {/* Table Card */}
       <Card padding={false}>
-        {loading ? (
-          <LoadingSpinner text={t('company:orders.loading')} />
+        {loading && !data ? (
+          <div className="p-4 space-y-3">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Skeleton key={i} className="h-12 w-full" />
+            ))}
+          </div>
         ) : bookings.length === 0 ? (
           <div className="text-center py-12 px-6">
             <ClipboardList className="h-12 w-12 text-gray-300 mx-auto mb-4" />
@@ -209,12 +189,10 @@ export default function OrdersPage() {
                       {booking.scheduledDate ? formatDate(booking.scheduledDate) : '--'}
                     </td>
                     <td className="px-3 md:px-6 py-3 md:py-4">
-                      <Badge variant={statusBadgeVariant[booking.status || 'CONFIRMED']}>
-                        {statusLabel(booking.status || 'CONFIRMED')}
-                      </Badge>
+                      <StatusBadge status={booking.status || 'CONFIRMED'} label={t(`bookingStatus.${booking.status || 'CONFIRMED'}`)} />
                     </td>
                     <td className="px-3 md:px-6 py-3 md:py-4 text-right font-bold text-gray-900 text-xs md:text-sm whitespace-nowrap">
-                      {formatRON(booking.estimatedTotal)}
+                      {formatCurrency(parseFloat(booking.estimatedTotal))}
                     </td>
                     <td className="px-2 md:px-6 py-3 md:py-4">
                       <ChevronRight className="h-4 w-4 text-gray-400" />

@@ -17,6 +17,7 @@ import { useAuth } from '@/context/AuthContext';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { MY_BOOKINGS, MY_RECURRING_GROUPS } from '@/graphql/operations';
 
@@ -63,19 +64,6 @@ interface RecurringGroup {
 
 const PAGE_SIZE = 8;
 
-const STATUS_CONFIG: Record<
-  string,
-  { variant: 'success' | 'warning' | 'danger' | 'info' | 'default' }
-> = {
-  PENDING:             { variant: 'warning' },
-  ASSIGNED:            { variant: 'info' },
-  CONFIRMED:           { variant: 'info' },
-  IN_PROGRESS:         { variant: 'warning' },
-  COMPLETED:           { variant: 'success' },
-  CANCELLED_BY_CLIENT: { variant: 'danger' },
-  CANCELLED_BY_COMPANY:{ variant: 'danger' },
-  CANCELLED_BY_ADMIN:  { variant: 'danger' },
-};
 
 const SERVICE_ICONS: Record<string, string> = {
   STANDARD_CLEANING:    '\u{1F9F9}',
@@ -264,10 +252,6 @@ export default function MyBookingsPage() {
           {!loading && !error && bookings.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {bookings.map((booking) => {
-                const statusCfg = STATUS_CONFIG[booking.status] ?? {
-                  variant: 'default' as const,
-                };
-                const statusLabel = t(`client:bookings.status.${booking.status}`, { defaultValue: booking.status });
                 return (
                   <Card
                     key={booking.id}
@@ -280,7 +264,7 @@ export default function MyBookingsPage() {
                         {SERVICE_ICONS[booking.serviceType] ?? '\u{1F9F9}'}
                       </span>
                       <div className="flex items-center gap-2 flex-wrap justify-end">
-                        <Badge variant={statusCfg.variant}>{statusLabel}</Badge>
+                        <StatusBadge status={booking.status} label={t(`bookingStatus.${booking.status}`)} />
                         {booking.recurringGroupId && (
                           <span className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
                             <Repeat className="h-3 w-3" />

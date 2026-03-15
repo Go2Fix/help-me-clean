@@ -29,7 +29,7 @@ export default function ClientLayout() {
         ],
       },
       {
-        label: 'Servicii',
+        label: t('nav.groupServices'),
         items: [
           { to: '/cont/comenzi', icon: ClipboardList, label: t('nav.bookings') },
           { to: '/cont/abonamente', icon: Repeat, label: t('nav.subscriptions') },
@@ -37,14 +37,14 @@ export default function ClientLayout() {
         ],
       },
       {
-        label: 'Financiar',
+        label: t('nav.groupFinancial'),
         items: [
           { to: '/cont/plati', icon: CreditCard, label: t('nav.payments') },
           { to: '/cont/facturi', icon: FileText, label: t('nav.invoices') },
         ],
       },
       {
-        label: 'Cont',
+        label: t('nav.groupAccount'),
         items: [
           { to: '/cont/adrese', icon: MapPin, label: t('nav.addresses') },
           { to: '/cont/setari', icon: Settings, label: t('nav.settings') },

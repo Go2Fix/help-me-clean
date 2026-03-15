@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Search, Repeat, Calendar, User, Building2, Download } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Select from '@/components/ui/Select';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 import AdminPagination from '@/components/admin/AdminPagination';
 import { useDebounce } from '@/hooks/useDebounce';
 import { formatCurrency, formatDate, exportToCSV } from '@/utils/format';
@@ -16,17 +17,6 @@ const PAGE_SIZE = 20;
 
 type StatusFilter = 'ALL' | 'PENDING' | 'ASSIGNED' | 'CONFIRMED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
 
-const statusDotColor: Record<string, string> = {
-  PENDING: 'bg-amber-400',
-  ASSIGNED: 'bg-blue-400',
-  CONFIRMED: 'bg-blue-500',
-  IN_PROGRESS: 'bg-indigo-500',
-  COMPLETED: 'bg-emerald-500',
-  CANCELLED: 'bg-red-400',
-  CANCELLED_BY_CLIENT: 'bg-red-400',
-  CANCELLED_BY_COMPANY: 'bg-red-400',
-  CANCELLED_BY_ADMIN: 'bg-red-400',
-};
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -239,7 +229,7 @@ export default function BookingsPage() {
                 onClick={() => navigate(`/admin/comenzi/${booking.id}`)}
                 className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors"
               >
-                <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${statusDotColor[booking.status] ?? 'bg-gray-300'}`} />
+                <StatusBadge status={booking.status} label={t(`bookingStatus.${booking.status}`)} />
 
                 <span className="text-sm font-semibold text-gray-900 w-20 shrink-0">
                   {booking.referenceCode}
@@ -279,9 +269,6 @@ export default function BookingsPage() {
                   {formatCurrency(booking.estimatedTotal)}
                 </span>
 
-                <span className="text-xs text-gray-500 shrink-0 w-24 text-right hidden sm:block">
-                  {getStatusLabel(booking.status)}
-                </span>
               </div>
             ))}
           </div>

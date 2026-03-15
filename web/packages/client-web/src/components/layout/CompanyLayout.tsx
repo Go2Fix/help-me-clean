@@ -23,35 +23,31 @@ export default function CompanyLayout() {
     () => [
       {
         items: [
-          { to: '/firma', icon: LayoutDashboard, label: t('company:nav.dashboard') },
+          { to: '/firma', icon: LayoutDashboard, label: t('nav.dashboard') },
         ],
       },
       {
-        label: 'Operațiuni',
+        label: t('nav.groupOperations'),
         items: [
-          { to: '/firma/comenzi', icon: ClipboardList, label: t('company:nav.orders') },
-          { to: '/firma/program', icon: CalendarDays, label: t('company:nav.calendar') },
-          { to: '/firma/mesaje', icon: MessageSquare, label: t('company:nav.messages') },
+          { to: '/firma/comenzi', icon: ClipboardList, label: t('nav.orders') },
+          { to: '/firma/program', icon: CalendarDays, label: t('nav.calendar') },
+          { to: '/firma/mesaje', icon: MessageSquare, label: t('nav.messages') },
         ],
       },
       {
-        label: 'Echipă',
+        label: t('nav.groupTeam'),
         items: [
-          { to: '/firma/echipa', icon: Users, label: t('company:nav.team') },
-          { to: '/firma/recenzii', icon: Star, label: t('company:nav.reviews') },
+          { to: '/firma/echipa', icon: Users, label: t('nav.team') },
+          { to: '/firma/recenzii', icon: Star, label: t('nav.reviews') },
         ],
       },
       {
-        label: 'Financiar',
+        label: t('nav.groupFinancial'),
         items: [
-          { to: '/firma/abonamente', icon: Repeat, label: t('company:nav.subscriptions') },
-          { to: '/firma/plati', icon: Wallet, label: t('company:nav.payouts') },
-          { to: '/firma/facturi', icon: FileText, label: t('company:nav.invoices') },
-        ],
-      },
-      {
-        items: [
-          { to: '/firma/setari', icon: Settings, label: 'Cont' },
+          { to: '/firma/abonamente', icon: Repeat, label: t('nav.subscriptions') },
+          { to: '/firma/plati', icon: Wallet, label: t('nav.payouts') },
+          { to: '/firma/facturi', icon: FileText, label: t('nav.invoices') },
+          { to: '/firma/setari', icon: Settings, label: t('nav.settings') },
         ],
       },
     ],
@@ -63,7 +59,7 @@ export default function CompanyLayout() {
       navItems={[]}
       navGroups={navGroups}
       logoIcon={Building2}
-      subtitle={t('company:nav.subtitle')}
+      subtitle={t('nav.subtitle')}
       homeRoute="/firma"
       wrapper={(children) => <CompanyStatusGate>{children}</CompanyStatusGate>}
     />

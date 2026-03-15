@@ -4,26 +4,17 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ClipboardList, ChevronRight, Search, Repeat } from 'lucide-react';
 import Card from '@/components/ui/Card';
-import Badge from '@/components/ui/Badge';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { SEARCH_WORKER_BOOKINGS } from '@/graphql/operations';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const LIMIT = 20;
 
-const statusBadgeVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
-  ASSIGNED: 'info',
-  CONFIRMED: 'info',
-  IN_PROGRESS: 'info',
-  COMPLETED: 'success',
-  CANCELLED_BY_CLIENT: 'danger',
-  CANCELLED_BY_COMPANY: 'danger',
-  CANCELLED_BY_ADMIN: 'danger',
-};
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
@@ -134,8 +125,12 @@ export default function OrdersPage() {
 
       {/* Table Card */}
       <Card padding={false}>
-        {loading ? (
-          <LoadingSpinner text={t('worker:orders.loading')} />
+        {loading && !data ? (
+          <div className="p-4 space-y-3">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Skeleton key={i} className="h-12 w-full" />
+            ))}
+          </div>
         ) : bookings.length === 0 ? (
           <div className="text-center py-12 px-6">
             <ClipboardList className="h-12 w-12 text-gray-300 mx-auto mb-4" />
@@ -207,9 +202,7 @@ export default function OrdersPage() {
                         </div>
                       </td>
                       <td className="px-3 md:px-6 py-3 md:py-4">
-                        <Badge variant={statusBadgeVariant[status] ?? 'default'}>
-                          {t(`worker:orders.statusLabels.${status}`, { defaultValue: status })}
-                        </Badge>
+                        <StatusBadge status={status} label={t(`bookingStatus.${status}`)} />
                       </td>
                       <td className="px-2 md:px-6 py-3 md:py-4">
                         <ChevronRight className="h-4 w-4 text-gray-400" />

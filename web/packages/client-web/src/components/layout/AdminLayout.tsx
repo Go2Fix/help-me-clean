@@ -18,7 +18,7 @@ import {
   Tag,
   Scale,
   Tags,
-  Inbox,
+  ClipboardCheck,
   Clock,
 } from 'lucide-react';
 import DashboardLayout, { NavGroup } from './DashboardLayout';
@@ -47,19 +47,28 @@ export default function AdminLayout() {
       ],
     },
     {
-      label: 'Echipe',
+      label: t('nav.groupTeams'),
       items: [
-        { to: '/admin/aprobari', icon: Inbox, label: 'Aprobări', badge: totalPendingCount },
+        { to: '/admin/aprobari', icon: ClipboardCheck, label: t('nav.approvals'), badge: totalPendingCount },
         { to: '/admin/companii', icon: Building2, label: t('nav.companies') },
         { to: '/admin/utilizatori', icon: Users, label: t('nav.users') },
-        { to: '/admin/lista-asteptare', icon: Clock, label: 'Listă așteptare' },
+        { to: '/admin/lista-asteptare', icon: Clock, label: t('nav.waitlist') },
       ],
     },
     {
-      label: 'Financiar',
+      label: t('nav.groupOperations'),
       items: [
         { to: '/admin/comenzi', icon: ClipboardList, label: t('nav.bookings') },
         { to: '/admin/abonamente', icon: Repeat, label: t('nav.subscriptions') },
+        { to: '/admin/recenzii', icon: Star, label: t('nav.reviews') },
+        { to: '/admin/promo-coduri', icon: Tag, label: t('nav.promoCodes') },
+        { to: '/admin/dispute', icon: Scale, label: t('nav.disputes') },
+        { to: '/admin/categorii-cereri', icon: Tags, label: t('nav.categoryRequests'), badge: pendingCategoryCount },
+      ],
+    },
+    {
+      label: t('nav.groupFinancial'),
+      items: [
         { to: '/admin/plati', icon: Wallet, label: t('nav.payments') },
         { to: '/admin/viramente', icon: Banknote, label: t('nav.payouts') },
         { to: '/admin/rambursari', icon: RefreshCw, label: t('nav.refunds') },
@@ -67,13 +76,14 @@ export default function AdminLayout() {
       ],
     },
     {
-      label: 'Platformă',
+      label: t('nav.groupReports'),
       items: [
         { to: '/admin/rapoarte', icon: BarChart3, label: t('nav.reports') },
-        { to: '/admin/recenzii', icon: Star, label: t('nav.reviews') },
-        { to: '/admin/promo-coduri', icon: Tag, label: t('nav.promoCodes') },
-        { to: '/admin/dispute', icon: Scale, label: t('nav.disputes') },
-        { to: '/admin/categorii-cereri', icon: Tags, label: 'Cereri categorii', badge: pendingCategoryCount },
+      ],
+    },
+    {
+      label: t('nav.groupSystem'),
+      items: [
         { to: '/admin/setari', icon: Settings, label: t('nav.settings') },
       ],
     },

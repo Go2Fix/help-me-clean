@@ -3,6 +3,7 @@
     "dashboard": "Dashboard",
     "jobs": "My Orders",
     "schedule": "Schedule",
+    "messages": "Messages",
     "documents": "Documents",
     "personalityTest": "Personality test",
     "settings": "My Profile",
@@ -44,7 +45,9 @@
     "allReviews": "All",
     "noReviewsYet": "No reviews yet",
     "noReviewsYetDesc": "Reviews will appear after completing your first orders.",
-    "reviewerFallback": "Client"
+    "reviewerFallback": "Client",
+    "earnings": "Earnings",
+    "earningsThisMonth": "This month"
   },
   "personalityTest": {
     "loading": "Loading test...",

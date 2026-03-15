@@ -10,7 +10,10 @@
     "settings": "Profile & Settings",
     "help": "Help",
     "subtitle": "My Account",
-    "newBooking": "New Booking"
+    "newBooking": "New Booking",
+    "groupServices": "Services",
+    "groupFinancial": "Financial",
+    "groupAccount": "Account"
   },
   "dashboard": {
     "welcomeBack": "Welcome back",
@@ -47,6 +50,7 @@
       "paymentDesc": "Required to pay for services"
     },
     "quickLinks": {
+      "newBooking": "New Booking",
       "myBookings": "My Bookings",
       "support": "Support Contact",
       "addresses": "My Addresses",
